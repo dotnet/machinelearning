@@ -1699,8 +1699,10 @@ namespace Microsoft.ML.Tests
 
 
 
-        [Fact]
-        public void SelectColumnsOnnxTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ColumnSelectingOnnxTest(bool keepColumns)
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -1718,13 +1720,34 @@ namespace Microsoft.ML.Tests
                 new TextLoader.Column("Mitoses", DataKind.Int32, 9),
             });
 
-            var pipeline = mlContext.Transforms.ReplaceMissingValues("Size").Append(mlContext.Transforms.SelectColumns(new[] { "Size", "Shape", "Thickness", "Label" }));
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Size")
+                .Append(mlContext.Transforms.SelectColumns(new[] { "Size", "Shape", "Thickness", "Label" }));
+
+            if(!keepColumns)
+            {
+                // The ColumnSelectingTransformer can both select what columns to keep, as done above,
+                // or to choose what columns to drop.
+                //
+                // When keeping columns, it defaults to drop *all* hidden columns,
+                // when dropping columns it drops *all* the columns with the given names,
+                // but keeps the hidden columns with names not listed.
+                //
+                // Here, it drops columns:
+                pipeline = mlContext.Transforms.ReplaceMissingValues("Size")
+                .Append(mlContext.Transforms.DropColumns(new[] { "Adhesion", "EpithelialSize", "BlandChromatin", "NormalNucleoli", "Mitoses"}));
+
+                // Current implementation of OnnxTransformer drops *all* input columns that are used as inputs of
+                // the onnx model. So it will have a behavior similar to the SelectColumns, but will differ from DropColumns.
+            }
 
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
 
             var onnxFileName = "selectcolumns.onnx";
+            if (!keepColumns)
+                onnxFileName = "dropcolumns.onnx";
+
             var onnxModelPath = GetOutputPath(onnxFileName);
 
             SaveOnnxModel(onnxModel, onnxModelPath, null);
@@ -1739,11 +1762,29 @@ namespace Microsoft.ML.Tests
                 var onnxResult = onnxTransformer.Transform(dataView);
 
                 // Verify that onnx output has only the four columns we selected from the input
+                // And the the output of the onnxmodel has the same length as the output schema
                 Assert.Equal(4, outputNames.Length);
-                Assert.Equal("Size.output", outputNames[0]);
-                Assert.Equal("Shape.output", outputNames[1]);
-                Assert.Equal("Thickness.output", outputNames[2]);
-                Assert.Equal("Label.output", outputNames[3]);
+
+                if (keepColumns)
+                {
+                    // The order in the output of the onnx model is the same as in the SelectColumns parameters:
+                    Assert.Equal("Size.output", outputNames[0]);
+                    Assert.Equal("Shape.output", outputNames[1]);
+                    Assert.Equal("Thickness.output", outputNames[2]);
+                    Assert.Equal("Label.output", outputNames[3]);
+
+                    Assert.Equal(transformedData.Schema.Count, onnxResult.Schema.Count); // Both schemas have 4 columns
+                }
+                else
+                {
+                    // The order in the output of the onnx model is the same as in the text loader:
+                    Assert.Equal("Label.output", outputNames[0]);
+                    Assert.Equal("Thickness.output", outputNames[1]);
+                    Assert.Equal("Size.output", outputNames[2]);
+                    Assert.Equal("Shape.output", outputNames[3]);
+
+                    Assert.Equal(transformedData.Schema.Count - 1, onnxResult.Schema.Count); // transformedData schema keeps the column hidden by ReplaceMissingValues
+                }
 
                 CompareSelectedColumns<Single>("Size", "Size", transformedData, onnxResult);
                 CompareSelectedColumns<int>("Shape", "Shape", transformedData, onnxResult);
@@ -1751,11 +1792,156 @@ namespace Microsoft.ML.Tests
                 CompareSelectedColumns<bool>("Label", "Label", transformedData, onnxResult);
             }
 
-            onnxFileName = "SelectColumns.txt";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
-            var onnxTextModelPath = GetOutputPath(subDir, onnxFileName);
-            SaveOnnxModel(onnxModel, null, onnxTextModelPath);
-            CheckEquality(subDir, onnxFileName, digitsOfPrecision: 1);
+            if(keepColumns)
+            {
+                onnxFileName = "SelectColumns.txt";
+                var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
+                var onnxTextModelPath = GetOutputPath(subDir, onnxFileName);
+                SaveOnnxModel(onnxModel, null, onnxTextModelPath);
+                CheckEquality(subDir, onnxFileName, digitsOfPrecision: 1);
+            }
+
+            Done();
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ColumnSelectingOnnxTestColumnPropagation(bool saveToDisk)
+        {
+            // By default when exporting a ML.NET model to Onnx,
+            // the onnx model will contain an "input node" for every
+            // column in the input schema of the input dataview.
+            // "Output nodes" for each one of the columns in the output
+            // schema are also added. The input columns that were originally
+            // propagated to the output, also get a connection in the onnx model
+            // to propagate that information from each input node to the corresponding
+            // output node.
+            //
+            // Only when using the ColumnSelectingTransformer is it possible to drop
+            // input columns to make them dissapear from the output. Since they dissapear from
+            // the output schema, the exported onnx model doesn't contain output nodes for the
+            // dropped columns. The OnnxTransformer shouldn't propagate this input columns to the output
+            // but it should drop them as well.
+            //
+            // On the other hand, OnnxTransformer should propagate all the columns that are in its input schema,
+            // but which are not mentioned in the onnx model (particullarly not mentioned in the input nodes),
+            // because this would mean that the onnx model should simply ignore them, without dropping them.
+            //
+            // In general, to support the above behavior the following cases were agreed, and tested in here:
+            //
+            // Case 1. An input column that has a corresponding input node in the onnx model, but not connected to a corresponding output node,
+            //  should be dropped and not propagated to the output schema. This case can only happen if the input column was dropped in the pipeline
+            //  that was exported (case 1a), or if another column with the same name is created in the pipeline (case 1b).
+            // Case 2. An input column that has a corresponding input node in the onnx model directly connected to an output node with the same name,
+            //  should be propagated from the input to the output schema. This is the usual behavior unless a column is dropped or hidden in the
+            //  original pipeline (which then would be case 1).
+            // Case 3. A column that was created and dropped inside the pipeline that was exported to onnx, should be dropped.
+            // Case 4. A column that was created but not dropped inside the pipeline that was exported to onnx, should not be dropped
+            // Case 5. An input column that doesn't have a corresponding input node in the onnx model (i.e., that isn't even mentioned
+            //  by the model) should be propagated as if being untouched.
+            // Case 6. An input column that doesn't have a corresponding input node in the onnx model, but that has the same name as an output
+            //  column created by the onnx transformer, should be hidden.
+            //
+            // In summary, to behave correctly in those cases, it was decided to drop all input columns that are used as input nodes
+            // of the onnx model, and leave the other columns untouched. Then add all the output columns corresponding to the output nodes of
+            // the onnx model (this way case 2 and case 4 are accomplished, since the OnnxTransformer itself will actually create
+            // new columns and copy the original values to the new column, simulating schema propagation). Add the output columns to the left,
+            // so to hide any column that was propagated (following case 6).
+
+            var mlContext = new MLContext(seed: 1);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Label", DataKind.Boolean, 0),
+                new TextLoader.Column("Size", DataKind.Single, 2),
+                new TextLoader.Column("Shape", DataKind.Single, 3),
+                new TextLoader.Column("Adhesion", DataKind.Single, 4),
+                new TextLoader.Column("EpithelialSize", DataKind.Single, 5),
+                new TextLoader.Column("BlandChromatin", DataKind.Single, 7),
+            });
+
+            var pipeline =
+                mlContext.Transforms.Concatenate("Features", "Shape", "Adhesion", "EpithelialSize", "BlandChromatin")
+                .Append(mlContext.BinaryClassification.Trainers.AveragedPerceptron())
+                .Append(mlContext.Transforms.CopyColumns("Size", "EpithelialSize"))
+                .Append(mlContext.Transforms.SelectColumns(new[] { "Shape", "Size", "Label", "PredictedLabel" }));
+
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = "selectcolumns-columnpropagation.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+
+                IDataView onnxResult = onnxTransformer.Transform(dataView);
+                if (saveToDisk)
+                {
+                    var modelPath = GetOutputPath("selectcolumns - columnpropagation.zip");
+                    mlContext.Model.Save(onnxTransformer, dataView.Schema, modelPath);
+                    var loadedModel = mlContext.Model.Load(modelPath, out _);
+                    onnxResult = loadedModel.Transform(dataView);
+                }
+
+                // "Shape" and "Label" are case 2 so they will be propagated
+                // "Adhesion" and "BlandChromain" are case 1a so they won't be propagated
+                // The original "Size" is case 1b, because it's hidden by the CopyColumns
+                // "Features" is case 3, so won't be propagated
+                // The new "Size" is case 4, and "PredictedLabel" is case 4 so they will make it to the output
+
+                Assert.Equal(4, transformedData.Schema.Count);
+                Assert.Equal(transformedData.Schema.Count, onnxResult.Schema.Count);
+                Assert.Equal(transformedData.Schema[0].Name, onnxResult.Schema[0].Name); // "Shape"
+                Assert.Equal(transformedData.Schema[1].Name, onnxResult.Schema[1].Name); // "Size"
+                Assert.Equal(transformedData.Schema[2].Name, onnxResult.Schema[2].Name); // "Label"
+                Assert.Equal(transformedData.Schema[3].Name, onnxResult.Schema[3].Name); // "PredictedLabel"
+
+                CompareSelectedColumns<Single>("Shape", "Shape", transformedData, onnxResult);
+                CompareSelectedColumns<Single>("Size", "Size", transformedData, onnxResult);
+                CompareSelectedColumns<bool>("Label", "Label", transformedData, onnxResult);
+                CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+
+                // Now load again the input, but also include more columns that weren't originally there when creating the onnx model inputs
+                var dataView2 = ML.Data.LoadFromTextFile(dataPath, new[] {
+                    new TextLoader.Column("Label", DataKind.Boolean, 0),
+                    new TextLoader.Column("Size", DataKind.Single, 2),
+                    new TextLoader.Column("Shape", DataKind.Single, 3),
+                    new TextLoader.Column("Adhesion", DataKind.Single, 4),
+                    new TextLoader.Column("EpithelialSize", DataKind.Single, 5),
+                    new TextLoader.Column("BlandChromatin", DataKind.Single, 7),
+                    new TextLoader.Column("NormalNucleoli", DataKind.Single, 8), // With a new name and column, to showcase Case 5, will propagate
+                    new TextLoader.Column("PredictedLabel", DataKind.Single, 9), // With same name as onnx model output, to showcase Case 6, will be hidden
+                });
+
+                var onnxResult2 = onnxTransformer.Transform(dataView2);
+                Assert.Equal(6, onnxResult2.Schema.Count); // 5 propagated plus 1 hidden
+
+                Assert.Equal("NormalNucleoli", onnxResult2.Schema[0].Name); 
+                Assert.Equal("PredictedLabel", onnxResult2.Schema[1].Name);
+                Assert.True(onnxResult2.Schema[1].IsHidden); // Case 6
+
+                Assert.Equal("PredictedLabel", onnxResult2.Schema[2].Name); // It's moved before the others, because it hides the other column
+                Assert.Equal("Shape", onnxResult2.Schema[3].Name);
+                Assert.Equal("Size", onnxResult2.Schema[4].Name);
+                Assert.Equal("Label", onnxResult2.Schema[5].Name);
+
+                // CompareSelectedColumns<Single>("NormalNucleoli", "NormalNucleoli", dataView2, onnxResult2); // MYTODO: can't use this method because it expects the column on the left dataview to be a vector type
+                CompareSelectedColumns<Single>("Shape", "Shape", onnxResult2, onnxResult);
+                CompareSelectedColumns<Single>("Size", "Size", onnxResult2, onnxResult);
+                CompareSelectedColumns<bool>("Label", "Label", onnxResult2, onnxResult);
+                CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", onnxResult2, onnxResult);
+            }
 
             Done();
         }
