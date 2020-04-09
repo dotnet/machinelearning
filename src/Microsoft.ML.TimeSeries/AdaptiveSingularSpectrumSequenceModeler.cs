@@ -51,6 +51,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     internal sealed class AdaptiveSingularSpectrumSequenceModelerInternal : SequenceModelerBase<Single, Single>
     {
         internal const string LoaderSignature = "SSAModel";
+        private readonly object _lock;
 
         internal sealed class SsaForecastResult : ForecastResultBase<Single>
         {
@@ -282,6 +283,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _info = new ModelInfo();
                 _info.WindowSize = _windowSize;
             }
+
+            _lock = new object();
         }
 
         /// <summary>
@@ -329,6 +332,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
                 _wTrans.CopyFrom(model._wTrans);
             }
+
+            _lock = new object();
         }
 
         public AdaptiveSingularSpectrumSequenceModelerInternal(IHostEnvironment env, ModelLoadContext ctx)
@@ -439,6 +444,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             _buffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, _host);
             _x = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
             _xSmooth = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
+
+            _lock = new object();
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -1067,8 +1074,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // Computing the characteristic polynomial from the modified roots
             try
             {
-                if (!PolynomialUtils.FindPolynomialCoefficients(roots, ref coeff))
-                    return false;
+                lock (_lock)
+                {
+                    if (!PolynomialUtils.FindPolynomialCoefficients(roots, ref coeff))
+                        return false;
+                }
             }
             catch (OverflowException)
             {
