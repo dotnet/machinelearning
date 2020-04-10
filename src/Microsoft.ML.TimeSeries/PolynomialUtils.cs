@@ -330,12 +330,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
+            PrintFactors(ch, factors, "factors-0");
+
             if (hash.Count > 0)
                 return false;
 
             var comparer = new ByMaximumCoefficient();
 
             factors.Sort(comparer);
+
+            PrintFactors(ch, factors, "factors-1");
 
             if (destinationOffset < n - 1)
             {
@@ -377,6 +381,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
+            PrintFactors(ch, factors, "factors-2");
+
             if (callStack.Contains("SsaForecast"))
                 ch.Info($"destinationOffset : {destinationOffset}");
 
@@ -394,6 +400,20 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
 
             return true;
+        }
+
+        private static void PrintFactors(IChannel ch, List<PolynomialFactor> factors, string name)
+        {
+            ch.Info($"{name} length: {factors.Count}.");
+            string destination = PolynomialFactor.Destination == null ? "" : string.Join(",", PolynomialFactor.Destination);
+            string arrayItem = "";
+            for (int i = 0; i < factors.Count; ++i)
+            {
+                string coefficient = string.Join(",", factors[i].Coefficients);
+                arrayItem += $"Coefficients({i}) : " + coefficient + ";";
+            }
+
+            ch.Info($"{name} Destination: {destination}, items: {arrayItem}.");
         }
     }
 }

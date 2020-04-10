@@ -1113,78 +1113,62 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="updateModel">Determines whether the model parameters also need to be updated upon consuming the new observation (default = false).</param>
         internal override void Consume(ref Single input, bool updateModel = false)
         {
-            using (var channel = _host.Start("Consume"))
+            if (Single.IsNaN(input))
+                return;
+
+            int i;
+
+            if (_wTrans == null)
             {
-                var callStack = new System.Diagnostics.StackTrace().ToString();
-                //add log to trouble shoot flaky test SsaForecast
-                if (callStack.Contains("SsaForecast"))
-                {
-                    //channel.Info($"Start Consume.");
-                    //channel.Info($"_rank is : {_rank}.");
-                    //PrintQueue(channel, _buffer, "_buffer");
-                    //channel.Info($"_windowSize is : {_windowSize}.");
-                    //PrintArray(channel, _state, "_state");
-                    PrintArray(channel, _alpha, "_alpha");
-                    //channel.Info($"_wTrans == null is : {_wTrans == null}.");
-                }
+                _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
+                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
+                Single[] vecs = new Single[_rank * _windowSize];
 
-                if (Single.IsNaN(input))
-                    return;
+                for (i = 0; i < _rank; ++i)
+                    vecs[(_windowSize + 1) * i] = 1;
 
-                int i;
-
-                if (_wTrans == null)
-                {
-                    _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
-                    _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
-                    Single[] vecs = new Single[_rank * _windowSize];
-
-                    for (i = 0; i < _rank; ++i)
-                        vecs[(_windowSize + 1) * i] = 1;
-
-                    i = 0;
-                    _wTrans.CopyFrom(vecs, ref i);
-                }
-
-                // Forming vector x
-
-                if (_buffer.Count == 0)
-                {
-                    for (i = 0; i < _windowSize - 1; ++i)
-                        _buffer.AddLast(_state[i]);
-                }
-
-                int len = _buffer.Count;
-                for (i = 0; i < _windowSize - len - 1; ++i)
-                    _x[i] = 0;
-                for (i = Math.Max(0, len - _windowSize + 1); i < len; ++i)
-                    _x[i - len + _windowSize - 1] = _buffer[i];
-                _x[_windowSize - 1] = input;
-
-                // Computing y: Eq. (11) in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf
-                CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(_wTrans, _x, _y);
-
-                // Updating the state vector
-                CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
-
-                _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
-
-                for (i = 0; i < _windowSize - 2; ++i)
-                {
-                    _state[i] = ((_windowSize - 2 - i) * _state[i + 1] + _xSmooth[i + 1]) / (_windowSize - 1 - i);
-                    _nextPrediction += _state[i] * _alpha[i];
-                }
-                _state[_windowSize - 2] = _xSmooth[_windowSize - 1];
-                _nextPrediction += _state[_windowSize - 2] * _alpha[_windowSize - 2];
-
-                if (updateModel)
-                {
-                    // REVIEW: to be implemented in the next version based on the FAPI algorithm
-                    // in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf.
-                }
-
-                _buffer.AddLast(input);
+                i = 0;
+                _wTrans.CopyFrom(vecs, ref i);
             }
+
+            // Forming vector x
+
+            if (_buffer.Count == 0)
+            {
+                for (i = 0; i < _windowSize - 1; ++i)
+                    _buffer.AddLast(_state[i]);
+            }
+
+            int len = _buffer.Count;
+            for (i = 0; i < _windowSize - len - 1; ++i)
+                _x[i] = 0;
+            for (i = Math.Max(0, len - _windowSize + 1); i < len; ++i)
+                _x[i - len + _windowSize - 1] = _buffer[i];
+            _x[_windowSize - 1] = input;
+
+            // Computing y: Eq. (11) in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf
+            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(_wTrans, _x, _y);
+
+            // Updating the state vector
+            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
+
+            _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
+
+            for (i = 0; i < _windowSize - 2; ++i)
+            {
+                _state[i] = ((_windowSize - 2 - i) * _state[i + 1] + _xSmooth[i + 1]) / (_windowSize - 1 - i);
+                _nextPrediction += _state[i] * _alpha[i];
+            }
+            _state[_windowSize - 2] = _xSmooth[_windowSize - 1];
+            _nextPrediction += _state[_windowSize - 2] * _alpha[_windowSize - 2];
+
+            if (updateModel)
+            {
+                // REVIEW: to be implemented in the next version based on the FAPI algorithm
+                // in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf.
+            }
+
+            _buffer.AddLast(input);
         }
 
         /// <summary>
@@ -1382,19 +1366,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 // Stabilizing the model
                 if (_shouldStablize && !learnNaiveModel)
                 {
-                    lock (_lock)
+                    if (!Stabilize(channel))
                     {
-                        if (!Stabilize(channel))
-                        {
 #if !TLCSSA
-                            channel.Warning("The trained model cannot be stablized.");
+                        channel.Warning("The trained model cannot be stablized.");
 #endif
-                        }
                     }
                 }
 
-                if (callStack.Contains("SsaForecast"))
-                    PrintArray(channel, _alpha, "_alpha after stabilize");
+                //if (callStack.Contains("SsaForecast"))
+                //    PrintArray(channel, _alpha, "_alpha after stabilize");
 
                 // Computing the noise moments
                 if (ShouldComputeForecastIntervals)
