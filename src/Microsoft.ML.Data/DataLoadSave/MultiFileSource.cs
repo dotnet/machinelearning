@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -24,6 +25,12 @@ namespace Microsoft.ML.Data
         /// In case of usage from Maml, the paths would be wildcard concatenated in the first string of <paramref name="paths"/>.
         /// </summary>
         /// <param name="paths">The paths of the files to load.</param>
+        /// <remarks>
+        /// The provided <paramref name="paths"/> can utilize wildcards to load all source files. For example:
+        /// paths = "Data/*" includes all files in directory Data
+        /// paths = "DataFolder/.../*" includes all files in all subdirectories inside directory Data.
+        /// paths = "Data1/*", "Data2/*" includes all files in directories Data1 and Data2
+        /// </remarks>
         public MultiFileSource(params string[] paths)
         {
             Contracts.CheckValueOrNull(paths);
@@ -37,16 +44,19 @@ namespace Microsoft.ML.Data
                 return;
             }
 
-            // in case of usage from Maml, the paths would be wildcard concatenated in the
-            // first string of paths.
-            string[] concatenated = paths[0] != null ? StreamUtils.ExpandWildCards(paths[0]) : null;
-
-            if (concatenated != null && concatenated.Length > 1)
+            List<string> concatenated = new List<string>();
+            if (paths != null)
             {
-                if (paths.Length > 1)
-                    throw Contracts.Except($"Pass a single string to the {nameof(MultiFileSource)} constructor, if you are using wildcards.");
+                foreach (string path in paths)
+                    foreach (string rPath in StreamUtils.ExpandWildCards(path))
+                        concatenated.Add(rPath);
+            }
+            else
+                concatenated = null;
 
-                _paths = concatenated;
+            if (concatenated != null && concatenated.Count > 0)
+            {
+                _paths = concatenated.ToArray();
             }
             else
                 _paths = paths;
