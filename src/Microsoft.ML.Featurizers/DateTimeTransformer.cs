@@ -125,6 +125,7 @@ namespace Microsoft.ML.Featurizers
         {
 
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = Contracts.CheckRef(env, nameof(env)).Register("DateTimeTransformerEstimator");
             _host.CheckValue(inputColumnName, nameof(inputColumnName), "Input column should not be null.");
 
@@ -139,6 +140,7 @@ namespace Microsoft.ML.Featurizers
         internal DateTimeEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = Contracts.CheckRef(env, nameof(env)).Register("DateTimeTransformerEstimator");
 
             _options = options;
@@ -268,7 +270,7 @@ namespace Microsoft.ML.Featurizers
         {
 
             Host.CheckValue(ctx, nameof(ctx));
-
+            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***
             // name of input column

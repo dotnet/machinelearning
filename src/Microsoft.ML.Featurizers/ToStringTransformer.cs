@@ -133,6 +133,7 @@ namespace Microsoft.ML.Featurizers
         internal ToStringTransformerEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = env.Register(nameof(ToStringTransformerEstimator));
 
             _options = new Options
@@ -144,6 +145,7 @@ namespace Microsoft.ML.Featurizers
         internal ToStringTransformerEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = env.Register(nameof(ToStringTransformerEstimator));
 
             foreach (var columnPair in options.Columns)
@@ -205,6 +207,7 @@ namespace Microsoft.ML.Featurizers
             base(host.Register(nameof(ToStringTransformer)))
         {
             Host.CheckValue(ctx, nameof(ctx));
+            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
 
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***

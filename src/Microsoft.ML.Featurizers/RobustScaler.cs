@@ -169,6 +169,7 @@ namespace Microsoft.ML.Featurizers
         internal RobustScalerEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = env.Register(nameof(RobustScalerEstimator));
             Contracts.Check(options.QuantileMin >= 0.0f && options.QuantileMin < options.QuantileMax && options.QuantileMax <= 100.0f, "Invalid QuantileRange provided");
             Contracts.CheckNonEmpty(options.Columns, nameof(options.Columns));
@@ -241,6 +242,7 @@ namespace Microsoft.ML.Featurizers
             base(host.Register(nameof(RobustScalerTransformer)))
         {
             host.CheckValue(ctx, nameof(ctx));
+            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***
             // int number of column pairs

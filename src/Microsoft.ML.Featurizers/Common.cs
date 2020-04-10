@@ -224,6 +224,32 @@ namespace Microsoft.ML.Featurizers
             throw new InvalidOperationException($"Unsupported type {type}");
         }
 
+        internal static bool OsIsCentOS7()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                unsafe
+                {
+                    using (Process process = new Process())
+                    {
+                        process.StartInfo.FileName = "/bin/bash";
+                        process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
+                        process.StartInfo.UseShellExecute = false;
+                        process.StartInfo.RedirectStandardOutput = true;
+                        process.StartInfo.CreateNoWindow = true;
+                        process.Start();
+
+                        string distro = process.StandardOutput.ReadToEnd().Trim();
+
+                        process.WaitForExit();
+                        if (distro.Contains("CentOS Linux 7"))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            return false;
+        }
+
         internal static string PointerToString(IntPtr data)
         {
             unsafe

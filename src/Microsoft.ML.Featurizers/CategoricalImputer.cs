@@ -136,6 +136,7 @@ namespace Microsoft.ML.Featurizers
         internal CategoricalImputerEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = env.Register(nameof(CategoricalImputerEstimator));
 
             foreach (var columnPair in options.Columns)
@@ -197,6 +198,7 @@ namespace Microsoft.ML.Featurizers
             base(host.Register(nameof(CategoricalImputerTransformer)))
         {
             host.CheckValue(ctx, nameof(ctx));
+            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***
             // int number of column pairs
