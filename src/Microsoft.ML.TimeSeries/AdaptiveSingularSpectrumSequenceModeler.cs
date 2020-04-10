@@ -1079,11 +1079,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // Computing the characteristic polynomial from the modified roots
             try
             {
-                lock (_lock)
-                {
-                    if (!PolynomialUtils.FindPolynomialCoefficients(roots, ref coeff, ch))
-                        return false;
-                }
+                if (!PolynomialUtils.FindPolynomialCoefficients(roots, ref coeff, ch))
+                    return false;
             }
             catch (OverflowException)
             {
@@ -1385,11 +1382,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 // Stabilizing the model
                 if (_shouldStablize && !learnNaiveModel)
                 {
-                    if (!Stabilize(channel))
+                    lock (_lock)
                     {
+                        if (!Stabilize(channel))
+                        {
 #if !TLCSSA
-                        channel.Warning("The trained model cannot be stablized.");
+                            channel.Warning("The trained model cannot be stablized.");
 #endif
+                        }
                     }
                 }
 
