@@ -26,21 +26,21 @@ namespace Microsoft.ML.RunTests
         }
 
         [Theory]
-        [IterationData(iterations: 100)]
+        [IterationData(iterations: 1000)]
         [Trait("Category", "RunSpecificTest")]
-        public void CompletesTestCancellationInTime(int iterations)
+        public void CanCompletesTestCancellationInTime(int iterations)
         {
             Output.WriteLine($"{iterations} - th");
 
-            int timeout = 30 * 60 * 1000;
+            int timeout = 3 * 60 * 1000;
 
             var runTask = Task.Run(TestCancellation);
-            var timeoutTask = Task.Delay(timeout + iterations);
+            var timeoutTask = Task.Delay(timeout);
             var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
             if (finishedTask == timeoutTask)
             {
-                Console.WriteLine("TestCancellation test Hanging: fail to complete in 30 minutes");
-                Environment.FailFast("Fail here to take memory dump");
+                Console.WriteLine("TestCancellation test Hanging: fail to complete in 3 minutes");
+                Debugger.Launch();
             }
         }
 
@@ -84,13 +84,17 @@ namespace Microsoft.ML.RunTests
                     {
                         index = rand.Next(hosts.Count);
                     } while ((hosts.ElementAt(index).Item1 as ICancelable).IsCanceled ||
+                              // use 2 instead of 3 here as there is no guarantee there is always level 3 children
                               hosts.ElementAt(index).Item2 < 2);
                     (hosts.ElementAt(index).Item1 as ICancelable).CancelExecution();
-
-
-
                     rootHost = hosts.ElementAt(index).Item1;
                     queue.Enqueue(rootHost);
+
+                    // all children has been canceled, we should stop looking
+                    if (hosts.Count(q => (q.Item1 as ICancelable).IsCanceled) == hosts.Count - 5)
+                    {
+                        break;
+                    }
                 }
                 addThread.Join();
                 while (queue.Count > 0)
