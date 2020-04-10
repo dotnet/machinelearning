@@ -32,14 +32,14 @@ namespace Microsoft.ML.RunTests
         {
             Output.WriteLine($"{iterations} - th");
 
-            int timeout = 10 * 60 * 1000;
+            int timeout = 30 * 60 * 1000;
 
             var runTask = Task.Run(TestCancellation);
             var timeoutTask = Task.Delay(timeout + iterations);
             var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
             if (finishedTask == timeoutTask)
             {
-                Console.WriteLine("TestCancellation test Hanging: fail to complete in 10 minutes");
+                Console.WriteLine("TestCancellation test Hanging: fail to complete in 30 minutes");
                 Environment.FailFast("Fail here to take memory dump");
             }
         }
