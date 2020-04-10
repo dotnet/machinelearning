@@ -895,13 +895,15 @@ namespace Microsoft.ML.Transforms
             {
                 string opType;
                 var slots = _slotDropper[iinfo].GetPreservedSlots();
-                if (_srcTypes[iinfo] is VectorDataViewType && slots.Count() > 0)
+                // vector column is not suppressed
+                if (slots.Count() > 0)
                 {
                     opType = "GatherElements";
                     var slotsVar = ctx.AddInitializer(slots, new long[] { 1, slots.Count() }, "PreservedSlots");
                     var node = ctx.CreateNode(opType, new[] { srcVariableName, slotsVar }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
                     node.AddAttribute("axis", 1);
                 }
+                // When the vector/scalar columnn is suppressed, we simply create an empty output vector
                 else
                 {
                     string constVal;
