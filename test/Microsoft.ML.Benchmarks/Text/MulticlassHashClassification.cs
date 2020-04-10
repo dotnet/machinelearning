@@ -17,21 +17,21 @@ namespace Microsoft.ML.Benchmarks
     [Config(typeof(TrainConfig))]
     public class MulticlassHashClassificationTrain
     {
-        private string _dataPath_Wiki;
+        private string _dataPathWiki;
 
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPath_Wiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPathWiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
 
-            if (!File.Exists(_dataPath_Wiki))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
+            if (!File.Exists(_dataPathWiki))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathWiki));
         }
 
         [Benchmark]
         public void CV_Multiclass_WikiDetox_BigramsAndTrichar_LightGBMMulticlass()
         {
-            string cmd = @"CV k=5 data=" + _dataPath_Wiki +
+            string cmd = @"CV k=5 data=" + _dataPathWiki +
                     " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                     " xf=Convert{col=logged_in type=R4}" +
                     " xf=CategoricalTransform{col=ns}" +
