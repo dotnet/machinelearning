@@ -1146,6 +1146,97 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        private class HashData
+        {
+            public ReadOnlyMemory<char> Education { get; set; }
+        }
+
+        [Fact]
+        public void MurmurHashStringTest()
+        {
+            var mlContext = new MLContext();
+
+            var samples = new[]
+            {
+                new HashData {Education = "alibaba".AsMemory()},
+                new HashData {Education = "baba".AsMemory()},
+                new HashData {Education = "U+123".AsMemory()},
+                new HashData {Education = "djldaoiejffjauhglehdlgh".AsMemory()},
+                new HashData {Education = "~".AsMemory()},
+            };
+
+            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
+
+            var hashEstimator = new HashingEstimator(Env, "Education");
+            var model = hashEstimator.Fit(data);
+            var transformedData = model.Transform(data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+
+            var onnxFileName = "MurmurHashV2.onnx";
+            var onnxTextName = "MurmurHashV2.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedColumns<uint>("Education", "Education", transformedData, onnxResult);
+            }
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MurmurHashUIntTest(
+            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Byte, DataKind.UInt16, DataKind.UInt32)] DataKind type,
+            bool useOrderedHashing,
+            [CombinatorialValues(1, 5, 31)] int numberOfBits)
+        {
+            //DataKind.UInt32, DataKind.Int32
+            var mlContext = new MLContext();
+            string dataPath = GetDataPath("numerics.txt");
+            var column = (type == DataKind.SByte) ? 0 :
+                (type == DataKind.Byte) ? 1 :
+                (type == DataKind.Int16) ? 2 :
+                (type == DataKind.UInt16) ? 3 :
+                (type == DataKind.Int32) ? 4 : 5;
+
+            var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Education", type, column),
+            }, separatorChar: '\t', hasHeader: true);
+
+            var hashEstimator = new HashingEstimator(Env, "Education", useOrderedHashing: useOrderedHashing, numberOfBits: numberOfBits);
+            var model = hashEstimator.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = "MurmurHashV2.onnx";
+            var onnxTextName = "MurmurHashV2.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareResults("Education", "Education", transformedData, onnxResult);
+            }
+            Done();
+        }
+
         private class TransformedDataPoint : DataPoint, IEquatable<TransformedDataPoint>
         {
             [VectorType(3)]
@@ -1769,32 +1860,33 @@ namespace Microsoft.ML.Tests
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
-            var leftType = leftColumn.Type.GetItemType();
-            var rightType = rightColumn.Type.GetItemType();
+            var leftType = leftColumn.Type.GetItemType().RawType;
+            var rightType = rightColumn.Type.GetItemType().RawType;
+            Assert.Equal(leftType, rightType);
 
-            if (leftType == NumberDataViewType.SByte)
+            if (leftType == typeof(sbyte))
                 CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Byte)
+            else if (leftType == typeof(byte))
                 CompareSelectedColumns<byte>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int16)
+            else if (leftType == typeof(short))
                 CompareSelectedColumns<short>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt16)
+            else if (leftType == typeof(ushort))
                 CompareSelectedColumns<ushort>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int32)
+            else if (leftType == typeof(int))
                 CompareSelectedColumns<int>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt32)
+            else if (leftType == typeof(uint))
                 CompareSelectedColumns<uint>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int64)
+            else if (leftType == typeof(long))
                 CompareSelectedColumns<long>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt64)
+            else if (leftType == typeof(ulong))
                 CompareSelectedColumns<ulong>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Single)
+            else if (leftType == typeof(float))
                 CompareSelectedColumns<float>(leftColumnName, rightColumnName, left, right, precision);
-            else if (leftType == NumberDataViewType.Double)
+            else if (leftType == typeof(double))
                 CompareSelectedColumns<double>(leftColumnName, rightColumnName, left, right, precision);
-            else if (leftType == BooleanDataViewType.Instance)
+            else if (leftType == typeof(bool))
                 CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == TextDataViewType.Instance)
+            else if (leftType == typeof(ReadOnlyMemory<char>))
                 CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
 
         }

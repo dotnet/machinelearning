@@ -1045,16 +1045,22 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private readonly DataViewType[] _types;
+            private readonly DataViewType[] _srcTypes;
+            private readonly DataViewType[] _dstTypes;
             private readonly HashingTransformer _parent;
 
             public Mapper(HashingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new DataViewType[_parent._columns.Length];
-                for (int i = 0; i < _types.Length; i++)
-                    _types[i] = _parent.GetOutputType(inputSchema, _parent._columns[i]);
+                _srcTypes = new DataViewType[_parent._columns.Length];
+                _dstTypes = new DataViewType[_parent._columns.Length];
+                for (int i = 0; i < _dstTypes.Length; i++)
+                {
+                    _dstTypes[i] = _parent.GetOutputType(inputSchema, _parent._columns[i]);
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out var colIndex);
+                    _srcTypes[i] = inputSchema[colIndex].Type;
+                }
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
@@ -1069,7 +1075,7 @@ namespace Microsoft.ML.Transforms
 
                     if (_parent._kvTypes != null && _parent._kvTypes[i] != null)
                         AddMetaKeyValues(i, meta);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.ToAnnotations());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _dstTypes[i], meta.ToAnnotations());
                 }
                 return result;
             }
@@ -1090,35 +1096,46 @@ namespace Microsoft.ML.Transforms
                 OnnxNode murmurNode;
 
                 opType = "MurmurHash3";
-                if (_types[iinfo].RawType == typeof(KeyDataViewType))
+                string murmurOutput = (_srcTypes[iinfo].RawType == typeof(ReadOnlyMemory<char>)) ? dstVariable: ctx.AddIntermediateVariable(_dstTypes[iinfo], "MurmurOutput");
+                var srcType = _srcTypes[iinfo].GetItemType().RawType;
+
+                // Numeric input types are limited to those supported by the Onnxruntime MurmurHash operator, which currently only supports
+                // uints and ints. Thus, ulongs, longs, doubles, floats, and booleans are not supported.
+                if (srcType == typeof(ushort) || srcType == typeof(short) || srcType == typeof(sbyte) || srcType == typeof(byte))
                 {
-                    string murmurOutput = ctx.AddIntermediateVariable(_types[iinfo], "MurmurOutput", true);
+                    var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.UInt32, "CastOutput", true);
+                    var castNode = ctx.CreateNode("Cast", srcVariable, castOutput, ctx.GetNodeName(opType), "");
+                    castNode.AddAttribute("to", NumberDataViewType.UInt32.RawType);
+                    murmurNode = ctx.CreateNode(opType, castOutput, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
+                }
+                else if (srcType == typeof(uint) || srcType == typeof(int) || srcType == typeof(ReadOnlyMemory<char>))
+                {
                     murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
-
-                    opType = "Cast";
-                    string castOutput = ctx.AddIntermediateVariable(_types[iinfo], "CastOutput", true);
-                    var castNode = ctx.CreateNode(opType, murmurOutput, castOutput, ctx.GetNodeName(opType), "");
-                    var t = NumberDataViewType.Int64.RawType;
-                    castNode.AddAttribute("to", t);
-
-                    opType = "Add";
-                    string addOutput = ctx.AddIntermediateVariable(_types[iinfo], "AddOutput", true);
-                    string one = ctx.AddInitializer(1);
-                    var addNode = ctx.CreateNode(opType, new[] { castOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
-
-                    opType = "Cast";
-                    var castNodeFinal = ctx.CreateNode(opType, addOutput, dstVariable, ctx.GetNodeName(opType), "");
-                    var tFinal = NumberDataViewType.UInt32.RawType;
-                    castNodeFinal.AddAttribute("to", tFinal);
                 }
                 else
                 {
-                    murmurNode = ctx.CreateNode(opType, srcVariable, dstVariable, ctx.GetNodeName(opType), "com.microsoft");
+                    return false;
                 }
 
                 murmurNode.AddAttribute("positive", 1);
                 var seed = _parent._columns[iinfo].Seed;
+                if (_parent._columns[iinfo].UseOrderedHashing)
+                    seed = Hashing.MurmurRound(seed, 0);
                 murmurNode.AddAttribute("seed", seed);
+
+                // masking is done via bitshifts, until bitwise AND is supported by Onnxruntime
+                if (_srcTypes[iinfo].GetItemType().RawType != typeof(ReadOnlyMemory<char>))
+                {
+                    opType = "BitShift";
+                    string bitShiftOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "bitShiftOutput");
+                    var shiftValue = ctx.AddInitializer((ulong)(32 - _parent._columns[iinfo].NumberOfBits), false);
+                    var shiftNode = ctx.CreateNode(opType, new[] { murmurOutput, shiftValue }, new[] { bitShiftOutput }, ctx.GetNodeName(opType), "");
+                    shiftNode.AddAttribute("direction", "LEFT");
+
+                    opType = "BitShift";
+                    shiftNode = ctx.CreateNode(opType, new[] { bitShiftOutput, shiftValue }, new[] { dstVariable }, ctx.GetNodeName(opType), "");
+                    shiftNode.AddAttribute("direction", "RIGHT");
+                }
                 return true;
             }
 
@@ -1135,7 +1152,7 @@ namespace Microsoft.ML.Transforms
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_types[iinfo], inputColumnName)))
+                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_dstTypes[iinfo], inputColumnName)))
                     {
                         ctx.RemoveColumn(inputColumnName, true);
                     }
@@ -1421,7 +1438,7 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes, if the mapping of the hashes to the values is required. |
-    /// | Input column data type | Vector or scalars of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [DateTime](xref: System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Input column data type | Vector or scalars of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Vector or scalar [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Exportable to ONNX | No |
     ///
