@@ -50,7 +50,7 @@ namespace Microsoft.ML.RunTests
                             children[randHostTuple.Item1] = new List<IHost>();
                         else
                             children[randHostTuple.Item1].Add(newHost);
-                        }
+                    }
                 });
                 addThread.Start();
                 Queue<IHost> queue = new Queue<IHost>();
