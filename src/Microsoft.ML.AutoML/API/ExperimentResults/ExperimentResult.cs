@@ -42,18 +42,19 @@ namespace Microsoft.ML.AutoML
         private bool _disposed;
 
         /// <summary>
-        /// Releases unmanaged resources in ExperimentResult instances
+        /// Releases unmanaged Tensor objects in models stored in RunDetail instances
         /// </summary>
         /// <remarks>
-        /// Invocation of Dispoe() is necessary to clean up remaining C library Tensor objects and
+        /// Invocation of Dispose() is necessary to clean up remaining C library Tensor objects and
         /// avoid a memory leak
         /// </remarks>
         public void Dispose()
         {
             if (_disposed)
                 return;
-            (BestRun as IDisposable)?.Dispose();
-            (RunDetails as IDisposable)?.Dispose();
+            foreach(var runDetail in RunDetails)
+                (runDetail.Model as IDisposable)?.Dispose();
+            (BestRun.Model as IDisposable)?.Dispose();
             _disposed = true;
         }
         #endregion
