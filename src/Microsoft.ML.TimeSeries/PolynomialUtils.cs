@@ -385,6 +385,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         ch.Info($"{factors.Count}: insert = {~ind}");
                         factors.Insert(~ind, f1);
                     }
+
+                    PrintFactors(ch, factors, "factors");
                 }
             }
 
