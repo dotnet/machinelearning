@@ -1073,9 +1073,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     roots[i] = new Complex(-roots[i].Magnitude, 0);
             }
 
-            if (callStack.Contains("SsaForecast"))
-                PrintComplex(ch, roots, "roots");
-
             // Computing the characteristic polynomial from the modified roots
             try
             {
@@ -1086,9 +1083,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 return false;
             }
-
-            if (callStack.Contains("SsaForecast"))
-                PrintDouble(ch, coeff, "coeff");
 
             // Updating alpha
             for (i = 0; i < _windowSize - 1; ++i)

@@ -330,8 +330,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            PrintFactors(ch, factors, "factors-0");
-
             if (hash.Count > 0)
                 return false;
 
@@ -339,7 +337,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             factors.Sort(comparer);
 
-            PrintFactors(ch, factors, "factors-1");
+            PrintFactors(ch, factors, "factors-0");
 
             if (destinationOffset < n - 1)
             {
@@ -354,11 +352,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     PolynomialFactor f1;
                     if (k1 < k2)
                     {
+                        ch.Info($"{factors.Count}: f1 = 0");
                         f1 = factors.ElementAt(0);
                         factors.RemoveAt(0);
                     }
                     else
                     {
+                        ch.Info($"{factors.Count}: f1 = {factors.Count - 1}");
                         f1 = factors.ElementAt(factors.Count - 1);
                         factors.RemoveAt(factors.Count - 1);
                     }
@@ -368,6 +368,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         ind = ~ind;
 
                     ind = Math.Min(factors.Count - 1, ind);
+                    ch.Info($"{factors.Count}: f2 = {ind}");
                     var f2 = factors.ElementAt(ind);
                     factors.RemoveAt(ind);
 
@@ -375,16 +376,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                     ind = factors.BinarySearch(f1, comparer);
                     if (ind >= 0)
+                    {
+                        ch.Info($"{factors.Count}: insert = {ind}");
                         factors.Insert(ind, f1);
+                    }
                     else
+                    {
+                        ch.Info($"{factors.Count}: insert = {~ind}");
                         factors.Insert(~ind, f1);
+                    }
                 }
             }
 
-            PrintFactors(ch, factors, "factors-2");
-
-            if (callStack.Contains("SsaForecast"))
-                ch.Info($"destinationOffset : {destinationOffset}");
+            PrintFactors(ch, factors, "factors-1");
 
             if (Utils.Size(coefficients) < n)
                 coefficients = new Double[n];
@@ -410,7 +414,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             for (int i = 0; i < factors.Count; ++i)
             {
                 string coefficient = string.Join(",", factors[i].Coefficients);
-                arrayItem += $"Coefficients({i}) : " + coefficient + ";";
+                arrayItem += $"Coefficients({i}) : " + coefficient + $" Key({i}) : " + factors[i].Key + ";";
             }
 
             ch.Info($"{name} Destination: {destination}, items: {arrayItem}.");

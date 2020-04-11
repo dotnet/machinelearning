@@ -331,7 +331,7 @@ namespace Microsoft.ML.Tests
 
         //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [Theory]
-        [IterationData(iterations: 5000)]
+        [IterationData(iterations: 5)]
         [Trait("Category", "RunSpecificTest")]
         public void SsaForecast(int iterations)
         {
@@ -388,7 +388,10 @@ namespace Microsoft.ML.Tests
 
             foreach (var logMessage in logMessages)
             {
-                Console.WriteLine($"Debug SsaForecast: {iterations} : {logMessage}.");
+                if (!logMessage.Contains("Trace"))
+                {
+                    Console.WriteLine($"Debug SsaForecast: {iterations} : {logMessage}.");
+                }
             }
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
