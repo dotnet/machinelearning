@@ -54,7 +54,6 @@ namespace Microsoft.ML.AutoML
                 return;
             foreach(var runDetail in RunDetails)
                 (runDetail.Model as IDisposable)?.Dispose();
-            (BestRun.Model as IDisposable)?.Dispose();
             _disposed = true;
         }
         #endregion
