@@ -1515,28 +1515,59 @@ namespace Microsoft.ML.Trainers.FastTree
             int node = 0;
             while (node >= 0)
             {
-                int ifeat = SplitFeatures[node];
-                var val = src.GetItemOrDefault(ifeat);
-                val = GetFeatureValue(val, node);
                 int otherWay;
-                if (val <= RawThresholds[node])
+                if (CategoricalSplit[node])
                 {
+                    Contracts.Assert(CategoricalSplitFeatures != null);
+
+                    int newNode = LteChild[node];
                     otherWay = GtChild[node];
-                    node = LteChild[node];
+                    foreach (var index in CategoricalSplitFeatures[node])
+                    {
+                        float fv = GetFeatureValue(src.GetItemOrDefault(index), node);
+                        if (fv > 0.0f)
+                        {
+                            newNode = GtChild[node];
+                            otherWay = LteChild[node];
+                            break;
+                        }
+                    }
+
+                    // What if we went the other way?
+                    var ghostLeaf = GetLeafFrom(in src, otherWay);
+                    var ghostOutput = GetOutput(ghostLeaf);
+
+                    // If the ghost got a smaller output, the contribution of the categorical features is positive, so
+                    // the contribution is true minus ghost.
+                    foreach(var ifeat in CategoricalSplitFeatures[node])
+                        contributions.AddFeature(ifeat, (float)(trueOutput - ghostOutput));
+
+                    node = newNode;
                 }
                 else
                 {
-                    otherWay = LteChild[node];
-                    node = GtChild[node];
+                    int ifeat = SplitFeatures[node];
+                    var val = src.GetItemOrDefault(ifeat);
+                    val = GetFeatureValue(val, node);
+                    if (val <= RawThresholds[node])
+                    {
+                        otherWay = GtChild[node];
+                        node = LteChild[node];
+                    }
+                    else
+                    {
+                        otherWay = LteChild[node];
+                        node = GtChild[node];
+                    }
+
+                    // What if we went the other way?
+                    var ghostLeaf = GetLeafFrom(in src, otherWay);
+                    var ghostOutput = GetOutput(ghostLeaf);
+
+                    // If the ghost got a smaller output, the contribution of the feature is positive, so
+                    // the contribution is true minus ghost.
+                    contributions.AddFeature(ifeat, (float)(trueOutput - ghostOutput));
                 }
-
-                // What if we went the other way?
-                var ghostLeaf = GetLeafFrom(in src, otherWay);
-                var ghostOutput = GetOutput(ghostLeaf);
-
-                // If the ghost got a smaller output, the contribution of the feature is positive, so
-                // the contribution is true minus ghost.
-                contributions.AddFeature(ifeat, (float)(trueOutput - ghostOutput));
             }
         }
     }
