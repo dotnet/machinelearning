@@ -15,5 +15,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <ProjectCapability Include="MLNETCLIGenerated" />
+  </ItemGroup>
 </Project>

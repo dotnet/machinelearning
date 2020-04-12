@@ -451,10 +451,15 @@ namespace Microsoft.ML.Transforms
             private static readonly FuncInstanceMethodInfo1<Mapper, Delegate> _makeVecTrivialGetterMethodInfo
                 = FuncInstanceMethodInfo1<Mapper, Delegate>.Create(target => target.MakeVecTrivialGetter<int>);
 
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _makeVecGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeVecGetter<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _getSrcGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.GetSrcGetter<int>);
+
             private readonly SlotsDroppingTransformer _parent;
             private readonly int[] _cols;
             private readonly DataViewType[] _srcTypes;
-            private readonly DataViewType[] _rawTypes;
             private readonly DataViewType[] _dstTypes;
             private readonly SlotDropper[] _slotDropper;
             // Track if all the slots of the column are to be dropped.
@@ -467,7 +472,6 @@ namespace Microsoft.ML.Transforms
                 _parent = parent;
                 _cols = new int[_parent.ColumnPairs.Length];
                 _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
-                _rawTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _dstTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _slotDropper = new SlotDropper[_parent.ColumnPairs.Length];
                 _suppressed = new bool[_parent.ColumnPairs.Length];
@@ -480,8 +484,8 @@ namespace Microsoft.ML.Transforms
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
                     VectorDataViewType srcVectorType = _srcTypes[i] as VectorDataViewType;
 
-                    _rawTypes[i] = srcVectorType?.ItemType ?? _srcTypes[i];
-                    if (!IsValidColumnType(_rawTypes[i]))
+                    var rawType = srcVectorType?.ItemType ?? _srcTypes[i];
+                    if (!IsValidColumnType(rawType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
 
                     int valueCount = srcVectorType?.Size ?? 1;
@@ -780,9 +784,7 @@ namespace Microsoft.ML.Transforms
                 VectorDataViewType vectorType = (VectorDataViewType)_srcTypes[iinfo];
                 Host.Assert(!_suppressed[iinfo]);
 
-                Func<DataViewRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vectorType.ItemType.RawType);
-                return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
+                return Utils.MarshalInvoke(_makeVecGetterMethodInfo, this, vectorType.ItemType.RawType, input, iinfo);
             }
 
             private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(DataViewRow input, int iinfo)
@@ -816,9 +818,7 @@ namespace Microsoft.ML.Transforms
                 Host.CheckValue(typeDst, nameof(typeDst));
                 Host.CheckValue(row, nameof(row));
 
-                Func<DataViewRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
-                return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
+                return Utils.MarshalInvoke(_getSrcGetterMethodInfo, this, typeDst.RawType, row, iinfo);
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
@@ -896,27 +896,26 @@ namespace Microsoft.ML.Transforms
             public bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 string opType;
-                if (_srcTypes[iinfo] is VectorDataViewType)
+                var slots = _slotDropper[iinfo].GetPreservedSlots();
+                // vector column is not suppressed
+                if (slots.Count() > 0)
                 {
                     opType = "GatherElements";
-                    IEnumerable<long> slots = _slotDropper[iinfo].GetPreservedSlots();
                     var slotsVar = ctx.AddInitializer(slots, new long[] { 1, slots.Count() }, "PreservedSlots");
                     var node = ctx.CreateNode(opType, new[] { srcVariableName, slotsVar }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
                     node.AddAttribute("axis", 1);
                 }
+                // When the vector/scalar columnn is suppressed, we simply create an empty output vector
                 else
                 {
                     string constVal;
-                    long[] dims = { 1, 1 };
-                    float[] floatVals = { 0.0f };
-                    long[] keyVals = { 0 };
-                    string[] stringVals = { "" };
-                    if (_rawTypes[iinfo] is TextDataViewType)
-                        constVal = ctx.AddInitializer(stringVals, dims);
-                    else if (_rawTypes[iinfo] is KeyDataViewType)
-                        constVal = ctx.AddInitializer(keyVals, dims);
+                    var type = _srcTypes[iinfo].GetItemType();
+                    if (type == TextDataViewType.Instance)
+                        constVal = ctx.AddInitializer(new string[] { "" }, new long[] { 1, 1 });
+                    else if (type == NumberDataViewType.Single)
+                        constVal = ctx.AddInitializer(new float[] { 0 }, new long[] { 1, 1 });
                     else
-                        constVal = ctx.AddInitializer(floatVals, dims);
+                        constVal = ctx.AddInitializer(new double[] { 0 }, new long[] { 1, 1 });
 
                     opType = "Identity";
                     ctx.CreateNode(opType, constVal, dstVariableName, ctx.GetNodeName(opType), "");

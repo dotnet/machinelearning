@@ -20,11 +20,6 @@ namespace TestNamespace.ConsoleApp
             var predictionResult = ConsumeModel.Predict(sampleData);
 
             Console.WriteLine("Using model to make single prediction -- Comparing actual Label with predicted Label from sample data...\n\n");
-            Console.WriteLine($"col1: {sampleData.Col1}");
-            Console.WriteLine($"col2: {sampleData.Col2}");
-            Console.WriteLine($"col3: {sampleData.Col3}");
-            Console.WriteLine($"col4: {sampleData.Col4}");
-            Console.WriteLine($"col5: {sampleData.Col5}");
             Console.WriteLine($"\n\nPredicted Label: {predictionResult.Prediction}\n\n");
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();

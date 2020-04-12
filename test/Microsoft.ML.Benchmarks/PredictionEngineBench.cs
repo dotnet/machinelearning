@@ -5,14 +5,13 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {
     [CIBenchmark]
-    public class PredictionEngineBench
+    public class PredictionEngineBench : BenchmarkBase
     {
         private IrisData _irisExample;
         private PredictionEngine<IrisData, IrisPrediction> _irisModel;
@@ -34,7 +33,7 @@ namespace Microsoft.ML.Benchmarks
                 PetalWidth = 5.1f,
             };
 
-            string irisDataPath = BaseTestClass.GetDataPath("iris.txt");
+            string irisDataPath = GetBenchmarkDataPath("iris.txt");
 
             var env = new MLContext(seed: 1);
 
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Benchmarks
                 SentimentText = "Not a big fan of this."
             };
 
-            string sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
+            string sentimentDataPath = GetBenchmarkDataPath("wikipedia-detox-250-line-data.tsv");
 
             var mlContext = new MLContext(seed: 1);
 
@@ -108,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
                 Features = new[] { 5f, 1f, 1f, 1f, 2f, 1f, 3f, 1f, 1f }
             };
 
-            string breastCancerDataPath = BaseTestClass.GetDataPath("breast-cancer.txt");
+            string breastCancerDataPath = GetBenchmarkDataPath("breast-cancer.txt");
 
             var env = new MLContext(seed: 1);
 

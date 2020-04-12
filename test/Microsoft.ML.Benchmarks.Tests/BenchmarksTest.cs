@@ -52,13 +52,6 @@ namespace Microsoft.ML.Benchmarks.Tests
         [MemberData(nameof(GetBenchmarks))]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
-            // TODO: [TEST_STABILITY]: Benchmark test sometime hangs on windows of dotnet core 3.1
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-                AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-            {
-                return;
-            }
-
             var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
 
             Assert.False(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");

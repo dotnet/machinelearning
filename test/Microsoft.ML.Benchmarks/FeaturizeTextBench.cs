@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.ML.Benchmarks
 {
     [Config(typeof(TrainConfig))]
-    public class FeaturizeTextBench
+    public class FeaturizeTextBench : BenchmarkBase
     {
         private MLContext _mlContext;
         private IDataView _dataset;

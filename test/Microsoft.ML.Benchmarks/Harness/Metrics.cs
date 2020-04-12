@@ -13,7 +13,7 @@ using BenchmarkDotNet.Running;
 
 namespace Microsoft.ML.Benchmarks
 {
-    public abstract class WithExtraMetrics
+    public abstract class WithExtraMetrics : BenchmarkBase
     {
         protected abstract IEnumerable<Metric> GetMetrics();
 

@@ -79,8 +79,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                 Name = $"{_settings.OutputName}.ConsoleApp.csproj",
             };
 
-            var columns = _columnInferenceResult.TextLoaderOptions.Columns;
-            var featuresList = columns.Where((str) => str.Name != _settings.LabelName).Select((str) => str.Name).ToList();
             var sampleResult = Utils.GenerateSampleData(_settings.TrainDataset, _columnInferenceResult);
             PredictProgram = new CSharpCodeFile()
             {
@@ -94,7 +92,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     HasHeader = _columnInferenceResult.TextLoaderOptions.HasHeader,
                     Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                     Target = _settings.Target,
-                    Features = featuresList,
                     SampleData = sampleResult,
                 }.TransformText(),
                 Name = "Program.cs",

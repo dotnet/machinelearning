@@ -16,20 +16,6 @@ namespace Test.ConsoleApp
             var predictionResult = ConsumeModel.Predict(sampleData);
 
             Console.WriteLine("Using model to make single prediction -- Comparing actual Label with predicted Label from sample data...\n\n");
-            Console.WriteLine($"Age: {sampleData.Age}");
-            Console.WriteLine($"Workclass: {sampleData.Workclass}");
-            Console.WriteLine($"Fnlwgt: {sampleData.Fnlwgt}");
-            Console.WriteLine($"Education: {sampleData.Education}");
-            Console.WriteLine($"Education_num: {sampleData.Education_num}");
-            Console.WriteLine($"Marital_status: {sampleData.Marital_status}");
-            Console.WriteLine($"Occupation: {sampleData.Occupation}");
-            Console.WriteLine($"Relationship: {sampleData.Relationship}");
-            Console.WriteLine($"Race: {sampleData.Race}");
-            Console.WriteLine($"Sex: {sampleData.Sex}");
-            Console.WriteLine($"Capital_gain: {sampleData.Capital_gain}");
-            Console.WriteLine($"Capital_loss: {sampleData.Capital_loss}");
-            Console.WriteLine($"Hours_per_week: {sampleData.Hours_per_week}");
-            Console.WriteLine($"Native_country: {sampleData.Native_country}");
             Console.WriteLine($"\n\nPredicted Label value {predictionResult.Prediction} \nPredicted Label scores: [{String.Join(",", predictionResult.Score)}]\n\n");
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();

@@ -22,6 +22,7 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly Action<TSrc, TDst> _mapAction;
         private readonly string _contractName;
+        private readonly string _contractAssembly;
 
         internal InternalSchemaDefinition AddedSchema { get; }
         internal SchemaDefinition InputSchemaDefinition { get; }
@@ -58,6 +59,7 @@ namespace Microsoft.ML.Transforms
                : InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
 
             _contractName = contractName;
+            _contractAssembly = _mapAction.Method.DeclaringType.Assembly.FullName;
             AddedSchema = outSchema;
         }
 
@@ -67,7 +69,7 @@ namespace Microsoft.ML.Transforms
         {
             if (_contractName == null)
                 throw _host.Except("Empty contract name for a transform: the transform cannot be saved");
-            LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName);
+            LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName, _contractAssembly);
         }
 
         /// <summary>

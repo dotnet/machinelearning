@@ -1648,56 +1648,61 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void FeatureSelectionOnnxTest()
+        [Theory]
+        [InlineData(DataKind.String)]
+        [InlineData(DataKind.Single)]
+        [InlineData(DataKind.Double)]
+        public void FeatureSelectionOnnxTest(DataKind dataKind)
         {
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
 
-            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
-                new TextLoader.Column("ScalarFloat", DataKind.Single, 6),
-                new TextLoader.Column("VectorFloat", DataKind.Single, 1, 4),
-                new TextLoader.Column("VectorDouble", DataKind.Double, 4, 8),
+            var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Scalar", dataKind, 6),
+                new TextLoader.Column("Vector", dataKind, 1, 6),
                 new TextLoader.Column("Label", DataKind.Boolean, 0)
             });
 
-            var columns = new[] {
-                new CountFeatureSelectingEstimator.ColumnOptions("FeatureSelectDouble", "VectorDouble", count: 1),
-                new CountFeatureSelectingEstimator.ColumnOptions("ScalFeatureSelectMissing690", "ScalarFloat", count: 690),
-                new CountFeatureSelectingEstimator.ColumnOptions("ScalFeatureSelectMissing100", "ScalarFloat", count: 100),
-                new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing690", "VectorDouble", count: 690),
-                new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing100", "VectorDouble", count: 100)
-            };
-            var pipeline = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("FeatureSelect", "VectorFloat", count: 1)
-                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(columns))
-                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelectMIScalarFloat", "ScalarFloat"))
-                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelectMIVectorFloat", "VectorFloat"));
-
-            var model = pipeline.Fit(dataView);
-            var transformedData = model.Transform(dataView);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-
-            var onnxFileName = "countfeatures.onnx";
-            var onnxModelPath = GetOutputPath(onnxFileName);
-
-            SaveOnnxModel(onnxModel, onnxModelPath, null);
-
-            if (IsOnnxRuntimeSupported())
+            IEstimator<ITransformer>[] pipelines =
             {
-                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-                var onnxTransformer = onnxEstimator.Fit(dataView);
-                var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<float>("FeatureSelectMIScalarFloat", "FeatureSelectMIScalarFloat", transformedData, onnxResult);
-                CompareSelectedColumns<float>("FeatureSelectMIVectorFloat", "FeatureSelectMIVectorFloat", transformedData, onnxResult);
-                CompareSelectedColumns<float>("ScalFeatureSelectMissing690", "ScalFeatureSelectMissing690", transformedData, onnxResult);
-                CompareSelectedColumns<double>("VecFeatureSelectMissing690", "VecFeatureSelectMissing690", transformedData, onnxResult);
+                // one or more features selected
+                mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("VectorOutput", "Vector", count: 690).
+                    Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("ScalarOutput", "Scalar", count: 100)),
+
+                // no feature selected => column suppressed
+                mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("VectorOutput", "Vector", count: 800).
+                    Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("ScalarOutput", "Scalar", count: 800)),
+
+                mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("VectorOutput", "Vector").
+                    Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("ScalarOutput", "Scalar"))
+            };
+            for (int i = 0; i < pipelines.Length; i++)
+            {
+                //There's currently no support for suppressed string columns, since onnx string variable initiation is not supported
+                if (dataKind == DataKind.String && i > 0)
+                    break;
+                var model = pipelines[i].Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+                var onnxFileName = "countfeatures.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareResults("VectorOutput", "VectorOutput", transformedData, onnxResult);
+                    CompareResults("ScalarOutput", "ScalarOutput", transformedData, onnxResult);
+                }
             }
             Done();
         }
-
-
 
         [Fact]
         public void SelectColumnsOnnxTest()
