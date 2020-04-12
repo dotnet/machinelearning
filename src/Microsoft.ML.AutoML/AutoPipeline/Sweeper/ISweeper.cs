@@ -22,7 +22,7 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
             var sb = new StringBuilder();
             foreach(var kv in this)
             {
-                sb.Append($"{kv.Key}: {kv.Value.ToString()}");
+                sb.AppendLine($"{kv.Key}: {kv.Value.ToString()}");
             }
 
             return sb.ToString();
