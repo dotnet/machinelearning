@@ -15,7 +15,7 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
         {
             _meta = typeof(int);
             var intList = new List<int>();
-            for (var i = min; i != max; i+=step)
+            for (var i = min; i <= max; i+=step)
             {
                 intList.Add(i);
             }
@@ -28,7 +28,7 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
         {
             _meta = typeof(float);
             var intList = new List<float>();
-            for (var i = min; i != max; i += step)
+            for (var i = min; i <= max; i += step)
             {
                 intList.Add(i);
             }

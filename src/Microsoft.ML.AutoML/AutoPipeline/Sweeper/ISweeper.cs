@@ -5,7 +5,7 @@ using Microsoft.ML.EntryPoints;
 
 namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
 {
-    internal interface ISweeper:  IEnumerable<SweeperOutput>, IEnumerator<SweeperOutput> 
+    internal interface ISweeper:  IEnumerable<SweeperOutput>, IEnumerator<SweeperOutput>
     {
         /// <summary>
         /// For trainable Sweeper.
@@ -15,11 +15,23 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
         void Fit(SweeperOutput input, SweeperInput Y);
     }
 
-    internal class SweeperOutput: Dictionary<string, object> { }
+    internal class SweeperOutput: Dictionary<string, object>
+    {
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            foreach(var kv in this)
+            {
+                sb.Append($"{kv.Key}: {kv.Value.ToString()}");
+            }
+
+            return sb.ToString();
+        }
+    }
 
     internal class SweeperInput
     {
-        public int Score { get; set; }
+        public double Score { get; set; }
     }
 
 }

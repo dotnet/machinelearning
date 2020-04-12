@@ -5,7 +5,7 @@ using FluentAssertions;
 using Microsoft.ML.AutoML.AutoPipeline.Sweeper;
 using Xunit;
 
-namespace Microsoft.ML.AutoML.Tests
+namespace Microsoft.ML.AutoML.AutoPipeline.Test
 {
     public class OptionBuilderTest
     {
@@ -14,9 +14,9 @@ namespace Microsoft.ML.AutoML.Tests
         {
             var builder = new TestOptionBuilder();
             var option = builder.CreateDefaultOption();
-            option.IntOption.Should().Equals(1);
+            option.IntOption.Should().Equals(10);
             option.FloatOption.Should().Equals(1f);
-            option.StringOption.Should().Equals(string.Empty);
+            option.StringOption.Should().Equals("str");
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace Microsoft.ML.AutoML.Tests
         public void OptionBuilder_should_work_with_random_sweeper()
         {
             var builder = new TestOptionBuilder();
-            var randomSweeper = builder.BuildRandomSweeper(10);
+            var randomSweeper = new RandomSweeper(builder.ParameterAttributes, 10);
 
             foreach ( var sweeperOutput in randomSweeper)
             {
@@ -66,23 +66,23 @@ namespace Microsoft.ML.AutoML.Tests
 
         private class TestOption
         {
-            public int IntOption { get; set; } = 1;
+            public int IntOption = 1;
 
-            public float FloatOption { get; set; } = 1f;
+            public float FloatOption = 1f;
 
-            public string StringOption { get; set; } = string.Empty;
+            public string StringOption = string.Empty;
         }
 
         private class TestOptionBuilder : OptionBuilder<TestOption>
         {
             [Parameter(0, 100)]
-            public int IntOption { get; set; }
+            public int IntOption = 10;
 
             [Parameter(0f, 100f)]
-            public float FloatOption { get; set; }
+            public float FloatOption;
 
             [Parameter(new string[] { "str1", "str2", "str3", "str4" })]
-            public string StringOption { get; set; }
+            public string StringOption = "str";
         }
     }
 

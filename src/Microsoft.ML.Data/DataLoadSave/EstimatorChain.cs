@@ -115,5 +115,11 @@ namespace Microsoft.ML.Data
             newNeedCache[newNeedCache.Length - 1] = true;
             return new EstimatorChain<TLastTransformer>(env, _estimators, _scopes, newNeedCache);
         }
+
+        [BestFriend]
+        internal TransformerScope[] GetScopes { get => _scopes; }
+
+        [BestFriend]
+        internal IEstimator<ITransformer>[] GetEstimators { get => _estimators; }
     }
 }
