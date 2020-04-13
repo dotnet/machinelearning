@@ -598,7 +598,7 @@ namespace Microsoft.ML.Tests
             var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Test"});
 
             //Create path
-            var modelPath = "temp.zip";
+            var modelPath = "DTRootCauseLocalizationModel.zip";
             //Save model to a file
             ml.Model.Save(model, dummyData.Schema, modelPath);
 
@@ -608,6 +608,18 @@ namespace Microsoft.ML.Tests
             {
                 serializedModel = ml.Model.Load(file, out var serializedSchema);
                 TestCommon.CheckSameSchemas(dummyData.Schema, serializedSchema);
+              
+                var serializedEngine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(serializedModel);
+                var returnedRootCause = serializedEngine.Predict(newRootCauseInput);
+
+                Assert.NotNull(returnedRootCause);
+                Assert.Equal(1, (int)returnedRootCause.RootCause.Items.Count);
+
+                foreach (KeyValuePair<string, object> pair in returnedRootCause.RootCause.Items[0].Dimension)
+                {
+                    Assert.Equal(expectedDim[pair.Key], pair.Value);
+                }
+                DeleteOutputPath(modelPath);
             }
         }
 
