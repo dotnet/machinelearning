@@ -1513,6 +1513,16 @@ namespace Microsoft.ML.Data
         /// </example>
         public IDataView Load(IMultiStreamSource source) => new BoundLoader(this, source);
 
+        // 1.4.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
+           bool hasHeader,
+           char separator,
+           bool allowQuoting,
+           bool supportSparse,
+           bool trimWhitespace,
+           IMultiStreamSource dataSample = null)
+           => CreateTextLoader<TInput>(host, hasHeader, separator, allowQuoting, supportSparse, trimWhitespace, Defaults.AutoMapLoadColumns, dataSample);
+
         internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
            bool hasHeader = Defaults.HasHeader,
            char separator = Defaults.Separator,

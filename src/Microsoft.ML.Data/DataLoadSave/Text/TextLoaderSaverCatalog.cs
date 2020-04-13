@@ -85,6 +85,16 @@ namespace Microsoft.ML
             IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), options, dataSample);
 
+        // 1.4.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
+            char separatorChar,
+            bool hasHeader,
+            IMultiStreamSource dataSample,
+            bool allowQuoting,
+            bool trimWhitespace,
+            bool allowSparse)
+            => CreateTextLoader<TInput>(catalog, separatorChar, hasHeader, dataSample, allowQuoting, trimWhitespace, allowSparse, default);
+
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
         /// </summary>
@@ -174,6 +184,16 @@ namespace Microsoft.ML
             var loader = new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options, dataSample: source);
             return loader.Load(source);
         }
+
+        // 1.4.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog,
+            string path,
+            char separatorChar,
+            bool hasHeader,
+            bool allowQuoting,
+            bool trimWhitespace,
+            bool allowSparse)
+            => LoadFromTextFile<TInput>(catalog, path, separatorChar, hasHeader, allowQuoting, trimWhitespace, allowSparse, default);
 
         /// <summary>
         /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
