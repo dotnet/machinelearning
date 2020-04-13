@@ -336,8 +336,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             if (destinationOffset < n - 1)
             {
-                if (Utils.Size(PolynomialFactor.Destination) < n)
-                    PolynomialFactor.Destination = new decimal[n];
+                // always clean up Destination
+                PolynomialFactor.Destination = new decimal[n];
 
                 while (factors.Count > 1)
                 {
