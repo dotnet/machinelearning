@@ -87,6 +87,8 @@ namespace Microsoft.ML.Sweeper
             get { return _value; }
         }
 
+        public object RawValue => _value;
+
         public LongParameterValue(string name, long value)
         {
             _name = name;
@@ -132,6 +134,8 @@ namespace Microsoft.ML.Sweeper
             get { return _value; }
         }
 
+        public object RawValue => _value;
+
         public FloatParameterValue(string name, float value)
         {
             Contracts.Check(!float.IsNaN(value));
@@ -176,6 +180,8 @@ namespace Microsoft.ML.Sweeper
         {
             get { return _value; }
         }
+
+        public object RawValue => _value;
 
         public StringParameterValue(string name, string value)
         {

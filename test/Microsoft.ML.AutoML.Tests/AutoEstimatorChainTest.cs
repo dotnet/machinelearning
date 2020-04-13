@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.ML.TestFramework;
 using Xunit;
-using Microsoft.ML.AutoML.AutoPipeline;
 using Xunit.Abstractions;
-using Microsoft.ML.AutoML.AutoPipeline.Sweeper;
 using Microsoft.ML.Trainers;
 using Tensorflow;
 using Microsoft.ML.Data;
+using Microsoft.ML.AutoPipeline;
 
-namespace Microsoft.ML.AutoML.AutoPipeline.Test
+namespace Microsoft.ML.AutoPipeline.Test
 {
     public class AutoEstimatorChainTest : BaseTestClass
     {
@@ -22,13 +21,13 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Test
         }
 
         [Fact]
-        public void RecommendationE2ETest()
+        public void RecommendationE2ETest_RandomSweeper()
         {
             var context = new MLContext();
             var paramaters = new MFOption();
             var dataset = context.Data.LoadFromTextFile<ModelInput>(@".\TestData\recommendation-ratings-train.csv", separatorChar: ',', hasHeader: true);
             var split = context.Data.TrainTestSplit(dataset, 0.3);
-            var randomSweeper = new RandomSweeper(paramaters.ParameterAttributes, 20);
+            var randomSweeper = new RandomSweeper(context, paramaters.ValueGenerators, 20);
             var pipelines = context.Transforms.Conversion.MapValueToKey("userId", "userId")
                           .Append(context.Transforms.Conversion.MapValueToKey("movieId", "movieId"))
                           .Append(context.Recommendation().Trainers.MatrixFactorization, paramaters, randomSweeper, Data.TransformerScope.Everything)
@@ -40,7 +39,28 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Test
                 var metrics = context.Regression.Evaluate(eval, "rating", "Score");
                 this._output.WriteLine(sweeper.Current.ToString());
                 this._output.WriteLine($"RMSE: {metrics.RootMeanSquaredError}");
-                sweeper.Fit(sweeper.Current, new SweeperInput() { Score = metrics.RSquared });
+            }
+        }
+
+        [Fact]
+        public void RecommendationE2ETest_GridSearchSweeper()
+        {
+            var context = new MLContext();
+            var paramaters = new MFOption();
+            var dataset = context.Data.LoadFromTextFile<ModelInput>(@".\TestData\recommendation-ratings-train.csv", separatorChar: ',', hasHeader: true);
+            var split = context.Data.TrainTestSplit(dataset, 0.3);
+            var gridSearchSweeper = new GridSearchSweeper(context, paramaters.ValueGenerators, 20);
+            var pipelines = context.Transforms.Conversion.MapValueToKey("userId", "userId")
+                          .Append(context.Transforms.Conversion.MapValueToKey("movieId", "movieId"))
+                          .Append(context.Recommendation().Trainers.MatrixFactorization, paramaters, gridSearchSweeper, Data.TransformerScope.Everything)
+                          .Append(context.Transforms.CopyColumns("output", "Score"));
+
+            foreach (var (model, sweeper) in pipelines.Fits(split.TrainSet))
+            {
+                var eval = model.Transform(split.TestSet);
+                var metrics = context.Regression.Evaluate(eval, "rating", "Score");
+                this._output.WriteLine(sweeper.Current.ToString());
+                this._output.WriteLine($"RMSE: {metrics.RootMeanSquaredError}");
             }
         }
 
@@ -53,16 +73,13 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Test
 
             public string LabelColumnName = "rating";
 
-            [Parameter(new float[] {0.0001f, 0.001f, 0.01f, 0.1f, 1f })]
+            [Parameter("Alpha", 0.0001f, 1f, 0.1f)]
             public float Alpha = 0.0001f;
 
-            [Parameter(new float[] { 0.01f, 0.05f, 0.1f, 0.5f, 1f})]
+            [Parameter("Lambda", 0.01f, 1f, 0.1f)]
             public double Lambda = 0.01f;
 
-            [Parameter(new int[] { 8, 16, 64, 128 })]
-            public int ApproximationRank = 8;
-
-            [Parameter(new float[] { 0.001f, 0.01f, 0.1f })]
+            [Parameter("LearningRate", 0.001f, 0.1f, 0.01f)]
             public double LearningRate = 0.001f;
         }
 

@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.AutoML.AutoPipeline.Sweeper;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Tensorflow;
 
-namespace Microsoft.ML.AutoML.AutoPipeline
+namespace Microsoft.ML.AutoPipeline
 {
     internal class AutoEstimatorChain<TLastTransformer> : IEstimator<TransformerChain<TLastTransformer>>
         where TLastTransformer : class, ITransformer
@@ -44,7 +43,7 @@ namespace Microsoft.ML.AutoML.AutoPipeline
             }
         }
 
-        public IEnumerable<(TransformerChain<TLastTransformer>, AutoML.AutoPipeline.Sweeper.ISweeper)> Fits(IDataView input)
+        public IEnumerable<(TransformerChain<TLastTransformer>, ISweeper)> Fits(IDataView input)
         {
             GetOutputSchema(SchemaShape.Create(input.Schema));
 

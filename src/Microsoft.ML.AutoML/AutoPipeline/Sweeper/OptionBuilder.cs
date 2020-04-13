@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
+namespace Microsoft.ML.AutoPipeline
 {
     internal abstract class OptionBuilder<TOption>
         where TOption: class
     {
-
-        public Dictionary<string, ParameterAttribute> ParameterAttributes { get => this.GetParameterAttributes(); }
+        public IValueGenerator[] ValueGenerators { get => this.GetParameterAttributes().Select(kv => kv.Value.ValueGenerator).ToArray(); }
 
         public TOption CreateDefaultOption()
         {
@@ -27,13 +26,13 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
             return option;
         }
 
-        public TOption BuildOption(SweeperOutput input)
+        public TOption BuildOption(Microsoft.ML.ParameterSet parameters)
         {
             var option = CreateDefaultOption();
-            foreach(var kv in input)
+            foreach(var param in parameters)
             {
-                var value = kv.Value;
-                typeof(TOption).GetField(kv.Key)?.SetValue(option, value);
+                var value = param.RawValue;
+                typeof(TOption).GetField(param.Name)?.SetValue(option, value);
             }
 
             return option;

@@ -1,32 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
+namespace Microsoft.ML.AutoPipeline
 {
-    internal interface ISweeper:  IEnumerable<SweeperOutput>, IEnumerator<SweeperOutput>
+    internal interface ISweeper:  IEnumerable<ParameterSet>, IEnumerator<ParameterSet>
     {
         /// <summary>
         /// For trainable Sweeper.
         /// </summary>
         /// <param name="input">Output of Sweeper.</param>
         /// <param name="Y">Score from model</param>
-        void Fit(SweeperOutput input, SweeperInput Y);
-    }
-
-    internal class SweeperOutput: Dictionary<string, object>
-    {
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            foreach(var kv in this)
-            {
-                sb.AppendLine($"{kv.Key}: {kv.Value.ToString()}");
-            }
-
-            return sb.ToString();
-        }
+        void AddRunHistory(IEnumerable<IRunResult> input, SweeperInput Y);
     }
 
     internal class SweeperInput

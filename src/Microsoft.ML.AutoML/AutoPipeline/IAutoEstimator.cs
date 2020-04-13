@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.ML.AutoML.AutoPipeline.Sweeper;
 
-namespace Microsoft.ML.AutoML.AutoPipeline
+namespace Microsoft.ML.AutoPipeline
 {
     internal interface IAutoEstimator
     {
-        AutoML.AutoPipeline.Sweeper.ISweeper Sweeper { get; }
+        ISweeper Sweeper { get; }
     }
 
     internal interface IAutoEstimator<out TTransformer>: IEstimator<TTransformer>, IAutoEstimator
@@ -20,19 +19,19 @@ namespace Microsoft.ML.AutoML.AutoPipeline
         where TTransformer : ITransformer
         where TOption: class
     {
-        private readonly AutoML.AutoPipeline.Sweeper.ISweeper _sweeper;
+        private readonly ISweeper _sweeper;
         private readonly OptionBuilder<TOption> _optionBuilder;
         private readonly Func<TOption, IEstimator<TTransformer>> _estimatorFactory;
         private IEstimator<TTransformer> _current;
 
-        public AutoEstimator(Func<TOption, IEstimator<TTransformer>> estimatorFactory, OptionBuilder<TOption> optionBuilder, AutoML.AutoPipeline.Sweeper.ISweeper sweeper)
+        public AutoEstimator(Func<TOption, IEstimator<TTransformer>> estimatorFactory, OptionBuilder<TOption> optionBuilder, ISweeper sweeper)
         {
             this._estimatorFactory = estimatorFactory;
             this._optionBuilder = optionBuilder;
             this._sweeper = sweeper;
         }
 
-        public AutoML.AutoPipeline.Sweeper.ISweeper Sweeper => this._sweeper;
+        public ISweeper Sweeper => this._sweeper;
 
         public TTransformer Fit(IDataView input)
         {
@@ -42,9 +41,9 @@ namespace Microsoft.ML.AutoML.AutoPipeline
             return this._current.Fit(input);
         }
 
-        public void Fit(SweeperOutput input, SweeperInput Y)
+        public void AddRunHistory(IEnumerable<IRunResult> input, SweeperInput Y)
         {
-            this._sweeper.Fit(input, Y);
+            this._sweeper.AddRunHistory(input, Y);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)

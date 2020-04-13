@@ -90,6 +90,7 @@ namespace Microsoft.ML
     {
         string Name { get; }
         string ValueText { get; }
+        object RawValue { get; }
     }
 
     /// <summary>

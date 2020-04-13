@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using FluentAssertions;
-using Microsoft.ML.AutoML.AutoPipeline.Sweeper;
+using Microsoft.ML.AutoPipeline;
+using Microsoft.ML.Sweeper;
 using Xunit;
 
-namespace Microsoft.ML.AutoML.AutoPipeline.Test
+namespace Microsoft.ML.AutoPipeline.Test
 {
     public class OptionBuilderTest
     {
@@ -14,24 +15,27 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Test
         {
             var builder = new TestOptionBuilder();
             var option = builder.CreateDefaultOption();
-            option.IntOption.Should().Equals(10);
+            option.LongOption.Should().Equals(10);
             option.FloatOption.Should().Equals(1f);
             option.StringOption.Should().Equals("str");
         }
 
+
         [Fact]
-        public void OptionBuilder_should_build_optoin()
+        public void OptionBuilder_should_build_optoin_from_parameter_set()
         {
             var builder = new TestOptionBuilder();
-            var input = new SweeperOutput()
+            var input = new List<Microsoft.ML.IParameterValue>()
             {
-                {"IntOption", 2 },
-                {"FloatOption", 2f },
-                {"StringOption", "2" },
+                new Microsoft.ML.Sweeper.LongParameterValue("LongOption", 2),
+                new Microsoft.ML.Sweeper.FloatParameterValue("FloatOption", 2f),
+                new Microsoft.ML.Sweeper.StringParameterValue("StringOption", "2"),
             };
 
-            var option = builder.BuildOption(input);
-            option.IntOption.Should().Equals(2);
+            var paramSet = new Microsoft.ML.ParameterSet(input);
+
+            var option = builder.BuildOption(paramSet);
+            option.LongOption.Should().Equals(2);
             option.FloatOption.Should().Equals(2f);
             option.StringOption.Should().Equals("2");
         }
@@ -39,13 +43,16 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Test
         [Fact]
         public void OptionBuilder_should_work_with_random_sweeper()
         {
+            var context = new MLContext();
             var builder = new TestOptionBuilder();
-            var randomSweeper = new RandomSweeper(builder.ParameterAttributes, 10);
+            var maximum = 10;
+            var randomSweeper = new RandomSweeper(context, builder.ValueGenerators, maximum);
 
-            foreach ( var sweeperOutput in randomSweeper)
+            foreach (var sweeperOutput in randomSweeper)
             {
+                maximum -= 1;
                 var option = builder.BuildOption(sweeperOutput);
-                option.IntOption
+                option.LongOption
                       .Should()
                       .BeLessOrEqualTo(100)
                       .And
@@ -60,13 +67,15 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Test
                 option.StringOption
                       .Should()
                       .BeOneOf(new string[] { "str1", "str2", "str3", "str4" });
+
+                maximum.Should().BeGreaterThan(-2);
             }
         }
 
 
         private class TestOption
         {
-            public int IntOption = 1;
+            public long LongOption = 1;
 
             public float FloatOption = 1f;
 
@@ -75,13 +84,13 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Test
 
         private class TestOptionBuilder : OptionBuilder<TestOption>
         {
-            [Parameter(0, 100)]
-            public int IntOption = 10;
+            [Parameter("LongOption", 0, 100)]
+            public long LongOption = 2;
 
-            [Parameter(0f, 100f)]
+            [Parameter("FloatOption", 0f, 100f)]
             public float FloatOption;
 
-            [Parameter(new string[] { "str1", "str2", "str3", "str4" })]
+            [Parameter("StringOption", new string[] { "str1", "str2", "str3", "str4" })]
             public string StringOption = "str";
         }
     }

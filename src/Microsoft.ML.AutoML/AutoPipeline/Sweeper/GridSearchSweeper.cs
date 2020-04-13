@@ -1,29 +1,28 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Microsoft.ML.Sweeper;
 
-namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
+namespace Microsoft.ML.AutoPipeline
 {
     internal class GridSearchSweeper : ISweeper
     {
-        private readonly Dictionary<string, ParameterAttribute> _parameters;
-        private SweeperOutput _next;
-        private IEnumerable<Dictionary<string, int>> _gridSearcher;
+        private ParameterSet _next;
+        private ParameterSet[] _results;
+        private readonly RandomGridSweeper _gridSweeper;
+        private int _maximum;
 
-        public GridSearchSweeper(Dictionary<string, ParameterAttribute> parameters)
+        public GridSearchSweeper(MLContext context, IValueGenerator[] valueGenerators, int maximum = 10000)
         {
-            _parameters = parameters;
-            Reset();
-            _gridSearcher = GetGridSearcher();
+            var option = new RandomGridSweeper.Options();
+            _maximum = maximum;
+            _gridSweeper = new RandomGridSweeper(context, option, valueGenerators);
+            _results = _gridSweeper.ProposeSweeps(maximum);
         }
 
-        private IEnumerable<Dictionary<string, int>> GetGridSearcher()
-        {
-            throw new NotImplementedException();
-        }
-
-        public SweeperOutput Current => _next;
+        public ParameterSet Current => _next;
 
         object IEnumerator.Current => _next;
 
@@ -32,19 +31,20 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
             return;
         }
 
-        public void Fit(SweeperOutput input, SweeperInput Y)
-        {
-            return;
-        }
-
-        public IEnumerator<SweeperOutput> GetEnumerator()
+        public IEnumerator<ParameterSet> GetEnumerator()
         {
             return this;
         }
 
         public bool MoveNext()
         {
-            return false;
+            if(_maximum <= 0)
+            {
+                return false;
+            }
+            _next = _results[_maximum-1];
+            _maximum -= 1;
+            return true;
         }
 
         public void Reset()
@@ -55,6 +55,11 @@ namespace Microsoft.ML.AutoML.AutoPipeline.Sweeper
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this;
+        }
+
+        public void AddRunHistory(IEnumerable<IRunResult> input, SweeperInput Y)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Microsoft.ML.AutoML.AutoPipeline.Sweeper;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.AutoML.AutoPipeline
+namespace Microsoft.ML.AutoPipeline
 {
     internal static class AutoEstimatorExtension
     {
@@ -13,7 +12,7 @@ namespace Microsoft.ML.AutoML.AutoPipeline
             Append<TLastTrain, TNewTrain, TOption>(this EstimatorChain<TLastTrain> estimatorChain,
                                                    Func<TOption, IEstimator<TNewTrain>> estimatorBuilder,
                                                    OptionBuilder<TOption> parameters,
-                                                   AutoML.AutoPipeline.Sweeper.ISweeper sweeper,
+                                                   ISweeper sweeper,
                                                    TransformerScope scope = TransformerScope.Everything)
             where TLastTrain: class, ITransformer
             where TNewTrain: class, ITransformer
