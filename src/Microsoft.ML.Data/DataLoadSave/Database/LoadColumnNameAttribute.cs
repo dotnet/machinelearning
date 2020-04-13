@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Allow member to specify mapping to field(s) in database.
+    /// Allow member to specify mapping to field(s) in database or text file.
     /// To override name of <see cref="IDataView"/> column use <see cref="ColumnNameAttribute"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]

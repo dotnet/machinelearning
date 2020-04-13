@@ -704,6 +704,56 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string Type;
         }
 
+        public class Adult
+        {
+            public float Age { get; set; }
+
+            public string WorkClass { get; set; }
+
+            public float FnlWgt { get; set; }
+
+            public string Education { get; set; }
+
+            [LoadColumnName("education-num")]
+            public float EducationNum { get; set; }
+
+            [LoadColumnName("marital-status")]
+            public string MaritalStatus { get; set; }
+
+            public string Occupation { get; set; }
+
+            public string Relationship { get; set; }
+
+            public string Ethnicity { get; set; }
+
+            public string Sex { get; set; }
+
+            [LoadColumnName("capital-gain")]
+            public float CapitalGain { get; set; }
+
+            [LoadColumnName("capital-loss")]
+            public float CapitalLoss { get; set; }
+
+            [LoadColumnName("hours-per-week")]
+            public float HoursPerWeek { get; set; }
+
+            [LoadColumnName("native-country")]
+            public float NativeCountry { get; set; }
+
+            public bool IsOver50K { get; set; }
+        }
+
+        public class AdultInvalidColumn : Adult
+        {
+            public string NonExistentColumn { get; set; }
+        }
+
+        public class AdultIgnoredColumn : Adult
+        {
+            [LoadColumnIgnore]
+            public string NonExistentColumn { get; set; }
+        }
+
         [Fact]
         public void LoaderColumnsFromIrisData()
         {
@@ -876,6 +926,51 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 Assert.StartsWith("Should define at least one public, readable field or property in TInput.", ex.Message);
             }
+        }
+
+        [Fact]
+        public void TestTextLoaderAutoMapLoadColumns()
+        {
+            var adultDatasetPath = SamplesUtils.DatasetUtils.GetAdultDataset();
+            var mlContext = new MLContext(1);
+
+            var data = mlContext.Data.LoadFromTextFile<Adult>(adultDatasetPath, separatorChar: ',', hasHeader: true, autoMapLoadColumns: true);
+            
+            // Class with invalid column (no ignored)
+            try
+            {
+                data = mlContext.Data.LoadFromTextFile<AdultInvalidColumn>(adultDatasetPath, separatorChar: ',', hasHeader: true, autoMapLoadColumns: true);
+                Assert.False(true);
+            }
+            catch (Exception ex)
+            {
+                Assert.Contains($"To ignore this column, use the {nameof(LoadColumnIgnoreAttribute)}.", ex.Message);
+            }
+
+            // Missing hasHeader option
+            try
+            {
+                data = mlContext.Data.LoadFromTextFile<Adult>(adultDatasetPath, separatorChar: ',', autoMapLoadColumns: true);
+                Assert.False(true);
+            }
+            catch (Exception ex)
+            {
+                Assert.StartsWith($"You should set hasHeader to true in order to use {nameof(LoadColumnNameAttribute)}.", ex.Message);
+            }
+
+            // Missing autoMapLoadColumns option
+            try
+            {
+                data = mlContext.Data.LoadFromTextFile<Adult>(adultDatasetPath, separatorChar: ',', hasHeader: true);
+                Assert.False(true);
+            }
+            catch (Exception ex)
+            {
+                Assert.StartsWith($"You shoud set autoMapLoadColumns to true in order to automatically map", ex.Message);
+            }
+
+            // Class with ignored column
+            data = mlContext.Data.LoadFromTextFile<AdultIgnoredColumn>(adultDatasetPath, separatorChar: ',', hasHeader: true, autoMapLoadColumns: true);
         }
     }
 }

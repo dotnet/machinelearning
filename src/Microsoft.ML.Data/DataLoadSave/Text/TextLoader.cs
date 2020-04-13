@@ -277,6 +277,19 @@ namespace Microsoft.ML.Data
                 Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
                 Min = index;
                 Max = index;
+                Name = null;
+            }
+
+            /// <summary>
+            /// A range representing a single value. Will result in a scalar column.
+            /// </summary>
+            /// <param name="name">The name of the field of the table to read.</param>
+            public Range(string name)
+            {
+                Contracts.CheckValue(name, nameof(name));
+                Min = -1;
+                Max = -1;
+                Name = name;
             }
 
             /// <summary>
@@ -293,6 +306,7 @@ namespace Microsoft.ML.Data
 
                 Min = min;
                 Max = max;
+                Name = null;
                 // Note that without the following being set, in the case where there is a single range
                 // where Min == Max, the result will not be a vector valued but a scalar column.
                 ForceVector = true;
@@ -313,6 +327,15 @@ namespace Microsoft.ML.Data
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int? Max;
+
+            /// <summary>
+            /// The name of the input column.
+            /// </summary>
+            /// <remarks>
+            /// This value, if non-<c>null</c>, overrides <see cref="Min" /> and <see cref="Max" />.
+            /// </remarks>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
+            public string Name;
 
             /// <summary>
             /// Whether this range extends to the end of the line, but should be a fixed number of items.
@@ -496,6 +519,13 @@ namespace Microsoft.ML.Data
             public bool HasHeader;
 
             /// <summary>
+            /// Whether the members name of the class passed as type argument should be mapped to <see cref="LoadColumnNameAttribute"/>.
+            /// When <see langword="true"/> requires the <see cref="HasHeader"/> option to be <see langword="true"/>.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use class properties as LoadColumnNameAttribute to read from text file", ShortName = "automap")]
+            public bool AutoMapLoadColumns;
+
+            /// <summary>
             /// Whether to use separate parsing threads.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use separate parsing threads?", ShortName = "threads", Hide = true)]
@@ -530,6 +560,7 @@ namespace Microsoft.ML.Data
             internal const char Separator = '\t';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
+            internal const bool AutoMapLoadColumns = false;
         }
 
         /// <summary>
@@ -682,10 +713,13 @@ namespace Microsoft.ML.Data
                     // Also determine if any columns have a range that extends to the end. If so, then we need
                     // to look at some data to determine the number of source columns.
                     bool needInputSize = false;
+                    bool needColumnLocalization = false;
                     foreach (var col in cols)
                     {
                         if (Utils.Size(col.Source) == 0)
                             throw ch.ExceptUserArg(nameof(Column.Source), "Must specify some source column indices");
+                        if (col.Source.Any(r => r.Name != null))
+                            needColumnLocalization = true;
                         if (!needInputSize && col.Source.Any(r => r.AutoEnd && r.Max == null))
                             needInputSize = true;
                     }
@@ -699,6 +733,33 @@ namespace Microsoft.ML.Data
                         Cursor.GetSomeLines(dataSample, 100, ref lines);
                     else if (headerFile == null && parent.HasHeader)
                         Cursor.GetSomeLines(dataSample, 1, ref lines);
+
+                    if (needColumnLocalization)
+                    {
+                        if (lines == null)
+                            throw ch.ExceptUserArg(nameof(dataSample), "Can't determinate column index without sample data");
+
+                        var header = Parser.GetHeaderFields(parent, lines[0]);
+                        var headerMapping = Enumerable.Zip(header.Indices, header.Spans,
+                            (index, span) => new
+                            {
+                                Index = index,
+                                Span = span
+                            })
+                            .Where(x => !x.Span.IsEmpty)
+                            .GroupBy(x => x.Span.ToString().ToLowerInvariant());
+
+                        foreach (var source in cols.SelectMany(x => x.Source).Where(x => x.Name != null))
+                        {
+                            var mapping = headerMapping.FirstOrDefault(x => x.Key == source.Name.ToLowerInvariant());
+                            if (mapping == null)
+                                throw ch.ExceptUserArg(nameof(dataSample),
+                                    $"Column {source.Name} not found in sample data. To ignore this column, use the {nameof(LoadColumnIgnoreAttribute)}.");
+                            var mappingIndex = mapping.Min(x => x.Index);
+                            source.Min = mappingIndex;
+                            source.Max = mappingIndex;
+                        }
+                    }
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1458,6 +1519,7 @@ namespace Microsoft.ML.Data
            bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace,
+           bool autoMapLoadColumns = Defaults.AutoMapLoadColumns,
            IMultiStreamSource dataSample = null)
         {
             var userType = typeof(TInput);
@@ -1479,16 +1541,38 @@ namespace Microsoft.ML.Data
             for (int index = 0; index < memberInfos.Length; index++)
             {
                 var memberInfo = memberInfos[index];
-                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
 
-                if (mappingAttr == null)
-                    throw host.Except($"{(memberInfo is FieldInfo ? "Field" : "Property")} '{memberInfo.Name}' is missing the {nameof(LoadColumnAttribute)} attribute");
+                var ignoreLoadColumnAttr = memberInfo.GetCustomAttribute<LoadColumnIgnoreAttribute>();
+                if (ignoreLoadColumnAttr != null && ignoreLoadColumnAttr.Ignore)
+                    continue;
+
+                var mappingLoadColumnAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
+                var mappingLoadColumnNameAttr = memberInfo.GetCustomAttribute<LoadColumnNameAttribute>();
+                var memberInfoType = memberInfo is FieldInfo ? "Field" : "Property";
+
+                if (!hasHeader && mappingLoadColumnAttr == null)
+                    throw host.Except(
+                        $"You should set {nameof(hasHeader)} to true in order to use {nameof(LoadColumnNameAttribute)}. " +
+                        $"To automatically map the name of {memberInfoType} to {nameof(LoadColumnNameAttribute)}, set {nameof(autoMapLoadColumns)} to true. " +
+                        $"To specify a fixed column index, use {nameof(LoadColumnAttribute)}. " +
+                        $"Invalid {memberInfoType} name: {memberInfo.Name}.");
+
+                if (!autoMapLoadColumns && mappingLoadColumnAttr == null && mappingLoadColumnNameAttr == null)
+                    throw host.Except(
+                        $"You shoud set {nameof(autoMapLoadColumns)} to true in order to automatically " +
+                        $"map the name of {memberInfoType} to {nameof(LoadColumnNameAttribute)}. " +
+                        $"To ignore this member, use {nameof(LoadColumnIgnoreAttribute)}. " +
+                        $"Invalid {memberInfoType} name: {memberInfo.Name}.");
 
                 var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
 
                 var column = new Column();
                 column.Name = mappingAttrName?.Name ?? memberInfo.Name;
-                column.Source = mappingAttr.Sources.ToArray();
+                column.Source =  (mappingLoadColumnNameAttr != null)
+                    ? mappingLoadColumnNameAttr.Sources.Select(x => new Range(x)).ToArray()
+                    : (mappingLoadColumnAttr != null)
+                        ? mappingLoadColumnAttr.Sources.ToArray()
+                        : new Range[] { new Range(memberInfo.Name) };
                 InternalDataKind dk;
                 switch (memberInfo)
                 {
@@ -1516,6 +1600,7 @@ namespace Microsoft.ML.Data
             Options options = new Options
             {
                 HasHeader = hasHeader,
+                AutoMapLoadColumns = autoMapLoadColumns,
                 Separators = new[] { separator },
                 AllowQuoting = allowQuoting,
                 AllowSparse = supportSparse,

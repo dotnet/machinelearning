@@ -330,3 +330,6 @@ ASALocalRun/
 *.binlog
 # Ignore external test datasets.
 /test/data/external/
+
+# Ignore Mac DS_Store files
+.DS_Store

@@ -575,7 +575,7 @@ namespace Microsoft.ML.Data
             /// This holds a set of raw text fields. This is the input into the parsing
             /// of the individual typed values.
             /// </summary>
-            private sealed class FieldSet
+            internal sealed class FieldSet
             {
                 public int Count;
 
@@ -725,12 +725,9 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public static void ParseSlotNames(TextLoader parent, ReadOnlyMemory<char> textHeader, ColInfo[] infos, VBuffer<ReadOnlyMemory<char>>[] slotNames)
+            public static FieldSet GetHeaderFields(TextLoader parent, ReadOnlyMemory<char> textHeader)
             {
                 Contracts.Assert(!textHeader.IsEmpty);
-                Contracts.Assert(infos.Length == slotNames.Length);
-
-                var sb = new StringBuilder();
                 var stats = new ParseStats(parent._host, cref: 1, maxShow: 0);
                 var impl = new HelperImpl(stats, parent._flags, parent._separators, parent._inputSize, int.MaxValue);
                 try
@@ -742,7 +739,14 @@ namespace Microsoft.ML.Data
                     stats.Release();
                 }
 
-                var header = impl.Fields;
+                return impl.Fields;
+            }
+
+            public static void ParseSlotNames(TextLoader parent, ReadOnlyMemory<char> textHeader, ColInfo[] infos, VBuffer<ReadOnlyMemory<char>>[] slotNames)
+            {
+                Contracts.Assert(infos.Length == slotNames.Length);
+
+                var header = GetHeaderFields(parent, textHeader);
                 var bldr = BufferBuilder<ReadOnlyMemory<char>>.CreateDefault();
                 for (int iinfo = 0; iinfo < infos.Length; iinfo++)
                 {
