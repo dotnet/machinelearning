@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private sealed class PolynomialFactor
         {
             public List<decimal> Coefficients;
-            public static decimal[] Destination;
+            //public static decimal[] Destination;
 
             private decimal _key;
             public decimal Key { get { return _key; } }
@@ -175,20 +175,21 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _key = key;
             }
 
-            public void Multiply(PolynomialFactor factor)
+            public void Multiply(PolynomialFactor factor, decimal[] destination)
             {
                 var len = Coefficients.Count;
                 Coefficients.AddRange(factor.Coefficients);
 
-                PolynomialMultiplication(0, len, len, factor.Coefficients.Count, 0, 1, 1);
+                PolynomialMultiplication(destination, 0, len, len, factor.Coefficients.Count, 0, 1, 1);
 
                 for (var i = 0; i < Coefficients.Count; ++i)
-                    Coefficients[i] = Destination[i];
+                    Coefficients[i] = destination[i];
 
                 SetKey();
             }
 
-            private void PolynomialMultiplication(int uIndex, int uLen, int vIndex, int vLen, int dstIndex, decimal uCoeff, decimal vCoeff)
+            private void PolynomialMultiplication(decimal[] destination, int uIndex, int uLen,
+                int vIndex, int vLen, int dstIndex, decimal uCoeff, decimal vCoeff)
             {
                 Contracts.Assert(uIndex >= 0);
                 Contracts.Assert(uLen >= 1);
@@ -198,18 +199,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Contracts.Assert(vIndex + vLen <= Utils.Size(Coefficients));
                 Contracts.Assert(uIndex + uLen <= vIndex || vIndex + vLen <= uIndex); // makes sure the input ranges are non-overlapping.
                 Contracts.Assert(dstIndex >= 0);
-                Contracts.Assert(dstIndex + uLen + vLen <= Utils.Size(Destination));
+                Contracts.Assert(dstIndex + uLen + vLen <= Utils.Size(destination));
 
                 if (uLen == 1 && vLen == 1)
                 {
-                    Destination[dstIndex] = Coefficients[uIndex] * Coefficients[vIndex];
-                    Destination[dstIndex + 1] = Coefficients[uIndex] + Coefficients[vIndex];
+                    destination[dstIndex] = Coefficients[uIndex] * Coefficients[vIndex];
+                    destination[dstIndex + 1] = Coefficients[uIndex] + Coefficients[vIndex];
                 }
                 else
-                    NaivePolynomialMultiplication(uIndex, uLen, vIndex, vLen, dstIndex, uCoeff, vCoeff);
+                    NaivePolynomialMultiplication(destination, uIndex, uLen, vIndex, vLen, dstIndex, uCoeff, vCoeff);
             }
 
-            private void NaivePolynomialMultiplication(int uIndex, int uLen, int vIndex, int vLen, int dstIndex, decimal uCoeff, decimal vCoeff)
+            private void NaivePolynomialMultiplication(decimal[] destination, int uIndex, int uLen, int vIndex,
+                int vLen, int dstIndex, decimal uCoeff, decimal vCoeff)
             {
                 int i;
                 int j;
@@ -246,7 +248,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     for (j = 0; j < a; ++j)
                         temp += (Coefficients[b - j + uIndex] * Coefficients[c + j + vIndex]);
 
-                    Destination[i + dstIndex] = temp;
+                    destination[i + dstIndex] = temp;
                 }
             }
         }
@@ -288,6 +290,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int destinationOffset = 0;
 
             var factors = new List<PolynomialFactor>();
+            decimal[] destination = new decimal[n]; ;
 
             for (i = 0; i < n; ++i)
             {
@@ -337,14 +340,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             factors.Sort(comparer);
 
-            PrintFactors(ch, factors, "factors-0");
+            PrintFactors(ch, factors, "factors-0", destination);
 
             if (destinationOffset < n - 1)
             {
-                //always initialize Destination
-                //if (Utils.Size(PolynomialFactor.Destination) < n)
-                PolynomialFactor.Destination = new decimal[n];
-
                 while (factors.Count > 1)
                 {
                     var k1 = Math.Abs(factors.ElementAt(0).Key);
@@ -373,7 +372,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     var f2 = factors.ElementAt(ind);
                     factors.RemoveAt(ind);
 
-                    f1.Multiply(f2);
+                    f1.Multiply(f2, destination);
 
                     ind = factors.BinarySearch(f1, comparer);
                     if (ind >= 0)
@@ -387,11 +386,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         factors.Insert(~ind, f1);
                     }
 
-                    PrintFactors(ch, factors, "factors");
+                    PrintFactors(ch, factors, "factors", destination);
                 }
             }
 
-            PrintFactors(ch, factors, "factors-1");
+            PrintFactors(ch, factors, "factors-1", destination);
 
             if (Utils.Size(coefficients) < n)
                 coefficients = new Double[n];
@@ -409,10 +408,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return true;
         }
 
-        private static void PrintFactors(IChannel ch, List<PolynomialFactor> factors, string name)
+        private static void PrintFactors(IChannel ch, List<PolynomialFactor> factors, string name, decimal[] destination)
         {
             ch.Info($"{name} length: {factors.Count}.");
-            string destination = PolynomialFactor.Destination == null ? "" : string.Join(",", PolynomialFactor.Destination);
+            string destinationStr = destination == null ? "" : string.Join(",", destination);
             string arrayItem = "";
             for (int i = 0; i < factors.Count; ++i)
             {
@@ -420,7 +419,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 arrayItem += $"Coefficients({i}) : " + coefficient + $" Key({i}) : " + factors[i].Key + ";";
             }
 
-            ch.Info($"{name} Destination: {destination}, items: {arrayItem}.");
+            ch.Info($"{name} Destination: {destinationStr}, items: {arrayItem}.");
         }
     }
 }
