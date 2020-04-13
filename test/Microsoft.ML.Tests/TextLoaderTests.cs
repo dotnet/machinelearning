@@ -740,6 +740,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             [LoadColumnName("native-country")]
             public float NativeCountry { get; set; }
 
+            [LoadColumnName("label(IsOver50K)")]
             public bool IsOver50K { get; set; }
         }
 
