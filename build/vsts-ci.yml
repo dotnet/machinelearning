@@ -24,7 +24,7 @@ phases:
     container: CentosContainer
   steps:
   # Only build native assets to avoid conflicts.
-  - script: sudo locale-gen en_US.UTF-8 && sudo update-locale && ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
+  - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
     displayName: Build
 
   - task: PublishBuildArtifacts@1
