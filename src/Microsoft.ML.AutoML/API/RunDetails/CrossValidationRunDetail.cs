@@ -65,7 +65,10 @@ namespace Microsoft.ML.AutoML
 
         private readonly ModelContainer _modelContainer;
 
-        public bool IsModelDisposed = false;
+        /// <summary>
+        /// Flag to show whether or not Model has been disposed using IDisposable's .Dispose()
+        /// </summary>
+        public bool IsModelDisposed;
 
         internal TrainResult(ModelContainer modelContainer,
             TMetrics metrics,
@@ -74,6 +77,7 @@ namespace Microsoft.ML.AutoML
             _modelContainer = modelContainer;
             ValidationMetrics = metrics;
             Exception = exception;
+            IsModelDisposed = false;
         }
     }
 
