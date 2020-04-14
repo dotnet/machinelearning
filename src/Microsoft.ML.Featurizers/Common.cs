@@ -174,6 +174,29 @@ namespace Microsoft.ML.Featurizers
         }
     }
 
+    internal delegate bool DestroyTransformedMatrixDataNative(IntPtr columns, IntPtr rows, IntPtr items, out IntPtr errorHandle);
+    internal class TransformedMatrixDataSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        private readonly DestroyTransformedMatrixDataNative _destroyTransformedDataHandler;
+        private readonly IntPtr _columns;
+        private readonly IntPtr _rows;
+
+        public TransformedMatrixDataSafeHandle(IntPtr handle, IntPtr columns, IntPtr rows, DestroyTransformedMatrixDataNative destroyTransformedDataHandler) : base(true)
+        {
+            SetHandle(handle);
+            _destroyTransformedDataHandler = destroyTransformedDataHandler;
+            _columns = columns;
+            _rows = rows;
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            // Not sure what to do with error stuff here.  There shouldn't ever be one though.
+            var success = _destroyTransformedDataHandler(_columns, _rows, handle, out IntPtr errorHandle);
+            return success;
+        }
+    }
+
     #endregion
 
     // Static extension classes with Common methods used in multiple featurizers
@@ -224,13 +247,10 @@ namespace Microsoft.ML.Featurizers
             throw new InvalidOperationException($"Unsupported type {type}");
         }
 
-        internal static bool OsIsCentOS7()
-        {
+        internal static bool OsIsCentOS7() {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                unsafe
-                {
-                    using (Process process = new Process())
-                    {
+                unsafe {
+                    using (Process process = new Process()) {
                         process.StartInfo.FileName = "/bin/bash";
                         process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
                         process.StartInfo.UseShellExecute = false;
@@ -241,8 +261,7 @@ namespace Microsoft.ML.Featurizers
                         string distro = process.StandardOutput.ReadToEnd().Trim();
 
                         process.WaitForExit();
-                        if (distro.Contains("CentOS Linux 7"))
-                        {
+                        if (distro.Contains("CentOS Linux 7")) {
                             return true;
                         }
                     }
@@ -269,6 +288,72 @@ namespace Microsoft.ML.Featurizers
 
                 return Encoding.UTF8.GetString((byte*)data.ToPointer(), length);
             }
+        }
+
+        internal static void CreateGrainStringArrays(ValueGetter<ReadOnlyMemory<char>>[] grainGetters, ref GCHandle[] grainHandles, ref GCHandle arrayHandle, ref IntPtr[] grainArray)
+        {
+            ReadOnlyMemory<char> value = default;
+
+            for (int grainIndex = 0; grainIndex < grainHandles.Length; grainIndex++)
+            {
+                grainGetters[grainIndex](ref value);
+                grainHandles[grainIndex] = GCHandle.Alloc(Encoding.UTF8.GetBytes(value.ToString() + char.MinValue), GCHandleType.Pinned);
+                grainArray[grainIndex] = grainHandles[grainIndex].AddrOfPinnedObject();
+            }
+
+            arrayHandle = GCHandle.Alloc(grainArray, GCHandleType.Pinned);
+        }
+
+        internal static string GrainsToString(ValueGetter<ReadOnlyMemory<char>>[] grainGetters)
+        {
+            ReadOnlyMemory<char> value = default;
+            StringBuilder sb = new StringBuilder();
+            for (int grainIndex = 0; grainIndex < grainGetters.Length; grainIndex++)
+            {
+                grainGetters[grainIndex](ref value);
+                sb.Append(value);
+            }
+
+            return sb.ToString();
+        }
+
+        internal static void FreeGrainStringArrays(ref GCHandle[] grainHandles, ref GCHandle arrayHandle)
+        {
+            arrayHandle.Free();
+            foreach (var handle in grainHandles)
+            {
+                handle.Free();
+            }
+        }
+
+        internal static bool AllGrainColumnsAreStrings(SchemaShape inputSchema, string[] grainColumns)
+        {
+            var valid = true;
+            foreach(var grain in grainColumns)
+            {
+                // Make sure the column exists
+                valid &= inputSchema.TryFindColumn(grain, out SchemaShape.Column column);
+
+                // Make sure the column is the right type
+                valid &= (column.ItemType.RawType == typeof(ReadOnlyMemory<char>));
+            }
+
+            return valid;
+        }
+
+        internal static bool AllGrainColumnsAreStrings(DataViewSchema inputSchema, string[] grainColumns)
+        {
+            var valid = true;
+            foreach (var grain in grainColumns)
+            {
+                // Make sure the column exists
+                var column = inputSchema[grain];
+
+                // Make sure the column is the right type
+                valid &= (column.Type.RawType == typeof(ReadOnlyMemory<char>));
+            }
+
+            return valid;
         }
     }
 }

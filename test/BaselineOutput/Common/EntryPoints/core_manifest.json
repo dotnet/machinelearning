@@ -20315,6 +20315,122 @@
       ]
     },
     {
+      "Name": "Transforms.LagLeadOperator",
+      "Desc": "Uses the offset list with the horizon to create lags and leads",
+      "FriendlyName": "LagLeadOperator",
+      "ShortName": "LagLead",
+      "Inputs": [
+        {
+          "Name": "GrainColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "List of grain columns",
+          "Aliases": [
+            "grains"
+          ],
+          "Required": true,
+          "SortOrder": 0.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Columns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Horizon",
+          "Type": "UInt",
+          "Desc": "Maximum horizon value",
+          "Aliases": [
+            "hor"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "Offsets",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "Int"
+          },
+          "Desc": "Lag and Lead offset to use. A negative number is a lag, positive is a lead",
+          "Aliases": [
+            "off"
+          ],
+          "Required": true,
+          "SortOrder": 3.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.LightLda",
       "Desc": "The LDA transform implements LightLDA, a state-of-the-art implementation of Latent Dirichlet Allocation.",
       "FriendlyName": "Latent Dirichlet Allocation Transform",
