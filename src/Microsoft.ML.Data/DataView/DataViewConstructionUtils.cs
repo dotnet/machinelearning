@@ -80,6 +80,9 @@ namespace Microsoft.ML.Data
                         schemaDefinitionCol.AddAnnotation(annotation.Name , info);
                     }
                 }
+                // REVIEW: we are dropping schema information when the schema is passed in.
+                // This fixes the issue, but I am not sure it is "correct".
+                schemaDefinitionCol.ColumnType = col.Type;
             }
             return schemaDefinition;
         }
