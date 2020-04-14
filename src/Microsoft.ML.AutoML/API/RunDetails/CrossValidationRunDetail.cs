@@ -51,7 +51,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// You can use the trained model to obtain predictions on input data.
         /// </remarks>
-        public ITransformer Model { get { return _modelContainer.GetModel(); } }
+        public ITransformer Model { get { return _modelContainer.GetModel(IsModelDisposed); } }
 
         /// <summary>
         /// Exception encountered while training the fold. This property is
@@ -64,6 +64,8 @@ namespace Microsoft.ML.AutoML
         public Exception Exception { get; private set; }
 
         private readonly ModelContainer _modelContainer;
+
+        public bool IsModelDisposed = false;
 
         internal TrainResult(ModelContainer modelContainer,
             TMetrics metrics,

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 
 namespace Microsoft.ML.AutoML
@@ -30,8 +31,10 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        public ITransformer GetModel()
+        public ITransformer GetModel(bool isModelDisposed)
         {
+            if (isModelDisposed)
+                throw new ObjectDisposedException("Trained model was disposed before");
             // If model stored in memory, return it
             if (_model != null)
             {

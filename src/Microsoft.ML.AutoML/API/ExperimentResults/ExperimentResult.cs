@@ -52,8 +52,11 @@ namespace Microsoft.ML.AutoML
         {
             if (_disposed)
                 return;
-            foreach(var runDetail in RunDetails)
+            foreach (var runDetail in RunDetails)
+            {
                 (runDetail.Model as IDisposable)?.Dispose();
+                runDetail.IsModelDisposed = true;
+            }
             _disposed = true;
         }
         #endregion
