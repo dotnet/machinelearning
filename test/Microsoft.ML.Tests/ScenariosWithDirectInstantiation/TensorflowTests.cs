@@ -24,6 +24,7 @@ using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Internal.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -1697,8 +1698,26 @@ namespace Microsoft.ML.Scenarios
             (loadedModel as IDisposable)?.Dispose();
         }
 
-        [TensorFlowFact]
-        public void TensorFlowImageClassificationBadImages()
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompletesTensorFlowImageClassificationBadImagesInTime(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(TensorFlowImageClassificationBadImages);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("TensorFlowImageClassificationBadImages test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
+        }
+
+        private void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
