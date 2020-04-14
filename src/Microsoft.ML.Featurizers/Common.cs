@@ -8,6 +8,16 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.ML.Featurizers
 {
+    // Training state of the native featurizers
+    internal enum TrainingState
+    {
+        Pending = 1,
+        Training = 2,
+        Finished = 3, // Done training, but the estimator hasn't created a transformer yet
+        Completed = 4 // Done training, and the estimator has created its transformer
+    };
+
+    // Fit result of the native featurizers
     internal enum FitResult : byte
     {
         Complete = 1,
@@ -89,40 +99,36 @@ namespace Microsoft.ML.Featurizers
     internal class ErrorInfoStringSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [DllImport("Featurizers", EntryPoint = "DestroyErrorInfoString", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-        private static extern bool DestroyErrorInfoString(IntPtr errorString, IntPtr errorStringSize);
+        private static extern bool DestroyErrorInfoString(IntPtr errorString);
 
-        private IntPtr _length;
-        public ErrorInfoStringSafeHandle(IntPtr handle, IntPtr length) : base(true)
+        public ErrorInfoStringSafeHandle(IntPtr handle) : base(true)
         {
             SetHandle(handle);
-            _length = length;
         }
 
         protected override bool ReleaseHandle()
         {
-            return DestroyErrorInfoString(handle, _length);
+            return DestroyErrorInfoString(handle);
         }
     }
 
     // Safe handle that frees the memory for the transformed data.
     // Is called automatically after each call to transform.
-    internal delegate bool DestroyTransformedDataNative(IntPtr output, IntPtr outputSize, out IntPtr errorHandle);
+    internal delegate bool DestroyTransformedDataNative(IntPtr output, out IntPtr errorHandle);
     internal class TransformedDataSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         private DestroyTransformedDataNative _destroySaveDataHandler;
-        private IntPtr _dataSize;
 
-        public TransformedDataSafeHandle(IntPtr handle, IntPtr dataSize, DestroyTransformedDataNative destroyCppTransformerEstimator) : base(true)
+        public TransformedDataSafeHandle(IntPtr handle, DestroyTransformedDataNative destroyCppTransformerEstimator) : base(true)
         {
             SetHandle(handle);
-            _dataSize = dataSize;
             _destroySaveDataHandler = destroyCppTransformerEstimator;
         }
 
         protected override bool ReleaseHandle()
         {
-            // Not sure what to do with error stuff here.  There shouldn't ever be one though.
-            return _destroySaveDataHandler(handle, _dataSize, out IntPtr errorHandle);
+            // Not sure what to do with error stuff here.  There shoudln't ever be one though.
+            return _destroySaveDataHandler(handle, out IntPtr errorHandle);
         }
     }
 
@@ -163,7 +169,7 @@ namespace Microsoft.ML.Featurizers
 
         protected override bool ReleaseHandle()
         {
-            // Not sure what to do with error stuff here.  There shouldn't ever be one though.
+            // Not sure what to do with error stuff here.  There shoudln't ever be one though.
             return DestroyTransformerSaveDataNative(handle, _dataSize, out _);
         }
     }
@@ -174,19 +180,16 @@ namespace Microsoft.ML.Featurizers
     internal static class CommonExtensions
     {
         [DllImport("Featurizers", EntryPoint = "GetErrorInfoString", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-        private static extern bool GetErrorInfoString(IntPtr error, out IntPtr errorHandleString, out IntPtr errorHandleStringSize);
+        private static extern bool GetErrorInfoString(IntPtr error, out IntPtr errorHandleString);
 
         internal static string GetErrorDetailsAndFreeNativeMemory(IntPtr errorHandle)
         {
             using (var error = new ErrorInfoSafeHandle(errorHandle))
             {
-                GetErrorInfoString(errorHandle, out IntPtr errorHandleString, out IntPtr errorHandleStringSize);
-                using (var errorString = new ErrorInfoStringSafeHandle(errorHandleString, errorHandleStringSize))
+                GetErrorInfoString(errorHandle, out IntPtr errorHandleString);
+                using (var errorString = new ErrorInfoStringSafeHandle(errorHandleString))
                 {
-                    byte[] buffer = new byte[errorHandleStringSize.ToInt32()];
-                    Marshal.Copy(errorHandleString, buffer, 0, buffer.Length);
-
-                    return Encoding.UTF8.GetString(buffer);
+                    return PointerToString(errorHandleString);
                 }
             }
         }
@@ -221,30 +224,51 @@ namespace Microsoft.ML.Featurizers
             throw new InvalidOperationException($"Unsupported type {type}");
         }
 
-        // The Native Featurizers do not currently support CentOS7, this method checks the OS and returns true if it is CentOS7.
         internal static bool OsIsCentOS7()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                using (Process process = new Process())
+                unsafe
                 {
-                    process.StartInfo.FileName = "/bin/bash";
-                    process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.CreateNoWindow = true;
-                    process.Start();
-
-                    string distro = process.StandardOutput.ReadToEnd().Trim();
-
-                    process.WaitForExit();
-                    if (distro.Contains("CentOS Linux 7"))
+                    using (Process process = new Process())
                     {
-                        return true;
+                        process.StartInfo.FileName = "/bin/bash";
+                        process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
+                        process.StartInfo.UseShellExecute = false;
+                        process.StartInfo.RedirectStandardOutput = true;
+                        process.StartInfo.CreateNoWindow = true;
+                        process.Start();
+
+                        string distro = process.StandardOutput.ReadToEnd().Trim();
+
+                        process.WaitForExit();
+                        if (distro.Contains("CentOS Linux 7"))
+                        {
+                            return true;
+                        }
                     }
                 }
-            }
             return false;
+        }
+
+        internal static string PointerToString(IntPtr data)
+        {
+            unsafe
+            {
+                var length = 0;
+                byte* dataPointer = (byte*)data.ToPointer();
+
+                if (data == IntPtr.Zero)
+                    return string.Empty;
+
+                // Loop to find the size, until null is found.
+                while (*dataPointer++ != 0)
+                    length++;
+
+                if (length == 0)
+                    return string.Empty;
+
+                return Encoding.UTF8.GetString((byte*)data.ToPointer(), length);
+            }
         }
     }
 }
