@@ -339,7 +339,13 @@ namespace Microsoft.ML.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
+
+            // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
+#if NETCOREAPP3_1
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
+#else
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
+#endif
             Done();
         }
 
