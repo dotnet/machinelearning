@@ -364,7 +364,7 @@ namespace Microsoft.ML.Data
         ///
         /// For that reason, a single completely isolated lookup, since constructing <see cref="ReadOnlySpan{T}"/> as
         /// <see cref="GetValues"/> does is not a free operation, it may be more efficient to use this method. However
-        /// if one is doing a more involved computation involving many operations, it may be faster to utiltize
+        /// if one is doing a more involved computation involving many operations, it may be faster to utilize
         /// <see cref="GetValues"/> and, if appropriate, <see cref="GetIndices"/> directly.
         /// </remarks>
         /// <param name="index">The index, which must be a non-negative number less than <see cref="Length"/>.</param>

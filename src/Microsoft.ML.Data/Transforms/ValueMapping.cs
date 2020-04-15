@@ -45,6 +45,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Exportable to ONNX | No |
     ///
     /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
     /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.
@@ -143,6 +144,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
     /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
+    /// | Exportable to ONNX | No |
     ///
     /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
     /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.
@@ -823,6 +825,12 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private class ValueMap<TKey, TValue> : ValueMap
         {
+            private static readonly FuncStaticMethodInfo1<TValue, TValue> _getVectorMethodInfo
+                = new FuncStaticMethodInfo1<TValue, TValue>(GetVector<int>);
+
+            private static readonly FuncStaticMethodInfo1<TValue, TValue> _getValueMethodInfo
+                = new FuncStaticMethodInfo1<TValue, TValue>(GetValue<int>);
+
             private Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
 
@@ -887,9 +895,9 @@ namespace Microsoft.ML.Transforms
                 if (_mapping.ContainsKey(key))
                 {
                     if (ValueColumn.Type is VectorDataViewType vectorType)
-                        return Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[key]);
+                        return Utils.MarshalInvoke(_getVectorMethodInfo, vectorType.ItemType.RawType, _mapping[key]);
                     else
-                        return Utils.MarshalInvoke(GetValue<int>, ValueColumn.Type.RawType, _mapping[key]);
+                        return Utils.MarshalInvoke(_getValueMethodInfo, ValueColumn.Type.RawType, _mapping[key]);
                 }
                 else
                     return _missingValue;

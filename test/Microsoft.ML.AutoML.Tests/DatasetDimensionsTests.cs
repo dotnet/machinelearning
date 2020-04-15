@@ -3,19 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class DatasetDimensionsTests
+    public class DatasetDimensionsTests : BaseTestClass
     {
+        public DatasetDimensionsTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         public object DatasetDimensionUtil { get; private set; }
 
         [Fact]
         public void TextColumnDimensionsTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var dataBuilder = new ArrayDataViewBuilder(context);
             dataBuilder.AddColumn("categorical", new string[] { "0", "1", "0", "1", "0", "1", "2", "2", "0", "1" });
             dataBuilder.AddColumn("text", new string[] { "0", "1", "0", "1", "0", "1", "2", "2", "0", "1" });
@@ -35,7 +41,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void FloatColumnDimensionsTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var dataBuilder = new ArrayDataViewBuilder(context);
             dataBuilder.AddColumn("NoNan", NumberDataViewType.Single, new float[] { 0, 1, 0, 1, 0 });
             dataBuilder.AddColumn("Nan", NumberDataViewType.Single, new float[] { 0, 1, 0, 1, float.NaN });
@@ -55,7 +61,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void FloatVectorColumnHasNanTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var dataBuilder = new ArrayDataViewBuilder(context);
             var slotNames = new[] { "Col1", "Col2" };
             var colValues = new float[][]

@@ -254,7 +254,11 @@ namespace Microsoft.ML.Data
     /// Base class for transforms that operate row by row with each destination column using one
     /// source column. It provides an extension mechanism to allow a destination column to depend
     /// on multiple input columns.
-    /// This class provides the implementation of ISchema and IRowCursor.
+    /// The implementation of TransformBase's OutputSchema and GetRowCursorCore are found here.
+    /// Because of this, classes deriving from OneToOneTransformerBase do not need to worry about creating
+    /// a <see cref="DataViewSchema"/> or a <see cref="DataViewRowCursor"/>,
+    /// since <see cref="_bindings"/> has an AsSchema property which returns the schema, and the nested <see cref="Cursor"/> class
+    /// is used by all classes deriving from OneToOneTransformBase when getting the row cursor.
     /// </summary>
     [BestFriend]
     internal abstract class OneToOneTransformBase : RowToRowMapperTransformBase, ITransposeDataView, ITransformCanSavePfa,
@@ -468,6 +472,9 @@ namespace Microsoft.ML.Data
         private sealed class ColumnTmp : OneToOneColumn
         {
         }
+
+        private static readonly FuncInstanceMethodInfo1<OneToOneTransformBase, DataViewRow, int, Delegate> _getSrcGetterMethodInfo
+            = FuncInstanceMethodInfo1<OneToOneTransformBase, DataViewRow, int, Delegate>.Create(target => target.GetSrcGetter<int>);
 
         private readonly Bindings _bindings;
 
@@ -696,9 +703,7 @@ namespace Microsoft.ML.Data
             Host.CheckValue(typeDst, nameof(typeDst));
             Host.CheckValue(row, nameof(row));
 
-            Func<DataViewRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
-            var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
-            return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
+            return Utils.MarshalInvoke(_getSrcGetterMethodInfo, this, typeDst.RawType, row, iinfo);
         }
 
         /// <summary>

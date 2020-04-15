@@ -11,6 +11,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
@@ -184,11 +185,12 @@ namespace Microsoft.ML.Transforms.Text
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly DataViewType _type;
             private readonly TokenizingByCharactersTransformer _parent;
             private readonly bool[] _isSourceVector;
+            private readonly int[] _sourceVectorLength;
             // Constructed and cached the first time it is needed.
             private volatile string _keyValuesStr;
             private volatile int[] _keyValuesBoundaries;
@@ -200,8 +202,67 @@ namespace Microsoft.ML.Transforms.Text
                 var keyType = new KeyDataViewType(typeof(ushort), CharsCount);
                 _type = new VectorDataViewType(keyType);
                 _isSourceVector = new bool[_parent.ColumnPairs.Length];
+                _sourceVectorLength = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
-                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type is VectorDataViewType;
+                {
+                    var type = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type;
+                    _isSourceVector[i] = type is VectorDataViewType;
+                    _sourceVectorLength[i] = type.GetValueCount();
+                }
+            }
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+                for (int iinfo = 0; iinfo < _isSourceVector.Length; ++iinfo)
+                {
+                    string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
+                        continue;
+
+                    string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
+                    string srcVariableName = ctx.GetVariableName(inputColumnName);
+                    string dstVariableName = ctx.AddIntermediateVariable(_type, outputColumnName, true);
+                    SaveAsOnnxCore(ctx, iinfo, srcVariableName, dstVariableName);
+                }
+            }
+
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+            {
+                string opType = "Tokenizer";
+                DataViewType dataViewType;
+                if (_isSourceVector[iinfo])
+                    dataViewType = new VectorDataViewType(TextDataViewType.Instance, _sourceVectorLength[iinfo]);
+                else
+                    dataViewType = TextDataViewType.Instance;
+
+                string tokenizerOutput = ctx.AddIntermediateVariable(dataViewType, "TokenizerOutput", true);
+                var node = ctx.CreateNode(opType, srcVariableName, tokenizerOutput, ctx.GetNodeName(opType), "com.microsoft");
+                node.AddAttribute("mark", _parent._useMarkerChars);
+                node.AddAttribute("mincharnum", 1);
+                node.AddAttribute("pad_value", "");
+                node.AddAttribute("separators", new string[] { "" });
+
+                opType = "Squeeze";
+                var squeezeOutput = ctx.AddIntermediateVariable(dataViewType, "SqueezeOutput");
+                node = ctx.CreateNode(opType, tokenizerOutput, squeezeOutput, ctx.GetNodeName(opType), "");
+                node.AddAttribute("axes", new long[] { 1 });
+
+                opType = "LabelEncoder";
+                var labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "LabelEncoderOutput");
+                node = ctx.CreateNode(opType, squeezeOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+
+                IEnumerable<string> charStrings = Enumerable.Range(0, 65535).Select(x => ((char)x).ToString());
+                IEnumerable<long> charValues = Enumerable.Range(0, 65535).Select(x => Convert.ToInt64(x)); ;
+                node.AddAttribute("keys_strings", charStrings);
+                node.AddAttribute("values_int64s", charValues);
+
+                opType = "Cast";
+                var castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt16).ToType();
+                castNode.AddAttribute("to", t);
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
@@ -558,6 +619,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Scalar or Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
     /// | Output column data type | Variable-sized vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The estimator tokenizes characters by splitting text into sequences of characters using a sliding window.
     /// During training, the estimator builds a key-value pair dictionary with the encountered sequences of characters.

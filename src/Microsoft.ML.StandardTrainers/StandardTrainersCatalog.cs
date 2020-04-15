@@ -851,7 +851,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="PriorTrainer"/>, which predict a target using a binary classification model.
+        /// Create <see cref="PriorTrainer"/>, which predicts a target using a binary classification model.
         /// </summary>
         /// <remarks>
         /// This trainer uses the proportion of a label in the training set as the probability of that label.
@@ -872,6 +872,60 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             return new PriorTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, exampleWeightColumnName);
+        }
+
+        /// <summary>
+        /// Create <see cref="LdSvmTrainer"/> with advanced options, which predicts a target using a Local Deep SVM model.
+        /// </summary>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[LdSvm](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LdSvmWithOptions.cs)]
+        /// ]]></format>
+        /// </example>
+        public static LdSvmTrainer LdSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LdSvmTrainer.Options options)
+            => new LdSvmTrainer(catalog.GetEnvironment(), options);
+
+        /// <summary>
+        /// Create <see cref="LdSvmTrainer"/>, which predicts a target using a Local Deep SVM model.
+        /// </summary>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfIterations">The number of iterations.</param>
+        /// <param name="treeDepth">The depth of a Local Deep SVM tree.</param>
+        /// <param name="useBias">Indicates if the model should have a bias term.</param>
+        /// <param name="useCachedData">Indicates whether we should iterate over the data using a cache.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[LdSvm](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LdSvm.cs)]
+        /// ]]></format>
+        /// </example>
+        public static LdSvmTrainer LdSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfIterations = LdSvmTrainer.Options.Defaults.NumberOfIterations,
+            int treeDepth = LdSvmTrainer.Options.Defaults.TreeDepth,
+            bool useBias = LdSvmTrainer.Options.Defaults.UseBias,
+            bool useCachedData = LdSvmTrainer.Options.Defaults.Cache)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var options = new LdSvmTrainer.Options()
+            {
+                LabelColumnName = labelColumnName,
+                FeatureColumnName = featureColumnName,
+                ExampleWeightColumnName = exampleWeightColumnName,
+                NumberOfIterations = numberOfIterations,
+                TreeDepth = treeDepth,
+                UseBias = useBias,
+                Cache = useCachedData
+            };
+            return new LdSvmTrainer(catalog.GetEnvironment(), options);
         }
     }
 }

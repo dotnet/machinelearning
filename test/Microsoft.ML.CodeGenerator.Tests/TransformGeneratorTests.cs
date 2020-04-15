@@ -6,12 +6,18 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace mlnet.Tests
 {
-    public class TransformGeneratorTests
+    public class TransformGeneratorTests : BaseTestClass
     {
+        public TransformGeneratorTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void MissingValueReplacingTest()
         {
@@ -170,6 +176,20 @@ namespace mlnet.Tests
         public void ImageLoadingTest()
         {
             PipelineNode node = new PipelineNode("ImageLoading", PipelineNodeType.Transform,
+                new string[] { "Label" }, new string[] { "Label" }, null);
+
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
+            string expectedTransform = "LoadImages(\"Label\", null, \"Label\")";
+            Assert.Equal(expectedTransform, actual[0].Item1);
+            Assert.Null(actual[0].Item2);
+        }
+
+        [Fact]
+        public void ImageLoadingRawBytes()
+        {
+            PipelineNode node = new PipelineNode("RawByteImageLoading", PipelineNodeType.Transform,
                 new string[] { "Label" }, new string[] { "Label" }, null);
 
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });

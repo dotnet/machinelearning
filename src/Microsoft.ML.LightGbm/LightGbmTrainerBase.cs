@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         public class OptionsBase : TrainerInputBaseWithGroupId
         {
             // Static override name map that maps friendly names to lightGBM arguments.
-            // If an argument is not here, then its name is identicaltto a lightGBM argument
+            // If an argument is not here, then its name is identical to a lightGBM argument
             // and does not require a mapping, for example, Subsample.
             private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
             {
@@ -55,7 +55,8 @@ namespace Microsoft.ML.Trainers.LightGbm
                {nameof(MaximumCategoricalSplitPointCount),    "max_cat_threshold" },
                {nameof(CategoricalSmoothing),                 "cat_smooth" },
                {nameof(L2CategoricalRegularization),          "cat_l2" },
-               {nameof(HandleMissingValue),                   "use_missing" }
+               {nameof(HandleMissingValue),                   "use_missing" },
+               {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
             };
 
             private protected string GetOptionName(string name)
@@ -174,9 +175,16 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Whether to enable special handling of missing value or not.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.", ShortName = "hmv")]
             [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
             public bool HandleMissingValue = true;
+
+            /// <summary>
+            /// Whether to enable the usage of zero (0) as missing value.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.", ShortName = "uzam")]
+            [TlcModule.SweepableDiscreteParam("UseZeroAsMissing", new object[] { true, false })]
+            public bool UseZeroAsMissingValue = false;
 
             /// <summary>
             /// The minimum number of data points per categorical group.
@@ -259,6 +267,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
                 res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
+                res[GetOptionName(nameof(UseZeroAsMissingValue))] = UseZeroAsMissingValue;
                 res[GetOptionName(nameof(MinimumExampleCountPerGroup))] = MinimumExampleCountPerGroup;
                 res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
@@ -282,13 +291,13 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected readonly TOptions LightGbmTrainerOptions;
 
         /// <summary>
-        /// Stores argumments as objects to convert them to invariant string type in the end so that
+        /// Stores arguments as objects to convert them to invariant string type in the end so that
         /// the code is culture agnostic. When retrieving key value from this dictionary as string
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>
-        private protected Dictionary<string, object> GbmOptions;
+        private protected readonly Dictionary<string, object> GbmOptions;
 
-        private protected IParallel ParallelTraining;
+        private protected readonly IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
         private protected int FeatureCount;
@@ -335,11 +344,15 @@ namespace Microsoft.ML.Trainers.LightGbm
             Contracts.CheckUserArg(options.L2CategoricalRegularization >= 0.0, nameof(options.L2CategoricalRegularization), "must be >= 0.");
 
             LightGbmTrainerOptions = options;
+            ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
+            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
             InitParallelTraining();
         }
 
         private protected override TModel TrainModelCore(TrainContext context)
         {
+            InitializeBeforeTraining();
+
             Host.CheckValue(context, nameof(context));
 
             Dataset dtrain = null;
@@ -371,11 +384,10 @@ namespace Microsoft.ML.Trainers.LightGbm
             return CreatePredictor();
         }
 
+        private protected virtual void InitializeBeforeTraining(){}
+
         private void InitParallelTraining()
         {
-            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
-            ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
-
             if (ParallelTraining.ParallelType() != "serial" && ParallelTraining.NumMachines() > 1)
             {
                 GbmOptions["tree_learner"] = ParallelTraining.ParallelType();
@@ -433,7 +445,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
-            var loadFlags = CursOpt.AllLabels | CursOpt.Features;
+            var loadFlags = CursOpt.AllLabels | CursOpt.AllFeatures;
             if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
 

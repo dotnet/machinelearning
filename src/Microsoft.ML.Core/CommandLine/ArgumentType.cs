@@ -26,7 +26,7 @@ namespace Microsoft.ML.CommandLine
         Unique = 0x02,
 
         /// <summary>
-        /// Inidicates that the argument may be specified more than once.
+        /// Indicates that the argument may be specified more than once.
         /// Only valid if the argument is a collection
         /// </summary>
         Multiple = 0x04,
@@ -42,7 +42,7 @@ namespace Microsoft.ML.CommandLine
         /// once no error is reported and the value of the argument is the last
         /// value which occurs in the argument list.
         /// </summary>
-        LastOccurenceWins = Multiple,
+        LastOccurrenceWins = Multiple,
 
         /// <summary>
         /// The default type for collection arguments.

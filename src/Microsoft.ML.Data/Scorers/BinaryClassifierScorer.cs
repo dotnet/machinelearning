@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -198,28 +199,29 @@ namespace Microsoft.ML.Data
             for (int iinfo = 0; iinfo < Bindings.InfoCount; ++iinfo)
                 outColumnNames[iinfo] = Bindings.GetColumnName(Bindings.MapIinfoToCol(iinfo));
 
-            /* If the probability column was generated, then the classification threshold is set to 0.5. Otherwise,
-               the predicted label is based on the sign of the score.
-             */
-            string opType = "Binarizer";
-            OnnxNode node;
-            var binarizerOutput = ctx.AddIntermediateVariable(null, "BinarizerOutput", true);
+            string scoreColumn = Bindings.RowMapper.OutputSchema[Bindings.ScoreColumnIndex].Name;
 
-            if (Bindings.InfoCount >= 3)
+            OnnxNode node;
+            string opType = "Binarizer";
+            var binarizerOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "BinarizerOutput", false);
+            node = ctx.CreateNode(opType, ctx.GetVariableName(scoreColumn), binarizerOutput, ctx.GetNodeName(opType));
+            node.AddAttribute("threshold", _threshold);
+
+            string comparisonOutput = binarizerOutput;
+            if (Bindings.PredColType is KeyDataViewType)
             {
-                Host.Assert(ctx.ContainsColumn(outColumnNames[2]));
-                node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[2]), binarizerOutput, ctx.GetNodeName(opType));
-                node.AddAttribute("threshold", 0.5);
+                var one = ctx.AddInitializer(1.0f, "one");
+                var addOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "Add", false);
+                opType = "Add";
+                ctx.CreateNode(opType, new[] { binarizerOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
+                comparisonOutput = addOutput;
             }
-            else
-            {
-                node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[1]), binarizerOutput, ctx.GetNodeName(opType));
-                node.AddAttribute("threshold", 0.0);
-            }
+
             opType = "Cast";
-            node = ctx.CreateNode(opType, binarizerOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
-            var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
-            node.AddAttribute("to", t);
+            node = ctx.CreateNode(opType, comparisonOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
+            var predictedLabelCol = OutputSchema.GetColumnOrNull(outColumnNames[0]);
+            Host.Assert(predictedLabelCol.HasValue);
+            node.AddAttribute("to", predictedLabelCol.Value.Type.RawType);
         }
 
         private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)

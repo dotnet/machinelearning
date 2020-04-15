@@ -26,23 +26,23 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorChain()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var invalidData = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.Single, 0),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.Single, 0),
+                }
             }, new MultiFileSource(dataFile));
 
             var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
@@ -57,16 +57,16 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorSaveLoad()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
 
             var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
@@ -99,18 +99,50 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void TestLoadImages()
+        {
+            var env = new MLContext(1);
+            var dataFile = GetDataPath("images/images.tsv");
+            var correctImageFolder = Path.GetDirectoryName(dataFile);
+            var data = TextLoader.Create(env, new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
+            }, new MultiFileSource(dataFile));
+
+            // Testing for invalid imageFolder path, should throw an ArgumentException 
+            var incorrectImageFolder = correctImageFolder + "-nonExistantDirectory";
+            Assert.Throws<ArgumentException>(() => new ImageLoadingTransformer(env, incorrectImageFolder, ("ImageReal", "ImagePath")).Transform(data));
+
+            // Testing for empty imageFolder path, should not throw an exception
+            var emptyImageFolder = String.Empty;
+            var imagesEmptyImageFolder = new ImageLoadingTransformer(env, emptyImageFolder, ("ImageReal", "ImagePath")).Transform(data);
+
+            // Testing for null imageFolder path, should not throw an exception
+            var imagesNullImageFolder = new ImageLoadingTransformer(env, null, ("ImageReal", "ImagePath")).Transform(data);
+
+            // Testing for correct imageFolder path, should not throw an exception
+            var imagesCorrectImageFolder = new ImageLoadingTransformer(env, correctImageFolder, ("ImageReal", "ImagePath")).Transform(data);
+
+            Done();
+        }
+
+        [Fact]
         public void TestSaveImages()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", 100, 100, "ImageReal", ImageResizingEstimator.ResizingKind.IsoPad).Transform(images);
@@ -136,7 +168,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestGreyscaleTransformImages()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             var imageHeight = 150;
             var imageWidth = 100;
             var dataFile = GetDataPath("images/images.tsv");
@@ -145,9 +177,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
 
@@ -270,7 +302,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaInterleave()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -279,9 +311,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -327,7 +359,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaInterleave()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -336,9 +368,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -384,7 +416,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithDifferentOrder()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -393,9 +425,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -443,7 +475,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -452,9 +484,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -500,7 +532,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleave()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -509,9 +541,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -557,7 +589,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaInterleaveNoOffset()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -566,9 +598,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -615,7 +647,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaInterleaveNoOffset()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -624,9 +656,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -672,7 +704,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleaveNoOffset()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             var imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -681,9 +713,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -730,7 +762,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset()
         {
-            IHostEnvironment env = new MLContext();
+            IHostEnvironment env = new MLContext(1);
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
@@ -739,8 +771,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
                 }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -786,7 +818,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ImageResizerTransformResizingModeFill()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataFile = GetDataPath("images/fillmode.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Options()
@@ -856,7 +888,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        private const int inputSize = 3 * 224 * 224;
+        private const int InputSize = 3 * 224 * 224;
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
         {
@@ -866,14 +898,14 @@ namespace Microsoft.ML.Tests
             {
                 yield return new DataPoint
                 {
-                    Features = Enumerable.Repeat(0, inputSize).Select(x => random.NextDouble()*100).ToArray()
+                    Features = Enumerable.Repeat(0, InputSize).Select(x => random.NextDouble()*100).ToArray()
                 };
             }
         }
 
         private class DataPoint
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public double[] Features { get; set; }
         }
     }

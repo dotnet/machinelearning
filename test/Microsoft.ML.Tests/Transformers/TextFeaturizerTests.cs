@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -598,9 +599,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = new WordBagEstimator(ML, "bag_of_words", "text").
                 Append(new WordHashBagEstimator(ML, "bag_of_wordshash", "text", maximumNumberOfInverts: -1));
 
-            // The following call fails because of the following issue
-            // https://github.com/dotnet/machinelearning/issues/969
-            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            TestEstimatorCore(est, data, invalidInput: invalidData);
 
             var outputPath = GetOutputPath("Text", "bag_of_words.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
@@ -685,10 +684,11 @@ namespace Microsoft.ML.Tests.Transformers
                 Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, maximumNumberOfIterations: 10,
                     resetRandomGenerator: true));
 
-            // The following call fails because of the following issue
-            // https://github.com/dotnet/machinelearning/issues/969
-            // In this test it manifests because of the WordBagEstimator in the estimator chain
-            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            // Diabling this check due to the following issue with consitency of output.
+            // `seed` specified in ConsoleEnvironment has no effect.
+            // https://github.com/dotnet/machinelearning/issues/1004
+            // On single box, setting `s.ResetRandomGenerator = true` works but fails on build server
+            // TestEstimatorCore(est, data, invalidInput: invalidData);
 
             var outputPath = GetOutputPath("Text", "ldatopics.tsv");
             using (var ch = env.Start("save"))
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LdaWorkoutEstimatorCore()
         {
-            var ml = new MLContext();
+            var ml = new MLContext(1);
 
             var builder = new ArrayDataViewBuilder(Env);
             var data = new[]
@@ -728,7 +728,13 @@ namespace Microsoft.ML.Tests.Transformers
             builder.AddColumn("F1V", NumberDataViewType.Single, data);
             var srcView = builder.GetDataView();
 
-            var est = ml.Transforms.Text.LatentDirichletAllocation("F1V");
+            //Attention: resetRandomGenerator needs to be true here as multiple compare will be performed later.
+            //In lda_engine, a queue of samples with size of (num_of_threads - 2) will be created at first,
+            //each time a compare is performed the internal status of one sample (random number: rng_) is changed,
+            //so if size of queue is smaller the number of compare performed, dirty data will be used again for calculation
+            //and cause issue. set resetRandomGenerator to true will reset the random number rng_ every time
+            //before lda calculation.
+            var est = ml.Transforms.Text.LatentDirichletAllocation("F1V", resetRandomGenerator: true);
             TestEstimatorCore(est, srcView);
         }
 
@@ -762,6 +768,22 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.Equal(input.Sentiment, prediction.Sentiment);
                 Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
             }
+        }
+
+        [Fact]
+        public void TestWordBagInPipeline()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Label", DataKind.Boolean, 0),
+                new TextLoader.Column("Features", DataKind.String, 1, 9)
+            });
+
+            var pipeline = ML.Transforms.Text.ProduceWordBags("Features")
+                .Append(ML.BinaryClassification.Trainers.FastTree());
+
+            TestEstimatorCore(pipeline, dataView);
+            Done();
         }
     }
 }

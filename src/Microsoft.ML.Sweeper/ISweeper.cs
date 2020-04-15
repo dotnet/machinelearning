@@ -266,7 +266,7 @@ namespace Microsoft.ML
 
     /// <summary>
     /// The metric class, used by smart sweeping algorithms.
-    /// Ideally we would like to move towards the new IDataView/ISchematized, this is
+    /// Ideally we would like to move towards a IDataView, this is
     /// just a simple view instead, and it is decoupled from RunResult so we can move
     /// in that direction in the future.
     /// </summary>

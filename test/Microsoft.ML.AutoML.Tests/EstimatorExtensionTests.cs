@@ -5,17 +5,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class EstimatorExtensionTests
+    public class EstimatorExtensionTests : BaseTestClass
     {
+        public EstimatorExtensionTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void EstimatorExtensionInstanceTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var pipelineNode = new PipelineNode()
             {
                 InColumns = new string[] { "Input" },
@@ -35,7 +41,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void EstimatorExtensionStaticTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var inCol = "Input";
             var outCol = "Output";
             var inCols = new string[] { inCol };

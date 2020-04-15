@@ -1,0 +1,15 @@
+---- BoundLoader ----
+4 columns:
+  A: Int32
+  N: Int32
+  VI: Vector<Int32, 29>
+  VR: Vector<Single, 29>
+---- RowToRowMapperTransform ----
+7 columns:
+  A: Int32
+  N: Int32
+  N: String
+  VI: Vector<Int32, 29>
+  VI: Vector<String, 29>
+  VR: Vector<Single, 29>
+  VR: Vector<String, 29>

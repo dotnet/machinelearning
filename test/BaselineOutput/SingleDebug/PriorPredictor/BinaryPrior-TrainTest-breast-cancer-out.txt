@@ -26,7 +26,7 @@ Negative precision: 0.655222 (0.0000)
 Negative recall:    1.000000 (0.0000)
 Log-loss:           0.929318 (0.0000)
 Log-loss reduction: 0.000000 (0.0000)
-F1 Score:               NaN (0.0000)
+F1 Score:           0.000000 (0.0000)
 AUPRC:              0.415719 (0.0000)
 
 ---------------------------------------

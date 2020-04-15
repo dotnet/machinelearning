@@ -626,7 +626,13 @@ namespace Microsoft.ML.Transforms
                 Host.CheckValue(ctx, nameof(ctx));
 
                 TransformInfo transformInfo = _parent._transformInfos[iinfo];
-                ColumnSchemaInfo schemaInfo = _parent._schemaInfos[iinfo];
+
+                // When the transformer is loaded from a model file,
+                // _schemaInfos does not exist. Infer the input type
+                // from the transformInfo dimension.
+                DataViewType inputType = (_parent._schemaInfos != null) ?
+                                          _parent._schemaInfos[iinfo].InputType :
+                                          new VectorDataViewType(NumberDataViewType.Single, transformInfo.Dimension);
 
                 float[] principalComponents = new float[transformInfo.Rank * transformInfo.Dimension];
                 for (int i = 0; i < transformInfo.Rank; i++)
@@ -654,7 +660,7 @@ namespace Microsoft.ML.Transforms
                 // This should be removed once incompatibility is fixed.
                 string opType;
                 opType = "Transpose";
-                var transposeOutput = ctx.AddIntermediateVariable(schemaInfo.InputType, "TransposeOutput", true);
+                var transposeOutput = ctx.AddIntermediateVariable(inputType, "TransposeOutput", true);
                 var transposeNode = ctx.CreateNode(opType, srcVariableName, transposeOutput, ctx.GetNodeName(opType), "");
 
                 opType = "Gemm";

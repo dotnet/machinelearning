@@ -48,6 +48,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML |Microsoft.ML.Mkl.Components |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// The symbolic stochastic gradient descent is an algorithm that makes its predictions by finding a separating hyperplane.
@@ -488,7 +489,7 @@ namespace Microsoft.ML.Trainers
                 // Generally it is the user responsibility to not ask for an array of a size that has not been
                 // previously allocated.
 
-                // In case no allocation has occured.
+                // In case no allocation has occurred.
                 if (_storage.Count == 0)
                 {
                     outGcHandle = null;
@@ -636,7 +637,7 @@ namespace Microsoft.ML.Trainers
                     }
                     else
                     {
-                        // If couldLoad fails at any point (which is becuase of memorySize), isFullyLoaded becomes false forever
+                        // If couldLoad fails at any point (which is because of memorySize), isFullyLoaded becomes false forever
                         _isFullyLoaded = false;
                         break;
                     }
@@ -808,6 +809,8 @@ namespace Microsoft.ML.Trainers
                 if (stateGCHandle.IsAllocated)
                     stateGCHandle.Free();
             }
+
+            ch.Info($"Bias: {bias}, Weights: [{String.Join(",", weights.DenseValues())}]");
             return CreatePredictor(weights, bias);
         }
 

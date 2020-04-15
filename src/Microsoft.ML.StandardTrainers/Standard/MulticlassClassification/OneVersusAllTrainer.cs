@@ -54,6 +54,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Depends on the underlying binary classifier |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// In one-versus-all (OVA) strategy, a binary classification algorithm is used to train one classifier for each class,
@@ -558,11 +559,11 @@ namespace Microsoft.ML.Trainers
                         outputs[i] = clipOutput;
 
                         string opType = "Clip";
-                        var clipNode = ctx.CreateNode(opType, clipInput, outputs[i], ctx.GetNodeName(opType), "");
-                        clipNode.AddAttribute("min", 0.0);
+                        var zeroVar = ctx.AddInitializer(0.0f, "Zero");
+                        var clipNode = ctx.CreateNode(opType, new[] { clipInput, zeroVar }, new[] { outputs[i] }, ctx.GetNodeName(opType), "");
                     }
                     else
-                        outputs[i] = predictorOutputNames[2];
+                        outputs[i] = predictorOutputNames[1];
                 }
                 return outputs;
             }
@@ -573,13 +574,14 @@ namespace Microsoft.ML.Trainers
 
                 string opType;
                 opType = "ArgMax";
-                var argMaxOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ArgMaxOutput", true);
+                var argMaxOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "ArgMaxOutput");
                 var argMaxNode = ctx.CreateNode(opType, inputName, argMaxOutput, ctx.GetNodeName(opType), "");
-                argMaxNode.AddAttribute("keepdims", 0);
+                argMaxNode.AddAttribute("keepdims", 1);
+                argMaxNode.AddAttribute("axis", 1);
 
                 opType = "Add";
                 var one = ctx.AddInitializer(1);
-                var addOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "AddOutput", true);
+                var addOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "AddOutput");
                 var addNode = ctx.CreateNode(opType, new[] { argMaxOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
 
                 opType = "Cast";
@@ -658,12 +660,13 @@ namespace Microsoft.ML.Trainers
 
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
-                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
+                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
 
                 string opType = "Concat";
-                var concatOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ConcatOutput", true);
+                var type = new VectorDataViewType(NumberDataViewType.Single, probabilityOutputs.Length);
+                var concatOutput = ctx.AddIntermediateVariable(type, "ConcatOutputRaw");
                 var concatNode = ctx.CreateNode(opType, probabilityOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
-                concatNode.AddAttribute("axis", 0);
+                concatNode.AddAttribute("axis", 1);
 
                 base.SaveAsOnnxPostProcess(ctx, concatOutput, outputNames);
 
@@ -792,37 +795,43 @@ namespace Microsoft.ML.Trainers
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
 
                 opType = "Sum";
-                var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScores", true);
-                var sumNode = ctx.CreateNode(opType, probabilityOutputs, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+                var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScores");
+                ctx.CreateNode(opType, probabilityOutputs, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
                 opType = "Cast";
-                var castOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsSumZero", true);
+                var castOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "CastOutput");
                 var castNode = ctx.CreateNode(opType, sumOutput, castOutput, ctx.GetNodeName(opType), "");
                 var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
                 castNode.AddAttribute("to", t);
 
-                var castIsZeroSumToFloat = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsSumZeroAsFloat", true);
-                var castIsZeroSumToFloatNode = ctx.CreateNode(opType, castOutput, castIsZeroSumToFloat, ctx.GetNodeName(opType), "");
+                opType = "Not";
+                var notOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsSumZero");
+                ctx.CreateNode(opType, castOutput, notOutput, ctx.GetNodeName(opType), "");
+
+                opType = "Cast";
+                var castIsZeroSumToFloat = ctx.AddIntermediateVariable(NumberDataViewType.Single, "IsSumZeroAsFloat");
+                var castIsZeroSumToFloatNode = ctx.CreateNode(opType, notOutput, castIsZeroSumToFloat, ctx.GetNodeName(opType), "");
                 var t1 = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
                 castIsZeroSumToFloatNode.AddAttribute("to", t1);
 
                 opType = "Sum";
-                var sumOutputNonZero = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScoresNonZero", true);
-                var sumOutputNonZeroNode = ctx.CreateNode(opType, new[] { sumOutput, castIsZeroSumToFloat },
+                var sumOutputNonZero = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScoresNonZero");
+                ctx.CreateNode(opType, new[] { sumOutput, castIsZeroSumToFloat },
                     new[] { sumOutputNonZero }, ctx.GetNodeName(opType), "");
 
                 string[] divOutputs = new string[Predictors.Length];
                 for (int i = 0; i < Predictors.Length; i++)
                 {
                     opType = "Div";
-                    divOutputs[i] = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"DivOutput_{i}", true);
+                    divOutputs[i] = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"DivOutput_{i}");
                     ctx.CreateNode(opType, new[] { probabilityOutputs[i], sumOutputNonZero }, new[] { divOutputs[i] }, ctx.GetNodeName(opType), "");
                 }
 
                 opType = "Concat";
-                var concatOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ConcatOutput", true);
+                var type = new VectorDataViewType(NumberDataViewType.Single, divOutputs.Length);
+                var concatOutput = ctx.AddIntermediateVariable(type, "ConcatOutputDist");
                 var concatNode = ctx.CreateNode(opType, divOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
-                concatNode.AddAttribute("axis", 0);
+                concatNode.AddAttribute("axis", 1);
 
                 base.SaveAsOnnxPostProcess(ctx, concatOutput, outputNames);
 
@@ -906,21 +915,24 @@ namespace Microsoft.ML.Trainers
 
                 string opType;
                 opType = "Concat";
-                var concatOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ConcatOutput", true);
+                var type = new VectorDataViewType(NumberDataViewType.Single, probabilityOutputs.Length);
+                var concatOutput = ctx.AddIntermediateVariable(type, "ConcatOutputSoftMax");
                 var concatNode = ctx.CreateNode(opType, probabilityOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
-                concatNode.AddAttribute("axis", 0);
+                concatNode.AddAttribute("axis", 1);
 
                 opType = "Exp";
-                var expOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ExpOutput", true);
+                var expOutput = ctx.AddIntermediateVariable(type, "ExpOutput");
                 var expNode = ctx.CreateNode(opType, concatOutput, expOutput, ctx.GetNodeName(opType), "");
 
                 opType = "ReduceSum";
-                var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOutput", true);
+                var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOutput");
                 var sumNode = ctx.CreateNode(opType, expOutput, sumOutput, ctx.GetNodeName(opType), "");
-                sumNode.AddAttribute("keepdims", 0);
+                sumNode.AddAttribute("keepdims", 1);
+                long[] list = { 1 };
+                sumNode.AddAttribute("axes", list);
 
                 opType = "Div";
-                var divOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "DivOutput", true);
+                var divOutput = ctx.AddIntermediateVariable(type, "DivOutput");
                 var divNode = ctx.CreateNode(opType, new[] { expOutput, sumOutput }, new[] { divOutput }, ctx.GetNodeName(opType), "");
 
                 base.SaveAsOnnxPostProcess(ctx, divOutput, outputNames);

@@ -18,10 +18,10 @@ namespace Microsoft.ML.Trainers.LightGbm
         public WrappedLightGbmInterface.SafeDataSetHandle Handle => _handle;
 
         /// <summary>
-        /// Create a <see cref="Dataset"/> for storing training and prediciton data under LightGBM framework. The main goal of this function
+        /// Create a <see cref="Dataset"/> for storing training and prediction data under LightGBM framework. The main goal of this function
         /// is not marshaling ML.NET data set into LightGBM format but just creates a (unmanaged) container where examples can be pushed into by calling
         /// <see cref="PushRows(float[], int, int, int)"/>. It also pre-allocates memory so the actual size (number of examples and number of features)
-        /// of the data set is required. A sub-sampled version of the original data set is passed in to compute some statictics needed by the training
+        /// of the data set is required. A sub-sampled version of the original data set is passed in to compute some statistics needed by the training
         /// procedure. Note that we use "original" to indicate a property from the unsampled data set.
         /// </summary>
         /// <param name="sampleValuePerColumn">A 2-D array which encodes the sub-sampled data matrix. sampleValuePerColumn[i] stores

@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Stores the key values of the input colum into the provided buffer, if this is of key type and whose
+        /// Stores the key values of the input column into the provided buffer, if this is of key type and whose
         /// key values are of <see cref="VectorDataViewType.ItemType"/> whose <see cref="DataViewType.RawType"/> matches
         /// <typeparamref name="TValue"/>. If there is no matching key valued annotation this will throw an exception.
         /// </summary>

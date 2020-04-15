@@ -6,7 +6,6 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.LightGbm;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
@@ -15,30 +14,30 @@ using Microsoft.ML.TestFrameworkCommon;
 namespace Microsoft.ML.Benchmarks
 {
     [Config(typeof(TrainConfig))]
-    public class RankingTrain
+    public class RankingTrain : BenchmarkBase
     {
-        private string _mslrWeb10k_Validate;
-        private string _mslrWeb10k_Train;
+        private string _mslrWeb10kValidate;
+        private string _mslrWeb10kTrain;
 
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _mslrWeb10k_Validate = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10k_Train = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10kValidate = GetBenchmarkDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10kTrain = GetBenchmarkDataPath(TestDatasets.MSLRWeb.trainFilename);
 
-            if (!File.Exists(_mslrWeb10k_Validate))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Validate));
+            if (!File.Exists(_mslrWeb10kValidate))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kValidate));
 
-            if (!File.Exists(_mslrWeb10k_Train))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Train));
+            if (!File.Exists(_mslrWeb10kTrain))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kTrain));
         }
 
         [Benchmark]
         public void TrainTest_Ranking_MSLRWeb10K_RawNumericFeatures_FastTreeRanking()
         {
-            string cmd = @"TrainTest test=" + _mslrWeb10k_Validate +
+            string cmd = @"TrainTest test=" + _mslrWeb10kValidate +
                 " eval=RankingEvaluator{t=10}" +
-                " data=" + _mslrWeb10k_Train +
+                " data=" + _mslrWeb10kTrain +
                 " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138}" +
                 " xf=HashTransform{col=GroupId} xf=NAHandleTransform{col=Features}" +
                 " tr=FastTreeRanking{}";
@@ -50,9 +49,9 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void TrainTest_Ranking_MSLRWeb10K_RawNumericFeatures_LightGBMRanking()
         {
-            string cmd = @"TrainTest test=" + _mslrWeb10k_Validate +
+            string cmd = @"TrainTest test=" + _mslrWeb10kValidate +
                 " eval=RankingEvaluator{t=10}" +
-                " data=" + _mslrWeb10k_Train +
+                " data=" + _mslrWeb10kTrain +
                 " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138}" +
                 " xf=HashTransform{col=GroupId}" +
                 " xf=NAHandleTransform{col=Features}" +
@@ -63,39 +62,39 @@ namespace Microsoft.ML.Benchmarks
         }
     }
 
-    public class RankingTest
+    public class RankingTest : BenchmarkBase
     {
-        private string _mslrWeb10k_Validate;
-        private string _mslrWeb10k_Train;
-        private string _mslrWeb10k_Test;
-        private string _modelPath_MSLR;
+        private string _mslrWeb10kValidate;
+        private string _mslrWeb10kTrain;
+        private string _mslrWeb10kTest;
+        private string _modelPathMslr;
 
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _mslrWeb10k_Test = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.testFilename);
-            _mslrWeb10k_Validate = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10k_Train = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10kTest = GetBenchmarkDataPath(TestDatasets.MSLRWeb.testFilename);
+            _mslrWeb10kValidate = GetBenchmarkDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10kTrain = GetBenchmarkDataPath(TestDatasets.MSLRWeb.trainFilename);
 
-            if (!File.Exists(_mslrWeb10k_Test))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Test));
+            if (!File.Exists(_mslrWeb10kTest))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kTest));
 
-            if (!File.Exists(_mslrWeb10k_Validate))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Validate));
+            if (!File.Exists(_mslrWeb10kValidate))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kValidate));
 
-            if (!File.Exists(_mslrWeb10k_Train))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Train));
+            if (!File.Exists(_mslrWeb10kTrain))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kTrain));
 
-            _modelPath_MSLR = Path.Combine(Path.GetDirectoryName(typeof(RankingTest).Assembly.Location), "FastTreeRankingModel.zip");
+            _modelPathMslr = Path.Combine(Path.GetDirectoryName(typeof(RankingTest).Assembly.Location), "FastTreeRankingModel.zip");
 
-            string cmd = @"TrainTest test=" + _mslrWeb10k_Validate +
+            string cmd = @"TrainTest test=" + _mslrWeb10kValidate +
                 " eval=RankingEvaluator{t=10}" +
-                " data=" + _mslrWeb10k_Train +
+                " data=" + _mslrWeb10kTrain +
                 " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138}" +
                 " xf=HashTransform{col=GroupId}" +
                 " xf=NAHandleTransform{col=Features}" +
                 " tr=FastTreeRanking{}" +
-                " out={" + _modelPath_MSLR + "}";
+                " out={" + _modelPathMslr + "}";
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankingEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer, FastTreeRankingModelParameters>();
             cmd.ExecuteMamlCommand(environment);
@@ -105,7 +104,7 @@ namespace Microsoft.ML.Benchmarks
         public void Test_Ranking_MSLRWeb10K_RawNumericFeatures_FastTreeRanking()
         {
             // This benchmark is profiling bulk scoring speed and not training speed. 
-            string cmd = @"Test data=" + _mslrWeb10k_Test + " in=" + _modelPath_MSLR;
+            string cmd = @"Test data=" + _mslrWeb10kTest + " in=" + _modelPathMslr;
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankingEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer, FastTreeRankingModelParameters>();
             cmd.ExecuteMamlCommand(environment);

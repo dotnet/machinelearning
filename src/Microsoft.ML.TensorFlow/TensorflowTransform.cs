@@ -37,8 +37,10 @@ using static Tensorflow.Binding;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class TensorFlowTransformer : RowToRowTransformerBase
+    public sealed class TensorFlowTransformer : RowToRowTransformerBase, IDisposable
     {
+        private bool _isDisposed;
+
         private readonly string _savedModelPath;
         private readonly bool _isTemporarySavedModel;
         private readonly bool _addBatchDimensionInput;
@@ -52,7 +54,6 @@ namespace Microsoft.ML.Transforms
         internal readonly (Operation, int)[] TFOutputOperations;
         internal TF_Output[] TFInputNodes;
         internal TF_Output[] TFOutputNodes;
-        internal IntPtr[] TFOperations;
         internal Graph Graph => Session.graph;
 
         internal readonly string[] Inputs;
@@ -444,27 +445,21 @@ namespace Microsoft.ML.Transforms
                 ctx.SaveNonEmptyString(colName);
         }
 
-        ~TensorFlowTransformer()
+        public void Dispose()
         {
-            Dispose(false);
-        }
+            if (_isDisposed)
+                return;
 
-        private void Dispose(bool disposing)
-        {
-            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been disposed/finalized.
-            // Technically we shouldn't be calling this if disposing == false, since we're running in finalizer
-            // and the GC doesn't guarantee ordering of finalization of managed objects, but we have to make sure
-            // that the Session is closed before deleting our temporary directory.
             try
             {
+                if (Session?.graph != IntPtr.Zero)
+                {
+                    Session.graph.Dispose();
+                }
+
                 if (Session != null && Session != IntPtr.Zero)
                 {
                     Session.close(); // invoked Dispose()
-                }
-
-                if (Session != null && Session.graph != IntPtr.Zero)
-                {
-                    Session.graph.Dispose();
                 }
             }
             finally
@@ -473,6 +468,8 @@ namespace Microsoft.ML.Transforms
                 {
                     DeleteFolderWithRetries(Host, _savedModelPath);
                 }
+
+                _isDisposed = true;
             }
         }
 
@@ -643,27 +640,15 @@ namespace Microsoft.ML.Transforms
                 {
                     if (_parent.Graph.graph_key != tf.get_default_graph().graph_key)
                         _parent.Session.graph.as_default();
-                    Runner runner = new Runner(_parent.Session);
+                    Runner runner = new Runner(_parent.Session, _parent.Inputs.ToArray(), _parent.Outputs.ToArray());
 
                     // Feed inputs to the graph.
-                     for (int i = 0; i < _parent.Inputs.Length; i++)
-                    {
-                        var tensor = srcTensorGetters[i].GetTensor();
-                        runner.AddInput(_parent.Inputs[i], tensor);
-                    }
-
-                    // Add outputs.
-                    for (int i = 0; i < _parent.Outputs.Length; i++)
-                        runner.AddOutputs(_parent.Outputs[i]);
+                    for (int i = 0; i < _parent.Inputs.Length; i++)
+                        runner.AddInput(srcTensorGetters[i].GetTensor(), i);
 
                     // Execute the graph.
                     var tensors = runner.Run();
-
-                    List<Tensor> inputTensors = runner.GetInputValues();
-                    foreach (Tensor inputTensor in inputTensors)
-                    {
-                        inputTensor.Dispose();
-                    }
+                    runner.Dispose();
 
                     Contracts.Assert(tensors.Length > 0);
 

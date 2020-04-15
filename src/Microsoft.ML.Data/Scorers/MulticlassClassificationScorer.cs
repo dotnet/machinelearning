@@ -64,8 +64,12 @@ namespace Microsoft.ML.Data
         /// </summary>
         // REVIEW: It seems like the attachment of metadata should be solvable in a manner
         // less ridiculously verbose than this.
-        public sealed class LabelNameBindableMapper : ISchemaBindableMapper, ICanSaveModel, IBindableCanSavePfa, IBindableCanSaveOnnx
+        public sealed class LabelNameBindableMapper : ISchemaBindableMapper, ICanSaveModel, IBindableCanSavePfa,
+            IBindableCanSaveOnnx, IDisposable
         {
+            private static readonly FuncInstanceMethodInfo1<LabelNameBindableMapper, object, Delegate> _decodeInitMethodInfo
+                = FuncInstanceMethodInfo1<LabelNameBindableMapper, object, Delegate>.Create(target => target.DecodeInit<int>);
+
             public const string LoaderSignature = "LabelSlotNameMapper";
             private const string _innerDir = "InnerMapper";
             private readonly ISchemaBindableMapper _bindable;
@@ -138,7 +142,7 @@ namespace Microsoft.ML.Data
                 _type = type as VectorDataViewType;
                 _host.CheckDecode(_type != null);
                 _host.CheckDecode(value != null);
-                _getter = Utils.MarshalInvoke(DecodeInit<int>, _type.ItemType.RawType, value);
+                _getter = Utils.MarshalInvoke(_decodeInitMethodInfo, this, _type.ItemType.RawType, value);
                 _metadataKind = ctx.Header.ModelVerReadable >= VersionAddedMetadataKind ?
                     ctx.LoadNonEmptyString() : AnnotationUtils.Kinds.SlotNames;
             }
@@ -376,6 +380,21 @@ namespace Microsoft.ML.Data
                     public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column) => Input.GetGetter<TValue>(column);
                 }
             }
+
+            #region IDisposable Support
+            private bool _disposed;
+
+            public void Dispose()
+            {
+                // TODO: Is it necessary to call the base class Dispose()?
+                if (_disposed)
+                    return;
+
+                (_bindable as IDisposable)?.Dispose();
+
+                _disposed = true;
+            }
+            #endregion
         }
 
         /// <summary>

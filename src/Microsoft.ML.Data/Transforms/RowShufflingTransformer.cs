@@ -42,20 +42,20 @@ namespace Microsoft.ML.Transforms
         public sealed class Options
         {
             // REVIEW: A more intelligent heuristic, based on the expected size of the inputs, perhaps?
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
             public int PoolRows = Defaults.PoolRows;
 
             // REVIEW: Come up with a better way to specify the desired set of functionality.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.", ShortName = "po")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.", ShortName = "po")]
             public bool PoolOnly = Defaults.PoolOnly;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will always provide a shuffled view.", ShortName = "force")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, the transform will always provide a shuffled view.", ShortName = "force")]
             public bool ForceShuffle = Defaults.ForceShuffle;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will always shuffle the input. The default value is the same as forceShuffle.", ShortName = "forceSource")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, the transform will always shuffle the input. The default value is the same as forceShuffle.", ShortName = "forceSource")]
             public bool? ForceShuffleSource;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The random seed to use for forced shuffling.", ShortName = "seed")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The random seed to use for forced shuffling.", ShortName = "seed")]
             public int? ForceShuffleSeed;
         }
 
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
             provider.CheckValue(cursor, nameof(cursor));
             // REVIEW: In principle, we could limit this check to only active columns,
             // if we extend the use of this utility.
-            provider.CheckParam(CanShuffleAll(cursor.Schema), nameof(cursor), "Cannot shuffle a cursor with some uncachable columns");
+            provider.CheckParam(CanShuffleAll(cursor.Schema), nameof(cursor), "Cannot shuffle a cursor with some uncacheable columns");
             provider.CheckValue(rand, nameof(rand));
 
             if (poolRows == 1)
@@ -453,6 +453,9 @@ namespace Microsoft.ML.Transforms
                 protected abstract void Copy(in T src, ref T dst);
             }
 
+            private static readonly FuncInstanceMethodInfo1<Cursor, int, Delegate> _createGetterDelegateMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, int, Delegate>.Create(target => target.CreateGetterDelegate<int>);
+
             // The number of examples to have in each synchronization block. This should be >= 1.
             private const int _blockSize = 16;
             // The number of spare blocks to keep the filler worker busy on. This should be >= 1.
@@ -546,7 +549,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 1; i < _bufferDepth; ++i)
                     PostAssert(_toProduce, _blockSize);
 
-                _producerTask = LoopProducerWorker();
+                _producerTask = ProduceAsync();
             }
 
             protected override void Dispose(bool disposing)
@@ -586,7 +589,7 @@ namespace Microsoft.ML.Transforms
                 return _idGetter;
             }
 
-            private async Task LoopProducerWorker()
+            private async Task ProduceAsync()
             {
                 try
                 {
@@ -692,8 +695,7 @@ namespace Microsoft.ML.Transforms
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                Func<int, Delegate> createDel = CreateGetterDelegate<int>;
-                return Utils.MarshalInvoke(createDel, Schema[col].Type.RawType, col);
+                return Utils.MarshalInvoke(_createGetterDelegateMethodInfo, this, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)

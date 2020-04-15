@@ -157,7 +157,7 @@ namespace Microsoft.ML.Numeric
             VBufferUtils.ApplyWith(in src, ref dst, (int i, float v1, ref float v2) => v2 += v1);
         }
 
-        // REVIEW: Rename all instances of AddMult to AddScale, as soon as convesion concerns are no more.
+        // REVIEW: Rename all instances of AddMult to AddScale, as soon as conversion concerns are no more.
         /// <summary>
         /// Perform in-place scaled vector addition
         /// <c><paramref name="dst"/> += <paramref name="c"/> * <paramref name="src"/></c>.
@@ -261,14 +261,14 @@ namespace Microsoft.ML.Numeric
             // REVIEW: Perhaps implementing an ApplyInto with an offset would be more
             // appropriate, as well as more general, considering that this case is less important.
 
-            // dst is sparse. I expect this will see limited practical use, since accumulants
+            // dst is sparse. I expect this will see limited practical use, since accumulates
             // are often better off going into a dense vector in all applications of interest to us.
             // Correspondingly, this implementation will be functional, but not optimized.
             var dstIndices = dst.GetIndices();
             int dMin = dstIndices.Length == 0 ? 0 : dstIndices.FindIndexSorted(0, dstIndices.Length, offset);
             int dLim = dstIndices.Length == 0 ? 0 : dstIndices.FindIndexSorted(dMin, dstIndices.Length, offset + src.Length);
             Contracts.Assert(dMin - dLim <= src.Length);
-            // First get the number of extra values that we will need to accomodate.
+            // First get the number of extra values that we will need to accommodate.
             int gapCount;
             if (src.IsDense)
                 gapCount = src.Length - (dLim - dMin);

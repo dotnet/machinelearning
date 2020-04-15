@@ -1348,10 +1348,10 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             // Just break it up into NumThreads chunks. This minimizes the number of recomputations
-            //  neccessary in the rowwise indexer.
+            //  necessary in the rowwise indexer.
             int innerLoopSize = 1 + dataset.NumDocs / BlockingThreadPool.NumThreads;   // +1 is to make sure we don't have a few left over at the end
             // REVIEW: This partitioning doesn't look optimal.
-            // Probably make sence to investigate better ways of splitting data?
+            // Probably make sense to investigate better ways of splitting data?
             var actions = new Action[(int)Math.Ceiling(1.0 * dataset.NumDocs / innerLoopSize)];
             var actionIndex = 0;
             for (int d = 0; d < dataset.NumDocs; d += innerLoopSize)
@@ -1373,10 +1373,10 @@ namespace Microsoft.ML.Trainers.FastTree
         public void AddOutputsToScores(Dataset dataset, double[] scores)
         {
             // Just break it up into NumThreads chunks. This minimizes the number of recomputations
-            //  neccessary in the rowwise indexer.
+            //  necessary in the rowwise indexer.
             int innerLoopSize = 1 + dataset.NumDocs / BlockingThreadPool.NumThreads;   // +1 is to make sure we don't have a few left over at the end
             // REVIEW: This partitioning doesn't look optimal.
-            // Probably make sence to investigate better ways of splitting data?
+            // Probably make sense to investigate better ways of splitting data?
             var actions = new Action[(int)Math.Ceiling(1.0 * dataset.NumDocs / innerLoopSize)];
             var actionIndex = 0;
             for (int d = 0; d < dataset.NumDocs; d += innerLoopSize)
@@ -1396,10 +1396,10 @@ namespace Microsoft.ML.Trainers.FastTree
         internal void AddOutputsToScores(Dataset dataset, double[] scores, int[] docIndices)
         {
             // Just break it up into NumThreads chunks. This minimizes the number of recomputations
-            //  neccessary in the rowwise indexer.
+            //  necessary in the rowwise indexer.
             int innerLoopSize = 1 + docIndices.Length / BlockingThreadPool.NumThreads;   // +1 is to make sure we don't have a few left over at the end
             // REVIEW: This partitioning doesn't look optimal.
-            // Probably make sence to investigate better ways of splitting data?
+            // Probably make sense to investigate better ways of splitting data?
             var actions = new Action[(int)Math.Ceiling(1.0 * docIndices.Length / innerLoopSize)];
             var actionIndex = 0;
             for (int d = 0; d < docIndices.Length; d += innerLoopSize)

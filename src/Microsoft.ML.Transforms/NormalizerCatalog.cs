@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -66,6 +66,13 @@ namespace Microsoft.ML
         ///             The data type for the output column will be the same as the associated input column.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[NormalizeMinMax](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeMinMaxMulticolumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static NormalizingEstimator NormalizeMinMax(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
            bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched) =>

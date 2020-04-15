@@ -40,15 +40,12 @@ namespace Microsoft.ML.Data.IO
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of worker decompressor threads to use", ShortName = "t")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of worker decompressor threads to use", ShortName = "t")]
             public int? Threads;
-
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If specified, the name of a column to generate and append, providing a U8 key-value indicating the index of the row within the binary file", ShortName = "rowIndex", Hide = true)]
-            public string RowIndexName;
 
             // REVIEW: Is this the right knob? The other thing we could do is have a bound on number
             // of MB, based on an analysis of average block size.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "When shuffling, the number of blocks worth of data to keep in the shuffle pool. " +
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "When shuffling, the number of blocks worth of data to keep in the shuffle pool. " +
                 "Larger values will make the shuffling more random, but use more memory. Set to 0 to use only block shuffling.", ShortName = "pb")]
             public Double PoolBlocks = _defaultShuffleBlocks;
         }
@@ -677,7 +674,6 @@ namespace Microsoft.ML.Data.IO
         private readonly DataViewSchema _outputSchema;
         private readonly bool _autodeterminedThreads;
         private readonly int _threads;
-        private readonly string _generatedRowIndexName;
         private bool _disposed;
 
         private readonly TableOfContentsEntry[] _aliveColumns;
@@ -718,17 +714,17 @@ namespace Microsoft.ML.Data.IO
         private const ulong StandardDataTypesVersion = 0x0001000100010006;
 
         /// <summary>
-        /// The first version of the format that accomodated DvText.NA.
+        /// The first version of the format that accommodated DvText.NA.
         /// </summary>
         private const ulong MissingTextVersion = 0x0001000100010005;
 
         /// <summary>
-        /// The first version of the format that accomodated arbitrary metadata.
+        /// The first version of the format that accommodated arbitrary metadata.
         /// </summary>
         private const ulong MetadataVersion = 0x0001000100010004;
 
         /// <summary>
-        /// The first version of the format that accomodated slot names.
+        /// The first version of the format that accommodated slot names.
         /// </summary>
         private const ulong SlotNamesVersion = 0x0001000100010003;
 
@@ -755,8 +751,9 @@ namespace Microsoft.ML.Data.IO
                 modelSignature: "BINLOADR",
                 //verWrittenCur: 0x00010001, // Initial
                 //verWrittenCur: 0x00010002, // Generated row index column
-                verWrittenCur: 0x00010003, // Number of blocks to put in the shuffle pool
-                verReadableCur: 0x00010003,
+                //verWrittenCur: 0x00010003, // Number of blocks to put in the shuffle pool
+                verWrittenCur: 0x00010004, // Row index column no longer being generated
+                verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(BinaryLoader).Assembly.FullName);
@@ -783,7 +780,6 @@ namespace Microsoft.ML.Data.IO
                 _header = InitHeader();
                 _autodeterminedThreads = args.Threads == null;
                 _threads = Math.Max(1, args.Threads ?? (Environment.ProcessorCount / 2));
-                _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
                 _outputSchema = ComputeOutputSchema();
                 _host.Assert(_outputSchema.Count == Utils.Size(_aliveColumns));
@@ -837,7 +833,7 @@ namespace Microsoft.ML.Data.IO
             // *** Binary format **
             // int: Number of threads if explicitly defined, or 0 if the
             //      number of threads was automatically determined
-            // int: Id of the generated row index name (can be null)
+            // Double: The randomness coefficient.
 
             using (var ch = _host.Start("Initializing"))
             {
@@ -852,13 +848,12 @@ namespace Microsoft.ML.Data.IO
                         _threads = Math.Max(1, Environment.ProcessorCount / 2);
                     }
 
-                    _generatedRowIndexName = ctx.LoadStringOrNull();
-                    ch.CheckDecode(_generatedRowIndexName == null || !string.IsNullOrWhiteSpace(_generatedRowIndexName));
+                    if (ctx.Header.ModelVerWritten == 0x00010002 || ctx.Header.ModelVerWritten == 0x00010003)
+                        ctx.LoadStringOrNull(); // for _generatedRowIndexName in previous model versions
                 }
                 else
                 {
                     _threads = Math.Max(1, Environment.ProcessorCount / 2);
-                    _generatedRowIndexName = null;
                 }
 
                 if (ctx.Header.ModelVerWritten >= 0x00010003)
@@ -948,7 +943,7 @@ namespace Microsoft.ML.Data.IO
             ctx.SetVersionInfo(GetVersionInfo());
 
             _host.Assert(_threads >= 1);
-            SaveParameters(ctx, _autodeterminedThreads ? 0 : _threads, _generatedRowIndexName, _shuffleBlocks);
+            SaveParameters(ctx, _autodeterminedThreads ? 0 : _threads, _shuffleBlocks);
 
             int[] unsavable;
             SaveSchema(_host, ctx, Schema, out unsavable);
@@ -959,18 +954,15 @@ namespace Microsoft.ML.Data.IO
         /// Write the parameters of a loader to the save context. Can be called by <see cref="SaveInstance"/>, where there's no actual
         /// loader, only default parameters.
         /// </summary>
-        private static void SaveParameters(ModelSaveContext ctx, int threads, string generatedRowIndexName, Double shuffleBlocks)
+        private static void SaveParameters(ModelSaveContext ctx, int threads, Double shuffleBlocks)
         {
             // *** Binary format **
             // int: Number of threads if explicitly defined, or 0 if the
             //      number of threads was automatically determined
-            // int: Id of the generated row index name (can be null)
             // Double: The randomness coefficient.
 
             Contracts.Assert(threads >= 0);
             ctx.Writer.Write(threads);
-            Contracts.Assert(generatedRowIndexName == null || !string.IsNullOrWhiteSpace(generatedRowIndexName));
-            ctx.SaveStringOrNull(generatedRowIndexName);
             Contracts.Assert(0 <= shuffleBlocks);
             ctx.Writer.Write(shuffleBlocks);
         }
@@ -1022,7 +1014,7 @@ namespace Microsoft.ML.Data.IO
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            SaveParameters(ctx, 0, null, _defaultShuffleBlocks);
+            SaveParameters(ctx, 0, _defaultShuffleBlocks);
 
             int[] unsavable;
             SaveSchema(env, ctx, schema, out unsavable);
@@ -1152,11 +1144,6 @@ namespace Microsoft.ML.Data.IO
                 }
             }
             tocEndOffset = _stream.Position;
-            if (_generatedRowIndexName != null)
-            {
-                ch.Trace("Creating generated column to hold row index, named '{0}'", _generatedRowIndexName);
-                aliveList.Add(CreateRowIndexEntry(_generatedRowIndexName));
-            }
             aliveColumns = aliveList.ToArray();
             deadColumns = deadList.ToArray();
         }
@@ -1198,21 +1185,6 @@ namespace Microsoft.ML.Data.IO
             ch.Trace("Implicit shuffle will have pool size {0}", poolRows);
         }
 
-        private TableOfContentsEntry CreateRowIndexEntry(string rowIndexName)
-        {
-            _host.Assert(!string.IsNullOrWhiteSpace(rowIndexName));
-            // REVIEW: Having a row count of 0 means that there are no valid output key values here,
-            // so this should be a key with *genuinely* a count of 0. However, a count of a key of 0 means
-            // that the key length is unknown. Unsure of how to reconcile this. Is the least harmful thing
-            // to do, if RowCount=0, to set count to some value like 1?
-            ulong count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
-            KeyDataViewType type = new KeyDataViewType(typeof(ulong), count);
-            // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
-            ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
-            var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);
-            return entry;
-        }
-
         private DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
@@ -1240,6 +1212,9 @@ namespace Microsoft.ML.Data.IO
 
         private sealed class Cursor : RootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<Cursor, Delegate> _noRowGetterMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, Delegate>.Create(target => target.NoRowGetter<int>);
+
             private readonly BinaryLoader _parent;
             private readonly int[] _colToActivesIndex;
             private readonly TableOfContentsEntry[] _actives;
@@ -1330,9 +1305,9 @@ namespace Microsoft.ML.Data.IO
                     _pipeGetters[c] = _pipes[c].GetGetter();
                 }
                 // The data structures are initialized. Now set up the workers.
-                _readerThread = Utils.RunOnBackgroundThread(ReaderWorker);
+                _readerThread = Utils.RunOnBackgroundThreadAsync(ReaderWorker);
 
-                _pipeTask = SetupDecompressTask();
+                _pipeTask = DecompressAsync();
             }
 
             protected override void Dispose(bool disposing)
@@ -1402,14 +1377,14 @@ namespace Microsoft.ML.Data.IO
                 base.Dispose(disposing);
             }
 
-            private Task SetupDecompressTask()
+            private Task DecompressAsync()
             {
                 Task[] pipeWorkers = new Task[_parent._threads];
                 long decompressSequence = -1;
                 long decompressSequenceLim = (long)_numBlocks * _actives.Length;
                 for (int w = 0; w < pipeWorkers.Length; ++w)
                 {
-                    pipeWorkers[w] = Utils.RunOnBackgroundThread(() =>
+                    pipeWorkers[w] = Utils.RunOnBackgroundThreadAsync(() =>
                     {
                         try
                         {
@@ -2016,7 +1991,7 @@ namespace Microsoft.ML.Data.IO
                         // effort to recycle buffers since it would be exceptionally difficult
                         // to do so. All threads are already unblocked, one of them with the
                         // source exception that kicked off this process, the remaining with
-                        // other later exceptions or the operation cancelled exception. So we
+                        // other later exceptions or the operation canceled exception. So we
                         // are free to join. Still, given the exceptional nature, we won't
                         // wait forever to do it.
                         const int timeOut = 100;
@@ -2071,7 +2046,7 @@ namespace Microsoft.ML.Data.IO
             /// a delegate that simply always throws.
             /// </summary>
             private Delegate GetNoRowGetter(DataViewType type)
-                => Utils.MarshalInvoke(NoRowGetter<int>, type.RawType);
+                => Utils.MarshalInvoke(_noRowGetterMethodInfo, this, type.RawType);
 
             private Delegate NoRowGetter<T>()
             {

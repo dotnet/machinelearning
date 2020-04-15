@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(type.RawType == typeof(T));
             var conv = Conversion.Conversions.Instance;
 
-            // First: if not key, then get the standard string converison.
+            // First: if not key, then get the standard string conversion.
             if (!(type is KeyDataViewType keyType))
                 return conv.GetStringConversion<T>(type);
 

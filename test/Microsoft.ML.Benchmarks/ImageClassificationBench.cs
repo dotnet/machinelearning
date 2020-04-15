@@ -18,17 +18,17 @@ using Microsoft.ML.Vision;
 namespace Microsoft.ML.Benchmarks
 {
     [Config(typeof(TrainConfig))]
-    public class ImageClassificationBench
+    public class ImageClassificationBench : BenchmarkBase
     {
-        private MLContext mlContext;
-        private IDataView trainDataset;
-        private IDataView testDataset;
+        private MLContext _mlContext;
+        private IDataView _trainDataset;
+        private IDataView _testDataset;
 
 
         [GlobalSetup]
         public void SetupData()
         {
-            mlContext = new MLContext(seed: 1);
+            _mlContext = new MLContext(seed: 1);
             /*
              * Running in benchmarks causes to create a new temporary dir for each run
              * However this dir is deleted while still running, as such need to get one
@@ -54,23 +54,23 @@ namespace Microsoft.ML.Benchmarks
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
                 folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images));
+            IDataView shuffledFullImagesDataset = _mlContext.Data.ShuffleRows(
+                _mlContext.Data.LoadFromEnumerable(images));
 
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
+            shuffledFullImagesDataset = _mlContext.Transforms.Conversion
                     .MapValueToKey("Label")
-                .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                .Append(_mlContext.Transforms.LoadRawImageBytes("Image",
                             fullImagesetFolderPath, "ImagePath"))
                 .Fit(shuffledFullImagesDataset)
                 .Transform(shuffledFullImagesDataset);
 
             // Split the data 90:10 into train and test sets, train and
             // evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+            TrainTestData trainTestData = _mlContext.Data.TrainTestSplit(
                 shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
 
-            trainDataset = trainTestData.TrainSet;
-            testDataset = trainTestData.TestSet;
+            _trainDataset = trainTestData.TrainSet;
+            _testDataset = trainTestData.TestSet;
 
         }
 
@@ -86,14 +86,14 @@ namespace Microsoft.ML.Benchmarks
                 BatchSize = 10,
                 LearningRate = 0.01f,
                 EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
-                ValidationSet = testDataset
+                ValidationSet = _testDataset
             };
-            var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)
-            .Append(mlContext.Transforms.Conversion.MapKeyToValue(
+            var pipeline = _mlContext.MulticlassClassification.Trainers.ImageClassification(options)
+            .Append(_mlContext.Transforms.Conversion.MapKeyToValue(
                 outputColumnName: "PredictedLabel",
                 inputColumnName: "PredictedLabel"));
 
-            return pipeline.Fit(trainDataset);
+            return pipeline.Fit(_trainDataset);
         }
 
 
@@ -139,10 +139,7 @@ namespace Microsoft.ML.Benchmarks
 
             //SINGLE SMALL FLOWERS IMAGESET (200 files)
             string fileName = "flower_photos_small_set.zip";
-            string url = $"https://mlnetfilestorage.file.core.windows.net/" +
-                $"imagesets/flower_images/flower_photos_small_set.zip?st=2019-08-" +
-                $"07T21%3A27%3A44Z&se=2030-08-08T21%3A27%3A00Z&sp=rl&sv=2018-03-" +
-                $"28&sr=f&sig=SZ0UBX47pXD0F1rmrOM%2BfcwbPVob8hlgFtIlN89micM%3D";
+            string url = $"https://aka.ms/mlnet-resources/datasets/flower_photos_small_set.zip/";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
@@ -208,10 +205,10 @@ namespace Microsoft.ML.Benchmarks
 
         public static string GetAbsolutePath(string relativePath)
         {
-            FileInfo _dataRoot = new FileInfo(typeof(
+            FileInfo dataRoot = new FileInfo(typeof(
                 ImageClassificationBench).Assembly.Location);
 
-            string assemblyFolderPath = _dataRoot.Directory.FullName;
+            string assemblyFolderPath = dataRoot.Directory.FullName;
 
             string fullPath = Path.Combine(assemblyFolderPath, relativePath);
 
@@ -230,7 +227,7 @@ namespace Microsoft.ML.Benchmarks
     }
     public static class HttpContentExtensions
     {
-        public static Task ReadAsFileAsync(this HttpContent content, string filename, bool overwrite)
+        public static async Task ReadAsFileAsync(this HttpContent content, string filename, bool overwrite)
         {
             string pathname = Path.GetFullPath(filename);
             if (!overwrite && File.Exists(filename))
@@ -238,25 +235,8 @@ namespace Microsoft.ML.Benchmarks
                 throw new InvalidOperationException(string.Format("File {0} already exists.", pathname));
             }
 
-            FileStream fileStream = null;
-            try
-            {
-                fileStream = new FileStream(pathname, FileMode.Create, FileAccess.Write, FileShare.None);
-                return content.CopyToAsync(fileStream).ContinueWith(
-                    (copyTask) =>
-                    {
-                        fileStream.Close();
-                    });
-            }
-            catch
-            {
-                if (fileStream != null)
-                {
-                    fileStream.Close();
-                }
-
-                throw;
-            }
+            using FileStream fileStream = new FileStream(pathname, FileMode.Create, FileAccess.Write, FileShare.None);
+            await content.CopyToAsync(fileStream);
         }
     }
 }

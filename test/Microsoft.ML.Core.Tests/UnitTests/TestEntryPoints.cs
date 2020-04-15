@@ -12,12 +12,14 @@ using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Featurizers;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
@@ -330,6 +332,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(DateTimeTransformer).Assembly);
 
             var catalog = Env.ComponentCatalog;
 
@@ -740,7 +743,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("AreaUnderRocCurve"));
@@ -888,7 +891,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
@@ -1049,7 +1052,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
@@ -1192,7 +1195,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
                         
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MeanAbsoluteError"));
@@ -1339,7 +1342,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("DiscountedCumulativeGains"));
@@ -1355,7 +1358,7 @@ namespace Microsoft.ML.RunTests
             var modelPath = DeleteOutputPath("score_model.zip");
             var outputDataPath = DeleteOutputPath("scored.idv");
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var data = new TextLoader(mlContext,
                     new TextLoader.Options()
@@ -1533,6 +1536,7 @@ namespace Microsoft.ML.RunTests
             var twiceCalibratedFfModel = Calibrate.Platt(Env,
                 new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = calibratedFfModel }).PredictorModel;
             var scoredFf = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = twiceCalibratedFfModel }).ScoredData;
+            Done();
         }
 
         [Fact]
@@ -2119,7 +2123,8 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -2756,7 +2761,7 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
 
-        [Fact()]
+        [Fact]
         public void EntryPointSDCARegression()
         {
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
@@ -4901,7 +4906,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
@@ -6188,6 +6193,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");
@@ -6468,7 +6474,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void LoadEntryPointModel()
         {
-            var ml = new MLContext();
+            var ml = new MLContext(1);
             for (int i = 0; i < 5; i++)
             {
                 var modelPath = GetDataPath($"backcompat/ep_model{i}.zip");

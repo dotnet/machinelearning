@@ -143,9 +143,9 @@ namespace Microsoft.ML.Data
         /// <param name="obj">The object that attempts to acquire the channel.</param>
         /// <param name="channel">The channel to pass to the object.</param>
         /// <param name="ectx">The exception context.</param>
-        /// <returns>1. A boolean indicator of whether the channel was sucessfully passed to the object.
+        /// <returns>1. A boolean indicator of whether the channel was successfully passed to the object.
         /// 2. The object passed in (only modified by the addition of the channel to the field
-        /// with the CursorChannelAttribute, if the channel was added sucessfully).</returns>
+        /// with the CursorChannelAttribute, if the channel was added successfully).</returns>
         public static bool TrySetCursorChannel<T>(IExceptionContext ectx, T obj, IChannel channel)
             where T : class
         {
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Add annotation to the column.
             /// </summary>
-            /// <typeparam name="T">Type of annotation being added. Types suported as entries in columns
+            /// <typeparam name="T">Type of annotation being added. Types sported as entries in columns
             /// are also supported as entries in Annotations. Multiple annotations may be added to one column.
             /// </typeparam>
             /// <param name="kind">The string identifier of the annotation.</param>
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Data
                 var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
                 string name = mappingNameAttr?.Name ?? memberInfo.Name;
                 // Disallow duplicate names, because the field enumeration order is not actually
-                // well defined, so we are not gauranteed to have consistent "hiding" from run to
+                // well defined, so we are not guaranteed to have consistent "hiding" from run to
                 // run, across different .NET versions.
                 if (!colNames.Add(name))
                     throw Contracts.ExceptParam(nameof(userType), "Duplicate column name '{0}' detected, this is disallowed", name);

@@ -80,7 +80,7 @@ namespace Samples.Dynamic
             //  8,2,9,7,6,4
             //  3,10,0,0,0
             //  3,10,0,0,0,8
-            // Retrieve the original values, by appending the KeyToValue etimator to
+            // Retrieve the original values, by appending the KeyToValue estimator to
             // the existing pipelines to convert the keys back to the strings.
             var pipeline = defaultPipeline.Append(mlContext.Transforms.Conversion
                 .MapKeyToValue(nameof(TransformedData.Keys)));

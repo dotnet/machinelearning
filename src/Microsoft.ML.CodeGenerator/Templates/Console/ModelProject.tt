@@ -22,6 +22,9 @@
 <# if (IncludeImageTransformerPackage){ #>
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="<#= StablePackageVersion #>" />
 <#}#>
+<# if (IncludeOnnxModel){ #>
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
+<#}#>
 <# if (IncludeImageClassificationPackage){ #>
     <PackageReference Include="Microsoft.ML.Vision" Version="<#= StablePackageVersion #>" />
 	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
@@ -35,8 +38,20 @@
     <None Update="MLModel.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+<# if (IncludeOnnxModel){ #>
+    <None Update="bestModel.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+<#}#>
   </ItemGroup>
-  
+
+  <ItemGroup>
+<# if (Target==CSharp.GenerateTarget.Cli) {#>
+    <ProjectCapability Include="MLNETCLIGenerated" />
+<#}else{#>
+    <ProjectCapability Include="ModelBuilderGenerated" />
+<#}#>
+  </ItemGroup>
 </Project>
 <#+
 public bool IncludeLightGBMPackage {get;set;}
@@ -44,7 +59,9 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
+public bool IncludeOnnxModel {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
 #>

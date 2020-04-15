@@ -505,30 +505,64 @@ namespace Microsoft.ML.Transforms
                     // Onnx expects the input keys to be int64s. But the input data can come from an ML.NET node that
                     // may output a uint32. So cast it here to ensure that the data is treated correctly
                     opType = "Cast";
-                    var castNodeOutput = ctx.AddIntermediateVariable(TypeOutput, "CastNodeOutput", true);
+                    var castNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastNodeOutput");
                     var castNode = ctx.CreateNode(opType, srcVariableName, castNodeOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
                     castNode.AddAttribute("to", t);
 
+                    var labelEncoderOutput = dstVariableName;
+                    var labelEncoderInput = srcVariableName;
+                    if (TypeOutput == NumberDataViewType.Double || TypeOutput == BooleanDataViewType.Instance)
+                        labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "CastNodeOutput");
+                    else if (TypeOutput == NumberDataViewType.Int64 || TypeOutput == NumberDataViewType.UInt16 ||
+                        TypeOutput == NumberDataViewType.Int32 || TypeOutput == NumberDataViewType.Int16 ||
+                        TypeOutput == NumberDataViewType.UInt64 || TypeOutput == NumberDataViewType.UInt32)
+                        labelEncoderOutput = ctx.AddIntermediateVariable(TextDataViewType.Instance, "CastNodeOutput");
+
                     opType = "LabelEncoder";
-                    var node = ctx.CreateNode(opType, castNodeOutput, dstVariableName, ctx.GetNodeName(opType));
+                    var node = ctx.CreateNode(opType, castNodeOutput, labelEncoderOutput, ctx.GetNodeName(opType));
                     var keys = Array.ConvertAll<int, long>(Enumerable.Range(1, _values.Length).ToArray(), item => Convert.ToInt64(item));
                     node.AddAttribute("keys_int64s", keys);
 
-                    if (TypeOutput == NumberDataViewType.Int64)
+                    if (TypeOutput == NumberDataViewType.Int64 || TypeOutput == NumberDataViewType.Int32 ||
+                        TypeOutput == NumberDataViewType.Int16 || TypeOutput == NumberDataViewType.UInt64 ||
+                        TypeOutput == NumberDataViewType.UInt32 || TypeOutput == NumberDataViewType.UInt16)
                     {
-                        long[] values = Array.ConvertAll<TValue, long>(_values.GetValues().ToArray(), item => Convert.ToInt64(item));
-                        node.AddAttribute("values_int64s", values);
+                        // LabelEncoder doesn't support mapping int64 -> int64, so values are converted to strings and later cast back to Int64s
+                        string[] values = Array.ConvertAll<TValue, string>(_values.GetValues().ToArray(), item => Convert.ToString(item));
+                        node.AddAttribute("values_strings", values);
+                        opType = "Cast";
+                        castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                        castNode.AddAttribute("to", TypeOutput.RawType);
                     }
                     else if (TypeOutput == NumberDataViewType.Single)
                     {
                         float[] values = Array.ConvertAll<TValue, float>(_values.GetValues().ToArray(), item => Convert.ToSingle(item));
                         node.AddAttribute("values_floats", values);
                     }
+                    else if (TypeOutput == NumberDataViewType.Double)
+                    {
+                        // LabelEncoder doesn't support double tensors, so values are converted to floats and later cast back to doubles
+                        float[] values = Array.ConvertAll<TValue, float>(_values.GetValues().ToArray(), item => Convert.ToSingle(item));
+                        node.AddAttribute("values_floats", values);
+                        opType = "Cast";
+                        castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                        t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Double).ToType();
+                        castNode.AddAttribute("to", t);
+                    }
                     else if (TypeOutput == TextDataViewType.Instance)
                     {
                         string[] values = Array.ConvertAll<TValue, string>(_values.GetValues().ToArray(), item => Convert.ToString(item));
                         node.AddAttribute("values_strings", values);
+                    }
+                    else if (TypeOutput == BooleanDataViewType.Instance)
+                    {
+                        float[] values = Array.ConvertAll<TValue, float>(_values.GetValues().ToArray(), item => Convert.ToSingle(item));
+                        node.AddAttribute("values_floats", values);
+                        opType = "Cast";
+                        castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                        t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
+                        castNode.AddAttribute("to", t);
                     }
                     else
                         return false;
@@ -549,11 +583,10 @@ namespace Microsoft.ML.Transforms
                     if (!ctx.ContainsColumn(inputColumnName))
                         continue;
 
-                    var dstVariableName = ctx.AddIntermediateVariable(_types[iinfo], info.outputColumnName, true);
-                    if (!_kvMaps[iinfo].SaveOnnx(ctx, inputColumnName, dstVariableName))
-                    {
+                    string srcVariableName = ctx.GetVariableName(inputColumnName);
+                    var dstVariableName = ctx.AddIntermediateVariable(_types[iinfo], info.outputColumnName);
+                    if (!_kvMaps[iinfo].SaveOnnx(ctx, srcVariableName, dstVariableName))
                         ctx.RemoveColumn(inputColumnName, true);
-                    }
                 }
             }
         }
@@ -571,6 +604,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Type of the original data, prior to converting to [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Exportable to ONNX | Yes |
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]></format>

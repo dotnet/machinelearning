@@ -49,7 +49,7 @@ namespace Microsoft.ML.AutoML
             // sort top trainers by # of times they've been run, from lowest to highest
             var orderedTopTrainers = OrderTrainersByNumTrials(history, topTrainers);
 
-            // keep as hashset of previously visited pipelines
+            // keep as hash set of previously visited pipelines
             var visitedPipelines = new HashSet<SuggestedPipeline>(history.Select(h => h.Pipeline));
 
             // iterate over top trainers (from least run to most run),
@@ -92,11 +92,11 @@ namespace Microsoft.ML.AutoML
             bool isMaximizingMetric)
         {
             // narrow history to first stage runs that succeeded
-            history = history.Take(availableTrainers.Count()).Where(x => x.RunSucceded);
+            history = history.Take(availableTrainers.Count()).Where(x => x.RunSucceeded);
 
             history = history.GroupBy(r => r.Pipeline.Trainer.TrainerName).Select(g => g.First());
             IEnumerable<SuggestedPipelineRunDetail> sortedHistory = history.OrderBy(r => r.Score);
-            if(isMaximizingMetric)
+            if (isMaximizingMetric)
             {
                 sortedHistory = sortedHistory.Reverse();
             }
@@ -186,7 +186,7 @@ namespace Microsoft.ML.AutoML
 
         /// <summary>
         /// Samples new hyperparameters for the trainer, and sets them.
-        /// Returns true if success (new hyperparams were suggested and set). Else, returns false.
+        /// Returns true if success (new hyperparameters were suggested and set). Else, returns false.
         /// </summary>
         private static bool SampleHyperparameters(MLContext context, SuggestedTrainer trainer, IEnumerable<SuggestedPipelineRunDetail> history, bool isMaximizingMetric)
         {
@@ -198,16 +198,16 @@ namespace Microsoft.ML.AutoML
                 });
 
             IEnumerable<SuggestedPipelineRunDetail> historyToUse = history
-                .Where(r => r.RunSucceded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null && r.Pipeline.Trainer.HyperParamSet.Any());
+                .Where(r => r.RunSucceeded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null && r.Pipeline.Trainer.HyperParamSet.Any());
 
             // get new set of hyperparameter values
             var proposedParamSet = sweeper.ProposeSweeps(1, historyToUse.Select(h => h.ToRunResult(isMaximizingMetric))).First();
-            if(!proposedParamSet.Any())
+            if (!proposedParamSet.Any())
             {
                 return false;
             }
 
-            // associate proposed param set with trainer, so that smart hyperparam
+            // associate proposed parameter set with trainer, so that smart hyperparameter
             // sweepers (like KDO) can map them back.
             trainer.SetHyperparamValues(proposedParamSet);
 

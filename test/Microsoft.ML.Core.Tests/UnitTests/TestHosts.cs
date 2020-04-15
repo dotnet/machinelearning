@@ -9,12 +9,18 @@ using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public class TestHosts
+    public class TestHosts : BaseTestClass
     {
+        public TestHosts(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestCancellation()
         {
@@ -94,7 +100,7 @@ namespace Microsoft.ML.RunTests
 
             ((MLContext)env).CancelExecution();
 
-            //Ensure all created hosts are cancelled.
+            //Ensure all created hosts are canceled.
             //5 parent and one child for each.
             Assert.Equal(10, hosts.Count);
 
@@ -110,7 +116,7 @@ namespace Microsoft.ML.RunTests
         {
             var messages = new List<string>();
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             env.Log += (sender, e) => messages.Add(e.Message);
 
             // create a dummy text reader to trigger log messages

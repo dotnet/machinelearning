@@ -289,6 +289,12 @@ namespace Microsoft.ML.Data
         /// </summary>
         private sealed class Splitter
         {
+            private static readonly FuncStaticMethodInfo1<object[], int, object> _getPoolCoreMethodInfo
+                = new FuncStaticMethodInfo1<object[], int, object>(GetPoolCore<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Splitter, DataViewRowCursor, int, InPipe> _createInPipeMethodInfo
+                = FuncInstanceMethodInfo1<Splitter, DataViewRowCursor, int, InPipe>.Create(target => target.CreateInPipe<int>);
+
             private readonly DataViewSchema _schema;
             private readonly object[] _cachePools;
 
@@ -367,9 +373,9 @@ namespace Microsoft.ML.Data
                     ch.Assert(localCursor.Position < 0);
                     // Note that these all take ownership of their respective cursors,
                     // so they all handle their disposal internal to the thread.
-                    workers[t] = Utils.RunOnBackgroundThread(() =>
+                    workers[t] = Utils.RunOnBackgroundThreadAsync(() =>
                     {
-                            // This will be the last batch sent in the finally. If iteration procedes without
+                            // This will be the last batch sent in the finally. If iteration proceeds without
                             // error, it will remain null, and be sent as a sentinel. If iteration results in
                             // an exception that we catch, the exception catching block will set this to an
                             // exception bearing block, and that will be passed along as the last block instead.
@@ -476,9 +482,7 @@ namespace Microsoft.ML.Data
 
             private static object GetPool(DataViewType type, object[] pools, int poolIdx)
             {
-                Func<object[], int, object> func = GetPoolCore<int>;
-                var method = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
-                return method.Invoke(null, new object[] { pools, poolIdx });
+                return Utils.MarshalInvoke(_getPoolCoreMethodInfo, type.RawType, pools, poolIdx);
             }
 
             private static MadeObjectPool<T[]> GetPoolCore<T>(object[] pools, int poolIdx)
@@ -519,9 +523,6 @@ namespace Microsoft.ML.Data
                 int[] colToActive;
                 Utils.BuildSubsetMaps(_schema, input.IsColumnActive, out activeToCol, out colToActive);
 
-                Func<DataViewRowCursor, int, InPipe> createFunc = CreateInPipe<int>;
-                var inGenMethod = createFunc.GetMethodInfo().GetGenericMethodDefinition();
-                object[] arguments = new object[] { input, 0 };
                 // Only one set of in-pipes, one per column, as well as for extra side information.
                 InPipe[] inPipes = new InPipe[activeToCol.Length + (int)ExtraIndex._Lim];
                 // There are as many sets of out pipes as there are output cursors.
@@ -537,9 +538,8 @@ namespace Microsoft.ML.Data
                     var column = input.Schema[activeToCol[c]];
                     ch.Assert(input.IsColumnActive(column));
                     ch.Assert(column.Type.IsCacheable());
-                    arguments[1] = activeToCol[c];
                     var inPipe = inPipes[c] =
-                        (InPipe)inGenMethod.MakeGenericMethod(column.Type.RawType).Invoke(this, arguments);
+                        Utils.MarshalInvoke(_createInPipeMethodInfo, this, column.Type.RawType, input, activeToCol[c]);
                     for (int i = 0; i < cthd; ++i)
                         outPipes[i][c] = inPipe.CreateOutPipe(column.Type);
                 }
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Data
                 // Set up and start the thread that consumes the input, and utilizes the InPipe
                 // instances to compose the Batch objects. The thread takes ownership of the
                 // cursor, and so handles its disposal.
-                Task thread = Utils.RunOnBackgroundThread(
+                Task thread = Utils.RunOnBackgroundThreadAsync(
                     () =>
                     {
                         Batch lastBatch = null;
@@ -1138,6 +1138,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal sealed class SynchronousConsolidatingCursor : RootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<SynchronousConsolidatingCursor, int, Delegate> _createGetterMethodInfo
+                = FuncInstanceMethodInfo1<SynchronousConsolidatingCursor, int, Delegate>.Create(target => target.CreateGetter<int>);
+
             private readonly DataViewRowCursor[] _cursors;
             private readonly Delegate[] _getters;
 
@@ -1145,7 +1148,6 @@ namespace Microsoft.ML.Data
             private readonly Heap<CursorStats> _mins;
             private readonly int[] _activeToCol;
             private readonly int[] _colToActive;
-            private readonly MethodInfo _methInfo;
 
             // The batch number of the current input cursor, or -1 if this cursor is not in Good state.
             private long _batch;
@@ -1181,9 +1183,6 @@ namespace Microsoft.ML.Data
                 _schema = _cursors[0].Schema;
 
                 Utils.BuildSubsetMaps(_schema, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
-
-                Func<int, Delegate> func = CreateGetter<int>;
-                _methInfo = func.GetMethodInfo().GetGenericMethodDefinition();
 
                 _getters = new Delegate[_activeToCol.Length];
                 for (int i = 0; i < _activeToCol.Length; ++i)
@@ -1238,8 +1237,7 @@ namespace Microsoft.ML.Data
 
             private Delegate CreateGetter(int col)
             {
-                var methInfo = _methInfo.MakeGenericMethod(Schema[col].Type.RawType);
-                return (Delegate)methInfo.Invoke(this, new object[] { col });
+                return Utils.MarshalInvoke(_createGetterMethodInfo, this, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetter<T>(int col)

@@ -8,7 +8,6 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -18,11 +17,11 @@ namespace Microsoft.ML.Benchmarks
     [CIBenchmark]
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
-        private readonly string _dataPath = BaseTestClass.GetDataPath("iris.txt");
-        private readonly string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
+        private readonly string _dataPath = GetBenchmarkDataPath("iris.txt");
+        private readonly string _sentimentDataPath = GetBenchmarkDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
-        private readonly MLContext mlContext = new MLContext(seed: 1);
+        private readonly MLContext _mlContext = new MLContext(seed: 1);
 
         private readonly int[] _batchSizes = new int[] { 1, 2, 5 };
 
@@ -70,13 +69,13 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = true,
             };
-            var loader = new TextLoader(mlContext, options: options);
+            var loader = new TextLoader(_mlContext, options: options);
 
             IDataView data = loader.Load(dataPath);
 
-            var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy());
+            var pipeline = new ColumnConcatenatingEstimator(_mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(_mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(_mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy());
 
             return pipeline.Fit(data);
         }
@@ -97,8 +96,8 @@ namespace Microsoft.ML.Benchmarks
                 AllowSparse = false
             };
 
-            var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
-            var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
+            var loader = _mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
+            var text = _mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
             {
                 OutputTokensColumnName = "WordEmbeddings_TransformedText",
                 KeepPunctuations = false,
@@ -108,13 +107,13 @@ namespace Microsoft.ML.Benchmarks
                 WordFeatureExtractor = null,
             }, "SentimentText").Fit(loader).Transform(loader);
 
-            var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",
+            var trans = _mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",
                 WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(_mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .Fit(text).Transform(text);
 
             // Train
-            var trainer = mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy();
+            var trainer = _mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }
@@ -123,7 +122,7 @@ namespace Microsoft.ML.Benchmarks
         public void SetupPredictBenchmarks()
         {
             _trainedModel = Train(_dataPath);
-            _predictionEngine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(_trainedModel);
+            _predictionEngine = _mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(_trainedModel);
             _consumer.Consume(_predictionEngine.Predict(_example));
 
             // Create text loader.
@@ -139,11 +138,11 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = true,
             };
-            var loader = new TextLoader(mlContext, options: options);
+            var loader = new TextLoader(_mlContext, options: options);
 
             IDataView testData = loader.Load(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MulticlassClassificationEvaluator(mlContext, new MulticlassClassificationEvaluator.Arguments());
+            var evaluator = new MulticlassClassificationEvaluator(_mlContext, new MulticlassClassificationEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
 
             _batches = new IrisData[_batchSizes.Length][];
@@ -162,13 +161,13 @@ namespace Microsoft.ML.Benchmarks
         public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
         [Benchmark]
-        public void PredictIrisBatchOf1() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[0]));
+        public void PredictIrisBatchOf1() => _trainedModel.Transform(_mlContext.Data.LoadFromEnumerable(_batches[0]));
 
         [Benchmark]
-        public void PredictIrisBatchOf2() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[1]));
+        public void PredictIrisBatchOf2() => _trainedModel.Transform(_mlContext.Data.LoadFromEnumerable(_batches[1]));
 
         [Benchmark]
-        public void PredictIrisBatchOf5() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[2]));
+        public void PredictIrisBatchOf5() => _trainedModel.Transform(_mlContext.Data.LoadFromEnumerable(_batches[2]));
     }
 
     public class IrisData

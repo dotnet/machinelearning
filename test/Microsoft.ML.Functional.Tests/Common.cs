@@ -64,7 +64,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="data2">A <see cref="IDataView"/> of <see cref="TypeTestData"/></param>
         public static void AssertTestTypeDatasetsAreEqual(MLContext mlContext, IDataView data1, IDataView data2)
         {
-            // Confirm that they are both of the propery row type.
+            // Confirm that they are both of the property row type.
             AssertTypeTestDataset(data1);
             AssertTypeTestDataset(data2);
 

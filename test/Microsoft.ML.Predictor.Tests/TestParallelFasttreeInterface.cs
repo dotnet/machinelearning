@@ -24,7 +24,7 @@ namespace Microsoft.ML.RunTests
         private bool _isInitTreeLearner = false;
         private bool _isInitIteration = false;
         private bool _isCache = false;
-        public void CacheHistogram(bool isSmallerLeaf, int featureIdx, int subfeature, SufficientStatsBase sufficientStatsBase, bool HasWeights)
+        public void CacheHistogram(bool isSmallerLeaf, int featureIdx, int subfeature, SufficientStatsBase sufficientStatsBase, bool hasWeights)
         {
             Assert.True(_isInitEnv);
             Assert.True(_isInitTreeLearner);

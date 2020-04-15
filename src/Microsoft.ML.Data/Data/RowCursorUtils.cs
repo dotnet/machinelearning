@@ -16,6 +16,12 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal static class RowCursorUtils
     {
+        private static readonly FuncStaticMethodInfo1<DataViewRow, int, Delegate> _getGetterAsDelegateCoreMethodInfo
+            = new FuncStaticMethodInfo1<DataViewRow, int, Delegate>(GetGetterAsDelegateCore<int>);
+
+        private static readonly FuncStaticMethodInfo1<DataViewRow, int, Func<bool>> _getIsNewGroupDelegateCoreMethodInfo
+            = new FuncStaticMethodInfo1<DataViewRow, int, Func<bool>>(GetIsNewGroupDelegateCore<int>);
+
         /// <summary>
         /// Returns an appropriate <see cref="ValueGetter{T}"/> for a row given an active column
         /// index, but as a delegate. The type parameter for the delegate will correspond to the
@@ -30,8 +36,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
-            Func<DataViewRow, int, Delegate> getGetter = GetGetterAsDelegateCore<int>;
-            return Utils.MarshalInvoke(getGetter, row.Schema[col].Type.RawType, row, col);
+            return Utils.MarshalInvoke(_getGetterAsDelegateCoreMethodInfo, row.Schema[col].Type.RawType, row, col);
         }
 
         private static Delegate GetGetterAsDelegateCore<TValue>(DataViewRow row, int col)
@@ -40,7 +45,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given a destination type, IRow, and column index, return a ValueGetter for the column
+        /// Given a destination type, <see cref="DataViewRow"/>, and column index, return a ValueGetter for the column
         /// with a conversion to typeDst, if needed. This is a weakly typed version of
         /// <see cref="GetGetterAs{TDst}"/>.
         /// </summary>
@@ -62,7 +67,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given a destination type, IRow, and column index, return a ValueGetter{TDst} for the column
+        /// Given a destination type, <see cref="DataViewRow"/>, and column index, return a ValueGetter{TDst} for the column
         /// with a conversion to typeDst, if needed.
         /// </summary>
         public static ValueGetter<TDst> GetGetterAs<TDst>(DataViewType typeDst, DataViewRow row, int col)
@@ -106,7 +111,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given an IRow, and column index, return a function that utilizes the
+        /// Given a <see cref="DataViewRow"/>, and column index, return a function that utilizes the
         /// <see cref="Conversions.GetStringConversion{TSrc}(DataViewType)"/> on the input
         /// rows to map the values in the column, whatever type they may be, into a string
         /// builder. This method will obviously succeed only if there is a string conversion
@@ -302,7 +307,7 @@ namespace Microsoft.ML.Data
             Contracts.Check(0 <= col && col < cursor.Schema.Count);
             DataViewType type = cursor.Schema[col].Type;
             Contracts.Check(type is KeyDataViewType);
-            return Utils.MarshalInvoke(GetIsNewGroupDelegateCore<int>, type.RawType, cursor, col);
+            return Utils.MarshalInvoke(_getIsNewGroupDelegateCoreMethodInfo, type.RawType, cursor, col);
         }
 
         private static Func<bool> GetIsNewGroupDelegateCore<T>(DataViewRow cursor, int col)

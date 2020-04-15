@@ -17,12 +17,14 @@ namespace Microsoft.ML.Data
         /// <remarks>
         /// The area under the ROC curve is equal to the probability that the algorithm ranks
         /// a randomly chosen positive instance higher than a randomly chosen negative one
-        /// (assuming 'positive' ranks higher than 'negative').
+        /// (assuming 'positive' ranks higher than 'negative'). Area under the ROC curve ranges between
+        /// 0 and 1, with a value closer to 1 indicating a better model.
         /// </remarks>
         public double AreaUnderRocCurve { get; }
 
         /// <summary>
-        /// Detection rate at K false positives.
+        /// Detection rate at K false positives. This gives the ratio of correctly identified anomalies given
+        /// the specified number of false positives. A value closer to 1 indicates a better model.
         /// </summary>
         /// <remarks>
         /// This is computed as follows:

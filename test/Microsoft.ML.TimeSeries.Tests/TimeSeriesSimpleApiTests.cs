@@ -37,18 +37,18 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangeDetection()
         {
-            var env = new MLContext();
-            const int Size = 10;
-            var data = new List<Data>(Size);
+            var env = new MLContext(1);
+            const int size = 10;
+            var data = new List<Data>(size);
             var dataView = env.Data.LoadFromEnumerable(data);
-            for (int i = 0; i < Size / 2; i++)
+            for (int i = 0; i < size / 2; i++)
                 data.Add(new Data(5));
 
-            for (int i = 0; i < Size / 2; i++)
+            for (int i = 0; i < size / 2; i++)
                 data.Add(new Data((float)(5 + i * 1.1)));
 
             // Build the pipeline
-            var learningPipeline = ML.Transforms.DetectIidChangePoint("Data", "Value", 80, Size);
+            var learningPipeline = ML.Transforms.DetectIidChangePoint("Data", "Value", 80, size);
 
             // Train
             var detector = learningPipeline.Fit(dataView);
@@ -75,24 +75,24 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangePointDetectionWithSeasonality()
         {
-            var env = new MLContext();
-            const int ChangeHistorySize = 10;
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
-            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+            var env = new MLContext(1);
+            const int changeHistorySize = 10;
+            const int seasonalitySize = 10;
+            const int numberOfSeasonsInTraining = 5;
+            const int maxTrainingSize = numberOfSeasonsInTraining * seasonalitySize;
 
             var data = new List<Data>();
             var dataView = env.Data.LoadFromEnumerable(data);
 
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
+            for (int j = 0; j < numberOfSeasonsInTraining; j++)
+                for (int i = 0; i < seasonalitySize; i++)
                     data.Add(new Data(i));
 
-            for (int i = 0; i < ChangeHistorySize; i++)
+            for (int i = 0; i < changeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
             // Build the pipeline
-            var learningPipeline = ML.Transforms.DetectChangePointBySsa("Data", "Value", 95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize);
+            var learningPipeline = ML.Transforms.DetectChangePointBySsa("Data", "Value", 95, changeHistorySize, maxTrainingSize, seasonalitySize);
             // Train
             var detector = learningPipeline.Fit(dataView);
             // Transform
@@ -119,21 +119,21 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SpikeDetection()
         {
-            var env = new MLContext();
-            const int Size = 10;
-            const int PvalHistoryLength = Size / 4;
+            var env = new MLContext(1);
+            const int size = 10;
+            const int pvalHistoryLength = size / 4;
 
             // Generate sample series data with a spike
-            List<Data> data = new List<Data>(Size);
+            List<Data> data = new List<Data>(size);
             var dataView = env.Data.LoadFromEnumerable(data);
-            for (int i = 0; i < Size / 2; i++)
+            for (int i = 0; i < size / 2; i++)
                 data.Add(new Data(5));
             data.Add(new Data(10)); // This is the spike
-            for (int i = 0; i < Size / 2 - 1; i++)
+            for (int i = 0; i < size / 2 - 1; i++)
                 data.Add(new Data(5));
 
             // Build the pipeline
-            var learningPipeline = ML.Transforms.DetectIidSpike("Data", "Value", 80, PvalHistoryLength);
+            var learningPipeline = ML.Transforms.DetectIidSpike("Data", "Value", 80, pvalHistoryLength);
             // Train
             var detector = learningPipeline.Fit(dataView);
             // Transform
@@ -169,23 +169,23 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SsaSpikeDetection()
         {
-            var env = new MLContext();
-            const int Size = 16;
-            const int ChangeHistoryLength = Size / 4;
-            const int TrainingWindowSize = Size / 2;
-            const int SeasonalityWindowSize = Size / 8;
+            var env = new MLContext(1);
+            const int size = 16;
+            const int changeHistoryLength = size / 4;
+            const int trainingWindowSize = size / 2;
+            const int seasonalityWindowSize = size / 8;
 
             // Generate sample series data with a spike
-            List<Data> data = new List<Data>(Size);
+            List<Data> data = new List<Data>(size);
             var dataView = env.Data.LoadFromEnumerable(data);
-            for (int i = 0; i < Size / 2; i++)
+            for (int i = 0; i < size / 2; i++)
                 data.Add(new Data(5));
             data.Add(new Data(10)); // This is the spike
-            for (int i = 0; i < Size / 2 - 1; i++)
+            for (int i = 0; i < size / 2 - 1; i++)
                 data.Add(new Data(5));
 
             // Build the pipeline
-            var learningPipeline = ML.Transforms.DetectSpikeBySsa("Data", "Value", 80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize);
+            var learningPipeline = ML.Transforms.DetectSpikeBySsa("Data", "Value", 80, changeHistoryLength, trainingWindowSize, seasonalityWindowSize);
             // Train
             var detector = learningPipeline.Fit(dataView);
             // Transform

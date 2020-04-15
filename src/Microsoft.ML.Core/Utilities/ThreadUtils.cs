@@ -12,11 +12,11 @@ namespace Microsoft.ML.Internal.Utilities
 {
     internal static partial class Utils
     {
-        public static Task RunOnBackgroundThread(Action start) =>
-            ImmediateBackgroundThreadPool.Queue(start);
+        public static Task RunOnBackgroundThreadAsync(Action start) =>
+            ImmediateBackgroundThreadPool.QueueAsync(start);
 
-        public static Task RunOnBackgroundThread(Action<object> start, object obj) =>
-            ImmediateBackgroundThreadPool.Queue(start, obj);
+        public static Task RunOnBackgroundThreadAsync(Action<object> start, object obj) =>
+            ImmediateBackgroundThreadPool.QueueAsync(start, obj);
 
         public static Thread RunOnForegroundThread(ParameterizedThreadStart start) =>
             new Thread(start) { IsBackground = false };
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Internal.Utilities
             /// always end in the <see cref="TaskStatus.RanToCompletion"/> state; if the delegate throws
             /// an exception, it'll be allowed to propagate on the thread, crashing the process.
             /// </summary>
-            public static Task Queue(Action threadStart) => Queue((Delegate)threadStart, null);
+            public static Task QueueAsync(Action threadStart) => QueueAsync((Delegate)threadStart, null);
 
             /// <summary>
             /// Queues an <see cref="Action{Object}"/> delegate and associated state to be executed immediately on another thread,
@@ -50,9 +50,9 @@ namespace Microsoft.ML.Internal.Utilities
             /// always end in the <see cref="TaskStatus.RanToCompletion"/> state; if the delegate throws
             /// an exception, it'll be allowed to propagate on the thread, crashing the process.
             /// </summary>
-            public static Task Queue(Action<object> threadStart, object state) => Queue((Delegate)threadStart, state);
+            public static Task QueueAsync(Action<object> threadStart, object state) => QueueAsync((Delegate)threadStart, state);
 
-            private static Task Queue(Delegate threadStart, object state)
+            private static Task QueueAsync(Delegate threadStart, object state)
             {
                 // Create the TaskCompletionSource used to represent this work.
                 // Call sites only care about completion, not about the distinction between
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Internal.Utilities
     /// would be engineered without this class, except they will wrap their contents in a try-catch
     /// block to push any exceptions (hopefully none) into this marshaller, using <see cref="Set"/>.
     /// Further, any potentially blocking operation of the thread workers must be changed to use
-    /// <see cref="Token"/> as the cancellation token (this token is cancelled iff <see cref="Set"/>
+    /// <see cref="Token"/> as the cancellation token (this token is canceled iff <see cref="Set"/>
     /// is ever called). The controlling thread, whatever that may be, once it is either sure
     /// <see cref="Set"/> has been called (possibly by receiving the cancellation) or is sure somehow
     /// that the workers have finished by its own means, will call <see cref="ThrowIfSet"/> to throw
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Internal.Utilities
         private Exception _ex;
 
         /// <summary>
-        /// A cancellation token, whose source will be cancelled if <see cref="Set"/> is ever called.
+        /// A cancellation token, whose source will be canceled if <see cref="Set"/> is ever called.
         /// Any thread blocking operation of a family of thread workers using this structure
         /// must use this cancellation token, or else there is a strong possibility for threads
         /// to stop responding if an exception is thrown at any point.

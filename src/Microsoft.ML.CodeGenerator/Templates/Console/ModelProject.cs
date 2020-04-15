@@ -50,6 +50,11 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
             this.Write("\" />\r\n");
 }
+ if (IncludeOnnxModel){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
+}
  if (IncludeImageClassificationPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
@@ -62,8 +67,18 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write("\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
-                    "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n  </ItemGroup" +
-                    ">\r\n  \r\n</Project>\r\n");
+                    "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
+ if (IncludeOnnxModel){ 
+            this.Write("    <None Update=\"bestModel.onnx\">\r\n      <CopyToOutputDirectory>PreserveNewest</" +
+                    "CopyToOutputDirectory>\r\n    </None>\r\n");
+}
+            this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n");
+ if (Target==CSharp.GenerateTarget.Cli) {
+            this.Write("    <ProjectCapability Include=\"MLNETCLIGenerated\" />\r\n");
+}else{
+            this.Write("    <ProjectCapability Include=\"ModelBuilderGenerated\" />\r\n");
+}
+            this.Write("  </ItemGroup>\r\n</Project>\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
@@ -72,9 +87,11 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
+public bool IncludeOnnxModel {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
 
     }
     #region Base class

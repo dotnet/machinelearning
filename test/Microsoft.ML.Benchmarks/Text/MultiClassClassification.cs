@@ -6,8 +6,6 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.LightGbm;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TestFrameworkCommon;
@@ -15,23 +13,23 @@ using Microsoft.ML.TestFrameworkCommon;
 namespace Microsoft.ML.Benchmarks
 {
     [Config(typeof(TrainConfig))]
-    public class MulticlassClassificationTrain
+    public class MulticlassClassificationTrain : BenchmarkBase
     {
-        private string _dataPath_Wiki;
+        private string _dataPathWiki;
 
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPath_Wiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPathWiki = GetBenchmarkDataPath(TestDatasets.WikiDetox.trainFilename);
 
-            if (!File.Exists(_dataPath_Wiki))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
+            if (!File.Exists(_dataPathWiki))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathWiki));
         }
 
         [Benchmark]
         public void CV_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron()
         {
-            string cmd = @"CV k=5 data=" + _dataPath_Wiki +
+            string cmd = @"CV k=5 data=" + _dataPathWiki +
                         " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                         " xf=Convert{col=logged_in type=R4}" +
                         " xf=CategoricalTransform{col=ns}" +
@@ -46,7 +44,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void CV_Multiclass_WikiDetox_BigramsAndTrichar_LightGBMMulticlass()
         {
-            string cmd = @"CV k=5 data=" + _dataPath_Wiki +
+            string cmd = @"CV k=5 data=" + _dataPathWiki +
                     " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                     " xf=Convert{col=logged_in type=R4}" +
                     " xf=CategoricalTransform{col=ns}" +
@@ -61,7 +59,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void CV_Multiclass_WikiDetox_WordEmbeddings_OVAAveragedPerceptron()
         {
-            string cmd = @"CV k=5  data=" + _dataPath_Wiki +
+            string cmd = @"CV k=5  data=" + _dataPathWiki +
                 " tr=OVA{p=AveragedPerceptron{iter=10}}" +
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                 " xf=Convert{col=logged_in type=R4}" +
@@ -77,7 +75,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void CV_Multiclass_WikiDetox_WordEmbeddings_SDCAMC()
         {
-            string cmd = @"CV k=5 data=" + _dataPath_Wiki +
+            string cmd = @"CV k=5 data=" + _dataPathWiki +
                 " tr=SDCAMC" +
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                 " xf=Convert{col=logged_in type=R4}" +
@@ -91,28 +89,28 @@ namespace Microsoft.ML.Benchmarks
         }
     }
 
-    public class MulticlassClassificationTest
+    public class MulticlassClassificationTest : BenchmarkBase
     {
-        private string _dataPath_Wiki;
-        private string _modelPath_Wiki;
+        private string _dataPathWiki;
+        private string _modelPathWiki;
 
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _dataPath_Wiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPathWiki = GetBenchmarkDataPath(TestDatasets.WikiDetox.trainFilename);
 
-            if (!File.Exists(_dataPath_Wiki))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
+            if (!File.Exists(_dataPathWiki))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathWiki));
 
-            _modelPath_Wiki = Path.Combine(Path.GetDirectoryName(typeof(MulticlassClassificationTest).Assembly.Location), @"WikiModel.zip");
+            _modelPathWiki = Path.Combine(Path.GetDirectoryName(typeof(MulticlassClassificationTest).Assembly.Location), @"WikiModel.zip");
 
-            string cmd = @"CV k=5 data=" + _dataPath_Wiki +
+            string cmd = @"CV k=5 data=" + _dataPathWiki +
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4}" +
                 " xf=CategoricalTransform{col=ns}" +
                 " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
                 " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                 " tr=OVA{p=AveragedPerceptron{iter=10}}" +
-                " out={" + _modelPath_Wiki + "}";
+                " out={" + _modelPathWiki + "}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer, LinearBinaryModelParameters>();
             cmd.ExecuteMamlCommand(environment);
@@ -123,7 +121,7 @@ namespace Microsoft.ML.Benchmarks
         {
             // This benchmark is profiling bulk scoring speed and not training speed. 
             string modelpath = Path.Combine(Path.GetDirectoryName(typeof(MulticlassClassificationTest).Assembly.Location), @"WikiModel.fold000.zip");
-            string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
+            string cmd = @"Test data=" + _dataPathWiki + " in=" + modelpath;
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer, LinearBinaryModelParameters>();
             cmd.ExecuteMamlCommand(environment);

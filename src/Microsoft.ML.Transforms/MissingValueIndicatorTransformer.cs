@@ -143,6 +143,15 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
+            private static readonly FuncStaticMethodInfo1<DataViewType, Delegate> _getIsNADelegateMethodInfo
+                = new FuncStaticMethodInfo1<DataViewType, Delegate>(GetIsNADelegate<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, ValueGetter<bool>> _composeGetterOneMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, ValueGetter<bool>>.Create(target => target.ComposeGetterOne<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, ValueGetter<VBuffer<bool>>> _composeGetterVecMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, ValueGetter<VBuffer<bool>>>.Create(target => target.ComposeGetterVec<int>);
+
             private readonly MissingValueIndicatorTransformer _parent;
             private readonly ColInfo[] _infos;
 
@@ -215,8 +224,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private static Delegate GetIsNADelegate(DataViewType type)
             {
-                Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
-                return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
+                return Utils.MarshalInvoke(_getIsNADelegateMethodInfo, type.GetItemType().RawType, type);
             }
 
             private static Delegate GetIsNADelegate<T>(DataViewType type)
@@ -239,7 +247,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for single valued inputs.
             /// </summary>
             private ValueGetter<bool> ComposeGetterOne(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].InputType.RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterOneMethodInfo, this, _infos[iinfo].InputType.RawType, input, iinfo);
 
             private ValueGetter<bool> ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
@@ -261,7 +269,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for vector valued inputs.
             /// </summary>
             private ValueGetter<VBuffer<bool>> ComposeGetterVec(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].InputType.GetItemType().RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterVecMethodInfo, this, _infos[iinfo].InputType.GetItemType().RawType, input, iinfo);
 
             private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
@@ -481,6 +489,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector or scalar value of <xref:System.Single> or <xref:System.Double> |
     /// | Output column data type | If input column was scalar then <xref:System.Boolean> otherwise vector of <xref:System.Boolean>. |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.MissingValueIndicatorTransformer> creates a new column, named as specified in the output column name parameters, and
     /// fills it with vector of bools where `true` in the i-th position in array indicates the i-th element in input column has missing value and `false` otherwise.

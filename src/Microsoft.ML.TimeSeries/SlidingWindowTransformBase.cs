@@ -12,7 +12,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// SlidingWindowTransformBase outputs a sliding window as a VBuffer from a series of any type.
-    /// The VBuffer contains n consecutives observations delayed or not from the current one.
+    /// The VBuffer contains n consecutive observations delayed or not from the current one.
     /// Let's denote y(t) a timeseries, the transform returns a vector of values for each time t
     /// which corresponds to [y(t-d-l+1), y(t-d-l+2), ..., y(t-l-1), y(t-l)] where d is the size of the window
     /// and l is the delay.

@@ -36,12 +36,12 @@ namespace Microsoft.ML.AutoML
         }
 
         public static ColumnInferenceResults InferColumns(MLContext context, string path, ColumnInformation columnInfo,
-            char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
+            char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns, bool hasHeader = true)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
             var splitInference = InferSplit(context, sample, separatorChar, allowQuotedStrings, supportSparse);
-            var typeInference = InferColumnTypes(context, sample, splitInference, true, null, columnInfo.LabelColumnName);
-            return InferColumns(context, path, columnInfo, true, splitInference, typeInference, trimWhitespace, groupColumns);
+            var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader, null, columnInfo.LabelColumnName);
+            return InferColumns(context, path, columnInfo, hasHeader, splitInference, typeInference, trimWhitespace, groupColumns);
         }
 
         public static ColumnInferenceResults InferColumns(MLContext context, string path, ColumnInformation columnInfo, bool hasHeader,

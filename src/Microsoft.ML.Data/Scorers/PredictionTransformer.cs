@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
     /// Base class for transformers with no feature column, or more than one feature columns.
     /// </summary>
     /// <typeparam name="TModel">The type of the model parameters used by this prediction transformer.</typeparam>
-    public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>
+    public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>, IDisposable
         where TModel : class
     {
         /// <summary>
@@ -181,6 +181,22 @@ namespace Microsoft.ML.Data
                 }
             });
         }
+
+        #region IDisposable Support
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            (Model as IDisposable)?.Dispose();
+            (BindableMapper as IDisposable)?.Dispose();
+            (Scorer as IDisposable)?.Dispose();
+
+            _disposed = true;
+        }
+        #endregion
     }
 
     /// <summary>
@@ -370,6 +386,7 @@ namespace Microsoft.ML.Data
     {
         internal readonly string ThresholdColumn;
         internal readonly float Threshold;
+        internal readonly string LabelColumnName;
 
         [BestFriend]
         internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
@@ -383,6 +400,17 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
+        internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn, string labelColumn,
+            float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+        {
+            Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
+            Threshold = threshold;
+            ThresholdColumn = thresholdColumn;
+            LabelColumnName = labelColumn;
+
+            SetScorer();
+        }
         internal BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
         {
@@ -409,7 +437,7 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
+            var schema = new RoleMappedSchema(TrainSchema, LabelColumnName, FeatureColumnName);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }

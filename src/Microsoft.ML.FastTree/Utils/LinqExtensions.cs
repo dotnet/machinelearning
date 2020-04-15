@@ -184,7 +184,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return argMin;
         }
 
-        // More efficient ToArray pre-allocates the length of array neccessary
+        // More efficient ToArray pre-allocates the length of array necessary
         //  Will truncate the IEnumerable at the given length.
         public static T[] ToArray<T>(this IEnumerable<T> me, int length)
         {

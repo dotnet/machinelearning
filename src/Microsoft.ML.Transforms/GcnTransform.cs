@@ -617,7 +617,8 @@ namespace Microsoft.ML.Transforms
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_srcTypes[iinfo], inputColumnName)))
+                    string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
+                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_srcTypes[iinfo], outputColumnName)))
                     {
                         ctx.RemoveColumn(inputColumnName, true);
                     }
@@ -935,7 +936,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of <xref:System.Single> |
     /// | Output column data type | Vector of <xref:System.Single> |
-    ///
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.LpNormNormalizingTransformer> normalizes vectors in the input column individually
     /// by rescaling them to the unit norm.
@@ -1024,7 +1025,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of <xref:System.Single> |
     /// | Output column data type | Vector of <xref:System.Single> |
-    ///
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.LpNormNormalizingTransformer> normalizes vectors in the input column individually,
     /// rescaling them by applying global contrast normalization. The transform performs the following operation on each input vector $x$:
