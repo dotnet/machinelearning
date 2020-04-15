@@ -49,7 +49,7 @@ namespace Samples.Dynamic
             }
 
             //Item #1 ...
-            //Score: 1, Path: DataCenter, Direction: Up, Dimension:[Country, UK] [DeviceType, ##SUM##] [DataCenter, DC1]
+            //Score: 0.26670448876705927, Path: DataCenter, Direction: Up, Dimension:[Country, UK] [DeviceType, ##SUM##] [DataCenter, DC1]
         }
 
         private static List<Point> GetPoints()

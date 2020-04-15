@@ -52,7 +52,7 @@ namespace Microsoft.ML.TimeSeries
             }
 
             dst.Items.AddRange(LocalizeRootCauseByDimension(anomalyTree, pointTree, src.AnomalyDimension, dimensionInfo.AggDims));
-            GetRootCauseDirectionAndScore(dimPointMapping, src.AnomalyDimension, dst, _beta, pointTree);
+            GetRootCauseDirectionAndScore(dimPointMapping, src.AnomalyDimension, dst, _beta, pointTree, src.AggType, src.AggSymbol);
 
             return dst;
         }
@@ -313,9 +313,9 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        private void GetRootCauseDirectionAndScore(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta, PointTree pointTree)
+        private void GetRootCauseDirectionAndScore(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta, PointTree pointTree, AggregateType aggType, string aggSymbol)
         {
-            Point anomalyPoint = GetPointByDimenstion(dimPointMapping, anomalyRoot);
+            Point anomalyPoint = GetPointByDimenstion(dimPointMapping, anomalyRoot, pointTree, aggType, aggSymbol);
             if (dst.Items.Count > 1)
             {
                 //get surprise value and explanary power value
@@ -325,7 +325,7 @@ namespace Microsoft.ML.TimeSeries
 
                 foreach (RootCauseItem item in dst.Items)
                 {
-                    Point rootCausePoint = GetPointByDimenstion(dimPointMapping, item.Dimension);
+                    Point rootCausePoint = GetPointByDimenstion(dimPointMapping, item.Dimension, pointTree, aggType, aggSymbol);
                     if (anomalyPoint != null && rootCausePoint != null)
                     {
                         Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
@@ -337,16 +337,16 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
 
-                //normalize and get final score
+                //get final score
                 for (int i = 0; i < scoreList.Count; i++)
                 {
-                    dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise / sumSurprise, Math.Abs(scoreList[i].ExplainaryScore) / sumEp, beta);
+                    dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplainaryScore), beta);
 
                 }
             }
             else if (dst.Items.Count == 1)
             {
-                Point rootCausePoint = GetPointByDimenstion(dimPointMapping, dst.Items[0].Dimension);
+                Point rootCausePoint = GetPointByDimenstion(dimPointMapping, dst.Items[0].Dimension, pointTree, aggType, aggSymbol);
                 if (anomalyPoint != null && rootCausePoint != null)
                 {
                     Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
@@ -356,13 +356,46 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        private Point GetPointByDimenstion(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> dimension)
+        private Point GetPointByDimenstion(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> dimension, PointTree pointTree, AggregateType aggType, string aggSymbol)
         {
             if (dimPointMapping.ContainsKey(GetDicCode(dimension)))
             {
                 return dimPointMapping[GetDicCode(dimension)];
             }
-            return null;
+
+            int count = 0;
+            Point p = new Point(dimension);
+            DimensionInfo dimensionInfo = SeperateDimension(dimension, aggSymbol);
+            Dictionary<string, Object> subDim = GetSubDim(dimension, dimensionInfo.DetailDims);
+
+            foreach (Point leave in pointTree.Leaves)
+            {
+                if (ContainsAll(leave.Dimension, subDim))
+                {
+                    count++;
+
+                    p.Value = +leave.Value;
+                    p.ExpectedValue = +leave.ExpectedValue;
+                    p.Delta = +leave.Delta;
+                }
+
+            }
+            if (aggType.Equals(AggregateType.Avg))
+            {
+                p.Value = p.Value / count;
+                p.ExpectedValue = p.ExpectedValue / count;
+                p.Delta = p.Delta / count;
+            }
+
+            if (count > 0)
+            {
+                return p;
+
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private static string GetDicCode(Dictionary<string, Object> dic)
@@ -442,22 +475,70 @@ namespace Microsoft.ML.TimeSeries
 
         private double GetSurpriseScore(Point rootCausePoint, Point anomalyPoint)
         {
-            double p = rootCausePoint.ExpectedValue / anomalyPoint.ExpectedValue;
-            double q = rootCausePoint.Value / anomalyPoint.Value;
-            double surprise = 0.5 * (p * Log2(2 * p / (p + q)) + q * Log2(2 * q / (p + q)));
+            double p;
+            double q;
+
+            if (anomalyPoint.ExpectedValue == 0)
+            {
+                p = 0;
+            }
+            else
+            {
+                p = rootCausePoint.ExpectedValue / anomalyPoint.ExpectedValue;
+            }
+
+            if (anomalyPoint.Value == 0)
+            {
+                q = 0;
+            }
+            else
+            {
+                q = rootCausePoint.Value / anomalyPoint.Value;
+            }
+
+            double surprise = 0;
+
+            if (p == 0)
+            {
+                surprise = 0.5 * (q * Log2(2 * q / (p + q)));
+            }
+            else if (q == 0)
+            {
+                surprise = 0.5 * (p * Log2(2 * p / (p + q)));
+            }
+            else
+            {
+                surprise = 0.5 * (p * Log2(2 * p / (p + q)) + q * Log2(2 * q / (p + q)));
+            }
 
             return surprise;
         }
 
         private double GetFinalScore(double surprise, double ep, double beta)
         {
-            return Math.Max(1, beta * surprise + (1 - beta) * ep);
+            double a = 0;
+            double b = 0;
+            if (surprise == 0)
+            {
+                a = 0;
+            }
+            if (ep == 0)
+            {
+                b = 0;
+            }
+            else
+            {
+                a = (1 - Math.Pow(2, -surprise));
+                b = (1 - Math.Pow(2, -ep));
+            }
+            return beta * a + (1 - beta) * b;
         }
 
         private Tuple<double, double> GetSupriseAndExplainaryScore(Point rootCausePoint, Point anomalyPoint)
         {
             double surprise = GetSurpriseScore(rootCausePoint, anomalyPoint);
-            double ep = (rootCausePoint.Value - rootCausePoint.ExpectedValue) / (anomalyPoint.Value - anomalyPoint.ExpectedValue);
+
+            double ep = anomalyPoint.Value - anomalyPoint.ExpectedValue == 0 ? 0 : Math.Abs((rootCausePoint.Value - rootCausePoint.ExpectedValue) / (anomalyPoint.Value - anomalyPoint.ExpectedValue));
 
             return new Tuple<double, double>(surprise, ep);
         }
@@ -546,6 +627,10 @@ namespace Microsoft.ML.TimeSeries
 
         public double Log2(double val)
         {
+            if (Double.IsNaN(val))
+            {
+                return 0;
+            }
             return Math.Log(val) / Math.Log(2);
         }
 
