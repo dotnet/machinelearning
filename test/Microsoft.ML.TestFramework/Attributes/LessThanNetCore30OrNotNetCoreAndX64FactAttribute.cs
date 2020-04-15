@@ -19,7 +19,7 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return Environment.Is64BitProcess && AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null;
+            return Environment.Is64BitProcess;// && AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null;
         }
     }
 
