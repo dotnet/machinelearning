@@ -53,7 +53,7 @@ namespace Microsoft.ML.AutoML
                 var modelFileInfo = RunnerUtil.GetModelFileInfo(modelDirectory, iterationNum, i + 1);
                 var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainDatasets[i], _validDatasets[i],
                     _labelColumn, _metricsAgent, _preprocessorTransforms?[i], modelFileInfo, _modelInputSchema, _logger);
-                trainResults.Add(new SuggestedPipelineTrainResult<TMetrics>(trainResult.model, trainResult.metrics, trainResult.exception, trainResult.score));
+                trainResults.Add(new SuggestedPipelineTrainResult<TMetrics>(trainResult.modelContainer, trainResult.metrics, trainResult.exception, trainResult.score));
             }
 
             var avgScore = CalcAverageScore(trainResults.Select(r => r.Score));

@@ -50,7 +50,7 @@ namespace Microsoft.ML.AutoML
                 trainResult.score,
                 trainResult.exception == null,
                 trainResult.metrics,
-                trainResult.model,
+                trainResult.modelContainer,
                 trainResult.exception);
             var runDetail = suggestedPipelineRunDetail.ToIterationResult(_preFeaturizer);
             return (suggestedPipelineRunDetail, runDetail);
@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML
         private static FileInfo GetModelFileInfo(DirectoryInfo modelDirectory, int iterationNum)
         {
             return modelDirectory == null ?
-                null :
+                new FileInfo(Path.Combine(Path.GetTempPath(), $"Model{iterationNum}.zip")) :
                 new FileInfo(Path.Combine(modelDirectory.FullName, $"Model{iterationNum}.zip"));
         }
     }

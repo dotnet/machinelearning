@@ -10,7 +10,7 @@ namespace Microsoft.ML.AutoML
 {
     internal static class RunnerUtil
     {
-        public static (ModelContainer model, TMetrics metrics, Exception exception, double score)
+        public static (ModelContainer modelContainer, TMetrics metrics, Exception exception, double score)
             TrainAndScorePipeline<TMetrics>(MLContext context,
             SuggestedPipeline pipeline,
             IDataView trainData,
@@ -37,9 +37,7 @@ namespace Microsoft.ML.AutoML
                 }
 
                 // Build container for model
-                var modelContainer = modelFileInfo == null ?
-                    new ModelContainer(context, model) :
-                    new ModelContainer(context, modelFileInfo, model, modelInputSchema);
+                var modelContainer = new ModelContainer(context, modelFileInfo, model, modelInputSchema);
 
                 return (modelContainer, metrics, null, score);
             }
@@ -53,7 +51,7 @@ namespace Microsoft.ML.AutoML
         public static FileInfo GetModelFileInfo(DirectoryInfo modelDirectory, int iterationNum, int foldNum)
         {
             return modelDirectory == null ?
-                null :
+                new FileInfo(Path.Combine(Path.GetTempPath(), $"Model{iterationNum}_{foldNum}.zip")) :
                 new FileInfo(Path.Combine(modelDirectory.FullName, $"Model{iterationNum}_{foldNum}.zip"));
         }
     }
