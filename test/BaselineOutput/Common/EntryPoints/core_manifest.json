@@ -23052,6 +23052,66 @@
       ]
     },
     {
+      "Name": "Transforms.ShortDrop",
+      "Desc": "Drops rows if there aren't enough values per grain.",
+      "FriendlyName": "ShortDrop",
+      "ShortName": "sgd",
+      "Inputs": [
+        {
+          "Name": "GrainColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "List of grain columns",
+          "Aliases": [
+            "grains"
+          ],
+          "Required": true,
+          "SortOrder": 0.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "MinRows",
+          "Type": "UInt",
+          "Desc": "Minimum number of values required",
+          "Aliases": [
+            "minr"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.TensorFlowScorer",
       "Desc": "Transforms the data using the TensorFlow model.",
       "FriendlyName": "TensorFlowTransform",
