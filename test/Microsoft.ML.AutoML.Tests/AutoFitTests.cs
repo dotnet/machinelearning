@@ -14,7 +14,6 @@ using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 using System.Diagnostics;
-using System.Management;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -85,8 +84,6 @@ namespace Microsoft.ML.AutoML.Test
             Console.WriteLine(String.Format("Iteration {0} - Total memory usage in GBs (proc): {1}", iterations, proc.PrivateMemorySize64* (1024^3)));
             proc.Dispose();
             Console.WriteLine(String.Format("Iteration {0} - Total memory usage in GBs (GC): {1}", iterations, GC.GetTotalMemory(false) * (1024 ^ 3)));
-            var ramCapacity = new ManagementObjectSearcher("SELECT Capacity FROM Win32_PhysicalMemory").Get().Cast<ManagementObject>().Sum(x => Convert.ToInt64(x.Properties["Capacity"].Value));
-            Console.WriteLine(String.Format("Iteration {0} - Total memory available in GBs: {1}", iterations, ramCapacity * (1024 ^ 3)));
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
