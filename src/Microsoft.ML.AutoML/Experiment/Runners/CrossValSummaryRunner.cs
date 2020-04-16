@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Data;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
@@ -77,7 +77,7 @@ namespace Microsoft.ML.AutoML
             var bestModel = trainResults.ElementAt(bestFoldIndex).model;
 
             // Get the metrics from the fold whose score is closest to avg of all fold scores
-            var avgScore = trainResults.Average(r => r.score);
+            var avgScore = GetAverageOfNonNaNScores(trainResults);
             var indexClosestToAvg = GetIndexClosestToAverage(trainResults.Select(r => r.score), avgScore);
             var metricsClosestToAvg = trainResults[indexClosestToAvg].metrics;
 
@@ -87,14 +87,32 @@ namespace Microsoft.ML.AutoML
             return (suggestedPipelineRunDetail, runDetail);
         }
 
+        private static double GetAverageOfNonNaNScores(List<(ModelContainer model, TMetrics metrics, Exception exception, double score)> results)
+        {
+            var newResults = results.Where(r => !double.IsNaN(r.score));
+            // Return NaN iff all scores are NaN
+            if (newResults.Count() ==0)
+                return double.NaN;
+            // Return average of non-NaN scores otherwise
+            return newResults.Average(r => r.score);
+        }
+
         private static int GetIndexClosestToAverage(IEnumerable<double> values, double average)
         {
+            // Average will be NaN iff all values are NaN.
+            // Return the first index in this case.
+            if (double.IsNaN(average))
+                return 0;
+
             int avgFoldIndex = -1;
             var smallestDistFromAvg = double.PositiveInfinity;
             for (var i = 0; i < values.Count(); i++)
             {
-                var distFromAvg = Math.Abs(values.ElementAt(i) - average);
-                if (distFromAvg < smallestDistFromAvg || smallestDistFromAvg == double.PositiveInfinity)
+                var value = values.ElementAt(i);
+                if (double.IsNaN(value))
+                    continue;
+                var distFromAvg = Math.Abs(value - average);
+                if (distFromAvg < smallestDistFromAvg)
                 {
                     smallestDistFromAvg = distFromAvg;
                     avgFoldIndex = i;
