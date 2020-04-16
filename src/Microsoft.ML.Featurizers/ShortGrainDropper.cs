@@ -1,5 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -30,18 +35,18 @@ namespace Microsoft.ML.Featurizers
 
         /// <summary>
         /// Creates a <see cref="ShortGrainDropperEstimator"/> that drops rows per grain when the number of rows for that grain is less then
-        /// the <paramref name="minPoints"/>
+        /// the <paramref name="minRows"/>
         /// </summary>
         /// <param name="catalog">Transform catalog</param>
         /// <param name="grainColumns">List of the grain columns. The combination of these form the "unique key" for each row.</param>
-        /// <param name="minPoints">The minimum number of occurances required for each "unique key". If less than this, the rows will be dropped.</param>
+        /// <param name="minRows">The minimum number of occurances required for each "unique key". If less than this, the rows will be dropped.</param>
         /// <returns><see cref="ShortGrainDropperEstimator"/></returns>
-        public static ShortGrainDropperEstimator DropShortGrains(this TransformsCatalog catalog, string[] grainColumns, UInt32 minPoints)
+        public static ShortGrainDropperEstimator DropShortGrains(this TransformsCatalog catalog, string[] grainColumns, UInt32 minRows)
         {
             var options = new ShortGrainDropperEstimator.Options
             {
                 GrainColumns = grainColumns,
-                MinPoints = minPoints
+                MinRows = minRows
             };
 
             return new ShortGrainDropperEstimator(CatalogUtils.GetEnvironment(catalog), options);
@@ -62,8 +67,18 @@ namespace Microsoft.ML.Featurizers
     /// | Input column data type | Takes in all columns |
     /// | Output column data type | Same as the original input type. |
     ///
-    /// The <xref:Microsoft.ML.Transforms.RobustScalerEstimator> is not a trivial estimator and needs training.
+    /// The <xref:Microsoft.ML.Transforms.ShortGrainDropperEstimator> is not a trivial estimator and needs training.
+    /// Consider the training data:
     ///
+    ///[ ["one"], ["two"], ["two"], ["three"], ["three"], ["three"] ]
+    ///
+    ///    and a ShortGrainDropper configured with minRows set to 2. Grains["two"] and["three"] appear
+    ///  enough times in the training data to remain, while any other grain should be dropped:
+    ///
+    ///    [ "one" ] -> true                         # drop
+    ///    [ "two" ] -> false                        # dont' drop
+    ///    [ "three" ] -> false                      # don't drop
+    ///    [ "never seen during training" ] -> true  # drop
     ///
     /// ]]>
     /// </format>
@@ -83,8 +98,8 @@ namespace Microsoft.ML.Featurizers
             public string[] GrainColumns;
 
             [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "Minimum number of values required",
-                Name = "MinPoints", ShortName = "minp", SortOrder = 1)]
-            public UInt32 MinPoints;
+                Name = "MinRows", ShortName = "minr", SortOrder = 1)]
+            public UInt32 MinRows;
         }
 
         #endregion
@@ -92,10 +107,11 @@ namespace Microsoft.ML.Featurizers
         internal ShortGrainDropperEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = Contracts.CheckRef(env, nameof(env)).Register("ShortDropEstimator");
             _host.CheckValue(options.GrainColumns, nameof(options.GrainColumns), "Grain columns should not be null.");
             _host.CheckNonEmpty(options.GrainColumns, nameof(options.GrainColumns), "Need at least one grain column.");
-            Contracts.Check(options.MinPoints > 0, "Min points must be greater than 0");
+            Contracts.Check(options.MinRows > 0, "Min points must be greater than 0");
 
             _options = options;
         }
@@ -147,11 +163,12 @@ namespace Microsoft.ML.Featurizers
         internal ShortDropTransformer(IHostEnvironment host, ModelLoadContext ctx)
         {
             _host = host.Register(nameof(ShortDropTransformer));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
 
             // *** Binary format ***
             // length of grain column array
             // all column names in grain column array
-            // MinPoints
+            // minRows
             // length of C++ state array
             // C++ byte state array
 
@@ -159,12 +176,12 @@ namespace Microsoft.ML.Featurizers
             for (int i = 0; i < grainColumns.Length; i++)
                 grainColumns[i] = ctx.Reader.ReadString();
 
-            var minPoints = ctx.Reader.ReadUInt32();
+            var minRows = ctx.Reader.ReadUInt32();
 
             _options = new ShortGrainDropperEstimator.Options
             {
                 GrainColumns = grainColumns,
-                MinPoints = minPoints
+                MinRows = minRows
             };
 
             var nativeState = ctx.Reader.ReadByteArray();
@@ -196,7 +213,7 @@ namespace Microsoft.ML.Featurizers
             IntPtr errorHandle;
             bool success;
 
-            success = CreateEstimatorNative(_options.MinPoints, out estimator, out errorHandle);
+            success = CreateEstimatorNative(_options.MinRows, out estimator, out errorHandle);
             if (!success)
                 throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -215,8 +232,8 @@ namespace Microsoft.ML.Featurizers
                 DataViewRowCursor cursor = null;
 
                 // Initialize GrainGetters and put cursor in valid state.
-                InitializeGrainGetters(input, ref cursor, ref grainGetters);
-
+                var valid = InitializeGrainGetters(input, ref cursor, ref grainGetters);
+                Debug.Assert(valid);
                 // Start the loop with the cursor in a valid state already.
                 while (true)
                 {
@@ -245,16 +262,23 @@ namespace Microsoft.ML.Featurizers
 
                     // If we need to reset the data to the beginning.
                     if (fitResult == FitResult.ResetAndContinue)
-                        InitializeGrainGetters(input, ref cursor, ref grainGetters);
+                    {
+                        valid = InitializeGrainGetters(input, ref cursor, ref grainGetters);
+                        Debug.Assert(valid);
+                    }
 
                     // If we are at the end of the data.
                     if (!cursor.MoveNext())
                     {
+                        // fit result should never be reset and continue here
+                        Debug.Assert(fitResult != FitResult.ResetAndContinue);
+
                         OnDataCompletedNative(estimatorHandle, out errorHandle);
                         if (!success)
                             throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                        InitializeGrainGetters(input, ref cursor, ref grainGetters);
+                        valid = InitializeGrainGetters(input, ref cursor, ref grainGetters);
+                        Debug.Assert(valid);
                     }
                 }
 
@@ -323,7 +347,7 @@ namespace Microsoft.ML.Featurizers
             // *** Binary format ***
             // length of grain column array
             // all column names in grain column array
-            // MinPoints
+            // minRows
             // length of C++ state array
             // C++ byte state array
 
@@ -331,7 +355,7 @@ namespace Microsoft.ML.Featurizers
             foreach (var column in _options.GrainColumns)
                 ctx.Writer.Write(column);
 
-            ctx.Writer.Write(_options.MinPoints);
+            ctx.Writer.Write(_options.MinRows);
 
             var data = CreateTransformerSaveData();
             ctx.Writer.Write(data.Length);
@@ -372,7 +396,7 @@ namespace Microsoft.ML.Featurizers
         #region C++ function declarations
 
         [DllImport("Featurizers", EntryPoint = "ShortGrainDropperFeaturizer_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern bool CreateEstimatorNative(UInt32 minPoints, out IntPtr estimator, out IntPtr errorHandle);
+        private static unsafe extern bool CreateEstimatorNative(UInt32 minRows, out IntPtr estimator, out IntPtr errorHandle);
 
         [DllImport("Featurizers", EntryPoint = "ShortGrainDropperFeaturizer_DestroyEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern bool DestroyEstimatorNative(IntPtr estimator, out IntPtr errorHandle); // Should ONLY be called by safe handle

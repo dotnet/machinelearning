@@ -44,7 +44,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(ShortGrainDropperEstimator).Assembly);
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ShortDrop_LargeNumberTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -64,7 +64,7 @@ namespace Microsoft.ML.RunTests
                     'Inputs': {
                             'GrainColumns': ['Grain'],
                             'Data' : '$data',
-                            'MinPoints' : 4294967294
+                            'MinRows' : 4294967294
                     },
                     'Outputs' : {
                         'OutputData': '$outputData',
@@ -100,7 +100,7 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
-        [Fact]
+        [NotCentOS7Fact]
         public void ShortDrop_EntryPointTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -120,7 +120,7 @@ namespace Microsoft.ML.RunTests
                     'Inputs': {
                             'GrainColumns': ['Grain'],
                             'Data' : '$data',
-                            'MinPoints' : 2
+                            'MinRows' : 2
                     },
                     'Outputs' : {
                         'OutputData': '$outputData',
@@ -140,7 +140,7 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
-        [Fact]
+        [NotCentOS7Fact]
         public void ShortDrop_Drop()
         {
             MLContext mlContext = new MLContext(1);
@@ -157,7 +157,7 @@ namespace Microsoft.ML.RunTests
                     'Inputs': {
                             'GrainColumns': ['Grain'],
                             'Data' : '$data',
-                            'MinPoints' : 2
+                            'MinRows' : 2
                     },
                     'Outputs' : {
                         'OutputData': '$outputData',
@@ -193,7 +193,7 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
-        [Fact]
+        [NotCentOS7Fact]
         public void ShortDrop_Keep()
         {
             MLContext mlContext = new MLContext(1);
@@ -211,7 +211,7 @@ namespace Microsoft.ML.RunTests
                     'Inputs': {
                             'GrainColumns': ['Grain'],
                             'Data' : '$data',
-                            'MinPoints' : 2
+                            'MinRows' : 2
                     },
                     'Outputs' : {
                         'OutputData': '$outputData',

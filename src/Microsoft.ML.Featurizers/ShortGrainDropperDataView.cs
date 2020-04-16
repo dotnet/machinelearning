@@ -47,6 +47,8 @@ namespace Microsoft.ML.Transforms
             _schema = _source.Schema;
         }
 
+        // Conceptually this transformer can shuffle, but if time series data gets shuffled then things will break.
+        // To prevent that, we dont allow shuffling with this transformer either.
         public bool CanShuffle => false;
 
         public DataViewSchema Schema => _schema;

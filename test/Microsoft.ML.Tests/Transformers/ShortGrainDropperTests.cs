@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void TestInvalidGrainTypes()
         {
             MLContext mlContext = new MLContext(1);
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ConstructorParamterTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleDropTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -72,10 +72,11 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(cols[0].Values.Length == 0);
             Assert.True(cols[1].Values.Length == 0);
 
+            TestEstimatorCore(pipeline, data);
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleKeepTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -103,10 +104,11 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(cols[0].Values.Length == 2);
             Assert.True(cols[1].Values.Length == 2);
 
+            TestEstimatorCore(pipeline, data);
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void MultipleGrainsKeepTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -136,10 +138,11 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(cols[0].Values.Length == 4);
             Assert.True(cols[1].Values.Length == 4);
 
+            TestEstimatorCore(pipeline, data);
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void MultipleGrainsPartialDropTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -168,10 +171,11 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(cols[0].Values.Length == 2);
             Assert.True(cols[1].Values.Length == 2);
 
+            TestEstimatorCore(pipeline, data);
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void MultipleGrainsAllDropTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -200,6 +204,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(cols[0].Values.Length == 0);
             Assert.True(cols[1].Values.Length == 0);
 
+            TestEstimatorCore(pipeline, data);
             Done();
         }
     }

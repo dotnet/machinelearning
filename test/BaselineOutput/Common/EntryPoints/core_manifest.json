@@ -23072,11 +23072,11 @@
           "IsNullable": false
         },
         {
-          "Name": "MinPoints",
+          "Name": "MinRows",
           "Type": "UInt",
           "Desc": "Minimum number of values required",
           "Aliases": [
-            "minp"
+            "minr"
           ],
           "Required": true,
           "SortOrder": 1.0,
