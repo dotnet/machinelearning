@@ -1159,7 +1159,7 @@ namespace Microsoft.ML.Tests
             var samples = new[]
             {
                 new HashData {Education = "alibaba".AsMemory()},
-                new HashData {Education = "baba".AsMemory()},
+                new HashData {Education = "ba ba".AsMemory()},
                 new HashData {Education = "U+123".AsMemory()},
                 new HashData {Education = "djldaoiejffjauhglehdlgh".AsMemory()},
                 new HashData {Education = "~".AsMemory()},

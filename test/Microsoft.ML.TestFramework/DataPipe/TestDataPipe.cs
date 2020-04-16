@@ -20,17 +20,17 @@ namespace Microsoft.ML.RunTests
     {
         private static float[] _dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
-        private static uint[] _resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
+        private static uint[] _resultsFloat = new uint[] { 15, 15, 25, 11, 21, 11, 0, 12, 7, 3, 30, 13 };
 
         private static VBuffer<Single> _dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] _resultsFloatSparse = new uint[] { 21, 21, 21, 21, 16 };
+        private static uint[] _resultsFloatSparse = new uint[] { 15, 15, 15, 15, 25 };
 
         private static Double[] _dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
-        private static uint[] _resultsDouble = new uint[] { 21, 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
+        private static uint[] _resultsDouble = new uint[] { 15, 15, 24, 26, 11, 1, 0, 5, 16, 3, 10, 29 };
 
         private static VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] _resultsDoubleSparse = new uint[] { 21, 21, 21, 21, 31 };
+        private static uint[] _resultsDoubleSparse = new uint[] { 15,15,15,15, 24 };
 
         [Fact()]
         public void SavePipeLabelParsers()
