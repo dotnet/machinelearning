@@ -22,8 +22,6 @@ namespace Microsoft.ML.AutoML
             {
                 _mlContext.Model.Save(model, modelInputSchema, fs);
             }
-            // Dispose model and free C Tensor objects as model has been saved to disk
-            (model as IDisposable)?.Dispose();
         }
 
         public ITransformer GetModel()

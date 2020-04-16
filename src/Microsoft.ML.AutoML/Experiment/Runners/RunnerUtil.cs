@@ -22,10 +22,11 @@ namespace Microsoft.ML.AutoML
             DataViewSchema modelInputSchema,
             IChannel logger) where TMetrics : class
         {
+            ITransformer model = null;
             try
             {
                 var estimator = pipeline.ToEstimator(trainData, validData);
-                var model = estimator.Fit(trainData);
+                model = estimator.Fit(trainData);
 
                 var scoredData = model.Transform(validData);
                 var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn);
@@ -45,6 +46,13 @@ namespace Microsoft.ML.AutoML
             {
                 logger.Error($"Pipeline crashed: {pipeline.ToString()} . Exception: {ex}");
                 return (null, null, ex, double.NaN);
+            }
+            finally
+            {
+                // Free Tensor objects in model. Tensor objects made in TensorFlow's C
+                // libraries are not automatically cleaned up by C#'s Garbage Collector.
+                // model has been saved to disk  or pipeline has crashed.
+                (model as IDisposable)?.Dispose();
             }
         }
 
