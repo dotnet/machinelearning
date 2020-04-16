@@ -13,6 +13,8 @@ using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using System.Diagnostics;
+using System.Management;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -40,6 +42,27 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void AutoFitBinaryTestDisposeNonBestModels()
+        {
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
+            // Result will have more than 1 model with a total experiment time of 15 seconds
+            using var result = context.Auto()
+                .CreateBinaryClassificationExperiment(15)
+                .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
+            Assert.True(result.RunDetails.Count() > 1);
+            // Dispose of models that did not yield the best run
+            result.DisposeRunDetails();
+            Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.Model);
+            Assert.NotNull(result.BestRun.TrainerName);
+        }
+
+        [Fact]
         public void AutoFitMultiTest()
         {
             var context = new MLContext(42);
@@ -55,11 +78,15 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Theory, TestCategory("RunSpecificTest"), IterationData(100)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void AutoFitImageClassificationTrainTest(int iterations)
         {
             Console.WriteLine(String.Format("AutoFitImageClassificationTrainTest Iteration: {0}", iterations));
+            Process proc = Process.GetCurrentProcess();
+            Console.WriteLine(String.Format("Iteration {0} - Total memory usage in GBs (proc): {1}", iterations, proc.PrivateMemorySize64* (1024^3)));
+            proc.Dispose();
+            Console.WriteLine(String.Format("Iteration {0} - Total memory usage in GBs (GC): {1}", iterations, GC.GetTotalMemory(false) * (1024 ^ 3)));
+            var ramCapacity = new ManagementObjectSearcher("SELECT Capacity FROM Win32_PhysicalMemory").Get().Cast<ManagementObject>().Sum(x => Convert.ToInt64(x.Properties["Capacity"].Value));
+            Console.WriteLine(String.Format("Iteration {0} - Total memory available in GBs: {1}", iterations, ramCapacity * (1024 ^ 3)));
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
