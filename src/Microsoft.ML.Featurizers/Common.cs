@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -329,7 +333,7 @@ namespace Microsoft.ML.Featurizers
         internal static bool AllGrainColumnsAreStrings(SchemaShape inputSchema, string[] grainColumns)
         {
             var valid = true;
-            foreach(var grain in grainColumns)
+            foreach (var grain in grainColumns)
             {
                 // Make sure the column exists
                 valid &= inputSchema.TryFindColumn(grain, out SchemaShape.Column column);
