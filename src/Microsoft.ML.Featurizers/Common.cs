@@ -247,10 +247,13 @@ namespace Microsoft.ML.Featurizers
             throw new InvalidOperationException($"Unsupported type {type}");
         }
 
-        internal static bool OsIsCentOS7() {
+        internal static bool OsIsCentOS7()
+        {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                unsafe {
-                    using (Process process = new Process()) {
+                unsafe
+                {
+                    using (Process process = new Process())
+                    {
                         process.StartInfo.FileName = "/bin/bash";
                         process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
                         process.StartInfo.UseShellExecute = false;
@@ -261,7 +264,8 @@ namespace Microsoft.ML.Featurizers
                         string distro = process.StandardOutput.ReadToEnd().Trim();
 
                         process.WaitForExit();
-                        if (distro.Contains("CentOS Linux 7")) {
+                        if (distro.Contains("CentOS Linux 7"))
+                        {
                             return true;
                         }
                     }
@@ -329,7 +333,7 @@ namespace Microsoft.ML.Featurizers
         internal static bool AllGrainColumnsAreStrings(SchemaShape inputSchema, string[] grainColumns)
         {
             var valid = true;
-            foreach(var grain in grainColumns)
+            foreach (var grain in grainColumns)
             {
                 // Make sure the column exists
                 valid &= inputSchema.TryFindColumn(grain, out SchemaShape.Column column);
