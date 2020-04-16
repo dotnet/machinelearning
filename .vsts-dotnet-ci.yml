@@ -27,11 +27,10 @@ jobs:
         _config_short: RI
         _includeBenchmarkData: true
         _targetFramework: netcoreapp3.1
-    innerLoop: true
+    innerLoop: false
     pool:
       name:  NetCorePublic-Pool
       queue: BuildPool.Ubuntu.1604.Amd64.Open
-    innerLoop: false
     runSpecific: true
 
 - template: /build/ci/job-template.yml
@@ -39,21 +38,19 @@ jobs:
     name: Ubuntu_x64_NetCoreApp21
     buildScript: ./build.sh
     container: UbuntuContainer
-    innerLoop: true
+    innerLoop: false
     pool:
       name:  NetCorePublic-Pool
       queue: BuildPool.Ubuntu.1604.Amd64.Open
-    innerLoop: false
     runSpecific: true
 
 - template: /build/ci/job-template.yml
   parameters:
     name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
-    innerLoop: true
+    innerLoop: false
     pool:
       name: Hosted macOS
-    innerLoop: false
     runSpecific: true
 
 - template: /build/ci/job-template.yml
@@ -71,22 +68,20 @@ jobs:
         _config_short: RI
         _includeBenchmarkData: true
         _targetFramework: netcoreapp3.1
-    innerLoop: true
+    innerLoop: false
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
       name: Hosted VS2017
-    innerLoop: false
     runSpecific: true
 
 - template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
-    innerLoop: true
+    innerLoop: false
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
-    innerLoop: false
     runSpecific: true
 
 - template: /build/ci/job-template.yml
@@ -104,9 +99,8 @@ jobs:
         _config_short: RFX
         _includeBenchmarkData: false
         _targetFramework: win-x64
-    innerLoop: true
+    innerLoop: false
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name: Hosted VS2017
-    innerLoop: false
     runSpecific: true
