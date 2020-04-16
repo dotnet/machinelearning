@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 
 namespace Microsoft.ML.AutoML
@@ -21,6 +22,8 @@ namespace Microsoft.ML.AutoML
             {
                 _mlContext.Model.Save(model, modelInputSchema, fs);
             }
+            // Dispose model and free C Tensor objects as model has been saved to disk
+            (model as IDisposable)?.Dispose();
         }
 
         public ITransformer GetModel()

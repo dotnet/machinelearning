@@ -36,8 +36,6 @@ namespace Microsoft.ML.AutoML
         {
             RunDetails = runDetails;
             BestRun = bestRun;
-            _disposed = false;
-            _disposedRunDetails = false;
         }
 
         #region IDisposable Support
@@ -66,8 +64,10 @@ namespace Microsoft.ML.AutoML
         /// Releases unmanaged Tensor objects in models stored in RunDetail instances
         /// </summary>
         /// <remarks>
-        /// Invocation of Dispose() is necessary to clean up remaining C library Tensor objects and
-        /// avoid a memory leak
+        /// Invocation of DisposeRunDetails() is necessary to clean up remaining C library
+        /// Tensor objects and avoid a memory leak. Compared to Dispose(), DisposeRunDetails()
+        /// only disposes of RunDetails so that the best determined model in BestRun can have
+        /// a different lifetime than models in other experimental runs.
         /// </remarks>
         public void DisposeRunDetails()
         {

@@ -30,14 +30,13 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
-            var result = context.Auto()
+            using var result = context.Auto()
                 .CreateBinaryClassificationExperiment(0)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
             Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.Model);
             Assert.NotNull(result.BestRun.TrainerName);
-            result.Dispose();
         }
 
         [Fact]
@@ -47,13 +46,12 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
-            var result = context.Auto()
+            using var result = context.Auto()
                 .CreateMulticlassClassificationExperiment(0)
                 .Execute(trainData, 5, DatasetUtil.TrivialMulticlassDatasetLabel);
             Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
             var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
-            result.Dispose();
         }
 
         [Theory, TestCategory("RunSpecificTest"), IterationData(100)]
@@ -71,7 +69,7 @@ namespace Microsoft.ML.AutoML.Test
             TrainTestData trainTestData = context.Data.TrainTestSplit(trainData, testFraction: 0.2, seed: 1);
             IDataView trainDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TrainSet, originalColumnNames);
             IDataView testDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TestSet, originalColumnNames);
-            var result = context.Auto()
+            using var result = context.Auto()
                             .CreateMulticlassClassificationExperiment(0)
                             .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
 
@@ -79,7 +77,6 @@ namespace Microsoft.ML.AutoML.Test
 
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
-            result.Dispose();
         }
 
         [Fact(Skip ="Takes too much time, ~10 minutes.")]
@@ -94,14 +91,13 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(datasetPath);
-            var result = context.Auto()
+            using var result = context.Auto()
                             .CreateMulticlassClassificationExperiment(0)
                             .Execute(trainData, columnInference.ColumnInformation);
 
             Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.9);
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
-            result.Dispose();
         }
 
         private void Context_Log(object sender, LoggingEventArgs e)
@@ -119,13 +115,12 @@ namespace Microsoft.ML.AutoML.Test
             var trainData = textLoader.Load(dataPath);
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
-            var result = context.Auto()
+            using var result = context.Auto()
                 .CreateRegressionExperiment(0)
                 .Execute(trainData, validationData,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
-            result.Dispose();
         }
 
         [Fact]
@@ -144,7 +139,7 @@ namespace Microsoft.ML.AutoML.Test
             var testDataView = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             // STEP 2: Run AutoML experiment
-            ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
+            using ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
                 .CreateRecommendationExperiment(5)
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation()
@@ -172,7 +167,6 @@ namespace Microsoft.ML.AutoML.Test
 
             var metrices = mlContext.Recommendation().Evaluate(testDataViewWithBestScore, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
             Assert.NotEqual(0, metrices.MeanSquaredError);
-            experimentResult.Dispose();
         }
 
         private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)
