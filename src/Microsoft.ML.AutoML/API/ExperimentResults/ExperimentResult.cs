@@ -54,8 +54,10 @@ namespace Microsoft.ML.AutoML
             if (_disposed)
                 return;
             if (!_disposedRunDetails)
-                (RunDetails as IDisposable)?.Dispose();
-            (BestRun as IDisposable)?.Dispose();
+                foreach (var runDetail in RunDetails)
+                    (runDetail.Model as IDisposable)?.Dispose();
+            (RunDetails as IDisposable)?.Dispose();
+            (BestRun.Model as IDisposable)?.Dispose();
             _disposed = true;
             _disposedRunDetails = true;
         }
@@ -73,6 +75,9 @@ namespace Microsoft.ML.AutoML
         {
             if (_disposedRunDetails || _disposed)
                 return;
+            foreach (var runDetail in RunDetails)
+                if(!runDetail.Model.Equals(BestRun.Model))
+                    (runDetail.Model as IDisposable)?.Dispose();
             (RunDetails as IDisposable)?.Dispose();
             _disposedRunDetails = true;
         }

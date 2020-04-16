@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML
         private static FileInfo GetModelFileInfo(DirectoryInfo modelDirectory, int iterationNum)
         {
             return modelDirectory == null ?
-                new FileInfo(Path.Combine(Path.GetTempPath(), $"Model{iterationNum}.zip")) :
+                null :
                 new FileInfo(Path.Combine(modelDirectory.FullName, $"Model{iterationNum}.zip"));
         }
     }

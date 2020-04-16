@@ -22,11 +22,10 @@ namespace Microsoft.ML.AutoML
             DataViewSchema modelInputSchema,
             IChannel logger) where TMetrics : class
         {
-            ITransformer model = null;
             try
             {
                 var estimator = pipeline.ToEstimator(trainData, validData);
-                model = estimator.Fit(trainData);
+                var model = estimator.Fit(trainData);
 
                 var scoredData = model.Transform(validData);
                 var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn);
@@ -38,7 +37,9 @@ namespace Microsoft.ML.AutoML
                 }
 
                 // Build container for model
-                var modelContainer = new ModelContainer(context, modelFileInfo, model, modelInputSchema);
+                var modelContainer = modelFileInfo == null ?
+                    new ModelContainer(context, model) :
+                    new ModelContainer(context, modelFileInfo, model, modelInputSchema);
 
                 return (modelContainer, metrics, null, score);
             }
@@ -47,19 +48,12 @@ namespace Microsoft.ML.AutoML
                 logger.Error($"Pipeline crashed: {pipeline.ToString()} . Exception: {ex}");
                 return (null, null, ex, double.NaN);
             }
-            finally
-            {
-                // Free Tensor objects in model. Tensor objects made in TensorFlow's C
-                // libraries are not automatically cleaned up by C#'s Garbage Collector.
-                // model has been saved to disk  or pipeline has crashed.
-                (model as IDisposable)?.Dispose();
-            }
         }
 
         public static FileInfo GetModelFileInfo(DirectoryInfo modelDirectory, int iterationNum, int foldNum)
         {
             return modelDirectory == null ?
-                new FileInfo(Path.Combine(Path.GetTempPath(), $"Model{iterationNum}_{foldNum}.zip")) :
+                null :
                 new FileInfo(Path.Combine(modelDirectory.FullName, $"Model{iterationNum}_{foldNum}.zip"));
         }
     }
