@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
@@ -70,6 +71,9 @@ namespace Microsoft.ML.AutoML
 
             // Get the model from the best fold
             var bestFoldIndex = BestResultUtil.GetIndexOfBestScore(trainResults.Select(r => r.score), _optimizingMetricInfo.IsMaximizing);
+            // bestFoldIndex will be -1 if the optimization metric for all folds is NaN.
+            // In this case, return model from the first fold.
+            bestFoldIndex = bestFoldIndex != -1 ? bestFoldIndex : 0;
             var bestModel = trainResults.ElementAt(bestFoldIndex).model;
 
             // Get the metrics from the fold whose score is closest to avg of all fold scores
