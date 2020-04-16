@@ -44,7 +44,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(LagLeadOperatorEstimator).Assembly);
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void LagLead_SimpleSchemaTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -62,7 +62,7 @@ namespace Microsoft.ML.RunTests
                     'Name': 'Transforms.LagLeadOperator',
                     'Inputs': {
                             'GrainColumns': ['GrainA'],
-                            'Columns' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
+                            'Column' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
                             'Data' : '$data',
                             'Horizon': 1,
                             'Offsets' : [-1]
@@ -114,7 +114,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void LagLead_LargeNumberSchemaTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -132,7 +132,7 @@ namespace Microsoft.ML.RunTests
                     'Name': 'Transforms.LagLeadOperator',
                     'Inputs': {
                             'GrainColumns': ['GrainA'],
-                            'Columns' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
+                            'Column' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
                             'Data' : '$data',
                             'Horizon': 500000,
                             'Offsets' : [500000]
@@ -183,7 +183,7 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
-        [Fact]
+        [NotCentOS7Fact]
         public void LagLead_ComplexSchemaTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -199,7 +199,7 @@ namespace Microsoft.ML.RunTests
                     'Name': 'Transforms.LagLeadOperator',
                     'Inputs': {
                             'GrainColumns': ['GrainA'],
-                            'Columns' : [{ 'Name' : 'ColA_New', 'Source' : 'ColA' }],
+                            'Column' : [{ 'Name' : 'ColA_New', 'Source' : 'ColA' }],
                             'Data' : '$data',
                             'Horizon': 3,
                             'Offsets' : [-1, 1, -2, 2]
@@ -251,7 +251,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void LagLead_LagTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -269,7 +269,7 @@ namespace Microsoft.ML.RunTests
                     'Name': 'Transforms.LagLeadOperator',
                     'Inputs': {
                             'GrainColumns': ['GrainA'],
-                            'Columns' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
+                            'Column' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
                             'Data' : '$data',
                             'Horizon': 2,
                             'Offsets' : [-2, -1]
@@ -341,7 +341,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void LagLead_Lead1Test()
         {
             MLContext mlContext = new MLContext(1);
@@ -359,7 +359,7 @@ namespace Microsoft.ML.RunTests
                     'Name': 'Transforms.LagLeadOperator',
                     'Inputs': {
                             'GrainColumns': ['GrainA'],
-                            'Columns' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
+                            'Column' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
                             'Data' : '$data',
                             'Horizon': 1,
                             'Offsets' : [1]
@@ -434,7 +434,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void LagLead_Lead2Test()
         {
             MLContext mlContext = new MLContext(1);
@@ -452,7 +452,7 @@ namespace Microsoft.ML.RunTests
                     'Name': 'Transforms.LagLeadOperator',
                     'Inputs': {
                             'GrainColumns': ['GrainA'],
-                            'Columns' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
+                            'Column' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
                             'Data' : '$data',
                             'Horizon': 1,
                             'Offsets' : [2]
@@ -527,7 +527,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void LagLead_ComplexLagLeadTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -547,7 +547,7 @@ namespace Microsoft.ML.RunTests
                     'Name': 'Transforms.LagLeadOperator',
                     'Inputs': {
                             'GrainColumns': ['GrainA'],
-                            'Columns' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
+                            'Column' : [{ 'Name' : 'ColA', 'Source' : 'ColA' }],
                             'Data' : '$data',
                             'Horizon': 2,
                             'Offsets' : [-2, -1, 1, 2]

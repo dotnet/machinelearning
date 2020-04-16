@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void TestInvalidType()
         {
             MLContext mlContext = new MLContext(1);
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ConstructorParameterTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleSchemaTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ComplexSchemaTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleLagTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void LagTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void LargeNumberTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleLeadTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -394,8 +394,8 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(pipeline, data);
             Done();
         }
-        
-        [Fact]
+
+        [NotCentOS7Fact]
         public void SimpleLeadOffset2Test()
         {
             MLContext mlContext = new MLContext(1);
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleLagLeadOffset2Test()
         {
             MLContext mlContext = new MLContext(1);
@@ -536,7 +536,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void MoreComplexLagLeadOffsetTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -582,9 +582,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var cursor = output.GetRowCursor(addedColumn);
 
-            var expectedOutput = new[] { 
-                new[] { double.NaN, double.NaN, double.NaN, double.NaN, 1d, 2d, 2d, 3d }, 
-                new[] { double.NaN, double.NaN, double.NaN, 1d, 2d, 2d, 3d, double.NaN }, 
+            var expectedOutput = new[]
+            {
+                new[] { double.NaN, double.NaN, double.NaN, double.NaN, 1d, 2d, 2d, 3d },
+                new[] { double.NaN, double.NaN, double.NaN, 1d, 2d, 2d, 3d, double.NaN },
                 new[] { double.NaN, 1d, 2d, 2d, 3d, double.NaN, double.NaN, double.NaN }
             };
             var index = 0;

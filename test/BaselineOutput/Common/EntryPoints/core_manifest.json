@@ -20335,7 +20335,7 @@
           "IsNullable": false
         },
         {
-          "Name": "Columns",
+          "Name": "Column",
           "Type": {
             "Kind": "Array",
             "ItemType": {
