@@ -19106,6 +19106,18 @@
           "IsNullable": false
         },
         {
+          "Name": "HorizonColumnName",
+          "Type": "String",
+          "Desc": "Name of the horizon column generated.",
+          "Aliases": [
+            "hor"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": "Horizon"
+        },
+        {
           "Name": "Data",
           "Type": "DataView",
           "Desc": "Input dataset",

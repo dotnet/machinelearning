@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -31,15 +32,15 @@ namespace Microsoft.ML.Transforms
 
         private readonly IHostEnvironment _host;
         private readonly IDataView _source;
-        private readonly string[] _columnsToPivot;
+        private readonly ForecastingPivotFeaturizerEstimator.Options _options;
         private readonly DataViewSchema _schema;
 
-        internal ForecastingPivotFeaturizerDataView(IHostEnvironment env, IDataView input, string[] columnsToPivot, ForecastingPivotTransformer parent)
+        internal ForecastingPivotFeaturizerDataView(IHostEnvironment env, IDataView input, ForecastingPivotFeaturizerEstimator.Options options, ForecastingPivotTransformer parent)
         {
             _host = env;
             _source = input;
 
-            _columnsToPivot = columnsToPivot;
+            _options = options;
             _parent = parent;
 
             _schema = _parent.GetOutputSchema(input.Schema);
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Transforms
             _host.AssertValueOrNull(rand);
 
             var input = _source.GetRowCursorForAllColumns();
-            return new Cursor(_host, input, _columnsToPivot, _schema);
+            return new Cursor(_host, input, _options, _schema);
         }
 
         // Can't use parallel cursors so this defaults to calling non-parallel version
@@ -122,13 +123,14 @@ namespace Microsoft.ML.Transforms
             private long _position;
             private bool _isGood;
             private readonly DataViewSchema _schema;
+            private readonly ForecastingPivotFeaturizerEstimator.Options _options;
 
             private Dictionary<string, PivotColumn> _pivotColumns;
             private readonly UInt32 _maxCols;
             private int _currentCol;
             private UInt32 _currentHorizon;
 
-            public Cursor(IChannelProvider provider, DataViewRowCursor input, string[] columnsToPivot, DataViewSchema schema)
+            public Cursor(IChannelProvider provider, DataViewRowCursor input, ForecastingPivotFeaturizerEstimator.Options options, DataViewSchema schema)
             {
                 _ch = provider;
                 _ch.CheckValue(input, nameof(input));
@@ -138,11 +140,12 @@ namespace Microsoft.ML.Transforms
                 _input = input;
                 _position = -1;
                 _schema = schema;
+                _options = options;
 
                 _pivotColumns = new Dictionary<string, PivotColumn>();
                 _currentCol = -1;
 
-                foreach (var col in columnsToPivot)
+                foreach (var col in _options.ColumnsToPivot)
                 {
                     var sourceCol = input.Schema[col];
                     var annotations = sourceCol.Annotations;
@@ -150,38 +153,13 @@ namespace Microsoft.ML.Transforms
                     // Getting the annotation this way is a temporary fix since even though the values are known at this time,
                     // SchemaShape does not expose them. To work around this the annotations are stored in the format
                     // Annotation=Value. We will just parse this and get the value.
-                    var feautizerAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
+                    var columnNamesAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-                    if (feautizerAnnotationName.Contains("LagLead"))
+                    var columnNames = columnNamesAnnotationName.Split('=')[1].Split(',');
+
+                    for (int i = 0; i < columnNames.Length; i++)
                     {
-                        var offsetsAnnoName = annotations.Schema.Where(x => x.Name.StartsWith("Offsets")).First().Name;
-
-                        var offsets = offsetsAnnoName.Split('=')[1].Split(',');
-
-                        for (int i = 0; i < offsets.Length; i++)
-                        {
-                            string newColumnName = default;
-                            if (offsets[i].StartsWith("-"))
-                                newColumnName = $"{col}_Lag{offsets[i].Substring(1)}";
-                            else
-                                newColumnName = $"{col}_Lead{offsets[i]}";
-                            _pivotColumns[newColumnName] = new PivotColumn(input, col, i);
-                        }
-                    }
-                    else if (feautizerAnnotationName.Contains("RollingWindow"))
-                    {
-                        // Getting the annotation this way is a temporary fix since even though the values are known at this time,
-                        // SchemaShape does not expose them. To work around this the annotations are stored in the format
-                        // Annotation=Value. We will just parse this and get the value.
-                        var calcAnnoName = annotations.Schema.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-                        var minWinSizeAnnoName = annotations.Schema.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-                        var maxWinSizeAnnoName = annotations.Schema.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
-
-                        // Final name should be something like Col_Mean_MinWin1_MaxWin1
-                        var newColumnName = $"{col}_{calcAnnoName.Split('=')[1]}_MinWin{minWinSizeAnnoName.Split('=')[1]}_MaxWin{maxWinSizeAnnoName.Split('=')[1]}";
-
-                        // Rolling window is always row 0.
-                        _pivotColumns[newColumnName] = new PivotColumn(input, col, 0);
+                        _pivotColumns[columnNames[i]] = new PivotColumn(input, col, i);
                     }
                 }
 
@@ -223,9 +201,9 @@ namespace Microsoft.ML.Transforms
 
                 var thisCol = _schema[column.Name];
 
-                if ((_pivotColumns.Keys.Contains(column.Name) && thisCol.Name == column.Name && thisCol.Type == column.Type) || column.Name == "Horizon")
+                if ((_pivotColumns.Keys.Contains(column.Name) && thisCol.Name == column.Name && thisCol.Type == column.Type) || column.Name == _options.HorizonColumnName)
                 {
-                    if (column.Name == "Horizon")
+                    if (column.Name == _options.HorizonColumnName)
                         return MakeHorizonGetter() as ValueGetter<TValue>;
                     else
                         return MakePivotGetter(column) as ValueGetter<TValue>;
@@ -295,8 +273,10 @@ namespace Microsoft.ML.Transforms
 
             private Delegate MakePivotGetter(DataViewSchema.Column column)
             {
-                ValueGetter<double> result = (ref double dst) => {
-                    dst = _pivotColumns[column.Name].GetStoredValue();
+                var pivotColumn = _pivotColumns[column.Name];
+                ValueGetter<double> result = (ref double dst) =>
+                {
+                    dst = pivotColumn.GetStoredValue();
                 };
 
                 return result;
@@ -304,7 +284,8 @@ namespace Microsoft.ML.Transforms
 
             private Delegate MakeHorizonGetter()
             {
-                ValueGetter<UInt32> result = (ref UInt32 dst) => {
+                ValueGetter<UInt32> result = (ref UInt32 dst) =>
+                {
                     dst = _currentHorizon;
                 };
 

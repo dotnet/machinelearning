@@ -70,7 +70,7 @@ namespace Microsoft.ML.RunTests
             public double[] ColA_LL { get; set; }
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ForecastingPivot_SimpleRWTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -79,15 +79,9 @@ namespace Microsoft.ML.RunTests
             };
 
             var annotations = new DataViewSchema.Annotations.Builder();
-            ValueGetter<UInt32> minWindowSizeValueGetter = (ref UInt32 dst) => dst = 1;
-            ValueGetter<UInt32> maxWindowSizeValueGetter = (ref UInt32 dst) => dst = 1;
-            ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "RollingWindow".AsMemory();
-            ValueGetter<ReadOnlyMemory<char>> calculationValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "Mean".AsMemory();
+            ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "ColA_Vec_Mean_MinWin1_MaxWin1".AsMemory();
 
-            annotations.Add<UInt32>("MinWindowSize=1", NumberDataViewType.UInt32, minWindowSizeValueGetter);
-            annotations.Add<UInt32>("MaxWindowSize=1", NumberDataViewType.UInt32, maxWindowSizeValueGetter);
-            annotations.Add<ReadOnlyMemory<char>>("FeaturizerName=RollingWindow", TextDataViewType.Instance, nameValueGetter);
-            annotations.Add<ReadOnlyMemory<char>>("Calculation=Mean", TextDataViewType.Instance, calculationValueGetter);
+            annotations.Add<ReadOnlyMemory<char>>("ColumnNames=ColA_Vec_Mean_MinWin1_MaxWin1", TextDataViewType.Instance, nameValueGetter);
 
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("ColA", NumberDataViewType.Double);
@@ -140,7 +134,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ForecastingPivot_SimpleLagLeadTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -149,12 +143,11 @@ namespace Microsoft.ML.RunTests
                 new SimpleLagLeadTestData { ColA = 2.0, ColA_Vec = new [] { double.NaN, 1.0, double.NaN, 1.0 } },
                 new SimpleLagLeadTestData { ColA = 3.0, ColA_Vec = new [] { 1.0, 2.0, 1.0, 2.0 } }
             };
-            var annotations = new DataViewSchema.Annotations.Builder();
-            ValueGetter<VBuffer<long>> offsetValueGetter = (ref VBuffer<long> dst) => dst = new VBuffer<long>(2, new long[] { -1, 1 });
-            ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "LagLead".AsMemory();
 
-            annotations.Add<VBuffer<long>>("Offsets=-1,1", new VectorDataViewType(NumberDataViewType.Int64, 2), offsetValueGetter);
-            annotations.Add<ReadOnlyMemory<char>>("FeaturizerName=LagLead", TextDataViewType.Instance, nameValueGetter);
+            var annotations = new DataViewSchema.Annotations.Builder();
+            ValueGetter<ReadOnlyMemory<char>> lagLeadNameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "ColA_Vec_Lag1,ColA_Vec_Lead1".AsMemory();
+
+            annotations.Add<ReadOnlyMemory<char>>("ColumnNames=ColA_LL_Lag1,ColA_LL_Lead1", TextDataViewType.Instance, lagLeadNameValueGetter);
 
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("ColA", NumberDataViewType.Double);
@@ -225,7 +218,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ForecastingPivot_Horizon2RWTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -234,16 +227,11 @@ namespace Microsoft.ML.RunTests
                 new SimpleRWTestData { ColA = 2.0, ColA_Vec = new [] { double.NaN, 1.0 } },
                 new SimpleRWTestData { ColA = 3.0, ColA_Vec = new [] { 1.0, 2.0 } }
             };
-            var annotations = new DataViewSchema.Annotations.Builder();
-            ValueGetter<UInt32> minWindowSizeValueGetter = (ref UInt32 dst) => dst = 1;
-            ValueGetter<UInt32> maxWindowSizeValueGetter = (ref UInt32 dst) => dst = 1;
-            ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "RollingWindow".AsMemory();
-            ValueGetter<ReadOnlyMemory<char>> calculationValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "Mean".AsMemory();
 
-            annotations.Add<UInt32>("MinWindowSize=1", NumberDataViewType.UInt32, minWindowSizeValueGetter);
-            annotations.Add<UInt32>("MaxWindowSize=1", NumberDataViewType.UInt32, maxWindowSizeValueGetter);
-            annotations.Add<ReadOnlyMemory<char>>("FeaturizerName=RollingWindow", TextDataViewType.Instance, nameValueGetter);
-            annotations.Add<ReadOnlyMemory<char>>("Calculation=Mean", TextDataViewType.Instance, calculationValueGetter);
+            var annotations = new DataViewSchema.Annotations.Builder();
+            ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "ColA_Vec_Mean_MinWin1_MaxWin1".AsMemory();
+
+            annotations.Add<ReadOnlyMemory<char>>("ColumnNames=ColA_Vec_Mean_MinWin1_MaxWin1", TextDataViewType.Instance, nameValueGetter);
 
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("ColA", NumberDataViewType.Double);
@@ -309,7 +297,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ForecastingPivot_Horizon2LagLeadTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -318,24 +306,16 @@ namespace Microsoft.ML.RunTests
                 new Horizon2LagLeadRWTestData { ColA = 2.0, ColA_RW = new [] { double.NaN, 1.0 }, ColA_LL = new [] { double.NaN, 1.0, double.NaN, 2.0 } },
                 new Horizon2LagLeadRWTestData { ColA = 3.0, ColA_RW = new [] { 1.0, 2.0 }, ColA_LL = new [] { 2.0, double.NaN, 3.0, double.NaN } }
             };
-            // Set up the value getters for the annotations.
-            ValueGetter<VBuffer<long>> offsetValueGetter = (ref VBuffer<long> dst) => dst = new VBuffer<long>(2, new long[] { -1, 1 });
-            ValueGetter<ReadOnlyMemory<char>> lagNameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "LagLead".AsMemory();
-            ValueGetter<UInt32> minWindowSizeValueGetter = (ref UInt32 dst) => dst = 1;
-            ValueGetter<UInt32> maxWindowSizeValueGetter = (ref UInt32 dst) => dst = 1;
-            ValueGetter<ReadOnlyMemory<char>> rollWinNameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "RollingWindow".AsMemory();
-            ValueGetter<ReadOnlyMemory<char>> calculationValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "Mean".AsMemory();
-
             // Make our annotations for rolling window and lag lead.
             var rolWinAnnotations = new DataViewSchema.Annotations.Builder();
-            rolWinAnnotations.Add<UInt32>("MinWindowSize=1", NumberDataViewType.UInt32, minWindowSizeValueGetter);
-            rolWinAnnotations.Add<UInt32>("MaxWindowSize=1", NumberDataViewType.UInt32, maxWindowSizeValueGetter);
-            rolWinAnnotations.Add<ReadOnlyMemory<char>>("FeaturizerName=RollingWindow", TextDataViewType.Instance, rollWinNameValueGetter);
-            rolWinAnnotations.Add<ReadOnlyMemory<char>>("Calculation=Mean", TextDataViewType.Instance, calculationValueGetter);
+            ValueGetter<ReadOnlyMemory<char>> rolWinNameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "ColA_RW_Mean_MinWin1_MaxWin1".AsMemory();
+
+            rolWinAnnotations.Add<ReadOnlyMemory<char>>("ColumnNames=ColA_RW_Mean_MinWin1_MaxWin1", TextDataViewType.Instance, rolWinNameValueGetter);
 
             var lagLeadAnnotations = new DataViewSchema.Annotations.Builder();
-            lagLeadAnnotations.Add<VBuffer<long>>("Offsets=-1,1", new VectorDataViewType(NumberDataViewType.Int64, 2), offsetValueGetter);
-            lagLeadAnnotations.Add<ReadOnlyMemory<char>>("FeaturizerName=LagLead", TextDataViewType.Instance, lagNameValueGetter);
+            ValueGetter<ReadOnlyMemory<char>> lagLeadNameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "ColA_Vec_Lag1,ColA_Vec_Lead1".AsMemory();
+
+            lagLeadAnnotations.Add<ReadOnlyMemory<char>>("ColumnNames=ColA_LL_Lag1,ColA_LL_Lead1", TextDataViewType.Instance, lagLeadNameValueGetter);
 
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("ColA", NumberDataViewType.Double);

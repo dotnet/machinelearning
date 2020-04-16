@@ -38,12 +38,14 @@ namespace Microsoft.ML.Featurizers
         /// </summary>
         /// <param name="catalog">The transform catalog.</param>
         /// <param name="columnsToPivot">The list of columns to pivot.</param>
+        /// <param name="horizonColumnName">The of the horizon column to add.</param>
         /// <returns></returns>
-        public static ForecastingPivotFeaturizerEstimator PivotForecastingData(this TransformsCatalog catalog, string[] columnsToPivot)
+        public static ForecastingPivotFeaturizerEstimator PivotForecastingData(this TransformsCatalog catalog, string[] columnsToPivot, string horizonColumnName = "Horizon")
         {
             var options = new ForecastingPivotFeaturizerEstimator.Options
             {
-                ColumnsToPivot = columnsToPivot
+                ColumnsToPivot = columnsToPivot,
+                HorizonColumnName = horizonColumnName
             };
 
             return new ForecastingPivotFeaturizerEstimator(CatalogUtils.GetEnvironment(catalog), options);
@@ -66,7 +68,8 @@ namespace Microsoft.ML.Featurizers
     /// | Output column data type | double |
     /// | Exportable to ONNX | No |
     ///
-    /// This featurizer takes in a list of vector columns, and pivots those columns into columns of type double. For example, given this input
+    /// This featurizer takes in a list of vector columns, and pivots those columns into columns of type double, and then drops rows when the pivot results in a column with an na value.
+    /// For example, given this input
     ///
     ///      +-------+--------------------------------+--------------------------------+
     ///      | Index |     RW                         |        LL                      |
@@ -84,7 +87,49 @@ namespace Microsoft.ML.Featurizers
     ///      | 5     | [ [1, 2, 3] ]                  | [ [2, 2, 1], [3, na, 4] ]      |
     ///      +-------+--------------------------------+--------------------------------+
     ///
-    /// The result would be
+    /// After the pivot but before rows with na values get dropped this would be
+    ///
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | Index | RW_Mean_MinWin1_MaxWin_1   |   LL_Lag1  |   LL_Lead_1  | Horizon  |
+    ///      +=======+============================+============+==============+==========+
+    ///      | 0     | na                         | na         | na           | 3        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 0     | na                         | na         | na           | 2        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 0     | na                         | na         | na           | 1        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 1     | 1                          | na         | na           | 3        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 1     | 2                          | na         | na           | 2        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 1     | 3                          | na         | na           | 1        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 2     | 1                          | na         | na           | 3        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 2     | 2                          | na         | na           | 2        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 2     | 3                          | na         | na           | 1        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 3     | 1                          | 3          | na           | 3        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 3     | 2                          | 2          | na           | 2        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 3     | 3                          | 1          | na           | 1        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 4     | 1                          | 3          | 2            | 3        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 4     | 2                          | 2          | na           | 2        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 4     | 3                          | 1          | na           | 1        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 5     | 1                          | 2          | 3            | 3        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 5     | 2                          | 2          | na           | 2        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///      | 5     | 3                          | 1          | 4            | 1        |
+    ///      +-------+----------------------------+------------+--------------+----------+
+    ///
+    /// And then when those rows with na values are dropped the result would be
     ///      +-------+----------------------------+------------+--------------+----------+
     ///      | Index | RW_Mean_MinWin1_MaxWin_1   |   LL_Lag1  |   LL_Lead_1  | Horizon  |
     ///      +=======+============================+============+==============+==========+
@@ -97,7 +142,7 @@ namespace Microsoft.ML.Featurizers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="ForecastingPivotFeaturizerExtensionClass.PivotForecastingData(TransformsCatalog, string[])"/>
+    /// <seealso cref="ForecastingPivotFeaturizerExtensionClass.PivotForecastingData(TransformsCatalog, string[], string)"/>
     public sealed class ForecastingPivotFeaturizerEstimator : IEstimator<ForecastingPivotTransformer>
     {
         private Options _options;
@@ -110,6 +155,9 @@ namespace Microsoft.ML.Featurizers
 
             [Argument((ArgumentType.MultipleUnique | ArgumentType.Required), HelpText = "List of columns to pivot", Name = "ColumnsToPivot", ShortName = "cols", SortOrder = 0)]
             public string[] ColumnsToPivot;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the horizon column generated.", Name = "HorizonColumnName", ShortName = "hor", SortOrder = 1)]
+            public string HorizonColumnName = "Horizon";
         }
 
         #endregion
@@ -117,6 +165,7 @@ namespace Microsoft.ML.Featurizers
         internal ForecastingPivotFeaturizerEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = Contracts.CheckRef(env, nameof(env)).Register("ShortDropEstimator");
             _host.CheckValue(options.ColumnsToPivot, nameof(options.ColumnsToPivot), "ColumnsToPivot should not be null.");
             _host.CheckNonEmpty(options.ColumnsToPivot, nameof(options.ColumnsToPivot), "Need at least one column.");
@@ -136,7 +185,7 @@ namespace Microsoft.ML.Featurizers
 
             var columns = inputSchema.ToDictionary(x => x.Name);
 
-            columns["Horizon"] = new SchemaShape.Column("Horizon", VectorKind.Scalar, NumberDataViewType.UInt32, false);
+            columns[_options.HorizonColumnName] = new SchemaShape.Column(_options.HorizonColumnName, VectorKind.Scalar, NumberDataViewType.UInt32, false);
 
             // Make sure all ColumnsToPivot are vectors of type double and the same number of columns.
             // Make new columns based on parsing the input column names.
@@ -144,52 +193,30 @@ namespace Microsoft.ML.Featurizers
             {
                 // Make sure the column exists
                 var found = inputSchema.TryFindColumn(col, out SchemaShape.Column column);
-                if(!found)
+                if (!found)
                     throw new InvalidOperationException($"Pivot column {col} not found in input");
 
                 var colType = column.ItemType;
-                if(column.Kind != VectorKind.Vector)
+                if (column.Kind != VectorKind.Vector)
                     throw new InvalidOperationException($"Pivot column {col} must be a vector");
 
-                if(column.ItemType != NumberDataViewType.Double)
+                if (column.ItemType != NumberDataViewType.Double)
                     throw new InvalidOperationException($"Pivot column {col} must be a vector of type double");
 
                 // By this point the input column should have the correct format.
                 // Parse the input column annotations to figure out if its from rolling window or lag lead.
                 var annotations = column.Annotations;
 
+                // TODO: Fix how we get annotations when the ability is added to get annotations if they are known at this point.
                 // Getting the annotation this way is a temporary fix since even though the values are known at this time,
                 // SchemaShape does not expose them. To work around this the annotations are stored in the format
                 // Annotation=Value. We will just parse this and get the value.
-                var feautizerAnnotationName = annotations.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
+                var columnNamesAnnotationName = annotations.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-                if (feautizerAnnotationName.Contains("LagLead"))
+                var columnNames = columnNamesAnnotationName.Split('=')[1].Split(',');
+                foreach (var name in columnNames)
                 {
-                    var offsetsAnnoName = annotations.Where(x => x.Name.StartsWith("Offsets")).First().Name;
-
-                    var offsets = offsetsAnnoName.Split('=')[1].Split(',');
-                    foreach (var offset in offsets)
-                    {
-                        string newColumnName = default;
-                        if (offset.StartsWith("-"))
-                            newColumnName = $"{col}_Lag{offset.Substring(1)}";
-                        else
-                            newColumnName = $"{col}_Lead{offset}";
-                        columns[newColumnName] = new SchemaShape.Column(newColumnName, VectorKind.Scalar, NumberDataViewType.Double, false);
-                    }
-                }
-                else if(feautizerAnnotationName.Contains("RollingWindow"))
-                {
-                    // Getting the annotation this way is a temporary fix since even though the values are known at this time,
-                    // SchemaShape does not expose them. To work around this the annotations are stored in the format
-                    // Annotation=Value. We will just parse this and get the value.
-                    var calcAnnoName = annotations.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-                    var minWinSizeAnnoName = annotations.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-                    var maxWinSizeAnnoName = annotations.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
-
-                    // Final name should be something like Col_Mean_MinWin1_MaxWin1
-                    var newColumnName = $"{col}_{calcAnnoName.Split('=')[1]}_MinWin{minWinSizeAnnoName.Split('=')[1]}_MaxWin{maxWinSizeAnnoName.Split('=')[1]}";
-                    columns[newColumnName] = new SchemaShape.Column(newColumnName, VectorKind.Scalar, NumberDataViewType.Double, false);
+                    columns[name] = new SchemaShape.Column(name, VectorKind.Scalar, NumberDataViewType.Double, false);
                 }
             }
 
@@ -243,10 +270,14 @@ namespace Microsoft.ML.Featurizers
         internal ForecastingPivotTransformer(IHostEnvironment host, ModelLoadContext ctx)
         {
             _host = host.Register(nameof(ForecastingPivotTransformer));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
 
             // *** Binary format ***
+            // Horizon column name
             // length of grain column array
             // all column names in grain column array
+
+            var horizonColumnName = ctx.Reader.ReadString();
 
             var pivotColumns = new string[ctx.Reader.ReadInt32()];
             for (int i = 0; i < pivotColumns.Length; i++)
@@ -254,7 +285,8 @@ namespace Microsoft.ML.Featurizers
 
             _options = new ForecastingPivotFeaturizerEstimator.Options
             {
-                ColumnsToPivot = pivotColumns
+                ColumnsToPivot = pivotColumns,
+                HorizonColumnName = horizonColumnName
             };
         }
 
@@ -272,44 +304,23 @@ namespace Microsoft.ML.Featurizers
             schemaBuilder.AddColumns(inputSchema.AsEnumerable());
 
             // Will always add a Horizon columns
-            schemaBuilder.AddColumn("Horizon", NumberDataViewType.UInt32);
+            schemaBuilder.AddColumn(_options.HorizonColumnName, NumberDataViewType.UInt32);
 
             foreach (var col in _options.ColumnsToPivot)
             {
                 var annotations = inputSchema.GetColumnOrNull(col).Value.Annotations;
 
+                // TODO: Fix how we get annotations when the ability is added to get annotations if they are known at this point.
                 // Getting the annotation this way is a temporary fix since even though the values are known at this time,
                 // SchemaShape does not expose them. To work around this the annotations are stored in the format
                 // Annotation=Value. We will just parse this and get the value.
-                var feautizerAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
+                var columnNamesAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-                if (feautizerAnnotationName.Contains("LagLead"))
+                var columnNames = columnNamesAnnotationName.Split('=')[1].Split(',');
+                foreach (var name in columnNames)
                 {
-                    var offsetsAnnoName = annotations.Schema.Where(x => x.Name.StartsWith("Offsets")).First().Name;
+                    schemaBuilder.AddColumn(name, NumberDataViewType.Double);
 
-                    var offsets = offsetsAnnoName.Split('=')[1].Split(',');
-                    foreach (var offset in offsets)
-                    {
-                        string newColumnName = default;
-                        if(offset.StartsWith("-"))
-                            newColumnName = $"{col}_Lag{offset.Substring(1)}";
-                        else
-                            newColumnName = $"{col}_Lead{offset}";
-                        schemaBuilder.AddColumn(newColumnName, NumberDataViewType.Double);
-                    }
-                }
-                else if (feautizerAnnotationName.Contains("RollingWindow"))
-                {
-                    // Getting the annotation this way is a temporary fix since even though the values are known at this time,
-                    // SchemaShape does not expose them. To work around this the annotations are stored in the format
-                    // Annotation=Value. We will just parse this and get the value.
-                    var calcAnnoName = annotations.Schema.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-                    var minWinSizeAnnoName = annotations.Schema.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-                    var maxWinSizeAnnoName = annotations.Schema.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
-
-                    // Final name should be something like Col_Mean_MinWin1_MaxWin1
-                    var newColumnName = $"{col}_{calcAnnoName.Split('=')[1]}_MinWin{minWinSizeAnnoName.Split('=')[1]}_MaxWin{maxWinSizeAnnoName.Split('=')[1]}";
-                    schemaBuilder.AddColumn(newColumnName, NumberDataViewType.Double);
                 }
             }
 
@@ -336,8 +347,11 @@ namespace Microsoft.ML.Featurizers
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
+            // Horizon column name
             // length of columns array
             // all column names in column array
+
+            ctx.Writer.Write(_options.HorizonColumnName);
 
             ctx.Writer.Write(_options.ColumnsToPivot.Length);
             foreach (var column in _options.ColumnsToPivot)
@@ -350,7 +364,7 @@ namespace Microsoft.ML.Featurizers
         {
             _host.CheckValue(input, nameof(input));
 
-            return new ForecastingPivotFeaturizerDataView(_host, input, _options.ColumnsToPivot, this);
+            return new ForecastingPivotFeaturizerDataView(_host, input, _options, this);
         }
     }
 
