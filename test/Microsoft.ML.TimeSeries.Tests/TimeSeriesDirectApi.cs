@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(1);
@@ -167,8 +167,15 @@ namespace Microsoft.ML.Tests
             // Get predictions
             var enumerator = env.Data.CreateEnumerable<Prediction>(output, true).GetEnumerator();
             Prediction row = null;
+
+            // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
+#if NETCOREAPP3_1
+            List<double> expectedValues = new List<double>() { 0, -3.31410551071167, 0.5, 5.12000000000001E-08, 0, 1.570083498954773, 5.2001145245395008E-07,
+            0.012414560443710681, 0, 1.2854313850402832, 0.2881081472302483, 0.020389485008225454, 0, -1.0950632095336914, 0.3666388047550645, 0.02695657272695535};
+#else
             List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
-                    0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
+            0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
+#endif
 
             int index = 0;
             while (enumerator.MoveNext() && index < expectedValues.Count)
@@ -181,7 +188,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
             const int changeHistorySize = 10;
@@ -257,7 +264,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         public void ChangePointDetectionWithSeasonalityPredictionEngine()
         {
             const int changeHistorySize = 10;
@@ -327,7 +334,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         public void SsaForecast()
         {
             var env = new MLContext(1);
@@ -366,9 +373,19 @@ namespace Microsoft.ML.Tests
             // Get predictions
             var enumerator = env.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
             ForecastPrediction row = null;
+
+            // [TEST_STABILITY]: MKL generates different percision float number on Dotnet Core 3.1 
+            // and cause the forecast result differs
+#if NETCOREAPP3_1
+            List<float> expectedForecast = new List<float>() { 0.191492021f, 2.53994060f, 5.26454258f, 7.37313938f };
+            List<float> minCnf = new List<float>() { -3.9741986f, -2.36872721f, 0.09407699f, 2.18899393f };
+            List<float> maxCnf = new List<float>() { 4.3571825f, 7.4486084f, 10.435008f, 12.5572853f };
+#else
             List<float> expectedForecast = new List<float>() { 0.191491723f, 2.53994083f, 5.26454258f, 7.37313938f };
             List<float> minCnf = new List<float>() { -3.9741993f, -2.36872721f, 0.09407653f, 2.18899345f };
             List<float> maxCnf = new List<float>() { 4.3571825f, 7.448609f, 10.435009f, 12.5572853f };
+#endif
+
             enumerator.MoveNext();
             row = enumerator.Current;
 
@@ -381,7 +398,7 @@ namespace Microsoft.ML.Tests
 
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         public void SsaForecastPredictionEngine()
         {
             const int changeHistorySize = 10;
@@ -430,8 +447,15 @@ namespace Microsoft.ML.Tests
             // Forecast and change the horizon to 5.
             engine.Predict(null, ref result, horizon: 5);
             // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
-            Assert.Equal(result.Forecast, new float[] { -1.02245092f, 0.08333081f, 2.60737085f, 5.397319f, 7.500832f, -5.188142f, -4.82533741f,
-                -2.563095f, 0.213172823f, 2.29317045f, 3.14324f, 4.991999f, 7.777837f, 10.5814648f, 12.7084932f });
+
+            // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
+#if NETCOREAPP3_1
+            Assert.Equal(new float[] { -1.02245092f, 0.08333033f, 2.6073704f, 5.397318f, 7.5008316f, -5.1881413f, -4.82533741f,
+                -2.563095f, 0.21317233f, 2.29317045f, 3.1432397f, 4.991998f, 7.777836f, 10.581464f, 12.708492f }, result.Forecast);
+#else
+            Assert.Equal(new float[] { -1.02245092f, 0.08333081f, 2.60737085f, 5.397319f, 7.500832f, -5.188142f, -4.82533741f,
+                -2.563095f, 0.213172823f, 2.29317045f, 3.14324f, 4.991999f, 7.777837f, 10.5814648f, 12.7084932f }, result.Forecast);
+#endif
 
             // Update the forecasting model.
             engine.Predict(new Data(2));
@@ -441,8 +465,15 @@ namespace Microsoft.ML.Tests
 
             engine.CheckPoint(ml, "model.zip");
             // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
-            Assert.Equal(result.Forecast, new float[] { 4.310587f, 6.39716768f, 7.73934f, 8.029469f, 0.144895911f,
-                1.48849952f, 2.568874f, 2.84532261f, 8.476278f, 11.3058357f, 12.9098063f, 13.2136145f });
+
+            // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
+#if NETCOREAPP3_1
+            Assert.Equal(new float[] { 4.310586f, 6.397167f, 7.73934f, 8.029469f, 0.14489543f,
+                1.48849952f, 2.5688744f, 2.845323f, 8.476276f, 11.305835f, 12.909805f, 13.2136145f }, result.Forecast);
+#else
+            Assert.Equal(new float[] { 4.310587f, 6.39716768f, 7.73934f, 8.029469f, 0.144895911f,
+                1.48849952f, 2.568874f, 2.84532261f, 8.476278f, 11.3058357f, 12.9098063f, 13.2136145f }, result.Forecast);
+#endif
 
             // Checkpoint the model.
             ITransformer modelCopy;
@@ -461,9 +492,17 @@ namespace Microsoft.ML.Tests
             forecastEngineCopy.Predict(null, ref resultCopy, horizon: 5);
             engine.Predict(null, ref result, horizon: 5);
             // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
-            Assert.Equal(result.Forecast, new float[] { 6.00658846f, 7.506871f, 7.96424866f, 7.17514229f,
+
+            // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
+#if NETCOREAPP3_1
+            Assert.Equal(new float[] { 6.006588f, 7.506871f, 7.964249f, 7.1751432f,
+                5.0265527f, 1.84089744f, 2.5982034f, 2.7937837f, 1.9909977f,
+                -0.1811084f, 10.172278f, 12.415539f, 13.1347151f, 12.359289f, 10.234214f}, result.Forecast);
+#else
+            Assert.Equal(new float[] { 6.00658846f, 7.506871f, 7.96424866f, 7.17514229f,
                 5.02655172f, 1.84089744f, 2.59820318f, 2.79378271f, 1.99099624f,
-                -0.181109816f, 10.1722794f, 12.41554f, 13.1347151f, 12.3592882f, 10.2342129f});
+            -0.181109816f, 10.1722794f, 12.41554f, 13.1347151f, 12.3592882f, 10.2342129f}, result.Forecast);
+#endif
 
             // The forecasted results should be the same because the state of the models
             // is the same.

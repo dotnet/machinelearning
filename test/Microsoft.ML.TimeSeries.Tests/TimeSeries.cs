@@ -73,7 +73,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         public void SavePipeSsaSpikeNoData()
         {
             string pathData = DeleteOutputPath("SavePipe", "SsaSpikeNoData.txt");
