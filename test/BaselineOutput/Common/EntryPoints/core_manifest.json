@@ -19086,6 +19086,66 @@
       ]
     },
     {
+      "Name": "Transforms.ForecastingPivot",
+      "Desc": "Pivots the input colums and drops any rows with N/A",
+      "FriendlyName": "ForecastingPivot",
+      "ShortName": "fpivot",
+      "Inputs": [
+        {
+          "Name": "ColumnsToPivot",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "List of columns to pivot",
+          "Aliases": [
+            "cols"
+          ],
+          "Required": true,
+          "SortOrder": 0.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "HorizonColumnName",
+          "Type": "String",
+          "Desc": "Name of the horizon column generated.",
+          "Aliases": [
+            "hor"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": "Horizon"
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.GlobalContrastNormalizer",
       "Desc": "Performs a global contrast normalization on input values: Y = (s * X - M) / D, where s is a scale, M is mean and D is either L2 norm or standard deviation.",
       "FriendlyName": "Global Contrast Normalization Transform",
