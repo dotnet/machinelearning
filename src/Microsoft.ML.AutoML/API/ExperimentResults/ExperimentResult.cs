@@ -36,13 +36,16 @@ namespace Microsoft.ML.AutoML
         {
             RunDetails = runDetails;
             BestRun = bestRun;
+            _disposed = false;
+            _disposedRunDetails = false;
         }
 
         #region IDisposable Support
         private bool _disposed;
+        private bool _disposedRunDetails;
 
         /// <summary>
-        /// Releases unmanaged Tensor objects in models stored in RunDetail instances
+        /// Releases unmanaged Tensor objects in models stored in RunDetail and BestRun instances
         /// </summary>
         /// <remarks>
         /// Invocation of Dispose() is necessary to clean up remaining C library Tensor objects and
@@ -52,12 +55,26 @@ namespace Microsoft.ML.AutoML
         {
             if (_disposed)
                 return;
-            foreach (var runDetail in RunDetails)
-            {
-                (runDetail.Model as IDisposable)?.Dispose();
-                runDetail.IsModelDisposed = true;
-            }
+            if (!_disposedRunDetails)
+                (RunDetails as IDisposable)?.Dispose();
+            (BestRun as IDisposable)?.Dispose();
             _disposed = true;
+            _disposedRunDetails = true;
+        }
+
+        /// <summary>
+        /// Releases unmanaged Tensor objects in models stored in RunDetail instances
+        /// </summary>
+        /// <remarks>
+        /// Invocation of Dispose() is necessary to clean up remaining C library Tensor objects and
+        /// avoid a memory leak
+        /// </remarks>
+        public void DisposeRunDetails()
+        {
+            if (_disposedRunDetails || _disposed)
+                return;
+            (RunDetails as IDisposable)?.Dispose();
+            _disposedRunDetails = true;
         }
         #endregion
     }
