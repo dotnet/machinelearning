@@ -67,6 +67,9 @@ if NOT [%AGENT_ID%] == [] (
   reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpFolder /t REG_SZ /d "%~dp0CrashDumps"
 )
 
+:: Temp - get total RAM size
+powershell -Command "(systeminfo | Select-String 'Total Physical Memory:').ToString().Split(':')[1].Trim()"
+
 :: install procdump.exe to take process dump when test crashes, hangs or fails
 echo Installing procdump.exe
 powershell -Command "Invoke-WebRequest https://download.sysinternals.com/files/Procdump.zip -UseBasicParsing -outfile procdump.zip | Out-Null"

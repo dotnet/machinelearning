@@ -24,6 +24,9 @@ if [ -e "$__BUILD_TOOLS_SEMAPHORE" ]; then
     return #return instead of exit because this script is inlined in other scripts which we don't want to exit
 fi
 
+# Temp - Get total RAM size
+cat /proc/meminfo
+
 if [ -e "$__TOOLRUNTIME_DIR" ]; then rm -rf -- "$__TOOLRUNTIME_DIR"; fi
 
 if [ -d "${DotNetBuildToolsDir:-}" ]; then

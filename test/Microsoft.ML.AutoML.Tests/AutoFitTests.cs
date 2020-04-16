@@ -81,9 +81,9 @@ namespace Microsoft.ML.AutoML.Test
         {
             Console.WriteLine(String.Format("AutoFitImageClassificationTrainTest Iteration: {0}", iterations));
             Process proc = Process.GetCurrentProcess();
-            Console.WriteLine(String.Format("Iteration {0} - Total memory usage in GBs (proc): {1}", iterations, proc.PrivateMemorySize64* (1024^3)));
+            Console.WriteLine(String.Format("Iteration {0} - Total memory usage in GBs (proc): {1}", iterations, proc.PrivateMemorySize64 / (1024.0 * 1024.0 * 1024.0)));
             proc.Dispose();
-            Console.WriteLine(String.Format("Iteration {0} - Total memory usage in GBs (GC): {1}", iterations, GC.GetTotalMemory(false) * (1024 ^ 3)));
+            Console.WriteLine(String.Format("Iteration {0} - Total memory usage in GBs (GC): {1}", iterations, GC.GetTotalMemory(false) / (1024.0 * 1024.0 * 1024.0)));
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
