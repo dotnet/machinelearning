@@ -33,6 +33,8 @@ namespace Microsoft.ML.Featurizers
 {
     public static class RollingWindowExtensionClass
     {
+        // TODO: review naming for public api before going into master.
+
         /// <summary>
         /// Creates a <see cref="RollingWindowEstimator"/> which computes rolling window calculations per grain. The currently supported window calculations are
         /// mean, min, and max. This also adds annotations to the output column to track the min/max window sizes, as well as what calculation was performed. The horizon
@@ -42,7 +44,7 @@ namespace Microsoft.ML.Featurizers
         /// <param name="grainColumns">The list of grain columns</param>
         /// <param name="outputColumn">Where to store the result of the calculation</param>
         /// <param name="windowCalculation">The window calculation to perform</param>
-        /// <param name="horizon">The horizon value</param>
+        /// <param name="horizon">The Horizon represents the maximum value in a range [1, N], where each element in that range is a delta applied to the start of the window.</param>
         /// <param name="maxWindowSize">The maximum number of items in the window</param>
         /// <param name="minWindowSize">The minimum number of items required. If there are less, double.NaN is returned.</param>
         /// <param name="inputColumn">The source column.</param>
@@ -50,9 +52,10 @@ namespace Microsoft.ML.Featurizers
         public static RollingWindowEstimator RollingWindow(this TransformsCatalog catalog, string[] grainColumns, string outputColumn, RollingWindowEstimator.RollingWindowCalculation windowCalculation,
             UInt32 horizon, UInt32 maxWindowSize, UInt32 minWindowSize = 1, string inputColumn = null)
         {
-            var options = new RollingWindowEstimator.Options {
+            var options = new RollingWindowEstimator.Options
+            {
                 GrainColumns = grainColumns,
-                Columns = new[] { new RollingWindowEstimator.Column() { Name = outputColumn, Source = inputColumn ?? outputColumn } },
+                Column = new[] { new RollingWindowEstimator.Column() { Name = outputColumn, Source = inputColumn ?? outputColumn } },
                 Horizon = horizon,
                 MaxWindowSize = maxWindowSize,
                 MinWindowSize = minWindowSize,
@@ -71,16 +74,17 @@ namespace Microsoft.ML.Featurizers
         /// <param name="grainColumns">The list of grain columns</param>
         /// <param name="columns">List of columns mappings</param>
         /// <param name="windowCalculation">The window calculation to perform</param>
-        /// <param name="horizon">The horizon value</param>
+        /// <param name="horizon">The Horizon represents the maximum value in a range [1, N], where each element in that range is a delta applied to the start of the window.</param>
         /// <param name="maxWindowSize">The maximum number of items in the window</param>
         /// <param name="minWindowSize">The minimum number of items required. If there are less, double.NaN is returned.</param>
         /// <returns></returns>
         public static RollingWindowEstimator RollingWindow(this TransformsCatalog catalog, string[] grainColumns, InputOutputColumnPair[] columns, RollingWindowEstimator.RollingWindowCalculation windowCalculation,
             UInt32 horizon, UInt32 maxWindowSize, UInt32 minWindowSize = 1)
         {
-            var options = new RollingWindowEstimator.Options {
+            var options = new RollingWindowEstimator.Options
+            {
                 GrainColumns = grainColumns,
-                Columns = columns.Select(x => new RollingWindowEstimator.Column { Name = x.OutputColumnName, Source = x.InputColumnName ?? x.OutputColumnName }).ToArray(),
+                Column = columns.Select(x => new RollingWindowEstimator.Column { Name = x.OutputColumnName, Source = x.InputColumnName ?? x.OutputColumnName }).ToArray(),
                 Horizon = horizon,
                 MaxWindowSize = maxWindowSize,
                 MinWindowSize = minWindowSize,
@@ -107,7 +111,32 @@ namespace Microsoft.ML.Featurizers
     /// | Output column data type | vector of double. Size of vector is equal to the horizon |
     ///
     /// The <xref:Microsoft.ML.Transforms.RollingWindowEstimator> is a trivial estimator and doesn't need training.
+    /// A simple example would be horizon = 1, maxWindowSize = 2, and we want to take the minimum.
     ///
+    ///      +-----------+-------+-------------------+
+    ///      | grain     | target| target_minimum    |
+    ///      +===========+=======+===================+
+    ///      | A         | 10    | [[NAN]]           |
+    ///      +-----------+-------+-------------------+
+    ///      | A         | 4     | [[10]]            |
+    ///      +-----------+-------+-------------------+
+    ///      | A         | 6     | [[4]]             |
+    ///      +-----------+-------+-------------------+
+    ///      | A         | 11    | [[4]]             |
+    ///      +-----------+-------+-------------------+
+    ///
+    ///      A more complex example would be, assuming we have horizon = 2, maxWindowSize = 2, minWindowSize = 2, and we want the maximum value
+    ///      +-----------+-------+-------------------+
+    ///      | grain     | target| target_max        |
+    ///      +===========+=======+===================+
+    ///      | A         | 10    | [[NAN, NAN]]      |
+    ///      +-----------+-------+-------------------+
+    ///      | A         | 4     | [[NAN, NAN]]      |
+    ///      +-----------+-------+-------------------+
+    ///      | A         | 6     | [[NAN, 10]]       |
+    ///      +-----------+-------+-------------------+
+    ///      | A         | 11    | [[10, 6]]         |
+    ///      +-----------+-------+-------------------+
     ///
     /// ]]>
     /// </format>
@@ -140,15 +169,15 @@ namespace Microsoft.ML.Featurizers
             }
         }
 
-        internal sealed class Options: TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument((ArgumentType.MultipleUnique | ArgumentType.Required), HelpText = "List of grain columns",
-                Name = "GrainColumns", ShortName = "grains", SortOrder = 0)]
+                Name = "GrainColumn", ShortName = "grains", SortOrder = 0)]
             public string[] GrainColumns;
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition (optional form: name:src)",
-                Name = "Columns", ShortName = "col", SortOrder = 1)]
-            public Column[] Columns;
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "Maximum horizon value",
                 Name = "Horizon", ShortName = "hor", SortOrder = 2)]
@@ -177,7 +206,8 @@ namespace Microsoft.ML.Featurizers
         /// Min is the minimum value in the window.
         /// Max is the maximum value in the window.
         /// </summary>
-        public enum RollingWindowCalculation : byte {
+        public enum RollingWindowCalculation : byte
+        {
             /// <summary>
             /// Mean is the arithmatic mean of the window.
             /// </summary>
@@ -199,15 +229,17 @@ namespace Microsoft.ML.Featurizers
         internal RollingWindowEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
+
             _host = env.Register(nameof(RollingWindowEstimator));
             _host.CheckValue(options.GrainColumns, nameof(options.GrainColumns), "Grain columns should not be null.");
             _host.CheckNonEmpty(options.GrainColumns, nameof(options.GrainColumns), "Need at least one grain column.");
-            _host.CheckValue(options.Columns, nameof(options.Columns), "Columns should not be null.");
-            _host.CheckNonEmpty(options.Columns, nameof(options.Columns), "Need at least one column pair.");
+            _host.CheckValue(options.Column, nameof(options.Column), "Columns should not be null.");
+            _host.CheckNonEmpty(options.Column, nameof(options.Column), "Need at least one column pair.");
             _host.Check(options.Horizon > 0, "Can't have a horizon of 0.");
             _host.Check(options.MinWindowSize > 0, "Min window size must be greater then 0.");
             _host.Check(options.MaxWindowSize > 0, "Max window size must be greater then 0.");
-            _host.Check(options.MaxWindowSize >= options.MinWindowSize,"Max window size must be greater or equal to min window size.");
+            _host.Check(options.MaxWindowSize >= options.MinWindowSize, "Max window size must be greater or equal to min window size.");
             _host.Check(options.Horizon <= int.MaxValue, "Horizon must be less then or equal to int.max");
 
             _options = options;
@@ -225,7 +257,12 @@ namespace Microsoft.ML.Featurizers
 
             var columns = inputSchema.ToDictionary(x => x.Name);
 
-            foreach (var column in _options.Columns)
+            // These are used in generating the column name, but don't need to be recreated in the loop.
+            var calculationName = Enum.GetName(typeof(RollingWindowEstimator.RollingWindowCalculation), _options.WindowCalculation);
+            var minWinName = $"MinWin{_options.MinWindowSize}";
+            var maxWinName = $"MaxWin{_options.MaxWindowSize}";
+
+            foreach (var column in _options.Column)
             {
 
                 var inputColumn = columns[column.Source];
@@ -234,20 +271,14 @@ namespace Microsoft.ML.Featurizers
                     throw new InvalidOperationException($"Type {inputColumn.ItemType.RawType} for column {column.Source} not a supported type.");
 
                 // Create annotations
-                // We create 4 annotations, these are used by the PivotFeaturizer.
-                // We create annotations for the minWindowSize, maxWindowSize, this featurizerName, and which calculation was performed.
                 // Since we can't get the value of the annotation from the schema shape, the current workaround is naming annotation with the value as well.
                 // This workaround will need to be removed when the limitation is resolved.
+                var sourceColName = column.Name;
                 var annotations = new DataViewSchema.Annotations.Builder();
-                ValueGetter<UInt32> minWindowSizeValueGetter = (ref UInt32 dst) => dst = _options.MinWindowSize;
-                ValueGetter<UInt32> maxWindowSizeValueGetter = (ref UInt32 dst) => dst = _options.MaxWindowSize;
-                ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "RollingWindow".AsMemory();
-                ValueGetter<ReadOnlyMemory<char>> calculationValueGetter = (ref ReadOnlyMemory<char> dst) => dst = Enum.GetName(typeof(RollingWindowCalculation), _options.WindowCalculation).AsMemory();
 
-                annotations.Add<UInt32>($"MinWindowSize={_options.MinWindowSize}", NumberDataViewType.UInt32, minWindowSizeValueGetter);
-                annotations.Add<UInt32>($"MaxWindowSize={_options.MinWindowSize}", NumberDataViewType.UInt32, maxWindowSizeValueGetter);
-                annotations.Add<ReadOnlyMemory<char>>($"FeaturizerName=RollingWindow", TextDataViewType.Instance, nameValueGetter);
-                annotations.Add<ReadOnlyMemory<char>>($"Calculation={Enum.GetName(typeof(RollingWindowCalculation), _options.WindowCalculation)}", TextDataViewType.Instance, calculationValueGetter);
+                ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = $"{sourceColName}_{calculationName}_{minWinName}_{maxWinName}".AsMemory();
+
+                annotations.Add<ReadOnlyMemory<char>>($"ColumnNames={sourceColName}_{calculationName}_{minWinName}_{maxWinName}", TextDataViewType.Instance, nameValueGetter);
 
                 columns[column.Name] = new SchemaShape.Column(column.Name, VectorKind.Vector,
                     NumberDataViewType.Double, false, SchemaShape.Create(annotations.ToAnnotations().Schema));
@@ -277,8 +308,8 @@ namespace Microsoft.ML.Featurizers
             var schema = input.Schema;
             _options = options;
 
-            _columns = options.Columns.Select(x => TypedColumn.CreateTypedColumn(x.Name, x.Source , schema[x.Source].Type.RawType.ToString(), _options)).ToArray();
-            foreach(var column in _columns)
+            _columns = options.Column.Select(x => TypedColumn.CreateTypedColumn(x.Name, x.Source, schema[x.Source].Type.RawType.ToString(), _options)).ToArray();
+            foreach (var column in _columns)
             {
                 column.CreateTransformerFromEstimator(input);
             }
@@ -289,6 +320,8 @@ namespace Microsoft.ML.Featurizers
             base(host.Register(nameof(RollingWindowTransformer)))
         {
             Host.CheckValue(ctx, nameof(ctx));
+            Host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
+
             ctx.CheckAtModel(GetVersionInfo());
 
             // *** Binary format ***
@@ -307,7 +340,7 @@ namespace Microsoft.ML.Featurizers
             //      byte array from c++
 
             var grainColumns = new string[ctx.Reader.ReadInt32()];
-            for(int i = 0; i < grainColumns.Length; i++)
+            for (int i = 0; i < grainColumns.Length; i++)
             {
                 grainColumns[i] = ctx.Reader.ReadString();
             }
@@ -323,7 +356,7 @@ namespace Microsoft.ML.Featurizers
             _options = new RollingWindowEstimator.Options()
             {
                 GrainColumns = grainColumns,
-                Columns = new RollingWindowEstimator.Column[columnCount],
+                Column = new RollingWindowEstimator.Column[columnCount],
                 Horizon = horizon,
                 MaxWindowSize = maxWindowSize,
                 MinWindowSize = minWindowSize,
@@ -334,7 +367,7 @@ namespace Microsoft.ML.Featurizers
             {
                 var colName = ctx.Reader.ReadString();
                 var sourceName = ctx.Reader.ReadString();
-                _options.Columns[i] = new RollingWindowEstimator.Column()
+                _options.Column[i] = new RollingWindowEstimator.Column()
                 {
                     Name = colName,
                     Source = sourceName
@@ -414,7 +447,7 @@ namespace Microsoft.ML.Featurizers
 
         public void Dispose()
         {
-            foreach(var column in _columns)
+            foreach (var column in _columns)
             {
                 column.Dispose();
             }
@@ -449,7 +482,7 @@ namespace Microsoft.ML.Featurizers
         #region ColumnInfo
 
         #region BaseClass
-
+        // TODO: The majority of this base class can probably be moved into the common.cs file. Look more into this before merging into master.
         internal abstract class TypedColumn : IDisposable
         {
             internal readonly string Source;
@@ -712,6 +745,7 @@ namespace Microsoft.ML.Featurizers
 
                 using var handler = new TransformedVectorDataSafeHandle(new IntPtr(output), outputCols, outputRows, DestroyTransformedDataNative);
 
+                // Not looping through the outputRows because we know for now there is only 1 row. If that changes will need to update the code here.
                 var outputArray = new double[outputCols.ToInt32()];
 
                 for (int i = 0; i < outputCols.ToInt32(); i++)
@@ -827,7 +861,7 @@ namespace Microsoft.ML.Featurizers
 
                 var outputArray = new double[outputCols.ToInt32()];
 
-                for(int i = 0; i < outputCols.ToInt32(); i++)
+                for (int i = 0; i < outputCols.ToInt32(); i++)
                 {
                     outputArray[i] = *output++;
                 }
@@ -920,22 +954,23 @@ namespace Microsoft.ML.Featurizers
                 // We create annotations for the minWindowSize, maxWindowSize, this featurizerName, and which calculation was performed.
                 // Since we can't get the value of the annotation from the schema shape, the current workaround is naming annotation with the value as well.
                 // This workaround will need to be removed when the limitation is resolved.
-                var annotations = new DataViewSchema.Annotations.Builder();
-                ValueGetter<UInt32> minWindowSizeValueGetter = (ref UInt32 dst) => dst = _parent._options.MinWindowSize;
-                ValueGetter<UInt32> maxWindowSizeValueGetter = (ref UInt32 dst) => dst = _parent._options.MaxWindowSize;
-                ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = "RollingWindow".AsMemory();
-                ValueGetter<ReadOnlyMemory<char>> calculationValueGetter = (ref ReadOnlyMemory<char> dst) => dst = Enum.GetName(typeof(RollingWindowEstimator.RollingWindowCalculation), _parent._options.WindowCalculation).AsMemory();
+                var outputColumns = new DataViewSchema.DetachedColumn[_parent._options.Column.Length];
 
-                annotations.Add<UInt32>($"MinWindowSize={_parent._options.MinWindowSize}", NumberDataViewType.UInt32, minWindowSizeValueGetter);
-                annotations.Add<UInt32>($"MaxWindowSize={_parent._options.MinWindowSize}", NumberDataViewType.UInt32, maxWindowSizeValueGetter);
-                annotations.Add<ReadOnlyMemory<char>>($"FeaturizerName=RollingWindow", TextDataViewType.Instance, nameValueGetter);
-                annotations.Add<ReadOnlyMemory<char>>($"Calculation={Enum.GetName(typeof(RollingWindowEstimator.RollingWindowCalculation), _parent._options.WindowCalculation)}", TextDataViewType.Instance, calculationValueGetter);
+                // These are used in generating the column name, but don't need to be recreated in the loop.
+                var calculationName = Enum.GetName(typeof(RollingWindowEstimator.RollingWindowCalculation), _parent._options.WindowCalculation);
+                var minWinName = $"MinWin{_parent._options.MinWindowSize}";
+                var maxWinName = $"MaxWin{_parent._options.MaxWindowSize}";
 
-                var outputColumns = new DataViewSchema.DetachedColumn[_parent._options.Columns.Length];
-
-                for (int i = 0; i < _parent._options.Columns.Length; i++)
+                for (int i = 0; i < _parent._options.Column.Length; i++)
                 {
-                    outputColumns[i] = new DataViewSchema.DetachedColumn(_parent._options.Columns[i].Name, new VectorDataViewType(NumberDataViewType.Double, 1, (int)_parent._options.Horizon), annotations.ToAnnotations());
+                    var sourceColName = _parent._options.Column[i].Name;
+                    var annotations = new DataViewSchema.Annotations.Builder();
+
+                    ValueGetter<ReadOnlyMemory<char>> nameValueGetter = (ref ReadOnlyMemory<char> dst) => dst = $"{sourceColName}_{calculationName}_{minWinName}_{maxWinName}".AsMemory();
+
+                    annotations.Add<ReadOnlyMemory<char>>($"ColumnNames={sourceColName}_{calculationName}_{minWinName}_{maxWinName}", TextDataViewType.Instance, nameValueGetter);
+
+                    outputColumns[i] = new DataViewSchema.DetachedColumn(_parent._options.Column[i].Name, new VectorDataViewType(NumberDataViewType.Double, 1, (int)_parent._options.Horizon), annotations.ToAnnotations());
                 }
 
                 return outputColumns;
@@ -995,7 +1030,7 @@ namespace Microsoft.ML.Featurizers
                 var active = new bool[InputSchema.Count];
                 for (int i = 0; i < InputSchema.Count; i++)
                 {
-                    if (_parent._options.GrainColumns.Any(x => x == InputSchema[i].Name) || _parent._options.Columns.Any(x => x.Source == InputSchema[i].Name))
+                    if (_parent._options.GrainColumns.Any(x => x == InputSchema[i].Name) || _parent._options.Column.Any(x => x.Source == InputSchema[i].Name))
                     {
                         active[i] = true;
                     }

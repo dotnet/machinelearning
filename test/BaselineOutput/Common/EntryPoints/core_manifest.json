@@ -22619,7 +22619,7 @@
       "ShortName": "RollingWindow",
       "Inputs": [
         {
-          "Name": "GrainColumns",
+          "Name": "GrainColumn",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -22633,7 +22633,7 @@
           "IsNullable": false
         },
         {
-          "Name": "Columns",
+          "Name": "Column",
           "Type": {
             "Kind": "Array",
             "ItemType": {

@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void TestInvalidType()
         {
             MLContext mlContext = new MLContext(1);
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleSchemaTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -62,31 +62,19 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(columnType.ItemType.RawType == typeof(double));
 
             // Verify annotations are correct.
-            ReadOnlyMemory<char> featurizerName = default;
-            ReadOnlyMemory<char> calculation = default;
-            UInt32 minWindowSize = default;
-            UInt32 maxWindowSize = default;
+            ReadOnlyMemory<char> columnName = default;
 
             var annotations = addedColumn.Annotations;
-            var feautizerAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
-            var calculationAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-            var minWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-            var maxWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
+            var columnAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-            annotations.GetValue<ReadOnlyMemory<char>>(feautizerAnnotationName, ref featurizerName);
-            annotations.GetValue<ReadOnlyMemory<char>>(calculationAnnotationName, ref calculation);
-            annotations.GetValue<UInt32>(minWindowSizeAnnotationName, ref minWindowSize);
-            annotations.GetValue<UInt32>(maxWindowSizeAnnotationName, ref maxWindowSize);
+            annotations.GetValue<ReadOnlyMemory<char>>(columnAnnotationName, ref columnName);
 
-            Assert.Equal("RollingWindow", featurizerName.ToString());
-            Assert.Equal("Mean", calculation.ToString());
-            Assert.Equal((UInt32)1, minWindowSize);
-            Assert.Equal((UInt32)1, maxWindowSize);
+            Assert.Equal("ColA_Mean_MinWin1_MaxWin1", columnName.ToString());
 
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ComplexSchemaTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -116,31 +104,19 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(columnType.ItemType.RawType == typeof(double));
 
             // Verify annotations are correct.
-            ReadOnlyMemory<char> featurizerName = default;
-            ReadOnlyMemory<char> calculation = default;
-            UInt32 minWindowSize = default;
-            UInt32 maxWindowSize = default;
+            ReadOnlyMemory<char> columnName = default;
 
             var annotations = addedColumn.Annotations;
-            var feautizerAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
-            var calculationAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-            var minWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-            var maxWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
+            var columnAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-            annotations.GetValue<ReadOnlyMemory<char>>(feautizerAnnotationName, ref featurizerName);
-            annotations.GetValue<ReadOnlyMemory<char>>(calculationAnnotationName, ref calculation);
-            annotations.GetValue<UInt32>(minWindowSizeAnnotationName, ref minWindowSize);
-            annotations.GetValue<UInt32>(maxWindowSizeAnnotationName, ref maxWindowSize);
+            annotations.GetValue<ReadOnlyMemory<char>>(columnAnnotationName, ref columnName);
 
-            Assert.Equal("RollingWindow", featurizerName.ToString());
-            Assert.Equal("Mean", calculation.ToString());
-            Assert.Equal((UInt32)2, minWindowSize);
-            Assert.Equal((UInt32)3, maxWindowSize);
+            Assert.Equal("NewInputColumn_Mean_MinWin2_MaxWin3", columnName.ToString());
 
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void ConstructorParameterTest() {
             MLContext mlContext = new MLContext(1);
             var dataList = new[] {
@@ -159,7 +135,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleMinTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -196,32 +172,20 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             // Verify annotations are correct.
-            ReadOnlyMemory<char> featurizerName = default;
-            ReadOnlyMemory<char> calculation = default;
-            UInt32 minWindowSize = default;
-            UInt32 maxWindowSize = default;
+            ReadOnlyMemory<char> columnName = default;
 
             var annotations = addedColumn.Annotations;
-            var feautizerAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
-            var calculationAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-            var minWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-            var maxWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
+            var columnAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-            annotations.GetValue<ReadOnlyMemory<char>>(feautizerAnnotationName, ref featurizerName);
-            annotations.GetValue<ReadOnlyMemory<char>>(calculationAnnotationName, ref calculation);
-            annotations.GetValue<UInt32>(minWindowSizeAnnotationName, ref minWindowSize);
-            annotations.GetValue<UInt32>(maxWindowSizeAnnotationName, ref maxWindowSize);
+            annotations.GetValue<ReadOnlyMemory<char>>(columnAnnotationName, ref columnName);
 
-            Assert.Equal("RollingWindow", featurizerName.ToString());
-            Assert.Equal("Min", calculation.ToString());
-            Assert.Equal((UInt32)1, minWindowSize);
-            Assert.Equal((UInt32)1, maxWindowSize);
+            Assert.Equal("ColA_Min_MinWin1_MaxWin1", columnName.ToString());
 
             TestEstimatorCore(pipeline, data);
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleMaxTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -258,32 +222,20 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             // Verify annotations are correct.
-            ReadOnlyMemory<char> featurizerName = default;
-            ReadOnlyMemory<char> calculation = default;
-            UInt32 minWindowSize = default;
-            UInt32 maxWindowSize = default;
+            ReadOnlyMemory<char> columnName = default;
 
             var annotations = addedColumn.Annotations;
-            var feautizerAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
-            var calculationAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-            var minWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-            var maxWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
+            var columnAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-            annotations.GetValue<ReadOnlyMemory<char>>(feautizerAnnotationName, ref featurizerName);
-            annotations.GetValue<ReadOnlyMemory<char>>(calculationAnnotationName, ref calculation);
-            annotations.GetValue<UInt32>(minWindowSizeAnnotationName, ref minWindowSize);
-            annotations.GetValue<UInt32>(maxWindowSizeAnnotationName, ref maxWindowSize);
+            annotations.GetValue<ReadOnlyMemory<char>>(columnAnnotationName, ref columnName);
 
-            Assert.Equal("RollingWindow", featurizerName.ToString());
-            Assert.Equal("Max", calculation.ToString());
-            Assert.Equal((UInt32)1, minWindowSize);
-            Assert.Equal((UInt32)1, maxWindowSize);
+            Assert.Equal("ColA_Max_MinWin1_MaxWin1", columnName.ToString());
 
             TestEstimatorCore(pipeline, data);
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void SimpleMeanTest()
         {
             MLContext mlContext = new MLContext(1);
@@ -320,32 +272,20 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             // Verify annotations are correct.
-            ReadOnlyMemory<char> featurizerName = default;
-            ReadOnlyMemory<char> calculation = default;
-            UInt32 minWindowSize = default;
-            UInt32 maxWindowSize = default;
+            ReadOnlyMemory<char> columnName = default;
 
             var annotations = addedColumn.Annotations;
-            var feautizerAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
-            var calculationAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-            var minWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-            var maxWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
+            var columnAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-            annotations.GetValue<ReadOnlyMemory<char>>(feautizerAnnotationName, ref featurizerName);
-            annotations.GetValue<ReadOnlyMemory<char>>(calculationAnnotationName, ref calculation);
-            annotations.GetValue<UInt32>(minWindowSizeAnnotationName, ref minWindowSize);
-            annotations.GetValue<UInt32>(maxWindowSizeAnnotationName, ref maxWindowSize);
+            annotations.GetValue<ReadOnlyMemory<char>>(columnAnnotationName, ref columnName);
 
-            Assert.Equal("RollingWindow", featurizerName.ToString());
-            Assert.Equal("Mean", calculation.ToString());
-            Assert.Equal((UInt32)1, minWindowSize);
-            Assert.Equal((UInt32)1, maxWindowSize);
+            Assert.Equal("ColA_Mean_MinWin1_MaxWin1", columnName.ToString());
 
             TestEstimatorCore(pipeline, data);
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void MultipleGrains()
         {
             MLContext mlContext = new MLContext(1);
@@ -382,26 +322,14 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             // Verify annotations are correct.
-            ReadOnlyMemory<char> featurizerName = default;
-            ReadOnlyMemory<char> calculation = default;
-            UInt32 minWindowSize = default;
-            UInt32 maxWindowSize = default;
+            ReadOnlyMemory<char> columnName = default;
 
             var annotations = addedColumn.Annotations;
-            var feautizerAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("FeaturizerName")).First().Name;
-            var calculationAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("Calculation")).First().Name;
-            var minWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MinWindowSize")).First().Name;
-            var maxWindowSizeAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("MaxWindowSize")).First().Name;
+            var columnAnnotationName = annotations.Schema.Where(x => x.Name.StartsWith("ColumnNames")).First().Name;
 
-            annotations.GetValue<ReadOnlyMemory<char>>(feautizerAnnotationName, ref featurizerName);
-            annotations.GetValue<ReadOnlyMemory<char>>(calculationAnnotationName, ref calculation);
-            annotations.GetValue<UInt32>(minWindowSizeAnnotationName, ref minWindowSize);
-            annotations.GetValue<UInt32>(maxWindowSizeAnnotationName, ref maxWindowSize);
+            annotations.GetValue<ReadOnlyMemory<char>>(columnAnnotationName, ref columnName);
 
-            Assert.Equal("RollingWindow", featurizerName.ToString());
-            Assert.Equal("Mean", calculation.ToString());
-            Assert.Equal((UInt32)1, minWindowSize);
-            Assert.Equal((UInt32)1, maxWindowSize);
+            Assert.Equal("ColA_Mean_MinWin1_MaxWin1", columnName.ToString());
 
             TestEstimatorCore(pipeline, data);
             Done();
