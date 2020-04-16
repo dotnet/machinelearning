@@ -39,6 +39,8 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
+    innerLoop: false
+    runSpecific: true
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -47,6 +49,8 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted macOS
+    innerLoop: false
+    runSpecific: true
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -67,6 +71,8 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
       name: Hosted VS2017
+    innerLoop: false
+    runSpecific: true
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -76,6 +82,8 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
+    innerLoop: false
+    runSpecific: true
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -96,13 +104,5 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name: Hosted VS2017
-
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x86_NetCoreApp21
-    architecture: x86
-    buildScript: build.cmd
-    innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
-    pool:
-      name: Hosted VS2017
+    innerLoop: false
+    runSpecific: true

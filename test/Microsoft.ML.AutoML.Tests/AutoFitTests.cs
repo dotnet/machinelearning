@@ -12,6 +12,7 @@ using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -55,9 +56,11 @@ namespace Microsoft.ML.AutoML.Test
             result.Dispose();
         }
 
-        [TensorFlowFact]
-        public void AutoFitImageClassificationTrainTest()
+        [Theory]
+        [TestCategory("RunSpecificTest"), IterationData(100)]
+        public void AutoFitImageClassificationTrainTest(int iterations)
         {
+            Console.WriteLine(String.Format("AutoFitImageClassificationTrainTest Iteration: {0}", iterations));
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
