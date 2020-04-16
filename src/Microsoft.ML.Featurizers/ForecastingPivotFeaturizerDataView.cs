@@ -5,19 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Featurizers;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.Win32.SafeHandles;
 using static Microsoft.ML.Featurizers.CommonExtensions;
 
 namespace Microsoft.ML.Transforms
