@@ -35,7 +35,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// You can use the trained model to obtain predictions on input data.
         /// </remarks>
-        public ITransformer Model { get { return _modelContainer?.GetModel(IsModelDisposed); } }
+        public ITransformer Model { get { return _modelContainer?.GetModel(); } }
 
         /// <summary>
         /// Exception encountered during the run. This property is <see langword="null"/> if
@@ -49,11 +49,6 @@ namespace Microsoft.ML.AutoML
 
         private readonly ModelContainer _modelContainer;
 
-        /// <summary>
-        /// Flag to show whether or not Model has been disposed using IDisposable's .Dispose()
-        /// </summary>
-        public bool IsModelDisposed;
-
         internal RunDetail(string trainerName,
             IEstimator<ITransformer> estimator,
             Pipeline pipeline,
@@ -64,7 +59,6 @@ namespace Microsoft.ML.AutoML
             _modelContainer = modelContainer;
             ValidationMetrics = metrics;
             Exception = exception;
-            IsModelDisposed = false;
         }
     }
 
