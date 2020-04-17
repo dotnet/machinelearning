@@ -16,6 +16,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             string outputColumnName,
             string inputColumnName = null,
             double threshold = 0.3,
+            int batchSize = 1024,
             SrCnnDetectMode srCnnDetectMode = SrCnnDetectMode.AnomalyOnly,
             double sensitivity = 99.0)
         {
@@ -28,6 +29,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Source = _inputColumnName,
                 Target = _outputColumnName,
                 Threshold = threshold,
+                BatchSize = batchSize,
                 SrCnnDetectMode = srCnnDetectMode,
                 Sensitivity = sensitivity
             };

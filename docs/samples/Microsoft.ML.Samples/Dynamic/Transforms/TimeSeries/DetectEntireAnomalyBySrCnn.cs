@@ -40,7 +40,7 @@ namespace Samples.Dynamic
             string inputColumnName = nameof(TimeSeriesData.Point);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, SrCnnDetectMode.AnomalyAndMargin, 90.0)
+            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, 512, SrCnnDetectMode.AnomalyAndMargin, 90.0)
                 .Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of

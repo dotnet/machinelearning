@@ -8,7 +8,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     public enum SrCnnDetectMode
     {
         AnomalyOnly = 0,
-        AnomalyAndMargin = 1
+        AnomalyAndMargin = 1,
+        AnomalyAndExpectedValue = 2
     }
 
     public sealed class SrCnnTsPoint

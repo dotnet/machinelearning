@@ -26,15 +26,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public string Target;
 
             [Argument(ArgumentType.Required, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
-                ShortName = "thre", SortOrder = 106)]
+                ShortName = "thre", SortOrder = 101)]
             public double Threshold = 0.3;
 
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The batch size of computing.",
+                ShortName = "batch", SortOrder = 202)]
+            public int BatchSize = 1024;
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "The detection mode, affects output vector length.",
-                ShortName = "mode", SortOrder = 107)]
+                ShortName = "mode", SortOrder = 303)]
             public SrCnnDetectMode SrCnnDetectMode = SrCnnDetectMode.AnomalyOnly;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The sensitivity of boundary.",
-                ShortName = "sens", SortOrder = 108)]
+                ShortName = "sens", SortOrder = 404)]
             public double Sensitivity = 99;
         }
 
@@ -43,6 +47,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal readonly string OutputColumnName;
 
         internal double Threshold { get; }
+
+        internal int BatchSize { get; }
 
         internal SrCnnDetectMode SrCnnDetectMode { get; }
 
@@ -72,6 +78,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(Options.Threshold), "Must be in [0,1]");
             Threshold = options.Threshold;
 
+            Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize > 12, nameof(Options.BatchSize), "BatchSize must be -1 or larger than 12");
+            BatchSize = options.BatchSize;
+
             SrCnnDetectMode = options.SrCnnDetectMode;
             if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyOnly))
             {
@@ -83,6 +92,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(Options.Sensitivity), "Must be in [0,100]");
                 Sensitivity = options.Sensitivity;
                 OutputLength = 7;
+            }
+            else if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndExpectedValue))
+            {
+                Sensitivity = options.Sensitivity;
+                OutputLength = 4;
             }
 
             AnomalyModel = new SrCnnEntireModeler(Host, this, input);
@@ -161,6 +175,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                     _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Is Anomaly".AsMemory(), "Anomaly Score".AsMemory(), "Mag".AsMemory(),
                         "Expected Value".AsMemory(), "Boundary Unit".AsMemory(), "Upper Boundary".AsMemory(), "Lower Boundary".AsMemory() });
+                }
+                else if (_parent.OutputLength == 4)
+                {
+                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Is Anomaly".AsMemory(), "Anomaly Score".AsMemory(), "Mag".AsMemory(),
+                        "Expected Value".AsMemory() });
                 }
             }
 
@@ -295,7 +314,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
                 if (trainingTimestamp.Count >= _minTrainingPoint)
                 {
-                    _anomalyDict = trainingTimestamp.Zip(TrainCore(trainingData), (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+                    var batchSize = (_parent.BatchSize == -1) ? trainingData.Count : _parent.BatchSize;
+                    List<Double[]> batchResult = new List<double[]>();
+                    for (int i = 0; i * batchSize < trainingData.Count; ++i)
+                    {
+                        batchResult.AddRange(TrainCore(trainingData.GetRange(i * batchSize, Math.Min(batchSize, trainingData.Count - i * batchSize))));
+                    }
+
+                    _anomalyDict = trainingTimestamp.Zip(batchResult, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
                 }
             }
 
@@ -312,6 +338,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 if (_parent.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndMargin)
                 {
                     GetMargin(values, results);
+                }
+                else if (_parent.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndExpectedValue)
+                {
+                    GetExpectedValue(values, results);
                 }
                 return results;
             }
@@ -440,6 +470,17 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     safeDivisor = _eps;
                 }
                 return (Math.Abs(mag - avgMag) / safeDivisor);
+            }
+
+            private void GetExpectedValue(List<Double> values, List<Double[]> results)
+            {
+                //Step 8: Calculate Expected Value
+                var exps = CalculateExpectedValueByFft(GetDeanomalyData(values, GetAnomalyIndex(results.Select(x => x[1]).ToList())));
+
+                for (int i = 0; i < results.Count; ++i)
+                {
+                    results[i][3] = exps[i];
+                }
             }
 
             private void GetMargin(List<Double> values, List<Double[]> results)

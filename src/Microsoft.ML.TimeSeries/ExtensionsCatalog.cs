@@ -189,7 +189,7 @@ namespace Microsoft.ML
                 confidenceUpperBoundColumn, confidenceLevel, variableHorizon);
 
         public static SrCnnEntireAnomalyEstimator DetectEntireAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-            double threshold = 0.3, SrCnnDetectMode srCnnDetectMode = SrCnnDetectMode.AnomalyOnly, double sensitivity = 99.0)
-            => new SrCnnEntireAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, threshold, srCnnDetectMode, sensitivity);
+            double threshold = 0.3, int batchSize = 1024, SrCnnDetectMode srCnnDetectMode = SrCnnDetectMode.AnomalyOnly, double sensitivity = 99.0)
+            => new SrCnnEntireAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, threshold, batchSize, srCnnDetectMode, sensitivity);
     }
 }
