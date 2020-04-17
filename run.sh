@@ -7,6 +7,9 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_MULTILEVEL_LOOKUP=0
 
+# Set the terminal language to en-US in order to avoid problems with MSBuild compareversion command
+export LANG=en_US.UTF-8
+
 # Source the init-tools.sh script rather than execute in order to preserve ulimit values in child-processes. https://github.com/dotnet/corefx/issues/19152
 . "$__scriptpath/init-tools.sh"
 
