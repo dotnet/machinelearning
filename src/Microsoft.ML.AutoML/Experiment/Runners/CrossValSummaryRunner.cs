@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
