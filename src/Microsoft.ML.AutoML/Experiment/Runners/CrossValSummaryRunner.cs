@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
@@ -75,25 +76,79 @@ namespace Microsoft.ML.AutoML
             bestFoldIndex = bestFoldIndex != -1 ? bestFoldIndex : 0;
             var bestModel = trainResults.ElementAt(bestFoldIndex).model;
 
-            // Get the metrics from the fold whose score is closest to avg of all fold scores
-            var avgScore = GetAverageOfNonNaNScores(trainResults);
-            var indexClosestToAvg = GetIndexClosestToAverage(trainResults.Select(r => r.score), avgScore);
-            var metricsClosestToAvg = trainResults[indexClosestToAvg].metrics;
+            // Get the average metrics across all folds
+            var avgScore = GetAverageOfNonNaNScores(trainResults.Select(x => x.score));
+            var avgMetrics = GetAverageMetrics(trainResults.Select(x => x.metrics));
 
             // Build result objects
-            var suggestedPipelineRunDetail = new SuggestedPipelineRunDetail<TMetrics>(pipeline, avgScore, allRunsSucceeded, metricsClosestToAvg, bestModel, null);
+            var suggestedPipelineRunDetail = new SuggestedPipelineRunDetail<TMetrics>(pipeline, avgScore, allRunsSucceeded, avgMetrics, bestModel, null);
             var runDetail = suggestedPipelineRunDetail.ToIterationResult(_preFeaturizer);
             return (suggestedPipelineRunDetail, runDetail);
         }
 
-        private static double GetAverageOfNonNaNScores(List<(ModelContainer model, TMetrics metrics, Exception exception, double score)> results)
+        private static TMetrics GetAverageMetrics(IEnumerable<TMetrics> metrics)
         {
-            var newResults = results.Where(r => !double.IsNaN(r.score));
+            if (typeof(TMetrics) == typeof(BinaryClassificationMetrics))
+            {
+                var newMetrics = metrics.Select(x => x as BinaryClassificationMetrics);
+                Contracts.Assert(newMetrics != null);
+
+                var result = new BinaryClassificationMetrics(
+                    auc: GetAverageOfNonNaNScores(newMetrics.Select(x => x.AreaUnderRocCurve)),
+                    accuracy: GetAverageOfNonNaNScores(newMetrics.Select(x => x.Accuracy)),
+                    positivePrecision: GetAverageOfNonNaNScores(newMetrics.Select(x => x.PositivePrecision)),
+                    positiveRecall: GetAverageOfNonNaNScores(newMetrics.Select(x => x.PositiveRecall)),
+                    negativePrecision: GetAverageOfNonNaNScores(newMetrics.Select(x => x.NegativePrecision)),
+                    negativeRecall: GetAverageOfNonNaNScores(newMetrics.Select(x => x.NegativeRecall)),
+                    f1Score: GetAverageOfNonNaNScores(newMetrics.Select(x => x.F1Score)),
+                    auprc: GetAverageOfNonNaNScores(newMetrics.Select(x => x.AreaUnderPrecisionRecallCurve)));
+                return result as TMetrics;
+            }
+
+            if (typeof(TMetrics) == typeof(MulticlassClassificationMetrics))
+            {
+                var newMetrics = metrics.Select(x => x as MulticlassClassificationMetrics);
+                Contracts.Assert(newMetrics != null);
+
+                var result = new MulticlassClassificationMetrics(
+                    accuracyMicro: GetAverageOfNonNaNScores(newMetrics.Select(x => x.MicroAccuracy)),
+                    accuracyMacro: GetAverageOfNonNaNScores(newMetrics.Select(x => x.MacroAccuracy)),
+                    logLoss: GetAverageOfNonNaNScores(newMetrics.Select(x => x.LogLoss)),
+                    logLossReduction: GetAverageOfNonNaNScores(newMetrics.Select(x => x.LogLossReduction)),
+                    topKPredictionCount: newMetrics.ElementAt(0).TopKPredictionCount,
+                    topKAccuracy: GetAverageOfNonNaNScores(newMetrics.Select(x => x.TopKAccuracy)),
+                    // TODO:
+                    //   Figure out whether class label ordering can be different across different folds.
+                    //   If yes, whether it is possible to get the information from the objects available.
+                    perClassLogLoss: null);
+                return result as TMetrics;
+            }
+
+            if (typeof(TMetrics) == typeof(RegressionMetrics))
+            {
+                var newMetrics = metrics.Select(x => x as RegressionMetrics);
+                Contracts.Assert(newMetrics != null);
+
+                var result = new RegressionMetrics(
+                    l1: GetAverageOfNonNaNScores(newMetrics.Select(x => x.MeanAbsoluteError)),
+                    l2: GetAverageOfNonNaNScores(newMetrics.Select(x => x.MeanSquaredError)),
+                    rms: GetAverageOfNonNaNScores(newMetrics.Select(x => x.RootMeanSquaredError)),
+                    lossFunction: GetAverageOfNonNaNScores(newMetrics.Select(x => x.LossFunction)),
+                    rSquared: GetAverageOfNonNaNScores(newMetrics.Select(x => x.RSquared)));
+                return result as TMetrics;
+            }
+
+            return null;
+        }
+
+        private static double GetAverageOfNonNaNScores(IEnumerable<double> results)
+        {
+            var newResults = results.Where(r => !double.IsNaN(r));
             // Return NaN iff all scores are NaN
             if (newResults.Count() == 0)
                 return double.NaN;
             // Return average of non-NaN scores otherwise
-            return newResults.Average(r => r.score);
+            return newResults.Average(r => r);
         }
 
         private static int GetIndexClosestToAverage(IEnumerable<double> values, double average)
