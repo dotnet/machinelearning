@@ -23,10 +23,10 @@
   AT: Vector<String>
   AH: Vector<Key<UInt32, 0-3>>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
-      [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
+      [0] '{an,ant}', [1] 'angry', [2] 'annie', [3] ''
   KH: Vector<Key<UInt32, 0-3>, 2>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
-      [0] '{5,3,10}', [3] '4'
+      [3] '{5,4,3,10}'
 ---- RowToRowMapperTransform ----
 9 columns:
   A: String
@@ -37,13 +37,13 @@
   AT: Vector<String>
   AH: Vector<Key<UInt32, 0-3>>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
-      [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
+      [0] '{an,ant}', [1] 'angry', [2] 'annie', [3] ''
   KH: Vector<Key<UInt32, 0-3>, 2>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
-      [0] '{5,3,10}', [3] '4'
+      [3] '{5,4,3,10}'
   N3: Vector<Single, 8>
     Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] '', [1] 'KH:{5,3,10}', [2] '{AH:{an,angry}|{annie,ant},KH:{5,3,10}|,KH:}', [3] 'AH:ate|{an,angry}', [4] '{KH:4,AH:{an,angry}|{an,angry}}', [5] 'AH:{annie,ant}', [6] '{AH:ate,KH:{5,3,10}|{5,3,10}}', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,3,10}|4}'
+      [0] '{AH:,AH:|{an,ant}}', [1] '', [2] '{AH:annie|,AH:{an,ant}|angry,KH:}', [3] 'AH:angry|{an,ant}', [4] '{AH:{an,ant}|{an,ant},KH:{5,4,3,10}}', [5] '{KH:{5,4,3,10}|{5,4,3,10},KH:{5,4,3,10}|}', [6] 'AH:angry', [7] '{AH:annie,AH:{an,ant}}'
 ---- RowToRowMapperTransform ----
 10 columns:
   A: String
@@ -54,28 +54,28 @@
   AT: Vector<String>
   AH: Vector<Key<UInt32, 0-3>>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
-      [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
+      [0] '{an,ant}', [1] 'angry', [2] 'annie', [3] ''
   KH: Vector<Key<UInt32, 0-3>, 2>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
-      [0] '{5,3,10}', [3] '4'
+      [3] '{5,4,3,10}'
   N3: Vector<Single, 8>
     Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] '', [1] 'KH:{5,3,10}', [2] '{AH:{an,angry}|{annie,ant},KH:{5,3,10}|,KH:}', [3] 'AH:ate|{an,angry}', [4] '{KH:4,AH:{an,angry}|{an,angry}}', [5] 'AH:{annie,ant}', [6] '{AH:ate,KH:{5,3,10}|{5,3,10}}', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,3,10}|4}'
+      [0] '{AH:,AH:|{an,ant}}', [1] '', [2] '{AH:annie|,AH:{an,ant}|angry,KH:}', [3] 'AH:angry|{an,ant}', [4] '{AH:{an,ant}|{an,ant},KH:{5,4,3,10}}', [5] '{KH:{5,4,3,10}|{5,4,3,10},KH:{5,4,3,10}|}', [6] 'AH:angry', [7] '{AH:annie,AH:{an,ant}}'
   N10: Vector<Single, 1024>
     Metadata 'SlotNames': Vector<String, 1024>: Length=1024, Count=1024
-      [116] 'KH:4', [134] 'KH:{5,3,10}|{5,3,10}', [138] 'KH:', [183] 'AH:{an,angry}', [210] 'AH:{an,angry}|{annie,ant}', [284] 'AH:{an,angry}|{an,angry}', [569] 'KH:{5,3,10}', [575] 'AH:{annie,ant}|ate', [645] 'AH:{annie,ant}', [727] 'KH:{5,3,10}|4'
-      [774] 'AH:ate', [819] 'AH:ate|{an,angry}', [858] 'KH:{5,3,10}|'
+      [0] 'AH:', [39] 'AH:annie', [116] 'KH:{5,4,3,10}', [138] 'KH:', [183] 'AH:{an,ant}', [258] 'AH:{an,ant}|angry', [284] 'AH:{an,ant}|{an,ant}', [562] 'AH:annie|', [589] 'KH:{5,4,3,10}|', [688] 'AH:|{an,ant}'
+      [774] 'AH:angry', [819] 'AH:angry|{an,ant}', [837] 'KH:{5,4,3,10}|{5,4,3,10}'
 ---- SelectColumnsDataTransform ----
 5 columns:
   A: String
   K: Vector<Key<UInt32, 0-10>, 2>
   KH: Vector<Key<UInt32, 0-3>, 2>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
-      [0] '{5,3,10}', [3] '4'
+      [3] '{5,4,3,10}'
   N3: Vector<Single, 8>
     Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] '', [1] 'KH:{5,3,10}', [2] '{AH:{an,angry}|{annie,ant},KH:{5,3,10}|,KH:}', [3] 'AH:ate|{an,angry}', [4] '{KH:4,AH:{an,angry}|{an,angry}}', [5] 'AH:{annie,ant}', [6] '{AH:ate,KH:{5,3,10}|{5,3,10}}', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,3,10}|4}'
+      [0] '{AH:,AH:|{an,ant}}', [1] '', [2] '{AH:annie|,AH:{an,ant}|angry,KH:}', [3] 'AH:angry|{an,ant}', [4] '{AH:{an,ant}|{an,ant},KH:{5,4,3,10}}', [5] '{KH:{5,4,3,10}|{5,4,3,10},KH:{5,4,3,10}|}', [6] 'AH:angry', [7] '{AH:annie,AH:{an,ant}}'
   N10: Vector<Single, 1024>
     Metadata 'SlotNames': Vector<String, 1024>: Length=1024, Count=1024
-      [116] 'KH:4', [134] 'KH:{5,3,10}|{5,3,10}', [138] 'KH:', [183] 'AH:{an,angry}', [210] 'AH:{an,angry}|{annie,ant}', [284] 'AH:{an,angry}|{an,angry}', [569] 'KH:{5,3,10}', [575] 'AH:{annie,ant}|ate', [645] 'AH:{annie,ant}', [727] 'KH:{5,3,10}|4'
-      [774] 'AH:ate', [819] 'AH:ate|{an,angry}', [858] 'KH:{5,3,10}|'
+      [0] 'AH:', [39] 'AH:annie', [116] 'KH:{5,4,3,10}', [138] 'KH:', [183] 'AH:{an,ant}', [258] 'AH:{an,ant}|angry', [284] 'AH:{an,ant}|{an,ant}', [562] 'AH:annie|', [589] 'KH:{5,4,3,10}|', [688] 'AH:|{an,ant}'
+      [774] 'AH:angry', [819] 'AH:angry|{an,ant}', [837] 'KH:{5,4,3,10}|{5,4,3,10}'
