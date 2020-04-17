@@ -6,9 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.AutoML
 {
