@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath.Core;
 
@@ -42,8 +43,9 @@ namespace Microsoft.ML.AutoML
             if (!results.Any()) { return null; }
             var scores = results.Select(r => metricsAgent.GetScore(r.ValidationMetrics));
             var indexOfBestScore = GetIndexOfBestScore(scores, isMetricMaximizing);
-            Contracts.Check(indexOfBestScore != -1,
-                "The optimization metric in all runs was undefined. A best run could not be found.");
+            // indexOfBestScore will be -1 if the optimization metric for all models is NaN.
+            // In this case, return the first model.
+            indexOfBestScore = indexOfBestScore != -1 ? indexOfBestScore : 0;
             return results.ElementAt(indexOfBestScore);
         }
 
@@ -54,8 +56,9 @@ namespace Microsoft.ML.AutoML
             if (!results.Any()) { return null; }
             var scores = results.Select(r => r.Results.Average(x => metricsAgent.GetScore(x.ValidationMetrics)));
             var indexOfBestScore = GetIndexOfBestScore(scores, isMetricMaximizing);
-            Contracts.Check(indexOfBestScore != -1,
-                "The average optimization metric in all runs was undefined. A best run could not be found.");
+            // indexOfBestScore will be -1 if the optimization metric for all models is NaN.
+            // In this case, return the first model.
+            indexOfBestScore = indexOfBestScore != -1 ? indexOfBestScore : 0;
             return results.ElementAt(indexOfBestScore);
         }
 
