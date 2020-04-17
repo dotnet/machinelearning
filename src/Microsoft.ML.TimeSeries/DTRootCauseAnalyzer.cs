@@ -315,24 +315,19 @@ namespace Microsoft.ML.TimeSeries
 
         private void GetRootCauseDirectionAndScore(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta, PointTree pointTree, AggregateType aggType, string aggSymbol)
         {
-            Point anomalyPoint = GetPointByDimenstion(dimPointMapping, anomalyRoot, pointTree, aggType, aggSymbol);
+            Point anomalyPoint = GetPointByDimension(dimPointMapping, anomalyRoot, pointTree, aggType, aggSymbol);
             if (dst.Items.Count > 1)
             {
                 //get surprise value and explanary power value
-                double sumSurprise = 0;
-                double sumEp = 0;
                 List<RootCauseScore> scoreList = new List<RootCauseScore>();
 
                 foreach (RootCauseItem item in dst.Items)
                 {
-                    Point rootCausePoint = GetPointByDimenstion(dimPointMapping, item.Dimension, pointTree, aggType, aggSymbol);
+                    Point rootCausePoint = GetPointByDimension(dimPointMapping, item.Dimension, pointTree, aggType, aggSymbol);
                     if (anomalyPoint != null && rootCausePoint != null)
                     {
                         Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
                         scoreList.Add(new RootCauseScore(scores.Item1, scores.Item2));
-                        sumSurprise += scores.Item1;
-                        sumEp += Math.Abs(scores.Item2);
-
                         item.Direction = GetRootCauseDirection(rootCausePoint);
                     }
                 }
@@ -346,7 +341,7 @@ namespace Microsoft.ML.TimeSeries
             }
             else if (dst.Items.Count == 1)
             {
-                Point rootCausePoint = GetPointByDimenstion(dimPointMapping, dst.Items[0].Dimension, pointTree, aggType, aggSymbol);
+                Point rootCausePoint = GetPointByDimension(dimPointMapping, dst.Items[0].Dimension, pointTree, aggType, aggSymbol);
                 if (anomalyPoint != null && rootCausePoint != null)
                 {
                     Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
@@ -356,7 +351,7 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        private Point GetPointByDimenstion(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> dimension, PointTree pointTree, AggregateType aggType, string aggSymbol)
+        private Point GetPointByDimension(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> dimension, PointTree pointTree, AggregateType aggType, string aggSymbol)
         {
             if (dimPointMapping.ContainsKey(GetDicCode(dimension)))
             {
