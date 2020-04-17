@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.AutoML
 {
@@ -90,7 +92,7 @@ namespace Microsoft.ML.AutoML
         {
             var newResults = results.Where(r => !double.IsNaN(r.score));
             // Return NaN iff all scores are NaN
-            if (newResults.Count() ==0)
+            if (newResults.Count() == 0)
                 return double.NaN;
             // Return average of non-NaN scores otherwise
             return newResults.Average(r => r.score);
