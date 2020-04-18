@@ -43,6 +43,8 @@
                       PrivateAssets="All" />
   </ItemGroup>
 
+ <!-- Workaround: AssemblyInfo.cs is not embedded -->
+ <!-- https://github.com/dotnet/sourcelink/issues/572 -->
   <Target Name="ResolveMatchingContract">
     <MSBuild Projects="$(StableApiProject)"
              Targets="GetContract"
@@ -53,13 +55,5 @@
       <ContractOutputPath>%(ResolvedMatchingContract.DependencyPaths)</ContractOutputPath>
     </PropertyGroup>
   </Target>
-
-  <!--
-    All source inputs to the compiler should be generated before BeforeCompile target. Sdk is not
-    honoring this for GenerateAssemblyInfo target. https://github.com/dotnet/sdk/issues/10614 
-  -->
-  <ItemGroup>
-    <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)"/>
-  </ItemGroup>
 
 </Project>
