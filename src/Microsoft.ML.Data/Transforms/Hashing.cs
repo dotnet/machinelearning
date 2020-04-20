@@ -134,6 +134,7 @@ namespace Microsoft.ML.Transforms
         private readonly HashingEstimator.ColumnOptionsInternal[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorDataViewType[] _kvTypes;
+        private readonly bool _isMurmurHashV2;
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
@@ -247,7 +248,7 @@ namespace Microsoft.ML.Transforms
             disposer = null;
             input.Schema.TryGetColumnIndex(_columns[iinfo].InputColumnName, out int srcCol);
             var srcType = input.Schema[srcCol].Type;
-            if (GetVersionInfo().VerWrittenCur == 0x00010002)
+            if (!_isMurmurHashV2)
             {
                 if (!(srcType is VectorDataViewType vectorType))
                     return ComposeGetterOne(input, iinfo, srcCol, srcType);
@@ -268,7 +269,6 @@ namespace Microsoft.ML.Transforms
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-
             return new HashingTransformer(host, ctx);
         }
 
@@ -277,6 +277,7 @@ namespace Microsoft.ML.Transforms
         {
             var columnsLength = ColumnPairs.Length;
             _columns = new HashingEstimator.ColumnOptionsInternal[columnsLength];
+            _isMurmurHashV2 = ctx.Header.ModelVerWritten >= 0x00010003;
             for (int i = 0; i < columnsLength; i++)
                 _columns[i] = new HashingEstimator.ColumnOptionsInternal(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
             TextModelHelper.LoadAll(Host, ctx, columnsLength, out _keyValues, out _kvTypes);
@@ -1556,7 +1557,7 @@ namespace Microsoft.ML.Transforms
             /// <summary> Whether the position of each term should be included in the hash, only applies to inputs of vector type.</summary>
             public readonly bool UseOrderedHashing;
             /// <summary>
-            /// During hashing we constuct mappings between original values and the produced hash values.
+            /// During hashing we construct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the annotations for the new column.Hashing, as such, can map many initial values to one.
             /// <see cref="MaximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.
