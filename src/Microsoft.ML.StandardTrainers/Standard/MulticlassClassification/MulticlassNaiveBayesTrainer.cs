@@ -145,8 +145,8 @@ namespace Microsoft.ML.Trainers
             if (labelCol.Type is KeyDataViewType labelKeyType)
                 labelCount = labelKeyType.GetCountAsInt32(Host);
 
-            int[] labelHistogram = new int[labelCount];
-            int[][] featureHistogram = new int[labelCount][];
+            long[] labelHistogram = new long[labelCount];
+            long[][] featureHistogram = new long[labelCount][];
             using (var pch = Host.StartProgressChannel("Multi Class Naive Bayes training"))
             using (var ch = Host.Start("Training"))
             using (var cursor = new MulticlassLabelCursor(labelCount, data, CursOpt.Features | CursOpt.Label))
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Trainers
                     Utils.EnsureSize(ref labelHistogram, size);
                     Utils.EnsureSize(ref featureHistogram, size);
                     if (featureHistogram[cursor.Label] == null)
-                        featureHistogram[cursor.Label] = new int[featureCount];
+                        featureHistogram[cursor.Label] = new long[featureCount];
                     labelHistogram[cursor.Label] += 1;
                     labelCount = labelCount < size ? size : labelCount;
 
@@ -238,10 +238,10 @@ namespace Microsoft.ML.Trainers
                 loaderAssemblyName: typeof(NaiveBayesMulticlassModelParameters).Assembly.FullName);
         }
 
-        private readonly int[] _labelHistogram;
-        private readonly int[][] _featureHistogram;
+        private readonly long[] _labelHistogram;
+        private readonly long[][] _featureHistogram;
         private readonly double[] _absentFeaturesLogProb;
-        private readonly int _totalTrainingCount;
+        private readonly long _totalTrainingCount;
         private readonly int _labelCount;
         private readonly int _featureCount;
         private readonly VectorDataViewType _inputType;
@@ -259,12 +259,12 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Get the label histogram.
         /// </summary>
-        public IReadOnlyList<int> GetLabelHistogram() => _labelHistogram;
+        public IReadOnlyList<long> GetLabelHistogram() => _labelHistogram;
 
         /// <summary>
         /// Get the feature histogram.
         /// </summary>
-        public IReadOnlyList<IReadOnlyList<int>> GetFeatureHistogram() => _featureHistogram;
+        public IReadOnlyList<IReadOnlyList<long>> GetFeatureHistogram() => _featureHistogram;
 
         /// <summary>
         /// Instantiates new model parameters from trained model.
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelHistogram">The histogram of labels.</param>
         /// <param name="featureHistogram">The feature histogram.</param>
         /// <param name="featureCount">The number of features.</param>
-        internal NaiveBayesMulticlassModelParameters(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
+        internal NaiveBayesMulticlassModelParameters(IHostEnvironment env, long[] labelHistogram, long[][] featureHistogram, int featureCount)
             : base(env, LoaderSignature)
         {
             Host.AssertValue(labelHistogram);
@@ -294,12 +294,12 @@ namespace Microsoft.ML.Trainers
             : base(env, LoaderSignature, ctx)
         {
             // *** Binary format ***
-            // int: _labelCount
-            // int[_labelCount]: _labelHistogram
+            // int: _labelCount (read during reading of _labelHistogram in ReadLongArray())
+            // long[_labelCount]: _labelHistogram
             // int: _featureCount
-            // int[_labelCount][_featureCount]: _featureHistogram
+            // long[_labelCount][_featureCount]: _featureHistogram
             // int[_labelCount]: _absentFeaturesLogProb
-            _labelHistogram = ctx.Reader.ReadIntArray() ?? new int[0];
+            _labelHistogram = ctx.Reader.ReadLongArray() ?? new long[0];
             _labelCount = _labelHistogram.Length;
 
             foreach (int labelCount in _labelHistogram)
@@ -307,12 +307,12 @@ namespace Microsoft.ML.Trainers
 
             _featureCount = ctx.Reader.ReadInt32();
             Host.CheckDecode(_featureCount >= 0);
-            _featureHistogram = new int[_labelCount][];
+            _featureHistogram = new long[_labelCount][];
             for (int iLabel = 0; iLabel < _labelCount; iLabel += 1)
             {
                 if (_labelHistogram[iLabel] > 0)
                 {
-                    _featureHistogram[iLabel] = ctx.Reader.ReadIntArray(_featureCount);
+                    _featureHistogram[iLabel] = ctx.Reader.ReadLongArray(_featureCount);
                     for (int iFeature = 0; iFeature < _featureCount; iFeature += 1)
                         Host.CheckDecode(_featureHistogram[iLabel][iFeature] >= 0);
                 }
@@ -339,22 +339,23 @@ namespace Microsoft.ML.Trainers
 
             // *** Binary format ***
             // int: _labelCount
-            // int[_labelCount]: _labelHistogram
+            // long[_labelCount]: _labelHistogram
             // int: _featureCount
-            // int[_labelCount][_featureCount]: _featureHistogram
+            // long[_labelCount][_featureCount]: _featureHistogram
             // int[_labelCount]: _absentFeaturesLogProb
-            ctx.Writer.WriteIntArray(_labelHistogram.AsSpan(0, _labelCount));
+            ctx.Writer.Write(_labelCount);
+            ctx.Writer.WriteLongStream(_labelHistogram);
             ctx.Writer.Write(_featureCount);
             for (int i = 0; i < _labelCount; i += 1)
             {
                 if (_labelHistogram[i] > 0)
-                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i].AsSpan(0, _featureCount));
+                    ctx.Writer.WriteLongStream(_featureHistogram[i]);
             }
 
             ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb.AsSpan(0, _labelCount));
         }
 
-        private static double[] CalculateAbsentFeatureLogProbabilities(int[] labelHistogram, int[][] featureHistogram, int featureCount)
+        private static double[] CalculateAbsentFeatureLogProbabilities(long[] labelHistogram, long[][] featureHistogram, int featureCount)
         {
             int labelCount = labelHistogram.Length;
             double[] absentFeaturesLogProb = new double[labelCount];
@@ -365,7 +366,7 @@ namespace Microsoft.ML.Trainers
                     double logProb = 0;
                     for (int iFeature = 0; iFeature < featureCount; iFeature += 1)
                     {
-                        int labelOccuranceCount = labelHistogram[iLabel];
+                        long labelOccuranceCount = labelHistogram[iLabel];
                         logProb +=
                             Math.Log(1 + ((double)labelOccuranceCount - featureHistogram[iLabel][iFeature])) -
                             Math.Log(labelOccuranceCount + labelCount);
