@@ -259,12 +259,26 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Get the label histogram.
         /// </summary>
-        public IReadOnlyList<long> GetLabelHistogram() => _labelHistogram;
+        [Obsolete("This API is deprecated, please use GetLabelHistogramLong() which returns _labelHistogram " +
+            "with type IReadOnlyList<long> to avoid overflow errors with large datasets.", true)]
+        public IReadOnlyList<int> GetLabelHistogram() => Array.ConvertAll(_labelHistogram, x => (int)x);
+
+        /// <summary>
+        /// Get the label histogram with generic type long.
+        /// </summary>
+        public IReadOnlyList<long> GetLabelHistogramLong() => _labelHistogram;
 
         /// <summary>
         /// Get the feature histogram.
         /// </summary>
-        public IReadOnlyList<IReadOnlyList<long>> GetFeatureHistogram() => _featureHistogram;
+        [Obsolete("This API is deprecated, please use GetFeatureHistogramLong() which returns _featureHistogram " +
+            "with type IReadOnlyList<long> to avoid overflow errors with large datasets.", true)]
+        public IReadOnlyList<IReadOnlyList<int>> GetFeatureHistogram() => Array.ConvertAll(_featureHistogram, x => Array.ConvertAll(x, y=> (int)y));
+
+        /// <summary>
+        /// Get the feature histogram with generic type long.
+        /// </summary>
+        public IReadOnlyList<IReadOnlyList<long>> GetFeatureHistogramLong() => _featureHistogram;
 
         /// <summary>
         /// Instantiates new model parameters from trained model.
