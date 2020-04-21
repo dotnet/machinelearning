@@ -93,12 +93,16 @@ namespace Microsoft.ML.TimeSeries
 
     public sealed class RootCauseLocalizationInput
     {
+        //When the anomaly incident occurs
         public DateTime AnomalyTimestamp { get; set; }
 
+        //Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause
         public Dictionary<string, Object> AnomalyDimension { get; set; }
 
+        //A list of points at different timestamp. If the slices don't contain point data corresponding to the anomaly timestamp, the root cause localization alogorithm will not calculate the root cause as no information at the anomaly timestamp is provided.
         public List<MetricSlice> Slices { get; set; }
 
+        //The aggregated symbol in the AnomalyDimension and point dimension should be consistent
         public AggregateType AggType { get; set; }
 
         public string AggSymbol { get; set; }
@@ -217,6 +221,7 @@ namespace Microsoft.ML.TimeSeries
     public sealed class RootCauseItem : IEquatable<RootCauseItem>
     {
         public double Score;
+        //Path is a list of the dimension key that the libary selected for you. In this root cause localization library, for one time call for the library, the path will be obtained and the length of path list will always be 1. Different RootCauseItem obtained from one library call will have the same path as it is the best dimension selected for the input.
         public List<string> Path;
         public Dictionary<string, Object> Dimension;
         public AnomalyDirection Direction;
@@ -266,6 +271,7 @@ namespace Microsoft.ML.TimeSeries
         public double Value { get; set; }
         public double ExpectedValue { get; set; }
         public bool IsAnomaly { get; set; }
+        //The value for this dictionary is an object, when the Dimension is used, the equals function for the Object will be used. If you have a customized class, you need to define the Equals function.
         public Dictionary<string, Object> Dimension { get; set; }
         public double Delta { get; set; }
 

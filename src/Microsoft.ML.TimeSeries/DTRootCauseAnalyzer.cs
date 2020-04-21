@@ -237,7 +237,7 @@ namespace Microsoft.ML.TimeSeries
         protected BestDimension SelectBestDimension(List<Point> totalPoints, List<Point> anomalyPoints, List<string> aggDim)
         {
             double totalEntropy = GetEntropy(totalPoints.Count, anomalyPoints.Count);
-            Dictionary<BestDimension, double> entroyGainMap = new Dictionary<BestDimension, double>();
+            SortedDictionary<BestDimension, double> entroyGainMap = new SortedDictionary<BestDimension, double>();
             Dictionary<BestDimension, double> entroyGainRatioMap = new Dictionary<BestDimension, double>();
             double sumGain = 0;
 
@@ -268,7 +268,7 @@ namespace Microsoft.ML.TimeSeries
         //Use children point information to select best dimension
         private BestDimension SelectBestDimension(Dictionary<string, List<Point>> pointChildren, Dictionary<string, List<Point>> anomalyChildren, List<string> aggDim)
         {
-            Dictionary<BestDimension, double> entropyMap = new Dictionary<BestDimension, double>();
+            SortedDictionary<BestDimension, double> entropyMap = new SortedDictionary<BestDimension, double>();
             Dictionary<BestDimension, double> entropyRatioMap = new Dictionary<BestDimension, double>();
             double sumGain = 0;
 
@@ -434,7 +434,7 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        private BestDimension FindBestDimension(Dictionary<BestDimension, double> valueMap, Dictionary<BestDimension, double> valueRatioMap, double meanGain, bool isLeavesLevel = true)
+        private BestDimension FindBestDimension(SortedDictionary<BestDimension, double> valueMap, Dictionary<BestDimension, double> valueRatioMap, double meanGain, bool isLeavesLevel = true)
         {
             BestDimension best = null;
             foreach (KeyValuePair<BestDimension, double> dimension in valueMap)
@@ -443,7 +443,7 @@ namespace Microsoft.ML.TimeSeries
                 {
                     if (dimension.Key.AnomalyDis.Count > 1)
                     {
-                        if (best == null || (best.AnomalyDis.Count != 1 && (isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0)))
+                        if (best == null || (!Double.IsNaN(valueRatioMap[best]) && (best.AnomalyDis.Count != 1 && (isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0))))
                         {
                             best = dimension.Key;
                         }
@@ -456,7 +456,7 @@ namespace Microsoft.ML.TimeSeries
                         }
                         else
                         {
-                            if ((isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0))
+                            if (!Double.IsNaN(valueRatioMap[best]) && (isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0))
                             {
                                 best = dimension.Key;
                             }
@@ -681,7 +681,7 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    public sealed class BestDimension
+    public sealed class BestDimension: IComparable
     {
         public string DimensionKey;
         public Dictionary<string, int> AnomalyDis;
@@ -694,6 +694,16 @@ namespace Microsoft.ML.TimeSeries
             instance.AnomalyDis = new Dictionary<string, int>();
             instance.PointDis = new Dictionary<string, int>();
             return instance;
+        }
+
+        public int CompareTo(object obj) {
+            if (obj == null) return 1;
+
+            BestDimension other = obj as BestDimension;
+            if (other != null)
+                return DimensionKey.CompareTo(other.DimensionKey);
+            else
+                throw new ArgumentException("Object is not a BestDimension");
         }
     }
 
