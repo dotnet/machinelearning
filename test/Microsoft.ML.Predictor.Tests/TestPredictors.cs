@@ -158,12 +158,17 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
         {
+            // [TEST_STABILITY]: use lower digit precision as dotnet core 3.1 generates slightly different result
+#if NETCOREAPP3_1
+            RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris, digitsOfPrecision: 3);
+#else
             RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris, digitsOfPrecision: 4);
+#endif
             Done();
         }
 
@@ -328,13 +333,19 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
+
+            // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
+#if NETCOREAPP3_1
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
+#else
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
+#endif
             Done();
         }
 
@@ -1209,7 +1220,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        #region "Regressor"
+#region "Regressor"
 
 #if OLD_TESTS // REVIEW: Port these tests?
         /// <summary>
@@ -1520,7 +1531,7 @@ namespace Microsoft.ML.RunTests
         }
 #endif
 
-        #endregion
+#endregion
 
         /// <summary>
         ///A test for FR ranker

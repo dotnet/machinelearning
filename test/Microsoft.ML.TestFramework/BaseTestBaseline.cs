@@ -475,7 +475,10 @@ namespace Microsoft.ML.RunTests
                     count++;
                     var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision, parseOption);
 
-                    if (!inRange || line1 != line2)
+                    var line1Core = line1.Replace(" ", "").Replace("\t", "");
+                    var line2Core = line2.Replace(" ", "").Replace("\t", "");
+
+                    if (!inRange || line1Core != line2Core)
                     {
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
@@ -555,7 +558,7 @@ namespace Microsoft.ML.RunTests
             // limitting to the digits we care about. 
             delta = Math.Round(delta, digitsOfPrecision);
 
-            bool inRange = delta > -allowedVariance && delta < allowedVariance;
+            bool inRange = delta >= -allowedVariance && delta <= allowedVariance;
 
             // for some cases, rounding up is not beneficial
             // so checking on whether the difference is significant prior to rounding, and failing only then. 

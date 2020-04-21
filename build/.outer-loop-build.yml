@@ -45,7 +45,8 @@ jobs:
         _config_short: RI
         _includeBenchmarkData: true
     pool:
-      name: Hosted Ubuntu 1604
+      name:  NetCorePublic-Pool
+      queue: BuildPool.Ubuntu.1604.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -53,7 +54,8 @@ jobs:
     buildScript: ./build.sh
     container: UbuntuContainer
     pool:
-      name: Hosted Ubuntu 1604
+      name:  NetCorePublic-Pool
+      queue: BuildPool.Ubuntu.1604.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:

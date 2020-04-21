@@ -2123,8 +2123,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Fact]
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -4906,7 +4905,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
