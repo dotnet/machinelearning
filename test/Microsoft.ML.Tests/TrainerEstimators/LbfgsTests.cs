@@ -177,7 +177,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCore]
+        [Fact]
         public void TestMLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
@@ -198,8 +198,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var stats = modelParams.Statistics;
                 Assert.NotNull(stats);
 
+#if NETCOREAPP3_1
+                CompareNumbersWithTolerance(stats.Deviance, 45.79, digitsOfPrecision: 2);
+                CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
+#else
                 CompareNumbersWithTolerance(stats.Deviance, 45.35, digitsOfPrecision: 2);
                 CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
+#endif
                 //Assert.Equal(14, stats.ParametersCount);
                 Assert.Equal(150, stats.TrainingExampleCount);
             };
