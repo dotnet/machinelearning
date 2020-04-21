@@ -231,7 +231,8 @@ namespace Microsoft.ML.Trainers
         {
             return new VersionInfo(
                 modelSignature: "MNABYPRD",
-                verWrittenCur: 0x00010001, // Initial
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Histograms are of type long
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
@@ -313,7 +314,12 @@ namespace Microsoft.ML.Trainers
             // int: _featureCount
             // long[_labelCount][_featureCount]: _featureHistogram
             // int[_labelCount]: _absentFeaturesLogProb
-            _labelHistogram = ctx.Reader.ReadLongArray() ?? new long[0];
+            if (ctx.Header.ModelVerWritten >= 0x00010002)
+                _labelHistogram = ctx.Reader.ReadLongArray() ?? new long[0];
+            else
+            {
+                _labelHistogram = Array.ConvertAll(ctx.Reader.ReadIntArray() ?? new int[0], x => (long)x);
+            }
             _labelCount = _labelHistogram.Length;
 
             foreach (int labelCount in _labelHistogram)
@@ -326,7 +332,10 @@ namespace Microsoft.ML.Trainers
             {
                 if (_labelHistogram[iLabel] > 0)
                 {
-                    _featureHistogram[iLabel] = ctx.Reader.ReadLongArray(_featureCount);
+                    if (ctx.Header.ModelVerWritten >= 0x00010002)
+                        _featureHistogram[iLabel] = ctx.Reader.ReadLongArray(_featureCount);
+                    else
+                        _featureHistogram[iLabel] = Array.ConvertAll(ctx.Reader.ReadIntArray(_featureCount) ?? new int[0], x => (long)x);
                     for (int iFeature = 0; iFeature < _featureCount; iFeature += 1)
                         Host.CheckDecode(_featureHistogram[iLabel][iFeature] >= 0);
                 }
