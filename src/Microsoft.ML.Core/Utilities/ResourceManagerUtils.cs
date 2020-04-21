@@ -151,6 +151,9 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>
         private async Task<string> DownloadFromUrlAsync(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
         {
+            // specific to use tls 1.2 as https://aka.ms/mlnet-resources/ only accpets tls 1.2 or newer
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
             using (var webClient = new WebClient())
             using (var downloadCancel = new CancellationTokenSource())
             {
