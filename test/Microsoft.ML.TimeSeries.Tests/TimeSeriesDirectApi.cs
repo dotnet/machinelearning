@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
@@ -84,9 +85,32 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        private class TimeSeriesDataWithTimestamp
+        {
+            [SrCnnTsPointTypeAttribute]
+            public SrCnnTsPoint Point;
+
+            public TimeSeriesDataWithTimestamp(DateTime timestamp, double value)
+            {
+                Point = new SrCnnTsPoint(timestamp, value);
+            }
+        }
+
         private sealed class SrCnnAnomalyDetection
         {
             [VectorType(3)]
+            public double[] Prediction { get; set; }
+        }
+
+        private sealed class SrCnnAnomalyDetectionWithExp
+        {
+            [VectorType(4)]
+            public double[] Prediction { get; set; }
+        }
+
+        private sealed class SrCnnAnomalyDetectionWithMargin
+        {
+            [VectorType(7)]
             public double[] Prediction { get; set; }
         }
 
@@ -506,8 +530,152 @@ namespace Microsoft.ML.Tests
             int k = 0;
             foreach (var prediction in predictionColumn)
             {
+                Assert.Equal(3, prediction.Prediction.Length);
                 if (k == 20)
                     Assert.Equal(1, prediction.Prediction[0]);
+                else
+                    Assert.Equal(0, prediction.Prediction[0]);
+                k += 1;
+            }
+        }
+
+        [Fact]
+        public void AnomalyDetectionWithSrCnnEntireAnomalyOnly()
+        {
+            var ml = new MLContext(1);
+
+            // Generate sample series data with an anomaly
+            DateTime currentTime = new DateTime(2020, 01, 01);
+            var data = new List<TimeSeriesDataWithTimestamp>();
+            for (int index = 0; index < 20; index++)
+            {
+                currentTime = currentTime.AddDays(1);
+                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
+
+            }
+            currentTime = currentTime.AddDays(1);
+            data.Add(new TimeSeriesDataWithTimestamp(currentTime, 10));
+            for (int index = 0; index < 5; index++)
+            {
+                currentTime = currentTime.AddDays(1);
+                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
+            }
+
+            // Convert data to IDataView.
+            var dataView = ml.Data.LoadFromEnumerable(data);
+
+            string inputColumnName = nameof(TimeSeriesDataWithTimestamp.Point);
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+
+            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyOnly)
+                .Fit(dataView).Transform(dataView);
+
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                if (k == 20)
+                    Assert.Equal(1, prediction.Prediction[0]);
+                else
+                    Assert.Equal(0, prediction.Prediction[0]);
+                k += 1;
+            }
+        }
+
+        [Fact]
+        public void AnomalyDetectionWithSrCnnEntireAnomalyAndExp()
+        {
+            var ml = new MLContext(1);
+
+            // Generate sample series data with an anomaly
+            DateTime currentTime = new DateTime(2020, 01, 01);
+            var data = new List<TimeSeriesDataWithTimestamp>();
+            for (int index = 0; index < 20; index++)
+            {
+                currentTime = currentTime.AddDays(1);
+                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
+
+            }
+            currentTime = currentTime.AddDays(1);
+            data.Add(new TimeSeriesDataWithTimestamp(currentTime, 10));
+            for (int index = 0; index < 5; index++)
+            {
+                currentTime = currentTime.AddDays(1);
+                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
+            }
+
+            // Convert data to IDataView.
+            var dataView = ml.Data.LoadFromEnumerable(data);
+
+            string inputColumnName = nameof(TimeSeriesDataWithTimestamp.Point);
+            string outputColumnName = nameof(SrCnnAnomalyDetectionWithExp.Prediction);
+
+            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndExpectedValue)
+                .Fit(dataView).Transform(dataView);
+
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetectionWithExp>(transformedData, reuseRowObject: false);
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                Assert.Equal(4, prediction.Prediction.Length);
+                if (k == 20)
+                {
+                    Assert.Equal(1, prediction.Prediction[0]);
+                    Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                }
+                else
+                    Assert.Equal(0, prediction.Prediction[0]);
+                k += 1;
+            }
+        }
+
+        [Fact]
+        public void AnomalyDetectionWithSrCnnEntireAnomalyAndMargin()
+        {
+            var ml = new MLContext(1);
+
+            // Generate sample series data with an anomaly
+            DateTime currentTime = new DateTime(2020, 01, 01);
+            var data = new List<TimeSeriesDataWithTimestamp>();
+            for (int index = 0; index < 20; index++)
+            {
+                currentTime = currentTime.AddDays(1);
+                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
+
+            }
+            currentTime = currentTime.AddDays(1);
+            data.Add(new TimeSeriesDataWithTimestamp(currentTime, 10));
+            for (int index = 0; index < 5; index++)
+            {
+                currentTime = currentTime.AddDays(1);
+                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
+            }
+
+            // Convert data to IDataView.
+            var dataView = ml.Data.LoadFromEnumerable(data);
+
+            string inputColumnName = nameof(TimeSeriesDataWithTimestamp.Point);
+            string outputColumnName = nameof(SrCnnAnomalyDetectionWithMargin.Prediction);
+
+            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndMargin, 90)
+                .Fit(dataView).Transform(dataView);
+
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetectionWithMargin>(transformedData, reuseRowObject: false);
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                Assert.Equal(7, prediction.Prediction.Length);
+                if (k == 20)
+                {
+                    Assert.Equal(1, prediction.Prediction[0]);
+                    Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                    Assert.Equal("5.00", prediction.Prediction[4].ToString("0.00"));
+                    Assert.Equal("5.01", prediction.Prediction[5].ToString("0.00"));
+                    Assert.Equal("4.99", prediction.Prediction[6].ToString("0.00"));
+                }
                 else
                     Assert.Equal(0, prediction.Prediction[0]);
                 k += 1;
