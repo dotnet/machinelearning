@@ -305,6 +305,11 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorDataViewType(NumberDataViewType.Single, _labelCount);
         }
 
+        /// <remarks>
+        /// The unit test TestEntryPoints.LoadEntryPointModel() exercises the ReadIntArrary(int size) codepath below
+        /// as its ctx.Header.ModelVerWritten is 0x00010001, and the persistent model that gets loaded and executed
+        /// for this unit test is located at test\data\backcompat\ep_model3.zip/>
+        /// </remarks>
         private NaiveBayesMulticlassModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx)
         {
