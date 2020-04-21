@@ -12,6 +12,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -50,6 +51,12 @@ namespace Microsoft.ML.Tests
         public void TestLightGbmRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.LightGbm(), GetSparseDataset(numberOfInstances: 100), "LightGbmRegression");
+        }
+
+        [LightGBMFact]
+        public void TestLightGbmRegressionWithCategoricalSplit()
+        {
+            TestFeatureContribution(ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options() { UseCategoricalSplit = true }), GetOneHotEncodedData(numberOfInstances: 100), "LightGbmRegressionWithCategoricalSplit");
         }
 
         [Fact]
@@ -376,6 +383,56 @@ namespace Microsoft.ML.Tests
             MulticlassClassification,
             Ranking,
             Clustering
+        }
+
+        public class TaxiTrip
+        {
+            [LoadColumn(0)]
+            public string VendorId;
+
+            [LoadColumn(1)]
+            public float RateCode;
+
+            [LoadColumn(2)]
+            public float PassengerCount;
+
+            [LoadColumn(3)]
+            public float TripTime;
+
+            [LoadColumn(4)]
+            public float TripDistance;
+
+            [LoadColumn(5)]
+            public string PaymentType;
+
+            [LoadColumn(6)]
+            public float FareAmount;
+        }
+
+        /// <summary>
+        /// Returns a DataView with a Features column which include HotEncodedData
+        /// </summary>
+        private IDataView GetOneHotEncodedData(int numberOfInstances = 100)
+        {
+            var trainDataPath = GetDataPath("taxi-fare-train.csv");
+            IDataView trainingDataView = ML.Data.LoadFromTextFile<TaxiTrip>(trainDataPath, hasHeader: true, separatorChar: ',');
+
+            var vendorIdEncoded = "VendorIdEncoded";
+            var rateCodeEncoded = "RateCodeEncoded";
+            var paymentTypeEncoded = "PaymentTypeEncoded";
+
+            var dataProcessPipeline = ML.Transforms.CopyColumns(outputColumnName: DefaultColumnNames.Label, inputColumnName: nameof(TaxiTrip.FareAmount))
+                                     .Append(ML.Transforms.Categorical.OneHotEncoding(outputColumnName: vendorIdEncoded, inputColumnName: nameof(TaxiTrip.VendorId)))
+                                     .Append(ML.Transforms.Categorical.OneHotEncoding(outputColumnName: rateCodeEncoded, inputColumnName: nameof(TaxiTrip.RateCode)))
+                                     .Append(ML.Transforms.Categorical.OneHotEncoding(outputColumnName: paymentTypeEncoded, inputColumnName: nameof(TaxiTrip.PaymentType)))
+                                     .Append(ML.Transforms.NormalizeMeanVariance(outputColumnName: nameof(TaxiTrip.PassengerCount)))
+                                     .Append(ML.Transforms.NormalizeMeanVariance(outputColumnName: nameof(TaxiTrip.TripTime)))
+                                     .Append(ML.Transforms.NormalizeMeanVariance(outputColumnName: nameof(TaxiTrip.TripDistance)))
+                                     .Append(ML.Transforms.Concatenate(DefaultColumnNames.Features, vendorIdEncoded, rateCodeEncoded, paymentTypeEncoded,
+                                        nameof(TaxiTrip.PassengerCount), nameof(TaxiTrip.TripTime), nameof(TaxiTrip.TripDistance)));
+
+            var someRows = ML.Data.TakeRows(trainingDataView, numberOfInstances);
+            return dataProcessPipeline.Fit(someRows).Transform(someRows);
         }
     }
 }
