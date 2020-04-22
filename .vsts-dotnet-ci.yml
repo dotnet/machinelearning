@@ -68,7 +68,8 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
-      name: Hosted VS2017
+      name:  NetCorePublic-Pool
+      queue: buildpool.server.amd64.vs2017.open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -77,7 +78,8 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
-      name: Hosted VS2017
+      name:  NetCorePublic-Pool
+      queue: buildpool.server.amd64.vs2017.open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -97,7 +99,8 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
-      name: Hosted VS2017
+      name:  NetCorePublic-Pool
+      queue: buildpool.server.amd64.vs2017.open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -107,4 +110,5 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
-      name: Hosted VS2017
+      name:  NetCorePublic-Pool
+      queue: buildpool.server.amd64.vs2017.open
