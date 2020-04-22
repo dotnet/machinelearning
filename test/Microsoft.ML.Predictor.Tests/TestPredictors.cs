@@ -277,7 +277,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {

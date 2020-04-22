@@ -1,0 +1,29 @@
+#@ TextLoader{
+#@   sep=tab
+#@   col=VendorId:TX:0
+#@   col=RateCode:R4:1
+#@   col=PassengerCount:R4:2
+#@   col=PassengerCount:R4:3
+#@   col=TripTime:R4:4
+#@   col=TripTime:R4:5
+#@   col=TripDistance:R4:6
+#@   col=TripDistance:R4:7
+#@   col=PaymentType:TX:8
+#@   col=FareAmount:R4:9
+#@   col=Label:R4:10
+#@   col=VendorIdEncoded:U4[1]:11
+#@   col=VendorIdEncoded:R4:12-12
+#@   col=RateCodeEncoded:U4[2]:13
+#@   col=RateCodeEncoded:R4:14-15
+#@   col=PaymentTypeEncoded:U4[3]:16
+#@   col=PaymentTypeEncoded:R4:17-19
+#@   col=Features:R4:20-28
+#@   col=FeatureContributions:R4:29-37
+#@   col=FeatureContributions:R4:38-46
+#@   col=FeatureContributions:R4:47-55
+#@   col=FeatureContributions:R4:56-64
+#@ }
+CMT	1	1	0.7088812	1271	1.64874518	3.8	1.0118916	CRD	17.5	17.5	0	1	0	1	0	0	1	0	0	1	1	0	1	0	0	0.7088812	1.64874518	1.0118916	36	4:0.107879594	7:0.725665748	8:1	15:-1	24:-0.0418495	26:1	33:-0.370121539	35:8.844109
+CMT	1	1	0.7088812	474	0.6148743	1.5	0.3994309	CRD	8	8	0	1	0	1	0	0	1	0	0	1	1	0	1	0	0	0.7088812	0.6148743	0.3994309	36	4:1	15:-0.0364986733	16:-0.847436965	17:-1	22:0.011381451	26:-1	31:0.115415707	35:-10.1406841
+CMT	1	1	0.7088812	637	0.8263184	1.4	0.372802168	CRD	8.5	8.5	0	1	0	1	0	0	1	0	0	1	1	0	1	0	0	0.7088812	0.8263184	0.372802168	36	4:1	15:-0.0366709046	16:-0.5593253	17:-1	22:0.0182117485	26:-1	31:0.183812216	35:-10.0930576
+CMT	1	1	0.7088812	181	0.234793767	0.6	0.159772366	CSH	4.5	4.5	0	1	0	1	0	1	0	1	0	1	1	0	0	1	0	0.7088812	0.234793767	0.159772366	36	6:1	13:-0.293414325	16:-0.7202999	17:-1	24:0.0291313324	26:-1	33:0.33991462	35:-11.6683512
