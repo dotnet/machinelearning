@@ -1,0 +1,4 @@
+LdSvm
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/bias	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.984121	0.961933	0.934694	0.958159	0.977169	0.963964	0.188051	0.798662	0.946281	0.97544	-	1000	LdSvm	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LdSvm{iter=1000 bias=-} dout=%Output% data=%Data% out=%Output% seed=1	/bias:-;/iter:1000	
+

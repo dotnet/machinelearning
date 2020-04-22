@@ -1,0 +1,61 @@
+maml.exe TrainTest test=%Data% tr=WeightedEnsembleMulticlass{bp=mlr{t-} nm=5 oc=MultiVoting tp=-} dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Training 5 learners for the batch 1
+Beginning training model 1 of 5
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 1 of 5 finished in %Time%
+Beginning training model 2 of 5
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 13 of 15 weights.
+Trainer 2 of 5 finished in %Time%
+Beginning training model 3 of 5
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 3 of 5 finished in %Time%
+Beginning training model 4 of 5
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 10 of 15 weights.
+Trainer 4 of 5 finished in %Time%
+Beginning training model 5 of 5
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 5 of 5 finished in %Time%
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    44 |     6 | 0.8800
+        2 ||     0 |     2 |    48 | 0.9600
+          ||========================
+Precision ||1.0000 |0.9565 |0.8889 |
+Accuracy(micro-avg): 0.946667
+Accuracy(macro-avg): 0.946667
+Log-loss:           0.511576
+Log-loss reduction: 0.534344
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.946667 (0.0000)
+Accuracy(macro-avg): 0.946667 (0.0000)
+Log-loss:           0.511576 (0.0000)
+Log-loss reduction: 0.534344 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

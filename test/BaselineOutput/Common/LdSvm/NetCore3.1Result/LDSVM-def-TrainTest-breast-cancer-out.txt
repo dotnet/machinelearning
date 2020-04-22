@@ -1,0 +1,38 @@
+maml.exe TrainTest test=%Data% tr=LdSvm{iter=1000} dout=%Output% data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 16 rows with missing feature/label values
+Training calibrator.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      232 |        7 | 0.9707
+ negative ||       11 |      433 | 0.9752
+          ||======================
+Precision ||   0.9547 |   0.9841 |
+OVERALL 0/1 ACCURACY: 0.973646
+LOG LOSS/instance:  0.111359
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 0.880772
+AUC:                0.996136
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.996136 (0.0000)
+Accuracy:           0.973646 (0.0000)
+Positive precision: 0.954733 (0.0000)
+Positive recall:    0.970711 (0.0000)
+Negative precision: 0.984091 (0.0000)
+Negative recall:    0.975225 (0.0000)
+Log-loss:           0.111359 (0.0000)
+Log-loss reduction: 0.880772 (0.0000)
+F1 Score:           0.962656 (0.0000)
+AUPRC:              0.992151 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

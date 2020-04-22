@@ -1,0 +1,151 @@
+maml.exe TrainTest test=%Data% tr=WeightedEnsembleMulticlass{bp=mlr{t-} nm=20 st=BootstrapSelector{} tp=-} dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Training 20 learners for the batch 1
+Beginning training model 1 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 1 of 20 finished in %Time%
+Beginning training model 2 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 13 of 15 weights.
+Trainer 2 of 20 finished in %Time%
+Beginning training model 3 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 3 of 20 finished in %Time%
+Beginning training model 4 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 10 of 15 weights.
+Trainer 4 of 20 finished in %Time%
+Beginning training model 5 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 5 of 20 finished in %Time%
+Beginning training model 6 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 6 of 20 finished in %Time%
+Beginning training model 7 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 7 of 20 finished in %Time%
+Beginning training model 8 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 8 of 20 finished in %Time%
+Beginning training model 9 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 9 of 20 finished in %Time%
+Beginning training model 10 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 10 of 20 finished in %Time%
+Beginning training model 11 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 11 of 20 finished in %Time%
+Beginning training model 12 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 12 of 20 finished in %Time%
+Beginning training model 13 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 13 of 20 finished in %Time%
+Beginning training model 14 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 14 of 20 finished in %Time%
+Beginning training model 15 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 15 of 20 finished in %Time%
+Beginning training model 16 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 16 of 20 finished in %Time%
+Beginning training model 17 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 17 of 20 finished in %Time%
+Beginning training model 18 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Trainer 18 of 20 finished in %Time%
+Beginning training model 19 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 19 of 20 finished in %Time%
+Beginning training model 20 of 20
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 12 of 15 weights.
+Trainer 20 of 20 finished in %Time%
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    45 |     5 | 0.9000
+        2 ||     0 |     4 |    46 | 0.9200
+          ||========================
+Precision ||1.0000 |0.9184 |0.9020 |
+Accuracy(micro-avg): 0.940000
+Accuracy(macro-avg): 0.940000
+Log-loss:           0.435480
+Log-loss reduction: 0.603609
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.940000 (0.0000)
+Accuracy(macro-avg): 0.940000 (0.0000)
+Log-loss:           0.435480 (0.0000)
+Log-loss reduction: 0.603609 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

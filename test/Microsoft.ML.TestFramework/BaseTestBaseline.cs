@@ -25,6 +25,7 @@ namespace Microsoft.ML.RunTests
     public abstract partial class BaseTestBaseline : BaseTestClass
     {
         public const int DigitsOfPrecision = 7;
+        public const string NetCore31ResultFolder = "NetCore3.1Result";
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
@@ -338,6 +339,22 @@ namespace Microsoft.ML.RunTests
             string basePath = GetBaselinePath(dir, nameBase);
             string outPath = GetOutputPath(dir, name);
 
+#if NETCOREAPP3_1
+            // Use netcore 3.1 result file if necessary.
+            // The small difference comes from CPUMath using different instruction set:
+            // 1. net framework and net core 2.1 uses CpuMathUtils.netstandard that uses SSE instruction set;
+            // 2. net core 3.1 uses CpuMathUtils.netcoreapp that uses AVX, SSE or direct floating point calculation
+            // depending on hardward avaibility.
+            // AVX and SSE generates slightly different result due to nature of floating point math.
+            // Use below issue to track: https://github.com/dotnet/machinelearning/issues/5044
+            string netCore31Dir = Path.Combine(dir, NetCore31ResultFolder);
+            string netCore31BasePath = GetBaselinePath(netCore31Dir, nameBase);
+            if (File.Exists(netCore31BasePath))
+            {
+                basePath = netCore31BasePath;
+            }
+#endif
+
             if (!CheckOutFile(outPath))
                 return false;
 
@@ -347,6 +364,7 @@ namespace Microsoft.ML.RunTests
 
             if (!CheckBaseFile(basePath))
                 return false;
+
 
             bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
 

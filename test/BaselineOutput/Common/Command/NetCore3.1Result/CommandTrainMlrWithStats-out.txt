@@ -1,0 +1,15 @@
+maml.exe Train tr=MultiClassLogisticRegression{maxiter=100 t=- stat=+} loader=TextLoader{col=Label:TX:4 col=Features:R4:0-3 sep=,} data=%Data% out=%Output% seed=1 xf=Term{col=Label}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 10 of 15 weights.
+Model trained with 150 training examples.
+Residual Deviance: 	132.4371
+Null Deviance:    	329.58368
+AIC:              	152.4371
+Not training a calibrator because it is not needed.
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
