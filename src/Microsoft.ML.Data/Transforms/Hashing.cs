@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms
         private readonly HashingEstimator.ColumnOptionsInternal[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorDataViewType[] _kvTypes;
-        private readonly uint _version = 0x00010003;
+        private readonly uint _version;
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
@@ -170,6 +170,7 @@ namespace Microsoft.ML.Transforms
               base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
+            _version = 0x00010003;
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
@@ -181,6 +182,7 @@ namespace Microsoft.ML.Transforms
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
+            _version = 0x00010003;
             var types = new DataViewType[_columns.Length];
             List<int> invertIinfos = null;
             List<int> invertHashMaxCounts = null;
