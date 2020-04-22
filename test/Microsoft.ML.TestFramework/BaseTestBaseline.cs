@@ -125,6 +125,16 @@ namespace Microsoft.ML.RunTests
             // at different configuration folders.
             var configurationDirs = new List<string>();
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                configurationDirs.Add("osx-x64");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                configurationDirs.Add("linux-x64");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (Environment.Is64BitProcess)
+                    configurationDirs.Add("win-x64");
+                else
+                    configurationDirs.Add("win-x86");
+
             // Use netcore 3.1 result file if necessary.
             // The small difference comes from CPUMath using different instruction set:
             // 1. net framework and net core 2.1 uses CpuMathUtils.netstandard that uses SSE instruction set;
@@ -136,34 +146,6 @@ namespace Microsoft.ML.RunTests
             // don't need netcoreapp21 as this is the default case
             if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
                 configurationDirs.Add("netcoreapp31");
-
-            // don't need x64 as this is the default case
-            if (!Environment.Is64BitProcess)
-                configurationDirs.Add("x86");
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                configurationDirs.Add("osx-x64");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                configurationDirs.Add("linux-x64");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                if (Environment.Is64BitProcess)
-                {
-                    configurationDirs.Add("win-x64");
-
-                    if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-                        configurationDirs.Add($"win-x64-netcoreapp31");
-                    else
-                        configurationDirs.Add($"win-x64-netcoreapp21");
-                }
-                else
-                {
-                    configurationDirs.Add("win-x86");
-
-                    if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-                        configurationDirs.Add($"win-x86-netcoreapp31");
-                    else
-                        configurationDirs.Add($"win-x86-netcoreapp21");
-                }
 
             return configurationDirs;
         }
