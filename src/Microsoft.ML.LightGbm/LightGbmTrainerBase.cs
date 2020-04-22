@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -124,7 +125,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// </value>
             [Argument(ArgumentType.Multiple,
                         HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.",
-                        Name="Booster",
+                        Name = "Booster",
                         SortOrder = 3)]
             internal IBoosterParameterFactory BoosterFactory = new GradientBooster.Options();
 
@@ -285,6 +286,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             public int[] OnehotIndices;
             public int[] OnehotBias;
             public bool[] IsCategoricalFeature;
+            public int[] CatIndices;
         }
 
         // Contains the passed in options when the API is called
@@ -317,16 +319,16 @@ namespace Microsoft.ML.Trainers.LightGbm
             double? learningRate,
             int numberOfIterations)
             : this(env, name, new TOptions()
-                  {
-                    NumberOfLeaves = numberOfLeaves,
-                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
-                    LearningRate = learningRate,
-                    NumberOfIterations = numberOfIterations,
-                    LabelColumnName = labelColumn.Name,
-                    FeatureColumnName = featureColumnName,
-                    ExampleWeightColumnName = exampleWeightColumnName,
-                    RowGroupColumnName = rowGroupColumnName
-                  },
+            {
+                NumberOfLeaves = numberOfLeaves,
+                MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                LearningRate = learningRate,
+                NumberOfIterations = numberOfIterations,
+                LabelColumnName = labelColumn.Name,
+                FeatureColumnName = featureColumnName,
+                ExampleWeightColumnName = exampleWeightColumnName,
+                RowGroupColumnName = rowGroupColumnName
+            },
                   labelColumn)
         {
         }
@@ -384,7 +386,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             return CreatePredictor();
         }
 
-        private protected virtual void InitializeBeforeTraining(){}
+        private protected virtual void InitializeBeforeTraining() { }
 
         private void InitParallelTraining()
         {
@@ -522,6 +524,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                     ++j;
                 }
             }
+            catMetaData.CatIndices = catIndices.Select(int.Parse).ToArray();
             return catIndices;
         }
 
@@ -761,7 +764,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                             }
                         }
                         // All-Zero is category 0.
-                        fv = hotIdx - catMetaData.CategoricalBoudaries[i] + 1;
+                        fv = hotIdx - catMetaData.CategoricalBoudaries[i];
                     }
                     featureValuesTemp[i] = fv;
                 }
@@ -781,8 +784,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             var cursorFeaturesIndices = cursor.Features.GetIndices();
             if (catMetaData.CategoricalBoudaries != null)
             {
-                List<int> featureIndices = new List<int>();
-                List<float> values = new List<float>();
+                Dictionary<int, float> ivPair = new Dictionary<int, float>();
+                foreach (var idx in catMetaData.CatIndices)
+                    ivPair[idx] = -1;
                 int lastIdx = -1;
                 int nhot = 0;
                 for (int i = 0; i < cursorFeaturesValues.Length; ++i)
@@ -791,11 +795,10 @@ namespace Microsoft.ML.Trainers.LightGbm
                     int colIdx = cursorFeaturesIndices[i];
                     int newColIdx = catMetaData.OnehotIndices[colIdx];
                     if (catMetaData.IsCategoricalFeature[newColIdx])
-                        fv = catMetaData.OnehotBias[colIdx] + 1;
+                        fv = catMetaData.OnehotBias[colIdx];
                     if (newColIdx != lastIdx)
                     {
-                        featureIndices.Add(newColIdx);
-                        values.Add(fv);
+                        ivPair[newColIdx] = fv;
                         nhot = 1;
                     }
                     else
@@ -804,13 +807,14 @@ namespace Microsoft.ML.Trainers.LightGbm
                         ++nhot;
                         var prob = rand.NextSingle();
                         if (prob < 1.0f / nhot)
-                            values[values.Count - 1] = fv;
+                            ivPair[newColIdx] = fv;
                     }
                     lastIdx = newColIdx;
                 }
-                indices = featureIndices.ToArray();
-                featureValues = values.ToArray();
-                cnt = featureIndices.Count;
+                var sortedIVPair = new SortedDictionary<int, float>(ivPair);
+                indices = sortedIVPair.Keys.ToArray();
+                featureValues = sortedIVPair.Values.ToArray();
+                cnt = ivPair.Count;
             }
             else
             {
