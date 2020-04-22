@@ -210,7 +210,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         /// <param name="env">The exception context.</param>
         /// <param name="trainSize">The length of series from the beginning used for training (parameter N).
-        ///  Must be at least twice the windowSize.!-- </param>
+        /// Must be at least twice the windowSize.</param>
         /// <param name="seriesLength">This parameter must be greater than windowSize</param>
         /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).
         ///  We recommend you set this to be more than twice the maximum seasonality in the data. For example, 
