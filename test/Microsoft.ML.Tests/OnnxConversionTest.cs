@@ -1148,26 +1148,29 @@ namespace Microsoft.ML.Tests
 
         private class HashData
         {
-            public ReadOnlyMemory<char> Education { get; set; }
+            public uint Data { get; set; }
         }
 
         [Fact]
-        public void MurmurHashStringTest()
+        public void MurmurHashKeyTest()
         {
             var mlContext = new MLContext();
 
             var samples = new[]
             {
-                new HashData {Education = "alibaba".AsMemory()},
-                new HashData {Education = "ba ba".AsMemory()},
-                new HashData {Education = "U+123".AsMemory()},
-                new HashData {Education = "djldaoiejffjauhglehdlgh".AsMemory()},
-                new HashData {Education = "~".AsMemory()},
+                new HashData {Data = 232},
+                new HashData {Data = 42},
             };
 
             IDataView data = mlContext.Data.LoadFromEnumerable(samples);
 
-            var hashEstimator = new HashingEstimator(Env, "Education");
+            var hashEstimator = mlContext.Transforms.Conversion.MapValueToKey("Data").Append(mlContext.Transforms.Conversion.Hash(new[]
+            {
+                new HashingEstimator.ColumnOptions(
+                    "DataHashed",
+                    "Data",
+                    16)
+            }));
             var model = hashEstimator.Fit(data);
             var transformedData = model.Transform(data);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
@@ -1179,7 +1182,7 @@ namespace Microsoft.ML.Tests
 
             SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
@@ -1187,15 +1190,15 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedColumns<uint>("Education", "Education", transformedData, onnxResult);
+                CompareSelectedColumns<uint>("DataHashed", "DataHashed", transformedData, onnxResult);
             }
             Done();
         }
 
         [Theory]
         [CombinatorialData]
-        public void MurmurHashUIntTest(
-            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Byte, DataKind.UInt16, DataKind.UInt32)] DataKind type,
+        public void MurmurHashTest(
+            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.String)] DataKind type,
             bool useOrderedHashing,
             [CombinatorialValues(1, 5, 31)] int numberOfBits)
         {
@@ -1232,7 +1235,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareResults("Education", "Education", transformedData, onnxResult);
+                CompareSelectedColumns<uint>("Education", "Education", transformedData, onnxResult);
             }
             Done();
         }

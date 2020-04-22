@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.ML.Runtime;

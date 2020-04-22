@@ -123,8 +123,8 @@ namespace Microsoft.ML.Transforms
             return new VersionInfo(
                 modelSignature: "HASHTRNS",
                 // verWrittenCur: 0x00010001, // Initial
-                //verWrittenCur: 0x00010002, // Invert hash key values, hash fix
-                verWrittenCur: 0x00010003,
+                // verWrittenCur: 0x00010002, // Invert hash key values, hash fix
+                verWrittenCur: 0x00010003, // Uses MurmurHash3_x86_32
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms
         private readonly HashingEstimator.ColumnOptionsInternal[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorDataViewType[] _kvTypes;
-        private readonly bool _isMurmurHashV2 = true;
+        private readonly uint _version = 0x00010003;
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms
             disposer = null;
             input.Schema.TryGetColumnIndex(_columns[iinfo].InputColumnName, out int srcCol);
             var srcType = input.Schema[srcCol].Type;
-            if (!_isMurmurHashV2)
+            if (_version == 0x00010002)
             {
                 if (!(srcType is VectorDataViewType vectorType))
                     return ComposeGetterOne(input, iinfo, srcCol, srcType);
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Transforms
         {
             var columnsLength = ColumnPairs.Length;
             _columns = new HashingEstimator.ColumnOptionsInternal[columnsLength];
-            _isMurmurHashV2 = ctx.Header.ModelVerWritten >= 0x00010003;
+            _version = ctx.Header.ModelVerWritten;
             for (int i = 0; i < columnsLength; i++)
                 _columns[i] = new HashingEstimator.ColumnOptionsInternal(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
             TextModelHelper.LoadAll(Host, ctx, columnsLength, out _keyValues, out _kvTypes);
@@ -1146,15 +1146,36 @@ namespace Microsoft.ML.Transforms
 
                 // masking is done via bitshifts, until bitwise AND is supported by Onnxruntime
                 opType = "BitShift";
-                string bitShiftOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "bitShiftOutput");
+                string bitShiftOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "BitShiftOutput");
                 var shiftValue = ctx.AddInitializer((ulong)(32 - _parent._columns[iinfo].NumberOfBits), false);
                 var shiftNode = ctx.CreateNode(opType, new[] { murmurOutput, shiftValue }, new[] { bitShiftOutput }, ctx.GetNodeName(opType), "");
                 shiftNode.AddAttribute("direction", "LEFT");
 
                 opType = "BitShift";
-                shiftNode = ctx.CreateNode(opType, new[] { bitShiftOutput, shiftValue }, new[] { dstVariable }, ctx.GetNodeName(opType), "");
+                var outputVariable = dstVariable;
+                if(_srcTypes[iinfo].GetItemType() is KeyDataViewType)
+                    outputVariable = ctx.AddIntermediateVariable(_dstTypes[iinfo], "BitShiftOutput2");
+                shiftNode = ctx.CreateNode(opType, new[] { bitShiftOutput, shiftValue }, new[] { outputVariable }, ctx.GetNodeName(opType), "");
                 shiftNode.AddAttribute("direction", "RIGHT");
 
+                if (_srcTypes[iinfo].GetItemType() is KeyDataViewType)
+                {
+                    opType = "Cast";
+                    string castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastOutput2");
+                    var castNode = ctx.CreateNode(opType, outputVariable, castOutput, ctx.GetNodeName(opType), "");
+                    var t = NumberDataViewType.Int64.RawType;
+                    castNode.AddAttribute("to", t);
+
+                    opType = "Add";
+                    string addOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "AddOutput");
+                    string one = ctx.AddInitializer(1);
+                    ctx.CreateNode(opType, new[] { castOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
+
+                    opType = "Cast";
+                    var castNodeFinal = ctx.CreateNode(opType, addOutput, dstVariable, ctx.GetNodeName(opType), "");
+                    var tFinal = NumberDataViewType.UInt32.RawType;
+                    castNodeFinal.AddAttribute("to", tFinal);
+                }
                 return true;
             }
 
@@ -1163,15 +1184,15 @@ namespace Microsoft.ML.Transforms
                 Host.CheckValue(ctx, nameof(ctx));
                 for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
-                    var colName = _parent._columns[iinfo].Name;
-                    string inputColumnName = InputSchema[colName].Name;
+                    var info = _parent.ColumnPairs[iinfo];
+                    string inputColumnName = info.inputColumnName;
                     if (!ctx.ContainsColumn(inputColumnName))
                     {
                         ctx.RemoveColumn(inputColumnName, false);
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_dstTypes[iinfo], inputColumnName)))
+                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_dstTypes[iinfo], info.outputColumnName)))
                     {
                         ctx.RemoveColumn(inputColumnName, true);
                     }
