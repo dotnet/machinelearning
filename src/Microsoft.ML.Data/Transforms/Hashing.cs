@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms
         private readonly HashingEstimator.ColumnOptionsInternal[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorDataViewType[] _kvTypes;
-        private readonly bool _isMurmurHashV2;
+        private readonly bool _isMurmurHashV2 = true;
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {

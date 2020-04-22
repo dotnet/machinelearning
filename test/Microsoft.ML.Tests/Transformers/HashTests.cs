@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -220,7 +221,7 @@ namespace Microsoft.ML.Tests.Transformers
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort), ushort.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= uint.MaxValue)
             {
@@ -256,7 +257,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestHashString()
         {
             HashTestCore("".AsMemory(), TextDataViewType.Instance, 0, 0, 0);
-            HashTestCore("hello".AsMemory(), TextDataViewType.Instance,939, 950,856);
+            HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 939, 950, 856);
         }
 
         [Fact]
@@ -277,6 +278,40 @@ namespace Microsoft.ML.Tests.Transformers
             // These are the same for the hashes of 0 and 1.
             HashTestCore(false, BooleanDataViewType.Instance, 841, 357, 19);
             HashTestCore(true, BooleanDataViewType.Instance, 501, 536, 745);
+        }
+
+        private class HashData
+        {
+            public ReadOnlyMemory<char> Foo { get; set; }
+        }
+
+        [Fact]
+        public void TestHashBackCompatability()
+        {
+            var mlContext = new MLContext();
+
+            var samples = new[]
+            {
+                new HashData {Foo = "alibaba".AsMemory()},
+                new HashData {Foo = "ba ba".AsMemory()},
+            };
+
+            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
+
+            var modelPath = GetDataPath("backcompat", "MurmurHashV1.zip");
+            var estimator = ML.Model.Load(modelPath, out var schema);
+
+            var outputPath = GetOutputPath("Text", "murmurHash.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                using (var fs = File.Create(outputPath))
+                {
+                    var transformedData = estimator.Transform(data);
+                    DataSaverUtils.SaveDataView(ch, saver, transformedData, fs, keepHidden: true);
+                }
+            }
+            CheckEquality("Text", "murmurHash.tsv");
         }
     }
 }
