@@ -74,7 +74,7 @@ namespace Microsoft.ML.RunTests
         // Full paths to the baseline directories.
         private string _baselineCommonDir;
         private string _baselineBuildStringDir;
-        private string _baselineConfigDir;
+        private IEnumerable<string> _baselineConfigDirs;
 
         // The writer to write to test log files.
         protected TestLogger TestLogger;
@@ -95,7 +95,7 @@ namespace Microsoft.ML.RunTests
 
             _baselineCommonDir = Path.Combine(baselineRootDir, "Common");
             _baselineBuildStringDir = Path.Combine(baselineRootDir, BuildString);
-            _baselineConfigDir = GetConfigurationDir();
+            _baselineConfigDirs = GetConfigurationDirs();
 
             string logDir = Path.Combine(OutDir, _logRootRelPath);
             Directory.CreateDirectory(logDir);
@@ -111,9 +111,29 @@ namespace Microsoft.ML.RunTests
             ML.AddStandardComponents();
         }
 
-        private string GetConfigurationDir()
+        private IEnumerable<string> GetConfigurationDirs()
         {
-#if NETCOREAPP3_1
+            // Sometimes different configuration will have combination.
+            // for example: one test can run on windows, have different result both
+            // on x64 vs x86 and dotnet core 3.1 vs others, so we have 4 combination:
+            // x64-netcore3.1, x86-netcore3.1, x64-rest, x86-rest. In some cases x64 vs x86
+            // have different results, in some cases netcore 3.1 vs rest have different results,
+            // the most complicate situation is these 4 combination have different results.
+            // So use list of string to return different configurations and test will try to search
+            // through this list and use the one first found, make sure we don't have baseline file
+            // at different configuration folders.
+            var configurationDirs = new List<string>();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                configurationDirs.Add("osx-x64");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                configurationDirs.Add("linux-x64");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (Environment.Is64BitProcess)
+                    configurationDirs.Add("win-x64");
+                else
+                    configurationDirs.Add("win-x86");
+
             // Use netcore 3.1 result file if necessary.
             // The small difference comes from CPUMath using different instruction set:
             // 1. net framework and net core 2.1 uses CpuMathUtils.netstandard that uses SSE instruction set;
@@ -122,24 +142,10 @@ namespace Microsoft.ML.RunTests
             // AVX and SSE generates slightly different result due to nature of floating point math.
             // So Ideally we should adding AVX support at CPUMath native library, 
             // use below issue to track: https://github.com/dotnet/machinelearning/issues/5044
-            return "NetCore3.1Result";
-#else
+            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+                configurationDirs.Add("NetCore3.1Result");
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return "osx-x64";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return "linux-x64";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                if (Environment.Is64BitProcess)
-                    return "win-x64";
-                else
-                    return "win-x86";
-
-            // We can add other configuration specific strings here for 
-            // tests that need configuration specific baselines
-
-            throw new NotSupportedException("Unknown configuration");
-#endif
+            return configurationDirs;
         }
 
         private void LogTestOutput(object sender, LoggingEventArgs e)
@@ -244,11 +250,15 @@ namespace Microsoft.ML.RunTests
             Contracts.Assert(IsActive);
             subDir = subDir ?? string.Empty;
 
-            // first check if a platform specific baseline exists
             string baselinePath;
-            baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, _baselineConfigDir, name));
-            if (File.Exists(baselinePath))
-                return baselinePath;
+
+            // first check if a platform specific baseline exists
+            foreach (var baselineCOnfigDir in _baselineConfigDirs)
+            {
+                baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, baselineCOnfigDir, name));
+                if (File.Exists(baselinePath))
+                    return baselinePath;
+            }
 
             // then check the common folder without a platform dir, and use it if it exists
             baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, name));
@@ -256,9 +266,12 @@ namespace Microsoft.ML.RunTests
                 return baselinePath;
 
             // check again for a platform specific dir
-            baselinePath = Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, _baselineConfigDir, name));
-            if (File.Exists(baselinePath))
-                return baselinePath;
+            foreach (var baselineCOnfigDir in _baselineConfigDirs)
+            {
+                baselinePath = Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, baselineCOnfigDir, name));
+                if (File.Exists(baselinePath))
+                    return baselinePath;
+            }
 
             return Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, name));
         }
