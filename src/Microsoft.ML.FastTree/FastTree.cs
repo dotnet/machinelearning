@@ -979,25 +979,6 @@ namespace Microsoft.ML.Trainers.FastTree
             return conv;
         }
 
-#if !CORECLR
-        private protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> content)
-        {
-            // The existing implementations will have verified this by the time this utility
-            // function is called.
-            Host.AssertValue(data);
-            var feat = data.Schema.Feature;
-            Host.AssertValue(feat);
-            Host.Assert(feat.Type.ValueCount > 0);
-
-            var sch = data.Schema.Schema;
-            var type = sch.GetMetadataTypeOrNull(BingBinLoader.IniContentMetadataKind, feat.Index);
-            if (type == null || type.VectorSize != feat.Type.ValueCount || !type.IsVector || !type.ItemType.IsText)
-                content = new VBuffer<ReadOnlyMemory<char>>(feat.Type.ValueCount, 0, content.Values, content.Indices);
-            else
-                sch.GetMetadata(BingBinLoader.IniContentMetadataKind, feat.Index, ref content);
-        }
-#endif
-
         public abstract Dataset GetDataset();
 
         /// <summary>

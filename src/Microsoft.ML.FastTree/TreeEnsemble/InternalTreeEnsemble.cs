@@ -447,15 +447,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 sch[feat.Index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
-#if !CORECLR
-            var type = sch.GetMetadataTypeOrNull(BingBinLoader.IniContentMetadataKind, feat.Index);
-            if (type != null && type.IsVector && type.VectorSize == feat.Type.ValueCount && type.ItemType.IsText)
-                sch.GetMetadata(BingBinLoader.IniContentMetadataKind, feat.Index, ref _content);
-            else
-                _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
-#else
             _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
-#endif
             Contracts.Assert(_names.Length == _content.Length);
         }
 
