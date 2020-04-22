@@ -118,21 +118,12 @@ namespace Microsoft.ML.RunTests
             // on x64 vs x86 and dotnet core 3.1 vs others, so we have 4 combination:
             // x64-netcore3.1, x86-netcore3.1, x64-rest, x86-rest. In some cases x64 vs x86
             // have different results, in some cases netcore 3.1 vs rest have different results,
-            // the most complicate situation is these 4 combination have different results.
+            // the most complicate situation is 12 combinations (x64 vs x86, netcoreapp3.1 vs rest,
+            // win vs linux vs osx) have different results.
             // So use list of string to return different configurations and test will try to search
-            // through this list and use the one first found, make sure we don't have baseline file
+            // through this list and use the one file first found, make sure we don't have baseline file
             // at different configuration folders.
             var configurationDirs = new List<string>();
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                configurationDirs.Add("osx-x64");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                configurationDirs.Add("linux-x64");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                if (Environment.Is64BitProcess)
-                    configurationDirs.Add("win-x64");
-                else
-                    configurationDirs.Add("win-x86");
 
             // Use netcore 3.1 result file if necessary.
             // The small difference comes from CPUMath using different instruction set:
@@ -142,10 +133,72 @@ namespace Microsoft.ML.RunTests
             // AVX and SSE generates slightly different result due to nature of floating point math.
             // So Ideally we should adding AVX support at CPUMath native library, 
             // use below issue to track: https://github.com/dotnet/machinelearning/issues/5044
+            // don't need netcoreapp21 as this is the default case
             if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-                configurationDirs.Add("NetCore3.1Result");
+                configurationDirs.Add("netcoreapp31");
+
+            // don't need x64 as this is the default case
+            if (!Environment.Is64BitProcess)
+                configurationDirs.Add("x86");
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                configurationDirs.Add("osx-x64");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                configurationDirs.Add("linux-x64");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (Environment.Is64BitProcess)
+                {
+                    configurationDirs.Add("win-x64");
+
+                    if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+                        configurationDirs.Add($"win-x64-netcoreapp31");
+                    else
+                        configurationDirs.Add($"win-x64-netcoreapp21");
+                }
+                else
+                {
+                    configurationDirs.Add("win-x86");
+
+                    if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+                        configurationDirs.Add($"win-x86-netcoreapp31");
+                    else
+                        configurationDirs.Add($"win-x86-netcoreapp21");
+                }
 
             return configurationDirs;
+        }
+
+        private static void GenerateArchConfiguration(List<string> configurationDirs, string os = "")
+        {
+            GenerateNetcoreAppConfiguration(configurationDirs, "", os);
+
+            if (Environment.Is64BitProcess)
+            {
+                GenerateNetcoreAppConfiguration(configurationDirs, "x64", os);
+            }
+            else
+            {
+                GenerateNetcoreAppConfiguration(configurationDirs, "x86", os);
+            }
+        }
+
+        private static void GenerateNetcoreAppConfiguration(
+            List<string> configurationDirs, string arch, string os = "")
+        {
+            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+            {
+                if (string.IsNullOrEmpty(os))
+                    configurationDirs.Add($"{arch}-netcoreapp31");
+                else
+                    configurationDirs.Add($"{os}-{arch}-netcoreapp31");
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(os))
+                    configurationDirs.Add($"{arch}-netcoreapp21");
+                else
+                    configurationDirs.Add($"{os}-{arch}-netcoreapp21");
+            }
         }
 
         private void LogTestOutput(object sender, LoggingEventArgs e)
