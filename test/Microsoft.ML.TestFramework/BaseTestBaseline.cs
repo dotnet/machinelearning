@@ -168,39 +168,6 @@ namespace Microsoft.ML.RunTests
             return configurationDirs;
         }
 
-        private static void GenerateArchConfiguration(List<string> configurationDirs, string os = "")
-        {
-            GenerateNetcoreAppConfiguration(configurationDirs, "", os);
-
-            if (Environment.Is64BitProcess)
-            {
-                GenerateNetcoreAppConfiguration(configurationDirs, "x64", os);
-            }
-            else
-            {
-                GenerateNetcoreAppConfiguration(configurationDirs, "x86", os);
-            }
-        }
-
-        private static void GenerateNetcoreAppConfiguration(
-            List<string> configurationDirs, string arch, string os = "")
-        {
-            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-            {
-                if (string.IsNullOrEmpty(os))
-                    configurationDirs.Add($"{arch}-netcoreapp31");
-                else
-                    configurationDirs.Add($"{os}-{arch}-netcoreapp31");
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(os))
-                    configurationDirs.Add($"{arch}-netcoreapp21");
-                else
-                    configurationDirs.Add($"{os}-{arch}-netcoreapp21");
-            }
-        }
-
         private void LogTestOutput(object sender, LoggingEventArgs e)
         {
             if (e.Kind >= MessageKindToLog)
