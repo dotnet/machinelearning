@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -73,6 +74,7 @@ namespace Microsoft.ML.RunTests
         // Full paths to the baseline directories.
         private string _baselineCommonDir;
         private string _baselineBuildStringDir;
+        private string _baselineConfigDir;
 
         // The writer to write to test log files.
         protected TestLogger TestLogger;
@@ -93,6 +95,7 @@ namespace Microsoft.ML.RunTests
 
             _baselineCommonDir = Path.Combine(baselineRootDir, "Common");
             _baselineBuildStringDir = Path.Combine(baselineRootDir, BuildString);
+            _baselineConfigDir = GetConfigurationDir();
 
             string logDir = Path.Combine(OutDir, _logRootRelPath);
             Directory.CreateDirectory(logDir);
@@ -106,6 +109,24 @@ namespace Microsoft.ML.RunTests
             ML = new MLContext(42);
             ML.Log += LogTestOutput;
             ML.AddStandardComponents();
+        }
+
+        private string GetConfigurationDir()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return "osx-x64";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return "linux-x64";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (Environment.Is64BitProcess)
+                    return "win-x64";
+                else
+                    return "win-x86";
+
+            // We can add other configuration specific strings here for 
+            // tests that need configuration specific baselines
+
+            throw new NotSupportedException("Unknown configuration");
         }
 
         private void LogTestOutput(object sender, LoggingEventArgs e)
@@ -210,12 +231,21 @@ namespace Microsoft.ML.RunTests
             Contracts.Assert(IsActive);
             subDir = subDir ?? string.Empty;
 
-            // first check the Common folder, and use it if it exists
-            string commonBaselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, name));
-            if (File.Exists(commonBaselinePath))
-            {
-                return commonBaselinePath;
-            }
+            // first check if a platform specific baseline exists
+            string baselinePath;
+            baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, _baselineConfigDir, name));
+            if (File.Exists(baselinePath))
+                return baselinePath;
+
+            // then check the common folder without a platform dir, and use it if it exists
+            baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, name));
+            if (File.Exists(baselinePath))
+                return baselinePath;
+
+            // check again for a platform specific dir
+            baselinePath = Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, _baselineConfigDir, name));
+            if (File.Exists(baselinePath))
+                return baselinePath;
 
             return Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, name));
         }
@@ -429,6 +459,8 @@ namespace Microsoft.ML.RunTests
             int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
             Contracts.Assert(skip >= 0);
+
+            Output.WriteLine($"Comparing {outPath} and {basePath}");
 
             using (StreamReader baseline = OpenReader(basePath))
             using (StreamReader result = OpenReader(outPath))
