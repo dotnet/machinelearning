@@ -49,7 +49,8 @@
     <NativeOutputPath>$(BaseOutputPath)$(NativeTargetArchitecture).$(Configuration)\Native\</NativeOutputPath>
 
     <!-- Input Directories -->
-    <PackagesDir>$(DotNetRestorePackagesPath)</PackagesDir>
+    <DotNetRestoorePackagesPath>z:/packageshare/</DotNetRestoorePackagesPath>
+    <PackagesDir>$(DotNetRestoorePackagesPath)</PackagesDir>
     <PackagesDir Condition="'$(PackagesDir)'==''">$(RepoRoot)packages/</PackagesDir>
     <RestorePackagesPath>$(PackagesDir)</RestorePackagesPath>
     <ToolsDir Condition="'$(ToolsDir)'==''">$(RepoRoot)Tools/</ToolsDir>

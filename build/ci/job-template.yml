@@ -49,32 +49,32 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
+    # - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
+    #   - task: Bash@3
+    #     inputs:
+    #       targetType: inline
+    #       script: cd packages;find . -type d -path "*/runtimes/linux-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
+    #     displayName: mount shared disk from azure for nuget packages
+    # - ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604') }}:
+    #   - task: Bash@3
+    #     inputs:
+    #       targetType: inline
+    #       script: cd packages;find . -type d -path "*/runtimes/osx-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
+    #     displayName: mount shared disk from azure for nuget packages
+    - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+      - task: PowerShell@2
+        inputs:
+          targetType: filePath
+          filePath: mount.ps1
+        displayName: mount shared disk from azure for nuget packages
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew unlink python@2 && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
-    - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.queue, 'BuildPool.Ubuntu.1604.Amd64.Open')) }}:
+    - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
-    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
-      - task: Bash@3
-        inputs:
-          targetType: inline
-          script: cd packages;find . -type d -path "*/runtimes/linux-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
-        displayName: Clean up non-MacOS runtime folders of NuGet Packages to save disk space
-    - ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604') }}:
-      - task: Bash@3
-        inputs:
-          targetType: inline
-          script: cd packages;find . -type d -path "*/runtimes/osx-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
-        displayName: Clean up non-Linux runtime folders of NuGet Packages to save disk space
-    - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
-      - task: PowerShell@2
-        inputs:
-          targetType: inline
-          script: Get-ChildItem -Path  '.\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
-        displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
@@ -82,15 +82,6 @@ jobs:
         displayName: List latest package versions
       - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
         displayName: Update package versions for nightly build
-      - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
-        - powershell: |
-                    Get-ChildItem -Path  '.\bin\AnyCPU.*' -Recurse |
-                    Select -ExpandProperty FullName |
-                    Where {$_ -notlike '*\Microsoft.ML.NightlyBuild.Tests*'} |
-                    sort length -Descending | 
-                    Remove-Item -force 
-                    Write-Output "Done cleaning up usless project..."
-          displayName: Clean up useless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
@@ -175,36 +166,6 @@ jobs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
-    - ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.buildScript, 'build.cmd')) }}:
-      - powershell: |
-                  $taskListOutput = & TaskList /FI "IMAGENAME eq dotnet.exe" | Out-String
-                  if ($taskListOutput.Contains("dotnet.exe"))
-                  {
-                      Write-Output "Killing dotnet.exe processes..."
-                      & taskkill /IM dotnet.exe /F
-                  }
-
-                  if (Test-Path .\packages\)
-                  {
-                      Write-Output "Removing nuget cache dir..."
-                      Remove-Item -Force -Recurse .\packages\
-                  }
-
-                  if (Test-Path .\test\data\external\)
-                  {
-                      Write-Output "Removing external test data..."
-                      Remove-Item -Force -Recurse .\test\data\external\
-                  }
-
-                  mkdir .\tmp\
-                  Move-Item .\bin\obj\packages .\tmp\
-                  Write-Output "Removing bin dir..."
-                  Remove-Item -Force -Recurse .\bin\
-                  mkdir .\bin\obj\
-                  Move-Item .\tmp\packages\ .\bin\obj\
-                  Remove-Item -Force -Recurse .\tmp\
-                  Write-Output "Done cleaning up binary folder..."
-        displayName: Clean up test data
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - script: ${{ parameters.buildScript }} -buildPackages
         displayName: Build Packages
