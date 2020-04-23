@@ -174,6 +174,13 @@ namespace Microsoft.ML.Internal.Utilities
             return hash;
         }
 
+        // MurmurHashV2 is an implementation of MurmurHash3_x86_32 (https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp#L94) used by Onnxruntime's
+        // MurmurHash operator, implemented to have matching hashing results between ORT and ML.NET.
+        // One key difference between the two implementations is that strings use a different hashing algorithm in the previous version, but
+        // every type uses the same implementation on V2.
+        // The V1 String Hashing Algorithm had the following properities:
+        //     - Case Conversion: used inside the hashing algorithm in ML.Net.
+        //     - Mock UTF8 encoding: strings in C# are UTF16 and need to be converted to UTF8 before hashing
         public static uint MurmurHashV2(uint hash, ReadOnlySpan<char> span, bool toUpper = false)
         {
             // Byte length (in pseudo UTF-8 form).

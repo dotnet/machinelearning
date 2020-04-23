@@ -1148,7 +1148,7 @@ namespace Microsoft.ML.Tests
 
         private class HashData
         {
-            public uint Data { get; set; }
+            public uint Value { get; set; }
         }
 
         [Fact]
@@ -1158,17 +1158,17 @@ namespace Microsoft.ML.Tests
 
             var samples = new[]
             {
-                new HashData {Data = 232},
-                new HashData {Data = 42},
+                new HashData {Value = 232},
+                new HashData {Value = 42},
             };
 
             IDataView data = mlContext.Data.LoadFromEnumerable(samples);
 
-            var hashEstimator = mlContext.Transforms.Conversion.MapValueToKey("Data").Append(mlContext.Transforms.Conversion.Hash(new[]
+            var hashEstimator = mlContext.Transforms.Conversion.MapValueToKey("Value").Append(mlContext.Transforms.Conversion.Hash(new[]
             {
                 new HashingEstimator.ColumnOptions(
-                    "DataHashed",
-                    "Data",
+                    "ValueHashed",
+                    "Value",
                     16)
             }));
             var model = hashEstimator.Fit(data);
@@ -1190,32 +1190,45 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedColumns<uint>("DataHashed", "DataHashed", transformedData, onnxResult);
+                CompareSelectedColumns<uint>("ValueHashed", "ValueHashed", transformedData, onnxResult);
             }
             Done();
         }
 
         [Theory]
         [CombinatorialData]
+        // Due to lack of Onnxruntime support, long/ulong, double, floats, and OrderedHashing are not supported.
+        // An InvalidOperationException stating that the onnx pipeline can't be fully converted is thrown
+        // when users try to convert the items mentioned above.
         public void MurmurHashTest(
-            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.String)] DataKind type,
-            bool useOrderedHashing,
+            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Byte,
+            DataKind.UInt16, DataKind.UInt32, DataKind.String)] DataKind type,
             [CombinatorialValues(1, 5, 31)] int numberOfBits)
         {
-            //DataKind.UInt32, DataKind.Int32
+
             var mlContext = new MLContext();
             string dataPath = GetDataPath("numerics.txt");
-            var column = (type == DataKind.SByte) ? 0 :
+
+            // Adding vector testing by modifying the start column for signed types
+            var columnStart = (type == DataKind.SByte) ? 0 :
+                (type == DataKind.Byte) ? 1 :
+                (type == DataKind.Int16) ? 0 :
+                (type == DataKind.UInt16) ? 3 :
+                (type == DataKind.Int32) ? 0 :
+                (type == DataKind.UInt32) ? 5 : 6;
+
+            var columnEnd = (type == DataKind.SByte) ? 0 :
                 (type == DataKind.Byte) ? 1 :
                 (type == DataKind.Int16) ? 2 :
                 (type == DataKind.UInt16) ? 3 :
-                (type == DataKind.Int32) ? 4 : 5;
+                (type == DataKind.Int32) ? 4 :
+                (type == DataKind.UInt32) ? 5 : 6;
 
             var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
-                new TextLoader.Column("Education", type, column),
+                new TextLoader.Column("Value", type, columnStart, columnEnd),
             }, separatorChar: '\t', hasHeader: true);
 
-            var hashEstimator = new HashingEstimator(Env, "Education", useOrderedHashing: useOrderedHashing, numberOfBits: numberOfBits);
+            var hashEstimator = new HashingEstimator(Env, "Value", useOrderedHashing: false, numberOfBits: numberOfBits);
             var model = hashEstimator.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
@@ -1235,7 +1248,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<uint>("Education", "Education", transformedData, onnxResult);
+                CompareSelectedColumns<uint>("Value", "Value", transformedData, onnxResult);
             }
             Done();
         }
@@ -1863,34 +1876,34 @@ namespace Microsoft.ML.Tests
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
-            var leftType = leftColumn.Type.GetItemType().RawType;
-            var rightType = rightColumn.Type.GetItemType().RawType;
-            Assert.Equal(leftType, rightType);
+            var leftType = leftColumn.Type.GetItemType();
+            var rightType = rightColumn.Type.GetItemType();
 
-            if (leftType == typeof(sbyte))
+            if (leftType == NumberDataViewType.SByte)
                 CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(byte))
+            else if (leftType == NumberDataViewType.Byte)
                 CompareSelectedColumns<byte>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(short))
+            else if (leftType == NumberDataViewType.Int16)
                 CompareSelectedColumns<short>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(ushort))
+            else if (leftType == NumberDataViewType.UInt16)
                 CompareSelectedColumns<ushort>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(int))
+            else if (leftType == NumberDataViewType.Int32)
                 CompareSelectedColumns<int>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(uint))
+            else if (leftType == NumberDataViewType.UInt32)
                 CompareSelectedColumns<uint>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(long))
+            else if (leftType == NumberDataViewType.Int64)
                 CompareSelectedColumns<long>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(ulong))
+            else if (leftType == NumberDataViewType.UInt64)
                 CompareSelectedColumns<ulong>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(float))
+            else if (leftType == NumberDataViewType.Single)
                 CompareSelectedColumns<float>(leftColumnName, rightColumnName, left, right, precision);
-            else if (leftType == typeof(double))
+            else if (leftType == NumberDataViewType.Double)
                 CompareSelectedColumns<double>(leftColumnName, rightColumnName, left, right, precision);
-            else if (leftType == typeof(bool))
+            else if (leftType == BooleanDataViewType.Instance)
                 CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == typeof(ReadOnlyMemory<char>))
+            else if (leftType == TextDataViewType.Instance)
                 CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
+
 
         }
 

@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms
         private readonly HashingEstimator.ColumnOptionsInternal[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorDataViewType[] _kvTypes;
-        private readonly uint _version;
+        private readonly bool _isVersion1;
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
@@ -170,7 +170,6 @@ namespace Microsoft.ML.Transforms
               base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
-            _version = 0x00010003;
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
@@ -182,7 +181,6 @@ namespace Microsoft.ML.Transforms
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
-            _version = 0x00010003;
             var types = new DataViewType[_columns.Length];
             List<int> invertIinfos = null;
             List<int> invertHashMaxCounts = null;
@@ -250,7 +248,7 @@ namespace Microsoft.ML.Transforms
             disposer = null;
             input.Schema.TryGetColumnIndex(_columns[iinfo].InputColumnName, out int srcCol);
             var srcType = input.Schema[srcCol].Type;
-            if (_version == 0x00010002)
+            if (_isVersion1)
             {
                 if (!(srcType is VectorDataViewType vectorType))
                     return ComposeGetterOne(input, iinfo, srcCol, srcType);
@@ -279,7 +277,7 @@ namespace Microsoft.ML.Transforms
         {
             var columnsLength = ColumnPairs.Length;
             _columns = new HashingEstimator.ColumnOptionsInternal[columnsLength];
-            _version = ctx.Header.ModelVerWritten;
+            _isVersion1 = (ctx.Header.ModelVerWritten < 0x00010003); // Version 0x00010003 will use MurmurHash3_x86_32
             for (int i = 0; i < columnsLength; i++)
                 _columns[i] = new HashingEstimator.ColumnOptionsInternal(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
             TextModelHelper.LoadAll(Host, ctx, columnsLength, out _keyValues, out _kvTypes);
@@ -1143,7 +1141,7 @@ namespace Microsoft.ML.Transforms
                 murmurNode.AddAttribute("positive", 1);
                 var seed = _parent._columns[iinfo].Seed;
                 if (_parent._columns[iinfo].UseOrderedHashing)
-                    seed = Hashing.MurmurRound(seed, 0);
+                    return false;
                 murmurNode.AddAttribute("seed", seed);
 
                 // masking is done via bitshifts, until bitwise AND is supported by Onnxruntime
@@ -1175,8 +1173,7 @@ namespace Microsoft.ML.Transforms
 
                     opType = "Cast";
                     var castNodeFinal = ctx.CreateNode(opType, addOutput, dstVariable, ctx.GetNodeName(opType), "");
-                    var tFinal = NumberDataViewType.UInt32.RawType;
-                    castNodeFinal.AddAttribute("to", tFinal);
+                    castNodeFinal.AddAttribute("to", _dstTypes[iinfo].RawType);
                 }
                 return true;
             }
