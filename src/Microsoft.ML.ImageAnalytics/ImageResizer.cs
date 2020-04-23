@@ -285,7 +285,6 @@ namespace Microsoft.ML.Transforms.Image
                     {
                         if (src != null)
                         {
-                            src.Dispose();
                             src = null;
                         }
                     };

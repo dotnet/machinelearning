@@ -217,7 +217,17 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                disposer = null;
+                var lastImage = default(Bitmap);
+
+                disposer = () =>
+                {
+                    if (lastImage != null)
+                    {
+                        lastImage.Dispose();
+                        lastImage = null;
+                    }
+                };
+
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
                 ValueGetter<Bitmap> del =
@@ -247,6 +257,8 @@ namespace Microsoft.ML.Data
                             if (dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)
                                 throw Host.Except($"Failed to load image {src.ToString()}.");
                         }
+
+                        lastImage = dst;
                     };
 
                 return del;
