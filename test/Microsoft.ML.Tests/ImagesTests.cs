@@ -908,5 +908,84 @@ namespace Microsoft.ML.Tests
             [VectorType(InputSize)]
             public double[] Features { get; set; }
         }
+
+        public class InMemoryImage
+        {
+            [ImageType(229, 299)]
+            public Bitmap LoadedImage;
+            public string Label;
+
+            public static List<InMemoryImage> LoadFromTsv(MLContext mlContext, string tsvPath, string imageFolder)
+            {
+                var inMemoryImages = new List<InMemoryImage>();
+                var tsvFile = mlContext.Data.LoadFromTextFile(tsvPath, columns: new[]
+                    {
+                            new TextLoader.Column("ImagePath", DataKind.String, 0),
+                            new TextLoader.Column("Label", DataKind.String, 1),
+                    }
+                );
+
+                using (var cursor = tsvFile.GetRowCursorForAllColumns())
+                {
+                    var pathBuffer = default(ReadOnlyMemory<char>);
+                    var labelBuffer = default(ReadOnlyMemory<char>);
+                    var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(tsvFile.Schema["ImagePath"]);
+                    var labelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(tsvFile.Schema["Label"]);
+                    while (cursor.MoveNext())
+                    {
+                        pathGetter(ref pathBuffer);
+                        labelGetter(ref labelBuffer);
+
+                        var label = labelBuffer.ToString();
+                        var fileName = pathBuffer.ToString();
+                        var imagePath = Path.Combine(imageFolder, fileName);
+
+                        inMemoryImages.Add(
+                                new InMemoryImage()
+                                {
+                                    Label = label,
+                                    LoadedImage = (Bitmap)Image.FromFile(imagePath)
+                                }
+                            );
+                    }
+                }
+
+                return inMemoryImages;
+
+            }
+        }
+
+        [Fact]
+        public void ResizeInMemoryImages()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+            var dataObjects = InMemoryImage.LoadFromTsv(mlContext, dataFile, imageFolder);
+
+            var dataView = mlContext.Data.LoadFromEnumerable<InMemoryImage>(dataObjects);
+            var pipeline = mlContext.Transforms.ResizeImages("ResizedImage", 100, 100, nameof(InMemoryImage.LoadedImage));
+
+            // Check that the output is resized, and that it didn't resize the original image object
+            var resizedDV = pipeline.Fit(dataView).Transform(dataView);
+            var rowView = resizedDV.Preview().RowView;
+            var resizedImage = (Bitmap)rowView.First().Values.Last().Value;
+            Assert.Equal(100, resizedImage.Height);
+            Assert.NotEqual(100, dataObjects[0].LoadedImage.Height);
+
+            // Check that the last in-memory image hasn't been disposed
+            // By running ResizeImageTransformer (see https://github.com/dotnet/machinelearning/issues/4126)
+            bool disposed = false;
+            try
+            {
+                int i = dataObjects.Last().LoadedImage.Height;
+            }
+            catch
+            {
+                disposed = true;
+            }
+
+            Assert.False(disposed, "The last in memory image had been disposed by running ResizeImageTransformer");
+        }
     }
 }

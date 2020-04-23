@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -1124,6 +1125,81 @@ namespace Microsoft.ML.Scenarios
                 }
                 Assert.Equal(4, numRows);
             }
+        }
+
+        public class InMemoryImage
+        {
+            [ImageType(229,299)]
+            public Bitmap LoadedImage;
+            public string Label;
+
+            public static List<InMemoryImage> LoadFromTsv(MLContext mlContext, string tsvPath, string imageFolder)
+            {
+                var inMemoryImages = new List<InMemoryImage>();
+                var tsvFile = mlContext.Data.LoadFromTextFile(tsvPath, columns: new[]
+                    {
+                            new TextLoader.Column("ImagePath", DataKind.String, 0),
+                            new TextLoader.Column("Label", DataKind.String, 1),
+                    }
+                );
+
+                using (var cursor = tsvFile.GetRowCursorForAllColumns())
+                {
+                    var pathBuffer = default(ReadOnlyMemory<char>);
+                    var labelBuffer = default(ReadOnlyMemory<char>);
+                    var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(tsvFile.Schema["ImagePath"]);
+                    var labelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(tsvFile.Schema["Label"]);
+                    while (cursor.MoveNext())
+                    {
+                        pathGetter(ref pathBuffer);
+                        labelGetter(ref labelBuffer);
+
+                        var label = labelBuffer.ToString();
+                        var fileName = pathBuffer.ToString();
+                        var imagePath = Path.Combine(imageFolder, fileName);
+
+                        inMemoryImages.Add(
+                                new InMemoryImage()
+                                {
+                                    Label = label,
+                                    LoadedImage = (Bitmap)Image.FromFile(imagePath)
+                                }
+                            );
+                    }
+                }
+
+                return inMemoryImages;
+
+            }
+        }
+
+        // This test doesn't really check the values of the results
+        // Simply checks that CrossValidation is doable with in-memory images
+        // See issue https://github.com/dotnet/machinelearning/issues/4126
+        [TensorFlowFact]
+        public void TensorFlowTransformCifarCrossValidationWithInMemoryImages()
+        {
+            var modelLocation = "cifar_saved_model";
+            var mlContext = new MLContext(seed: 1);
+            using var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var schema = tensorFlowModel.GetInputSchema();
+            Assert.True(schema.TryGetColumnIndex("Input", out int column));
+            var type = (VectorDataViewType)schema[column].Type;
+            var imageHeight = type.Dimensions[0];
+            var imageWidth = type.Dimensions[1];
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+            var dataObjects = InMemoryImage.LoadFromTsv(mlContext, dataFile, imageFolder);
+
+            var dataView = mlContext.Data.LoadFromEnumerable<InMemoryImage>(dataObjects);
+            var pipeline = mlContext.Transforms.ResizeImages("ResizedImage", imageWidth, imageHeight, nameof(InMemoryImage.LoadedImage))
+                .Append(mlContext.Transforms.ExtractPixels("Input", "ResizedImage", interleavePixelColors: true))
+                .Append(tensorFlowModel.ScoreTensorFlowModel("Output", "Input"))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.MulticlassClassification.Trainers.NaiveBayes("Label", "Output"));
+
+            var cross = mlContext.MulticlassClassification.CrossValidate(dataView, pipeline, 2);
+            Assert.Equal(2, cross.Count());
         }
 
         // This test has been created as result of https://github.com/dotnet/machinelearning/issues/2156.
