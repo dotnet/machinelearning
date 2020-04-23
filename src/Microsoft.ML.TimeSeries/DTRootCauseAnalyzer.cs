@@ -36,7 +36,7 @@ namespace Microsoft.ML.TimeSeries
             dst.Items = new List<RootCauseItem>();
 
             DimensionInfo dimensionInfo = SeperateDimension(src.AnomalyDimension, src.AggSymbol);
-            Tuple<PointTree, PointTree, Dictionary<string, Point>> pointInfo = GetPointsInfo(src, dimensionInfo, src.AggSymbol);
+            Tuple<PointTree, PointTree, Dictionary<string, Point>> pointInfo = GetPointsInfo(src, dimensionInfo);
             PointTree pointTree = pointInfo.Item1;
             PointTree anomalyTree = pointInfo.Item2;
             Dictionary<string, Point> dimPointMapping = pointInfo.Item3;
@@ -90,7 +90,7 @@ namespace Microsoft.ML.TimeSeries
             return info;
         }
 
-        protected Tuple<PointTree, PointTree, Dictionary<string, Point>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo, string aggSymbol)
+        protected Tuple<PointTree, PointTree, Dictionary<string, Point>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo)
         {
             PointTree pointTree = PointTree.CreateDefaultInstance();
             PointTree anomalyTree = PointTree.CreateDefaultInstance();
@@ -109,11 +109,11 @@ namespace Microsoft.ML.TimeSeries
                         bool isValidPoint = point.IsAnomaly == true;
                         if (ContainsAll(point.Dimension, subDim))
                         {
-                            BuildTree(pointTree, dimensionInfo.AggDims, point, aggSymbol);
+                            BuildTree(pointTree, dimensionInfo.AggDims, point, src.AggSymbol);
 
                             if (isValidPoint)
                             {
-                                BuildTree(anomalyTree, dimensionInfo.AggDims, point, aggSymbol);
+                                BuildTree(anomalyTree, dimensionInfo.AggDims, point, src.AggSymbol);
                             }
                         }
                     }
@@ -681,7 +681,7 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    public sealed class BestDimension: IComparable
+    public sealed class BestDimension : IComparable
     {
         public string DimensionKey;
         public Dictionary<string, int> AnomalyDis;
@@ -696,7 +696,8 @@ namespace Microsoft.ML.TimeSeries
             return instance;
         }
 
-        public int CompareTo(object obj) {
+        public int CompareTo(object obj)
+        {
             if (obj == null) return 1;
 
             BestDimension other = obj as BestDimension;
