@@ -187,7 +187,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test with a tree featurizer.
         /// </summary>
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
@@ -246,7 +246,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
         public void LinearClassifierTest()
@@ -267,7 +267,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionTest()
         {
@@ -294,7 +294,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         public void BinaryClassifierTesterThresholdingTest()
         {
@@ -389,7 +389,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         [TestCategory("FastForest")]
         public void FastForestClassificationTest()
@@ -456,7 +456,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationTest()
@@ -972,7 +972,7 @@ namespace Microsoft.ML.RunTests
         }
 
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationCategoricalSplitTest()
@@ -1011,7 +1011,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationNoOpGroupIdTest()
@@ -1031,7 +1031,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeHighMinDocsTest()
