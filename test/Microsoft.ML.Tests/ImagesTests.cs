@@ -955,6 +955,12 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        public class InMemoryImageOutput : InMemoryImage
+        {
+            [ImageType(100, 100)]
+            public Bitmap ResizedImage;
+        }
+
         [Fact]
         public void ResizeInMemoryImages()
         {
@@ -967,11 +973,24 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.ResizeImages("ResizedImage", 100, 100, nameof(InMemoryImage.LoadedImage));
 
             // Check that the output is resized, and that it didn't resize the original image object
-            var resizedDV = pipeline.Fit(dataView).Transform(dataView);
+            var model = pipeline.Fit(dataView);
+            var resizedDV = model.Transform(dataView);
             var rowView = resizedDV.Preview().RowView;
             var resizedImage = (Bitmap)rowView.First().Values.Last().Value;
             Assert.Equal(100, resizedImage.Height);
             Assert.NotEqual(100, dataObjects[0].LoadedImage.Height);
+
+            // Also check usage of prediction Engine
+            // And that the references to the original image objects aren't lost
+            var predEngine = mlContext.Model.CreatePredictionEngine<InMemoryImage, InMemoryImageOutput>(model);
+            for(int i = 0; i < dataObjects.Count(); i++)
+            {
+                var prediction = predEngine.Predict(dataObjects[i]);
+                Assert.Equal(100, prediction.ResizedImage.Height);
+                Assert.NotEqual(100, prediction.LoadedImage.Height);
+                Assert.True(prediction.LoadedImage == dataObjects[i].LoadedImage);
+                Assert.False(prediction.ResizedImage == dataObjects[i].LoadedImage);
+            }
 
             // Check that the last in-memory image hasn't been disposed
             // By running ResizeImageTransformer (see https://github.com/dotnet/machinelearning/issues/4126)
