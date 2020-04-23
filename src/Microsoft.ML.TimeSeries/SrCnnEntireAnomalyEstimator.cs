@@ -1,10 +1,33 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
+    /// <summary>
+    /// Detect timeseries anomalies for entire input using Spectral Residual(SR) algorithm.
+    /// Please refer to <see cref="SrCnnAnomalyEstimator"/> for background of SR algorithm.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this estimator, use
+    /// [DetectEntireAnomalyBySrCnn](xref:Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Double,System.Int32,SrCnnDetectMode,System.Double))
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | <xref:System.Single> |
+    /// | Output column data type | vector of<xref:System.Double> |
+    /// | Exportable to ONNX | No |
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(TransformsCatalog, string, string, double, int, SrCnnDetectMode, double)"/>
     public sealed class SrCnnEntireAnomalyEstimator : IEstimator<SrCnnEntireTransformer>
     {
         private readonly IHost _host;

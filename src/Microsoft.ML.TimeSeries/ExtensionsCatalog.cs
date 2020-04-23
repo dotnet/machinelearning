@@ -188,6 +188,30 @@ namespace Microsoft.ML
                 horizon, isAdaptive, discountFactor, rankSelectionMethod, rank, maxRank, shouldStabilize, shouldMaintainInfo, maxGrowth, confidenceLowerBoundColumn,
                 confidenceUpperBoundColumn, confidenceLevel, variableHorizon);
 
+        /// <summary>
+        /// Create <see cref="SrCnnEntireAnomalyEstimator"/>, which detects timeseries anomalies for entire input using SRCNN algorithm.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The column data is a vector of <see cref="System.Double"/>. The length of this vector varies depending on <paramref name="srCnnDetectMode"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="SrCnnTsPoint"/>.</param>
+        /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly. Must be in [0,1]. Default value is 0.3.</param>
+        /// <param name="batchSize">Divide the input data into batches to fit srcnn model.
+        /// When set to -1, use the whole input to fit model instead of batch by batch, when set to a positive integer, use this number as batch size.
+        /// Must be -1 or a positive integer no less than 12. Default value is 1024.</param>
+        /// <param name="srCnnDetectMode">An enum type of <see cref="SrCnnDetectMode"/>.
+        /// When set to AnomalyOnly, the output vector would be a 3-element Double vector of (IsAnomaly, RawScore, Mag).
+        /// When set to AnomalyAndExpectedValue, the output vector would be a 4-element Double vector of (IsAnomaly, RawScore, Mag, ExpectedValue).
+        /// When set to AnomalyAndMargin, the output vector would be a 7-element Double vector of (IsAnomaly, AnomalyScore, Mag, ExpectedValue, BoundaryUnit, UpperBoundary, LowerBoundary).
+        /// Default value is AnomalyOnly.</param>
+        /// <param name="sensitivity">Sensitivity of boundaries, only useful when srCnnDetectMode is AnomalyAndMargin. Must be in [0,100]. Default value is 99.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectEntireAnomalyBySrCnn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectEntireAnomalyBySrCnn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SrCnnEntireAnomalyEstimator DetectEntireAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             double threshold = 0.3, int batchSize = 1024, SrCnnDetectMode srCnnDetectMode = SrCnnDetectMode.AnomalyOnly, double sensitivity = 99.0)
             => new SrCnnEntireAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, threshold, batchSize, srCnnDetectMode, sensitivity);

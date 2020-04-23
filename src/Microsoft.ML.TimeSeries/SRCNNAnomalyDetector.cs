@@ -221,7 +221,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// these are the most important parameters to SR. Then you could search for an appropriate <strong>judgementWindowSize</strong>
     /// which is no larger than <strong>windowSize</strong>. And for the remaining parameters, you could use the default value directly.
     ///
-    /// * Link to the KDD 2019 paper will be updated after it goes public.
+    /// * [Link to the KDD 2019 paper](https://dl.acm.org/doi/10.1145/3292500.3330680)
     /// ]]>
     /// </format>
     /// </remarks>

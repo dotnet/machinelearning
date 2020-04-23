@@ -584,7 +584,7 @@ namespace Microsoft.ML.Tests
             }
 
             //save and load model
-            var modelPath = "srcnnetire.zip";
+            var modelPath = "temp.zip";
             var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
             var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyOnly).Fit(dataView);
             ml.Model.Save(fitModel, dummyData.Schema, modelPath);
@@ -657,7 +657,7 @@ namespace Microsoft.ML.Tests
             }
 
             //save and load model
-            var modelPath = "srcnnetire.zip";
+            var modelPath = "temp.zip";
             var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
             var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndExpectedValue).Fit(dataView);
             ml.Model.Save(fitModel, dummyData.Schema, modelPath);
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Tests
             }
 
             //save and load model
-            var modelPath = "srcnnetire.zip";
+            var modelPath = "temp.zip";
             var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
             var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndMargin, 90).Fit(dataView);
             ml.Model.Save(fitModel, dummyData.Schema, modelPath);

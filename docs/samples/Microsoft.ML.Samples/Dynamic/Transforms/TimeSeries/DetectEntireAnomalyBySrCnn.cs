@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML;
@@ -44,8 +48,7 @@ namespace Samples.Dynamic
             var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, 512, SrCnnDetectMode.AnomalyAndMargin, 90.0)
                 .Fit(dataView).Transform(dataView);
 
-            // Getting the data of the newly created column as an IEnumerable of
-            // SrCnnAnomalyDetection.
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<AnomalyDetectionResult>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
@@ -83,7 +86,7 @@ namespace Samples.Dynamic
             //2020 / 1 / 26 0:00:00       5.00    0               0.00    0.11            5.00            5.00            5.01            4.99
             //2020 / 1 / 27 0:00:00       5.00    0               0.00    0.19            5.00            5.00            5.01            4.99
 
-            var modelPath = "srcnnetire.zip";
+            var modelPath = "temp.zip";
             var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
             var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, 512, SrCnnDetectMode.AnomalyAndMargin, 90.0).Fit(dataView);
             ml.Model.Save(fitModel, dummyData.Schema, modelPath);

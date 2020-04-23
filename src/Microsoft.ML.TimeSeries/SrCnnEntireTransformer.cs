@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -12,6 +16,7 @@ using Microsoft.ML.Transforms.TimeSeries;
         typeof(SrCnnEntireTransformer), null, typeof(SignatureLoadModel),
         "SrCnnEntire Transformer",
         SrCnnEntireTransformer.LoaderSignature)]
+
 [assembly: LoadableClass(typeof(SrCnnEntireTransformer.SrCnnEntireModeler),
         typeof(SrCnnEntireTransformer.SrCnnEntireModeler), null, typeof(SignatureLoadModel),
         "SrCnnEntire Modeler",
@@ -20,7 +25,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 {
     public sealed class SrCnnEntireTransformer : OneToOneTransformerBase
     {
-        internal const string Summary = "This transformer detect anomalies for input timeseries using SRCNN";
+        internal const string Summary = "This transformer detect timeseries anomalies for entire input using SRCNN";
         internal const string LoaderSignature = "SrCnnEntireTransformer";
         internal const string UserName = "SrCnn Entire Anomaly Detection";
         internal const string ShortName = "srcnn entire";
@@ -30,22 +35,22 @@ namespace Microsoft.ML.Transforms.TimeSeries
             [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src", SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
             public string Source;
 
-            [Argument(ArgumentType.Required, HelpText = "The name of the new column.", ShortName = "tgt", SortOrder = 2)]
+            [Argument(ArgumentType.Required, HelpText = "The name of the target column.", ShortName = "tgt", SortOrder = 2)]
             public string Target;
 
-            [Argument(ArgumentType.Required, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
+            [Argument(ArgumentType.Required, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly. Must be in [0,1]. Default value is 0.3.",
                 ShortName = "thre", SortOrder = 101)]
             public double Threshold = 0.3;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The batch size of computing.",
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Divide the input data into batches to fit srcnn model. Must be -1 or a positive integer no less than 12. Default value is 1024.",
                 ShortName = "batch", SortOrder = 202)]
             public int BatchSize = 1024;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The detection mode, affects output vector length.",
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The detection mode of SrCnnDetectMode enum type.",
                 ShortName = "mode", SortOrder = 303)]
             public SrCnnDetectMode SrCnnDetectMode = SrCnnDetectMode.AnomalyOnly;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The sensitivity of boundary.",
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The sensitivity of boundaries.",
                 ShortName = "sens", SortOrder = 404)]
             public double Sensitivity = 99;
         }
@@ -83,10 +88,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             InputColumnName = options.Source;
             OutputColumnName = options.Target;
 
-            Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(Options.Threshold), "Must be in [0,1]");
+            Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(Options.Threshold), "Must be in [0,1].");
             Threshold = options.Threshold;
 
-            Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize > 12, nameof(Options.BatchSize), "BatchSize must be -1 or larger than 12");
+            Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize >= 12, nameof(Options.BatchSize), "BatchSize must be -1 or no less than 12.");
             BatchSize = options.BatchSize;
 
             SrCnnDetectMode = options.SrCnnDetectMode;
@@ -97,7 +102,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             else if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndMargin))
             {
-                Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(Options.Sensitivity), "Must be in [0,100]");
+                Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(Options.Sensitivity), "Must be in [0,100].");
                 Sensitivity = options.Sensitivity;
                 OutputLength = 7;
             }
@@ -105,6 +110,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 Sensitivity = options.Sensitivity;
                 OutputLength = 4;
+            }
+            else
+            {
+                OutputLength = 0;
             }
 
             AnomalyModel = new SrCnnEntireModeler(Host, this, input);
@@ -123,7 +132,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Host.CheckDecode(Threshold >= 0 && Threshold <= 1);
 
             BatchSize = ctx.Reader.ReadInt32();
-            Host.CheckDecode(BatchSize == -1 || BatchSize > 12);
+            Host.CheckDecode(BatchSize == -1 || BatchSize >= 12);
 
             SrCnnDetectMode = (SrCnnDetectMode)ctx.Reader.ReadInt32();
 
@@ -167,7 +176,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.SetVersionInfo(GetVersionInfo());
 
             Host.Assert(Threshold >= 0 && Threshold <= 1);
-            Host.Assert(BatchSize == -1 || BatchSize > 12);
+            Host.Assert(BatchSize == -1 || BatchSize >= 12);
             Host.Assert(Sensitivity >= 0 && Sensitivity <= 100);
             Host.Assert(OutputLength == 3 || OutputLength == 4 || OutputLength == 7);
 
@@ -204,7 +213,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _parent = parent;
                 if (_parent.OutputLength == 3)
                 {
-                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(), "Mag".AsMemory() });
+                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Is Anomaly".AsMemory(), "Raw Score".AsMemory(), "Mag".AsMemory() });
                 }
                 else if (_parent.OutputLength == 7)
                 {
@@ -399,6 +408,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         }
                     }
                 }
+
+                _host.CheckIO(trainingTimestamp.Count >= _minTrainingPoint, "Input must have no less than 12 valid points to fit a model.");
+
                 if (trainingTimestamp.Count >= _minTrainingPoint)
                 {
                     var batchSize = (_parent.BatchSize == -1) ? trainingData.Count : _parent.BatchSize;
@@ -489,7 +501,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
                 List<Double> filteredIfftMagList = AverageFilter(ifftMagList, Math.Min(ifftMagList.Count, _judgementWindowSize));
 
-                // Step 7: Calculate score and set result
+                // Step 7: Calculate raw score and set result
                 for (int i = 0; i < results.Count; ++i)
                 {
                     var score = CalculateSocre(ifftMagList[i], filteredIfftMagList[i]);
