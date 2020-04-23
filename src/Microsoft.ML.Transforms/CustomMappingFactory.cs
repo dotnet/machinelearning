@@ -43,4 +43,34 @@ namespace Microsoft.ML.Transforms
             return new CustomMappingTransformer<TSrc, TDst>(env, mapAction, contractName);
         }
     }
+
+    /// <summary>
+    /// The base type for stateful custom mapping factories.
+    /// </summary>
+    /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="IDataView"/>.</typeparam>
+    /// <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
+    /// <typeparam name="TState">The type that describes the state object the mapping uses.</typeparam>
+    public abstract class StatefulCustomMappingFactory<TSrc, TDst, TState> : ICustomMappingFactory
+        where TSrc : class, new()
+        where TDst : class, new()
+        where TState : class, new()
+    {
+        /// <summary>
+        /// Returns the mapping delegate that maps from a <typeparamref name="TSrc"/> input and a state object of type <typeparamref name="TState"/>,
+        /// to a <typeparamref name="TDst"/> output.
+        /// </summary>
+        public abstract Action<TSrc, TDst, TState> GetMapping();
+
+        /// <summary>
+        /// Returns an action that is called once before the row cursor is initialized, to initialize the state object used by the cursor.
+        /// </summary>
+        public abstract Action<TState> GetStateInitAction();
+
+        ITransformer ICustomMappingFactory.CreateTransformer(IHostEnvironment env, string contractName)
+        {
+            Action<TSrc, TDst, TState> mapAction = GetMapping();
+            Action<TState> stateInitAction = GetStateInitAction();
+            return new StatefulCustomMappingTransformer<TSrc, TDst, TState>(env, mapAction, contractName, stateInitAction);
+        }
+    }
 }

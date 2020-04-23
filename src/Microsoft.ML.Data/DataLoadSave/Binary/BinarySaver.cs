@@ -28,6 +28,9 @@ namespace Microsoft.ML.Data.IO
     [BestFriend]
     internal sealed class BinarySaver : IDataSaver
     {
+        private static readonly FuncInstanceMethodInfo1<BinarySaver, Stream, IValueCodec, object> _loadValueMethodInfo
+            = FuncInstanceMethodInfo1<BinarySaver, Stream, IValueCodec, object>.Create(target => target.LoadValue<int>);
+
         public sealed class Arguments
         {
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The compression scheme to use for the blocks", ShortName = "comp")]
@@ -887,22 +890,20 @@ namespace Microsoft.ML.Data.IO
                 value = null;
                 return false;
             }
-            type = codec.Type;
 
-            Func<Stream, IValueCodec<int>, object> func = LoadValue<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(codec.Type.RawType);
-            value = (meth.Invoke(this, new object[] { stream, codec }));
+            type = codec.Type;
+            value = Utils.MarshalInvoke(_loadValueMethodInfo, this, type.RawType, stream, codec);
             return true;
         }
 
         /// <summary>
         /// Deserializes and returns a value given a stream and codec.
         /// </summary>
-        private object LoadValue<T>(Stream stream, IValueCodec<T> codec)
+        private object LoadValue<T>(Stream stream, IValueCodec codec)
         {
             _host.Assert(typeof(T) == codec.Type.RawType);
             T value = default(T);
-            using (var reader = codec.OpenReader(stream, 1))
+            using (var reader = ((IValueCodec<T>)codec).OpenReader(stream, 1))
             {
                 reader.MoveNext();
                 reader.Get(ref value);

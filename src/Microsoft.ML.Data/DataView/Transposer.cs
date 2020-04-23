@@ -892,6 +892,9 @@ namespace Microsoft.ML.Data
             /// </summary>
             private abstract class Splitter
             {
+                private static readonly FuncStaticMethodInfo1<IDataView, int, Splitter> _createCoreMethodInfo
+                    = new FuncStaticMethodInfo1<IDataView, int, Splitter>(CreateCore<int>);
+
                 private readonly IDataView _view;
                 private readonly int _col;
                 public abstract int ColumnCount { get; }
@@ -922,7 +925,7 @@ namespace Microsoft.ML.Data
                     Contracts.Assert(type is PrimitiveDataViewType || vectorSize > 0);
                     const int defaultSplitThreshold = 16;
                     if (vectorSize <= defaultSplitThreshold)
-                        return Utils.MarshalInvoke(CreateCore<int>, type.RawType, view, col);
+                        return Utils.MarshalInvoke(_createCoreMethodInfo, type.RawType, view, col);
                     else
                     {
                         // There are serious practical problems with trying to save many thousands of columns.
@@ -1321,6 +1324,9 @@ namespace Microsoft.ML.Data
 
     internal static class TransposerUtils
     {
+        private static readonly FuncStaticMethodInfo1<IChannelProvider, SlotCursor, DataViewRowCursor> _getRowCursorShimCoreMethodInfo
+            = new FuncStaticMethodInfo1<IChannelProvider, SlotCursor, DataViewRowCursor>(GetRowCursorShimCore<int>);
+
         private static readonly FuncInstanceMethodInfo1<SlotCursor, Delegate> _slotCursorGetGetterMethodInfo
             = FuncInstanceMethodInfo1<SlotCursor, Delegate>.Create(target => target.GetGetter<int>);
 
@@ -1387,7 +1393,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(cursor, nameof(cursor));
 
-            return Utils.MarshalInvoke(GetRowCursorShimCore<int>, cursor.GetSlotType().ItemType.RawType, provider, cursor);
+            return Utils.MarshalInvoke(_getRowCursorShimCoreMethodInfo, cursor.GetSlotType().ItemType.RawType, provider, cursor);
         }
 
         private static DataViewRowCursor GetRowCursorShimCore<T>(IChannelProvider provider, SlotCursor cursor)

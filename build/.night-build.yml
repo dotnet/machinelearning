@@ -38,16 +38,17 @@ jobs:
       Debug_Build:
         _configuration: Debug-netcoreapp3_1
         _config_short: DI
-        _targetFramework: netcoreapp3.0
+        _targetFramework: netcoreapp3.1
         _includeBenchmarkData: false
       Release_Build:
         _configuration: Release-netcoreapp3_1
         _config_short: RI
-        _targetFramework: netcoreapp3.0
+        _targetFramework: netcoreapp3.1
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:
-      name: Hosted Ubuntu 1604
+      name:  NetCorePublic-Pool
+      queue: BuildPool.Ubuntu.1604.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -56,7 +57,8 @@ jobs:
     container: UbuntuContainer
     nightlyBuild: true
     pool:
-      name: Hosted Ubuntu 1604
+      name:  NetCorePublic-Pool
+      queue: BuildPool.Ubuntu.1604.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:

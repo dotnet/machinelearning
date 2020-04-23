@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this estimator, use [ForecastBySsa](xref:Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean, System.Single, Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction))
+    /// To create this estimator, use [ForecastBySsa](xref:Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(Microsoft.ML.ForecastingCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean,System.Single,Microsoft.ML.Transforms.TimeSeries.RankSelectionMethod,System.Int32?,System.Int32?,System.Boolean,System.Boolean,Microsoft.ML.Transforms.TimeSeries.GrowthRatio?,System.String,System.String,System.Single,System.Boolean))
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-ssa-forecast.md)]
     ///
@@ -228,6 +228,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(Microsoft.ML.ForecastingCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean,System.Single,Microsoft.ML.Transforms.TimeSeries.RankSelectionMethod,System.Int32?,System.Int32?,System.Boolean,System.Boolean,Microsoft.ML.Transforms.TimeSeries.GrowthRatio?,System.String,System.String,System.Single,System.Boolean)" />
     public sealed class SsaForecastingEstimator : IEstimator<SsaForecastingTransformer>
     {
         private readonly IHost _host;

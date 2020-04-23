@@ -34,6 +34,9 @@ namespace Microsoft.ML.Data
     internal abstract class SchemaBindablePredictorWrapperBase : ISchemaBindableMapper, ICanSaveModel, ICanSaveSummary,
         IBindableCanSavePfa, IBindableCanSaveOnnx, IDisposable
     {
+        private static readonly FuncInstanceMethodInfo2<SchemaBindablePredictorWrapperBase, DataViewRow, int, Delegate> _getValueGetterMethodInfo
+            = FuncInstanceMethodInfo2<SchemaBindablePredictorWrapperBase, DataViewRow, int, Delegate>.Create(target => target.GetValueGetter<int, int>);
+
         // The ctor guarantees that Predictor is non-null. It also ensures that either
         // ValueMapper or FloatPredictor is non-null (or both). With these guarantees,
         // the score value type (_scoreType) can be determined.
@@ -157,9 +160,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
             var typeSrc = input.Schema[colSrc].Type;
-            Func<DataViewRow, int, ValueGetter<int>> del = GetValueGetter<int, int>;
-            var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, ScoreType.RawType);
-            return (Delegate)meth.Invoke(this, new object[] { input, colSrc });
+            return Utils.MarshalInvoke(_getValueGetterMethodInfo, this, typeSrc.RawType, ScoreType.RawType, input, colSrc);
         }
 
         private ValueGetter<TDst> GetValueGetter<TSrc, TDst>(DataViewRow input, int colSrc)

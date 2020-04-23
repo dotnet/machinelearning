@@ -38,6 +38,9 @@ namespace Microsoft.ML.Transforms
     // REVIEW: May make sense to implement the transform template interface.
     public sealed partial class MissingValueReplacingTransformer : OneToOneTransformerBase
     {
+        private static readonly FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Array, BitArray> _computeDefaultSlotsMethodInfo
+            = FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Array, BitArray>.Create(target => target.ComputeDefaultSlots<int>);
+
         internal enum ReplacementKind : byte
         {
             // REVIEW: What should the full list of options for this transform be?
@@ -354,21 +357,20 @@ namespace Microsoft.ML.Transforms
                 int slot = columnsToImpute[ii];
                 if (repValues[slot] is Array)
                 {
-                    Func<DataViewType, int[], BitArray> func = ComputeDefaultSlots<int>;
-                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(types[slot].GetItemType().RawType);
-                    slotIsDefault[slot] = (BitArray)meth.Invoke(this, new object[] { types[slot], repValues[slot] });
+                    slotIsDefault[slot] = Utils.MarshalInvoke(_computeDefaultSlotsMethodInfo, this, types[slot].GetItemType().RawType, types[slot], (Array)repValues[slot]);
                 }
             }
         }
 
-        private BitArray ComputeDefaultSlots<T>(DataViewType type, T[] values)
+        private BitArray ComputeDefaultSlots<T>(DataViewType type, Array values)
         {
             Host.Assert(values.Length == type.GetVectorSize());
             BitArray defaultSlots = new BitArray(values.Length);
             InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.GetItemType());
+            T[] typedValues = (T[])values;
             for (int slot = 0; slot < values.Length; slot++)
             {
-                if (defaultPred(in values[slot]))
+                if (defaultPred(in typedValues[slot]))
                     defaultSlots[slot] = true;
             }
             return defaultSlots;
@@ -536,6 +538,12 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _composeGetterOneMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterOne<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _composeGetterVecMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterVec<int>);
+
             private readonly MissingValueReplacingTransformer _parent;
             private readonly ColInfo[] _infos;
             private readonly DataViewType[] _types;
@@ -624,7 +632,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for single valued inputs.
             /// </summary>
             private Delegate ComposeGetterOne(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].TypeSrc.RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterOneMethodInfo, this, _infos[iinfo].TypeSrc.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for scalars.
@@ -650,7 +658,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for vector valued inputs.
             /// </summary>
             private Delegate ComposeGetterVec(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterVecMethodInfo, this, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for vectors.

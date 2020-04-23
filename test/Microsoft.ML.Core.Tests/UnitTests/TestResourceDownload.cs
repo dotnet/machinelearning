@@ -26,7 +26,6 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         public async Task TestDownloadError()
         {
             var envVarOld = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
-            var timeoutVarOld = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
             var resourcePathVarOld = Environment.GetEnvironmentVariable(Utils.CustomSearchDirEnvVariable);
             Environment.SetEnvironmentVariable(Utils.CustomSearchDirEnvVariable, null);
 
@@ -134,7 +133,6 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             {
                 // Set environment variable back to its old value.
                 Environment.SetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable, envVarOld);
-                Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, timeoutVarOld);
                 Environment.SetEnvironmentVariable(Utils.CustomSearchDirEnvVariable, resourcePathVarOld);
             }
         }

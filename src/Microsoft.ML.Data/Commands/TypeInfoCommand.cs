@@ -19,6 +19,9 @@ namespace Microsoft.ML.Data.Commands
 {
     internal sealed class TypeInfoCommand : ICommand
     {
+        private static readonly FuncInstanceMethodInfo1<TypeInfoCommand, IChannel, PrimitiveDataViewType, TypeNaInfo> _kindReportMethodInfo
+            = FuncInstanceMethodInfo1<TypeInfoCommand, IChannel, PrimitiveDataViewType, TypeNaInfo>.Create(target => target.KindReport<int>);
+
         internal const string LoadName = "TypeInfo";
         internal const string Summary = "Displays information about the standard primitive " +
             "non-key types, and conversions between them.";
@@ -89,7 +92,7 @@ namespace Microsoft.ML.Data.Commands
                 for (int i = 0; i < types.Length; ++i)
                 {
                     ch.AssertValue(types[i]);
-                    var info = Utils.MarshalInvoke(KindReport<int>, types[i].RawType, ch, types[i]);
+                    var info = Utils.MarshalInvoke(_kindReportMethodInfo, this, types[i].RawType, ch, types[i]);
 
                     var dstKinds = new HashSet<InternalDataKind>();
                     Delegate del;

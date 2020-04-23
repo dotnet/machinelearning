@@ -41,7 +41,43 @@ namespace Microsoft.ML.RunTests
             fileSource = new MultiFileSource(Path.Combine(dirName, "..."));
             Assert.True(fileSource.Count == 2, $"Error passing concatenated paths to {nameof(MultiFileSource)}");
 
-            Assert.Throws<InvalidOperationException>(() => new MultiFileSource($"{file1}+{file2}", "adult.tiny.with-schema.txt"));
+            /* Create test directories and files in the following specifications:
+               /MultiFileSourceUnitTest/Data
+               /MultiFileSourceUnitTest/Data/a.txt
+               /MultiFileSourceUnitTest/Data/b.txt
+               /MultiFileSourceUnitTest/DataFolder/
+               /MultiFileSourceUnitTest/DataFolder/SubFolder1
+               /MultiFileSourceUnitTest/DataFolder/SubFolder1/a.txt
+               /MultiFileSourceUnitTest/DataFolder/SubFolder2
+               /MultiFileSourceUnitTest/DataFolder/SubFolder2/b.txt
+            */
+
+            var dataDir = Directory.CreateDirectory("MultiFileSourceUnitTest/Data").FullName;
+
+            var fileDataA = Path.Combine(dataDir, "a.txt");
+            var fileDataB = Path.Combine(dataDir, "b.txt");
+
+            File.WriteAllText(fileDataA, "Unit Test");
+            File.WriteAllText(fileDataB, "Unit Test");
+
+            var dataFolderDir = Directory.CreateDirectory("MultiFileSourceUnitTest/DataFolder").FullName;
+            var subFolder1Dir = Directory.CreateDirectory("MultiFileSourceUnitTest/DataFolder/SubFolder1").FullName;
+            var subFolder2Dir = Directory.CreateDirectory("MultiFileSourceUnitTest/DataFolder/SubFolder2").FullName;
+
+            var fileDataSA = Path.Combine(subFolder1Dir, "a.txt");
+            var fileDataSB = Path.Combine(subFolder2Dir, "b.txt");
+
+            File.WriteAllText(fileDataSA, "Unit Test");
+            File.WriteAllText(fileDataSB, "Unit Test");
+
+            fileSource = new MultiFileSource(dataDir+"/*");
+            Assert.True(fileSource.Count == 2, $"Error passing concatenated paths to {nameof(MultiFileSource)}");
+
+            fileSource = new MultiFileSource(dataFolderDir + "/.../*");
+            Assert.True(fileSource.Count == 2, $"Error passing concatenated paths to {nameof(MultiFileSource)}");
+
+            //Delete test folder and files for test clean-up
+            Directory.Delete(dirName, true);
         }
     }
 }

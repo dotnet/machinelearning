@@ -17,5 +17,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <ProjectCapability Include="ModelBuilderGenerated" />
+  </ItemGroup>
 </Project>

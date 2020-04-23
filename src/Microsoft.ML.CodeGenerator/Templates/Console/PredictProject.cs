@@ -75,7 +75,13 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.csproj\" />\r\n  </ItemGroup>\r\n</Project>\r\n");
+            this.Write(".Model.csproj\" />\r\n  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n");
+ if (Target==CSharp.GenerateTarget.Cli) {
+            this.Write("    <ProjectCapability Include=\"MLNETCLIGenerated\" />\r\n");
+}else{
+            this.Write("    <ProjectCapability Include=\"ModelBuilderGenerated\" />\r\n");
+}
+            this.Write("  </ItemGroup>\r\n</Project>\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
@@ -90,6 +96,7 @@ public bool IncludeResNet18Package {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
 
     }
     #region Base class

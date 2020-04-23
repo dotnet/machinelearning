@@ -18,10 +18,10 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// Tests loading a model file that was saved using an older version still loads correctly.
+        /// Tests loading a model file that was saved using version 3 (0x00010003) of BinaryLoader still loads correctly.
         /// </summary>
         [Fact]
-        public void LoadOriginalBinaryLoaderModel()
+        public void LoadBinaryLoaderModelVersion3()
         {
             var env = new MLContext(1).AddStandardComponents();
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "BinaryLoader-v3.11.0.0.zip")))

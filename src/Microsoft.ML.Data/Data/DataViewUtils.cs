@@ -289,6 +289,12 @@ namespace Microsoft.ML.Data
         /// </summary>
         private sealed class Splitter
         {
+            private static readonly FuncStaticMethodInfo1<object[], int, object> _getPoolCoreMethodInfo
+                = new FuncStaticMethodInfo1<object[], int, object>(GetPoolCore<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Splitter, DataViewRowCursor, int, InPipe> _createInPipeMethodInfo
+                = FuncInstanceMethodInfo1<Splitter, DataViewRowCursor, int, InPipe>.Create(target => target.CreateInPipe<int>);
+
             private readonly DataViewSchema _schema;
             private readonly object[] _cachePools;
 
@@ -476,9 +482,7 @@ namespace Microsoft.ML.Data
 
             private static object GetPool(DataViewType type, object[] pools, int poolIdx)
             {
-                Func<object[], int, object> func = GetPoolCore<int>;
-                var method = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
-                return method.Invoke(null, new object[] { pools, poolIdx });
+                return Utils.MarshalInvoke(_getPoolCoreMethodInfo, type.RawType, pools, poolIdx);
             }
 
             private static MadeObjectPool<T[]> GetPoolCore<T>(object[] pools, int poolIdx)
@@ -519,9 +523,6 @@ namespace Microsoft.ML.Data
                 int[] colToActive;
                 Utils.BuildSubsetMaps(_schema, input.IsColumnActive, out activeToCol, out colToActive);
 
-                Func<DataViewRowCursor, int, InPipe> createFunc = CreateInPipe<int>;
-                var inGenMethod = createFunc.GetMethodInfo().GetGenericMethodDefinition();
-                object[] arguments = new object[] { input, 0 };
                 // Only one set of in-pipes, one per column, as well as for extra side information.
                 InPipe[] inPipes = new InPipe[activeToCol.Length + (int)ExtraIndex._Lim];
                 // There are as many sets of out pipes as there are output cursors.
@@ -537,9 +538,8 @@ namespace Microsoft.ML.Data
                     var column = input.Schema[activeToCol[c]];
                     ch.Assert(input.IsColumnActive(column));
                     ch.Assert(column.Type.IsCacheable());
-                    arguments[1] = activeToCol[c];
                     var inPipe = inPipes[c] =
-                        (InPipe)inGenMethod.MakeGenericMethod(column.Type.RawType).Invoke(this, arguments);
+                        Utils.MarshalInvoke(_createInPipeMethodInfo, this, column.Type.RawType, input, activeToCol[c]);
                     for (int i = 0; i < cthd; ++i)
                         outPipes[i][c] = inPipe.CreateOutPipe(column.Type);
                 }

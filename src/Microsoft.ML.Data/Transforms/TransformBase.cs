@@ -473,6 +473,9 @@ namespace Microsoft.ML.Data
         {
         }
 
+        private static readonly FuncInstanceMethodInfo1<OneToOneTransformBase, DataViewRow, int, Delegate> _getSrcGetterMethodInfo
+            = FuncInstanceMethodInfo1<OneToOneTransformBase, DataViewRow, int, Delegate>.Create(target => target.GetSrcGetter<int>);
+
         private readonly Bindings _bindings;
 
         // The ColInfos are exposed to sub-classes. They should be considered readonly.
@@ -700,9 +703,7 @@ namespace Microsoft.ML.Data
             Host.CheckValue(typeDst, nameof(typeDst));
             Host.CheckValue(row, nameof(row));
 
-            Func<DataViewRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
-            var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
-            return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
+            return Utils.MarshalInvoke(_getSrcGetterMethodInfo, this, typeDst.RawType, row, iinfo);
         }
 
         /// <summary>

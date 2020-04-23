@@ -28,7 +28,7 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Vector or scalar of numeric, [text](xref:Microsoft.ML.Data.TextDataViewType) or [key](xref:Microsoft.ML.Data.KeyDataViewType) data types|
+    /// | Input column data type | Vector or scalar of <xref:System.Single>, <xref:System.Double> or [text](xref:Microsoft.ML.Data.TextDataViewType) data types|
     /// | Output column data type | Same as the input column|
     /// | Exportable to ONNX | Yes |
     ///

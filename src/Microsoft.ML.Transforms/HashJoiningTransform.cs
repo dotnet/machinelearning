@@ -454,9 +454,14 @@ namespace Microsoft.ML.Transforms
         private delegate uint HashDelegate<TSrc>(in TSrc value, uint seed);
 
         // generic method generators
-        private static MethodInfo _methGetterOneToOne;
-        private static MethodInfo _methGetterVecToVec;
-        private static MethodInfo _methGetterVecToOne;
+        private static readonly FuncInstanceMethodInfo1<HashJoiningTransform, DataViewRow, int, Delegate> _composeGetterOneToOneMethodInfo
+            = FuncInstanceMethodInfo1<HashJoiningTransform, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterOneToOne<int>);
+
+        private static readonly FuncInstanceMethodInfo1<HashJoiningTransform, DataViewRow, int, Delegate> _composeGetterVecToVecMethodInfo
+            = FuncInstanceMethodInfo1<HashJoiningTransform, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterVecToVec<int>);
+
+        private static readonly FuncInstanceMethodInfo1<HashJoiningTransform, DataViewRow, int, Delegate> _composeGetterVecToOneMethodInfo
+            = FuncInstanceMethodInfo1<HashJoiningTransform, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterVecToOne<int>);
 
         protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)
         {
@@ -465,45 +470,27 @@ namespace Microsoft.ML.Transforms
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             disposer = null;
 
-            // Construct MethodInfos templates that we need for the generic methods.
-            if (_methGetterOneToOne == null)
-            {
-                Func<DataViewRow, int, ValueGetter<uint>> del = ComposeGetterOneToOne<int>;
-                Interlocked.CompareExchange(ref _methGetterOneToOne, del.GetMethodInfo().GetGenericMethodDefinition(), null);
-            }
-            if (_methGetterVecToVec == null)
-            {
-                Func<DataViewRow, int, ValueGetter<VBuffer<uint>>> del = ComposeGetterVecToVec<int>;
-                Interlocked.CompareExchange(ref _methGetterVecToVec, del.GetMethodInfo().GetGenericMethodDefinition(), null);
-            }
-            if (_methGetterVecToOne == null)
-            {
-                Func<DataViewRow, int, ValueGetter<uint>> del = ComposeGetterVecToOne<int>;
-                Interlocked.CompareExchange(ref _methGetterVecToOne, del.GetMethodInfo().GetGenericMethodDefinition(), null);
-            }
-
             // Magic code to generate a correct getter.
             // First, we take a method info for GetGetter<int>
             // Then, we replace <int> with correct type of the input
             // And then we generate a delegate using the generic delegate generator
             DataViewType itemType;
-            MethodInfo mi;
+            FuncInstanceMethodInfo1<HashJoiningTransform, DataViewRow, int, Delegate> mi;
             if (!(Infos[iinfo].TypeSrc is VectorDataViewType vectorType))
             {
                 itemType = Infos[iinfo].TypeSrc;
-                mi = _methGetterOneToOne;
+                mi = _composeGetterOneToOneMethodInfo;
             }
             else
             {
                 itemType = vectorType.ItemType;
                 if (_exes[iinfo].OutputValueCount == 1)
-                    mi = _methGetterVecToOne;
+                    mi = _composeGetterVecToOneMethodInfo;
                 else
-                    mi = _methGetterVecToVec;
+                    mi = _composeGetterVecToVecMethodInfo;
             }
 
-            mi = mi.MakeGenericMethod(itemType.RawType);
-            return (Delegate)mi.Invoke(this, new object[] { input, iinfo });
+            return Utils.MarshalInvoke(mi, this, itemType.RawType, input, iinfo);
         }
 
         /// <summary>

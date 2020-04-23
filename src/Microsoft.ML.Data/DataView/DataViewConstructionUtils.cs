@@ -19,6 +19,9 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal static class DataViewConstructionUtils
     {
+        private static readonly FuncStaticMethodInfo1<string, DataViewSchema.Annotations, AnnotationInfo> _getAnnotationInfoMethodInfo
+            = new FuncStaticMethodInfo1<string, DataViewSchema.Annotations, AnnotationInfo>(GetAnnotationInfo<int>);
+
         public static IDataView CreateFromList<TRow>(IHostEnvironment env, IList<TRow> data,
             SchemaDefinition schemaDefinition = null)
             where TRow : class
@@ -73,7 +76,7 @@ namespace Microsoft.ML.Data
                 {
                     foreach (var annotation in annotations.Schema)
                     {
-                        var info = Utils.MarshalInvoke(GetAnnotationInfo<int>, annotation.Type.RawType, annotation.Name, annotations);
+                        var info = Utils.MarshalInvoke(_getAnnotationInfoMethodInfo, annotation.Type.RawType, annotation.Name, annotations);
                         schemaDefinitionCol.AddAnnotation(annotation.Name , info);
                     }
                 }
@@ -191,6 +194,9 @@ namespace Microsoft.ML.Data
             private static readonly FuncInstanceMethodInfo1<InputRowBase<TRow>, Delegate, Delegate> _createDirectGetterDelegateMethodInfo
                 = FuncInstanceMethodInfo1<InputRowBase<TRow>, Delegate, Delegate>.Create(target => target.CreateDirectGetterDelegate<int>);
 
+            private static readonly FuncInstanceMethodInfo1<InputRowBase<TRow>, Delegate, DataViewType, Delegate> _createKeyGetterDelegateMethodInfo
+                = FuncInstanceMethodInfo1<InputRowBase<TRow>, Delegate, DataViewType, Delegate>.Create(target => target.CreateKeyGetterDelegate<int>);
+
             private readonly int _colCount;
             private readonly Delegate[] _getters;
             protected readonly IHost Host;
@@ -274,8 +280,7 @@ namespace Microsoft.ML.Data
                     else
                     {
                         var keyRawType = colType.RawType;
-                        Func<Delegate, DataViewType, Delegate> delForKey = CreateKeyGetterDelegate<uint>;
-                        return Utils.MarshalInvoke(delForKey, keyRawType, peek, colType);
+                        return Utils.MarshalInvoke(_createKeyGetterDelegateMethodInfo, this, keyRawType, peek, colType);
                     }
                 }
                 else if (DataViewTypeManager.Knows(colType))

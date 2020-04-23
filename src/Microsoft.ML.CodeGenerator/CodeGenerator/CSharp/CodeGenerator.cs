@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CodeGenerator;
 using Microsoft.ML.CodeGenerator.Templates.Azure.Model;
@@ -144,7 +145,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             var predictProjectFileContent = GeneratPredictProjectFileContent(_settings.OutputName,
                 includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage,
                 includeImageTransformerPackage, includeImageClassificationPackage, includeRecommenderPackage, includeOnnxPackage, includeResNet18Package,
-                _settings.StablePackageVersion, _settings.UnstablePackageVersion);
+                _settings.StablePackageVersion, _settings.UnstablePackageVersion, _settings.Target);
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
             var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name, includeOnnxPackage);
@@ -175,40 +176,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             var modelProjectFileContent = GenerateModelProjectFileContent(includeLightGbmPackage,
                 includeMklComponentsPackage, includeFastTreePackage, includeImageTransformerPackage,
                 includeImageClassificationPackage, includeRecommenderPackage, includeOnnxModel,
-                _settings.StablePackageVersion, _settings.UnstablePackageVersion);
-
-            return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
-        }
-
-        internal (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent,
-    string ModelProjectFileContent) GenerateAzureAttachImageModelProjectContents(string namespaceValue)
-        {
-            var classLabels = GenerateClassLabels();
-
-            // generate ModelInput.cs
-            var modelInputCSFileContent = GenerateModelInputCSFileContent(namespaceValue, classLabels);
-            modelInputCSFileContent = Utils.FormatCode(modelInputCSFileContent);
-
-            // generate ModelOutput.cs
-            var modelOutputCSFileContent = new OnnxModelOutputClass()
-            {
-                Namespace = namespaceValue,
-                Target = _settings.Target,
-            }.TransformText();
-            modelOutputCSFileContent = Utils.FormatCode(modelOutputCSFileContent);
-
-            // generate ConsumeModel.cs
-            var consumeModelCSFileContent = new AzureAttachImageConsumeModel()
-            {
-                Namespace = namespaceValue,
-                Target = _settings.Target,
-            }.TransformText();
-            consumeModelCSFileContent = Utils.FormatCode(consumeModelCSFileContent);
-
-            // generate Model.csproj
-            var modelProjectFileContent = GenerateModelProjectFileContent(false,
-                false, false, true,
-                false, false,true, _settings.StablePackageVersion, _settings.UnstablePackageVersion);
+                _settings.StablePackageVersion, _settings.UnstablePackageVersion, _settings.Target);
 
             return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
         }
@@ -366,7 +334,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         private static string GenerateModelProjectFileContent(bool includeLightGbmPackage,
             bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage,
                 bool includeImageClassificationPackage, bool includeRecommenderPackage, bool includeOnnxModel,
-                string stablePackageVersion, string unstablePackageVersion)
+                string stablePackageVersion, string unstablePackageVersion, GenerateTarget target)
         {
             ModelProject modelProject = new ModelProject()
             {
@@ -378,7 +346,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeOnnxModel = includeOnnxModel,
                 IncludeRecommenderPackage = includeRecommenderPackage,
                 StablePackageVersion = stablePackageVersion,
-                UnstablePackageVersion = unstablePackageVersion
+                UnstablePackageVersion = unstablePackageVersion,
+                Target = target,
             };
 
             return modelProject.TransformText();
@@ -411,7 +380,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage,
                 bool includeImageClassificationPackage, bool includeRecommenderPackage,
                 bool includeOnnxPackage, bool includeResNet18Package,
-                string stablePackageVersion, string unstablePackageVersion)
+                string stablePackageVersion, string unstablePackageVersion, GenerateTarget target)
         {
             var predictProjectFileContent = new PredictProject()
             {
@@ -425,7 +394,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeResNet18Package = includeResNet18Package,
                 IncludeRecommenderPackage = includeRecommenderPackage,
                 StablePackageVersion = stablePackageVersion,
-                UnstablePackageVersion = unstablePackageVersion
+                UnstablePackageVersion = unstablePackageVersion,
+                Target = target,
             };
             return predictProjectFileContent.TransformText();
         }

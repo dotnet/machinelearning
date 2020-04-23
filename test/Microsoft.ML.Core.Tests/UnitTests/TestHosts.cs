@@ -61,10 +61,18 @@ namespace Microsoft.ML.RunTests
                     do
                     {
                         index = rand.Next(hosts.Count);
-                    } while ((hosts.ElementAt(index).Item1 as ICancelable).IsCanceled || hosts.ElementAt(index).Item2 < 3);
+                    } while ((hosts.ElementAt(index).Item1 as ICancelable).IsCanceled ||
+                              // use 2 instead of 3 here as there is no guarantee there is always level 2 children
+                              hosts.ElementAt(index).Item2 < 2);
                     (hosts.ElementAt(index).Item1 as ICancelable).CancelExecution();
                     rootHost = hosts.ElementAt(index).Item1;
                     queue.Enqueue(rootHost);
+
+                    // all children has been canceled, we should stop looking
+                    if (hosts.Count(q => (q.Item1 as ICancelable).IsCanceled) == hosts.Count - 5)
+                    {
+                        break;
+                    }
                 }
                 addThread.Join();
                 while (queue.Count > 0)

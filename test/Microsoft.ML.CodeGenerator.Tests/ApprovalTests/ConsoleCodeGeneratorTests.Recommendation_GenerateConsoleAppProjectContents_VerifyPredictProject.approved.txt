@@ -11,4 +11,8 @@
   <ItemGroup>
     <ProjectReference Include="..\MyNamespace.Model\MyNamespace.Model.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectCapability Include="MLNETCLIGenerated" />
+  </ItemGroup>
 </Project>

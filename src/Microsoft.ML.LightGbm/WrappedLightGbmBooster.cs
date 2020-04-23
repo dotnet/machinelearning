@@ -179,7 +179,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 for (int k = 0; k < 32; ++k)
                 {
                     int cat = (j - lowerBound) * 32 + k;
-                    if (FindInBitset(catThreshold, lowerBound, upperBound, cat) && cat > 0)
+                    if (FindInBitset(catThreshold, lowerBound, upperBound, cat))
                         cats.Add(cat);
                 }
             }
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                                     categoricalSplitFeatures[node] = new int[cats.Length];
                                     // Convert Cat thresholds to feature indices.
                                     for (int j = 0; j < cats.Length; ++j)
-                                        categoricalSplitFeatures[node][j] = splitFeature[node] + cats[j] - 1;
+                                        categoricalSplitFeatures[node][j] = splitFeature[node] + cats[j];
 
                                     splitFeature[node] = -1;
                                     categoricalSplit[node] = true;
