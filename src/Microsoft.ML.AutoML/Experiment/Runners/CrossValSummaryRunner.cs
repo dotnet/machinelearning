@@ -78,7 +78,9 @@ namespace Microsoft.ML.AutoML
 
             // Get the average metrics across all folds
             var avgScore = GetAverageOfNonNaNScores(trainResults.Select(x => x.score));
-            var avgMetrics = GetAverageMetrics(trainResults.Select(x => x.metrics));
+            var indexClosestToAvg = GetIndexClosestToAverage(trainResults.Select(r => r.score), avgScore);
+            var metricsClosestToAvg = trainResults[indexClosestToAvg].metrics;
+            var avgMetrics = GetAverageMetrics(trainResults.Select(x => x.metrics), metricsClosestToAvg);
 
             // Build result objects
             var suggestedPipelineRunDetail = new SuggestedPipelineRunDetail<TMetrics>(pipeline, avgScore, allRunsSucceeded, avgMetrics, bestModel, null);
@@ -86,7 +88,7 @@ namespace Microsoft.ML.AutoML
             return (suggestedPipelineRunDetail, runDetail);
         }
 
-        private static TMetrics GetAverageMetrics(IEnumerable<TMetrics> metrics)
+        private static TMetrics GetAverageMetrics(IEnumerable<TMetrics> metrics, TMetrics metricsClosestToAvg)
         {
             if (typeof(TMetrics) == typeof(BinaryClassificationMetrics))
             {
@@ -101,7 +103,9 @@ namespace Microsoft.ML.AutoML
                     negativePrecision: GetAverageOfNonNaNScores(newMetrics.Select(x => x.NegativePrecision)),
                     negativeRecall: GetAverageOfNonNaNScores(newMetrics.Select(x => x.NegativeRecall)),
                     f1Score: GetAverageOfNonNaNScores(newMetrics.Select(x => x.F1Score)),
-                    auprc: GetAverageOfNonNaNScores(newMetrics.Select(x => x.AreaUnderPrecisionRecallCurve)));
+                    auprc: GetAverageOfNonNaNScores(newMetrics.Select(x => x.AreaUnderPrecisionRecallCurve)),
+                    // Return ConfusionMatrix from the fold closest to average score
+                    confusionMatrix: (metricsClosestToAvg as BinaryClassificationMetrics).ConfusionMatrix);
                 return result as TMetrics;
             }
 
@@ -117,10 +121,9 @@ namespace Microsoft.ML.AutoML
                     logLossReduction: GetAverageOfNonNaNScores(newMetrics.Select(x => x.LogLossReduction)),
                     topKPredictionCount: newMetrics.ElementAt(0).TopKPredictionCount,
                     topKAccuracy: GetAverageOfNonNaNScores(newMetrics.Select(x => x.TopKAccuracy)),
-                    // TODO:
-                    //   Figure out whether class label ordering can be different across different folds.
-                    //   If yes, whether it is possible to get the information from the objects available.
-                    perClassLogLoss: null);
+                    // Return PerClassLogLoss and ConfusionMatrix from the fold closest to average score
+                    perClassLogLoss: (metricsClosestToAvg as MulticlassClassificationMetrics).PerClassLogLoss.ToArray(),
+                    confusionMatrix: (metricsClosestToAvg as MulticlassClassificationMetrics).ConfusionMatrix);
                 return result as TMetrics;
             }
 
