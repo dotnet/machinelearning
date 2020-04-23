@@ -1,13 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms.TimeSeries;
 
+[assembly: LoadableClass(typeof(SrCnnEntireTransformer),
+        typeof(SrCnnEntireTransformer), null, typeof(SignatureLoadModel),
+        "SrCnnEntire Transformer",
+        SrCnnEntireTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(SrCnnEntireTransformer.SrCnnEntireModeler),
+        typeof(SrCnnEntireTransformer.SrCnnEntireModeler), null, typeof(SignatureLoadModel),
+        "SrCnnEntire Modeler",
+        SrCnnEntireTransformer.SrCnnEntireModeler.LoaderSignature)]
 namespace Microsoft.ML.Transforms.TimeSeries
 {
-
     public sealed class SrCnnEntireTransformer : OneToOneTransformerBase
     {
         internal const string Summary = "This transformer detect anomalies for input timeseries using SRCNN";
@@ -103,7 +113,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private SrCnnEntireTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
-            //TODO
+            InputColumnName = ctx.Reader.ReadString();
+            Host.CheckDecode(!String.IsNullOrEmpty(InputColumnName));
+
+            OutputColumnName = ctx.Reader.ReadString();
+            Host.CheckDecode(!String.IsNullOrEmpty(OutputColumnName));
+
+            Threshold = ctx.Reader.ReadDouble();
+            Host.CheckDecode(Threshold >= 0 && Threshold <= 1);
+
+            BatchSize = ctx.Reader.ReadInt32();
+            Host.CheckDecode(BatchSize == -1 || BatchSize > 12);
+
+            SrCnnDetectMode = (SrCnnDetectMode)ctx.Reader.ReadInt32();
+
+            Sensitivity = ctx.Reader.ReadDouble();
+            Host.CheckDecode(Sensitivity >= 0 && Sensitivity <= 100);
+
+            OutputLength = ctx.Reader.ReadInt32();
+            Host.CheckDecode(OutputLength == 3 || OutputLength == 4 || OutputLength == 7);
+
+            ctx.LoadModel<SrCnnEntireModeler, SignatureLoadModel>(host, out AnomalyModel, "SrCnnEntire");
+            Host.CheckDecode(AnomalyModel != null);
         }
 
         private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
@@ -113,17 +144,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValue(input, nameof(input));
 
             return new SrCnnEntireTransformer(env, options, input).MakeDataTransform(input);
-        }
-
-        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(LoaderSignature);
-
-            host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-
-            return new SrCnnEntireTransformer(host, ctx).MakeDataTransform(input);
         }
 
         internal static SrCnnEntireTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -142,8 +162,25 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            //TODO
-            throw new NotImplementedException();
+            Host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            Host.Assert(Threshold >= 0 && Threshold <= 1);
+            Host.Assert(BatchSize == -1 || BatchSize > 12);
+            Host.Assert(Sensitivity >= 0 && Sensitivity <= 100);
+            Host.Assert(OutputLength == 3 || OutputLength == 4 || OutputLength == 7);
+
+            base.SaveColumns(ctx);
+            ctx.Writer.Write(InputColumnName);
+            ctx.Writer.Write(OutputColumnName);
+            ctx.Writer.Write(Threshold);
+            ctx.Writer.Write((Int32)BatchSize);
+            ctx.Writer.Write((Int32)SrCnnDetectMode);
+            ctx.Writer.Write(Sensitivity);
+            ctx.Writer.Write((Int32)OutputLength);
+
+            ctx.SaveModel(AnomalyModel, "SrCnnEntire");
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
@@ -227,9 +264,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal class SrCnnEntireModeler : ICanSaveModel
         {
+            internal const string LoaderSignature = "SrCnnEntireModeler";
             private IHost _host;
             private SrCnnEntireTransformer _parent;
-            private Dictionary<DateTime, Double[]> _anomalyDict;
+            private Dictionary<long, Double[]> _anomalyDict;
             private static readonly int _minTrainingPoint = 12;
             private static readonly int _lookaheadWindowSize = 5;
             private static readonly int _backAddWindowSize = 5;
@@ -259,27 +297,78 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     1.6994687082728674e-05, 9.767061541798089e-06
                 };
 
+            private static VersionInfo GetVersionInfo()
+            {
+                return new VersionInfo(
+                    modelSignature: "SRENTMOD",
+                    verWrittenCur: 0x00010001, // Initial
+                    verReadableCur: 0x00010001,
+                    verWeCanReadBack: 0x00010001,
+                    loaderSignature: LoaderSignature,
+                    loaderAssemblyName: typeof(SrCnnEntireModeler).Assembly.FullName);
+            }
+
             public SrCnnEntireModeler(IHostEnvironment env, SrCnnEntireTransformer parent, IDataView data)
                 : this(env, parent)
             {
                 Train(data);
             }
 
-            public SrCnnEntireModeler(IHostEnvironment env, SrCnnEntireTransformer parent)
+            private SrCnnEntireModeler(IHostEnvironment env, SrCnnEntireTransformer parent)
             {
                 Contracts.CheckValue(env, nameof(env));
                 Contracts.CheckValue(parent, nameof(parent));
-                _host = env.Register(nameof(SrCnnEntireModeler));
+                _host = env.Register(LoaderSignature);
                 _parent = parent;
-                _anomalyDict = new Dictionary<DateTime, Double[]>();
+                _anomalyDict = new Dictionary<long, Double[]>();
+            }
+
+            public SrCnnEntireModeler(IHostEnvironment env, ModelLoadContext ctx)
+            {
+                Contracts.CheckValue(env, nameof(env));
+                _host = env.Register(LoaderSignature);
+
+                _anomalyDict = new Dictionary<long, Double[]>();
+
+                var length = ctx.Reader.ReadInt32();
+                _host.CheckDecode(length > 0);
+
+                var count = ctx.Reader.ReadInt32();
+                _host.CheckDecode(count >= 0);
+
+                if (count == 0)
+                    return;
+
+                List<long> trainingTimestamp = ctx.Reader.ReadLongArray(count).ToList();
+                List<double> valList = ctx.Reader.ReadDoubleArray(length * count).ToList();
+                List<Double[]> batchResult = new List<double[]>();
+                for (int i = 0; i < count; ++i)
+                {
+                    batchResult.Add(valList.GetRange(i * length, length).ToArray());
+                }
+                _anomalyDict = trainingTimestamp.Zip(batchResult, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
 
             private void SaveModel(ModelSaveContext ctx)
             {
-                //TODO
-                throw new NotImplementedException();
+                _host.CheckValue(ctx, nameof(ctx));
+                ctx.CheckAtModel();
+                ctx.SetVersionInfo(GetVersionInfo());
+
+                ctx.Writer.Write((Int32)_parent.OutputLength);
+                ctx.Writer.Write((Int32)_anomalyDict.Count);
+
+                List<long> keyList = new List<long>();
+                List<double> valList = new List<double>();
+                foreach(var pair in _anomalyDict)
+                {
+                    keyList.Add(pair.Key);
+                    valList.AddRange(pair.Value);
+                }
+                ctx.Writer.WriteLongStream(keyList);
+                ctx.Writer.WriteDoubleStream(valList);
             }
 
             public void Train(IDataView data) => Train(new RoleMappedData(data, null, _parent.InputColumnName));
@@ -293,7 +382,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     throw _host.ExceptSchemaMismatch(nameof(data), "feature", featureCol.Name, "SrCnnTsPointDataViewType", featureCol.Type.ToString());
 
                 List<Double> trainingData = new List<Double>();
-                List<DateTime> trainingTimestamp = new List<DateTime>();
+                List<long> trainingTimestamp = new List<long>();
                 DateTime prevTimestamp = DateTime.MinValue;
                 using (var cursor = data.Data.GetRowCursor(featureCol))
                 {
@@ -304,7 +393,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         getVal(ref val);
                         if (val != null && val.Timestamp > prevTimestamp && !Double.IsNaN(val.Value))
                         {
-                            trainingTimestamp.Add(val.Timestamp);
+                            trainingTimestamp.Add(val.Timestamp.Ticks);
                             trainingData.Add(val.Value);
                             prevTimestamp = val.Timestamp;
                         }
@@ -325,7 +414,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public bool Inference(SrCnnTsPoint key, out Double[] result)
             {
-                return _anomalyDict.TryGetValue(key.Timestamp, out result);
+                return _anomalyDict.TryGetValue(key.Timestamp.Ticks, out result);
             }
 
             private List<Double[]> TrainCore(List<Double> values)
@@ -644,13 +733,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return units;
             }
 
-            private List<Double> MedianFilter(List<Double> data, int window, bool needTwoEnd)
+            private List<Double> MedianFilter(List<Double> data, int window, bool needTwoEnd=false)
             {
                 int wLen = window / 2 * 2 + 1;
                 int tLen = data.Count;
                 List<Double> val = new List<Double>(data);
                 List<Double> ans = new List<Double>(data);
-                List<Double> curWindow = new List<Double>(data).GetRange(0, wLen);
+                List<Double> curWindow = Enumerable.Repeat(0.0, wLen).ToList();
                 if (tLen < wLen)
                 {
                     return ans;
@@ -659,7 +748,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 for (int i = 0; i < wLen; i++)
                 {
                     int index = i;
-                    int addId = UpperBound(curWindow, 0, i, val[i]);
+                    int addId = BisectRight(curWindow, 0, i, val[i]);
                     while (index > addId)
                     {
                         curWindow[index] = curWindow[index - 1];
@@ -674,14 +763,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 for (int i = window / 2 + 1; i < tLen - window / 2; i++)
                 {
-                    int deleteId = UpperBound(curWindow, 0, wLen, val[i - window / 2 - 1]) - 1;
+                    int deleteId = BisectRight(curWindow, 0, wLen, val[i - window / 2 - 1]) - 1;
                     int index = deleteId;
                     while (index < wLen - 1)
                     {
                         curWindow[index] = curWindow[index + 1];
                         index += 1;
                     }
-                    int addId = UpperBound(curWindow, 0, wLen - 1, val[i + window / 2]);
+                    int addId = BisectRight(curWindow, 0, wLen - 1, val[i + window / 2]);
                     index = wLen - 1;
                     while (index > addId)
                     {
@@ -696,7 +785,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                     for (int i = tLen - window / 2; i < tLen; i++)
                     {
-                        int deleteId = UpperBound(curWindow, 0, wLen, data[i - window / 2 - 1]) - 1;
+                        int deleteId = BisectRight(curWindow, 0, wLen, data[i - window / 2 - 1]) - 1;
                         int index = deleteId;
                         while (index < wLen - 1)
                         {
@@ -711,7 +800,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return ans;
             }
 
-            private int UpperBound(List<Double> arr, int begin, int end, double tar)
+            private int BisectRight(List<Double> arr, int begin, int end, double tar)
             {
                 while (begin < end)
                 {

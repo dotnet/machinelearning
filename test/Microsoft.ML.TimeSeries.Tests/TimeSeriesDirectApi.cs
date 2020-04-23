@@ -575,11 +575,37 @@ namespace Microsoft.ML.Tests
             int k = 0;
             foreach (var prediction in predictionColumn)
             {
+                Assert.Equal(3, prediction.Prediction.Length);
                 if (k == 20)
                     Assert.Equal(1, prediction.Prediction[0]);
                 else
                     Assert.Equal(0, prediction.Prediction[0]);
                 k += 1;
+            }
+
+            //save and load model
+            var modelPath = "srcnnetire.zip";
+            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
+            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyOnly).Fit(dataView);
+            ml.Model.Save(fitModel, dummyData.Schema, modelPath);
+
+            using (var file = File.OpenRead(modelPath))
+            {
+                ITransformer loadedModel = ml.Model.Load(file, out var schema);
+
+                transformedData = loadedModel.Transform(dataView);
+                predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
+
+                k = 0;
+                foreach (var prediction in predictionColumn)
+                {
+                    Assert.Equal(3, prediction.Prediction.Length);
+                    if (k == 20)
+                        Assert.Equal(1, prediction.Prediction[0]);
+                    else
+                        Assert.Equal(0, prediction.Prediction[0]);
+                    k += 1;
+                }
             }
         }
 
@@ -628,6 +654,34 @@ namespace Microsoft.ML.Tests
                 else
                     Assert.Equal(0, prediction.Prediction[0]);
                 k += 1;
+            }
+
+            //save and load model
+            var modelPath = "srcnnetire.zip";
+            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
+            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndExpectedValue).Fit(dataView);
+            ml.Model.Save(fitModel, dummyData.Schema, modelPath);
+
+            using (var file = File.OpenRead(modelPath))
+            {
+                ITransformer loadedModel = ml.Model.Load(file, out var schema);
+
+                transformedData = loadedModel.Transform(dataView);
+                predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetectionWithExp>(transformedData, reuseRowObject: false);
+
+                k = 0;
+                foreach (var prediction in predictionColumn)
+                {
+                    Assert.Equal(4, prediction.Prediction.Length);
+                    if (k == 20)
+                    {
+                        Assert.Equal(1, prediction.Prediction[0]);
+                        Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                    }
+                    else
+                        Assert.Equal(0, prediction.Prediction[0]);
+                    k += 1;
+                }
             }
         }
 
@@ -679,6 +733,37 @@ namespace Microsoft.ML.Tests
                 else
                     Assert.Equal(0, prediction.Prediction[0]);
                 k += 1;
+            }
+
+            //save and load model
+            var modelPath = "srcnnetire.zip";
+            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
+            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndMargin, 90).Fit(dataView);
+            ml.Model.Save(fitModel, dummyData.Schema, modelPath);
+
+            using (var file = File.OpenRead(modelPath))
+            {
+                ITransformer loadedModel = ml.Model.Load(file, out var schema);
+
+                transformedData = loadedModel.Transform(dataView);
+                predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetectionWithMargin>(transformedData, reuseRowObject: false);
+
+                k = 0;
+                foreach (var prediction in predictionColumn)
+                {
+                    Assert.Equal(7, prediction.Prediction.Length);
+                    if (k == 20)
+                    {
+                        Assert.Equal(1, prediction.Prediction[0]);
+                        Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                        Assert.Equal("5.00", prediction.Prediction[4].ToString("0.00"));
+                        Assert.Equal("5.01", prediction.Prediction[5].ToString("0.00"));
+                        Assert.Equal("4.99", prediction.Prediction[6].ToString("0.00"));
+                    }
+                    else
+                        Assert.Equal(0, prediction.Prediction[0]);
+                    k += 1;
+                }
             }
         }
     }

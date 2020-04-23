@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -47,14 +48,13 @@ namespace Samples.Dynamic
             // SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<AnomalyDetectionResult>(transformedData, reuseRowObject: false);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-" +
-                $"transformation.");
-
+            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Timestamp\t\tData\tAnomaly\tAnomalyScore\tMag\tExpectedValue\tBoundaryUnit\tUpperBoundary\tLowerBoundary");
 
             int k = 0;
             foreach (var prediction in predictionColumn)
                 PrintPrediction(data[k++].Point, prediction);
+            //Prediction column obtained post-transformation.
             //Timestamp Data    Anomaly AnomalyScore    Mag ExpectedValue   BoundaryUnit UpperBoundary   LowerBoundary
             //2020 / 1 / 2 0:00:00        5.00    0               0.00    0.21            5.00            5.00            5.01            4.99
             //2020 / 1 / 3 0:00:00        5.00    0               0.00    0.11            5.00            5.00            5.01            4.99
@@ -82,6 +82,55 @@ namespace Samples.Dynamic
             //2020 / 1 / 25 0:00:00       5.00    0               0.00    0.05            5.00            5.00            5.01            4.99
             //2020 / 1 / 26 0:00:00       5.00    0               0.00    0.11            5.00            5.00            5.01            4.99
             //2020 / 1 / 27 0:00:00       5.00    0               0.00    0.19            5.00            5.00            5.01            4.99
+
+            var modelPath = "srcnnetire.zip";
+            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
+            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, 512, SrCnnDetectMode.AnomalyAndMargin, 90.0).Fit(dataView);
+            ml.Model.Save(fitModel, dummyData.Schema, modelPath);
+
+            using (var file = File.OpenRead(modelPath))
+            {
+                ITransformer loadedModel = ml.Model.Load(file, out var schema);
+
+                transformedData = loadedModel.Transform(dataView);
+                predictionColumn = ml.Data.CreateEnumerable<AnomalyDetectionResult>(transformedData, reuseRowObject: false);
+
+                Console.WriteLine($"{outputColumnName} column obtained post-transformation by saved model.");
+                Console.WriteLine("Timestamp\t\tData\tAnomaly\tAnomalyScore\tMag\tExpectedValue\tBoundaryUnit\tUpperBoundary\tLowerBoundary");
+
+                k = 0;
+                foreach (var prediction in predictionColumn)
+                    PrintPrediction(data[k++].Point, prediction);
+
+                //Prediction column obtained post-transformation by saved model.
+                //Timestamp Data    Anomaly AnomalyScore    Mag ExpectedValue   BoundaryUnit UpperBoundary   LowerBoundary
+                //2020 / 1 / 2 0:00:00        5.00    0               0.00    0.21            5.00            5.00            5.01            4.99
+                //2020 / 1 / 3 0:00:00        5.00    0               0.00    0.11            5.00            5.00            5.01            4.99
+                //2020 / 1 / 4 0:00:00        5.00    0               0.00    0.03            5.00            5.00            5.01            4.99
+                //2020 / 1 / 5 0:00:00        5.00    0               0.00    0.01            5.00            5.00            5.01            4.99
+                //2020 / 1 / 6 0:00:00        5.00    0               0.00    0.03            5.00            5.00            5.01            4.99
+                //2020 / 1 / 7 0:00:00        5.00    0               0.00    0.06            5.00            5.00            5.01            4.99
+                //2020 / 1 / 8 0:00:00        5.00    0               0.00    0.02            5.00            5.00            5.01            4.99
+                //2020 / 1 / 9 0:00:00        5.00    0               0.00    0.01            5.00            5.00            5.01            4.99
+                //2020 / 1 / 10 0:00:00       5.00    0               0.00    0.01            5.00            5.00            5.01            4.99
+                //2020 / 1 / 11 0:00:00       5.00    0               0.00    0.01            5.00            5.00            5.01            4.99
+                //2020 / 1 / 12 0:00:00       5.00    0               0.00    0.00            5.00            5.00            5.01            4.99
+                //2020 / 1 / 13 0:00:00       5.00    0               0.00    0.01            5.00            5.00            5.01            4.99
+                //2020 / 1 / 14 0:00:00       5.00    0               0.00    0.01            5.00            5.00            5.01            4.99
+                //2020 / 1 / 15 0:00:00       5.00    0               0.00    0.02            5.00            5.00            5.01            4.99
+                //2020 / 1 / 16 0:00:00       5.00    0               0.00    0.07            5.00            5.00            5.01            4.99
+                //2020 / 1 / 17 0:00:00       5.00    0               0.00    0.08            5.00            5.00            5.01            4.99
+                //2020 / 1 / 18 0:00:00       5.00    0               0.00    0.02            5.00            5.00            5.01            4.99
+                //2020 / 1 / 19 0:00:00       5.00    0               0.00    0.05            5.00            5.00            5.01            4.99
+                //2020 / 1 / 20 0:00:00       5.00    0               0.00    0.12            5.00            5.00            5.01            4.99
+                //2020 / 1 / 21 0:00:00       5.00    0               0.00    0.17            5.00            5.00            5.01            4.99
+                //2020 / 1 / 22 0:00:00       10.00   1               0.50    0.80            5.00            5.00            5.01            4.99
+                //2020 / 1 / 23 0:00:00       5.00    0               0.00    0.16            5.00            5.00            5.01            4.99
+                //2020 / 1 / 24 0:00:00       5.00    0               0.00    0.11            5.00            5.00            5.01            4.99
+                //2020 / 1 / 25 0:00:00       5.00    0               0.00    0.05            5.00            5.00            5.01            4.99
+                //2020 / 1 / 26 0:00:00       5.00    0               0.00    0.11            5.00            5.00            5.01            4.99
+                //2020 / 1 / 27 0:00:00       5.00    0               0.00    0.19            5.00            5.00            5.01            4.99
+            }
         }
 
         private static void PrintPrediction(SrCnnTsPoint point, AnomalyDetectionResult prediction) =>
