@@ -146,7 +146,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
@@ -320,7 +320,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers with non-negative coefficients
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.1 and x86 output differs from Baseline")]
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
@@ -352,7 +352,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreAndX64Fact("x86 output differs from Baseline and flaky on netcore 3.0")]
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionGaussianNormTest()
         {
@@ -1606,7 +1606,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for no calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         [TestCategory("Calibrator")]
         public void DefaultCalibratorPerceptronTest()
         {
@@ -1618,7 +1618,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
@@ -1630,7 +1630,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.1 and x86 output differs from Baseline")]
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {
@@ -2148,7 +2148,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmTest()
@@ -2162,7 +2162,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmNoBiasTest()
@@ -2201,7 +2201,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("output on .NetCore 3.0 differs. Tracked on issue 3856 in GitHub.")]
+        [Fact]
         public void EnsemblesMultiClassBootstrapSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=20 st=BootstrapSelector{} tp=-"), "WE-Bootstrap");
@@ -2298,7 +2298,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("output on .NetCore 3.0 differs. Tracked on issue 3856 in GitHub.")]
+        [Fact]
         public void EnsemblesMultiAveragerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiAverage tp=-"), "WE-Average");
@@ -2306,7 +2306,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("output on .NetCore 3.0 differs. Tracked on issue 3856 in GitHub.")]
+        [Fact]
         public void EnsemblesMultiVotingCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiVoting tp=-"), "WE-Voting");
@@ -2314,7 +2314,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("output on .NetCore 3.0 differs. Tracked on issue 3856 in GitHub.")]
+        [Fact]
         public void EnsemblesMultiStackCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiStacking{bp=mlr{t-}} tp=-"), "WE-Stacking");
