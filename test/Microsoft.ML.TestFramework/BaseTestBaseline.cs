@@ -97,6 +97,7 @@ namespace Microsoft.ML.RunTests
             _baselineCommonDir = Path.Combine(baselineRootDir, "Common");
             _baselineBuildStringDir = Path.Combine(baselineRootDir, BuildString);
             _baselineConfigDirs = GetConfigurationDirs();
+            _usedSpecificBaselineConfigs = new HashSet<string>();
 
             string logDir = Path.Combine(OutDir, _logRootRelPath);
             Directory.CreateDirectory(logDir);
