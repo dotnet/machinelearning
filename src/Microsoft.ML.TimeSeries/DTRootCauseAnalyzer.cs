@@ -197,7 +197,7 @@ namespace Microsoft.ML.TimeSeries
             Dictionary<string, int> pointDistribution = new Dictionary<string, int>();
             UpdateDistribution(pointDistribution, totalPoints, dimKey);
 
-            anomalyPoints.OrderBy(x => x.Delta);
+            anomalyPoints = anomalyPoints.OrderBy(x => x.Delta).ToList();
 
             if (root.Delta > 0)
             {
@@ -251,9 +251,15 @@ namespace Microsoft.ML.TimeSeries
 
                 double relativeEntropy = GetDimensionEntropy(dimension.PointDis, dimension.AnomalyDis);
                 double gain = totalEntropy - relativeEntropy;
+                if (Double.IsNaN(gain)) {
+                    gain = 0;
+                }
                 entroyGainMap.Add(dimension, gain);
 
                 double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis);
+                if (Double.IsInfinity(gainRatio)) {
+                    gainRatio = 0;
+                }
                 entroyGainRatioMap.Add(dimension, gainRatio);
 
                 sumGain += gain;
@@ -287,9 +293,16 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 double entropy = GetEntropy(dimension.PointDis.Count, dimension.AnomalyDis.Count);
+                if (Double.IsNaN(entropy)) {
+                    entropy = Double.MaxValue;
+                }
                 entropyMap.Add(dimension, entropy);
 
                 double gainRatio = entropy / GetDimensionInstrinsicValue(dimension.PointDis);
+
+                if (Double.IsInfinity(gainRatio)) {
+                    gainRatio = 0;
+                }
                 entropyRatioMap.Add(dimension, gainRatio);
 
                 sumGain += entropy;
