@@ -1,6 +1,6 @@
-sbyte	 byte	 short	ushort	int	uint	strings
-0	0	0	0	0	0	0
-2	2	2	2	2	2	djldaoiejffjauhglehdlgh
+sbyte	 byte	 short	ushort	int	uint	strings	boolean
+0	0	0	0	0	0	0	0
+2	2	2	2	2	2	djldaoiejffjauhglehdlgh	1
 127	127	127	127	127	127	alibaba
 -128	255	32767	65535	2147483647	4294967295	to mato
 0	5	-32768	78	-2147483648	3	U+12w

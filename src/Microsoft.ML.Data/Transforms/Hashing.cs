@@ -1122,7 +1122,8 @@ namespace Microsoft.ML.Transforms
 
                 // Numeric input types are limited to those supported by the Onnxruntime MurmurHash operator, which currently only supports
                 // uints and ints. Thus, ulongs, longs, doubles, floats, and booleans are not supported.
-                if (srcType == typeof(ushort) || srcType == typeof(short) || srcType == typeof(sbyte) || srcType == typeof(byte))
+                if (srcType == typeof(ushort) || srcType == typeof(short) || srcType == typeof(sbyte) ||
+                    srcType == typeof(byte) || srcType == typeof(bool))
                 {
                     var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.UInt32, "CastOutput", true);
                     var castNode = ctx.CreateNode("Cast", srcVariable, castOutput, ctx.GetNodeName(opType), "");

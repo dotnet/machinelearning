@@ -1202,12 +1202,12 @@ namespace Microsoft.ML.Tests
         // when users try to convert the items mentioned above.
         public void MurmurHashTest(
             [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Byte,
-            DataKind.UInt16, DataKind.UInt32, DataKind.String)] DataKind type,
+            DataKind.UInt16, DataKind.UInt32, DataKind.String, DataKind.Boolean)] DataKind type,
             [CombinatorialValues(1, 5, 31)] int numberOfBits)
         {
 
             var mlContext = new MLContext();
-            string dataPath = GetDataPath("numerics.txt");
+            string dataPath = GetDataPath("type-samples.txt");
 
             // Adding vector testing by modifying the start column for signed types
             var columnStart = (type == DataKind.SByte) ? 0 :
@@ -1215,14 +1215,16 @@ namespace Microsoft.ML.Tests
                 (type == DataKind.Int16) ? 0 :
                 (type == DataKind.UInt16) ? 3 :
                 (type == DataKind.Int32) ? 0 :
-                (type == DataKind.UInt32) ? 5 : 6;
+                (type == DataKind.UInt32) ? 5 :
+                (type == DataKind.String) ? 6 : 7;
 
             var columnEnd = (type == DataKind.SByte) ? 0 :
                 (type == DataKind.Byte) ? 1 :
                 (type == DataKind.Int16) ? 2 :
                 (type == DataKind.UInt16) ? 3 :
                 (type == DataKind.Int32) ? 4 :
-                (type == DataKind.UInt32) ? 5 : 6;
+                (type == DataKind.UInt32) ? 5 :
+                (type == DataKind.String) ? 6 : 7;
 
             var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Value", type, columnStart, columnEnd),
