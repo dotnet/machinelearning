@@ -868,7 +868,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact, TestCategory("RunSpecificTest")]
+        [Fact]
         public void CommandCrossValidationKeyLabelWithFloatKeyValues()
         {
             RunMTAThread(() =>

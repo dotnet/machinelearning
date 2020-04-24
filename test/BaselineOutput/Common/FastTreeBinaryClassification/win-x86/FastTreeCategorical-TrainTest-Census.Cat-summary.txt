@@ -1,0 +1,16 @@
+
+Per-feature gain summary for the boosted tree ensemble:
+	Cat.relationship.Own-child	1
+	Num.capital-gain	0.832448370265449
+	Cat.occupation.Machine-op-inspct	0.774714808528682
+	Num.fnlwgt	0.476323264718471
+	Num.age	0.453280196772707
+	Cat.education.11th	0.423014907185028
+	Cat.marital-status.Never-married	0.380640908665174
+	Num.capital-loss	0.290129874275856
+	Num.hours-per-week	0.224975332787427
+	Num.education-num	0.170449309712328
+	Cat.education.Bachelors	0.165329576733931
+	Cat.ethnicity.Black	0.141652260091366
+	Cat.education.Some-college	0.116273411695884
+	Cat.Workclass.Private	0.098035998522615

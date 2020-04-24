@@ -1,0 +1,61 @@
+maml.exe TrainTest test=%Data% tr=FastTreeBinaryClassification{cat=+ nl=5 mil=5 lr=0.25 iter=20 mb=255} dout=%Output% loader=Text{header+ col=Label:0 col=Cat:TX:1-8} data=%Data% out=%Output% seed=1 xf=Cat{col=Cat} xf=Concat{col=Features:Cat}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 500 instances
+Binning and forming Feature objects
+Changing data from row-wise to column-wise
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.2300 (115.0/(115.0+385.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       67 |       48 | 0.5826
+ negative ||       18 |      367 | 0.9532
+          ||======================
+Precision ||   0.7882 |   0.8843 |
+OVERALL 0/1 ACCURACY: 0.868000
+LOG LOSS/instance:  0.439868
+Test-set entropy (prior Log-Loss/instance): 0.778011
+LOG-LOSS REDUCTION (RIG): 0.434625
+AUC:                0.916804
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.916804 (0.0000)
+Accuracy:           0.868000 (0.0000)
+Positive precision: 0.788235 (0.0000)
+Positive recall:    0.582609 (0.0000)
+Negative precision: 0.884337 (0.0000)
+Negative recall:    0.953247 (0.0000)
+Log-loss:           0.439868 (0.0000)
+Log-loss reduction: 0.434625 (0.0000)
+F1 Score:           0.670000 (0.0000)
+AUPRC:              0.770221 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	500 examples	Total Terms: 76
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'FastTree data preparation' started.
+[2] 'FastTree data preparation' finished in %Time%.
+[3] 'FastTree in-memory bins initialization' started.
+[3] 'FastTree in-memory bins initialization' finished in %Time%.
+[4] 'FastTree feature conversion' started.
+[4] 'FastTree feature conversion' finished in %Time%.
+[5] 'FastTree data preparation #2' started.
+[5] 'FastTree data preparation #2' finished in %Time%.
+[6] 'FastTree feature conversion #2' started.
+[6] 'FastTree feature conversion #2' finished in %Time%.
+[7] 'FastTree training' started.
+[7] 'FastTree training' finished in %Time%.
+[8] 'Saving model' started.
+[8] 'Saving model' finished in %Time%.
