@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -18,6 +19,7 @@ using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.TensorFlow;
+using InMemoryImage = Microsoft.ML.Tests.ImageTests.InMemoryImage;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -1124,6 +1126,35 @@ namespace Microsoft.ML.Scenarios
                 }
                 Assert.Equal(4, numRows);
             }
+        }
+
+        // This test doesn't really check the values of the results
+        // Simply checks that CrossValidation is doable with in-memory images
+        // See issue https://github.com/dotnet/machinelearning/issues/4126
+        [TensorFlowFact]
+        public void TensorFlowTransformCifarCrossValidationWithInMemoryImages()
+        {
+            var modelLocation = "cifar_saved_model";
+            var mlContext = new MLContext(seed: 1);
+            using var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var schema = tensorFlowModel.GetInputSchema();
+            Assert.True(schema.TryGetColumnIndex("Input", out int column));
+            var type = (VectorDataViewType)schema[column].Type;
+            var imageHeight = type.Dimensions[0];
+            var imageWidth = type.Dimensions[1];
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+            var dataObjects = InMemoryImage.LoadFromTsv(mlContext, dataFile, imageFolder);
+
+            var dataView = mlContext.Data.LoadFromEnumerable<InMemoryImage>(dataObjects);
+            var pipeline = mlContext.Transforms.ResizeImages("ResizedImage", imageWidth, imageHeight, nameof(InMemoryImage.LoadedImage))
+                .Append(mlContext.Transforms.ExtractPixels("Input", "ResizedImage", interleavePixelColors: true))
+                .Append(tensorFlowModel.ScoreTensorFlowModel("Output", "Input"))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.MulticlassClassification.Trainers.NaiveBayes("Label", "Output"));
+
+            var cross = mlContext.MulticlassClassification.CrossValidate(dataView, pipeline, 2);
+            Assert.Equal(2, cross.Count());
         }
 
         // This test has been created as result of https://github.com/dotnet/machinelearning/issues/2156.
