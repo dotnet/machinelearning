@@ -19,6 +19,7 @@ using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.TensorFlow;
+using InMemoryImage = Microsoft.ML.Tests.ImageTests.InMemoryImage;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -1124,52 +1125,6 @@ namespace Microsoft.ML.Scenarios
                     numRows += 1;
                 }
                 Assert.Equal(4, numRows);
-            }
-        }
-
-        public class InMemoryImage
-        {
-            [ImageType(229,299)]
-            public Bitmap LoadedImage;
-            public string Label;
-
-            public static List<InMemoryImage> LoadFromTsv(MLContext mlContext, string tsvPath, string imageFolder)
-            {
-                var inMemoryImages = new List<InMemoryImage>();
-                var tsvFile = mlContext.Data.LoadFromTextFile(tsvPath, columns: new[]
-                    {
-                            new TextLoader.Column("ImagePath", DataKind.String, 0),
-                            new TextLoader.Column("Label", DataKind.String, 1),
-                    }
-                );
-
-                using (var cursor = tsvFile.GetRowCursorForAllColumns())
-                {
-                    var pathBuffer = default(ReadOnlyMemory<char>);
-                    var labelBuffer = default(ReadOnlyMemory<char>);
-                    var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(tsvFile.Schema["ImagePath"]);
-                    var labelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(tsvFile.Schema["Label"]);
-                    while (cursor.MoveNext())
-                    {
-                        pathGetter(ref pathBuffer);
-                        labelGetter(ref labelBuffer);
-
-                        var label = labelBuffer.ToString();
-                        var fileName = pathBuffer.ToString();
-                        var imagePath = Path.Combine(imageFolder, fileName);
-
-                        inMemoryImages.Add(
-                                new InMemoryImage()
-                                {
-                                    Label = label,
-                                    LoadedImage = (Bitmap)Image.FromFile(imagePath)
-                                }
-                            );
-                    }
-                }
-
-                return inMemoryImages;
-
             }
         }
 
