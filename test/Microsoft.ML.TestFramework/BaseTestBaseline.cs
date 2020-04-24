@@ -75,6 +75,7 @@ namespace Microsoft.ML.RunTests
         private string _baselineCommonDir;
         private string _baselineBuildStringDir;
         private IEnumerable<string> _baselineConfigDirs;
+        private bool _loggedConfigurationSpecificBaseline;
 
         // The writer to write to test log files.
         protected TestLogger TestLogger;
@@ -238,6 +239,15 @@ namespace Microsoft.ML.RunTests
             Output.WriteLine(fmt, args);
         }
 
+        protected void LogConfigurationSpecificBaseline(string baselineConfigDir)
+        {
+            if (!_loggedConfigurationSpecificBaseline)
+            {
+                Log(String.Format("Unit test {0} is using {1} configuration specific baseline.", TestName, baselineConfigDir));
+                _loggedConfigurationSpecificBaseline = true;
+            }
+        }
+
         protected string GetBaselinePath(string name)
         {
             Contracts.Assert(IsActive);
@@ -255,11 +265,14 @@ namespace Microsoft.ML.RunTests
             string baselinePath;
 
             // first check if a platform specific baseline exists
-            foreach (var baselineCOnfigDir in _baselineConfigDirs)
+            foreach (var baselineConfigDir in _baselineConfigDirs)
             {
-                baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, baselineCOnfigDir, name));
+                baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, baselineConfigDir, name));
                 if (File.Exists(baselinePath))
+                {
+                    LogConfigurationSpecificBaseline(baselineConfigDir);
                     return baselinePath;
+                }
             }
 
             // then check the common folder without a platform dir, and use it if it exists
@@ -268,11 +281,14 @@ namespace Microsoft.ML.RunTests
                 return baselinePath;
 
             // check again for a platform specific dir
-            foreach (var baselineCOnfigDir in _baselineConfigDirs)
+            foreach (var baselineConfigDir in _baselineConfigDirs)
             {
-                baselinePath = Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, baselineCOnfigDir, name));
+                baselinePath = Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, baselineConfigDir, name));
                 if (File.Exists(baselinePath))
+                {
+                    LogConfigurationSpecificBaseline(baselineConfigDir);
                     return baselinePath;
+                }
             }
 
             return Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, name));
