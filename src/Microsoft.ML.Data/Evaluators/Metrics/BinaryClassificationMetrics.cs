@@ -122,5 +122,12 @@ namespace Microsoft.ML.Data
             F1Score = f1Score;
             AreaUnderPrecisionRecallCurve = auprc;
         }
+
+        internal BinaryClassificationMetrics(double auc, double accuracy, double positivePrecision, double positiveRecall,
+            double negativePrecision, double negativeRecall, double f1Score, double auprc, ConfusionMatrix confusionMatrix)
+            : this(auc, accuracy, positivePrecision, positiveRecall, negativePrecision, negativeRecall, f1Score, auprc)
+        {
+            ConfusionMatrix = confusionMatrix;
+        }
     }
 }
