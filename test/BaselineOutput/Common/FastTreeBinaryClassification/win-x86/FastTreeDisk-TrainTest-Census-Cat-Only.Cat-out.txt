@@ -1,0 +1,55 @@
+maml.exe TrainTest test=%Data% tr=FastTreeBinaryClassification{nl=5 mil=5 lr=0.25 iter=20 mb=255 dt+} dout=%Output% loader=Text{header+ col=Label:0 col=Cat:TX:1-8} data=%Data% out=%Output% seed=1 xf=Cat{col=Cat} xf=Concat{col=Features:Cat}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise on disk
+Processed 500 instances
+Binning and forming Feature objects
+Changing data from row-wise to column-wise on disk
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.2300 (115.0/(115.0+385.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       55 |       60 | 0.4783
+ negative ||       17 |      368 | 0.9558
+          ||======================
+Precision ||   0.7639 |   0.8598 |
+OVERALL 0/1 ACCURACY: 0.846000
+LOG LOSS/instance:  0.481805
+Test-set entropy (prior Log-Loss/instance): 0.778011
+LOG-LOSS REDUCTION (RIG): 0.380722
+AUC:                0.893281
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.893281 (0.0000)
+Accuracy:           0.846000 (0.0000)
+Positive precision: 0.763889 (0.0000)
+Positive recall:    0.478261 (0.0000)
+Negative precision: 0.859813 (0.0000)
+Negative recall:    0.955844 (0.0000)
+Log-loss:           0.481805 (0.0000)
+Log-loss reduction: 0.380722 (0.0000)
+F1 Score:           0.588235 (0.0000)
+AUPRC:              0.738040 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	500 examples	Total Terms: 76
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'FastTree disk-based bins initialization' started.
+[2] 'FastTree disk-based bins initialization' finished in %Time%.
+[3] 'FastTree disk-based bins initialization #2' started.
+[3] 'FastTree disk-based bins initialization #2' finished in %Time%.
+[4] 'FastTree training' started.
+[4] 'FastTree training' finished in %Time%.
+[5] 'Saving model' started.
+[5] 'Saving model' finished in %Time%.
