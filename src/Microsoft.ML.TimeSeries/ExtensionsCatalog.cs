@@ -147,7 +147,7 @@ namespace Microsoft.ML
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
         /// <summary>
-        /// Create <see cref="DTRootCauseLocalizationEstimator"/>, which localizes root causes using decision tree algorithm.
+        /// Create <see cref="RootCauseLocalizationEstimator"/>, which localizes root causes using decision tree algorithm.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -158,12 +158,12 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[LocalizeRootCauseByDT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/LocalizeRootCauseByDT.cs)]
+        /// [!code-csharp[LocalizeRootCause](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/LocalizeRootCause.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public static DTRootCauseLocalizationEstimator LocalizeRootCauseByDT(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta = 0.5)
-             => new DTRootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, beta);
+        public static RootCauseLocalizationEstimator LocalizeRootCause(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta = 0.5)
+             => new RootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, beta);
 
         /// <summary>
         /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.

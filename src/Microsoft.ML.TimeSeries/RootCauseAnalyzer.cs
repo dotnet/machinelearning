@@ -9,7 +9,7 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.TimeSeries
 {
-    public class DTRootCauseAnalyzer
+    public class RootCauseAnalyzer
     {
         private static double _anomalyRatioThreshold = 0.5;
         private static double _anomalyDeltaThreshold = 0.95;
@@ -18,7 +18,7 @@ namespace Microsoft.ML.TimeSeries
         private RootCauseLocalizationInput _src;
         private double _beta;
 
-        public DTRootCauseAnalyzer(RootCauseLocalizationInput src, double beta)
+        public RootCauseAnalyzer(RootCauseLocalizationInput src, double beta)
         {
             _src = src;
             _beta = beta;

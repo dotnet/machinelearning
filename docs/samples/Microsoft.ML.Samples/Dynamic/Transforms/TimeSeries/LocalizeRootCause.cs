@@ -5,7 +5,7 @@ using Microsoft.ML.TimeSeries;
 
 namespace Samples.Dynamic
 {
-    public static class LocalizeRootCauseByDT
+    public static class LocalizeRootCause
     {
         private static string AGG_SYMBOL = "##SUM##";
         public static void Example()
@@ -14,17 +14,17 @@ namespace Samples.Dynamic
             // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create an empty list as the dataset. The 'DTRootCauseLocalization' API does not
-            // require training data as the estimator ('DTRootCauseLocalizationEstimator')
-            // created by 'DTRootCauseLocalization' API is not a trainable estimator. The
+            // Create an empty list as the dataset. The 'RootCauseLocalization' API does not
+            // require training data as the estimator ('RootCauseLocalizationEstimator')
+            // created by 'RootCauseLocalization' API is not a trainable estimator. The
             // empty list is only needed to pass input schema to the pipeline.
             var emptySamples = new List<RootCauseLocalizationData>();
 
             // Convert sample list to an empty IDataView.
             var emptyDataView = mlContext.Data.LoadFromEnumerable(emptySamples);
 
-            // A pipeline for localizeing root cause.
-            var localizePipeline = mlContext.Transforms.LocalizeRootCauseByDT(nameof(RootCauseLocalizationTransformedData.RootCause), nameof(RootCauseLocalizationData.Input));
+            // A pipeline for localizing root cause.
+            var localizePipeline = mlContext.Transforms.LocalizeRootCause(nameof(RootCauseLocalizationTransformedData.RootCause), nameof(RootCauseLocalizationData.Input));
 
             // Fit to data.
             var localizeTransformer = localizePipeline.Fit(emptyDataView);

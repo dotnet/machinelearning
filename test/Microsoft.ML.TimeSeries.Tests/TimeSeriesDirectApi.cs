@@ -549,7 +549,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void RootCauseLocalizationWithDT()
+        public void RootCauseLocalization()
         {
             // Create an root cause localizatiom input list.
             var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<string, Object>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, _aggSymbol) };
@@ -559,7 +559,7 @@ namespace Microsoft.ML.Tests
             var data = ml.Data.LoadFromEnumerable(rootCauseLocalizationData);
 
             // Create pipeline to localize root cause by decision tree.
-            var pipeline = ml.Transforms.LocalizeRootCauseByDT(nameof(RootCauseLocalizationTransformedData.RootCause), nameof(RootCauseLocalizationData.Input));
+            var pipeline = ml.Transforms.LocalizeRootCause(nameof(RootCauseLocalizationTransformedData.RootCause), nameof(RootCauseLocalizationData.Input));
 
             // Fit the model.
             var model = pipeline.Fit(data);
@@ -598,7 +598,7 @@ namespace Microsoft.ML.Tests
             var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Test"});
 
             //Create path
-            var modelPath = "DTRootCauseLocalizationModel.zip";
+            var modelPath = "RootCauseLocalizationModel.zip";
             //Save model to a file
             ml.Model.Save(model, dummyData.Schema, modelPath);
 

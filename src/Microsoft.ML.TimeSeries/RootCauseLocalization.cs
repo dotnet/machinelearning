@@ -14,32 +14,32 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 
-[assembly: LoadableClass(typeof(DTRootCauseLocalizationTransformer), null, typeof(SignatureLoadModel),
-    DTRootCauseLocalizationTransformer.UserName, DTRootCauseLocalizationTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(RootCauseLocalizationTransformer), null, typeof(SignatureLoadModel),
+    RootCauseLocalizationTransformer.UserName, RootCauseLocalizationTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(DTRootCauseLocalizationTransformer), null, typeof(SignatureLoadRowMapper),
-    DTRootCauseLocalizationTransformer.UserName, DTRootCauseLocalizationTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(RootCauseLocalizationTransformer), null, typeof(SignatureLoadRowMapper),
+    RootCauseLocalizationTransformer.UserName, RootCauseLocalizationTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="DTRootCauseLocalizationTransformer"/>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="RootCauseLocalizationTransformer"/>.
     /// </summary>
-    public sealed class DTRootCauseLocalizationTransformer : OneToOneTransformerBase
+    public sealed class RootCauseLocalizationTransformer : OneToOneTransformerBase
     {
         internal const string Summary = "Localize root cause for anomaly.";
-        internal const string UserName = "DT Root Cause Localization Transform";
-        internal const string LoaderSignature = "DTRootCauseTransform";
+        internal const string UserName = "Root Cause Localization Transform";
+        internal const string LoaderSignature = "RootCauseTransform";
 
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "DTROOTCL",
+                modelSignature: "ROOTCAUSE",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(DTRootCauseLocalizationTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(RootCauseLocalizationTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "RootCauseLocalization";
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public string Output;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Weight for getting the score for the root cause item.", ShortName = "Beta", SortOrder = 2)]
-            public double Beta = DTRootCauseLocalizationEstimator.Defaults.Beta;
+            public double Beta = RootCauseLocalizationEstimator.Defaults.Beta;
 
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="beta">Weight for generating score.</param>
         /// <param name="columns">The name of the columns (first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
 
-        internal DTRootCauseLocalizationTransformer(IHostEnvironment env, double beta = DTRootCauseLocalizationEstimator.Defaults.Beta, params (string outputColumnName, string inputColumnName)[] columns)
+        internal RootCauseLocalizationTransformer(IHostEnvironment env, double beta = RootCauseLocalizationEstimator.Defaults.Beta, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
             Host.CheckUserArg(beta >= 0 && beta <= 1, nameof(Options.Beta), "Must be in [0,1]");
@@ -97,16 +97,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         // Factory method for SignatureLoadModel.
-        private static DTRootCauseLocalizationTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static RootCauseLocalizationTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new DTRootCauseLocalizationTransformer(host, ctx);
+            return new RootCauseLocalizationTransformer(host, ctx);
         }
 
-        private DTRootCauseLocalizationTransformer(IHost host, ModelLoadContext ctx)
+        private RootCauseLocalizationTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             // *** Binary format ***
@@ -148,9 +148,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly DTRootCauseLocalizationTransformer _parent;
+            private readonly RootCauseLocalizationTransformer _parent;
 
-            public Mapper(DTRootCauseLocalizationTransformer parent, DataViewSchema inputSchema)
+            public Mapper(RootCauseLocalizationTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -220,19 +220,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private void LocalizeRootCauses(RootCauseLocalizationInput src, ref RootCause dst)
             {
-                DTRootCauseAnalyzer analyzer = new DTRootCauseAnalyzer(src, _parent._beta);
+                RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, _parent._beta);
                 dst = analyzer.Analyze();
             }
         }
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="DTRootCauseLocalizationTransformer"/>.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="RootCauseLocalizationTransformer"/>.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     /// To create this estimator, use
-    /// [LocalizeRootCauseByDT](xref:Microsoft.ML.TimeSeriesCatalog.LocalizeRootCauseByDT(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Double))
+    /// [LocalizeRootCause](xref:Microsoft.ML.TimeSeriesCatalog.LocalizeRootCause(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Double))
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// | Output column data type | <xref:Microsoft.ML.TimeSeries.RootCause> |
     /// | Exportable to ONNX | No |
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-root-cause-localization-dt.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-root-cause-localization.md)]
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.TimeSeries.DTRootCauseLocalizationTransformer> creates a new column, named as specified in the output column name parameters, and
     /// localize the root causes which contribute most to the anomaly.
@@ -249,8 +249,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="TimeSeriesCatalog.LocalizeRootCauseByDT" />
-    public sealed class DTRootCauseLocalizationEstimator : TrivialEstimator<DTRootCauseLocalizationTransformer>
+    /// <seealso cref="TimeSeriesCatalog.LocalizeRootCause" />
+    public sealed class RootCauseLocalizationEstimator : TrivialEstimator<RootCauseLocalizationTransformer>
     {
         internal static class Defaults
         {
@@ -265,8 +265,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="inputColumnName">Name of input column to run the root cause localization.</param>
         /// <param name="beta">The weight for generating score in output result.</param>
         [BestFriend]
-        internal DTRootCauseLocalizationEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName, double beta = Defaults.Beta)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DTRootCauseLocalizationEstimator)), new DTRootCauseLocalizationTransformer(env, beta, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }))
+        internal RootCauseLocalizationEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName, double beta = Defaults.Beta)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RootCauseLocalizationEstimator)), new RootCauseLocalizationTransformer(env, beta, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }))
         {
         }
 
