@@ -75,7 +75,7 @@ namespace Microsoft.ML.RunTests
         private string _baselineCommonDir;
         private string _baselineBuildStringDir;
         private IEnumerable<string> _baselineConfigDirs;
-        private HashSet<string> _usedSpecificBaselineConfigs;
+        private string _usedSpecificBaselineConfig;
 
         // The writer to write to test log files.
         protected TestLogger TestLogger;
@@ -97,7 +97,6 @@ namespace Microsoft.ML.RunTests
             _baselineCommonDir = Path.Combine(baselineRootDir, "Common");
             _baselineBuildStringDir = Path.Combine(baselineRootDir, BuildString);
             _baselineConfigDirs = GetConfigurationDirs();
-            _usedSpecificBaselineConfigs = new HashSet<string>();
 
             string logDir = Path.Combine(OutDir, _logRootRelPath);
             Directory.CreateDirectory(logDir);
@@ -170,12 +169,11 @@ namespace Microsoft.ML.RunTests
                 _normal ? "completed normally" : "aborted",
                 IsPassing ? "passed" : "failed");
 
-            if (_usedSpecificBaselineConfigs.Count > 0)
+            if (_usedSpecificBaselineConfig != null)
             {
-                Log(String.Format("Test {0} is using {1} configuration specific baselines.", TestName,
-                    String.Join(",", _usedSpecificBaselineConfigs)));
+                Log(String.Format("Test {0} is using {1} configuration specific baselines.",
+                    TestName, _usedSpecificBaselineConfig));
             }
-            _usedSpecificBaselineConfigs.Clear();
 
             if (!_normal)
                 Assert.Equal(0, _failures);
@@ -269,7 +267,7 @@ namespace Microsoft.ML.RunTests
                 baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, baselineConfigDir, name));
                 if (File.Exists(baselinePath))
                 {
-                    _usedSpecificBaselineConfigs.Add(baselinePath);
+                    _usedSpecificBaselineConfig = baselineConfigDir;
                     return baselinePath;
                 }
             }
@@ -285,7 +283,7 @@ namespace Microsoft.ML.RunTests
                 baselinePath = Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, baselineConfigDir, name));
                 if (File.Exists(baselinePath))
                 {
-                    _usedSpecificBaselineConfigs.Add(baselinePath);
+                    _usedSpecificBaselineConfig = baselineConfigDir;
                     return baselinePath;
                 }
             }
