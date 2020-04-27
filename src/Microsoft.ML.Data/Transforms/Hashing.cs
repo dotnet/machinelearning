@@ -1079,8 +1079,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _dstTypes.Length; i++)
                 {
                     _dstTypes[i] = _parent.GetOutputType(inputSchema, _parent._columns[i]);
-                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out var colIndex);
-                    _srcTypes[i] = inputSchema[colIndex].Type;
+                    _srcTypes[i] = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type;
                 }
             }
 
@@ -1145,7 +1144,10 @@ namespace Microsoft.ML.Transforms
                 murmurNode.AddAttribute("positive", 1);
                 var seed = _parent._columns[iinfo].Seed;
                 if (_parent._columns[iinfo].UseOrderedHashing)
-                    return false;
+                {
+                    if (srcShape[1] > 1) return false;
+                    seed = Hashing.MurmurRound(seed, 0);
+                }
                 murmurNode.AddAttribute("seed", seed);
 
                 // masking is done via bitshifts, until bitwise AND is supported by Onnxruntime
