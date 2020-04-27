@@ -573,6 +573,7 @@ namespace Microsoft.ML.TimeSeries
                 a = (1 - Math.Pow(2, -surprise));
                 b = (1 - Math.Pow(2, -ep));
             }
+
             return beta * a + (1 - beta) * b;
             }
 
@@ -676,6 +677,7 @@ namespace Microsoft.ML.TimeSeries
             {
                 return 0;
             }
+
 
         private static bool ContainsAll(Dictionary<string, Object> bigDictionary, Dictionary<string, Object> smallDictionary)
         {

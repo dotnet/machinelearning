@@ -243,7 +243,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-root-cause-localization.md)]
     ///
-    /// The resulting <xref:Microsoft.ML.Transforms.TimeSeries.DTRootCauseLocalizationTransformer> creates a new column, named as specified in the output column name parameters, and
+    /// The resulting <xref:Microsoft.ML.Transforms.TimeSeries.RootCauseLocalizationTransformer> creates a new column, named as specified in the output column name parameters, and
     /// localize the root causes which contribute most to the anomaly.
     /// Check the See Also section for links to usage examples.
     /// ]]>
