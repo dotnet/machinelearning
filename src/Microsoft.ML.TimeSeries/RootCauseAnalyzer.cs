@@ -349,7 +349,6 @@ namespace Microsoft.ML.TimeSeries
                 for (int i = 0; i < scoreList.Count; i++)
                 {
                     dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplainaryScore), beta);
-
                 }
             }
             else if (dst.Items.Count == 1)
@@ -398,7 +397,6 @@ namespace Microsoft.ML.TimeSeries
             if (count > 0)
             {
                 return p;
-
             }
             else
             {
@@ -539,6 +537,7 @@ namespace Microsoft.ML.TimeSeries
                 a = (1 - Math.Pow(2, -surprise));
                 b = (1 - Math.Pow(2, -ep));
             }
+
             return beta * a + (1 - beta) * b;
         }
 
@@ -639,6 +638,7 @@ namespace Microsoft.ML.TimeSeries
             {
                 return 0;
             }
+
             return Math.Log(val) / Math.Log(2);
         }
 
@@ -656,6 +656,7 @@ namespace Microsoft.ML.TimeSeries
                     return false;
                 }
             }
+
             return true;
         }
 

@@ -15,7 +15,7 @@ namespace Microsoft.ML.TimeSeries
     public sealed class RootCauseLocalizationInputTypeAttribute : DataViewTypeAttribute
     {
         /// <summary>
-        /// Create a root cause localizagin input type.
+        /// Create a root cause localizing input type.
         /// </summary>
         public RootCauseLocalizationInputTypeAttribute()
         {
