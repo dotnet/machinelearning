@@ -1905,8 +1905,6 @@ namespace Microsoft.ML.Tests
                 CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right);
             else if (leftType == TextDataViewType.Instance)
                 CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
-
-
         }
 
         private void CompareSelectedColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
