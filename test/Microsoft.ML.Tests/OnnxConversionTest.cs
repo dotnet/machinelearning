@@ -1260,7 +1260,6 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext();
             string dataPath = GetDataPath("type-samples.txt");
 
-            // Adding vector testing by modifying the start column for signed types
             var columnStart = (type == DataKind.SByte) ? 0 :
                 (type == DataKind.Byte) ? 2 :
                 (type == DataKind.Int16) ? 4 :
