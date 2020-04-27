@@ -14,7 +14,7 @@
   E: String
   AH: Key<UInt32, 0-7>
     Metadata 'KeyValues': Vector<String, 8>: Length=8, Count=8
-      [0] 'an angry ant', [6] 'annie ate an ant'
+      [1] 'an angry ant', [7] 'annie ate an ant'
   KH: Key<UInt32, 0-7>
     Metadata 'KeyValues': Vector<String, 8>: Length=8, Count=8
       [3] '4', [4] '3'
@@ -27,11 +27,11 @@
   E: String
   AH: Key<UInt32, 0-7>
     Metadata 'KeyValues': Vector<String, 8>: Length=8, Count=8
-      [0] 'an angry ant', [6] 'annie ate an ant'
+      [1] 'an angry ant', [7] 'annie ate an ant'
   AH: Vector<Single, 8>
     Metadata 'IsNormalized': Boolean: '1'
     Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] 'an angry ant', [6] 'annie ate an ant'
+      [1] 'an angry ant', [7] 'annie ate an ant'
   KH: Key<UInt32, 0-7>
     Metadata 'KeyValues': Vector<String, 8>: Length=8, Count=8
       [3] '4', [4] '3'
@@ -46,7 +46,7 @@
   AH: Vector<Single, 8>
     Metadata 'IsNormalized': Boolean: '1'
     Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] 'an angry ant', [6] 'annie ate an ant'
+      [1] 'an angry ant', [7] 'annie ate an ant'
   KH: Vector<Single, 8>
     Metadata 'IsNormalized': Boolean: '1'
     Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
