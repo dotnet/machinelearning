@@ -203,7 +203,9 @@ namespace Microsoft.ML.TimeSeries
             {
                 anomalyPoints.Reverse();
             }
-
+            else {
+                anomalyPoints = anomalyPoints.FindAll(x => x.Delta < 0);
+            }
             if (anomalyPoints.Count == 1)
             {
                 return anomalyPoints;
