@@ -107,7 +107,7 @@ jobs:
     name: Windows_x86_NetCoreApp21
     architecture: x86
     buildScript: build.cmd
-    innerLoop: true
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
