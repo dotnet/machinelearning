@@ -625,10 +625,13 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
-        //[Trait("Category", "RunSpecificTest")]
-        public void TestTreeEnsembleCombiner()
+        [Theory]
+        [IterationData]
+        [Trait("Category", "RunSpecificTest")]
+        public void TestTreeEnsembleCombiner(int iterations)
         {
+            Output.WriteLine("" + iterations);
+
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
@@ -647,9 +650,13 @@ namespace Microsoft.ML.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [Fact]
-        public void TestTreeEnsembleCombinerWithCategoricalSplits()
+        [Theory]
+        [IterationData]
+        //[Trait("Category", "RunSpecificTest")]
+        public void TestTreeEnsembleCombinerWithCategoricalSplits(int iterations)
         {
+            Output.WriteLine("" + iterations);
+
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
@@ -756,10 +763,13 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
-        [Trait("Category", "RunSpecificTest")]
-        public void TestEnsembleCombiner()
+        [Theory]
+        [IterationData]
+        //[Trait("Category", "RunSpecificTest")]
+        public void TestEnsembleCombiner(int iterations)
         {
+            Output.WriteLine("" + iterations);
+
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
@@ -803,10 +813,12 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [Theory]
+        [IterationData]
         //[Trait("Category", "RunSpecificTest")]
-        public void TestMulticlassEnsembleCombiner()
+        public void TestMulticlassEnsembleCombiner(int iterations)
         {
+            Output.WriteLine("" + iterations);
             //GC.TryStartNoGCRegion(8*1024*1024);
 
             var dataPath = GetDataPath("breast-cancer.txt");
