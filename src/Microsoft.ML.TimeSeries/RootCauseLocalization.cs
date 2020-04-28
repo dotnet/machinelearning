@@ -34,7 +34,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "ROOTCAUSE",
+                modelSignature: "ROOTCAUS",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
