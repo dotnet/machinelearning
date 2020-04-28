@@ -510,25 +510,39 @@ namespace Microsoft.ML.Tests
             
         }
 
-        [Fact]
-        public void AnomalyDetectionWithSrCnn()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AnomalyDetectionWithSrCnn(bool loadDataFromFile)
         {
             var ml = new MLContext(1);
-
-            // Generate sample series data with an anomaly
-            var data = new List<TimeSeriesData>();
-            for (int index = 0; index < 20; index++)
+            IDataView dataView;
+            if(loadDataFromFile)
             {
-                data.Add(new TimeSeriesData(5));
+                var dataPath = GetDataPath(Path.Combine("Timeseries", "anomaly_detection.csv"));
+                
+                // Load data from file into the dataView
+                dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
+                    new TextLoader.Column("Value", DataKind.Single, 0),
+                }, hasHeader: true);
             }
-            data.Add(new TimeSeriesData(10));
-            for (int index = 0; index < 5; index++)
+            else
             {
-                data.Add(new TimeSeriesData(5));
-            }
+                // Generate sample series data with an anomaly
+                var data = new List<TimeSeriesData>();
+                for (int index = 0; index < 20; index++)
+                {
+                    data.Add(new TimeSeriesData(5));
+                }
+                data.Add(new TimeSeriesData(10));
+                for (int index = 0; index < 5; index++)
+                {
+                    data.Add(new TimeSeriesData(5));
+                }
 
-            // Convert data to IDataView.
-            var dataView = ml.Data.LoadFromEnumerable(data);
+                // Convert data to IDataView.
+                dataView = ml.Data.LoadFromEnumerable(data);
+            }
 
             // Setup the estimator arguments
             string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
