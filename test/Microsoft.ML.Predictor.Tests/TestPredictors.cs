@@ -625,7 +625,8 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
+        [Trait("Category", "RunSpecificTest")]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -646,7 +647,8 @@ namespace Microsoft.ML.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
+        [Trait("Category", "RunSpecificTest")]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -755,7 +757,8 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
+        [Trait("Category", "RunSpecificTest")]
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -801,9 +804,12 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
+        //[Trait("Category", "RunSpecificTest")]
         public void TestMulticlassEnsembleCombiner()
         {
+            //GC.TryStartNoGCRegion(8*1024*1024);
+
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
@@ -835,6 +841,8 @@ namespace Microsoft.ML.RunTests
                 }).PredictorModel
             };
             CombineAndTestEnsembles(dataView, "weightedensemblemulticlass", "oc=multiaverage", PredictionKind.MulticlassClassification, predictors);
+
+            //GC.EndNoGCRegion();
         }
 
         private void CombineAndTestEnsembles(IDataView idv, string name, string options, PredictionKind predictionKind,
