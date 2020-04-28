@@ -626,7 +626,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        [Trait("Category", "RunSpecificTest")]
+        //[Trait("Category", "RunSpecificTest")]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -648,7 +648,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        [Trait("Category", "RunSpecificTest")]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
