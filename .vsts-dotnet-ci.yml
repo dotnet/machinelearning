@@ -110,5 +110,6 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
-      name:  NetCorePublic-Pool
-      queue: buildpool.server.amd64.vs2017.open
+      name: Hosted VS2017
+      # name:  NetCorePublic-Pool
+      # queue: buildpool.server.amd64.vs2017.open
