@@ -448,8 +448,8 @@ namespace Microsoft.ML.Trainers.FastTree
                         GetDatasetStatistics(TestSets[i]), i);
             }
 
-            if (AllowGC)
-                ch.Trace("GC Total Memory = {0} MB", GC.GetTotalMemory(true) / 1024 / 1024);
+            // if (AllowGC)
+            //     ch.Trace("GC Total Memory = {0} MB", GC.GetTotalMemory(true) / 1024 / 1024);
             Process currentProcess = Process.GetCurrentProcess();
             ch.Trace("Working Set = {0} MB", currentProcess.WorkingSet64 / 1024 / 1024);
             ch.Trace("Virtual Memory = {0} MB",
