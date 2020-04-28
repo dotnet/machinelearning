@@ -349,8 +349,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 InitializeTests();
             if (AllowGC)
             {
-                GC.Collect(2, GCCollectionMode.Forced);
-                GC.Collect(2, GCCollectionMode.Forced);
+                // GC.Collect(2, GCCollectionMode.Forced);
+                // GC.Collect(2, GCCollectionMode.Forced);
             }
             #endregion
         }
