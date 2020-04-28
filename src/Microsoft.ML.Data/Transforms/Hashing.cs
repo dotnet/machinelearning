@@ -1121,6 +1121,7 @@ namespace Microsoft.ML.Transforms
                 string murmurOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "MurmurOutput");
                 var srcShape = ctx.RetrieveShapeOrNull(srcVariable);
                 var srcType = _srcTypes[iinfo].GetItemType().RawType;
+                if (_srcTypes[iinfo] is KeyDataViewType) return false;
 
                 // Numeric input types are limited to those supported by the Onnxruntime MurmurHash operator, which currently only supports
                 // uints and ints. Thus, ulongs, longs, doubles, floats, and booleans are not supported.
@@ -1145,7 +1146,8 @@ namespace Microsoft.ML.Transforms
                 var seed = _parent._columns[iinfo].Seed;
                 if (_parent._columns[iinfo].UseOrderedHashing)
                 {
-                    if (srcShape[1] > 1) return false;
+                    if (_srcTypes[iinfo] is VectorDataViewType)
+                        return false;
                     seed = Hashing.MurmurRound(seed, 0);
                 }
                 murmurNode.AddAttribute("seed", seed);

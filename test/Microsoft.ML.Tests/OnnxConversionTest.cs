@@ -1146,55 +1146,6 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        private class HashData
-        {
-            public uint Value { get; set; }
-        }
-
-        [Fact]
-        public void MurmurHashKeyTest()
-        {
-            var mlContext = new MLContext();
-
-            var samples = new[]
-            {
-                new HashData {Value = 232},
-                new HashData {Value = 42},
-            };
-
-            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
-
-            var hashEstimator = mlContext.Transforms.Conversion.MapValueToKey("Value").Append(mlContext.Transforms.Conversion.Hash(new[]
-            {
-                new HashingEstimator.ColumnOptions(
-                    "ValueHashed",
-                    "Value",
-                    16)
-            }));
-            var model = hashEstimator.Fit(data);
-            var transformedData = model.Transform(data);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
-
-            var onnxFileName = "MurmurHashV2.onnx";
-            var onnxTextName = "MurmurHashV2.txt";
-            var onnxModelPath = GetOutputPath(onnxFileName);
-            var onnxTextPath = GetOutputPath(onnxTextName);
-
-            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
-
-            if (IsOnnxRuntimeSupported())
-            {
-                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
-                var onnxTransformer = onnxEstimator.Fit(data);
-                var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedColumns<uint>("ValueHashed", "ValueHashed", transformedData, onnxResult);
-            }
-            Done();
-        }
-
         [Theory]
         [CombinatorialData]
         // Due to lack of Onnxruntime support, long/ulong, double, floats, and OrderedHashing are not supported.
