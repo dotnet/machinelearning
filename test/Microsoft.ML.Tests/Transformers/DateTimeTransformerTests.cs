@@ -344,13 +344,13 @@ namespace Microsoft.ML.Tests.Transformers
         [NotCentOS7Fact]
         public void LoadFromFileTest()
         {
-            var dataPath = GetDataPath("dates1.csv");
-
             // File contents are:
             //Date
             //2025 / 6 / 30
             //2020 / 4 / 27
             //2020 / 3 / 22
+
+            var dataPath = GetDataPath("dates1.csv");
 
             MLContext mlContext = new MLContext(1);
 
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Tests.Transformers
             //27.06.20
             //22.03.20
             // Since the textloader won't be able to parse correctly the dates
-            // as DateTimes, we'll need to load them as strings and then user a
+            // as DateTimes, we'll need to load them as strings and then use a
             // CustomMappingTransformer to correctly parse them into DateTime objects
             var dataPath = GetDataPath("dates2.csv");
 
