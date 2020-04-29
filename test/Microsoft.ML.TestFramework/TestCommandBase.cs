@@ -868,7 +868,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact]
         public void CommandCrossValidationKeyLabelWithFloatKeyValues()
         {
             RunMTAThread(() =>
@@ -1200,7 +1200,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Fact]
         [TestCategory(Cat), TestCategory("Multiclass"), TestCategory("Logistic Regression")]
         public void CommandTrainMlrWithStats()
         {

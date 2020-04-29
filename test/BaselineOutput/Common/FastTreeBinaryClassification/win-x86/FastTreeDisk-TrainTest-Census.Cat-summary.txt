@@ -1,0 +1,22 @@
+
+Per-feature gain summary for the boosted tree ensemble:
+	Cat.marital-status.Married-civ-spouse	1
+	Num.capital-gain	0.78247640388701
+	Num.fnlwgt	0.545416657387531
+	Num.education-num	0.531707897890713
+	Num.age	0.409622531262292
+	Cat.occupation.Prof-specialty	0.357582620367965
+	Num.capital-loss	0.327970655093426
+	Num.hours-per-week	0.307112374569836
+	Cat.occupation.Exec-managerial	0.168470795393402
+	Cat.ethnicity.White	0.12766472086777
+	Cat.education.Masters	0.124640495264293
+	Cat.relationship.Husband	0.112403865114159
+	Cat.marital-status.Never-married	0.110824550796253
+	Cat.occupation.Protective-serv	0.0989436478612388
+	Cat.education.Bachelors	0.0987203691811107
+	Cat.native-country-region.Mexico	0.0950276929435107
+	Cat.occupation.Other-service	0.0883199693237364
+	Cat.occupation.Farming-fishing	0.0758713488112266
+	Cat.ethnicity.Asian-Pac-Islander	0.0738301375676183
+	Cat.occupation.Transport-moving	0.0622812764538133

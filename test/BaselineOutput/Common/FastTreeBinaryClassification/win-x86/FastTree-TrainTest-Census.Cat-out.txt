@@ -1,0 +1,61 @@
+maml.exe TrainTest test=%Data% tr=FastTreeBinaryClassification{nl=5 mil=5 lr=0.25 iter=20 mb=255} dout=%Output% loader=Text{header+ col=Label:0 col=Num:9-14 col=Cat:TX:1-8} data=%Data% out=%Output% seed=1 xf=Cat{col=Cat} xf=Concat{col=Features:Num,Cat}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 500 instances
+Binning and forming Feature objects
+Changing data from row-wise to column-wise
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.2300 (115.0/(115.0+385.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       75 |       40 | 0.6522
+ negative ||        6 |      379 | 0.9844
+          ||======================
+Precision ||   0.9259 |   0.9045 |
+OVERALL 0/1 ACCURACY: 0.908000
+LOG LOSS/instance:  0.353688
+Test-set entropy (prior Log-Loss/instance): 0.778011
+LOG-LOSS REDUCTION (RIG): 0.545395
+AUC:                0.958893
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.958893 (0.0000)
+Accuracy:           0.908000 (0.0000)
+Positive precision: 0.925926 (0.0000)
+Positive recall:    0.652174 (0.0000)
+Negative precision: 0.904535 (0.0000)
+Negative recall:    0.984416 (0.0000)
+Log-loss:           0.353688 (0.0000)
+Log-loss reduction: 0.545395 (0.0000)
+F1 Score:           0.765306 (0.0000)
+AUPRC:              0.895540 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	500 examples	Total Terms: 76
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'FastTree data preparation' started.
+[2] 'FastTree data preparation' finished in %Time%.
+[3] 'FastTree in-memory bins initialization' started.
+[3] 'FastTree in-memory bins initialization' finished in %Time%.
+[4] 'FastTree feature conversion' started.
+[4] 'FastTree feature conversion' finished in %Time%.
+[5] 'FastTree data preparation #2' started.
+[5] 'FastTree data preparation #2' finished in %Time%.
+[6] 'FastTree feature conversion #2' started.
+[6] 'FastTree feature conversion #2' finished in %Time%.
+[7] 'FastTree training' started.
+[7] 'FastTree training' finished in %Time%.
+[8] 'Saving model' started.
+[8] 'Saving model' finished in %Time%.

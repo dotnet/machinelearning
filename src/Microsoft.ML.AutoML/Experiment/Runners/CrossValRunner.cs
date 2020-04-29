@@ -66,11 +66,11 @@ namespace Microsoft.ML.AutoML
 
         private static double CalcAverageScore(IEnumerable<double> scores)
         {
-            if (scores.Any(s => double.IsNaN(s)))
-            {
+            var newScores = scores.Where(r => !double.IsNaN(r));
+            // Return NaN iff all scores are NaN
+            if (newScores.Count() == 0)
                 return double.NaN;
-            }
-            return scores.Average();
+            return newScores.Average();
         }
     }
 }

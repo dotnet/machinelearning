@@ -27,7 +27,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         public virtual string TransformText()
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
-                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
+                    "utType>\r\n    <TargetFramework>netcoreapp3.1</TargetFramework>\r\n  </PropertyGroup" +
                     ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
             this.Write("\" />\r\n");
