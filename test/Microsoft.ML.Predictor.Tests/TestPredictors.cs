@@ -153,7 +153,7 @@ namespace Microsoft.ML.RunTests
         {
             RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
-            Environment.FailFast("Fail on purpose to view CI generated baselines");
+            Assert.True(false);
         }
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace Microsoft.ML.RunTests
                 RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted, digitsOfPrecision: 4);
             });
             Done();
-            Environment.FailFast("Fail on purpose to view CI generated baselines");
+            Assert.True(false);
         }
 
         [Fact(Skip = "Need CoreTLC specific baseline update")]
@@ -264,7 +264,7 @@ namespace Microsoft.ML.RunTests
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             Done();
-            Environment.FailFast("Fail on purpose to view CI generated baselines");
+            Assert.True(false);
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace Microsoft.ML.RunTests
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             Done();
-            Environment.FailFast("Fail on purpose to view CI generated baselines");
+            Assert.True(false);
         }
 
         /// <summary>
@@ -405,7 +405,7 @@ namespace Microsoft.ML.RunTests
                 RunAllTests(binaryPredictors, binaryClassificationDatasets);
             });
             Done();
-            Environment.FailFast("Fail on purpose to view CI generated baselines");
+            Assert.True(false);
         }
 
         /// <summary>
@@ -1642,7 +1642,7 @@ namespace Microsoft.ML.RunTests
             var datasets = GetDatasetsForCalibratorTest();
             RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new string[] { "numcali=200" }, "calibrateRandom");
             Done();
-            Environment.FailFast("Fail on purpose to view CI generated baselines");
+            Assert.True(false);
         }
 
         /// <summary>
