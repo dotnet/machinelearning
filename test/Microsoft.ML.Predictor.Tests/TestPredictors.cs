@@ -146,13 +146,14 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [Fact]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
         {
             RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
+            Environment.FailFast("Fail on purpose to view CI generated baselines");
         }
 
         /// <summary>
@@ -187,7 +188,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test with a tree featurizer.
         /// </summary>
-        [Fact]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
@@ -200,6 +201,7 @@ namespace Microsoft.ML.RunTests
                 RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted, digitsOfPrecision: 4);
             });
             Done();
+            Environment.FailFast("Fail on purpose to view CI generated baselines");
         }
 
         [Fact(Skip = "Need CoreTLC specific baseline update")]
@@ -246,7 +248,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
         public void LinearClassifierTest()
@@ -262,6 +264,7 @@ namespace Microsoft.ML.RunTests
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             Done();
+            Environment.FailFast("Fail on purpose to view CI generated baselines");
         }
 
         /// <summary>
@@ -307,7 +310,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNormTest()
         {
@@ -315,6 +318,7 @@ namespace Microsoft.ML.RunTests
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             Done();
+            Environment.FailFast("Fail on purpose to view CI generated baselines");
         }
 
         /// <summary>
@@ -389,7 +393,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Binary")]
         [TestCategory("FastForest")]
         public void FastForestClassificationTest()
@@ -401,6 +405,7 @@ namespace Microsoft.ML.RunTests
                 RunAllTests(binaryPredictors, binaryClassificationDatasets);
             });
             Done();
+            Environment.FailFast("Fail on purpose to view CI generated baselines");
         }
 
         /// <summary>
@@ -1630,13 +1635,14 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [Fact]
+        [Fact, TestCategory("RunSpecificTest")]
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
             RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new string[] { "numcali=200" }, "calibrateRandom");
             Done();
+            Environment.FailFast("Fail on purpose to view CI generated baselines");
         }
 
         /// <summary>
