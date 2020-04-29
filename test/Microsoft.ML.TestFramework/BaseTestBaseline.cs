@@ -73,7 +73,6 @@ namespace Microsoft.ML.RunTests
 
         // Full paths to the baseline directories.
         private string _baselineCommonDir;
-        private string _baselineBuildStringDir;
         private IEnumerable<string> _baselineConfigDirs;
         private string _usedSpecificBaselineConfig;
 
@@ -95,7 +94,6 @@ namespace Microsoft.ML.RunTests
             Contracts.Check(Directory.Exists(baselineRootDir));
 
             _baselineCommonDir = Path.Combine(baselineRootDir, "Common");
-            _baselineBuildStringDir = Path.Combine(baselineRootDir, BuildString);
             _baselineConfigDirs = GetConfigurationDirs();
 
             string logDir = Path.Combine(OutDir, _logRootRelPath);
@@ -272,23 +270,8 @@ namespace Microsoft.ML.RunTests
                 }
             }
 
-            // then check the common folder without a platform dir, and use it if it exists
-            baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, name));
-            if (File.Exists(baselinePath))
-                return baselinePath;
-
-            // check again for a platform specific dir
-            foreach (var baselineConfigDir in _baselineConfigDirs)
-            {
-                baselinePath = Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, baselineConfigDir, name));
-                if (File.Exists(baselinePath))
-                {
-                    _usedSpecificBaselineConfig = baselineConfigDir;
-                    return baselinePath;
-                }
-            }
-
-            return Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, name));
+            // Platform specific baseline does not exist, use Common baseline
+            return Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, name));
         }
 
         // These are used to normalize output.
