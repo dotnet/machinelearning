@@ -641,6 +641,7 @@ namespace Microsoft.ML.RunTests
                 fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     NumberOfTrees = 5,
                     NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
@@ -652,7 +653,7 @@ namespace Microsoft.ML.RunTests
 
         [Theory]
         [IterationData]
-        //[Trait("Category", "RunSpecificTest")]
+        [Trait("Category", "RunSpecificTest")]
         public void TestTreeEnsembleCombinerWithCategoricalSplits(int iterations)
         {
             Output.WriteLine("" + iterations);
@@ -667,6 +668,7 @@ namespace Microsoft.ML.RunTests
                 fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     NumberOfTrees = 5,
                     NumberOfLeaves = 4,
                     CategoricalSplit = true,
@@ -765,7 +767,7 @@ namespace Microsoft.ML.RunTests
 
         [Theory]
         [IterationData]
-        //[Trait("Category", "RunSpecificTest")]
+        [Trait("Category", "RunSpecificTest")]
         public void TestEnsembleCombiner(int iterations)
         {
             Output.WriteLine("" + iterations);
@@ -778,6 +780,7 @@ namespace Microsoft.ML.RunTests
                 FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     NumberOfTrees = 5,
                     NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
@@ -813,14 +816,9 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Theory]
-        [IterationData]
-        //[Trait("Category", "RunSpecificTest")]
-        public void TestMulticlassEnsembleCombiner(int iterations)
+        [LightGBMFact]
+        public void TestMulticlassEnsembleCombiner()
         {
-            Output.WriteLine("" + iterations);
-            //GC.TryStartNoGCRegion(8*1024*1024);
-
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
@@ -852,8 +850,6 @@ namespace Microsoft.ML.RunTests
                 }).PredictorModel
             };
             CombineAndTestEnsembles(dataView, "weightedensemblemulticlass", "oc=multiaverage", PredictionKind.MulticlassClassification, predictors);
-
-            //GC.EndNoGCRegion();
         }
 
         private void CombineAndTestEnsembles(IDataView idv, string name, string options, PredictionKind predictionKind,

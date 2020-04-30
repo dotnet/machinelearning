@@ -213,6 +213,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected void TrainCore(IChannel ch)
         {
+            WriteFileLog("Start TrainCore");
+
             Contracts.CheckValue(ch, nameof(ch));
             // REVIEW:Get rid of this lock then we completely remove all static classes from FastTree such as BlockingThreadPool.
             lock (FastTreeShared.TrainLock)
@@ -220,9 +222,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 using (Timer.Time(TimerEvent.TotalInitialization))
                 {
                     CheckOptions(ch);
+                    WriteFileLog("PrintPrologInfo");
                     PrintPrologInfo(ch);
 
+                    WriteFileLog("Initialize");
                     Initialize(ch);
+                    WriteFileLog("PrintMemoryStats");
                     PrintMemoryStats(ch);
                 }
                 using (Timer.Time(TimerEvent.TotalTrain))
@@ -234,6 +239,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     TrainedEnsemble.RemapFeatures(FeatureMap);
                 ParallelTraining.FinalizeEnvironment();
             }
+
+            WriteFileLog("Finish TrainCore");
         }
 
         private protected virtual bool ShouldStop(IChannel ch, ref EarlyStoppingRuleBase earlyStopping, ref int bestIteration)
@@ -349,8 +356,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 InitializeTests();
             if (AllowGC)
             {
-                // GC.Collect(2, GCCollectionMode.Forced);
-                // GC.Collect(2, GCCollectionMode.Forced);
+                GC.Collect(2, GCCollectionMode.Forced);
+                GC.Collect(2, GCCollectionMode.Forced);
             }
             #endregion
         }
@@ -448,8 +455,8 @@ namespace Microsoft.ML.Trainers.FastTree
                         GetDatasetStatistics(TestSets[i]), i);
             }
 
-            // if (AllowGC)
-            //     ch.Trace("GC Total Memory = {0} MB", GC.GetTotalMemory(true) / 1024 / 1024);
+            if (AllowGC)
+                ch.Trace("GC Total Memory = {0} MB", GC.GetTotalMemory(true) / 1024 / 1024);
             Process currentProcess = Process.GetCurrentProcess();
             ch.Trace("Working Set = {0} MB", currentProcess.WorkingSet64 / 1024 / 1024);
             ch.Trace("Virtual Memory = {0} MB",
@@ -592,8 +599,19 @@ namespace Microsoft.ML.Trainers.FastTree
             return false;
         }
 
+        private void WriteFileLog(string log)
+        {
+            //using (var writer = new StreamWriter(@"C:\work\log\log.txt", true))
+            //{
+            //    writer.WriteLine($"{DateTime.Now} : {log}");
+            //    writer.Flush();
+            //}
+        }
+
         private protected virtual void Train(IChannel ch)
         {
+            WriteFileLog("Start Train");
+
             Contracts.AssertValue(ch);
             int numTotalTrees = FastTreeTrainerOptions.NumberOfTrees;
 
@@ -609,6 +627,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ch.Info("Using featurePercentToLoad = {0} ", _featurePercentToLoad);
             }
 #endif
+            WriteFileLog("random starting point");
 
             // random starting point
             bool revertRandomStart = false;
@@ -641,6 +660,8 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
 #endif
 
+            WriteFileLog("FastTree training");
+
             EarlyStoppingRuleBase earlyStoppingRule = null;
             int bestIteration = 0;
             int emptyTrees = 0;
@@ -649,6 +670,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 pch.SetHeader(new ProgressHeader("trees"), e => e.SetProgress(0, Ensemble.NumTrees, numTotalTrees));
                 while (Ensemble.NumTrees < numTotalTrees)
                 {
+                    WriteFileLog($"Ensemble.NumTrees : {Ensemble.NumTrees}");
+
                     using (Timer.Time(TimerEvent.Iteration))
                     {
 #if NO_STORE
@@ -740,6 +763,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
+            WriteFileLog("Finish FastTree training");
+
             if (earlyStoppingRule != null)
             {
                 Contracts.Assert(numTotalTrees == 0 || bestIteration > 0);
@@ -755,6 +780,8 @@ namespace Microsoft.ML.Trainers.FastTree
             OptimizationAlgorithm.FinalizeLearning(bestIteration);
             Ensemble.PopulateRawThresholds(TrainSet);
             ParallelTraining.FinalizeTreeLearner();
+
+            WriteFileLog("Finish Train");
         }
 
 #if !NO_STORE

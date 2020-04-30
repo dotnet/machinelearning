@@ -843,6 +843,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                 _baselineAlphaCurrent, baselineDcgGap);
 
 #else
+                        _baselineAlphaCurrent = _baselineAlphaCurrent + 1;
                         if (_useShiftedNdcg || _costFunctionParam == 'c' || _distanceWeight2 || _normalizeQueryLambdas)
                         {
                             throw new Exception("Shifted NDCG / ContinuousWeightedRanknet / distanceWeight2 / normalized lambdas are only supported by unmanaged code");

@@ -159,7 +159,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 // Each reference has the same size as IntPtr, so we estimate
                 // histogramPool[i] uses IntPtr.Size * TrainData.NumFlocks bytes.
-                _sizeOfReservedMemory += (long)IntPtr.Size * TrainData.NumFlocks;
+                _sizeOfReservedMemory += /*(long)IntPtr.Size*/ 8 * TrainData.NumFlocks;
             }
 
             // wrap the pool of histogram arrays in a MappedObjectPool object
