@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public double Sensitivity = 99;
         }
 
-        internal int OutputLength { get; }
+        private int OutputLength { get; }
 
         private Options _options;
 
