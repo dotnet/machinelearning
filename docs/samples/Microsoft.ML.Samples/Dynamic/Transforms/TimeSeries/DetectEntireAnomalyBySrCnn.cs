@@ -26,15 +26,15 @@ namespace Samples.Dynamic
             for (int index = 0; index < 20; index++)
             {
                 currentTime = currentTime.AddDays(1);
-                data.Add(new TimeSeriesData(currentTime, 5));
+                data.Add(new TimeSeriesData { Timestamp = currentTime, Value = 5 });
                 
             }
             currentTime = currentTime.AddDays(1);
-            data.Add(new TimeSeriesData(currentTime, 10));
+            data.Add(new TimeSeriesData { Timestamp = currentTime, Value = 10});
             for (int index = 0; index < 5; index++)
             {
                 currentTime = currentTime.AddDays(1);
-                data.Add(new TimeSeriesData(currentTime, 5));
+                data.Add(new TimeSeriesData { Timestamp = currentTime, Value = 5 });
             }
 
             // Convert data to IDataView.
@@ -42,10 +42,11 @@ namespace Samples.Dynamic
 
             // Setup the estimator arguments
             string outputColumnName = nameof(AnomalyDetectionResult.Prediction);
-            string inputColumnName = nameof(TimeSeriesData.Point);
+            string timestampColumnName = nameof(TimeSeriesData.Timestamp);
+            string valueColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, 512, SrCnnDetectMode.AnomalyAndMargin, 90.0)
+            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, timestampColumnName, valueColumnName, 0.35, 512, SrCnnDetectMode.AnomalyAndMargin, 90.0)
                 .Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
@@ -56,7 +57,10 @@ namespace Samples.Dynamic
 
             int k = 0;
             foreach (var prediction in predictionColumn)
-                PrintPrediction(data[k++].Point, prediction);
+            {
+                PrintPrediction(data[k].Timestamp, data[k].Value, prediction);
+                k++;
+            }
             //Prediction column obtained post-transformation.
             //Timestamp Data    Anomaly AnomalyScore    Mag ExpectedValue   BoundaryUnit UpperBoundary   LowerBoundary
             //2020 / 1 / 2 0:00:00        5.00    0               0.00    0.21            5.00            5.00            5.01            4.99
@@ -87,9 +91,8 @@ namespace Samples.Dynamic
             //2020 / 1 / 27 0:00:00       5.00    0               0.00    0.19            5.00            5.00            5.01            4.99
 
             var modelPath = "temp.zip";
-            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
-            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, 512, SrCnnDetectMode.AnomalyAndMargin, 90.0).Fit(dataView);
-            ml.Model.Save(fitModel, dummyData.Schema, modelPath);
+            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, timestampColumnName, valueColumnName, 0.35, 512, SrCnnDetectMode.AnomalyAndMargin, 90.0).Fit(dataView);
+            ml.Model.Save(fitModel, dataView.Schema, modelPath);
 
             using (var file = File.OpenRead(modelPath))
             {
@@ -103,7 +106,10 @@ namespace Samples.Dynamic
 
                 k = 0;
                 foreach (var prediction in predictionColumn)
-                    PrintPrediction(data[k++].Point, prediction);
+                {
+                    PrintPrediction(data[k].Timestamp, data[k].Value, prediction);
+                    k++;
+                }
 
                 //Prediction column obtained post-transformation by saved model.
                 //Timestamp Data    Anomaly AnomalyScore    Mag ExpectedValue   BoundaryUnit UpperBoundary   LowerBoundary
@@ -136,20 +142,15 @@ namespace Samples.Dynamic
             }
         }
 
-        private static void PrintPrediction(SrCnnTsPoint point, AnomalyDetectionResult prediction) =>
+        private static void PrintPrediction(DateTime timestamp, Double value, AnomalyDetectionResult prediction) =>
             Console.WriteLine("{0}\t{1:0.00}\t{2}\t\t{3:0.00}\t{4:0.00}\t\t{5:0.00}\t\t{6:0.00}\t\t{7:0.00}\t\t{8:0.00}",
-                point.Timestamp, point.Value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2],
+                timestamp, value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2],
                 prediction.Prediction[3], prediction.Prediction[4], prediction.Prediction[5], prediction.Prediction[6]);
 
         private class TimeSeriesData
         {
-            [SrCnnTsPointTypeAttribute]
-            public SrCnnTsPoint Point;
-
-            public TimeSeriesData(DateTime timestamp, double value)
-            {
-                Point = new SrCnnTsPoint(timestamp, value);
-            }
+            public DateTime Timestamp { get; set; }
+            public Double Value { get; set; }
         }
 
         public class AnomalyDetectionResult

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -30,12 +31,38 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal const string UserName = "SrCnn Entire Anomaly Detection";
         internal const string ShortName = "srcnn entire";
 
+        internal const int AnomalyOnlyOutputLength = 3;
+        internal const int AnomalyAndExpectedValueOutputLength = 4;
+        internal const int AnomalyAndMarginOutputLength = 7;
+        internal const int MinBatchSize = 12;
+
+        internal sealed class Column : ManyToOneColumn
+        {
+            internal static Column Parse(string str)
+            {
+                Contracts.AssertNonEmpty(str);
+
+                var res = new Column();
+                if (res.TryParse(str))
+                    return res;
+                return null;
+            }
+
+            internal string UnParse()
+            {
+                StringBuilder sb = new StringBuilder();
+                if (TryUnparseCore(sb))
+                    return sb.ToString();
+                return string.Empty;
+            }
+        }
+
         internal sealed class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src", SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
-            public string Source;
+            [Argument(ArgumentType.Required, HelpText = "The source columns defined in ManyToOneColumn type.", ShortName = "src", SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
+            public Column Source;
 
-            [Argument(ArgumentType.Required, HelpText = "The name of the target column.", ShortName = "tgt", SortOrder = 2)]
+            [Argument(ArgumentType.Required, HelpText = "The name of the target column.", ShortName = "tgt", SortOrder = 2, Purpose = SpecialPurpose.ColumnName)]
             public string Target;
 
             [Argument(ArgumentType.Required, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly. Must be in [0,1]. Default value is 0.3.",
@@ -55,11 +82,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public double Sensitivity = 99;
         }
 
-        internal readonly string InputColumnName;
-
-        internal readonly string OutputColumnName;
-
-        internal double Threshold { get; }
+        private double Threshold { get; }
 
         internal int BatchSize { get; }
 
@@ -83,11 +106,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         internal SrCnnEntireTransformer(IHostEnvironment env, Options options, IDataView input)
-            :base(Contracts.CheckRef(env, nameof(env)).Register(LoaderSignature), new[] { (options.Target, options.Source) })
+            :base(Contracts.CheckRef(env, nameof(env)).Register(LoaderSignature), new[] { (options.Target, options.Source.UnParse()) })
         {
-            InputColumnName = options.Source;
-            OutputColumnName = options.Target;
-
             Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(Options.Threshold), "Must be in [0,1].");
             Threshold = options.Threshold;
 
@@ -98,18 +118,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyOnly))
             {
                 Sensitivity = options.Sensitivity;
-                OutputLength = 3;
+                OutputLength = AnomalyOnlyOutputLength;
             }
             else if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndMargin))
             {
                 Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(Options.Sensitivity), "Must be in [0,100].");
                 Sensitivity = options.Sensitivity;
-                OutputLength = 7;
+                OutputLength = AnomalyAndMarginOutputLength;
             }
             else if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndExpectedValue))
             {
                 Sensitivity = options.Sensitivity;
-                OutputLength = 4;
+                OutputLength = AnomalyAndExpectedValueOutputLength;
             }
             else
             {
@@ -122,17 +142,24 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private SrCnnEntireTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
-            InputColumnName = ctx.Reader.ReadString();
-            Host.CheckDecode(!String.IsNullOrEmpty(InputColumnName));
+            // *** Binary format ***
+            // <base>
 
-            OutputColumnName = ctx.Reader.ReadString();
-            Host.CheckDecode(!String.IsNullOrEmpty(OutputColumnName));
+            // for each added column
+            //   double: threshold
+            //   int: batch size
+            //   int: detect mode
+            //   double: sensitivity
+            //   int: output length
+            //   byte: scaling kind
+
+            // <anomaly model>
 
             Threshold = ctx.Reader.ReadDouble();
             Host.CheckDecode(Threshold >= 0 && Threshold <= 1);
 
             BatchSize = ctx.Reader.ReadInt32();
-            Host.CheckDecode(BatchSize == -1 || BatchSize >= 12);
+            Host.CheckDecode(BatchSize == -1 || BatchSize >= MinBatchSize);
 
             SrCnnDetectMode = (SrCnnDetectMode)ctx.Reader.ReadInt32();
 
@@ -140,7 +167,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Host.CheckDecode(Sensitivity >= 0 && Sensitivity <= 100);
 
             OutputLength = ctx.Reader.ReadInt32();
-            Host.CheckDecode(OutputLength == 3 || OutputLength == 4 || OutputLength == 7);
+            Host.CheckDecode(OutputLength == AnomalyOnlyOutputLength || OutputLength == AnomalyAndExpectedValueOutputLength || OutputLength == AnomalyAndMarginOutputLength);
 
             ctx.LoadModel<SrCnnEntireModeler, SignatureLoadModel>(host, out AnomalyModel, "SrCnnEntire");
             Host.CheckDecode(AnomalyModel != null);
@@ -176,63 +203,76 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.SetVersionInfo(GetVersionInfo());
 
             Host.Assert(Threshold >= 0 && Threshold <= 1);
-            Host.Assert(BatchSize == -1 || BatchSize >= 12);
+            Host.Assert(BatchSize == -1 || BatchSize >= MinBatchSize);
             Host.Assert(Sensitivity >= 0 && Sensitivity <= 100);
-            Host.Assert(OutputLength == 3 || OutputLength == 4 || OutputLength == 7);
+            Host.Assert(OutputLength == AnomalyOnlyOutputLength || OutputLength == AnomalyAndExpectedValueOutputLength || OutputLength == AnomalyAndMarginOutputLength);
+
+            // *** Binary format ***
+            // <base>
+
+            // for each added column
+            //   double: threshold
+            //   int: batch size
+            //   int: detect mode
+            //   double: sensitivity
+            //   int: output length
+            //   byte: scaling kind
+
+            // <anomaly model>
 
             base.SaveColumns(ctx);
-            ctx.Writer.Write(InputColumnName);
-            ctx.Writer.Write(OutputColumnName);
             ctx.Writer.Write(Threshold);
-            ctx.Writer.Write((Int32)BatchSize);
-            ctx.Writer.Write((Int32)SrCnnDetectMode);
+            ctx.Writer.Write(BatchSize);
+            ctx.Writer.Write((int)SrCnnDetectMode);
             ctx.Writer.Write(Sensitivity);
-            ctx.Writer.Write((Int32)OutputLength);
+            ctx.Writer.Write(OutputLength);
 
             ctx.SaveModel(AnomalyModel, "SrCnnEntire");
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : MapperBase
         {
             private readonly SrCnnEntireTransformer _parent;
-            private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
-            private readonly int _inputColumnIndex;
+            private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
+            private readonly int _timestampColumnIndex;
+            private static readonly string[] _outputFields = new string[] { "Is Anomaly", "Anomaly Score", "Mag", "Expected Value", "Boundary Unit", "Upper Boundary", "Lower Boundary" };
 
             public Mapper(SrCnnEntireTransformer parent, DataViewSchema inputSchema)
-                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), inputSchema, parent)
             {
-                if (!inputSchema.TryGetColumnIndex(parent.InputColumnName, out _inputColumnIndex))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName);
-
-                var colType = inputSchema[_inputColumnIndex].Type;
-                if (!(colType is SrCnnTsPointDataViewType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, "SrCnnTsPoint", colType.ToString());
-
+                Contracts.AssertValue(parent);
                 _parent = parent;
-                if (_parent.OutputLength == 3)
-                {
-                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Is Anomaly".AsMemory(), "Raw Score".AsMemory(), "Mag".AsMemory() });
-                }
-                else if (_parent.OutputLength == 7)
-                {
-                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Is Anomaly".AsMemory(), "Anomaly Score".AsMemory(), "Mag".AsMemory(),
-                        "Expected Value".AsMemory(), "Boundary Unit".AsMemory(), "Upper Boundary".AsMemory(), "Lower Boundary".AsMemory() });
-                }
-                else if (_parent.OutputLength == 4)
-                {
-                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Is Anomaly".AsMemory(), "Raw Score".AsMemory(), "Mag".AsMemory(),
-                        "Expected Value".AsMemory() });
-                }
+
+                Column inputCol = Column.Parse(_parent.ColumnPairs[0].inputColumnName);
+
+                if (!inputSchema.TryGetColumnIndex(inputCol.Source[0], out _timestampColumnIndex))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "inputTimestamp", inputCol.Source[0]);
+                if (!(inputSchema[_timestampColumnIndex].Type is DateTimeDataViewType))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "inputTimestamp", inputCol.Source[0], "DateTime", inputSchema[_timestampColumnIndex].Type.ToString());
+
+                _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, _outputFields.ToList().GetRange(0, _parent.OutputLength).Select(x => x.AsMemory()).ToArray());
             }
+
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
+            {
+                var active = new bool[InputSchema.Count];
+                if (activeOutput(0))
+                {
+                    active[_timestampColumnIndex] = true;
+                }
+                return col => active[col];
+            }
+
+            private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 var meta = new DataViewSchema.Annotations.Builder();
                 meta.AddSlotNames(_parent.OutputLength, GetSlotNames);
                 var info = new DataViewSchema.DetachedColumn[1];
-                info[0] = new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new VectorDataViewType(NumberDataViewType.Double, _parent.OutputLength), meta.ToAnnotations());
+                info[0] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[0].outputColumnName, new VectorDataViewType(NumberDataViewType.Double, _parent.OutputLength), meta.ToAnnotations());
                 return info;
             }
 
@@ -243,26 +283,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var src = default(SrCnnTsPoint);
-                var getSrc = input.GetGetter<SrCnnTsPoint>(input.Schema[ColMapNewToOld[iinfo]]);
+                DataViewSchema.Column timestampCol = input.Schema[_timestampColumnIndex];
 
                 disposer = null;
+
+                var getTimestamp = input.GetGetter<DateTime>(timestampCol);
+                DateTime timestamp = default(DateTime);
 
                 ValueGetter<VBuffer<double>> del =
                     (ref VBuffer<double> dst) =>
                     {
-                        getSrc(ref src);
-                        if (src == null)
-                            return;
+                        getTimestamp(ref timestamp);
                         var result = VBufferEditor.Create(ref dst, _parent.OutputLength);
-                        result.Values.Fill(Double.NaN);
-                        Double[] values = new Double[_parent.OutputLength];
-                        if (_parent.AnomalyModel.Inference(src, out values))
+                        if (!timestamp.Equals(default(DateTime)) && _parent.AnomalyModel.Inference(timestamp, out var values))
                         {
                             for (int i = 0; i < result.Values.Length; ++i)
                             {
                                 result.Values[i] = values[i];
                             }
+                        }
+                        else
+                        {
+                            result.Values.Fill(double.NaN);
                         }
                         dst = result.Commit();
                     };
@@ -276,16 +318,21 @@ namespace Microsoft.ML.Transforms.TimeSeries
             internal const string LoaderSignature = "SrCnnEntireModeler";
             private IHost _host;
             private SrCnnEntireTransformer _parent;
-            private Dictionary<long, Double[]> _anomalyDict;
-            private static readonly int _minTrainingPoint = 12;
+            private Dictionary<long, double[]> _anomalyDict;
             private static readonly int _lookaheadWindowSize = 5;
             private static readonly int _backAddWindowSize = 5;
             private static readonly int _avergingWindowSize = 3;
-            private static readonly int _judgementWindowSize = 21;
+            private static readonly int _judgementWindowSize = 40;
             private static readonly double _eps = 1e-8;
             private static readonly double _deanomalyThreshold = 0.35;
 
-            private static readonly Double[] _factors = new Double[]{
+            private readonly int _timestampColumnIndex;
+            private readonly int _valueColumnIndex;
+
+            // A fixed lookup table which returns factor using sensitivity as index.
+            // Since Margin = BoundaryUnit * factor, this factor is calculated to make sure Margin == Boundary when sensitivity is 50,
+            // and increases/decreases exponentially as sensitivity increases/decreases.
+            private static readonly double[] _factors = new double[]{
                     184331.62871148242, 141902.71648305038, 109324.12672037778, 84289.9974713784, 65038.57829581667, 50222.84038287002,
                     38812.08684920403, 30017.081863266845, 23233.035497884553, 17996.15452973242, 13950.50738738947, 10822.736530170265,
                     8402.745753237783, 6528.939979205737, 5076.93622022219, 3950.92312857758, 3077.042935029268, 2398.318733460069,
@@ -320,6 +367,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public SrCnnEntireModeler(IHostEnvironment env, SrCnnEntireTransformer parent, IDataView data)
                 : this(env, parent)
             {
+                Column inputCol = Column.Parse(_parent.ColumnPairs[0].inputColumnName);
+
+                if (!data.Schema.TryGetColumnIndex(inputCol.Source[0], out _timestampColumnIndex))
+                    throw _host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[0]);
+                if (!(data.Schema[_timestampColumnIndex].Type is DateTimeDataViewType))
+                    throw _host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[0], "DateTime", data.Schema[_timestampColumnIndex].Type.ToString());
+
+                if (!data.Schema.TryGetColumnIndex(inputCol.Source[1], out _valueColumnIndex))
+                    throw _host.ExceptSchemaMismatch(nameof(data.Schema), "inputValue", inputCol.Source[1]);
+                if (data.Schema[_valueColumnIndex].Type != NumberDataViewType.Double)
+                    throw _host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[1], "Double", data.Schema[_valueColumnIndex].Type.ToString());
+
                 Train(data);
             }
 
@@ -329,7 +388,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Contracts.CheckValue(parent, nameof(parent));
                 _host = env.Register(LoaderSignature);
                 _parent = parent;
-                _anomalyDict = new Dictionary<long, Double[]>();
+                _anomalyDict = new Dictionary<long, double[]>();
             }
 
             public SrCnnEntireModeler(IHostEnvironment env, ModelLoadContext ctx)
@@ -337,7 +396,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(LoaderSignature);
 
-                _anomalyDict = new Dictionary<long, Double[]>();
+                // *** Binary format ***
+                // for each added column
+                //   int: output length
+                //   int: dictionary size
+                //   long stream: dictionary keys
+                //   double stream: dictionary values
+
+                _anomalyDict = new Dictionary<long, double[]>();
 
                 var length = ctx.Reader.ReadInt32();
                 _host.CheckDecode(length > 0);
@@ -350,7 +416,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 List<long> trainingTimestamp = ctx.Reader.ReadLongArray(count).ToList();
                 List<double> valList = ctx.Reader.ReadDoubleArray(length * count).ToList();
-                List<Double[]> batchResult = new List<double[]>();
+                List<double[]> batchResult = new List<double[]>();
                 for (int i = 0; i < count; ++i)
                 {
                     batchResult.Add(valList.GetRange(i * length, length).ToArray());
@@ -366,8 +432,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ctx.CheckAtModel();
                 ctx.SetVersionInfo(GetVersionInfo());
 
-                ctx.Writer.Write((Int32)_parent.OutputLength);
-                ctx.Writer.Write((Int32)_anomalyDict.Count);
+                // *** Binary format ***
+                // for each added column
+                //   int: output length
+                //   int: dictionary size
+                //   long stream: dictionary keys
+                //   double stream: dictionary values
+
+                ctx.Writer.Write(_parent.OutputLength);
+                ctx.Writer.Write(_anomalyDict.Count);
 
                 List<long> keyList = new List<long>();
                 List<double> valList = new List<double>();
@@ -380,58 +453,59 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ctx.Writer.WriteDoubleStream(valList);
             }
 
-            public void Train(IDataView data) => Train(new RoleMappedData(data, null, _parent.InputColumnName));
-
-            public void Train(RoleMappedData data)
+            public void Train(IDataView data)
             {
-                _host.CheckValue(data, nameof(data));
-                _host.CheckParam(data.Schema.Feature.HasValue, nameof(data), "Must have features column.");
-                var featureCol = data.Schema.Feature.Value;
-                if (!(featureCol.Type is SrCnnTsPointDataViewType))
-                    throw _host.ExceptSchemaMismatch(nameof(data), "feature", featureCol.Name, "SrCnnTsPointDataViewType", featureCol.Type.ToString());
-
-                List<Double> trainingData = new List<Double>();
+                List<double> trainingData = new List<double>();
                 List<long> trainingTimestamp = new List<long>();
                 DateTime prevTimestamp = DateTime.MinValue;
-                using (var cursor = data.Data.GetRowCursor(featureCol))
+                using (var cursor = data.GetRowCursor(data.Schema))
                 {
-                    var getVal = cursor.GetGetter<SrCnnTsPoint>(featureCol);
-                    SrCnnTsPoint val = null;
+                    var getTimestamp = cursor.GetGetter<DateTime>(data.Schema[_timestampColumnIndex]);
+                    var getVal = cursor.GetGetter<double>(data.Schema[_valueColumnIndex]);
+                    DateTime timestamp = default(DateTime);
+                    double val = double.NaN;
                     while (cursor.MoveNext())
                     {
+                        getTimestamp(ref timestamp);
                         getVal(ref val);
-                        if (val != null && val.Timestamp > prevTimestamp && !Double.IsNaN(val.Value))
+
+                        if (timestamp > prevTimestamp && !double.IsNaN(val))
                         {
-                            trainingTimestamp.Add(val.Timestamp.Ticks);
-                            trainingData.Add(val.Value);
-                            prevTimestamp = val.Timestamp;
+                            trainingTimestamp.Add(timestamp.Ticks);
+                            trainingData.Add(val);
+                            prevTimestamp = timestamp;
                         }
                     }
                 }
 
-                _host.CheckIO(trainingTimestamp.Count >= _minTrainingPoint, "Input must have no less than 12 valid points to fit a model.");
+                _host.CheckIO(trainingTimestamp.Count >= MinBatchSize, "Input must have no less than 12 valid points to fit a model.");
 
-                if (trainingTimestamp.Count >= _minTrainingPoint)
+                var batchSize = (_parent.BatchSize == -1) ? trainingData.Count : _parent.BatchSize;
+                List<double[]> batchResult = new List<double[]>();
+                for (int i = 0; i * batchSize < trainingData.Count; ++i)
                 {
-                    var batchSize = (_parent.BatchSize == -1) ? trainingData.Count : _parent.BatchSize;
-                    List<Double[]> batchResult = new List<double[]>();
-                    for (int i = 0; i * batchSize < trainingData.Count; ++i)
+                    var len = Math.Min(batchSize, trainingData.Count - i * batchSize);
+                    if (len >= MinBatchSize)
                     {
-                        batchResult.AddRange(TrainCore(trainingData.GetRange(i * batchSize, Math.Min(batchSize, trainingData.Count - i * batchSize))));
+                        batchResult.AddRange(TrainCore(trainingData.GetRange(i * batchSize, len)));
                     }
-
-                    _anomalyDict = trainingTimestamp.Zip(batchResult, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+                    else
+                    {
+                        batchResult.AddRange(TrainCore(trainingData.GetRange(i * batchSize - batchSize + len, batchSize)));
+                    }
                 }
+
+                _anomalyDict = trainingTimestamp.Zip(batchResult, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
             }
 
-            public bool Inference(SrCnnTsPoint key, out Double[] result)
+            public bool Inference(DateTime key, out double[] result)
             {
-                return _anomalyDict.TryGetValue(key.Timestamp.Ticks, out result);
+                return _anomalyDict.TryGetValue(key.Ticks, out result);
             }
 
-            private List<Double[]> TrainCore(List<Double> values)
+            private List<double[]> TrainCore(List<double> values)
             {
-                List<Double[]> results = values.Select(x => new Double[_parent.OutputLength]).ToList();
+                List<double[]> results = values.Select(x => new double[_parent.OutputLength]).ToList();
                 SpecturalResidual(values, results);
                 //Optional Steps
                 if (_parent.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndMargin)
@@ -445,10 +519,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return results;
             }
 
-            private void SpecturalResidual(List<Double> values, List<Double[]> results)
+            private void SpecturalResidual(List<double> values, List<double[]> results)
             {
                 // Step 1: Get backadd wave
-                List<Double> backAddList = BackAdd(values);
+                List<double> backAddList = BackAdd(values);
 
                 // Step 2: FFT transformation
                 int length = backAddList.Count;
@@ -457,16 +531,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 FftUtils.ComputeForwardFft(backAddList.ToArray(), Enumerable.Repeat((double)0.0f, length).ToArray(), fftRe, fftIm, length);
 
                 // Step 3: Calculate mags of FFT
-                List<Double> magList = new List<Double>();
+                List<double> magList = new List<double>();
                 for (int i = 0; i < length; ++i)
                 {
                     magList.Add(Math.Sqrt((Math.Pow(fftRe[i], 2) + Math.Pow(fftIm[i], 2))));
                 }
 
                 // Step 4: Calculate spectral
-                List<Double> magLogList = magList.Select(x => x > _eps ? Math.Log(x) : 0).ToList();
-                List<Double> filteredLogList = AverageFilter(magLogList, _avergingWindowSize);
-                List<Double> spectralList = new List<Double>();
+                List<double> magLogList = magList.Select(x => x > _eps ? Math.Log(x) : 0).ToList();
+                List<double> filteredLogList = AverageFilter(magLogList, _avergingWindowSize);
+                List<double> spectralList = new List<double>();
                 for (int i = 0; i < magLogList.Count; ++i)
                 {
                     spectralList.Add(Math.Exp(magLogList[i] - filteredLogList[i]));
@@ -494,12 +568,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 FftUtils.ComputeBackwardFft(transRe, transIm, ifftRe, ifftIm, length);
 
                 // Step 6: Calculate mag and ave_mag of IFFT
-                List<Double> ifftMagList = new List<Double>();
+                List<double> ifftMagList = new List<double>();
                 for (int i = 0; i < length; ++i)
                 {
                     ifftMagList.Add(Math.Sqrt((Math.Pow(ifftRe[i], 2) + Math.Pow(ifftIm[i], 2))));
                 }
-                List<Double> filteredIfftMagList = AverageFilter(ifftMagList, Math.Min(ifftMagList.Count, _judgementWindowSize));
+                List<double> filteredIfftMagList = AverageFilter(ifftMagList, Math.Min(ifftMagList.Count, _judgementWindowSize));
 
                 // Step 7: Calculate raw score and set result
                 for (int i = 0; i < results.Count; ++i)
@@ -517,15 +591,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            private List<Double> BackAdd(List<Double> data)
+            private List<double> BackAdd(List<double> data)
             {
-                List<Double> predictArray = new List<Double>();
+                List<double> predictArray = new List<double>();
                 for (int i = data.Count - _lookaheadWindowSize - 2; i < data.Count - 1; ++i)
                 {
                     predictArray.Add(data[i]);
                 }
                 var predictedValue = PredictNext(predictArray);
-                List<Double> backAddArray = new List<Double>();
+                List<double> backAddArray = new List<double>();
                 for (int i = 0; i < data.Count; ++i)
                 {
                     backAddArray.Add(data[i]);
@@ -534,10 +608,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return backAddArray;
             }
 
-            private Double PredictNext(List<Double> data)
+            private double PredictNext(List<double> data)
             {
                 var n = data.Count;
-                Double slopeSum = 0.0f;
+                double slopeSum = 0.0f;
                 for (int i = 0; i < n - 1; ++i)
                 {
                     slopeSum += (data[n - 1] - data[i]) / (n - 1 - i);
@@ -545,11 +619,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return (data[1] + slopeSum);
             }
 
-            private List<Double> AverageFilter(List<Double> data, int n)
+            private List<double> AverageFilter(List<double> data, int n)
             {
-                Double cumsum = 0.0f;
-                List<Double> cumSumList = data.Select(x => cumsum += x).ToList();
-                List<Double> cumSumShift = new List<Double>(cumSumList);
+                double cumsum = 0.0f;
+                List<double> cumSumList = data.Select(x => cumsum += x).ToList();
+                List<double> cumSumShift = new List<double>(cumSumList);
                 for (int i = n; i < cumSumList.Count; ++i)
                 {
                     cumSumList[i] = (cumSumList[i] - cumSumShift[i - n]) / n;
@@ -561,7 +635,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return cumSumList;
             }
 
-            private Double CalculateSocre(Double mag, Double avgMag)
+            private double CalculateSocre(double mag, double avgMag)
             {
                 double safeDivisor = avgMag;
                 if (Math.Abs(safeDivisor) < _eps)
@@ -571,7 +645,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return (Math.Abs(mag - avgMag) / safeDivisor);
             }
 
-            private void GetExpectedValue(List<Double> values, List<Double[]> results)
+            private void GetExpectedValue(List<double> values, List<double[]> results)
             {
                 //Step 8: Calculate Expected Value
                 var exps = CalculateExpectedValueByFft(GetDeanomalyData(values, GetAnomalyIndex(results.Select(x => x[1]).ToList())));
@@ -582,7 +656,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            private void GetMargin(List<Double> values, List<Double[]> results)
+            private void GetMargin(List<double> values, List<double[]> results)
             {
                 //Step 8: Calculate Expected Value
                 var exps = CalculateExpectedValueByFft(GetDeanomalyData(values, GetAnomalyIndex(results.Select(x => x[1]).ToList())));
@@ -604,7 +678,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            private List<int> GetAnomalyIndex(List<Double> scores)
+            private List<int> GetAnomalyIndex(List<double> scores)
             {
                 List<int> anomalyIdxList = new List<int>();
                 for (int i = 0; i < scores.Count; ++i)
@@ -616,9 +690,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return anomalyIdxList;
             }
 
-            private List<Double> GetDeanomalyData(List<Double> data, List<int> anomalyIdxList)
+            private List<double> GetDeanomalyData(List<double> data, List<int> anomalyIdxList)
             {
-                List<Double> deAnomalyData = new List<Double>(data);
+                List<double> deAnomalyData = new List<double>(data);
                 int minPointsToFit = 4;
                 foreach (var idx in anomalyIdxList)
                 {
@@ -673,7 +747,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return a * (double)idx + b;
             }
 
-            private List<Double> CalculateExpectedValueByFft(List<double> data)
+            private List<double> CalculateExpectedValueByFft(List<double> data)
             {
                 int length = data.Count;
                 double[] fftRe = new double[length];
@@ -696,11 +770,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return ifftRe.ToList().GetRange(0, length);
             }
 
-            private List<Double> CalculateBoundaryUnit(List<Double> data, List<Boolean> isAnomalys)
+            private List<double> CalculateBoundaryUnit(List<double> data, List<Boolean> isAnomalys)
             {
                 if (data.Count == 0)
                 {
-                    return new List<Double>();
+                    return new List<double>();
                 }
 
                 int window = Math.Min(data.Count / 3, 512);
@@ -708,7 +782,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 double trendSum = 0;
                 int calculationSize = 0;
 
-                List<Double> trends = MedianFilter(data, window, true);
+                List<double> trends = MedianFilter(data, window, true);
                 for (int i = 0; i < trends.Count; ++i)
                 {
                     if(!isAnomalys[i])
@@ -728,7 +802,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     trendFraction = 1.0;
                 }
 
-                List<Double> units = new List<Double>();
+                List<double> units = new List<double>();
                 foreach (var t in trends)
                 {
                     units.Add(Math.Max(1, averageTrendPart + Math.Abs(t) * trendFraction));
@@ -736,7 +810,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 foreach (var v in units)
                 {
-                    if (Double.IsInfinity(v))
+                    if (double.IsInfinity(v))
                     {
                         throw new ArithmeticException("Not finite unit value");
                     }
@@ -745,13 +819,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return units;
             }
 
-            private List<Double> MedianFilter(List<Double> data, int window, bool needTwoEnd=false)
+            private List<double> MedianFilter(List<double> data, int window, bool needTwoEnd=false)
             {
                 int wLen = window / 2 * 2 + 1;
                 int tLen = data.Count;
-                List<Double> val = new List<Double>(data);
-                List<Double> ans = new List<Double>(data);
-                List<Double> curWindow = Enumerable.Repeat(0.0, wLen).ToList();
+                List<double> val = new List<double>(data);
+                List<double> ans = new List<double>(data);
+                List<double> curWindow = Enumerable.Repeat(0.0, wLen).ToList();
                 if (tLen < wLen)
                 {
                     return ans;
@@ -812,7 +886,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return ans;
             }
 
-            private int BisectRight(List<Double> arr, int begin, int end, double tar)
+            private int BisectRight(List<double> arr, int begin, int end, double tar)
             {
                 while (begin < end)
                 {
@@ -825,7 +899,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return begin;
             }
 
-            private double SortedMedian(List<Double> sortedValues, int begin, int end)
+            private double SortedMedian(List<double> sortedValues, int begin, int end)
             {
                 int n = end - begin;
                 if (n % 2 == 1)
@@ -864,7 +938,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
 
                 double distance = Math.Abs(exp - value);
-                List<Double> margins = new List<Double>();
+                List<double> margins = new List<double>();
                 for (int i = 100; i >= 0; --i)
                 {
                     margins.Add(CalculateMargin(unit, i));

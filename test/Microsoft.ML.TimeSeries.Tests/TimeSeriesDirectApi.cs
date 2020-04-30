@@ -87,32 +87,27 @@ namespace Microsoft.ML.Tests
 
         private class TimeSeriesDataWithTimestamp
         {
-            [SrCnnTsPointTypeAttribute]
-            public SrCnnTsPoint Point;
-
-            public TimeSeriesDataWithTimestamp(DateTime timestamp, double value)
-            {
-                Point = new SrCnnTsPoint(timestamp, value);
-            }
+            public DateTime Timestamp { get; set; }
+            public Double Value { get; set; }
         }
 
         private sealed class SrCnnAnomalyDetection
         {
-            [VectorType(3)]
+            [VectorType]
             public double[] Prediction { get; set; }
         }
 
-        private sealed class SrCnnAnomalyDetectionWithExp
-        {
-            [VectorType(4)]
-            public double[] Prediction { get; set; }
-        }
+        //private sealed class SrCnnAnomalyDetectionWithExp
+        //{
+        //    [VectorType(4)]
+        //    public double[] Prediction { get; set; }
+        //}
 
-        private sealed class SrCnnAnomalyDetectionWithMargin
-        {
-            [VectorType(7)]
-            public double[] Prediction { get; set; }
-        }
+        //private sealed class SrCnnAnomalyDetectionWithMargin
+        //{
+        //    [VectorType(7)]
+        //    public double[] Prediction { get; set; }
+        //}
 
         [Fact]
         public void ChangeDetection()
@@ -590,35 +585,55 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
-        public void AnomalyDetectionWithSrCnnEntireAnomalyOnly()
+        [Theory]
+        [InlineData(SrCnnDetectMode.AnomalyOnly)]
+        [InlineData(SrCnnDetectMode.AnomalyAndExpectedValue)]
+        [InlineData(SrCnnDetectMode.AnomalyAndMargin)]
+        [InlineData(SrCnnDetectMode.AnomalyOnly, true)]
+        [InlineData(SrCnnDetectMode.AnomalyAndExpectedValue, true)]
+        [InlineData(SrCnnDetectMode.AnomalyAndMargin, true)]
+        public void AnomalyDetectionWithSrCnnEntire(SrCnnDetectMode mode, bool loadDataFromFile=false)
         {
             var ml = new MLContext(1);
-
-            // Generate sample series data with an anomaly
-            DateTime currentTime = new DateTime(2020, 01, 01);
-            var data = new List<TimeSeriesDataWithTimestamp>();
-            for (int index = 0; index < 20; index++)
+            IDataView dataView;
+            if (loadDataFromFile)
             {
-                currentTime = currentTime.AddDays(1);
-                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
+                var dataPath = GetDataPath(Path.Combine("Timeseries", "anomaly_detection_timestamp.csv"));
 
+                // Load data from file into the dataView
+                dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
+                    new TextLoader.Column("Timestamp", DataKind.DateTime, 0),
+                    new TextLoader.Column("Value", DataKind.Double, 1),
+                }, separatorChar:',', hasHeader: true);
             }
-            currentTime = currentTime.AddDays(1);
-            data.Add(new TimeSeriesDataWithTimestamp(currentTime, 10));
-            for (int index = 0; index < 5; index++)
+            else
             {
+                // Generate sample series data with an anomaly
+                DateTime currentTime = new DateTime(2020, 01, 01);
+                var data = new List<TimeSeriesDataWithTimestamp>();
+                for (int index = 0; index < 20; index++)
+                {
+                    currentTime = currentTime.AddDays(1);
+                    data.Add(new TimeSeriesDataWithTimestamp { Timestamp = currentTime, Value = 5 });
+
+                }
                 currentTime = currentTime.AddDays(1);
-                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
+                data.Add(new TimeSeriesDataWithTimestamp { Timestamp = currentTime, Value = 10 });
+                for (int index = 0; index < 5; index++)
+                {
+                    currentTime = currentTime.AddDays(1);
+                    data.Add(new TimeSeriesDataWithTimestamp { Timestamp = currentTime, Value = 5 });
+                }
+
+                // Convert data to IDataView.
+                dataView = ml.Data.LoadFromEnumerable(data);
             }
 
-            // Convert data to IDataView.
-            var dataView = ml.Data.LoadFromEnumerable(data);
-
-            string inputColumnName = nameof(TimeSeriesDataWithTimestamp.Point);
+            string timestampColumnName = nameof(TimeSeriesDataWithTimestamp.Timestamp);
+            string valueColumnName = nameof(TimeSeriesDataWithTimestamp.Value);
             string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
 
-            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyOnly)
+            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, timestampColumnName, valueColumnName, 0.35, -1, mode, 90.0)
                 .Fit(dataView).Transform(dataView);
 
             var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
@@ -626,19 +641,46 @@ namespace Microsoft.ML.Tests
             int k = 0;
             foreach (var prediction in predictionColumn)
             {
-                Assert.Equal(3, prediction.Prediction.Length);
-                if (k == 20)
-                    Assert.Equal(1, prediction.Prediction[0]);
-                else
-                    Assert.Equal(0, prediction.Prediction[0]);
+                switch (mode)
+                {
+                    case SrCnnDetectMode.AnomalyOnly:
+                        Assert.Equal(3, prediction.Prediction.Length);
+                        if (k == 20)
+                            Assert.Equal(1, prediction.Prediction[0]);
+                        else
+                            Assert.Equal(0, prediction.Prediction[0]);
+                        break;
+                    case SrCnnDetectMode.AnomalyAndExpectedValue:
+                        Assert.Equal(4, prediction.Prediction.Length);
+                        if (k == 20)
+                        {
+                            Assert.Equal(1, prediction.Prediction[0]);
+                            Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                        }
+                        else
+                            Assert.Equal(0, prediction.Prediction[0]);
+                        break;
+                    case SrCnnDetectMode.AnomalyAndMargin:
+                        Assert.Equal(7, prediction.Prediction.Length);
+                        if (k == 20)
+                        {
+                            Assert.Equal(1, prediction.Prediction[0]);
+                            Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                            Assert.Equal("5.00", prediction.Prediction[4].ToString("0.00"));
+                            Assert.Equal("5.01", prediction.Prediction[5].ToString("0.00"));
+                            Assert.Equal("4.99", prediction.Prediction[6].ToString("0.00"));
+                        }
+                        else
+                            Assert.Equal(0, prediction.Prediction[0]);
+                        break;
+                }
                 k += 1;
             }
 
             //save and load model
             var modelPath = "temp.zip";
-            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
-            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyOnly).Fit(dataView);
-            ml.Model.Save(fitModel, dummyData.Schema, modelPath);
+            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, timestampColumnName, valueColumnName, 0.35, -1, mode, 90.0).Fit(dataView);
+            ml.Model.Save(fitModel, dataView.Schema, modelPath);
 
             using (var file = File.OpenRead(modelPath))
             {
@@ -650,172 +692,43 @@ namespace Microsoft.ML.Tests
                 k = 0;
                 foreach (var prediction in predictionColumn)
                 {
-                    Assert.Equal(3, prediction.Prediction.Length);
-                    if (k == 20)
-                        Assert.Equal(1, prediction.Prediction[0]);
-                    else
-                        Assert.Equal(0, prediction.Prediction[0]);
-                    k += 1;
-                }
-            }
-        }
-
-        [Fact]
-        public void AnomalyDetectionWithSrCnnEntireAnomalyAndExp()
-        {
-            var ml = new MLContext(1);
-
-            // Generate sample series data with an anomaly
-            DateTime currentTime = new DateTime(2020, 01, 01);
-            var data = new List<TimeSeriesDataWithTimestamp>();
-            for (int index = 0; index < 20; index++)
-            {
-                currentTime = currentTime.AddDays(1);
-                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
-
-            }
-            currentTime = currentTime.AddDays(1);
-            data.Add(new TimeSeriesDataWithTimestamp(currentTime, 10));
-            for (int index = 0; index < 5; index++)
-            {
-                currentTime = currentTime.AddDays(1);
-                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
-            }
-
-            // Convert data to IDataView.
-            var dataView = ml.Data.LoadFromEnumerable(data);
-
-            string inputColumnName = nameof(TimeSeriesDataWithTimestamp.Point);
-            string outputColumnName = nameof(SrCnnAnomalyDetectionWithExp.Prediction);
-
-            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndExpectedValue)
-                .Fit(dataView).Transform(dataView);
-
-            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetectionWithExp>(transformedData, reuseRowObject: false);
-
-            int k = 0;
-            foreach (var prediction in predictionColumn)
-            {
-                Assert.Equal(4, prediction.Prediction.Length);
-                if (k == 20)
-                {
-                    Assert.Equal(1, prediction.Prediction[0]);
-                    Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
-                }
-                else
-                    Assert.Equal(0, prediction.Prediction[0]);
-                k += 1;
-            }
-
-            //save and load model
-            var modelPath = "temp.zip";
-            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
-            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndExpectedValue).Fit(dataView);
-            ml.Model.Save(fitModel, dummyData.Schema, modelPath);
-
-            using (var file = File.OpenRead(modelPath))
-            {
-                ITransformer loadedModel = ml.Model.Load(file, out var schema);
-
-                transformedData = loadedModel.Transform(dataView);
-                predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetectionWithExp>(transformedData, reuseRowObject: false);
-
-                k = 0;
-                foreach (var prediction in predictionColumn)
-                {
-                    Assert.Equal(4, prediction.Prediction.Length);
-                    if (k == 20)
+                    switch(mode)
                     {
-                        Assert.Equal(1, prediction.Prediction[0]);
-                        Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                        case SrCnnDetectMode.AnomalyOnly:
+                            Assert.Equal(3, prediction.Prediction.Length);
+                            if (k == 20)
+                                Assert.Equal(1, prediction.Prediction[0]);
+                            else
+                                Assert.Equal(0, prediction.Prediction[0]);
+                            break;
+                        case SrCnnDetectMode.AnomalyAndExpectedValue:
+                            Assert.Equal(4, prediction.Prediction.Length);
+                            if (k == 20)
+                            {
+                                Assert.Equal(1, prediction.Prediction[0]);
+                                Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                            }
+                            else
+                                Assert.Equal(0, prediction.Prediction[0]);
+                            break;
+                        case SrCnnDetectMode.AnomalyAndMargin:
+                            Assert.Equal(7, prediction.Prediction.Length);
+                            if (k == 20)
+                            {
+                                Assert.Equal(1, prediction.Prediction[0]);
+                                Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                                Assert.Equal("5.00", prediction.Prediction[4].ToString("0.00"));
+                                Assert.Equal("5.01", prediction.Prediction[5].ToString("0.00"));
+                                Assert.Equal("4.99", prediction.Prediction[6].ToString("0.00"));
+                            }
+                            else
+                                Assert.Equal(0, prediction.Prediction[0]);
+                            break;
                     }
-                    else
-                        Assert.Equal(0, prediction.Prediction[0]);
                     k += 1;
                 }
             }
         }
 
-        [Fact]
-        public void AnomalyDetectionWithSrCnnEntireAnomalyAndMargin()
-        {
-            var ml = new MLContext(1);
-
-            // Generate sample series data with an anomaly
-            DateTime currentTime = new DateTime(2020, 01, 01);
-            var data = new List<TimeSeriesDataWithTimestamp>();
-            for (int index = 0; index < 20; index++)
-            {
-                currentTime = currentTime.AddDays(1);
-                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
-
-            }
-            currentTime = currentTime.AddDays(1);
-            data.Add(new TimeSeriesDataWithTimestamp(currentTime, 10));
-            for (int index = 0; index < 5; index++)
-            {
-                currentTime = currentTime.AddDays(1);
-                data.Add(new TimeSeriesDataWithTimestamp(currentTime, 5));
-            }
-
-            // Convert data to IDataView.
-            var dataView = ml.Data.LoadFromEnumerable(data);
-
-            string inputColumnName = nameof(TimeSeriesDataWithTimestamp.Point);
-            string outputColumnName = nameof(SrCnnAnomalyDetectionWithMargin.Prediction);
-
-            var transformedData = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndMargin, 90)
-                .Fit(dataView).Transform(dataView);
-
-            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetectionWithMargin>(transformedData, reuseRowObject: false);
-
-            int k = 0;
-            foreach (var prediction in predictionColumn)
-            {
-                Assert.Equal(7, prediction.Prediction.Length);
-                if (k == 20)
-                {
-                    Assert.Equal(1, prediction.Prediction[0]);
-                    Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
-                    Assert.Equal("5.00", prediction.Prediction[4].ToString("0.00"));
-                    Assert.Equal("5.01", prediction.Prediction[5].ToString("0.00"));
-                    Assert.Equal("4.99", prediction.Prediction[6].ToString("0.00"));
-                }
-                else
-                    Assert.Equal(0, prediction.Prediction[0]);
-                k += 1;
-            }
-
-            //save and load model
-            var modelPath = "temp.zip";
-            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Dummy" });
-            var fitModel = ml.Transforms.DetectEntireAnomalyBySrCnn(outputColumnName, inputColumnName, 0.35, -1, SrCnnDetectMode.AnomalyAndMargin, 90).Fit(dataView);
-            ml.Model.Save(fitModel, dummyData.Schema, modelPath);
-
-            using (var file = File.OpenRead(modelPath))
-            {
-                ITransformer loadedModel = ml.Model.Load(file, out var schema);
-
-                transformedData = loadedModel.Transform(dataView);
-                predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetectionWithMargin>(transformedData, reuseRowObject: false);
-
-                k = 0;
-                foreach (var prediction in predictionColumn)
-                {
-                    Assert.Equal(7, prediction.Prediction.Length);
-                    if (k == 20)
-                    {
-                        Assert.Equal(1, prediction.Prediction[0]);
-                        Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
-                        Assert.Equal("5.00", prediction.Prediction[4].ToString("0.00"));
-                        Assert.Equal("5.01", prediction.Prediction[5].ToString("0.00"));
-                        Assert.Equal("4.99", prediction.Prediction[6].ToString("0.00"));
-                    }
-                    else
-                        Assert.Equal(0, prediction.Prediction[0]);
-                    k += 1;
-                }
-            }
-        }
     }
 }
