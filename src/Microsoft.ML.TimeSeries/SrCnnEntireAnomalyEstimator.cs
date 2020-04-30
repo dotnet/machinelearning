@@ -15,12 +15,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     /// To create this estimator, use
-    /// [DetectEntireAnomalyBySrCnn](xref:Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Double,System.Int32,SrCnnDetectMode,System.Double))
+    /// [DetectEntireAnomalyBySrCnn](xref:Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(Microsoft.ML.TransformsCatalog,System.String,System.String,System.String,System.Double,System.Int32,SrCnnDetectMode,System.Double))
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | <xref:System.Single> |
+    /// | Input timestamp column data type | <xref:System.DateTime> |
+    /// | Input value column data type | <xref:System.Double> |
     /// | Output column data type | vector of<xref:System.Double> |
     /// | Exportable to ONNX | No |
     ///
@@ -80,7 +81,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             _outputColumnName = outputColumnName;
             _options = new SrCnnEntireTransformer.Options
             {
-                Source = new SrCnnEntireTransformer.Column { Name="TsPoint", Source = new string[] { _timestampColumnName, _valueColumnName } },
+                Source = new SrCnnEntireTransformer.SourceColumn { Name="TsPoint", Source = new string[] { _timestampColumnName, _valueColumnName } },
                 Target = _outputColumnName,
                 Threshold = threshold,
                 BatchSize = batchSize,

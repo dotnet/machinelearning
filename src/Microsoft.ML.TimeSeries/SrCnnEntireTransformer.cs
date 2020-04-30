@@ -17,11 +17,6 @@ using Microsoft.ML.Transforms.TimeSeries;
         typeof(SrCnnEntireTransformer), null, typeof(SignatureLoadModel),
         "SrCnnEntire Transformer",
         SrCnnEntireTransformer.LoaderSignature)]
-
-[assembly: LoadableClass(typeof(SrCnnEntireTransformer.SrCnnEntireModeler),
-        typeof(SrCnnEntireTransformer.SrCnnEntireModeler), null, typeof(SignatureLoadModel),
-        "SrCnnEntire Modeler",
-        SrCnnEntireTransformer.SrCnnEntireModeler.LoaderSignature)]
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     public sealed class SrCnnEntireTransformer : OneToOneTransformerBase
@@ -36,13 +31,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal const int AnomalyAndMarginOutputLength = 7;
         internal const int MinBatchSize = 12;
 
-        internal sealed class Column : ManyToOneColumn
+        internal sealed class SourceColumn : ManyToOneColumn
         {
-            internal static Column Parse(string str)
+            internal static SourceColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
-                var res = new Column();
+                var res = new SourceColumn();
                 if (res.TryParse(str))
                     return res;
                 return null;
@@ -60,7 +55,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The source columns defined in ManyToOneColumn type.", ShortName = "src", SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
-            public Column Source;
+            public SourceColumn Source;
 
             [Argument(ArgumentType.Required, HelpText = "The name of the target column.", ShortName = "tgt", SortOrder = 2, Purpose = SpecialPurpose.ColumnName)]
             public string Target;
@@ -82,17 +77,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public double Sensitivity = 99;
         }
 
-        private double Threshold { get; }
-
-        internal int BatchSize { get; }
-
-        internal SrCnnDetectMode SrCnnDetectMode { get; }
-
-        internal double Sensitivity { get; }
-
         internal int OutputLength { get; }
 
-        internal SrCnnEntireModeler AnomalyModel;
+        private Options _options;
+
+        private Dictionary<long, double[]> _anomalyDict;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -108,35 +97,37 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal SrCnnEntireTransformer(IHostEnvironment env, Options options, IDataView input)
             :base(Contracts.CheckRef(env, nameof(env)).Register(LoaderSignature), new[] { (options.Target, options.Source.UnParse()) })
         {
+            // check parameters
+            Host.CheckValue(options, nameof(options));
             Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(Options.Threshold), "Must be in [0,1].");
-            Threshold = options.Threshold;
-
             Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize >= 12, nameof(Options.BatchSize), "BatchSize must be -1 or no less than 12.");
-            BatchSize = options.BatchSize;
+            Host.CheckUserArg(options.SrCnnDetectMode == SrCnnDetectMode.AnomalyOnly
+                || options.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndExpectedValue
+                || options.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(Options.SrCnnDetectMode), "Invalid mode");
 
-            SrCnnDetectMode = options.SrCnnDetectMode;
-            if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyOnly))
+            if (options.SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyOnly))
             {
-                Sensitivity = options.Sensitivity;
                 OutputLength = AnomalyOnlyOutputLength;
             }
-            else if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndMargin))
+            else if (options.SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndMargin))
             {
                 Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(Options.Sensitivity), "Must be in [0,100].");
-                Sensitivity = options.Sensitivity;
                 OutputLength = AnomalyAndMarginOutputLength;
             }
-            else if (SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndExpectedValue))
+            else if (options.SrCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndExpectedValue))
             {
-                Sensitivity = options.Sensitivity;
                 OutputLength = AnomalyAndExpectedValueOutputLength;
             }
-            else
-            {
-                OutputLength = 0;
-            }
 
-            AnomalyModel = new SrCnnEntireModeler(Host, this, input);
+            _options = options;
+
+            // check input
+            Host.CheckValue(input, nameof(input));
+            _options.Data = input;
+
+            // initialize anomaly dict
+            _anomalyDict = new Dictionary<long, double[]>();
+            SrCnnEntireModeler.Train(Host, _options, OutputLength, ref _anomalyDict);
         }
 
         private SrCnnEntireTransformer(IHost host, ModelLoadContext ctx)
@@ -151,26 +142,53 @@ namespace Microsoft.ML.Transforms.TimeSeries
             //   int: detect mode
             //   double: sensitivity
             //   int: output length
-            //   byte: scaling kind
+            //   int: dictionary size
+            //   long stream: dictionary keys
+            //   double stream: dictionary values
 
-            // <anomaly model>
+            var threshold = ctx.Reader.ReadDouble();
+            Host.CheckDecode(threshold >= 0 && threshold <= 1);
 
-            Threshold = ctx.Reader.ReadDouble();
-            Host.CheckDecode(Threshold >= 0 && Threshold <= 1);
+            var batchSize = ctx.Reader.ReadInt32();
+            Host.CheckDecode(batchSize == -1 || batchSize >= MinBatchSize);
 
-            BatchSize = ctx.Reader.ReadInt32();
-            Host.CheckDecode(BatchSize == -1 || BatchSize >= MinBatchSize);
+            var srCnnDetectMode = (SrCnnDetectMode)ctx.Reader.ReadInt32();
+            Host.CheckDecode(srCnnDetectMode == SrCnnDetectMode.AnomalyOnly
+                || srCnnDetectMode == SrCnnDetectMode.AnomalyAndExpectedValue
+                || srCnnDetectMode == SrCnnDetectMode.AnomalyAndMargin);
 
-            SrCnnDetectMode = (SrCnnDetectMode)ctx.Reader.ReadInt32();
+            var sensitivity = ctx.Reader.ReadDouble();
+            Host.CheckDecode(sensitivity >= 0 && sensitivity <= 100);
 
-            Sensitivity = ctx.Reader.ReadDouble();
-            Host.CheckDecode(Sensitivity >= 0 && Sensitivity <= 100);
+            _options = new SrCnnEntireTransformer.Options
+            {
+                Threshold = threshold,
+                BatchSize = batchSize,
+                SrCnnDetectMode = srCnnDetectMode,
+                Sensitivity = sensitivity
+            };
 
             OutputLength = ctx.Reader.ReadInt32();
             Host.CheckDecode(OutputLength == AnomalyOnlyOutputLength || OutputLength == AnomalyAndExpectedValueOutputLength || OutputLength == AnomalyAndMarginOutputLength);
 
-            ctx.LoadModel<SrCnnEntireModeler, SignatureLoadModel>(host, out AnomalyModel, "SrCnnEntire");
-            Host.CheckDecode(AnomalyModel != null);
+            var count = ctx.Reader.ReadInt32();
+            Host.CheckDecode(count >= 0);
+
+            if (count == 0)
+            {
+                _anomalyDict = new Dictionary<long, double[]>();
+            }
+            else
+            {
+                List<long> trainingTimestamp = ctx.Reader.ReadLongArray(count).ToList();
+                List<double> valList = ctx.Reader.ReadDoubleArray(OutputLength * count).ToList();
+                List<double[]> batchResult = new List<double[]>();
+                for (int i = 0; i < count; ++i)
+                {
+                    batchResult.Add(valList.GetRange(i * OutputLength, OutputLength).ToArray());
+                }
+                _anomalyDict = trainingTimestamp.Zip(batchResult, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+            }
         }
 
         private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
@@ -202,9 +220,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Host.Assert(Threshold >= 0 && Threshold <= 1);
-            Host.Assert(BatchSize == -1 || BatchSize >= MinBatchSize);
-            Host.Assert(Sensitivity >= 0 && Sensitivity <= 100);
+            Host.Assert(_options.Threshold >= 0 && _options.Threshold <= 1);
+            Host.Assert(_options.BatchSize == -1 || _options.BatchSize >= MinBatchSize);
+            Host.Assert(_options.Sensitivity >= 0 && _options.Sensitivity <= 100);
+            Host.Assert(_options.SrCnnDetectMode == SrCnnDetectMode.AnomalyOnly
+                || _options.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndExpectedValue
+                || _options.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndMargin);
             Host.Assert(OutputLength == AnomalyOnlyOutputLength || OutputLength == AnomalyAndExpectedValueOutputLength || OutputLength == AnomalyAndMarginOutputLength);
 
             // *** Binary format ***
@@ -216,18 +237,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
             //   int: detect mode
             //   double: sensitivity
             //   int: output length
-            //   byte: scaling kind
-
-            // <anomaly model>
+            //   int: dictionary size
+            //   long stream: dictionary keys
+            //   double stream: dictionary values
 
             base.SaveColumns(ctx);
-            ctx.Writer.Write(Threshold);
-            ctx.Writer.Write(BatchSize);
-            ctx.Writer.Write((int)SrCnnDetectMode);
-            ctx.Writer.Write(Sensitivity);
+            ctx.Writer.Write(_options.Threshold);
+            ctx.Writer.Write(_options.BatchSize);
+            ctx.Writer.Write((int)_options.SrCnnDetectMode);
+            ctx.Writer.Write(_options.Sensitivity);
             ctx.Writer.Write(OutputLength);
 
-            ctx.SaveModel(AnomalyModel, "SrCnnEntire");
+            ctx.Writer.Write(_anomalyDict.Count);
+
+            List<long> keyList = new List<long>();
+            List<double> valList = new List<double>();
+            foreach (var pair in _anomalyDict)
+            {
+                keyList.Add(pair.Key);
+                valList.AddRange(pair.Value);
+            }
+            ctx.Writer.WriteLongStream(keyList);
+            ctx.Writer.WriteDoubleStream(valList);
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
@@ -245,7 +276,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Contracts.AssertValue(parent);
                 _parent = parent;
 
-                Column inputCol = Column.Parse(_parent.ColumnPairs[0].inputColumnName);
+                SourceColumn inputCol = SourceColumn.Parse(_parent.ColumnPairs[0].inputColumnName);
 
                 if (!inputSchema.TryGetColumnIndex(inputCol.Source[0], out _timestampColumnIndex))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "inputTimestamp", inputCol.Source[0]);
@@ -295,7 +326,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     {
                         getTimestamp(ref timestamp);
                         var result = VBufferEditor.Create(ref dst, _parent.OutputLength);
-                        if (!timestamp.Equals(default(DateTime)) && _parent.AnomalyModel.Inference(timestamp, out var values))
+                        if (!timestamp.Equals(default(DateTime)) && _parent._anomalyDict.TryGetValue(timestamp.Ticks, out var values))
                         {
                             for (int i = 0; i < result.Values.Length; ++i)
                             {
@@ -313,21 +344,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
         }
 
-        internal class SrCnnEntireModeler : ICanSaveModel
+        private static class SrCnnEntireModeler
         {
-            internal const string LoaderSignature = "SrCnnEntireModeler";
-            private IHost _host;
-            private SrCnnEntireTransformer _parent;
-            private Dictionary<long, double[]> _anomalyDict;
             private static readonly int _lookaheadWindowSize = 5;
             private static readonly int _backAddWindowSize = 5;
             private static readonly int _avergingWindowSize = 3;
             private static readonly int _judgementWindowSize = 40;
             private static readonly double _eps = 1e-8;
             private static readonly double _deanomalyThreshold = 0.35;
-
-            private readonly int _timestampColumnIndex;
-            private readonly int _valueColumnIndex;
 
             // A fixed lookup table which returns factor using sensitivity as index.
             // Since Margin = BoundaryUnit * factor, this factor is calculated to make sure Margin == Boundary when sensitivity is 50,
@@ -353,115 +377,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     1.6994687082728674e-05, 9.767061541798089e-06
                 };
 
-            private static VersionInfo GetVersionInfo()
+            public static void Train(IHost host, Options options, int length, ref Dictionary<long, double[]> anomalyDict)
             {
-                return new VersionInfo(
-                    modelSignature: "SRENTMOD",
-                    verWrittenCur: 0x00010001, // Initial
-                    verReadableCur: 0x00010001,
-                    verWeCanReadBack: 0x00010001,
-                    loaderSignature: LoaderSignature,
-                    loaderAssemblyName: typeof(SrCnnEntireModeler).Assembly.FullName);
-            }
+                IDataView data = options.Data;
+                SourceColumn inputCol = options.Source;
 
-            public SrCnnEntireModeler(IHostEnvironment env, SrCnnEntireTransformer parent, IDataView data)
-                : this(env, parent)
-            {
-                Column inputCol = Column.Parse(_parent.ColumnPairs[0].inputColumnName);
+                if (!data.Schema.TryGetColumnIndex(inputCol.Source[0], out var timestampColumnIndex))
+                    throw host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[0]);
+                if (!(data.Schema[timestampColumnIndex].Type is DateTimeDataViewType))
+                    throw host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[0], "DateTime", data.Schema[timestampColumnIndex].Type.ToString());
 
-                if (!data.Schema.TryGetColumnIndex(inputCol.Source[0], out _timestampColumnIndex))
-                    throw _host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[0]);
-                if (!(data.Schema[_timestampColumnIndex].Type is DateTimeDataViewType))
-                    throw _host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[0], "DateTime", data.Schema[_timestampColumnIndex].Type.ToString());
+                if (!data.Schema.TryGetColumnIndex(inputCol.Source[1], out var valueColumnIndex))
+                    throw host.ExceptSchemaMismatch(nameof(data.Schema), "inputValue", inputCol.Source[1]);
+                if (data.Schema[valueColumnIndex].Type != NumberDataViewType.Double)
+                    throw host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[1], "Double", data.Schema[valueColumnIndex].Type.ToString());
 
-                if (!data.Schema.TryGetColumnIndex(inputCol.Source[1], out _valueColumnIndex))
-                    throw _host.ExceptSchemaMismatch(nameof(data.Schema), "inputValue", inputCol.Source[1]);
-                if (data.Schema[_valueColumnIndex].Type != NumberDataViewType.Double)
-                    throw _host.ExceptSchemaMismatch(nameof(data.Schema), "inputTimestamp", inputCol.Source[1], "Double", data.Schema[_valueColumnIndex].Type.ToString());
-
-                Train(data);
-            }
-
-            private SrCnnEntireModeler(IHostEnvironment env, SrCnnEntireTransformer parent)
-            {
-                Contracts.CheckValue(env, nameof(env));
-                Contracts.CheckValue(parent, nameof(parent));
-                _host = env.Register(LoaderSignature);
-                _parent = parent;
-                _anomalyDict = new Dictionary<long, double[]>();
-            }
-
-            public SrCnnEntireModeler(IHostEnvironment env, ModelLoadContext ctx)
-            {
-                Contracts.CheckValue(env, nameof(env));
-                _host = env.Register(LoaderSignature);
-
-                // *** Binary format ***
-                // for each added column
-                //   int: output length
-                //   int: dictionary size
-                //   long stream: dictionary keys
-                //   double stream: dictionary values
-
-                _anomalyDict = new Dictionary<long, double[]>();
-
-                var length = ctx.Reader.ReadInt32();
-                _host.CheckDecode(length > 0);
-
-                var count = ctx.Reader.ReadInt32();
-                _host.CheckDecode(count >= 0);
-
-                if (count == 0)
-                    return;
-
-                List<long> trainingTimestamp = ctx.Reader.ReadLongArray(count).ToList();
-                List<double> valList = ctx.Reader.ReadDoubleArray(length * count).ToList();
-                List<double[]> batchResult = new List<double[]>();
-                for (int i = 0; i < count; ++i)
-                {
-                    batchResult.Add(valList.GetRange(i * length, length).ToArray());
-                }
-                _anomalyDict = trainingTimestamp.Zip(batchResult, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
-            }
-
-            void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
-
-            private void SaveModel(ModelSaveContext ctx)
-            {
-                _host.CheckValue(ctx, nameof(ctx));
-                ctx.CheckAtModel();
-                ctx.SetVersionInfo(GetVersionInfo());
-
-                // *** Binary format ***
-                // for each added column
-                //   int: output length
-                //   int: dictionary size
-                //   long stream: dictionary keys
-                //   double stream: dictionary values
-
-                ctx.Writer.Write(_parent.OutputLength);
-                ctx.Writer.Write(_anomalyDict.Count);
-
-                List<long> keyList = new List<long>();
-                List<double> valList = new List<double>();
-                foreach(var pair in _anomalyDict)
-                {
-                    keyList.Add(pair.Key);
-                    valList.AddRange(pair.Value);
-                }
-                ctx.Writer.WriteLongStream(keyList);
-                ctx.Writer.WriteDoubleStream(valList);
-            }
-
-            public void Train(IDataView data)
-            {
                 List<double> trainingData = new List<double>();
                 List<long> trainingTimestamp = new List<long>();
                 DateTime prevTimestamp = DateTime.MinValue;
                 using (var cursor = data.GetRowCursor(data.Schema))
                 {
-                    var getTimestamp = cursor.GetGetter<DateTime>(data.Schema[_timestampColumnIndex]);
-                    var getVal = cursor.GetGetter<double>(data.Schema[_valueColumnIndex]);
+                    var getTimestamp = cursor.GetGetter<DateTime>(data.Schema[timestampColumnIndex]);
+                    var getVal = cursor.GetGetter<double>(data.Schema[valueColumnIndex]);
                     DateTime timestamp = default(DateTime);
                     double val = double.NaN;
                     while (cursor.MoveNext())
@@ -478,48 +415,43 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     }
                 }
 
-                _host.CheckIO(trainingTimestamp.Count >= MinBatchSize, "Input must have no less than 12 valid points to fit a model.");
+                host.CheckIO(trainingTimestamp.Count >= MinBatchSize, "Input must have no less than 12 valid points to fit a model.");
 
-                var batchSize = (_parent.BatchSize == -1) ? trainingData.Count : _parent.BatchSize;
+                var batchSize = (options.BatchSize == -1) ? trainingData.Count : options.BatchSize;
                 List<double[]> batchResult = new List<double[]>();
                 for (int i = 0; i * batchSize < trainingData.Count; ++i)
                 {
                     var len = Math.Min(batchSize, trainingData.Count - i * batchSize);
                     if (len >= MinBatchSize)
                     {
-                        batchResult.AddRange(TrainCore(trainingData.GetRange(i * batchSize, len)));
+                        batchResult.AddRange(TrainCore(trainingData.GetRange(i * batchSize, len), options, length));
                     }
                     else
                     {
-                        batchResult.AddRange(TrainCore(trainingData.GetRange(i * batchSize - batchSize + len, batchSize)));
+                        batchResult.AddRange(TrainCore(trainingData.GetRange(i * batchSize - batchSize + len, batchSize), options, length));
                     }
                 }
 
-                _anomalyDict = trainingTimestamp.Zip(batchResult, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+                anomalyDict = trainingTimestamp.Zip(batchResult, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
             }
 
-            public bool Inference(DateTime key, out double[] result)
+            private static List<double[]> TrainCore(List<double> values, Options option, int length)
             {
-                return _anomalyDict.TryGetValue(key.Ticks, out result);
-            }
-
-            private List<double[]> TrainCore(List<double> values)
-            {
-                List<double[]> results = values.Select(x => new double[_parent.OutputLength]).ToList();
-                SpecturalResidual(values, results);
+                List<double[]> results = values.Select(x => new double[length]).ToList();
+                SpecturalResidual(values, results, option.Threshold);
                 //Optional Steps
-                if (_parent.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndMargin)
+                if (option.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndMargin)
                 {
-                    GetMargin(values, results);
+                    GetMargin(values, results, option.Sensitivity);
                 }
-                else if (_parent.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndExpectedValue)
+                else if (option.SrCnnDetectMode == SrCnnDetectMode.AnomalyAndExpectedValue)
                 {
                     GetExpectedValue(values, results);
                 }
                 return results;
             }
 
-            private void SpecturalResidual(List<double> values, List<double[]> results)
+            private static void SpecturalResidual(List<double> values, List<double[]> results, double threshold)
             {
                 // Step 1: Get backadd wave
                 List<double> backAddList = BackAdd(values);
@@ -583,7 +515,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     score = Math.Min(score, 1);
                     score = Math.Max(score, 0);
 
-                    var detres = score > _parent.Threshold ? 1 : 0;
+                    var detres = score > threshold ? 1 : 0;
 
                     results[i][0] = detres;
                     results[i][1] = score;
@@ -591,7 +523,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            private List<double> BackAdd(List<double> data)
+            private static List<double> BackAdd(List<double> data)
             {
                 List<double> predictArray = new List<double>();
                 for (int i = data.Count - _lookaheadWindowSize - 2; i < data.Count - 1; ++i)
@@ -608,7 +540,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return backAddArray;
             }
 
-            private double PredictNext(List<double> data)
+            private static double PredictNext(List<double> data)
             {
                 var n = data.Count;
                 double slopeSum = 0.0f;
@@ -619,7 +551,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return (data[1] + slopeSum);
             }
 
-            private List<double> AverageFilter(List<double> data, int n)
+            private static List<double> AverageFilter(List<double> data, int n)
             {
                 double cumsum = 0.0f;
                 List<double> cumSumList = data.Select(x => cumsum += x).ToList();
@@ -635,7 +567,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return cumSumList;
             }
 
-            private double CalculateSocre(double mag, double avgMag)
+            private static double CalculateSocre(double mag, double avgMag)
             {
                 double safeDivisor = avgMag;
                 if (Math.Abs(safeDivisor) < _eps)
@@ -645,7 +577,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return (Math.Abs(mag - avgMag) / safeDivisor);
             }
 
-            private void GetExpectedValue(List<double> values, List<double[]> results)
+            private static void GetExpectedValue(List<double> values, List<double[]> results)
             {
                 //Step 8: Calculate Expected Value
                 var exps = CalculateExpectedValueByFft(GetDeanomalyData(values, GetAnomalyIndex(results.Select(x => x[1]).ToList())));
@@ -656,7 +588,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            private void GetMargin(List<double> values, List<double[]> results)
+            private static void GetMargin(List<double> values, List<double[]> results, double sensitivity)
             {
                 //Step 8: Calculate Expected Value
                 var exps = CalculateExpectedValueByFft(GetDeanomalyData(values, GetAnomalyIndex(results.Select(x => x[1]).ToList())));
@@ -665,7 +597,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 var units = CalculateBoundaryUnit(values, results.Select(x => x[0] > 0 ? true : false).ToList());
 
                 //Step 10: Calculate UpperBound and LowerBound
-                var margins = units.Select(x => CalculateMargin(x, _parent.Sensitivity)).ToList();
+                var margins = units.Select(x => CalculateMargin(x, sensitivity)).ToList();
 
                 for (int i = 0; i < results.Count; ++i)
                 {
@@ -678,19 +610,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            private List<int> GetAnomalyIndex(List<double> scores)
+            private static List<int> GetAnomalyIndex(List<double> scores)
             {
                 List<int> anomalyIdxList = new List<int>();
                 for (int i = 0; i < scores.Count; ++i)
-                if (scores[i] > _deanomalyThreshold)
-                {
-                    anomalyIdxList.Add(i);
-                }
+                    if (scores[i] > _deanomalyThreshold)
+                    {
+                        anomalyIdxList.Add(i);
+                    }
 
                 return anomalyIdxList;
             }
 
-            private List<double> GetDeanomalyData(List<double> data, List<int> anomalyIdxList)
+            private static List<double> GetDeanomalyData(List<double> data, List<int> anomalyIdxList)
             {
                 List<double> deAnomalyData = new List<double>(data);
                 int minPointsToFit = 4;
@@ -733,7 +665,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return deAnomalyData;
             }
 
-            private double CalculateInterplate(List<Tuple<int, double>> values, int idx)
+            private static double CalculateInterplate(List<Tuple<int, double>> values, int idx)
             {
                 var n = values.Count;
                 double sumX = values.Sum(item => item.Item1);
@@ -747,7 +679,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return a * (double)idx + b;
             }
 
-            private List<double> CalculateExpectedValueByFft(List<double> data)
+            private static List<double> CalculateExpectedValueByFft(List<double> data)
             {
                 int length = data.Count;
                 double[] fftRe = new double[length];
@@ -770,7 +702,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return ifftRe.ToList().GetRange(0, length);
             }
 
-            private List<double> CalculateBoundaryUnit(List<double> data, List<Boolean> isAnomalys)
+            private static List<double> CalculateBoundaryUnit(List<double> data, List<Boolean> isAnomalys)
             {
                 if (data.Count == 0)
                 {
@@ -785,7 +717,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 List<double> trends = MedianFilter(data, window, true);
                 for (int i = 0; i < trends.Count; ++i)
                 {
-                    if(!isAnomalys[i])
+                    if (!isAnomalys[i])
                     {
                         trendSum += Math.Abs(trends[i]);
                         ++calculationSize;
@@ -819,7 +751,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return units;
             }
 
-            private List<double> MedianFilter(List<double> data, int window, bool needTwoEnd=false)
+            private static List<double> MedianFilter(List<double> data, int window, bool needTwoEnd = false)
             {
                 int wLen = window / 2 * 2 + 1;
                 int tLen = data.Count;
@@ -886,7 +818,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return ans;
             }
 
-            private int BisectRight(List<double> arr, int begin, int end, double tar)
+            private static int BisectRight(List<double> arr, int begin, int end, double tar)
             {
                 while (begin < end)
                 {
@@ -899,7 +831,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return begin;
             }
 
-            private double SortedMedian(List<double> sortedValues, int begin, int end)
+            private static double SortedMedian(List<double> sortedValues, int begin, int end)
             {
                 int n = end - begin;
                 if (n % 2 == 1)
@@ -911,12 +843,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            private double CalculateMargin(double unit, double sensitivity)
+            private static double CalculateMargin(double unit, double sensitivity)
             {
-                if (unit <= 0)
-                {
-                    throw _host.Except("Get negative boundary unit");
-                }
                 if (Math.Floor(sensitivity) == sensitivity)
                 {
                     return unit * _factors[(int)sensitivity];
@@ -928,7 +856,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            private double CalculateAnomalyScore(double value, double exp, double unit, bool isAnomaly)
+            private static double CalculateAnomalyScore(double value, double exp, double unit, bool isAnomaly)
             {
                 double anomalyScore = 0.0f;
 
