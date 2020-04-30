@@ -626,7 +626,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Theory]
-        [IterationData]
+        [IterationData(iterations: 10)]
         [Trait("Category", "RunSpecificTest")]
         public void TestTreeEnsembleCombiner(int iterations)
         {
@@ -652,7 +652,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Theory]
-        [IterationData]
+        [IterationData(iterations: 10)]
         [Trait("Category", "RunSpecificTest")]
         public void TestTreeEnsembleCombinerWithCategoricalSplits(int iterations)
         {
@@ -766,8 +766,8 @@ namespace Microsoft.ML.RunTests
         }
 
         [Theory]
-        [IterationData]
-        [Trait("Category", "RunSpecificTest")]
+        [IterationData(iterations:10)]
+        //[Trait("Category", "RunSpecificTest")]
         public void TestEnsembleCombiner(int iterations)
         {
             Output.WriteLine("" + iterations);
@@ -797,6 +797,7 @@ namespace Microsoft.ML.RunTests
                 LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     LabelColumnName = DefaultColumnNames.Label,
                     OptimizationTolerance = 10e-4F,
                     TrainingData = dataView,
@@ -805,6 +806,7 @@ namespace Microsoft.ML.RunTests
                 LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     LabelColumnName = DefaultColumnNames.Label,
                     OptimizationTolerance = 10e-3F,
                     TrainingData = dataView,
