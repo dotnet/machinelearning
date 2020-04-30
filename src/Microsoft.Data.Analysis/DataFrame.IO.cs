@@ -198,14 +198,23 @@ namespace Microsoft.Data.Analysis
                                 Encoding encoding = null)
         {
             if (!csvStream.CanSeek)
+            {
                 throw new ArgumentException(Strings.NonSeekableStream, nameof(csvStream));
+            }
+
+            if (dataTypes == null && guessRows <= 0)
+            {
+                throw new ArgumentException(string.Format(Strings.ExpectedEitherGuessRowsOrDataTypes, nameof(guessRows), nameof(dataTypes)));
+            }
 
             var linesForGuessType = new List<string[]>();
             long rowline = 0;
             int numberOfColumns = dataTypes?.Length ?? 0;
 
             if (header == true && numberOfRowsToRead != -1)
+            {
                 numberOfRowsToRead++;
+            }
 
             List<DataFrameColumn> columns;
             long streamStart = csvStream.Position;
@@ -213,40 +222,39 @@ namespace Microsoft.Data.Analysis
             using (var streamReader = new StreamReader(csvStream, encoding ?? Encoding.UTF8, detectEncodingFromByteOrderMarks: true, DefaultStreamReaderBufferSize, leaveOpen: true))
             {
                 string line = null;
-                if (dataTypes == null)
+                line = streamReader.ReadLine();
+                while (line != null)
                 {
-                    line = streamReader.ReadLine();
-                    while (line != null)
+                    if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
                     {
-                        if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
+                        if (linesForGuessType.Count < guessRows || (header && rowline == 0))
                         {
-                            if (linesForGuessType.Count < guessRows)
+                            var spl = line.Split(separator);
+                            if (header && rowline == 0)
                             {
-                                var spl = line.Split(separator);
-                                if (header && rowline == 0)
+                                if (columnNames == null)
                                 {
-                                    if (columnNames == null)
-                                        columnNames = spl;
-                                }
-                                else
-                                {
-                                    linesForGuessType.Add(spl);
-                                    numberOfColumns = Math.Max(numberOfColumns, spl.Length);
+                                    columnNames = spl;
                                 }
                             }
+                            else
+                            {
+                                linesForGuessType.Add(spl);
+                                numberOfColumns = Math.Max(numberOfColumns, spl.Length);
+                            }
                         }
-                        ++rowline;
-                        if (rowline == guessRows)
-                        {
-                            break;
-                        }
-                        line = streamReader.ReadLine();
                     }
-
-                    if (linesForGuessType.Count == 0)
+                    ++rowline;
+                    if (rowline == guessRows || guessRows == 0)
                     {
-                        throw new FormatException(Strings.EmptyFile);
+                        break;
                     }
+                    line = streamReader.ReadLine();
+                }
+
+                if (rowline == 0)
+                {
+                    throw new FormatException(Strings.EmptyFile);
                 }
 
                 columns = new List<DataFrameColumn>(numberOfColumns);

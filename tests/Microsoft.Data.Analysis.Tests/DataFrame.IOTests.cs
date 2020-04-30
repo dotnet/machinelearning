@@ -151,6 +151,99 @@ CMT,1,1,181,0.6,CSH,4.5";
             VerifyColumnTypes(df);
         }
 
+        void VerifyDataFrameWithNamedColumnsAndDataTypes(DataFrame df, bool verifyColumnDataType, bool verifyNames)
+        {
+            Assert.Equal(4, df.Rows.Count);
+            Assert.Equal(7, df.Columns.Count);
+
+            if (verifyColumnDataType)
+            {
+                Assert.True(typeof(string) == df.Columns[0].DataType);
+                Assert.True(typeof(short) == df.Columns[1].DataType);
+                Assert.True(typeof(int) == df.Columns[2].DataType);
+                Assert.True(typeof(long) == df.Columns[3].DataType);
+                Assert.True(typeof(float) == df.Columns[4].DataType);
+                Assert.True(typeof(string) == df.Columns[5].DataType);
+                Assert.True(typeof(double) == df.Columns[6].DataType);
+            }
+
+            if (verifyNames)
+            {
+                Assert.Equal("vendor_id", df.Columns[0].Name);
+                Assert.Equal("rate_code", df.Columns[1].Name);
+                Assert.Equal("passenger_count", df.Columns[2].Name);
+                Assert.Equal("trip_time_in_secs", df.Columns[3].Name);
+                Assert.Equal("trip_distance", df.Columns[4].Name);
+                Assert.Equal("payment_type", df.Columns[5].Name);
+                Assert.Equal("fare_amount", df.Columns[6].Name);
+            }
+
+            VerifyColumnTypes(df);
+
+            foreach (var column in df.Columns)
+            {
+                Assert.Equal(0, column.NullCount);
+            }
+        }
+
+        [Theory]
+        [InlineData(true, 0)]
+        [InlineData(false, 0)]
+        [InlineData(true, 10)]
+        [InlineData(false, 10)]
+        public void TestReadCsvWithTypesAndGuessRows(bool header, int guessRows)
+        {
+            /* Tests this matrix
+             * 
+                header	GuessRows	DataTypes	
+                True	0	        NotNull	    
+                False 	0	        NotNull	    
+                True	10	        NotNull	    
+                False 	10	        NotNull	    
+                True	0	        Null  -----> Throws an exception
+                False 	0	        Null  -----> Throws an exception
+                True	10	        Null	    
+                False 	10	        Null	    
+             * 
+             */
+            string headerLine = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
+";
+            string dataLines =
+@"CMT,1,1,1271,3.8,CRD,17.5
+CMT,1,1,474,1.5,CRD,8
+CMT,1,1,637,1.4,CRD,8.5
+CMT,1,1,181,0.6,CSH,4.5";
+
+            Stream GetStream(string streamData)
+            {
+                return new MemoryStream(Encoding.Default.GetBytes(streamData));
+            }
+
+            string data = header ? headerLine + dataLines : dataLines;
+            DataFrame df = DataFrame.LoadCsv(GetStream(data),
+                                             header: header,
+                                             guessRows: guessRows,
+                                             dataTypes: new Type[] { typeof(string), typeof(short), typeof(int), typeof(long), typeof(float), typeof(string), typeof(double) }
+                                             );
+            VerifyDataFrameWithNamedColumnsAndDataTypes(df, verifyColumnDataType: true, verifyNames: header);
+
+            if (guessRows == 10)
+            {
+                df = DataFrame.LoadCsv(GetStream(data),
+                                                 header: header,
+                                                 guessRows: guessRows
+                                                 );
+                VerifyDataFrameWithNamedColumnsAndDataTypes(df, verifyColumnDataType: false, verifyNames: header);
+            }
+            else
+            {
+                Assert.ThrowsAny<ArgumentException>(() => DataFrame.LoadCsv(GetStream(data),
+                                                 header: header,
+                                                 guessRows: guessRows
+                                                 ));
+            }
+        }
+
         [Fact]
         public void TestReadCsvWithTypes()
         {
@@ -176,6 +269,14 @@ CMT,1,1,181,0.6,CSH,4.5";
             Assert.True(typeof(float) == df.Columns[4].DataType);
             Assert.True(typeof(string) == df.Columns[5].DataType);
             Assert.True(typeof(double) == df.Columns[6].DataType);
+
+            Assert.Equal("vendor_id", df.Columns[0].Name);
+            Assert.Equal("rate_code", df.Columns[1].Name);
+            Assert.Equal("passenger_count", df.Columns[2].Name);
+            Assert.Equal("trip_time_in_secs", df.Columns[3].Name);
+            Assert.Equal("trip_distance", df.Columns[4].Name);
+            Assert.Equal("payment_type", df.Columns[5].Name);
+            Assert.Equal("fare_amount", df.Columns[6].Name);
             VerifyColumnTypes(df);
 
             foreach (var column in df.Columns)
