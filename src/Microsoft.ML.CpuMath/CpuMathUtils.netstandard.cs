@@ -276,11 +276,18 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(src);
 
-            unsafe
+            //unsafe
+            //{
+            //    fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            //        return Thunk.SumSqU(psrc, src.Length);
+            //}
+
+            float result = 0;
+            for (int i = 0; i < src.Length; i++)
             {
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                    return Thunk.SumSqU(psrc, src.Length);
+                result += src[i] * src[i];
             }
+            return result;
         }
 
         public static float SumSq(float mean, ReadOnlySpan<float> src)
@@ -346,19 +353,12 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(a.Length >= count);
             Contracts.Assert(b.Length >= count);
 
-            //unsafe
-            //{
-            //    fixed (float* pa = &MemoryMarshal.GetReference(a))
-            //    fixed (float* pb = &MemoryMarshal.GetReference(b))
-            //        return Thunk.DotU(pa, pb, count);
-            //}
-
-            float result = 0;
-            for (int i = 0; i < count; i++)
+            unsafe
             {
-                result += a[i] * b[i];
+                fixed (float* pa = &MemoryMarshal.GetReference(a))
+                fixed (float* pb = &MemoryMarshal.GetReference(b))
+                    return Thunk.DotU(pa, pb, count);
             }
-            return result;
         }
 
         public static float DotProductSparse(ReadOnlySpan<float> a, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
