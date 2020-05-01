@@ -627,7 +627,7 @@ namespace Microsoft.ML.RunTests
 
         [Theory]
         [IterationData(iterations: 10)]
-        //[Trait("Category", "RunSpecificTest")]
+        [Trait("Category", "RunSpecificTest")]
         public void TestTreeEnsembleCombiner(int iterations)
         {
             Output.WriteLine("" + iterations);
