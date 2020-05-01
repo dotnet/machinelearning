@@ -4,6 +4,7 @@
 
 using System.Data;
 using System.Data.SqlClient;
+using System.Data.SQLite;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
@@ -26,16 +27,25 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisLightGbm()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://github.com/dotnet/machinelearning/issues/4156
-                return;
-            }
-
             var mlContext = new MLContext(seed: 1);
 
-            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+            string connectionString;
+            string commandText;
+            DatabaseSource databaseSource;
+            // Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
+            // SQLite database is used on Linux and MacOS builds.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                connectionString = GetConnectionString(TestDatasets.irisDb.name);
+                commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
+            }
+            else
+            {
+                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
+                commandText = $@"SELECT * FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
+                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
+            }
 
             var loaderColumns = new DatabaseLoader.Column[]
             {
@@ -47,8 +57,6 @@ namespace Microsoft.ML.Tests
             };
 
             var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
-
-            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
 
@@ -82,20 +90,25 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisLightGbmWithLoadColumnName()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://github.com/dotnet/machinelearning/issues/4156
-                return;
-            }
-
             var mlContext = new MLContext(seed: 1);
 
-            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM ""{TestDatasets.irisDb.trainFilename}""";
+            string connectionString;
+            string commandText;
+            DatabaseSource databaseSource;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                connectionString = GetConnectionString(TestDatasets.irisDb.name);
+                commandText = $@"SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM ""{TestDatasets.irisDb.trainFilename}""";
+                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
+            }
+            else
+            {
+                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
+                commandText = $@"SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
+                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
+            }
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisDataWithLoadColumnName>();
-
-            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
 
@@ -129,20 +142,27 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisVectorLightGbm()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://github.com/dotnet/machinelearning/issues/4156
-                return;
-            }
-
             var mlContext = new MLContext(seed: 1);
 
-            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+            string connectionString;
+            string commandText;
+            DatabaseSource databaseSource;
+            // Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
+            // SQLite database is used on Linux and MacOS builds.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                connectionString = GetConnectionString(TestDatasets.irisDb.name);
+                commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
+            }
+            else
+            {
+                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
+                commandText = $@"SELECT * FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
+                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
+            }
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorData>();
-
-            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
 
@@ -172,20 +192,27 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisVectorLightGbmWithLoadColumnName()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://github.com/dotnet/machinelearning/issues/4156
-                return;
-            }
-
             var mlContext = new MLContext(seed: 1);
 
-            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+            string connectionString;
+            string commandText;
+            DatabaseSource databaseSource;
+            // Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
+            // SQLite database is used on Linux and MacOS builds.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                connectionString = GetConnectionString(TestDatasets.irisDb.name);
+                commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
+            }
+            else
+            {
+                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
+                commandText = $@"SELECT * FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
+                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
+            }
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorDataWithLoadColumnName>();
-
-            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
 
@@ -215,20 +242,27 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void IrisSdcaMaximumEntropy()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://github.com/dotnet/machinelearning/issues/4156
-                return;
-            }
-
             var mlContext = new MLContext(seed: 1);
 
-            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+            string connectionString;
+            string commandText;
+            DatabaseSource databaseSource;
+            // Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
+            // SQLite database is used on Linux and MacOS builds.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                connectionString = GetConnectionString(TestDatasets.irisDb.name);
+                commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
+            }
+            else
+            {
+                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
+                commandText = $@"SELECT * FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
+                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
+            }
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisData>();
-
-            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
 
@@ -268,6 +302,12 @@ namespace Microsoft.ML.Tests
         {
             var databaseFile = GetTestDatabasePath(databaseName);
             return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True;Connect Timeout=120";
+        }
+
+        private string GetSQLiteConnectionString(string databaseName)
+        {
+            var databaseFile = SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory($"{databaseName}.sqlite");
+            return $@"Data Source={databaseFile};Version=3;Read Only=True;Timeout=120;";
         }
 
         public class IrisData

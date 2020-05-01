@@ -470,6 +470,13 @@ namespace Microsoft.ML.TestFrameworkCommon
             testFilename = @"iris-test"
         };
 
+        public static TestDataset irisDbSQLite = new TestDataset()
+        {
+            name = "iris",
+            trainFilename = @"iris_train",
+            testFilename = @"iris_test"
+        };
+
         public static TestDataset irisMissing = new TestDataset()
         {
             name = "irisMissing",

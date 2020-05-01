@@ -59,6 +59,7 @@
     <MicrosoftMLOnnxTestModelsVersion>0.0.5-test</MicrosoftMLOnnxTestModelsVersion>
     <SystemDataSqlClientVersion>4.6.1</SystemDataSqlClientVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
+    <SystemDataSQLiteCoreVersion>1.0.112.2</SystemDataSQLiteCoreVersion>
   </PropertyGroup>
 
 </Project>
