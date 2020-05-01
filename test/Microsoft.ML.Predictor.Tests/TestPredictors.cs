@@ -780,7 +780,7 @@ namespace Microsoft.ML.RunTests
                 FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
-                    NumberOfThreads = 1,
+                    //NumberOfThreads = 1,
                     NumberOfTrees = 5,
                     NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
@@ -797,7 +797,7 @@ namespace Microsoft.ML.RunTests
                 LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
-                    NumberOfThreads = 1,
+                    //NumberOfThreads = 1,
                     LabelColumnName = DefaultColumnNames.Label,
                     OptimizationTolerance = 10e-4F,
                     TrainingData = dataView,
@@ -806,7 +806,7 @@ namespace Microsoft.ML.RunTests
                 LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
-                    NumberOfThreads = 1,
+                    //NumberOfThreads = 1,
                     LabelColumnName = DefaultColumnNames.Label,
                     OptimizationTolerance = 10e-3F,
                     TrainingData = dataView,
