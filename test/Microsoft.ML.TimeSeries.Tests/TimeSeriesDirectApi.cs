@@ -96,18 +96,6 @@ namespace Microsoft.ML.Tests
             public double[] Prediction { get; set; }
         }
 
-        //private sealed class SrCnnAnomalyDetectionWithExp
-        //{
-        //    [VectorType(4)]
-        //    public double[] Prediction { get; set; }
-        //}
-
-        //private sealed class SrCnnAnomalyDetectionWithMargin
-        //{
-        //    [VectorType(7)]
-        //    public double[] Prediction { get; set; }
-        //}
-
         [Fact]
         public void ChangeDetection()
         {
@@ -584,14 +572,10 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Theory]
-        [InlineData(SrCnnDetectMode.AnomalyOnly)]
-        [InlineData(SrCnnDetectMode.AnomalyAndExpectedValue)]
-        [InlineData(SrCnnDetectMode.AnomalyAndMargin)]
-        [InlineData(SrCnnDetectMode.AnomalyOnly, true)]
-        [InlineData(SrCnnDetectMode.AnomalyAndExpectedValue, true)]
-        [InlineData(SrCnnDetectMode.AnomalyAndMargin, true)]
-        public void AnomalyDetectionWithSrCnnEntire(SrCnnDetectMode mode, bool loadDataFromFile=false)
+        [Theory, CombinatorialData]
+        public void AnomalyDetectionWithSrCnnEntire(
+            [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)]SrCnnDetectMode mode,
+            [CombinatorialValues(true, false)]bool loadDataFromFile)
         {
             var ml = new MLContext(1);
             IDataView dataView;
