@@ -741,7 +741,7 @@ namespace Microsoft.ML.Transforms
                         continue;
 
                     var srcVariable = ctx.GetVariableName(srcCol.Name);
-                    var dstVariable = ctx.AddIntermediateVariable(dstCol.Type, dstCol.Name, true);
+                    var dstVariable = ctx.AddIntermediateVariable(dstCol.Type, dstCol.Name);
                     string opType = "Identity";
                     ctx.CreateNode(opType, srcVariable, dstVariable, ctx.GetNodeName(opType), "");
                 }
