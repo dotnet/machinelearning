@@ -584,7 +584,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in float value)
-                => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), 4) & mask) + 1;
+                => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashDouble : IHasher<double>
@@ -618,7 +618,7 @@ namespace Microsoft.ML.Transforms
                 var hi = Utils.GetHi(v);
                 if (hi != 0)
                     hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, 4) & mask) + 1;
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in byte value)
-                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashKey2 : IHasher<ushort>
@@ -661,7 +661,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ushort value)
-                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashKey4 : IHasher<uint>
@@ -675,7 +675,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in uint value)
-                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashKey8 : IHasher<ulong>
@@ -704,7 +704,7 @@ namespace Microsoft.ML.Transforms
                 var hi = Utils.GetHi(value);
                 if (hi != 0)
                     hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, 4) & mask) + 1;
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -719,7 +719,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in byte value)
-                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashU2 : IHasher<ushort>
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ushort value)
-                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashU4 : IHasher<uint>
@@ -747,7 +747,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in uint value)
-                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashU8 : IHasher<ulong>
@@ -772,7 +772,7 @@ namespace Microsoft.ML.Transforms
                 var hi = Utils.GetHi(value);
                 if (hi != 0)
                     hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, 4) & mask) + 1;
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -812,7 +812,7 @@ namespace Microsoft.ML.Transforms
                     if (hi != 0)
                         hash = Hashing.MurmurRound(hash, hi);
                 }
-                return (Hashing.MixHashV2(hash, 4) & mask) + 1;
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in bool value)
-                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value ? 1u : 0u), 4) & mask) + 1;
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value ? 1u : 0u), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashI1 : IHasher<sbyte>
@@ -841,7 +841,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in sbyte value)
-                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value),  4) & mask) + 1;
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashI2 : IHasher<short>
@@ -855,7 +855,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in short value)
-                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), 4) & mask) + 1;
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashI4 : IHasher<int>
@@ -869,7 +869,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in int value)
-                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), 4) & mask) + 1;
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), sizeof(uint)) & mask) + 1;
         }
 
         private readonly struct HashI8 : IHasher<long>
@@ -894,7 +894,7 @@ namespace Microsoft.ML.Transforms
                 var hi = Utils.GetHi((ulong)value);
                 if (hi != 0)
                     hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, 4) & mask) + 1;
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -1119,9 +1119,9 @@ namespace Microsoft.ML.Transforms
 
                 opType = "MurmurHash3";
                 string murmurOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "MurmurOutput");
-                var srcShape = ctx.RetrieveShapeOrNull(srcVariable);
                 var srcType = _srcTypes[iinfo].GetItemType().RawType;
-                if (_srcTypes[iinfo] is KeyDataViewType) return false;
+                if (_srcTypes[iinfo] is KeyDataViewType)
+                    return false;
 
                 // Numeric input types are limited to those supported by the Onnxruntime MurmurHash operator, which currently only supports
                 // uints and ints. Thus, ulongs, longs, doubles, floats, and booleans are not supported.
@@ -1164,7 +1164,7 @@ namespace Microsoft.ML.Transforms
                 shiftNode = ctx.CreateNode(opType, new[] { bitShiftOutput, shiftValue }, new[] { bitShiftOutput2 }, ctx.GetNodeName(opType), "");
                 shiftNode.AddAttribute("direction", "RIGHT");
 
-                var vectorShape = new VectorDataViewType(NumberDataViewType.Int64, (int)srcShape[1]);
+                var vectorShape = new VectorDataViewType(NumberDataViewType.Int64, _srcTypes[iinfo].GetValueCount());
                 opType = "Cast";
                 castOutput = ctx.AddIntermediateVariable(vectorShape, "CastOutput2");
                 castNode = ctx.CreateNode(opType, bitShiftOutput2, castOutput, ctx.GetNodeName(opType), "");
