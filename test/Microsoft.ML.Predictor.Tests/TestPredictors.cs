@@ -625,9 +625,13 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
-        public void TestTreeEnsembleCombiner()
+        [Theory]
+        [IterationData(iterations: 10)]
+        //[Trait("Category", "RunSpecificTest")]
+        public void TestTreeEnsembleCombiner(int iterations)
         {
+            Output.WriteLine("" + iterations);
+
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
@@ -637,6 +641,7 @@ namespace Microsoft.ML.RunTests
                 fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     NumberOfTrees = 5,
                     NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
@@ -646,9 +651,13 @@ namespace Microsoft.ML.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
-        public void TestTreeEnsembleCombinerWithCategoricalSplits()
+        [Theory]
+        [IterationData(iterations: 10)]
+        //[Trait("Category", "RunSpecificTest")]
+        public void TestTreeEnsembleCombinerWithCategoricalSplits(int iterations)
         {
+            Output.WriteLine("" + iterations);
+
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
@@ -659,6 +668,7 @@ namespace Microsoft.ML.RunTests
                 fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     NumberOfTrees = 5,
                     NumberOfLeaves = 4,
                     CategoricalSplit = true,
@@ -755,9 +765,13 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
-        public void TestEnsembleCombiner()
+        [Theory]
+        [IterationData(iterations:10)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TestEnsembleCombiner(int iterations)
         {
+            Output.WriteLine("" + iterations);
+
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
@@ -766,6 +780,7 @@ namespace Microsoft.ML.RunTests
                 FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     NumberOfTrees = 5,
                     NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
@@ -782,6 +797,7 @@ namespace Microsoft.ML.RunTests
                 LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     LabelColumnName = DefaultColumnNames.Label,
                     OptimizationTolerance = 10e-4F,
                     TrainingData = dataView,
@@ -790,6 +806,7 @@ namespace Microsoft.ML.RunTests
                 LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
+                    NumberOfThreads = 1,
                     LabelColumnName = DefaultColumnNames.Label,
                     OptimizationTolerance = 10e-3F,
                     TrainingData = dataView,
@@ -801,7 +818,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [LightGBMFact]
         public void TestMulticlassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
