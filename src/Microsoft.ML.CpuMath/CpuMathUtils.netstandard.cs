@@ -168,11 +168,16 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.AssertNonEmpty(dst);
             Contracts.Assert(count <= dst.Length);
 
-            unsafe
+            //unsafe
+            //{
+            //    fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            //    fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            //        Thunk.AddScaleU(a, psrc, pdst, count);
+            //}
+
+            for (int i = 0; i < count; i++)
             {
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
-                    Thunk.AddScaleU(a, psrc, pdst, count);
+                dst[i] += a * src[i];
             }
         }
 
@@ -346,19 +351,12 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(a.Length >= count);
             Contracts.Assert(b.Length >= count);
 
-            //unsafe
-            //{
-            //    fixed (float* pa = &MemoryMarshal.GetReference(a))
-            //    fixed (float* pb = &MemoryMarshal.GetReference(b))
-            //        return Thunk.DotU(pa, pb, count);
-            //}
-
-            float result = 0;
-            for (int i = 0; i < count; i++)
+            unsafe
             {
-                result += a[i] * b[i];
+                fixed (float* pa = &MemoryMarshal.GetReference(a))
+                fixed (float* pb = &MemoryMarshal.GetReference(b))
+                    return Thunk.DotU(pa, pb, count);
             }
-            return result;
         }
 
         public static float DotProductSparse(ReadOnlySpan<float> a, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
