@@ -204,6 +204,7 @@ namespace Microsoft.ML.Tests
                 PetalWidth = 1.0f,
             }).PredictedLabel);
         }
+
         /// <summary>
         /// Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
         /// SQLite database is used on Linux and MacOS builds.
