@@ -625,7 +625,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -646,7 +646,7 @@ namespace Microsoft.ML.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -755,7 +755,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -801,7 +801,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [LightGBMFact]
         public void TestMulticlassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
