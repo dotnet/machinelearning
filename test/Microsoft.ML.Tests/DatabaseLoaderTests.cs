@@ -29,24 +29,6 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string connectionString;
-            string commandText;
-            DatabaseSource databaseSource;
-            // Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
-            // SQLite database is used on Linux and MacOS builds.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                connectionString = GetConnectionString(TestDatasets.irisDb.name);
-                commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
-                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
-            }
-            else
-            {
-                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
-                commandText = $@"SELECT * FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
-                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
-            }
-
             var loaderColumns = new DatabaseLoader.Column[]
             {
                 new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 },
@@ -58,7 +40,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
-            var trainingData = loader.Load(databaseSource);
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM "));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -92,25 +74,9 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string connectionString;
-            string commandText;
-            DatabaseSource databaseSource;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                connectionString = GetConnectionString(TestDatasets.irisDb.name);
-                commandText = $@"SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM ""{TestDatasets.irisDb.trainFilename}""";
-                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
-            }
-            else
-            {
-                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
-                commandText = $@"SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
-                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
-            }
-
             var loader = mlContext.Data.CreateDatabaseLoader<IrisDataWithLoadColumnName>();
 
-            var trainingData = loader.Load(databaseSource);
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM "));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -144,27 +110,9 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string connectionString;
-            string commandText;
-            DatabaseSource databaseSource;
-            // Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
-            // SQLite database is used on Linux and MacOS builds.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                connectionString = GetConnectionString(TestDatasets.irisDb.name);
-                commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
-                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
-            }
-            else
-            {
-                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
-                commandText = $@"SELECT * FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
-                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
-            }
-
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorData>();
 
-            var trainingData = loader.Load(databaseSource);
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM "));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
@@ -194,27 +142,9 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string connectionString;
-            string commandText;
-            DatabaseSource databaseSource;
-            // Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
-            // SQLite database is used on Linux and MacOS builds.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                connectionString = GetConnectionString(TestDatasets.irisDb.name);
-                commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
-                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
-            }
-            else
-            {
-                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
-                commandText = $@"SELECT * FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
-                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
-            }
-
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorDataWithLoadColumnName>();
 
-            var trainingData = loader.Load(databaseSource);
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM "));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
@@ -244,27 +174,9 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string connectionString;
-            string commandText;
-            DatabaseSource databaseSource;
-            // Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
-            // SQLite database is used on Linux and MacOS builds.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                connectionString = GetConnectionString(TestDatasets.irisDb.name);
-                commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
-                databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
-            }
-            else
-            {
-                connectionString = GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name);
-                commandText = $@"SELECT * FROM ""{TestDatasets.irisDbSQLite.trainFilename}""";
-                databaseSource = new DatabaseSource(SQLiteFactory.Instance, connectionString, commandText);
-            }
-
             var loader = mlContext.Data.CreateDatabaseLoader<IrisData>();
 
-            var trainingData = loader.Load(databaseSource);
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM "));
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -292,21 +204,34 @@ namespace Microsoft.ML.Tests
                 PetalWidth = 1.0f,
             }).PredictedLabel);
         }
-
-        private string GetTestDatabasePath(string databaseName)
+        /// <summary>
+        /// Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
+        /// SQLite database is used on Linux and MacOS builds.
+        /// </summary>
+        /// <returns>Return the appropiate Iris DatabaseSource according to build OS.</returns>
+        private DatabaseSource GetIrisDatabaseSource(string command)
         {
-            return Path.GetFullPath(Path.Combine("TestDatabases", $"{databaseName}.mdf"));
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return new DatabaseSource(
+                    SqlClientFactory.Instance,
+                    GetMSSQLConnectionString(TestDatasets.irisDb.name),
+                    $@"{command} ""{TestDatasets.irisDb.trainFilename}""");
+            else
+                return new DatabaseSource(
+                    SQLiteFactory.Instance,
+                    GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
+                    $@"{command} ""{TestDatasets.irisDbSQLite.trainFilename}""");
         }
 
-        private string GetConnectionString(string databaseName)
+        private string GetMSSQLConnectionString(string databaseName)
         {
-            var databaseFile = GetTestDatabasePath(databaseName);
+            var databaseFile = Path.GetFullPath(Path.Combine("TestDatabases", $"{databaseName}.mdf"));
             return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True;Connect Timeout=120";
         }
 
         private string GetSQLiteConnectionString(string databaseName)
         {
-            var databaseFile = SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory($"{databaseName}.sqlite");
+            var databaseFile = Path.GetFullPath(Path.Combine("TestDatabases", $"{databaseName}.sqlite"));
             return $@"Data Source={databaseFile};Version=3;Read Only=True;Timeout=120;";
         }
 
