@@ -899,23 +899,26 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void TestLoadTextWithKeyTypeAttribute()
         {
+            ulong expectedCount = 10;
+
             var mlContext = new MLContext(seed: 1);
             string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var data = mlContext.Data.CreateTextLoader<BreastCancerInputModelWithKeyType>(separatorChar: ',').Load(breastCancerPath);
 
-            Assert.True(data.Schema[1].Type.GetKeyCount() == 10);
+            Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
         }
 
         [Fact]
         public void TestLoadTextWithoutKeyTypeAttribute()
         {
+            ulong expectedCount = 0;
             var mlContext = new MLContext(seed: 1);
             string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var data = mlContext.Data.CreateTextLoader<BreastCancerInputModelWithoutKeyType>(separatorChar: ',').Load(breastCancerPath);
 
-            Assert.True(data.Schema[1].Type.GetKeyCount() == 0);
+            Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
         }
     }
 }
