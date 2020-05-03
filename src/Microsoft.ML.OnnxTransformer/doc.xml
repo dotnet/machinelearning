@@ -51,16 +51,16 @@
                 var data = mlContext.Data.LoadFromTextFile&lt;ImageData&gt;, &lt;ImagePrediction&gt;(dataFile);
 
                 var pipe = mlContext.Transforms.LoadImages("data_0", imageFolder: "images", inputColumnName: nameof(ImageData.ImagePath))
-                  .Append(mlContext.Transforms.ResizeImages("data_0", imageWidth, imageHeight, inputColumnName: "data_0")
-                  .Append(mlContext.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
-                  .Append(mlContext.Transforms.ApplyOnnxModel(modelFile));
+                .Append(mlContext.Transforms.ResizeImages("data_0", imageWidth, imageHeight, inputColumnName: "data_0")
+                .Append(mlContext.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
+                .Append(mlContext.Transforms.ApplyOnnxModel(modelFile));
 
                 TestEstimatorCore(pipe, data);
 
                 var result = pipe.Fit(data).Transform(data);
-          
-                result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
-          
+
+                var output = result.Schema.GetColumnOrNull("softmaxout_1");
+
                 using (var cursor = result.GetRowCursor(col => col == output))
                 {
                     var buffer = default(VBuffer&lt;float&gt;);
