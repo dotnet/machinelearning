@@ -129,7 +129,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                var expectedUnixL2Error = 0.612974867782832; // Linux baseline
+                var expectedUnixL2Error = 0.610332110253861; // Linux baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - linuxTolerance, expectedUnixL2Error + linuxTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
