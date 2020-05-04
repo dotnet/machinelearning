@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SQLite;
@@ -40,7 +41,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
-            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM "));
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisDataWithLoadColumnName>();
 
-            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM "));
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM {0}"));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -112,7 +113,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorData>();
 
-            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM "));
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
@@ -144,7 +145,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorDataWithLoadColumnName>();
 
-            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM "));
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
@@ -176,7 +177,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisData>();
 
-            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM "));
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -216,12 +217,12 @@ namespace Microsoft.ML.Tests
                 return new DatabaseSource(
                     SqlClientFactory.Instance,
                     GetMSSQLConnectionString(TestDatasets.irisDb.name),
-                    $@"{command} ""{TestDatasets.irisDb.trainFilename}""");
+                    String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""));
             else
                 return new DatabaseSource(
                     SQLiteFactory.Instance,
                     GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
-                    $@"{command} ""{TestDatasets.irisDbSQLite.trainFilename}""");
+                    String.Format(command, TestDatasets.irisDbSQLite.trainFilename));
         }
 
         private string GetMSSQLConnectionString(string databaseName)
