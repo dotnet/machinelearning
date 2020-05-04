@@ -1372,11 +1372,20 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
             string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
-            TextLoader.Column[] columns = new[]
+            TextLoader.Column[] columnsVector = new[]
             {
-                new TextLoader.Column("Value", valueType, 0, 0)
+                new TextLoader.Column("Value", valueType, 0, 3)
             };
-            var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
+            TextLoader.Column[] columnsScalar = new[]
+            {
+                new TextLoader.Column("Value", valueType, 0)
+            };
+
+            IDataView[] dataViews = {
+                mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
+                mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
+            };
+
             IEstimator<ITransformer>[] pipelines =
             {
                 mlContext.Transforms.Conversion.MapValueToKey("Key", "Value").
@@ -1385,22 +1394,26 @@ namespace Microsoft.ML.Tests
                 mlContext.Transforms.Conversion.MapValueToKey("Value").
                 Append(mlContext.Transforms.Conversion.MapKeyToValue("Value"))
             };
+
             for (int i = 0; i < pipelines.Length; i++)
             {
-                var model = pipelines[i].Fit(dataView);
-                var mlnetResult = model.Transform(dataView);
-
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-                var onnxFileName = "KeyToValue.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
-
-                if (IsOnnxRuntimeSupported())
+                for (int j = 0; j < dataViews.Length; j++)
                 {
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-                    var onnxTransformer = onnxEstimator.Fit(dataView);
-                    var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareResults("Value", "Value", mlnetResult, onnxResult);
+                    var model = pipelines[i].Fit(dataViews[i]);
+                    var mlnetResult = model.Transform(dataViews[i]);
+
+                    var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataViews[i]);
+                    var onnxFileName = "KeyToValue.onnx";
+                    var onnxModelPath = GetOutputPath(onnxFileName);
+                    SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                    if (IsOnnxRuntimeSupported())
+                    {
+                        var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                        var onnxTransformer = onnxEstimator.Fit(dataViews[i]);
+                        var onnxResult = onnxTransformer.Transform(dataViews[i]);
+                        CompareResults("Value", "Value", mlnetResult, onnxResult);
+                    }
                 }
             }
             Done();
