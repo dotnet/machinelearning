@@ -72,7 +72,8 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.NormalizeMinMax("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options()
+                {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -496,7 +497,7 @@ namespace Microsoft.ML.Tests
             };
             var dataView = mlContext.Data.LoadFromEnumerable(samples);
 
-            var pipe = mlContext.Transforms.NormalizeLpNorm(nameof(DataPoint.Features), norm:norm, ensureZeroMean: ensureZeroMean);
+            var pipe = mlContext.Transforms.NormalizeLpNorm(nameof(DataPoint.Features), norm: norm, ensureZeroMean: ensureZeroMean);
 
             var model = pipe.Fit(dataView);
             var transformedData = model.Transform(dataView);
@@ -555,14 +556,15 @@ namespace Microsoft.ML.Tests
             string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
             TextLoader.Column[] columnsVector = new[]
-{
+            {
                 new TextLoader.Column("Key", valueType, 0, 3)
             };
             TextLoader.Column[] columnsScalar = new[]
             {
                 new TextLoader.Column("Key", valueType, 0)
             };
-            IDataView[] dataViews = {
+            IDataView[] dataViews =
+            {
                 mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
                 mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
             };
@@ -571,7 +573,7 @@ namespace Microsoft.ML.Tests
 
             for (int j = 0; j < dataViews.Length; j++)
             {
-                if (OneHotEncodingEstimator.OutputKind.Binary == outputKind) break; // not currently supported
+                if (OneHotEncodingEstimator.OutputKind.Binary == outputKind) break;
                 var model = pipeline.Fit(dataViews[j]);
                 var transformedData = model.Transform(dataViews[j]);
                 var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataViews[j]);
@@ -595,7 +597,6 @@ namespace Microsoft.ML.Tests
                     CompareResults("Vector", "Vector", transformedData, onnxResult);
                 }
             }
-
             Done();
         }
 
@@ -680,7 +681,8 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.NormalizeMinMax("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options()
+                {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -1029,7 +1031,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-            
+
             // Compare model scores produced by ML.NET and ONNX's runtime. 
             var onnxFileName = $"TokenizingByCharacters.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
@@ -1096,7 +1098,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
             string filePath = GetDataPath("type-conversion.txt");
 
-            TextLoader.Column[] columns = new []
+            TextLoader.Column[] columns = new[]
             {
                 new TextLoader.Column("Value", fromKind, 0, 0)
             };
@@ -1334,11 +1336,11 @@ namespace Microsoft.ML.Tests
         public void ValueToKeyMappingOnnxConversionTest(
             [CombinatorialValues(DataKind.Single, DataKind.Int64, DataKind.Int32, DataKind.Int16, DataKind.UInt64,
             DataKind.UInt32, DataKind.UInt16, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind valueType,
-            [CombinatorialValues(1,2)] int maximumNumberOfKeys, ValueToKeyMappingEstimator.KeyOrdinality keyOrdinality,
+            [CombinatorialValues(1, 2)] int maximumNumberOfKeys, ValueToKeyMappingEstimator.KeyOrdinality keyOrdinality,
             bool addKeyValueAnnotationsAsText)
         {
             var mlContext = new MLContext(seed: 1);
-            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") 
+            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt")
                 : GetDataPath("type-conversion.txt");
 
             TextLoader.Column[] columnsVector = new[]
@@ -1349,7 +1351,8 @@ namespace Microsoft.ML.Tests
             {
                 new TextLoader.Column("Value", valueType, 0)
             };
-            IDataView[] dataViews = {
+            IDataView[] dataViews =
+            {
                 mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
                 mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
             };
@@ -1357,7 +1360,7 @@ namespace Microsoft.ML.Tests
             for (int j = 0; j < dataViews.Length; j++)
             {
                 var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value",
-                    maximumNumberOfKeys:maximumNumberOfKeys, keyOrdinality:keyOrdinality,
+                    maximumNumberOfKeys: maximumNumberOfKeys, keyOrdinality: keyOrdinality,
                     addKeyValueAnnotationsAsText: addKeyValueAnnotationsAsText);
 
                 var model = pipeline.Fit(dataViews[j]);
@@ -1403,8 +1406,8 @@ namespace Microsoft.ML.Tests
             {
                 new TextLoader.Column("Value", valueType, 0)
             };
-
-            IDataView[] dataViews = {
+            IDataView[] dataViews =
+            {
                 mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
                 mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
             };
@@ -1545,7 +1548,7 @@ namespace Microsoft.ML.Tests
                     CompareSelectedColumns<float>(columnName, columnName, transformedData, onnxResult, 3);
 
                     VBuffer<ReadOnlyMemory<char>> mlNetSlots = default;
-                    VBuffer<ReadOnlyMemory<char>> onnxSlots= default;
+                    VBuffer<ReadOnlyMemory<char>> onnxSlots = default;
                     transformedData.Schema[columnName].GetSlotNames(ref mlNetSlots);
                     onnxResult.Schema[columnName].GetSlotNames(ref onnxSlots);
                     Assert.Equal(mlNetSlots.Length, onnxSlots.Length);
