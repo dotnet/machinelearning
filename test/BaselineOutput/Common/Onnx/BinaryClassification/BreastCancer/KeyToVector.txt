@@ -1,0 +1,284 @@
+{
+  "irVersion": "6",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "machinelearning.dotnet",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "Label"
+        ],
+        "output": [
+          "Label.output"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "F1"
+        ],
+        "output": [
+          "F1.output"
+        ],
+        "name": "Identity0",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "F2"
+        ],
+        "output": [
+          "F2.output"
+        ],
+        "name": "Identity1",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "mlnet.F2.SlotNames"
+        ],
+        "output": [
+          "mlnet.F2.unusedOutput"
+        ],
+        "name": "mlnet.F2.SlotNames",
+        "opType": "LabelEncoder",
+        "attribute": [
+          {
+            "name": "keys_strings",
+            "strings": [
+              "Qml0NA==",
+              "Qml0Mw==",
+              "Qml0Mg==",
+              "Qml0MQ==",
+              "Qml0MA=="
+            ],
+            "type": "STRINGS"
+          },
+          {
+            "name": "values_int64s",
+            "ints": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "type": "INTS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      }
+    ],
+    "name": "model",
+    "initializer": [
+      {
+        "dims": [
+          "1",
+          "1"
+        ],
+        "dataType": 8,
+        "stringData": [
+          "b25l"
+        ],
+        "name": "mlnet.F2.SlotNames"
+      }
+    ],
+    "input": [
+      {
+        "name": "Label",
+        "type": {
+          "tensorType": {
+            "elemType": 9,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F1",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F2",
+        "type": {
+          "tensorType": {
+            "elemType": 8,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "Label.output",
+        "type": {
+          "tensorType": {
+            "elemType": 9,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F1.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F2.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "5"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "mlnet.F2.unusedOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 7,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "Label.output",
+        "type": {
+          "tensorType": {
+            "elemType": 9,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F1.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F2.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "5"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "2"
+    },
+    {
+      "version": "11"
+    }
+  ]
+}

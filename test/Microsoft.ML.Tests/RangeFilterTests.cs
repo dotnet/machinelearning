@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(2L, cnt);
 
             data = ML.Transforms.Conversion.Hash("Key", "Strings", numberOfBits: 20).Fit(data).Transform(data);
-            var data2 = ML.Data.FilterRowsByKeyColumnFraction(data, "Key", upperBound: 0.5);
+            var data2 = ML.Data.FilterRowsByKeyColumnFraction(data, "Key", upperBound: 0.15);
             cnt = data2.GetColumn<float>(data.Schema["Floats"]).Count();
             Assert.Equal(1L, cnt);
         }
