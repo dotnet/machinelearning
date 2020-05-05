@@ -470,6 +470,15 @@ namespace Microsoft.ML.TestFrameworkCommon
             testFilename = @"iris-test"
         };
 
+        // TestDataset irisDbSQLite is necessary as SQLite table names including the '-' characters
+        // are not valid; the underscore '_' is the only valid separator character in SQLite.
+        public static TestDataset irisDbSQLite = new TestDataset()
+        {
+            name = "iris",
+            trainFilename = @"iris_train",
+            testFilename = @"iris_test"
+        };
+
         public static TestDataset irisMissing = new TestDataset()
         {
             name = "irisMissing",
