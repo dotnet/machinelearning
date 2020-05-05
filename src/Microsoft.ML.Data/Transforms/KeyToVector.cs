@@ -695,21 +695,32 @@ namespace Microsoft.ML.Transforms
                 Contracts.CheckValue(shape, nameof(shape));
 
                 string opType = "Cast";
-                var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, opType);
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, (int)srcShape[1]), opType);
                 var castNode = ctx.CreateNode(opType, srcVariableName, castOutput, ctx.GetNodeName(opType), "");
                 castNode.AddAttribute("to", typeof(long));
 
                 opType = "OneHotEncoder";
+                var isOutputCountVector = _parent._columns[iinfo].OutputCountVector;
                 var categoryRange = info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
-                var encodedVariableName = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, 1, categoryRange), "encoded");
+                var typeShape = ((int)shape[1] > 1 & isOutputCountVector)  ? new VectorDataViewType(NumberDataViewType.Single, (int)shape[1], categoryRange) : new VectorDataViewType(NumberDataViewType.Single, categoryRange);
+
+                var encodedVariableName = (isOutputCountVector) ? ctx.AddIntermediateVariable(typeShape, "encoded") : dstVariableName;
                 var node = ctx.CreateNode(opType, castOutput, encodedVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("cats_int64s", Enumerable.Range(1, categoryRange).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
 
+                if (_parent._columns[iinfo].OutputCountVector)
+                {
+                    opType = "ReduceSum";
+                    var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
+                    reduceNode.AddAttribute("keepdims", 0);
+                }
                 // OneHotEncoder adds one additional dimension, so we remove it below
-                opType = "Squeeze";
-                var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
-                reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
+                //opType = "Squeeze";
+                //var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+                //reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
             }
         }
     }

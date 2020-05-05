@@ -550,13 +550,16 @@ namespace Microsoft.ML.Tests
         public void KeyToVectorTest(OneHotEncodingEstimator.OutputKind outputKind)
         {
             var mlContext = new MLContext(seed: 1);
+            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
-            string dataPath = GetDataPath("breast-cancer.txt");
-
-            var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                separatorChar: '\t',
-                hasHeader: true);
-
+            TextLoader.Column[] columnsVector = new[]
+{
+                new TextLoader.Column("Value", valueType, 0, 3)
+            };
+            TextLoader.Column[] columnsScalar = new[]
+            {
+                new TextLoader.Column("Value", valueType, 0)
+            };
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", outputKind);
 
             var model = pipeline.Fit(data);
@@ -1326,10 +1329,11 @@ namespace Microsoft.ML.Tests
         [InlineData(DataKind.Double)]
         [InlineData(DataKind.String)]
         [InlineData(DataKind.Boolean)]
-        public void ValueToKeyMappingOnnxConversionTest(DataKind valueType)
+        public void ValueToKeyMappingOnnxConversionTest(Combinatorial[()]DataKind valueType)
         {
             var mlContext = new MLContext(seed: 1);
-            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
+            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") 
+                : GetDataPath("type-conversion.txt");
 
             TextLoader.Column[] columnsVector = new[]
 {
