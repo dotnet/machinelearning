@@ -1331,27 +1331,38 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
             string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
-            TextLoader.Column[] columns = new[]
-            {
-                new TextLoader.Column("Value", valueType, 0, 0)
+            TextLoader.Column[] columnsVector = new[]
+{
+                new TextLoader.Column("Value", valueType, 0, 3)
             };
-            var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value");
-
-            var model = pipeline.Fit(dataView);
-            var mlnetResult = model.Transform(dataView);
-
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-            var onnxFileName = "ValueToKey.onnx";
-            var onnxModelPath = GetOutputPath(onnxFileName);
-            SaveOnnxModel(onnxModel, onnxModelPath, null);
-
-            if (IsOnnxRuntimeSupported())
+            TextLoader.Column[] columnsScalar = new[]
             {
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-                var onnxTransformer = onnxEstimator.Fit(dataView);
-                var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<uint>("Key", "Key", mlnetResult, onnxResult);
+                new TextLoader.Column("Value", valueType, 0)
+            };
+            IDataView[] dataViews = {
+                mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
+                mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
+            };
+
+            for (int j = 0; j < dataViews.Length; j++)
+            {
+                var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value");
+
+                var model = pipeline.Fit(dataViews[j]);
+                var mlnetResult = model.Transform(dataViews[j]);
+
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataViews[j]);
+                var onnxFileName = "ValueToKey.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (IsOnnxRuntimeSupported())
+                {
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataViews[j]);
+                    var onnxResult = onnxTransformer.Transform(dataViews[j]);
+                    CompareSelectedColumns<uint>("Key", "Key", mlnetResult, onnxResult);
+                }
             }
             Done();
         }
