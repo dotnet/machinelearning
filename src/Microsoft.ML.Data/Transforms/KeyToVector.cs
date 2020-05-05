@@ -703,14 +703,15 @@ namespace Microsoft.ML.Transforms
                 opType = "OneHotEncoder";
                 var isOutputCountVector = _parent._columns[iinfo].OutputCountVector;
                 var categoryRange = info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
-                var typeShape = ((int)shape[1] > 1 & isOutputCountVector)  ? new VectorDataViewType(NumberDataViewType.Single, (int)shape[1], categoryRange) : new VectorDataViewType(NumberDataViewType.Single, categoryRange);
+                var typeShape = new VectorDataViewType(NumberDataViewType.Single, info.TypeSrc.GetValueCount(), categoryRange);
 
-                var encodedVariableName = (isOutputCountVector) ? ctx.AddIntermediateVariable(typeShape, "encoded") : dstVariableName;
+                var encodedVariableName = (isOutputCountVector && info.TypeSrc is VectorDataViewType) ?
+                    ctx.AddIntermediateVariable(typeShape, "encoded") : dstVariableName;
                 var node = ctx.CreateNode(opType, castOutput, encodedVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("cats_int64s", Enumerable.Range(1, categoryRange).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
 
-                if (_parent._columns[iinfo].OutputCountVector)
+                if (_parent._columns[iinfo].OutputCountVector && info.TypeSrc is VectorDataViewType)
                 {
                     opType = "ReduceSum";
                     var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");

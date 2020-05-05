@@ -547,44 +547,55 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [CombinatorialData]
-        public void KeyToVectorTest(OneHotEncodingEstimator.OutputKind outputKind)
+        public void KeyToVectorTest([CombinatorialValues(DataKind.Single, DataKind.Int64, DataKind.Int32, DataKind.Int16, DataKind.UInt64,
+            DataKind.UInt32, DataKind.UInt16, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind valueType,
+            OneHotEncodingEstimator.OutputKind outputKind)
         {
             var mlContext = new MLContext(seed: 1);
             string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
             TextLoader.Column[] columnsVector = new[]
 {
-                new TextLoader.Column("Value", valueType, 0, 3)
+                new TextLoader.Column("Key", valueType, 0, 3)
             };
             TextLoader.Column[] columnsScalar = new[]
             {
-                new TextLoader.Column("Value", valueType, 0)
+                new TextLoader.Column("Key", valueType, 0)
             };
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", outputKind);
+            IDataView[] dataViews = {
+                mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
+                mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
+            };
 
-            var model = pipeline.Fit(data);
-            var transformedData = model.Transform(data);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("Vector", "Key", outputKind);
 
-            // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
-            // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
-            // can support Linux and Mac.
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
-            var onnxTextName = "KeyToVector.txt";
-            var onnxFileName = "KeyToVector.onnx";
-            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
-            var onnxModelPath = GetOutputPath(subDir, onnxFileName);
-            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
-
-            // Binary OutputKind is currently not supported. 
-            if (IsOnnxRuntimeSupported() && OneHotEncodingEstimator.OutputKind.Binary != outputKind)
+            for (int j = 0; j < dataViews.Length; j++)
             {
-                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-                var onnxTransformer = onnxEstimator.Fit(data);
-                var onnxResult = onnxTransformer.Transform(data);
-                CompareResults("F2", "F2", transformedData, onnxResult);
+                if (OneHotEncodingEstimator.OutputKind.Binary == outputKind) break; // not currently supported
+                var model = pipeline.Fit(dataViews[j]);
+                var transformedData = model.Transform(dataViews[j]);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataViews[j]);
+
+                // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
+                // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
+                // can support Linux and Mac.
+                var onnxTextName = "KeyToVector.txt";
+                var onnxFileName = "KeyToVector.onnx";
+                var onnxTextPath = GetOutputPath(onnxTextName);
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+                // Binary OutputKind is currently not supported.
+                if (IsOnnxRuntimeSupported() && OneHotEncodingEstimator.OutputKind.Binary != outputKind)
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataViews[j]);
+                    var onnxResult = onnxTransformer.Transform(dataViews[j]);
+                    CompareResults("Vector", "Vector", transformedData, onnxResult);
+                }
             }
+
             Done();
         }
 
@@ -1319,24 +1330,19 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
-        [InlineData(DataKind.Single)]
-        [InlineData(DataKind.Int64)]
-        [InlineData(DataKind.Int32)]
-        [InlineData(DataKind.Int16)]
-        [InlineData(DataKind.UInt64)]
-        [InlineData(DataKind.UInt32)]
-        [InlineData(DataKind.UInt16)]
-        [InlineData(DataKind.Double)]
-        [InlineData(DataKind.String)]
-        [InlineData(DataKind.Boolean)]
-        public void ValueToKeyMappingOnnxConversionTest(Combinatorial[()]DataKind valueType)
+        [CombinatorialData]
+        public void ValueToKeyMappingOnnxConversionTest(
+            [CombinatorialValues(DataKind.Single, DataKind.Int64, DataKind.Int32, DataKind.Int16, DataKind.UInt64,
+            DataKind.UInt32, DataKind.UInt16, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind valueType,
+            [CombinatorialValues(1,2)] int maximumNumberOfKeys, ValueToKeyMappingEstimator.KeyOrdinality keyOrdinality,
+            bool addKeyValueAnnotationsAsText)
         {
             var mlContext = new MLContext(seed: 1);
             string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") 
                 : GetDataPath("type-conversion.txt");
 
             TextLoader.Column[] columnsVector = new[]
-{
+            {
                 new TextLoader.Column("Value", valueType, 0, 3)
             };
             TextLoader.Column[] columnsScalar = new[]
@@ -1350,7 +1356,9 @@ namespace Microsoft.ML.Tests
 
             for (int j = 0; j < dataViews.Length; j++)
             {
-                var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value");
+                var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value",
+                    maximumNumberOfKeys:maximumNumberOfKeys, keyOrdinality:keyOrdinality,
+                    addKeyValueAnnotationsAsText: addKeyValueAnnotationsAsText);
 
                 var model = pipeline.Fit(dataViews[j]);
                 var mlnetResult = model.Transform(dataViews[j]);
