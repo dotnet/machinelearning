@@ -186,14 +186,14 @@ namespace Microsoft.ML.Functional.Tests
                 @"[Source=SdcaTrainerBase; Training, Kind=Info] Using best model from iteration 7."};
             foreach (var line in expectedLines)
             {
-                Assert.Contains(line, logWatcher.Lines);
+                Assert.Contains(line, logWatcher.Lines as IReadOnlyDictionary<string, int>);
                 Assert.Equal(1, logWatcher.Lines[line]);
             }
         }
 
         internal class LogWatcher {
 
-            public readonly IDictionary<string, int> Lines;
+            public readonly ConcurrentDictionary<string, int> Lines;
 
             public LogWatcher()
             {
@@ -202,10 +202,7 @@ namespace Microsoft.ML.Functional.Tests
             
             public void ObserveEvent(object sender, LoggingEventArgs e)
             {
-                if (Lines.ContainsKey(e.Message))
-                    Lines[e.Message]++;
-                else
-                    Lines[e.Message] = 1;
+                Lines.AddOrUpdate(e.Message, 1, (key, oldValue) => oldValue + 1);
             }
         }
     }
