@@ -1201,8 +1201,8 @@ namespace Microsoft.ML.Tests
         // An InvalidOperationException stating that the onnx pipeline can't be fully converted is thrown
         // when users try to convert the items mentioned above.
         public void MurmurHashScalarTest(
-            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Byte,
-            DataKind.UInt16, DataKind.UInt32, DataKind.String, DataKind.Boolean)] DataKind type,
+            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Int64, DataKind.Byte,
+            DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
             [CombinatorialValues(1, 5, 31)] int numberOfBits, bool useOrderedHashing)
         {
 
@@ -1215,7 +1215,11 @@ namespace Microsoft.ML.Tests
                 (type == DataKind.UInt16) ? 6 :
                 (type == DataKind.Int32) ? 8 :
                 (type == DataKind.UInt32) ? 10 :
-                (type == DataKind.String) ? 12 : 14;
+                (type == DataKind.Int64) ? 12 :
+                (type == DataKind.UInt64) ? 14 :
+                (type == DataKind.Single) ? 16 :
+                (type == DataKind.Double) ? 18 :
+                (type == DataKind.String) ? 20 : 22;
 
             var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Value", type, column),

@@ -1133,7 +1133,8 @@ namespace Microsoft.ML.Transforms
                     castNode.AddAttribute("to", NumberDataViewType.UInt32.RawType);
                     murmurNode = ctx.CreateNode(opType, castOutput, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
-                else if (srcType == typeof(uint) || srcType == typeof(int) || srcType == typeof(ReadOnlyMemory<char>))
+                else if (srcType == typeof(uint) || srcType == typeof(int) || srcType == typeof(ulong) ||
+                         srcType == typeof(long) || srcType == typeof(float) || srcType == typeof(double) || srcType == typeof(ReadOnlyMemory<char>))
                 {
                     murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
