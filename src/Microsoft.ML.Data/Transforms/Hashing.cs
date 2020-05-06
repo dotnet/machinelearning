@@ -266,10 +266,14 @@ namespace Microsoft.ML.Transforms
             {
                 if (!(srcType is VectorDataViewType vectorType))
                     return ComposeGetterOne(input, iinfo, srcCol, srcType);
+                if (_columns[iinfo].Combine)
+                    return ComposeGetterCombined(input, iinfo, srcCol, vectorType);
                 return ComposeGetterVec(input, iinfo, srcCol, vectorType);
             }
             if (!(srcType is VectorDataViewType vectorType2))
                 return ComposeGetterOneV2(input, iinfo, srcCol, srcType);
+            if (_columns[iinfo].Combine)
+                return ComposeGetterCombined(input, iinfo, srcCol, vectorType2);
             return ComposeGetterVecV2(input, iinfo, srcCol, vectorType2);
         }
 
@@ -572,43 +576,43 @@ namespace Microsoft.ML.Transforms
             if (srcType.ItemType is KeyDataViewType)
             {
                 if (rawType == typeof(uint))
-                    return MakeCombinedVectorHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
+                    return MakeCombinedVectorHashGetter<uint, HashKey4V2>(input, srcCol, seed, mask);
                 else if (rawType == typeof(ulong))
-                    return MakeCombinedVectorHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
+                    return MakeCombinedVectorHashGetter<ulong, HashKey8V2>(input, srcCol, seed, mask);
                 else if (rawType == typeof(ushort))
-                    return MakeCombinedVectorHashGetter<ushort, HashKey2>(input, srcCol, seed, mask);
+                    return MakeCombinedVectorHashGetter<ushort, HashKey2V2>(input, srcCol, seed, mask);
 
                 Host.Assert(rawType == typeof(byte));
-                return MakeCombinedVectorHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<byte, HashKey1V2>(input, srcCol, seed, mask);
             }
 
             if (rawType == typeof(ReadOnlyMemory<char>))
-                return MakeCombinedVectorHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<ReadOnlyMemory<char>, HashTextV2>(input, srcCol, seed, mask);
             else if (rawType == typeof(float))
-                return MakeCombinedVectorHashGetter<float, HashFloat>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<float, HashFloatV2>(input, srcCol, seed, mask);
             else if (rawType == typeof(double))
-                return MakeCombinedVectorHashGetter<double, HashDouble>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<double, HashDoubleV2>(input, srcCol, seed, mask);
             else if (rawType == typeof(sbyte))
-                return MakeCombinedVectorHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<sbyte, HashI1V2>(input, srcCol, seed, mask);
             else if (rawType == typeof(short))
-                return MakeCombinedVectorHashGetter<short, HashI2>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<short, HashI2V2>(input, srcCol, seed, mask);
             else if (rawType == typeof(int))
-                return MakeCombinedVectorHashGetter<int, HashI4>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<int, HashI4V2>(input, srcCol, seed, mask);
             else if (rawType == typeof(long))
-                return MakeCombinedVectorHashGetter<long, HashI8>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<long, HashI8V2>(input, srcCol, seed, mask);
             else if (rawType == typeof(byte))
-                return MakeCombinedVectorHashGetter<byte, HashU1>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<byte, HashU1V2>(input, srcCol, seed, mask);
             else if (rawType == typeof(ushort))
-                return MakeCombinedVectorHashGetter<ushort, HashU2>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<ushort, HashU2V2>(input, srcCol, seed, mask);
             else if (rawType == typeof(uint))
-                return MakeCombinedVectorHashGetter<uint, HashU4>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<uint, HashU4V2>(input, srcCol, seed, mask);
             else if (rawType == typeof(ulong))
-                return MakeCombinedVectorHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<ulong, HashU8V2>(input, srcCol, seed, mask);
             else if (rawType == typeof(DataViewRowId))
-                return MakeCombinedVectorHashGetter<DataViewRowId, HashU16>(input, srcCol, seed, mask);
+                return MakeCombinedVectorHashGetter<DataViewRowId, HashU16V2>(input, srcCol, seed, mask);
 
             Host.Assert(rawType == typeof(bool));
-            return MakeCombinedVectorHashGetter<bool, HashBool>(input, srcCol, seed, mask);
+            return MakeCombinedVectorHashGetter<bool, HashBoolV2>(input, srcCol, seed, mask);
         }
 
         #endregion
@@ -662,6 +666,19 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in float value)
                 => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<float> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                {
+                    if (float.IsNaN(value))
+                        return 0;
+                    hash = Hashing.MurmurRound(hash, FloatUtils.GetBits(value == 0 ? 0 : value));
+                }
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashDouble : IHasher<double>
@@ -673,12 +690,7 @@ namespace Microsoft.ML.Transforms
                 if (double.IsNaN(value))
                     return 0;
 
-                ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
-                var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
-                var hi = Utils.GetHi(v);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHash(hash) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -714,12 +726,31 @@ namespace Microsoft.ML.Transforms
                 if (double.IsNaN(value))
                     return 0;
 
+                return (Hashing.MixHashV2(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<double> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                {
+                    if (double.IsNaN(value))
+                        return 0;
+                    hash = HashRound(hash, value);
+                }
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private uint HashRound(uint seed, double value)
+            {
                 ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
                 var hi = Utils.GetHi(v);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+                if (hi == 0)
+                    return hash;
+                return Hashing.MurmurRound(hash, hi);
             }
         }
 
@@ -748,6 +779,19 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ReadOnlyMemory<char> value)
                 => value.IsEmpty ? 0 : (Hashing.MurmurHashV2(seed, value.Span.Trim(' ')) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<ReadOnlyMemory<char>> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                {
+                    if (value.IsEmpty)
+                        return 0;
+                    hash = Hashing.MurmurHashV2(hash, value.Span.Trim(' '));
+                }
+                return (hash & mask) + 1;
+            }
         }
 
         private readonly struct HashKey1 : IHasher<byte>
@@ -775,6 +819,19 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in byte value)
                 => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<byte> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                {
+                    if (value == 0)
+                        return 0;
+                    hash = Hashing.MurmurRound(hash, value);
+                }
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashKey2 : IHasher<ushort>
@@ -802,6 +859,19 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ushort value)
                 => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<ushort> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                {
+                    if (value == 0)
+                        return 0;
+                    hash = Hashing.MurmurRound(hash, value);
+                }
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashKey4 : IHasher<uint>
@@ -829,6 +899,19 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in uint value)
                 => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<uint> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                {
+                    if (value == 0)
+                        return 0;
+                    hash = Hashing.MurmurRound(hash, value);
+                }
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashKey8 : IHasher<ulong>
@@ -838,11 +921,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (value == 0)
                     return 0;
-                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
-                var hi = Utils.GetHi(value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHash(hash) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -876,11 +955,30 @@ namespace Microsoft.ML.Transforms
             {
                 if (value == 0)
                     return 0;
+                return (Hashing.MixHashV2(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<ulong> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                {
+                    if (value == 0)
+                        return 0;
+                    hash = HashRound(hash, value);
+                }
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private uint HashRound(uint seed, ulong value)
+            {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+                if (hi == 0)
+                    return hash;
+                return Hashing.MurmurRound(hash, hi);
             }
         }
 
@@ -905,6 +1003,15 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in byte value)
                 => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<byte> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = Hashing.MurmurRound(hash, value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashU2 : IHasher<ushort>
@@ -928,6 +1035,15 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ushort value)
                 => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<ushort> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = Hashing.MurmurRound(hash, value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashU4 : IHasher<uint>
@@ -951,6 +1067,15 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in uint value)
                 => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<uint> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = Hashing.MurmurRound(hash, value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashU8 : IHasher<ulong>
@@ -958,11 +1083,7 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ulong value)
             {
-                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
-                var hi = Utils.GetHi(value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHash(hash) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -990,11 +1111,26 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ulong value)
             {
+                return (Hashing.MixHashV2(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<ulong> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = HashRound(hash, value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private uint HashRound(uint seed, ulong value)
+            {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+                if (hi == 0)
+                    return hash;
+                return Hashing.MurmurRound(hash, hi);
             }
         }
 
@@ -1003,18 +1139,7 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in DataViewRowId value)
             {
-                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Low));
-                var hi = Utils.GetHi(value.Low);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                if (value.High != 0)
-                {
-                    hash = Hashing.MurmurRound(hash, Utils.GetLo(value.High));
-                    hi = Utils.GetHi(value.High);
-                    if (hi != 0)
-                        hash = Hashing.MurmurRound(hash, hi);
-                }
-                return (Hashing.MixHash(hash) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1049,6 +1174,21 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in DataViewRowId value)
             {
+                return (Hashing.MixHashV2(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<DataViewRowId> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = HashRound(hash, value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private uint HashRound(uint seed, DataViewRowId value)
+            {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Low));
                 var hi = Utils.GetHi(value.Low);
                 if (hi != 0)
@@ -1060,7 +1200,7 @@ namespace Microsoft.ML.Transforms
                     if (hi != 0)
                         hash = Hashing.MurmurRound(hash, hi);
                 }
-                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+                return hash;
             }
         }
 
@@ -1085,6 +1225,15 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in bool value)
                 => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value ? 1u : 0u), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<bool> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = Hashing.MurmurRound(hash, value ? 1u : 0u);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashI1 : IHasher<sbyte>
@@ -1108,6 +1257,15 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in sbyte value)
                 => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<sbyte> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = Hashing.MurmurRound(hash, (uint)value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashI2 : IHasher<short>
@@ -1131,6 +1289,15 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in short value)
                 => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<short> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = Hashing.MurmurRound(hash, (uint)value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashI4 : IHasher<int>
@@ -1154,6 +1321,15 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in int value)
                 => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), sizeof(uint)) & mask) + 1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in VBuffer<int> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = Hashing.MurmurRound(hash, (uint)value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
         }
 
         private readonly struct HashI8 : IHasher<long>
@@ -1161,11 +1337,7 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in long value)
             {
-                var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
-                var hi = Utils.GetHi((ulong)value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHash(hash) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1193,11 +1365,25 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in long value)
             {
+                return (Hashing.MixHashV2(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+            }
+
+            public uint HashCore(uint seed, uint mask, in VBuffer<long> values)
+            {
+                var hash = seed;
+                foreach (var value in values.DenseValues())
+                    hash = HashRound(hash, value);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private uint HashRound(uint seed, long value)
+            {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
                 var hi = Utils.GetHi((ulong)value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+                if (hi == 0)
+                    return hash;
+                return Hashing.MurmurRound(hash, hi);
             }
         }
 
@@ -1370,7 +1556,7 @@ namespace Microsoft.ML.Transforms
             };
         }
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private sealed class ColInfo
             {

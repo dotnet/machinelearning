@@ -280,36 +280,36 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestHashIntegerNumbers()
         {
-            HashTestPositiveIntegerCore(0, 842, 358, 20);
-            HashTestPositiveIntegerCore(1, 502, 537, 746);
-            HashTestPositiveIntegerCore(2, 407, 801, 652);
+            HashTestPositiveIntegerCore(0, 842, 358, 20, 882, 1010);
+            HashTestPositiveIntegerCore(1, 502, 537, 746, 588, 286);
+            HashTestPositiveIntegerCore(2, 407, 801, 652, 696, 172);
         }
 
         [Fact]
         public void TestHashString()
         {
-            HashTestCore("".AsMemory(), TextDataViewType.Instance, 0, 0, 0);
-            HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 940, 951, 857);
+            HashTestCore("".AsMemory(), TextDataViewType.Instance, 0, 0, 0, 0, 0);
+            HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 940, 951, 857, 770, 0);
         }
 
         [Fact]
         public void TestHashFloatingPointNumbers()
         {
-            HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732);
-            HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780);
-            HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20);
+            HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732, 75, 487);
+            HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780, 179, 80);
+            HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20, 882, 1010);
             // Note that while we have the hash for numeric types be equal, the same is not necessarily the case for floating point numbers.
-            HashTestCore(1d, NumberDataViewType.Double, 937, 667, 424);
-            HashTestCore(-1d, NumberDataViewType.Double, 930, 78, 813);
-            HashTestCore(0d, NumberDataViewType.Double, 842, 358, 20);
+            HashTestCore(1d, NumberDataViewType.Double, 937, 667, 424, 727, 510);
+            HashTestCore(-1d, NumberDataViewType.Double, 930, 78, 813, 582, 179);
+            HashTestCore(0d, NumberDataViewType.Double, 842, 358, 20, 882, 1010);
         }
 
         [Fact]
         public void TestHashBool()
         {
             // These are the same for the hashes of 0 and 1.
-            HashTestCore(false, BooleanDataViewType.Instance, 842, 358, 20);
-            HashTestCore(true, BooleanDataViewType.Instance, 502, 537, 746);
+            HashTestCore(false, BooleanDataViewType.Instance, 842, 358, 20, 882, 1010);
+            HashTestCore(true, BooleanDataViewType.Instance, 502, 537, 746, 588, 286);
         }
 
         private class HashData
