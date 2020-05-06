@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model.OnnxConverter;
@@ -125,6 +124,9 @@ namespace Microsoft.ML.Tests
 
             [LoadColumn(2)]
             public string F2;
+
+            [LoadColumn(3, 7), VectorType(6)]
+            public string[] F3;
         }
 
         private class BreastCancerMulticlassExample
@@ -1159,6 +1161,37 @@ namespace Microsoft.ML.Tests
                 }
             }
 
+            Done();
+        }
+
+        [Fact]
+        public void OneHotHashEncodingOnnxConversionTest()
+        {
+            var mlContext = new MLContext();
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
+            var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
+                    new OneHotHashEncodingEstimator.ColumnOptions("Output", "F3", useOrderedHashing:false),
+                });
+            var model = pipe.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = "OneHotHashEncoding.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Output", "Output", transformedData, onnxResult);
+            }
             Done();
         }
 
