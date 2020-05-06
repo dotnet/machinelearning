@@ -878,7 +878,10 @@ namespace Microsoft.ML.Transforms
                     return false;
                 }
 
-                node.AddAttribute("default_int64", -1);
+                //Unknown keys should map to 0
+                node.AddAttribute("default_int64", 0);
+                node.AddAttribute("default_string", "0");
+                node.AddAttribute("default_float", 0f);
                 node.AddAttribute("values_int64s", termIds);
 
                 // Onnx outputs an Int64, but ML.NET outputs a keytype. So cast it here
