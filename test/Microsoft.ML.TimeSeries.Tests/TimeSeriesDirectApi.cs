@@ -549,78 +549,16 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void RootCauseLocalization()
-        {
-            // Create an root cause localizatiom input list.
-            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<string, Object>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, _aggSymbol) };
+        public void LocalizeRootCause() {
+            var rootCauseLocalizationInput = new RootCauseLocalizationInput(new DateTime(), new Dictionary<string, Object>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, _aggSymbol) ;
 
             var ml = new MLContext(1);
-            // Convert the list of root cause data to an IDataView object, which is consumable by ML.NET API.
-            var data = ml.Data.LoadFromEnumerable(rootCauseLocalizationData);
+            RootCause rootCause = ml.Transforms.LocalizeRootCause(rootCauseLocalizationInput);
 
-            // Create pipeline to localize root cause by decision tree.
-            var pipeline = ml.Transforms.LocalizeRootCause(nameof(RootCauseLocalizationTransformedData.RootCause), nameof(RootCauseLocalizationData.Input));
+            Assert.NotNull(rootCause);
+            Assert.Equal(0, (int)rootCause.Items.Count);
 
-            // Fit the model.
-            var model = pipeline.Fit(data);
-
-            // Test path:  input list -> IDataView -> Enumerable of RootCauseLocalizationInputs.
-            var transformedData = model.Transform(data);
-
-            // Load input list in DataView back to Enumerable.
-            var transformedDataPoints = ml.Data.CreateEnumerable<RootCauseLocalizationTransformedData>(transformedData, false);
-
-            foreach (var dataPoint in transformedDataPoints)
-            {
-                var rootCause = dataPoint.RootCause;
-                Assert.NotNull(rootCause);
-            }
-
-            var engine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(model);
-
-            DateTime timeStamp = GetCurrentTimestamp();
-            var newRootCauseInput = new RootCauseLocalizationData(timeStamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timeStamp, GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _aggSymbol);
-            var transformedRootCause = engine.Predict(newRootCauseInput);
-
-            Assert.NotNull(transformedRootCause);
-            Assert.Equal(1, (int)transformedRootCause.RootCause.Items.Count);
-
-            Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
-            expectedDim.Add("Country", "UK");
-            expectedDim.Add("DeviceType", _aggSymbol);
-            expectedDim.Add("DataCenter", "DC1");
-
-            foreach (KeyValuePair<string, object> pair in transformedRootCause.RootCause.Items[0].Dimension)
-            {
-                Assert.Equal(expectedDim[pair.Key], pair.Value);
-            }
-
-            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Test"});
-
-            //Create path
-            var modelPath = "RootCauseLocalizationModel.zip";
-            //Save model to a file
-            ml.Model.Save(model, dummyData.Schema, modelPath);
-
-            //Load model from a file
-            ITransformer serializedModel;
-            using (var file = File.OpenRead(modelPath))
-            {
-                serializedModel = ml.Model.Load(file, out var serializedSchema);
-                TestCommon.CheckSameSchemas(dummyData.Schema, serializedSchema);
-              
-                var serializedEngine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(serializedModel);
-                var returnedRootCause = serializedEngine.Predict(newRootCauseInput);
-
-                Assert.NotNull(returnedRootCause);
-                Assert.Equal(1, (int)returnedRootCause.RootCause.Items.Count);
-
-                foreach (KeyValuePair<string, object> pair in returnedRootCause.RootCause.Items[0].Dimension)
-                {
-                    Assert.Equal(expectedDim[pair.Key], pair.Value);
-                }
-                DeleteOutputPath(modelPath);
-            }
+            //detailed checks goes here
         }
 
         private static List<Point> GetRootCauseLocalizationPoints()

@@ -14,34 +14,16 @@ namespace Samples.Dynamic
             // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create an empty list as the dataset. The 'RootCauseLocalization' API does not
-            // require training data as the estimator ('RootCauseLocalizationEstimator')
-            // created by 'RootCauseLocalization' API is not a trainable estimator. The
-            // empty list is only needed to pass input schema to the pipeline.
-            var emptySamples = new List<RootCauseLocalizationData>();
-
-            // Convert sample list to an empty IDataView.
-            var emptyDataView = mlContext.Data.LoadFromEnumerable(emptySamples);
-
-            // A pipeline for localizing root cause.
-            var localizePipeline = mlContext.Transforms.LocalizeRootCause(nameof(RootCauseLocalizationTransformedData.RootCause), nameof(RootCauseLocalizationData.Input));
-
-            // Fit to data.
-            var localizeTransformer = localizePipeline.Fit(emptyDataView);
-
-            // Create the prediction engine to get the root cause result from the input data.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<RootCauseLocalizationData,
-                RootCauseLocalizationTransformedData>(localizeTransformer);
-
-            // Call the prediction API.
+            // Create an root cause localizatin input instance.
             DateTime timestamp = GetTimestamp();
-            var data = new RootCauseLocalizationData(timestamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timestamp, GetPoints()) }, AggregateType.Sum, AGG_SYMBOL);
+            var data = new RootCauseLocalizationInput(timestamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timestamp, GetPoints()) }, AggregateType.Sum, AGG_SYMBOL);
 
-            var prediction = predictionEngine.Predict(data);
+            // Get the root cause localization result
+            RootCause prediction = mlContext.Transforms.LocalizeRootCause(data);
 
             // Print the localization result.
             int count = 0;
-            foreach (RootCauseItem item in prediction.RootCause.Items)
+            foreach (RootCauseItem item in prediction.Items)
             {
                 count++;
                 Console.WriteLine($"Root cause item #{count} ...");

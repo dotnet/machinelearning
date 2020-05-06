@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML
@@ -147,13 +148,10 @@ namespace Microsoft.ML
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
         /// <summary>
-        /// Create <see cref="RootCauseLocalizationEstimator"/>, which localizes root causes using decision tree algorithm.
+        /// Create <see cref="RootCause"/>, which localizes root causes using decision tree algorithm.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// The column data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCause"/>.</param>
-        /// <param name="inputColumnName">Name of the input column.
-        ///  The column data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
+        /// <param name="input">Root cause's input. The data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
         /// <param name="beta">The weight parameter in score. The range of the parameter should be in [0,1].</param>
         /// <example>
         /// <format type="text/markdown">
@@ -162,8 +160,12 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RootCauseLocalizationEstimator LocalizeRootCause(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta = 0.5)
-             => new RootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, beta);
+        public static RootCause LocalizeRootCause(this TransformsCatalog catalog, RootCauseLocalizationInput input, double beta = 0.5)
+        {
+            //some internal logic will be implemented here
+            RootCause rc = new RootCause();
+            return rc;
+        }
 
         /// <summary>
         /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.
