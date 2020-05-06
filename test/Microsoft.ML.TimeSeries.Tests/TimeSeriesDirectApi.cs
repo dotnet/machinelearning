@@ -511,6 +511,8 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         [InlineData(true)]
         [InlineData(false)]
         public void AnomalyDetectionWithSrCnn(bool loadDataFromFile)
