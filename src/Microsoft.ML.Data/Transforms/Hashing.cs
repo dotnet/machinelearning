@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
+                    throw Host.ExceptParam(nameof(columns), $"Found column with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
 
                 if (column.Combine && column.UseOrderedHashing)
                     throw Host.ExceptParam(nameof(HashingEstimator.ColumnOptions.Combine), "When the 'Combine' option is specified, ordered hashing is not supported.");
@@ -1354,28 +1354,32 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariable, string dstVariable)
             {
-                string opType;
                 string castOutput;
                 OnnxNode castNode;
                 OnnxNode murmurNode;
 
-                opType = "MurmurHash3";
-                string murmurOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "MurmurOutput");
-                var srcType = _srcTypes[iinfo].GetItemType().RawType;
-                if (_srcTypes[iinfo] is KeyDataViewType)
+                var srcType = _srcTypes[iinfo].GetItemType();
+                if (srcType is KeyDataViewType)
+                    return false;
+                if (_parent._columns[iinfo].Combine)
                     return false;
 
+                var opType = "MurmurHash3";
+                string murmurOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "MurmurOutput");
+
                 // Numeric input types are limited to those supported by the Onnxruntime MurmurHash operator, which currently only supports
-                // uints and ints. Thus, ulongs, longs, doubles, floats, and booleans are not supported.
-                if (srcType == typeof(ushort) || srcType == typeof(short) || srcType == typeof(sbyte) ||
-                    srcType == typeof(byte) || srcType == typeof(bool))
+                // uints and ints. Thus, ulongs, longs, doubles and floats are not supported.
+                if (srcType == NumberDataViewType.UInt16 || srcType == NumberDataViewType.Int16 ||
+                    srcType == NumberDataViewType.SByte || srcType == NumberDataViewType.Byte ||
+                    srcType == BooleanDataViewType.Instance)
                 {
                     castOutput = ctx.AddIntermediateVariable(NumberDataViewType.UInt32, "CastOutput", true);
                     castNode = ctx.CreateNode("Cast", srcVariable, castOutput, ctx.GetNodeName(opType), "");
                     castNode.AddAttribute("to", NumberDataViewType.UInt32.RawType);
                     murmurNode = ctx.CreateNode(opType, castOutput, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
-                else if (srcType == typeof(uint) || srcType == typeof(int) || srcType == typeof(ReadOnlyMemory<char>))
+                else if (srcType == NumberDataViewType.UInt32 ||
+                    srcType == NumberDataViewType.Int32 || srcType == TextDataViewType.Instance)
                 {
                     murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
