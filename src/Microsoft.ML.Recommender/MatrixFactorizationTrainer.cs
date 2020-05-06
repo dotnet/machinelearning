@@ -513,7 +513,7 @@ namespace Microsoft.ML.Trainers
 
         private SafeTrainingAndModelBuffer PrepareBuffer()
         {
-            return new SafeTrainingAndModelBuffer(_host, _fun, _k, _threads, _threads == 1 ? 1 : Math.Max(20, 2 * _threads),
+            return new SafeTrainingAndModelBuffer(_host, _fun, _k, _threads, 2 * _threads + 1,
                 _iter, _lambda, _eta, _alpha, _c, _doNmf, _quiet, copyData: false);
         }
 
