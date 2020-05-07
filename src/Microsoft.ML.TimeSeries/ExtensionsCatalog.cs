@@ -160,7 +160,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RootCause LocalizeRootCause(this TransformsCatalog catalog, RootCauseLocalizationInput input, double beta = 0.5)
+        public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput input, double beta = 0.5)
         {
             //some internal logic will be implemented here
             RootCause rc = new RootCause();

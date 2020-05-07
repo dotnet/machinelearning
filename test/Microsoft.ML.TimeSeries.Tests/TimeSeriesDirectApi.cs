@@ -553,7 +553,7 @@ namespace Microsoft.ML.Tests
             var rootCauseLocalizationInput = new RootCauseLocalizationInput(new DateTime(), new Dictionary<string, Object>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, _aggSymbol) ;
 
             var ml = new MLContext(1);
-            RootCause rootCause = ml.Transforms.LocalizeRootCause(rootCauseLocalizationInput);
+            RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
 
             Assert.NotNull(rootCause);
             Assert.Equal(0, (int)rootCause.Items.Count);
