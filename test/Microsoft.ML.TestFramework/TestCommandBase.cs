@@ -1849,7 +1849,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Theory]
-        [IterationData(iterations: 20)]
+        [IterationData(iterations: 1)]
         [Trait("Category", "RunSpecificTest")]
         public void CompleteCommandTrainRanking(int iterations)
         {
