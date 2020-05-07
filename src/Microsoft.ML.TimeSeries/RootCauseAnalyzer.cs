@@ -357,6 +357,7 @@ namespace Microsoft.ML.TimeSeries
                     {
                         dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplanatoryScore), beta);
                     }
+                    }
                 }
             }
             else if (dst.Items.Count == 1)
