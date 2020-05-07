@@ -360,7 +360,7 @@ namespace Microsoft.ML.Tests
         {
             // Model contains None in input shape dimension
             // Model input dims: [None, 4]
-            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "unknowndimensions", "iris_sample.onnx");
+            var modelFile = Path.Combine(@"unknowndimensions/linear_regression.onnx");
             var mlContext = new MLContext();
             var data = new TestDataNoneDimension[]
             {
