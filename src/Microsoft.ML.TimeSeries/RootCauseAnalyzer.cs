@@ -71,7 +71,7 @@ namespace Microsoft.ML.TimeSeries
             return points;
         }
 
-        protected DimensionInfo SeperateDimension(Dictionary<string, Object> dimensions, string aggSymbol)
+        protected DimensionInfo SeperateDimension(Dictionary<string, Object> dimensions, Object aggSymbol)
         {
             DimensionInfo info = DimensionInfo.CreateDefaultInstance();
             foreach (KeyValuePair<string, Object> entry in dimensions)
@@ -322,13 +322,16 @@ namespace Microsoft.ML.TimeSeries
             {
                 return AnomalyDirection.Up;
             }
-            else
+            else if (rootCausePoint.ExpectedValue > rootCausePoint.Value)
             {
                 return AnomalyDirection.Down;
             }
+            else {
+                return AnomalyDirection.Same;
+            }
         }
 
-        private void GetRootCauseDirectionAndScore(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta, PointTree pointTree, AggregateType aggType, string aggSymbol)
+        private void GetRootCauseDirectionAndScore(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta, PointTree pointTree, AggregateType aggType, Object aggSymbol)
         {
             Point anomalyPoint = GetPointByDimension(dimPointMapping, anomalyRoot, pointTree, aggType, aggSymbol);
             if (dst.Items.Count > 1)
@@ -350,7 +353,13 @@ namespace Microsoft.ML.TimeSeries
                 //get final score
                 for (int i = 0; i < scoreList.Count; i++)
                 {
-                    dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplainaryScore), beta);
+                    if (aggType.Equals(AggregateType.Max) || aggType.Equals(AggregateType.Min))
+                    {
+                        dst.Items[i].Score = 1;
+                    }
+                    else {
+                        dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplainaryScore), beta);
+                    }
                 }
             }
             else if (dst.Items.Count == 1)
@@ -359,13 +368,19 @@ namespace Microsoft.ML.TimeSeries
                 if (anomalyPoint != null && rootCausePoint != null)
                 {
                     Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
-                    dst.Items[0].Score = GetFinalScore(scores.Item1, scores.Item2, beta);
+                    if (aggType.Equals(AggregateType.Max) || aggType.Equals(AggregateType.Min))
+                    {
+                        dst.Items[0].Score = 1;
+                    }
+                    else {
+                        dst.Items[0].Score = GetFinalScore(scores.Item1, scores.Item2, beta);
+                    }
                     dst.Items[0].Direction = GetRootCauseDirection(rootCausePoint);
                 }
             }
         }
 
-        private Point GetPointByDimension(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> dimension, PointTree pointTree, AggregateType aggType, string aggSymbol)
+        private Point GetPointByDimension(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> dimension, PointTree pointTree, AggregateType aggType, Object aggSymbol)
         {
             if (dimPointMapping.ContainsKey(GetDicCode(dimension)))
             {
@@ -411,14 +426,14 @@ namespace Microsoft.ML.TimeSeries
             return string.Join(";", dic.Select(x => x.Key + "=" + (string)x.Value).ToArray());
         }
 
-        private void BuildTree(PointTree tree, List<string> aggDims, Point point, string aggSymbol)
+        private void BuildTree(PointTree tree, List<string> aggDims, Point point, Object aggSymbol)
         {
             int aggNum = 0;
             string nextDim = null;
 
             foreach (string dim in aggDims)
             {
-                if (IsAggregationDimension((string)point.Dimension[dim], aggSymbol))
+                if (IsAggregationDimension(point.Dimension[dim], aggSymbol))
                 {
                     aggNum++;
                 }
@@ -662,7 +677,7 @@ namespace Microsoft.ML.TimeSeries
             return true;
         }
 
-        private bool IsAggregationDimension(string val, string aggSymbol)
+        private bool IsAggregationDimension(Object val, Object aggSymbol)
         {
             return val.Equals(aggSymbol);
         }

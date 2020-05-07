@@ -93,34 +93,8 @@ namespace Microsoft.ML.Tests
             public double[] Prediction { get; set; }
         }
 
-        private static string _aggSymbol = "##SUM##";
+        private static Object _rootCauseAggSymbol = "##SUM##";
 
-        private class RootCauseLocalizationData
-        {
-            [RootCauseLocalizationInputType]
-            public RootCauseLocalizationInput Input { get; set; }
-
-            public RootCauseLocalizationData()
-            {
-                Input = null;
-            }
-
-            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
-            {
-                Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateteType, aggregateSymbol);
-            }
-        }
-
-        private class RootCauseLocalizationTransformedData
-        {
-            [RootCauseType()]
-            public RootCause RootCause { get; set; }
-
-            public RootCauseLocalizationTransformedData()
-            {
-                RootCause = null;
-            }
-        }
 
         [Fact]
         public void ChangeDetection()
@@ -551,75 +525,27 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void RootCauseLocalization()
         {
-            // Create an root cause localizatiom input list.
-            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<string, Object>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, _aggSymbol) };
+            // Create an root cause localizatiom input
+            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _rootCauseAggSymbol);
 
             var ml = new MLContext(1);
-            // Convert the list of root cause data to an IDataView object, which is consumable by ML.NET API.
-            var data = ml.Data.LoadFromEnumerable(rootCauseLocalizationData);
+            RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
 
-            // Create pipeline to localize root cause by decision tree.
-            var pipeline = ml.Transforms.LocalizeRootCause(nameof(RootCauseLocalizationTransformedData.RootCause), nameof(RootCauseLocalizationData.Input));
-
-            // Fit the model.
-            var model = pipeline.Fit(data);
-
-            // Test path:  input list -> IDataView -> Enumerable of RootCauseLocalizationInputs.
-            var transformedData = model.Transform(data);
-
-            // Load input list in DataView back to Enumerable.
-            var transformedDataPoints = ml.Data.CreateEnumerable<RootCauseLocalizationTransformedData>(transformedData, false);
-
-            foreach (var dataPoint in transformedDataPoints)
-            {
-                var rootCause = dataPoint.RootCause;
-                Assert.NotNull(rootCause);
-            }
-
-            var engine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(model);
-
-            DateTime timeStamp = GetCurrentTimestamp();
-            var newRootCauseInput = new RootCauseLocalizationData(timeStamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timeStamp, GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _aggSymbol);
-            var transformedRootCause = engine.Predict(newRootCauseInput);
-
-            Assert.NotNull(transformedRootCause);
-            Assert.Equal(1, (int)transformedRootCause.RootCause.Items.Count);
+            Assert.NotNull(rootCause);
+            Assert.Equal(1, (int)rootCause.Items.Count);
+            Assert.Equal(3, (int)rootCause.Items[0].Dimension.Count);
+            Assert.Equal(AnomalyDirection.Up, rootCause.Items[0].Direction);
+            Assert.Equal(1, (int)rootCause.Items[0].Path.Count);
+            Assert.Equal("DataCenter", rootCause.Items[0].Path[0]);
 
             Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
             expectedDim.Add("Country", "UK");
-            expectedDim.Add("DeviceType", _aggSymbol);
+            expectedDim.Add("DeviceType", _rootCauseAggSymbol);
             expectedDim.Add("DataCenter", "DC1");
 
-            foreach (KeyValuePair<string, object> pair in transformedRootCause.RootCause.Items[0].Dimension)
+            foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
             {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
-            }
-
-            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Test"});
-
-            //Create path
-            var modelPath = "RootCauseLocalizationModel.zip";
-            //Save model to a file
-            ml.Model.Save(model, dummyData.Schema, modelPath);
-
-            //Load model from a file
-            ITransformer serializedModel;
-            using (var file = File.OpenRead(modelPath))
-            {
-                serializedModel = ml.Model.Load(file, out var serializedSchema);
-                TestCommon.CheckSameSchemas(dummyData.Schema, serializedSchema);
-              
-                var serializedEngine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(serializedModel);
-                var returnedRootCause = serializedEngine.Predict(newRootCauseInput);
-
-                Assert.NotNull(returnedRootCause);
-                Assert.Equal(1, (int)returnedRootCause.RootCause.Items.Count);
-
-                foreach (KeyValuePair<string, object> pair in returnedRootCause.RootCause.Items[0].Dimension)
-                {
-                    Assert.Equal(expectedDim[pair.Key], pair.Value);
-                }
-                DeleteOutputPath(modelPath);
             }
         }
 
@@ -641,7 +567,7 @@ namespace Microsoft.ML.Tests
 
             Dictionary<string, Object> dic3 = new Dictionary<string, Object>();
             dic3.Add("Country", "UK");
-            dic3.Add("DeviceType", _aggSymbol);
+            dic3.Add("DeviceType", _rootCauseAggSymbol);
             dic3.Add("DataCenter", "DC1");
             points.Add(new Point(1200, 200, true, dic3));
 
@@ -659,42 +585,42 @@ namespace Microsoft.ML.Tests
 
             Dictionary<string, Object> dic6 = new Dictionary<string, Object>();
             dic6.Add("Country", "UK");
-            dic6.Add("DeviceType", _aggSymbol);
+            dic6.Add("DeviceType", _rootCauseAggSymbol);
             dic6.Add("DataCenter", "DC2");
             points.Add(new Point(300, 300, false, dic6));
 
             Dictionary<string, Object> dic7 = new Dictionary<string, Object>();
             dic7.Add("Country", "UK");
-            dic7.Add("DeviceType", _aggSymbol);
-            dic7.Add("DataCenter", _aggSymbol);
+            dic7.Add("DeviceType", _rootCauseAggSymbol);
+            dic7.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new Point(1500, 500, true, dic7));
 
             Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
             dic8.Add("Country", "UK");
             dic8.Add("DeviceType", "Laptop");
-            dic8.Add("DataCenter", _aggSymbol);
+            dic8.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new Point(300, 200, true, dic8));
 
             Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
             dic9.Add("Country", "UK");
             dic9.Add("DeviceType", "Mobile");
-            dic9.Add("DataCenter", _aggSymbol);
+            dic9.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new Point(1200, 300, true, dic9));
 
             return points;
         }
 
-        private static Dictionary<string, Object> GetAnomalyDimension()
+        private static Dictionary<string, Object> GetRootCauseAnomalyDimension()
         {
             Dictionary<string, Object> dim = new Dictionary<string, Object>();
             dim.Add("Country", "UK");
-            dim.Add("DeviceType", _aggSymbol);
-            dim.Add("DataCenter", _aggSymbol);
+            dim.Add("DeviceType", _rootCauseAggSymbol);
+            dim.Add("DataCenter", _rootCauseAggSymbol);
 
             return dim;
         }
 
-        private static DateTime GetCurrentTimestamp()
+        private static DateTime GetRootCauseTimestamp()
         {
             return new DateTime(2020, 3, 23, 0, 0, 0);
         }

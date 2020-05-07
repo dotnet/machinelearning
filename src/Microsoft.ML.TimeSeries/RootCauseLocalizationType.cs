@@ -105,9 +105,9 @@ namespace Microsoft.ML.TimeSeries
         //The aggregated symbol in the AnomalyDimension and point dimension should be consistent
         public AggregateType AggType { get; set; }
 
-        public string AggSymbol { get; set; }
+        public Object AggSymbol { get; set; }
 
-        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, AggregateType aggregateType, string aggregateSymbol)
+        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, AggregateType aggregateType, Object aggregateSymbol)
         {
             AnomalyTimestamp = anomalyTimestamp;
             AnomalyDimension = anomalyDimension;
@@ -181,11 +181,11 @@ namespace Microsoft.ML.TimeSeries
     public enum AggregateType
     {
         /// <summary>
-        /// Make the aggregate type as sum.
+        /// Make the aggregate type as unknown type.
         /// </summary>
         Unknown = 0,
         /// <summary>
-        /// Make the aggregate type as sum.
+        /// Make the aggregate type as summation.
         /// </summary>
         Sum = 1,
         /// <summary>
@@ -199,11 +199,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// Make the aggregate type as max.
         /// </summary>
-        Max = 4,
-        /// <summary>
-        /// Make the aggregate type as count.
-        /// </summary>
-        Count = 5
+        Max = 4
     }
 
     public enum AnomalyDirection
@@ -215,7 +211,11 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// the value is lower than expected value.
         ///  </summary>
-        Down = 1
+        Down = 1,
+        /// <summary>
+        /// the value is the same as expected value.
+        ///  </summary>
+        Same = 2
     }
 
     public sealed class RootCauseItem : IEquatable<RootCauseItem>

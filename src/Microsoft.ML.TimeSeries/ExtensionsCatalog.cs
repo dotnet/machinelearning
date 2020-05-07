@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Reflection;
 using Microsoft.ML.Data;
+using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML
@@ -147,14 +150,11 @@ namespace Microsoft.ML
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
         /// <summary>
-        /// Create <see cref="RootCauseLocalizationEstimator"/>, which localizes root causes using decision tree algorithm.
+        /// Create <see cref="RootCause"/>, which localizes root causes using decision tree algorithm.
         /// </summary>
-        /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// The column data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCause"/>.</param>
-        /// <param name="inputColumnName">Name of the input column.
-        ///  The column data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
-        /// <param name="beta">The weight parameter in score. The range of the parameter should be in [0,1].</param>
+        /// <param name="catalog">The anomaly detection catalog.</param>
+        /// <param name="src">Root cause's input. The data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
+        /// <param name="beta">Beta is a weight parameter for user to choose. It is used when score is calculated for each root cause item. The range of beta should be in [0,1]. For a larger beta, root cause point which has a large difference between value and expected value will get a high score. On the contrary, for a small beta, root cause items which has a high relative change will get a high score.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -162,8 +162,42 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RootCauseLocalizationEstimator LocalizeRootCause(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta = 0.5)
-             => new RootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, beta);
+        public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
+        {
+            //check the root cause input
+            CheckRootCauseInput(src);
+
+            //check beta
+            if (beta < 0 || beta > 1) {
+                throw new ArgumentException("Beta must be in [0,1]");
+            }
+
+            //find out the root cause
+            RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta);
+            RootCause dst  = analyzer.Analyze();
+            return dst;
+        }
+
+        private static void CheckRootCauseInput(RootCauseLocalizationInput src)
+        {
+            if (src.Slices.Count < 1)
+            {
+                throw new ArgumentException("Length of Slices must be larger than 0");
+            }
+
+            bool containsAnomalyTimestamp = false;
+            foreach (MetricSlice slice in src.Slices)
+            {
+                if (slice.TimeStamp.Equals(src.AnomalyTimestamp))
+                {
+                    containsAnomalyTimestamp = true;
+                }
+            }
+            if (!containsAnomalyTimestamp)
+            {
+                throw new ArgumentException("Has no points in the given anomaly timestamp");
+            }
+        }
 
         /// <summary>
         /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.
