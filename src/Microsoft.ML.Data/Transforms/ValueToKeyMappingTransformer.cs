@@ -809,6 +809,7 @@ namespace Microsoft.ML.Transforms
                 var terms = GetTermsAndIds<T>(iinfo, out termIds);
                 node.AddAttribute("keys_floats", terms.Select(item => Convert.ToSingle(item)));
             }
+
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
                 OnnxNode node;
