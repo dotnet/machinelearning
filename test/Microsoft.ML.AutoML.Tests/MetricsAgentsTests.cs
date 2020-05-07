@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -99,6 +101,25 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(0.3, GetScore(metrics, RegressionMetric.MeanSquaredError));
             Assert.Equal(0.4, GetScore(metrics, RegressionMetric.RootMeanSquaredError));
             Assert.Equal(0.6, GetScore(metrics, RegressionMetric.RSquared));
+        }
+
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompletesRegressionMetricsNonPerfectTest(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(RegressionMetricsNonPerfectTest);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("RegressionMetricsNonPerfectTest test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
         }
 
         [Fact]

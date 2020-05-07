@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
@@ -1847,6 +1848,25 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompleteCommandTrainRanking(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(CommandTrainRanking);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("CommandTrainRanking test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
+        }
+
         [TestCategory(Cat), TestCategory("Ranking"), TestCategory("FastTree")]
         [Fact]
         public void CommandTrainRanking()
@@ -1981,6 +2001,25 @@ namespace Microsoft.ML.RunTests
             _step++;
             TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
             Done();
+        }
+
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompleteTest(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(CommandTrainingBinaryFieldAwareFactorizationMachineWithInitialization);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("CommandTrainingBinaryFieldAwareFactorizationMachineWithInitialization test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]

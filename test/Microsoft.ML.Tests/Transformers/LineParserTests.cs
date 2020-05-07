@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,6 +48,25 @@ namespace Microsoft.ML.Tests.Transformers
         public void WhenProvidedAnInvalidInputParserReturnsFailure(string input)
         {
             Assert.False(LineParser.ParseKeyThenNumbers(input, true).isSuccess);
+        }
+
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompleteLineParserAndCulture(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(LineParserAndCulture);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("LineParserAndCulture test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
         }
 
         [Fact]

@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -228,6 +230,25 @@ namespace Microsoft.ML.AutoML.Test
   }
 }";
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+        }
+
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompletesBuildDefaultAveragedPerceptronPipelineNode(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(BuildDefaultAveragedPerceptronPipelineNode);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("BuildDefaultAveragedPerceptronPipelineNode test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
         }
 
         [Fact]

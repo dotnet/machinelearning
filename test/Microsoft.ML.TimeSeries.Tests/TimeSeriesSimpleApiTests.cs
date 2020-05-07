@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -163,6 +166,25 @@ namespace Microsoft.ML.Tests
                 CompareNumbersWithTolerance(expectedValues[i][0], row.Data[0], digitsOfPrecision: 7);
                 CompareNumbersWithTolerance(expectedValues[i][1], row.Data[1], digitsOfPrecision: 7);
                 CompareNumbersWithTolerance(expectedValues[i][2], row.Data[2], digitsOfPrecision: 7);
+            }
+        }
+
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompleteSsaSpikeDetection(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(SsaSpikeDetection);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("SsaSpikeDetection test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
             }
         }
 

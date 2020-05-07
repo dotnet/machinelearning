@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -511,57 +514,81 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void AnomalyDetectionWithSrCnn(bool loadDataFromFile)
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompleteAnomalyDetectionWithSrCnn(int iterations)
         {
-            var ml = new MLContext(1);
-            IDataView dataView;
-            if(loadDataFromFile)
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(AnomalyDetectionWithSrCnn);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
             {
-                var dataPath = GetDataPath(Path.Combine("Timeseries", "anomaly_detection.csv"));
-                
-                // Load data from file into the dataView
-                dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
+                Console.WriteLine("AnomalyDetectionWithSrCnn test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
+        }
+
+        //[Theory]
+        //[InlineData(true)]
+        //[InlineData(false)]
+        private void AnomalyDetectionWithSrCnn()
+        {
+            var loadDataFromFiles = new bool[] { true, false};
+
+            foreach (var loadDataFromFile in loadDataFromFiles)
+            {
+                var ml = new MLContext(1);
+                IDataView dataView;
+                if (loadDataFromFile)
+                {
+                    var dataPath = GetDataPath(Path.Combine("Timeseries", "anomaly_detection.csv"));
+
+                    // Load data from file into the dataView
+                    dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
                     new TextLoader.Column("Value", DataKind.Single, 0),
                 }, hasHeader: true);
-            }
-            else
-            {
-                // Generate sample series data with an anomaly
-                var data = new List<TimeSeriesData>();
-                for (int index = 0; index < 20; index++)
-                {
-                    data.Add(new TimeSeriesData(5));
                 }
-                data.Add(new TimeSeriesData(10));
-                for (int index = 0; index < 5; index++)
-                {
-                    data.Add(new TimeSeriesData(5));
-                }
-
-                // Convert data to IDataView.
-                dataView = ml.Data.LoadFromEnumerable(data);
-            }
-
-            // Setup the estimator arguments
-            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
-            string inputColumnName = nameof(TimeSeriesData.Value);
-
-            // The transformed data.
-            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35).Fit(dataView).Transform(dataView);
-
-            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
-            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
-
-            int k = 0;
-            foreach (var prediction in predictionColumn)
-            {
-                if (k == 20)
-                    Assert.Equal(1, prediction.Prediction[0]);
                 else
-                    Assert.Equal(0, prediction.Prediction[0]);
-                k += 1;
+                {
+                    // Generate sample series data with an anomaly
+                    var data = new List<TimeSeriesData>();
+                    for (int index = 0; index < 20; index++)
+                    {
+                        data.Add(new TimeSeriesData(5));
+                    }
+                    data.Add(new TimeSeriesData(10));
+                    for (int index = 0; index < 5; index++)
+                    {
+                        data.Add(new TimeSeriesData(5));
+                    }
+
+                    // Convert data to IDataView.
+                    dataView = ml.Data.LoadFromEnumerable(data);
+                }
+
+                // Setup the estimator arguments
+                string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+                string inputColumnName = nameof(TimeSeriesData.Value);
+
+                // The transformed data.
+                var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35).Fit(dataView).Transform(dataView);
+
+                // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
+                var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
+
+                int k = 0;
+                foreach (var prediction in predictionColumn)
+                {
+                    if (k == 20)
+                        Assert.Equal(1, prediction.Prediction[0]);
+                    else
+                        Assert.Equal(0, prediction.Prediction[0]);
+                    k += 1;
+                }
             }
         }
     }

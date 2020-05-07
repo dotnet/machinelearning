@@ -25,6 +25,7 @@ namespace Microsoft.ML.RunTests
     using TestLearners = TestLearnersBase;
     using Microsoft.ML.TestFrameworkCommon;
     using Microsoft.ML.TestFrameworkCommon.Attributes;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Tests using maml commands (IDV) functionality.
@@ -2162,6 +2163,25 @@ output Out [3] from H all;
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets);
             Done();
+        }
+
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompletesBinaryClassifierLDSvmNoBiasTest(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 20 * 60 * 1000;
+
+            var runTask = Task.Run(BinaryClassifierLDSvmNoBiasTest);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("BinaryClassifierLDSvmNoBiasTest test Hanging: fail to complete in 20 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
         }
 
         /// <summary>

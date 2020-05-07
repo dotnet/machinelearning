@@ -11,44 +11,44 @@ resources:
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-207e097-20190312152303
 
 jobs:
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Centos_x64_NetCoreApp31
-    buildScript: ./build.sh
-    container: CentosContainer
-    customMatrixes:
-      Debug_Build:
-        _configuration: Debug-netcoreapp3_1
-        _config_short: DI
-        _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.1
-      Release_Build:
-        _configuration: Release-netcoreapp3_1
-        _config_short: RI
-        _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.1
-    innerLoop: true
-    pool:
-      name:  NetCorePublic-Pool
-      queue: BuildPool.Ubuntu.1604.Amd64.Open
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Centos_x64_NetCoreApp31
+#     buildScript: ./build.sh
+#     container: CentosContainer
+#     customMatrixes:
+#       Debug_Build:
+#         _configuration: Debug-netcoreapp3_1
+#         _config_short: DI
+#         _includeBenchmarkData: false
+#         _targetFramework: netcoreapp3.1
+#       Release_Build:
+#         _configuration: Release-netcoreapp3_1
+#         _config_short: RI
+#         _includeBenchmarkData: true
+#         _targetFramework: netcoreapp3.1
+#     innerLoop: true
+#     pool:
+#       name:  NetCorePublic-Pool
+#       queue: BuildPool.Ubuntu.1604.Amd64.Open
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Ubuntu_x64_NetCoreApp21
-    buildScript: ./build.sh
-    container: UbuntuContainer
-    innerLoop: true
-    pool:
-      name:  NetCorePublic-Pool
-      queue: BuildPool.Ubuntu.1604.Amd64.Open
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Ubuntu_x64_NetCoreApp21
+#     buildScript: ./build.sh
+#     container: UbuntuContainer
+#     innerLoop: true
+#     pool:
+#       name:  NetCorePublic-Pool
+#       queue: BuildPool.Ubuntu.1604.Amd64.Open
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: MacOS_x64_NetCoreApp21
-    buildScript: ./build.sh
-    innerLoop: true
-    pool:
-      name: Hosted macOS
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: MacOS_x64_NetCoreApp21
+#     buildScript: ./build.sh
+#     innerLoop: true
+#     pool:
+#       name: Hosted macOS
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -65,7 +65,7 @@ jobs:
         _config_short: RI
         _includeBenchmarkData: true
         _targetFramework: netcoreapp3.1
-    innerLoop: true
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
       name:  NetCorePublic-Pool
@@ -75,7 +75,7 @@ jobs:
   parameters:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
-    innerLoop: true
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name:  NetCorePublic-Pool
@@ -96,7 +96,7 @@ jobs:
         _config_short: RFX
         _includeBenchmarkData: false
         _targetFramework: win-x64
-    innerLoop: true
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name:  NetCorePublic-Pool
@@ -107,7 +107,7 @@ jobs:
     name: Windows_x86_NetCoreApp21
     architecture: x86
     buildScript: build.cmd
-    innerLoop: true
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name:  NetCorePublic-Pool
