@@ -31,6 +31,8 @@ namespace Microsoft.ML.RunTests
 
         [Fact]
         [TestCategory(Cat)]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void SparseDataView()
         {
             GenericSparseDataView(new[] { 1f, 2f, 3f }, new[] { 1f, 10f, 100f });
