@@ -220,10 +220,13 @@ namespace Microsoft.ML.TimeSeries
 
     public sealed class RootCauseItem : IEquatable<RootCauseItem>
     {
+        //The score is a value to evaluate the contribution to the anomaly incident. The range is between [0,1]. The larger the score, the root cause contributes the most to the anomaly. The parameter beta has an influence on this score. For how the score is calculated, you can refer to the source code.
         public double Score;
         //Path is a list of the dimension key that the libary selected for you. In this root cause localization library, for one time call for the library, the path will be obtained and the length of path list will always be 1. Different RootCauseItem obtained from one library call will have the same path as it is the best dimension selected for the input.
         public List<string> Path;
+        //The dimension for the detected root cause point
         public Dictionary<string, Object> Dimension;
+        //The direction for the detected root cause point
         public AnomalyDirection Direction;
 
         public RootCauseItem(Dictionary<string, Object> rootCause)

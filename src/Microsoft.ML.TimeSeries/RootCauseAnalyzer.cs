@@ -344,7 +344,7 @@ namespace Microsoft.ML.TimeSeries
                     Point rootCausePoint = GetPointByDimension(dimPointMapping, item.Dimension, pointTree, aggType, aggSymbol);
                     if (anomalyPoint != null && rootCausePoint != null)
                     {
-                        Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
+                        Tuple<double, double> scores = GetSupriseAndExplanatoryScore(rootCausePoint, anomalyPoint);
                         scoreList.Add(new RootCauseScore(scores.Item1, scores.Item2));
                         item.Direction = GetRootCauseDirection(rootCausePoint);
                     }
@@ -367,7 +367,7 @@ namespace Microsoft.ML.TimeSeries
                 Point rootCausePoint = GetPointByDimension(dimPointMapping, dst.Items[0].Dimension, pointTree, aggType, aggSymbol);
                 if (anomalyPoint != null && rootCausePoint != null)
                 {
-                    Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
+                    Tuple<double, double> scores = GetSupriseAndExplanatoryScore(rootCausePoint, anomalyPoint);
                     if (aggType.Equals(AggregateType.Max) || aggType.Equals(AggregateType.Min))
                     {
                         dst.Items[0].Score = 1;
@@ -496,6 +496,17 @@ namespace Microsoft.ML.TimeSeries
             return best;
         }
 
+        /// <summary>
+        /// Calculate the surprise score according to root cause point and anomaly point
+        /// </summary>
+        /// <param name="rootCausePoint">A point which has been detected as root cause</param>
+        /// <param name="anomalyPoint">The anomaly point</param>
+        /// <remarks>
+        /// <format type="text/markdown">
+        ///  [!include[io](~/../docs/samples/docs/api-reference/time-series-root-cause-surprise-score.md)]
+        /// </format>
+        /// </remarks>
+        /// <returns>Surprise score</returns>
         private double GetSurpriseScore(Point rootCausePoint, Point anomalyPoint)
         {
             double p;
@@ -558,7 +569,7 @@ namespace Microsoft.ML.TimeSeries
             return beta * a + (1 - beta) * b;
         }
 
-        private Tuple<double, double> GetSupriseAndExplainaryScore(Point rootCausePoint, Point anomalyPoint)
+        private Tuple<double, double> GetSupriseAndExplanatoryScore(Point rootCausePoint, Point anomalyPoint)
         {
             double surprise = GetSurpriseScore(rootCausePoint, anomalyPoint);
 
@@ -649,7 +660,7 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        public double Log2(double val)
+        private double Log2(double val)
         {
             if (Double.IsNaN(val))
             {
@@ -659,7 +670,7 @@ namespace Microsoft.ML.TimeSeries
             return Math.Log(val) / Math.Log(2);
         }
 
-        public static bool ContainsAll(Dictionary<string, Object> bigDic, Dictionary<string, Object> smallDic)
+        private static bool ContainsAll(Dictionary<string, Object> bigDic, Dictionary<string, Object> smallDic)
         {
             foreach (var item in smallDic)
             {
