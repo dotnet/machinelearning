@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
@@ -185,26 +186,23 @@ namespace Microsoft.ML.Functional.Tests
                 @"[Source=SdcaTrainerBase; Training, Kind=Info] Using best model from iteration 7."};
             foreach (var line in expectedLines)
             {
-                Assert.Contains(line, logWatcher.Lines);
+                Assert.Contains(line, logWatcher.Lines as IReadOnlyDictionary<string, int>);
                 Assert.Equal(1, logWatcher.Lines[line]);
             }
         }
 
         internal class LogWatcher {
 
-            public readonly IDictionary<string, int> Lines;
+            public readonly ConcurrentDictionary<string, int> Lines;
 
             public LogWatcher()
             {
-                Lines = new Dictionary<string, int>();
+                Lines = new ConcurrentDictionary<string, int>();
             }
             
             public void ObserveEvent(object sender, LoggingEventArgs e)
             {
-                if (Lines.ContainsKey(e.Message))
-                    Lines[e.Message]++;
-                else
-                    Lines[e.Message] = 1;
+                Lines.AddOrUpdate(e.Message, 1, (key, oldValue) => oldValue + 1);
             }
         }
     }
