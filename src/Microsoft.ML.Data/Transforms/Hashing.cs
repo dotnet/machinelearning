@@ -584,7 +584,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in float value)
-                => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), sizeof(uint)) & mask) + 1;
+                => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), sizeof(float)) & mask) + 1;
         }
 
         private readonly struct HashDouble : IHasher<double>
@@ -599,8 +599,7 @@ namespace Microsoft.ML.Transforms
                 ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
                 var hi = Utils.GetHi(v);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
+                hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -616,9 +615,8 @@ namespace Microsoft.ML.Transforms
                 ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
                 var hi = Utils.GetHi(v);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+                hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHashV2(hash, sizeof(double)) & mask) + 1;
             }
         }
 
@@ -757,8 +755,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
+                hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -770,9 +767,8 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+                hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHashV2(hash, sizeof(ulong)) & mask) + 1;
             }
         }
 
@@ -879,8 +875,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
                 var hi = Utils.GetHi((ulong)value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
+                hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -892,9 +887,8 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
                 var hi = Utils.GetHi((ulong)value);
-                if (hi != 0)
-                    hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
+                hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHashV2(hash, sizeof(long)) & mask) + 1;
             }
         }
 
