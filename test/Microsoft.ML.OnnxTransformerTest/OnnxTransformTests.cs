@@ -66,6 +66,17 @@ namespace Microsoft.ML.Tests
             [VectorType(InputSize)]
             public string[] data_0;
         }
+        private class TestDataNoneDimension
+        {
+            [VectorType(4)]
+            public float[] features;
+        }
+
+        class PredictionNoneDimension
+        {
+            [VectorType(1)]
+            public float[] variable { get; set; }
+        }
 
         private class TestDataUnknownDimensions
         {
@@ -342,6 +353,29 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1, predictions[0].argmax[0]);
             Assert.Equal(0, predictions[1].argmax[0]);
             Assert.Equal(2, predictions[2].argmax[0]);
+        }
+
+        [OnnxFact]
+        public void TestOnnxNoneDimValue()
+        {
+            // Model contains None in input shape dimension
+            // Model input dims: [None, 4]
+            var modelFile = Path.Combine(@"unknowndimensions/linear_regression.onnx");
+            var mlContext = new MLContext(seed: 1);
+            var data = new TestDataNoneDimension[]
+            {
+                    new TestDataNoneDimension(){features = new float[] { 5.1f, 3.5f, 1.4f, 0.2f}},
+                    new TestDataNoneDimension(){features = new float[] { 7.0f, 3.2f, 4.7f, 1.4f }},
+                    new TestDataNoneDimension(){features = new float[] { 6.3f, 3.3f, 6.0f, 2.5f }},
+            };
+            var idv = mlContext.Data.LoadFromEnumerable(data);
+            var pipeline = ML.Transforms.ApplyOnnxModel(modelFile);
+            var transformedValues = pipeline.Fit(idv).Transform(idv);
+            var predictions = mlContext.Data.CreateEnumerable<PredictionNoneDimension>(transformedValues, reuseRowObject: false).ToArray();
+
+            Assert.Equal(-0.080, Math.Round(predictions[0].variable[0], 3));
+            Assert.Equal(1.204, Math.Round(predictions[1].variable[0], 3));
+            Assert.Equal(2.27, Math.Round(predictions[2].variable[0], 3));
         }
 
         /// <summary>
