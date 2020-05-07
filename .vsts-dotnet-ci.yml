@@ -50,36 +50,36 @@ jobs:
 #     pool:
 #       name: Hosted macOS
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x64_NetCoreApp31
-    buildScript: build.cmd
-    customMatrixes:
-      Debug_Build:
-        _configuration: Debug-netcoreapp3_1
-        _config_short: DI
-        _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.1
-      Release_Build:
-        _configuration: Release-netcoreapp3_1
-        _config_short: RI
-        _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.1
-    runSpecific: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
-    pool:
-      name:  NetCorePublic-Pool
-      queue: buildpool.server.amd64.vs2017.open
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Windows_x64_NetCoreApp31
+#     buildScript: build.cmd
+#     customMatrixes:
+#       Debug_Build:
+#         _configuration: Debug-netcoreapp3_1
+#         _config_short: DI
+#         _includeBenchmarkData: false
+#         _targetFramework: netcoreapp3.1
+#       Release_Build:
+#         _configuration: Release-netcoreapp3_1
+#         _config_short: RI
+#         _includeBenchmarkData: true
+#         _targetFramework: netcoreapp3.1
+#     runSpecific: true
+#     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
+#     pool:
+#       name:  NetCorePublic-Pool
+#       queue: buildpool.server.amd64.vs2017.open
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x64_NetCoreApp21
-    buildScript: build.cmd
-    runSpecific: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
-    pool:
-      name:  NetCorePublic-Pool
-      queue: buildpool.server.amd64.vs2017.open
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Windows_x64_NetCoreApp21
+#     buildScript: build.cmd
+#     runSpecific: true
+#     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
+#     pool:
+#       name:  NetCorePublic-Pool
+#       queue: buildpool.server.amd64.vs2017.open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -96,19 +96,19 @@ jobs:
         _config_short: RFX
         _includeBenchmarkData: false
         _targetFramework: win-x64
-    runSpecific: true
+    innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name:  NetCorePublic-Pool
       queue: buildpool.server.amd64.vs2017.open
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x86_NetCoreApp21
-    architecture: x86
-    buildScript: build.cmd
-    runSpecific: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
-    pool:
-      name:  NetCorePublic-Pool
-      queue: buildpool.server.amd64.vs2017.open
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Windows_x86_NetCoreApp21
+#     architecture: x86
+#     buildScript: build.cmd
+#     runSpecific: true
+#     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
+#     pool:
+#       name:  NetCorePublic-Pool
+#       queue: buildpool.server.amd64.vs2017.open
