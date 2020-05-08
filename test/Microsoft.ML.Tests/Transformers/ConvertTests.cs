@@ -121,7 +121,7 @@ namespace Microsoft.ML.Tests.Transformers
             public string A;
         }
 
-        [Fact]
+        [Fact, TestCategory("RunSpecificTest")]
         public void TestConvertWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
@@ -260,8 +260,9 @@ namespace Microsoft.ML.Tests.Transformers
             });
 
             var convertedValues = allInputTypesDataPipe.Fit(allInputTypesDataView).Transform(allInputTypesDataView);
+
             var expectedValuesData = new[] { new { A = (sbyte)sbyte.MinValue, B = (byte)byte.MinValue, C = double.MaxValue, D = float.MinValue, E = "already a string", F = false,
-                A1 = "-128", B1 = "0", C1 = "1.79769313486232E+308", D1 = "-3.402823E+38", E1 = "already a string", F1 = "False" } };
+                A1 = "-128", B1 = "0", C1 = "1.7976931348623157E+308", D1 = "-3.402823E+38", E1 = "already a string", F1 = "False" } };
             var expectedValuesDataView = ML.Data.LoadFromEnumerable(expectedValuesData);
 
             CheckSameValues(expectedValuesDataView, convertedValues);

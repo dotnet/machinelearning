@@ -937,8 +937,8 @@ namespace Microsoft.ML.Data.Conversion
         public void Convert(in U4 src, ref TX dst) => dst = src.ToString().AsMemory();
         public void Convert(in U8 src, ref TX dst) => dst = src.ToString().AsMemory();
         public void Convert(in UG src, ref TX dst) => dst = string.Format("0x{0:x16}{1:x16}", src.High, src.Low).AsMemory();
-        public void Convert(in R4 src, ref TX dst) => dst = src.ToString().AsMemory();
-        public void Convert(in R8 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in R4 src, ref TX dst) => dst = src.ToString("G7", CultureInfo.InvariantCulture).AsMemory();
+        public void Convert(in R8 src, ref TX dst) => dst = src.ToString("G17", CultureInfo.InvariantCulture).AsMemory();
         public void Convert(in BL src, ref TX dst) => dst = src.ToString().AsMemory();
         public void Convert(in TS src, ref TX dst) => dst = string.Format("{0:c}", src).AsMemory();
         public void Convert(in DT src, ref TX dst) => string.Format("{0:o}", src).AsMemory();
