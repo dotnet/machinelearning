@@ -30,7 +30,7 @@ jobs:
     innerLoop: true
     pool:
       name:  NetCorePublic-Pool
-      queue: BuildPool.Ubuntu.1604.Amd64.Open
+      queue: BuildPool.Ubuntu.1604.Amd64
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -40,7 +40,7 @@ jobs:
     innerLoop: true
     pool:
       name:  NetCorePublic-Pool
-      queue: BuildPool.Ubuntu.1604.Amd64.Open
+      queue: BuildPool.Ubuntu.1604.Amd64
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -69,7 +69,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
       name:  NetCorePublic-Pool
-      queue: buildpool.server.amd64.vs2017.open
+      queue: buildpool.server.amd64.vs2017
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -79,7 +79,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name:  NetCorePublic-Pool
-      queue: buildpool.server.amd64.vs2017.open
+      queue: buildpool.server.amd64.vs2017
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -100,7 +100,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name:  NetCorePublic-Pool
-      queue: buildpool.server.amd64.vs2017.open
+      queue: buildpool.server.amd64.vs2017
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -111,4 +111,4 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name:  NetCorePublic-Pool
-      queue: buildpool.server.amd64.vs2017.open
+      queue: buildpool.server.amd64.vs2017
