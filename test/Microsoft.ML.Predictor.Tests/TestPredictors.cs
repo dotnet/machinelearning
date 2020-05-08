@@ -279,10 +279,11 @@ namespace Microsoft.ML.RunTests
 
         [Fact]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failure has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierSymSgdTest()
         {
+            //Skipping test temporarily on Linux. This test will be re-enabled once the cause of failure has been determined.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return;
             RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4);
             Done();
         }
