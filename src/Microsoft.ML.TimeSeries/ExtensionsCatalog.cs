@@ -242,12 +242,14 @@ namespace Microsoft.ML
         /// </example>
         public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
         {
+            IHostEnvironment host = CatalogUtils.GetEnvironment(catalog);
+
             //check the root cause input
-            CheckRootCauseInput(src);
+            CheckRootCauseInput(host, src);
 
             //check beta
             if (beta < 0 || beta > 1) {
-                throw new ArgumentException("Beta must be in [0,1]");
+                host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
             }
 
             //find out the root cause
@@ -256,11 +258,11 @@ namespace Microsoft.ML
             return dst;
         }
 
-        private static void CheckRootCauseInput(RootCauseLocalizationInput src)
+        private static void CheckRootCauseInput(IHostEnvironment host, RootCauseLocalizationInput src)
         {
             if (src.Slices.Count < 1)
             {
-                throw new ArgumentException("Length of Slices must be larger than 0");
+                host.CheckUserArg(src.Slices.Count > 1 , nameof(src.Slices), "Must has more than one item");
             }
 
             bool containsAnomalyTimestamp = false;
@@ -271,10 +273,7 @@ namespace Microsoft.ML
                     containsAnomalyTimestamp = true;
                 }
             }
-            if (!containsAnomalyTimestamp)
-            {
-                throw new ArgumentException("Has no points in the given anomaly timestamp");
-            }
+            host.CheckUserArg(containsAnomalyTimestamp, nameof(src.Slices), "Has no points in the given anomaly timestamp");
         }
 
         /// <summary>
