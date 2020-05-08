@@ -1,0 +1,12 @@
+Linear Binary Classification Predictor non-zero weights
+
+(Bias)	-476.593
+f1	37.09351
+f4	-20.56633
+f0	16.94382
+f8	14.43011
+f5	6.979138
+f6	-5.665002
+f3	5.508986
+f7	3.290292
+f2	0.6714754
