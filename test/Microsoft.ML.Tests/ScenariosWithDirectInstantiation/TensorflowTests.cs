@@ -67,19 +67,18 @@ namespace Microsoft.ML.Scenarios
         private readonly string _fullImagesetFolderPath;
         private readonly string _finalImagesFolderName;
         private string _timeOutOldValue;
-        private readonly string _imagesDownloadFolderPath;
 
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
         {
-            _imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
             _finalImagesFolderName = DownloadImageSet(
-                _imagesDownloadFolderPath);
+                imagesDownloadFolderPath);
 
             _fullImagesetFolderPath = Path.Combine(
-                _imagesDownloadFolderPath, _finalImagesFolderName);
+                imagesDownloadFolderPath, _finalImagesFolderName);
         }
 
         protected override void Initialize()
@@ -1732,12 +1731,15 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationBadImages()
         {
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+                "images");
+
             //Download the image set and unzip
             string finalImagesFolderName = DownloadBadImageSet(
-                _imagesDownloadFolderPath);
+                imagesDownloadFolderPath);
 
             string fullImagesetFolderPath = Path.Combine(
-                _imagesDownloadFolderPath, finalImagesFolderName);
+                imagesDownloadFolderPath, finalImagesFolderName);
 
             MLContext mlContext = new MLContext(seed: 1);
 

@@ -29,8 +29,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name:  NetCorePublic-Pool
-      queue: BuildPool.Ubuntu.1604.Amd64.Open
+      name:  Hosted Ubuntu 1604
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -39,8 +38,7 @@ jobs:
     container: UbuntuContainer
     innerLoop: true
     pool:
-      name:  NetCorePublic-Pool
-      queue: BuildPool.Ubuntu.1604.Amd64.Open
+      name:  Hosted Ubuntu 1604
 
 - template: /build/ci/job-template.yml
   parameters:
