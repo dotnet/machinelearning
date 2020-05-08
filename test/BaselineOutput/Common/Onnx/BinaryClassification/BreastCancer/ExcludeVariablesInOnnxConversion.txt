@@ -449,12 +449,22 @@
       },
       {
         "input": [
+          "F3"
+        ],
+        "output": [
+          "F3.output"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
           "PredictedLabel"
         ],
         "output": [
           "PredictedLabel.output"
         ],
-        "name": "Identity",
+        "name": "Identity0",
         "opType": "Identity"
       },
       {
@@ -464,7 +474,7 @@
         "output": [
           "Score.output"
         ],
-        "name": "Identity0",
+        "name": "Identity1",
         "opType": "Identity"
       },
       {
@@ -474,7 +484,7 @@
         "output": [
           "Probability.output"
         ],
-        "name": "Identity1",
+        "name": "Identity2",
         "opType": "Identity"
       }
     ],
@@ -531,9 +541,45 @@
             }
           }
         }
+      },
+      {
+        "name": "F3",
+        "type": {
+          "tensorType": {
+            "elemType": 8,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "5"
+                }
+              ]
+            }
+          }
+        }
       }
     ],
     "output": [
+      {
+        "name": "F3.output",
+        "type": {
+          "tensorType": {
+            "elemType": 8,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "5"
+                }
+              ]
+            }
+          }
+        }
+      },
       {
         "name": "PredictedLabel.output",
         "type": {
@@ -800,6 +846,24 @@
                 },
                 {
                   "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F3.output",
+        "type": {
+          "tensorType": {
+            "elemType": 8,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "5"
                 }
               ]
             }
