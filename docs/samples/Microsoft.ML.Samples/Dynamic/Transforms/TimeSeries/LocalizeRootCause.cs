@@ -14,11 +14,11 @@ namespace Samples.Dynamic
             // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create an root cause localizatin input instance.
+            // Create an root cause localization input instance.
             DateTime timestamp = GetTimestamp();
             var data = new RootCauseLocalizationInput(timestamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timestamp, GetPoints()) }, AggregateType.Sum, AGG_SYMBOL);
 
-            // Get the root cause localization result
+            // Get the root cause localization result.
             RootCause prediction = mlContext.AnomalyDetection.LocalizeRootCause(data);
 
             // Print the localization result.

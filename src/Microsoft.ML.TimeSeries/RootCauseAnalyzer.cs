@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.TimeSeries
@@ -29,7 +30,7 @@ namespace Microsoft.ML.TimeSeries
             return AnalyzeOneLayer(_src);
         }
 
-        //This is a function for analyze one layer for root cause, we select one dimension with values who contributes the most to the anomaly. For full result, call this function recursively
+        //This is a function for analyze one layer for root cause, we select one dimension with values who contributes the most to the anomaly.
         private RootCause AnalyzeOneLayer(RootCauseLocalizationInput src)
         {
             RootCause dst = new RootCause();
@@ -42,11 +43,7 @@ namespace Microsoft.ML.TimeSeries
             Dictionary<string, Point> dimPointMapping = pointInfo.Item3;
 
             //which means there is no anomaly point with the anomaly dimension or no point under anomaly dimension
-            if (anomalyTree.ParentNode == null)
-            {
-                return dst;
-            }
-            if (dimPointMapping.Count == 0)
+            if (anomalyTree.ParentNode == null || dimPointMapping.Count == 0)
             {
                 return dst;
             }
@@ -59,16 +56,8 @@ namespace Microsoft.ML.TimeSeries
 
         protected List<Point> GetTotalPointsForAnomalyTimestamp(RootCauseLocalizationInput src)
         {
-            List<Point> points = new List<Point>();
-            foreach (MetricSlice slice in src.Slices)
-            {
-                if (slice.TimeStamp.Equals(src.AnomalyTimestamp))
-                {
-                    points = slice.Points;
-                }
-            }
-
-            return points;
+            MetricSlice slice = src.Slices.Single(slice => slice.TimeStamp.Equals(src.AnomalyTimestamp));
+            return slice.Points;
         }
 
         protected DimensionInfo SeperateDimension(Dictionary<string, Object> dimensions, Object aggSymbol)
@@ -92,8 +81,8 @@ namespace Microsoft.ML.TimeSeries
 
         protected Tuple<PointTree, PointTree, Dictionary<string, Point>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo)
         {
-            PointTree pointTree = PointTree.CreateDefaultInstance();
-            PointTree anomalyTree = PointTree.CreateDefaultInstance();
+            PointTree pointTree = new PointTree();
+            PointTree anomalyTree = new PointTree();
             Dictionary<string, Point> dimPointMapping = new Dictionary<string, Point>();
 
             List<Point> totalPoints = GetTotalPointsForAnomalyTimestamp(src);
@@ -125,12 +114,8 @@ namespace Microsoft.ML.TimeSeries
 
         protected Dictionary<string, Object> GetSubDim(Dictionary<string, Object> dimension, List<string> keyList)
         {
-            Dictionary<string, Object> subDim = new Dictionary<string, Object>();
-            foreach (string dim in keyList)
-            {
-                subDim.Add(dim, dimension[dim]);
-            }
-            return subDim;
+            return new Dictionary<string, object>(keyList.Select(dim => new KeyValuePair<string, object>(dim, dimension[dim])).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+
         }
 
         protected List<RootCauseItem> LocalizeRootCauseByDimension(PointTree anomalyTree, PointTree pointTree, Dictionary<string, Object> anomalyDimension, List<string> aggDims)
@@ -203,7 +188,8 @@ namespace Microsoft.ML.TimeSeries
             {
                 anomalyPoints.Reverse();
             }
-            else {
+            else
+            {
                 anomalyPoints = anomalyPoints.FindAll(x => x.Delta < 0);
             }
             if (anomalyPoints.Count == 1)
@@ -245,7 +231,7 @@ namespace Microsoft.ML.TimeSeries
 
             foreach (string dimKey in aggDim)
             {
-                BestDimension dimension = BestDimension.CreateDefaultInstance();
+                BestDimension dimension = new BestDimension();
                 dimension.DimensionKey = dimKey;
 
                 UpdateDistribution(dimension.PointDis, totalPoints, dimKey);
@@ -253,13 +239,15 @@ namespace Microsoft.ML.TimeSeries
 
                 double relativeEntropy = GetDimensionEntropy(dimension.PointDis, dimension.AnomalyDis);
                 double gain = totalEntropy - relativeEntropy;
-                if (Double.IsNaN(gain)) {
+                if (Double.IsNaN(gain))
+                {
                     gain = 0;
                 }
                 entroyGainMap.Add(dimension, gain);
 
                 double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis);
-                if (Double.IsInfinity(gainRatio)) {
+                if (Double.IsInfinity(gainRatio))
+                {
                     gainRatio = 0;
                 }
                 entroyGainRatioMap.Add(dimension, gainRatio);
@@ -282,7 +270,7 @@ namespace Microsoft.ML.TimeSeries
 
             foreach (string dimKey in aggDim)
             {
-                BestDimension dimension = BestDimension.CreateDefaultInstance();
+                BestDimension dimension = new BestDimension();
                 dimension.DimensionKey = dimKey;
 
                 if (pointChildren.ContainsKey(dimKey))
@@ -295,14 +283,16 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 double entropy = GetEntropy(dimension.PointDis.Count, dimension.AnomalyDis.Count);
-                if (Double.IsNaN(entropy)) {
+                if (Double.IsNaN(entropy))
+                {
                     entropy = Double.MaxValue;
                 }
                 entropyMap.Add(dimension, entropy);
 
                 double gainRatio = entropy / GetDimensionInstrinsicValue(dimension.PointDis);
 
-                if (Double.IsInfinity(gainRatio)) {
+                if (Double.IsInfinity(gainRatio))
+                {
                     gainRatio = 0;
                 }
                 entropyRatioMap.Add(dimension, gainRatio);
@@ -326,7 +316,8 @@ namespace Microsoft.ML.TimeSeries
             {
                 return AnomalyDirection.Down;
             }
-            else {
+            else
+            {
                 return AnomalyDirection.Same;
             }
         }
@@ -357,7 +348,8 @@ namespace Microsoft.ML.TimeSeries
                     {
                         dst.Items[i].Score = 1;
                     }
-                    else {
+                    else
+                    {
                         dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplainaryScore), beta);
                     }
                 }
@@ -372,7 +364,8 @@ namespace Microsoft.ML.TimeSeries
                     {
                         dst.Items[0].Score = 1;
                     }
-                    else {
+                    else
+                    {
                         dst.Items[0].Score = GetFinalScore(scores.Item1, scores.Item2, beta);
                     }
                     dst.Items[0].Direction = GetRootCauseDirection(rootCausePoint);
@@ -469,24 +462,32 @@ namespace Microsoft.ML.TimeSeries
             {
                 if (dimension.Key.AnomalyDis.Count == 1 || (isLeavesLevel ? dimension.Value >= meanGain : dimension.Value <= meanGain))
                 {
-                    if (dimension.Key.AnomalyDis.Count > 1)
+                    if (best == null)
                     {
-                        if (best == null || (!Double.IsNaN(valueRatioMap[best]) && (best.AnomalyDis.Count != 1 && (isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0))))
-                        {
-                            best = dimension.Key;
-                        }
+                        best = dimension.Key;
                     }
                     else
                     {
-                        if (best == null || best.AnomalyDis.Count > 1)
+                        bool isRatioNan = Double.IsNaN(valueRatioMap[best]);
+                        if (dimension.Key.AnomalyDis.Count > 1)
                         {
-                            best = dimension.Key;
+                            if (!isRatioNan && (best.AnomalyDis.Count != 1 && (isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0)))
+                            {
+                                best = dimension.Key;
+                            }
                         }
                         else
                         {
-                            if (!Double.IsNaN(valueRatioMap[best]) && (isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0))
+                            if (best.AnomalyDis.Count > 1)
                             {
                                 best = dimension.Key;
+                            }
+                            else
+                            {
+                                if (!isRatioNan && (isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0))
+                                {
+                                    best = dimension.Key;
+                                }
                             }
                         }
                     }
@@ -660,26 +661,19 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        private double Log2(double val)
-        {
-            if (Double.IsNaN(val))
-            {
-                return 0;
-            }
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+        private double Log2(double val) => Double.IsNaN(val) ? 0 : Math.Log(val) / Math.Log(2);
 
-            return Math.Log(val) / Math.Log(2);
-        }
-
-        private static bool ContainsAll(Dictionary<string, Object> bigDic, Dictionary<string, Object> smallDic)
+        private static bool ContainsAll(Dictionary<string, Object> bigDictionary, Dictionary<string, Object> smallDictionary)
         {
-            foreach (var item in smallDic)
+            foreach (var item in smallDictionary)
             {
-                if (!bigDic.ContainsKey(item.Key))
+                if (!bigDictionary.ContainsKey(item.Key))
                 {
                     return false;
                 }
 
-                if (bigDic.ContainsKey(item.Key) && !bigDic[item.Key].Equals(smallDic[item.Key]))
+                if (bigDictionary.ContainsKey(item.Key) && !bigDictionary[item.Key].Equals(smallDictionary[item.Key]))
                 {
                     return false;
                 }
@@ -714,12 +708,10 @@ namespace Microsoft.ML.TimeSeries
         public Dictionary<string, List<Point>> ChildrenNodes;
         public List<Point> Leaves;
 
-        public static PointTree CreateDefaultInstance()
+        public PointTree()
         {
-            PointTree instance = new PointTree();
-            instance.Leaves = new List<Point>();
-            instance.ChildrenNodes = new Dictionary<string, List<Point>>();
-            return instance;
+            Leaves = new List<Point>();
+            ChildrenNodes = new Dictionary<string, List<Point>>();
         }
     }
 
@@ -729,13 +721,10 @@ namespace Microsoft.ML.TimeSeries
         public Dictionary<string, int> AnomalyDis;
         public Dictionary<string, int> PointDis;
 
-        public BestDimension() { }
-        public static BestDimension CreateDefaultInstance()
+        public BestDimension()
         {
-            BestDimension instance = new BestDimension();
-            instance.AnomalyDis = new Dictionary<string, int>();
-            instance.PointDis = new Dictionary<string, int>();
-            return instance;
+            AnomalyDis = new Dictionary<string, int>();
+            PointDis = new Dictionary<string, int>();
         }
 
         public int CompareTo(object obj)
