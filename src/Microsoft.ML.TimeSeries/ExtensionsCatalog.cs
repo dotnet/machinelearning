@@ -171,22 +171,17 @@ namespace Microsoft.ML
             CheckRootCauseInput(host, src);
 
             //check beta
-            if (beta < 0 || beta > 1) {
-                host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
-            }
+            host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
 
             //find out the root cause
             RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta);
-            RootCause dst  = analyzer.Analyze();
+            RootCause dst = analyzer.Analyze();
             return dst;
         }
 
         private static void CheckRootCauseInput(IHostEnvironment host, RootCauseLocalizationInput src)
         {
-            if (src.Slices.Count < 1)
-            {
-                host.CheckUserArg(src.Slices.Count > 1 , nameof(src.Slices), "Must has more than one item");
-            }
+            host.CheckUserArg(src.Slices.Count >= 1, nameof(src.Slices), "Must has more than one item");
 
             bool containsAnomalyTimestamp = false;
             foreach (MetricSlice slice in src.Slices)

@@ -115,7 +115,6 @@ namespace Microsoft.ML.TimeSeries
         protected Dictionary<string, Object> GetSubDim(Dictionary<string, Object> dimension, List<string> keyList)
         {
             return new Dictionary<string, object>(keyList.Select(dim => new KeyValuePair<string, object>(dim, dimension[dim])).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
-
         }
 
         protected List<RootCauseItem> LocalizeRootCauseByDimension(PointTree anomalyTree, PointTree pointTree, Dictionary<string, Object> anomalyDimension, List<string> aggDims)
@@ -668,12 +667,7 @@ namespace Microsoft.ML.TimeSeries
         {
             foreach (var item in smallDictionary)
             {
-                if (!bigDictionary.ContainsKey(item.Key))
-                {
-                    return false;
-                }
-
-                if (bigDictionary.ContainsKey(item.Key) && !bigDictionary[item.Key].Equals(smallDictionary[item.Key]))
+                if (!bigDictionary.ContainsKey(item.Key) || !bigDictionary[item.Key].Equals(smallDictionary[item.Key]))
                 {
                     return false;
                 }
