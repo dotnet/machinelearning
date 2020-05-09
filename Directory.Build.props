@@ -5,6 +5,10 @@
   <Import Project="build/Dependencies.props" />
 
   <PropertyGroup>
+	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>

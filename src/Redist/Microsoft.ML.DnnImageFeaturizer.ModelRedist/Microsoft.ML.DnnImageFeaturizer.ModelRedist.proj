@@ -113,6 +113,9 @@
     <Message Importance="High" Text="Copying external model files... @(ModelFileCopy->'%(TargetPath)')" />
     <Copy SourceFiles="@(ModelFileCopy)"
           DestinationFiles="@(ModelFileCopy->'%(TargetPath)')" />
+          <!-- disable for now as use symbol link will fail build package task
+          UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
+          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)" -->
   </Target>
 
   <Target Name="Build"
