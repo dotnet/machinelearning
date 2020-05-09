@@ -30,7 +30,9 @@ namespace Microsoft.ML.TimeSeries
             return AnalyzeOneLayer(_src);
         }
 
-        //This is a function for analyze one layer for root cause, we select one dimension with values who contributes the most to the anomaly.
+        /// <summary>
+        ///  This is a function for analyze one layer for root cause, we select one dimension with values who contributes the most to the anomaly.
+        /// </summary>
         private RootCause AnalyzeOneLayer(RootCauseLocalizationInput src)
         {
             RootCause dst = new RootCause();
@@ -54,7 +56,7 @@ namespace Microsoft.ML.TimeSeries
             return dst;
         }
 
-        private List<Point> GetTotalPointsForAnomalyTimestamp(RootCauseLocalizationInput src)
+        protected List<Point> GetTotalPointsForAnomalyTimestamp(RootCauseLocalizationInput src)
         {
             MetricSlice slice = src.Slices.Single(slice => slice.TimeStamp.Equals(src.AnomalyTimestamp));
             return slice.Points;
@@ -220,7 +222,9 @@ namespace Microsoft.ML.TimeSeries
             return null;
         }
 
-        //Use leaves point information to select best dimension
+        /// <summary>
+        ///  Use leaves point information to select best dimension
+        /// </summary>
         protected BestDimension SelectBestDimension(List<Point> totalPoints, List<Point> anomalyPoints, List<string> aggDim)
         {
             double totalEntropy = GetEntropy(totalPoints.Count, anomalyPoints.Count);
@@ -260,7 +264,9 @@ namespace Microsoft.ML.TimeSeries
             return best;
         }
 
-        //Use children point information to select best dimension
+        /// <summary>
+        ///  Use children point information to select best dimension
+        /// </summary>
         private BestDimension SelectBestDimension(Dictionary<string, List<Point>> pointChildren, Dictionary<string, List<Point>> anomalyChildren, List<string> aggDim)
         {
             SortedDictionary<BestDimension, double> entropyMap = new SortedDictionary<BestDimension, double>();

@@ -8,82 +8,11 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.TimeSeries
 {
-    /// <summary>
-    /// Allows a member to be marked as a <see cref="RootCauseLocalizationInputDataViewType"/>, primarily allowing one to set
-    /// root cause localization input.
-    /// </summary>
-    public sealed class RootCauseLocalizationInputTypeAttribute : DataViewTypeAttribute
-    {
-        /// <summary>
-        /// Create a root cause localizing input type.
-        /// </summary>
-        public RootCauseLocalizationInputTypeAttribute()
-        {
-        }
-
-        /// <summary>
-        /// Equal function.
-        /// </summary>
-        public override bool Equals(DataViewTypeAttribute other)
-        {
-            if (!(other is RootCauseLocalizationInputTypeAttribute otherAttribute))
-                return false;
-            return true;
-        }
-
-        /// <summary>
-        /// Produce the same hash code for all RootCauseLocalizationInputTypeAttribute.
-        /// </summary>
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override void Register()
-        {
-            DataViewTypeManager.Register(new RootCauseLocalizationInputDataViewType(), typeof(RootCauseLocalizationInput), this);
-        }
-    }
-
-    /// <summary>
-    /// Allows a member to be marked as a <see cref="RootCauseDataViewType"/>, primarily allowing one to set
-    /// root cause result.
-    /// </summary>
-    public sealed class RootCauseTypeAttribute : DataViewTypeAttribute
-    {
-        /// <summary>
-        /// Create an root cause type.
-        /// </summary>
-        public RootCauseTypeAttribute()
-        {
-        }
-
-        /// <summary>
-        /// RootCauseTypeAttribute with the same type should equal.
-        /// </summary>
-        public override bool Equals(DataViewTypeAttribute other)
-        {
-            if (other is RootCauseTypeAttribute otherAttribute)
-                return true;
-            return false;
-        }
-
-        /// <summary>
-        /// Produce the same hash code for all RootCauseTypeAttribute.
-        /// </summary>
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override void Register()
-        {
-            DataViewTypeManager.Register(new RootCauseDataViewType(), typeof(RootCause), this);
-        }
-    }
-
     public sealed class RootCause
     {
+        /// <summary>
+        /// A List for root cause item. Instance of the item should be <see cref="RootCauseItem"/>
+        /// </summary>
         public List<RootCauseItem> Items { get; set; }
         public RootCause()
         {
@@ -93,18 +22,29 @@ namespace Microsoft.ML.TimeSeries
 
     public sealed class RootCauseLocalizationInput
     {
-        //When the anomaly incident occurs
+        /// <summary>
+        /// When the anomaly incident occurs
+        /// </summary>
         public DateTime AnomalyTimestamp { get; set; }
 
-        //Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause
+        /// <summary>
+        /// Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause
+        /// </summary>
         public Dictionary<string, Object> AnomalyDimension { get; set; }
 
-        //A list of points at different timestamp. If the slices don't contain point data corresponding to the anomaly timestamp, the root cause localization alogorithm will not calculate the root cause as no information at the anomaly timestamp is provided.
+        /// <summary>
+        /// A list of points at different timestamp. If the slices don't contain point data corresponding to the anomaly timestamp, the root cause localization alogorithm will not calculate the root cause as no information at the anomaly timestamp is provided.
+        /// </summary>
         public List<MetricSlice> Slices { get; set; }
 
-        //The aggregated symbol in the AnomalyDimension and point dimension should be consistent
+        /// <summary>
+        /// The aggregated type, the type should be  <see cref="AggregateType"/>
+        /// </summary>
         public AggregateType AggType { get; set; }
 
+        /// <summary>
+        /// The string you defined as a aggregated symbol in the AnomalyDimension and point dimension.
+        /// </summary>
         public Object AggSymbol { get; set; }
 
         public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, AggregateType aggregateType, Object aggregateSymbol)
@@ -123,58 +63,6 @@ namespace Microsoft.ML.TimeSeries
             Slices = slices;
             AggType = AggregateType.Unknown;
             AggSymbol = aggregateSymbol;
-        }
-    }
-
-    public sealed class RootCauseDataViewType : StructuredDataViewType
-    {
-        public RootCauseDataViewType()
-           : base(typeof(RootCause))
-        {
-        }
-
-        public override bool Equals(DataViewType other)
-        {
-            if (other == this)
-                return true;
-            if (!(other is RootCauseDataViewType tmp))
-                return false;
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override string ToString()
-        {
-            return typeof(RootCauseDataViewType).Name;
-        }
-    }
-
-    public sealed class RootCauseLocalizationInputDataViewType : StructuredDataViewType
-    {
-        public RootCauseLocalizationInputDataViewType()
-           : base(typeof(RootCauseLocalizationInput))
-        {
-        }
-
-        public override bool Equals(DataViewType other)
-        {
-            if (!(other is RootCauseLocalizationInputDataViewType tmp))
-                return false;
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override string ToString()
-        {
-            return typeof(RootCauseLocalizationInputDataViewType).Name;
         }
     }
 
@@ -220,13 +108,21 @@ namespace Microsoft.ML.TimeSeries
 
     public sealed class RootCauseItem : IEquatable<RootCauseItem>
     {
-        //The score is a value to evaluate the contribution to the anomaly incident. The range is between [0,1]. The larger the score, the root cause contributes the most to the anomaly. The parameter beta has an influence on this score. For how the score is calculated, you can refer to the source code.
+        /// <summary>
+        ///The score is a value to evaluate the contribution to the anomaly incident. The range is between [0,1]. The larger the score, the root cause contributes the most to the anomaly. The parameter beta has an influence on this score. For how the score is calculated, you can refer to the source code.
+        ///</summary>
         public double Score;
-        //Path is a list of the dimension key that the libary selected for you. In this root cause localization library, for one time call for the library, the path will be obtained and the length of path list will always be 1. Different RootCauseItem obtained from one library call will have the same path as it is the best dimension selected for the input.
+        /// <summary>
+        /// Path is a list of the dimension key that the libary selected for you. In this root cause localization library, for one time call for the library, the path will be obtained and the length of path list will always be 1. Different RootCauseItem obtained from one library call will have the same path as it is the best dimension selected for the input.
+        /// </summary>
         public List<string> Path;
-        //The dimension for the detected root cause point
+        /// <summary>
+        /// The dimension for the detected root cause point
+        /// </summary>
         public Dictionary<string, Object> Dimension;
-        //The direction for the detected root cause point
+        /// <summary>
+        /// The direction for the detected root cause point, should be <see cref="AnomalyDirection"/>
+        /// </summary>
         public AnomalyDirection Direction;
 
         public RootCauseItem(Dictionary<string, Object> rootCause)
@@ -259,7 +155,13 @@ namespace Microsoft.ML.TimeSeries
 
     public sealed class MetricSlice
     {
+        /// <summary>
+        /// Timestamp for the point list
+        /// </summary>
         public DateTime TimeStamp { get; set; }
+        /// <summary>
+        /// A list of points
+        /// </summary>
         public List<Point> Points { get; set; }
 
         public MetricSlice(DateTime timeStamp, List<Point> points)
@@ -271,11 +173,25 @@ namespace Microsoft.ML.TimeSeries
 
     public sealed class Point : IEquatable<Point>
     {
+        /// <summary>
+        /// Value of a time series point
+        /// </summary>
         public double Value { get; set; }
+        /// <summary>
+        /// Forecasted value for the time series point
+        /// </summary>
         public double ExpectedValue { get; set; }
+        /// <summary>
+        /// Whether the point is an anomaly point
+        /// </summary>
         public bool IsAnomaly { get; set; }
-        //The value for this dictionary is an object, when the Dimension is used, the equals function for the Object will be used. If you have a customized class, you need to define the Equals function.
+        /// <summary>
+        /// Dimension information for the point. For example, City = New York City, Dataceter = DC1. The value for this dictionary is an object, when the Dimension is used, the equals function for the Object will be used. If you have a customized class, you need to define the Equals function.
+        /// </summary>
         public Dictionary<string, Object> Dimension { get; set; }
+        /// <summary>
+        /// Difference between value and expected value
+        /// </summary>
         public double Delta { get; set; }
 
         public Point(Dictionary<string, Object> dimension)
