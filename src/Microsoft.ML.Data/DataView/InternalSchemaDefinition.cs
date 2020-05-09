@@ -178,13 +178,7 @@ namespace Microsoft.ML.Data
             // Determine whether this is a vector, and also determine the raw item type.
             isVector = true;
             if (rawType.IsArray)
-            {
                 itemType = rawType.GetElementType();
-                // Sometimes when user define the type in a wrong way. e.g [OnnxSequenceType(typeof(IEnumerable<float>))]\n public IEnumerable<float> loss;
-                //
-                //if (itemType.IsArray)
-                //    itemType = itemType.GetElementType();
-            }
             else if (rawType.IsGenericType && rawType.GetGenericTypeDefinition() == typeof(VBuffer<>))
                 itemType = rawType.GetGenericArguments()[0];
             else
