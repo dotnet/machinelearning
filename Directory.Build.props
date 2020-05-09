@@ -10,8 +10,8 @@
     <BinPlaceUseHardlinksIfPossible>true</BinPlaceUseHardlinksIfPossible>
     <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
     <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible>
-    <!-- <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible> -->
-	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
+    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
+	  <!-- <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible> -->
   </PropertyGroup>
 
   <PropertyGroup>
