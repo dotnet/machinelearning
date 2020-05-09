@@ -5,13 +5,7 @@
   <Import Project="build/Dependencies.props" />
 
   <PropertyGroup>
-    <CreateHardLinksForCopyTestToTestDirectoryIfPossible>true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
-    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
-    <BinPlaceUseHardlinksIfPossible>true</BinPlaceUseHardlinksIfPossible>
-    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
-    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible>
-    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
-	  <!-- <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible> -->
+	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
   </PropertyGroup>
 
   <PropertyGroup>
