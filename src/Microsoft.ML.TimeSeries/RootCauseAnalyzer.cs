@@ -54,15 +54,15 @@ namespace Microsoft.ML.TimeSeries
             return dst;
         }
 
-        protected List<Point> GetTotalPointsForAnomalyTimestamp(RootCauseLocalizationInput src)
+        private List<Point> GetTotalPointsForAnomalyTimestamp(RootCauseLocalizationInput src)
         {
             MetricSlice slice = src.Slices.Single(slice => slice.TimeStamp.Equals(src.AnomalyTimestamp));
             return slice.Points;
         }
 
-        protected DimensionInfo SeperateDimension(Dictionary<string, Object> dimensions, Object aggSymbol)
+        private DimensionInfo SeperateDimension(Dictionary<string, Object> dimensions, Object aggSymbol)
         {
-            DimensionInfo info = DimensionInfo.CreateDefaultInstance();
+            DimensionInfo info = new DimensionInfo();
             foreach (KeyValuePair<string, Object> entry in dimensions)
             {
                 string key = entry.Key;
@@ -79,7 +79,7 @@ namespace Microsoft.ML.TimeSeries
             return info;
         }
 
-        protected Tuple<PointTree, PointTree, Dictionary<string, Point>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo)
+        private Tuple<PointTree, PointTree, Dictionary<string, Point>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo)
         {
             PointTree pointTree = new PointTree();
             PointTree anomalyTree = new PointTree();
@@ -117,7 +117,7 @@ namespace Microsoft.ML.TimeSeries
             return new Dictionary<string, object>(keyList.Select(dim => new KeyValuePair<string, object>(dim, dimension[dim])).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
         }
 
-        protected List<RootCauseItem> LocalizeRootCauseByDimension(PointTree anomalyTree, PointTree pointTree, Dictionary<string, Object> anomalyDimension, List<string> aggDims)
+        private List<RootCauseItem> LocalizeRootCauseByDimension(PointTree anomalyTree, PointTree pointTree, Dictionary<string, Object> anomalyDimension, List<string> aggDims)
         {
             BestDimension best = null;
             if (anomalyTree.ChildrenNodes.Count == 0)
@@ -682,25 +682,23 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    public class DimensionInfo
+    internal class DimensionInfo
     {
-        public List<string> DetailDims { get; set; }
-        public List<string> AggDims { get; set; }
+        internal List<string> DetailDims { get; set; }
+        internal List<string> AggDims { get; set; }
 
-        public static DimensionInfo CreateDefaultInstance()
+        public DimensionInfo()
         {
-            DimensionInfo instance = new DimensionInfo();
-            instance.DetailDims = new List<string>();
-            instance.AggDims = new List<string>();
-            return instance;
+            DetailDims = new List<string>();
+            AggDims = new List<string>();
         }
     }
 
-    public class PointTree
+    internal class PointTree
     {
-        public Point ParentNode;
-        public Dictionary<string, List<Point>> ChildrenNodes;
-        public List<Point> Leaves;
+        internal Point ParentNode;
+        internal Dictionary<string, List<Point>> ChildrenNodes;
+        internal List<Point> Leaves;
 
         public PointTree()
         {
@@ -709,11 +707,11 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    public sealed class BestDimension : IComparable
+    public class BestDimension : IComparable
     {
-        public string DimensionKey;
-        public Dictionary<string, int> AnomalyDis;
-        public Dictionary<string, int> PointDis;
+        internal string DimensionKey;
+        internal Dictionary<string, int> AnomalyDis;
+        internal Dictionary<string, int> PointDis;
 
         public BestDimension()
         {
@@ -733,10 +731,10 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    public class RootCauseScore
+    internal class RootCauseScore
     {
-        public double Surprise;
-        public double ExplainaryScore;
+        internal double Surprise;
+        internal double ExplainaryScore;
 
         public RootCauseScore(double surprise, double explainaryScore)
         {
