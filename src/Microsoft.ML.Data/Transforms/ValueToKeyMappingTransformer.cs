@@ -787,7 +787,8 @@ namespace Microsoft.ML.Transforms
             private void CastInputToString<T>(OnnxContext ctx, out OnnxNode node, out long[] termIds, string srcVariableName, int iinfo,
                 string opType, string labelEncoderOutput)
             {
-                var castOutput = ctx.AddIntermediateVariable(TextDataViewType.Instance, "castOutput");
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(TextDataViewType.Instance, (int)srcShape[1]), "castOutput");
                 var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
                 var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
                 castNode.AddAttribute("to", t);
@@ -799,7 +800,8 @@ namespace Microsoft.ML.Transforms
             private void CastInputToFloat<T>(OnnxContext ctx, out OnnxNode node, out long[] termIds, string srcVariableName, int iinfo,
                 string opType, string labelEncoderOutput)
             {
-                var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "castOutput");
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, (int)srcShape[1]), "castOutput");
                 var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
                 var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
                 castNode.AddAttribute("to", t);
@@ -807,13 +809,14 @@ namespace Microsoft.ML.Transforms
                 var terms = GetTermsAndIds<T>(iinfo, out termIds);
                 node.AddAttribute("keys_floats", terms.Select(item => Convert.ToSingle(item)));
             }
+
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
                 OnnxNode node;
                 long[] termIds;
                 string opType = "LabelEncoder";
                 OnnxNode castNode;
-                var labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "LabelEncoderOutput");
+                var labelEncoderOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, _types[iinfo].GetValueCount()), "LabelEncoderOutput");
 
                 var type = info.TypeSrc.GetItemType();
                 if (type.Equals(TextDataViewType.Instance))
@@ -876,7 +879,10 @@ namespace Microsoft.ML.Transforms
                     return false;
                 }
 
-                node.AddAttribute("default_int64", -1);
+                //Unknown keys should map to 0
+                node.AddAttribute("default_int64", 0);
+                node.AddAttribute("default_string", "0");
+                node.AddAttribute("default_float", 0f);
                 node.AddAttribute("values_int64s", termIds);
 
                 // Onnx outputs an Int64, but ML.NET outputs a keytype. So cast it here

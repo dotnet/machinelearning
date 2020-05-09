@@ -18,7 +18,7 @@ jobs:
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
       timeoutInMinutes: 75
     ${{ if eq(parameters.codeCoverage, 'true') }}:
-      timeoutInMinutes: 75
+      timeoutInMinutes: 100
     cancelTimeoutInMinutes: 10
     variables:
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
@@ -52,7 +52,7 @@ jobs:
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew unlink python@2 && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
-    - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.queue, 'BuildPool.Ubuntu.1604.Amd64.Open')) }}:
+    - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
@@ -75,6 +75,8 @@ jobs:
           targetType: inline
           script: Get-ChildItem -Path  '.\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
         displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
+      - script: dir /s "bin"
+        displayName: show bin folder disk usage
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project

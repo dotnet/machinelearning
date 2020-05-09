@@ -33,8 +33,16 @@
           },
           {
             "name": "default_int64",
-            "i": "-1",
             "type": "INT"
+          },
+          {
+            "name": "default_string",
+            "s": "MA==",
+            "type": "STRING"
+          },
+          {
+            "name": "default_float",
+            "type": "FLOAT"
           },
           {
             "name": "values_int64s",
@@ -94,7 +102,7 @@
           "Cast"
         ],
         "output": [
-          "encoded"
+          "F21"
         ],
         "name": "OneHotEncoder",
         "opType": "OneHotEncoder",
@@ -122,25 +130,6 @@
           }
         ],
         "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "encoded"
-        ],
-        "output": [
-          "F21"
-        ],
-        "name": "Squeeze",
-        "opType": "Squeeze",
-        "attribute": [
-          {
-            "name": "axes",
-            "ints": [
-              "1"
-            ],
-            "type": "INTS"
-          }
-        ]
       },
       {
         "input": [
@@ -460,12 +449,22 @@
       },
       {
         "input": [
+          "F3"
+        ],
+        "output": [
+          "F3.output"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
           "PredictedLabel"
         ],
         "output": [
           "PredictedLabel.output"
         ],
-        "name": "Identity",
+        "name": "Identity0",
         "opType": "Identity"
       },
       {
@@ -475,7 +474,7 @@
         "output": [
           "Score.output"
         ],
-        "name": "Identity0",
+        "name": "Identity1",
         "opType": "Identity"
       },
       {
@@ -485,7 +484,7 @@
         "output": [
           "Probability.output"
         ],
-        "name": "Identity1",
+        "name": "Identity2",
         "opType": "Identity"
       }
     ],
@@ -542,9 +541,45 @@
             }
           }
         }
+      },
+      {
+        "name": "F3",
+        "type": {
+          "tensorType": {
+            "elemType": 8,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "5"
+                }
+              ]
+            }
+          }
+        }
       }
     ],
     "output": [
+      {
+        "name": "F3.output",
+        "type": {
+          "tensorType": {
+            "elemType": 8,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "5"
+                }
+              ]
+            }
+          }
+        }
+      },
       {
         "name": "PredictedLabel.output",
         "type": {
@@ -667,27 +702,6 @@
                 },
                 {
                   "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "name": "encoded",
-        "type": {
-          "tensorType": {
-            "elemType": 1,
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "-1"
-                },
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "10"
                 }
               ]
             }
@@ -832,6 +846,24 @@
                 },
                 {
                   "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F3.output",
+        "type": {
+          "tensorType": {
+            "elemType": 8,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "5"
                 }
               ]
             }

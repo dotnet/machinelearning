@@ -177,10 +177,10 @@ namespace Microsoft.ML.Transforms.Onnx
                     break;
                 case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.DimParam:
                     // Variable-length dimension is translated to 0.
-                    value = 0;
                     break;
-                default:
-                    throw Contracts.ExceptParamValue(dim.DimValue, nameof(dim), $"Dimension {dim} in ONNX tensor cannot exceed the maximum of 32-bit signed integer.");
+                case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.None:
+                    // Empty dimension is translated to 0.
+                    break;
             }
             return value;
         }

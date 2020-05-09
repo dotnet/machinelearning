@@ -505,7 +505,8 @@ namespace Microsoft.ML.Transforms
                     // Onnx expects the input keys to be int64s. But the input data can come from an ML.NET node that
                     // may output a uint32. So cast it here to ensure that the data is treated correctly
                     opType = "Cast";
-                    var castNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastNodeOutput");
+                    var srcShape = (int)ctx.RetrieveShapeOrNull(srcVariableName)[1];
+                    var castNodeOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, srcShape), "CastNodeOutput");
                     var castNode = ctx.CreateNode(opType, srcVariableName, castNodeOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
                     castNode.AddAttribute("to", t);
@@ -513,11 +514,11 @@ namespace Microsoft.ML.Transforms
                     var labelEncoderOutput = dstVariableName;
                     var labelEncoderInput = srcVariableName;
                     if (TypeOutput == NumberDataViewType.Double || TypeOutput == BooleanDataViewType.Instance)
-                        labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "CastNodeOutput");
+                        labelEncoderOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, srcShape), "CastNodeOutput");
                     else if (TypeOutput == NumberDataViewType.Int64 || TypeOutput == NumberDataViewType.UInt16 ||
                         TypeOutput == NumberDataViewType.Int32 || TypeOutput == NumberDataViewType.Int16 ||
                         TypeOutput == NumberDataViewType.UInt64 || TypeOutput == NumberDataViewType.UInt32)
-                        labelEncoderOutput = ctx.AddIntermediateVariable(TextDataViewType.Instance, "CastNodeOutput");
+                        labelEncoderOutput = ctx.AddIntermediateVariable(new VectorDataViewType(TextDataViewType.Instance, srcShape), "CastNodeOutput");
 
                     opType = "LabelEncoder";
                     var node = ctx.CreateNode(opType, castNodeOutput, labelEncoderOutput, ctx.GetNodeName(opType));

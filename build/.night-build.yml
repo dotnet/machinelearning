@@ -92,7 +92,8 @@ jobs:
     buildScript: build.cmd
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      name:  NetCorePublic-Pool
+      queue: buildpool.server.amd64.vs2017.open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -109,7 +110,8 @@ jobs:
         _includeBenchmarkData: false
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      name:  NetCorePublic-Pool
+      queue: buildpool.server.amd64.vs2017.open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -118,4 +120,5 @@ jobs:
     buildScript: build.cmd
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      name:  NetCorePublic-Pool
+      queue: buildpool.server.amd64.vs2017.open
