@@ -112,7 +112,9 @@
           DependsOnTargets="DownloadDnnModelFiles">
     <Message Importance="High" Text="Copying external model files... @(ModelFileCopy->'%(TargetPath)')" />
     <Copy SourceFiles="@(ModelFileCopy)"
-          DestinationFiles="@(ModelFileCopy->'%(TargetPath)')" />
+          DestinationFiles="@(ModelFileCopy->'%(TargetPath)')" 
+          UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
+          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)" />
   </Target>
 
   <Target Name="Build"

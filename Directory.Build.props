@@ -5,6 +5,16 @@
   <Import Project="build/Dependencies.props" />
 
   <PropertyGroup>
+    <CreateHardLinksForCopyTestToTestDirectoryIfPossible>true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
+    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+    <BinPlaceUseHardlinksIfPossible>true</BinPlaceUseHardlinksIfPossible>
+    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible>
+    <!-- <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible> -->
+	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
