@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime;
@@ -177,7 +178,13 @@ namespace Microsoft.ML.Data
             // Determine whether this is a vector, and also determine the raw item type.
             isVector = true;
             if (rawType.IsArray)
+            {
                 itemType = rawType.GetElementType();
+                // Sometimes when user define the type in a wrong way. e.g [OnnxSequenceType(typeof(IEnumerable<float>))]\n public IEnumerable<float> loss;
+                //
+                //if (itemType.IsArray)
+                //    itemType = itemType.GetElementType();
+            }
             else if (rawType.IsGenericType && rawType.GetGenericTypeDefinition() == typeof(VBuffer<>))
                 itemType = rawType.GetGenericArguments()[0];
             else
@@ -192,7 +199,12 @@ namespace Microsoft.ML.Data
             // Check if the itemType extracted from rawType is supported by ML.NET's type system.
             // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
             else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
-                throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
+            {
+                //This is a big hack. It gives helpful information when customer accidently define OnnxSequenceType the same as member type
+                if (DataViewTypeManager.Knows(typeof(IEnumerable<>).MakeGenericType(itemType), attributes))
+                    throw Contracts.ExceptParam(nameof(rawType), "Defined uncessary container type of member {0}", name);
+                throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type and registered custom types for member {0}", name);
+            }
         }
 
         public static InternalSchemaDefinition Create(Type userType, SchemaDefinition.Direction direction)
