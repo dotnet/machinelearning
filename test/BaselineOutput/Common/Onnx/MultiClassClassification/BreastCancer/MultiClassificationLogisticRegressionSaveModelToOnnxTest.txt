@@ -99,8 +99,16 @@
           },
           {
             "name": "default_int64",
-            "i": "-1",
             "type": "INT"
+          },
+          {
+            "name": "default_string",
+            "s": "MA==",
+            "type": "STRING"
+          },
+          {
+            "name": "default_float",
+            "type": "FLOAT"
           },
           {
             "name": "values_int64s",
