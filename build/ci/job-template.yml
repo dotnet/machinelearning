@@ -75,6 +75,8 @@ jobs:
           targetType: inline
           script: Get-ChildItem -Path  '.\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
         displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
+      - script: dir /s "bin"
+        displayName: show bin folder disk usage
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
