@@ -38,7 +38,7 @@ namespace Microsoft.ML.TimeSeries
             RootCause dst = new RootCause();
             dst.Items = new List<RootCauseItem>();
 
-            DimensionInfo dimensionInfo = SeperateDimension(src.AnomalyDimension, src.AggSymbol);
+            DimensionInfo dimensionInfo = SeparateDimension(src.AnomalyDimension, src.AggSymbol);
             Tuple<PointTree, PointTree, Dictionary<string, Point>> pointInfo = GetPointsInfo(src, dimensionInfo);
             PointTree pointTree = pointInfo.Item1;
             PointTree anomalyTree = pointInfo.Item2;
@@ -62,7 +62,7 @@ namespace Microsoft.ML.TimeSeries
             return slice.Points;
         }
 
-        private DimensionInfo SeperateDimension(Dictionary<string, Object> dimensions, Object aggSymbol)
+        private DimensionInfo SeparateDimension(Dictionary<string, Object> dimensions, Object aggSymbol)
         {
             DimensionInfo info = new DimensionInfo();
             foreach (KeyValuePair<string, Object> entry in dimensions)
@@ -214,7 +214,7 @@ namespace Microsoft.ML.TimeSeries
             }
 
             int pointSize = isLeaveslevel ? pointDistribution.Count : GetTotalNumber(pointDistribution);
-            if (ShouldSeperateAnomaly(delta, root.Delta, pointSize, causeList.Count))
+            if (ShouldSeparateAnomaly(delta, root.Delta, pointSize, causeList.Count))
             {
                 return causeList;
             }
@@ -248,7 +248,7 @@ namespace Microsoft.ML.TimeSeries
                 }
                 entroyGainMap.Add(dimension, gain);
 
-                double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis);
+                double gainRatio = gain / GetDimensionIntrinsicValue(dimension.PointDis);
                 if (Double.IsInfinity(gainRatio))
                 {
                     gainRatio = 0;
@@ -294,7 +294,7 @@ namespace Microsoft.ML.TimeSeries
                 }
                 entropyMap.Add(dimension, entropy);
 
-                double gainRatio = entropy / GetDimensionInstrinsicValue(dimension.PointDis);
+                double gainRatio = entropy / GetDimensionIntrinsicValue(dimension.PointDis);
 
                 if (Double.IsInfinity(gainRatio))
                 {
@@ -332,7 +332,7 @@ namespace Microsoft.ML.TimeSeries
             Point anomalyPoint = GetPointByDimension(dimPointMapping, anomalyRoot, pointTree, aggType, aggSymbol);
             if (dst.Items.Count > 1)
             {
-                //get surprise value and explanary power value
+                //get surprise value and explanatory power value
                 List<RootCauseScore> scoreList = new List<RootCauseScore>();
 
                 foreach (RootCauseItem item in dst.Items)
@@ -340,7 +340,7 @@ namespace Microsoft.ML.TimeSeries
                     Point rootCausePoint = GetPointByDimension(dimPointMapping, item.Dimension, pointTree, aggType, aggSymbol);
                     if (anomalyPoint != null && rootCausePoint != null)
                     {
-                        Tuple<double, double> scores = GetSupriseAndExplanatoryScore(rootCausePoint, anomalyPoint);
+                        Tuple<double, double> scores = GetSurpriseAndExplanatoryScore(rootCausePoint, anomalyPoint);
                         scoreList.Add(new RootCauseScore(scores.Item1, scores.Item2));
                         item.Direction = GetRootCauseDirection(rootCausePoint);
                     }
@@ -355,7 +355,7 @@ namespace Microsoft.ML.TimeSeries
                     }
                     else
                     {
-                        dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplainaryScore), beta);
+                        dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplanatoryScore), beta);
                     }
                 }
             }
@@ -364,7 +364,7 @@ namespace Microsoft.ML.TimeSeries
                 Point rootCausePoint = GetPointByDimension(dimPointMapping, dst.Items[0].Dimension, pointTree, aggType, aggSymbol);
                 if (anomalyPoint != null && rootCausePoint != null)
                 {
-                    Tuple<double, double> scores = GetSupriseAndExplanatoryScore(rootCausePoint, anomalyPoint);
+                    Tuple<double, double> scores = GetSurpriseAndExplanatoryScore(rootCausePoint, anomalyPoint);
                     if (aggType.Equals(AggregateType.Max) || aggType.Equals(AggregateType.Min))
                     {
                         dst.Items[0].Score = 1;
@@ -387,7 +387,7 @@ namespace Microsoft.ML.TimeSeries
 
             int count = 0;
             Point p = new Point(dimension);
-            DimensionInfo dimensionInfo = SeperateDimension(dimension, aggSymbol);
+            DimensionInfo dimensionInfo = SeparateDimension(dimension, aggSymbol);
             Dictionary<string, Object> subDim = GetSubDim(dimension, dimensionInfo.DetailDims);
 
             foreach (Point leave in pointTree.Leaves)
@@ -575,7 +575,7 @@ namespace Microsoft.ML.TimeSeries
             return beta * a + (1 - beta) * b;
         }
 
-        private Tuple<double, double> GetSupriseAndExplanatoryScore(Point rootCausePoint, Point anomalyPoint)
+        private Tuple<double, double> GetSurpriseAndExplanatoryScore(Point rootCausePoint, Point anomalyPoint)
         {
             double surprise = GetSurpriseScore(rootCausePoint, anomalyPoint);
 
@@ -601,7 +601,7 @@ namespace Microsoft.ML.TimeSeries
             return Math.Abs(pre) / Math.Abs(current) > _anomalyPreDeltaThreshold;
         }
 
-        private bool ShouldSeperateAnomaly(double total, double parent, int totalSize, int size)
+        private bool ShouldSeparateAnomaly(double total, double parent, int totalSize, int size)
         {
             if (Math.Abs(total) < Math.Abs(parent) * _anomalyDeltaThreshold)
             {
@@ -630,17 +630,17 @@ namespace Microsoft.ML.TimeSeries
             return entropy;
         }
 
-        private double GetDimensionInstrinsicValue(Dictionary<string, int> pointDis)
+        private double GetDimensionIntrinsicValue(Dictionary<string, int> pointDis)
         {
             int total = GetTotalNumber(pointDis);
-            double instrinsicValue = 0;
+            double intrinsicValue = 0;
 
             foreach (string key in pointDis.Keys)
             {
-                instrinsicValue -= Log2((double)pointDis[key] / total) * (double)pointDis[key] / total;
+                intrinsicValue -= Log2((double)pointDis[key] / total) * (double)pointDis[key] / total;
             }
 
-            return instrinsicValue;
+            return intrinsicValue;
         }
 
         private int GetTotalNumber(Dictionary<string, int> distribution)
@@ -740,12 +740,12 @@ namespace Microsoft.ML.TimeSeries
     internal class RootCauseScore
     {
         internal double Surprise;
-        internal double ExplainaryScore;
+        internal double ExplanatoryScore;
 
-        public RootCauseScore(double surprise, double explainaryScore)
+        public RootCauseScore(double surprise, double explanatoryScore)
         {
             Surprise = surprise;
-            ExplainaryScore = explainaryScore;
+            ExplanatoryScore = explanatoryScore;
         }
     }
 }
