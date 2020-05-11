@@ -487,7 +487,7 @@ namespace Microsoft.ML.Data
                                     // REVIEW: Avoid allocating a string for every line. This would probably require
                                     // introducing a CharSpan type (similar to ReadOnlyMemory but based on char[] or StringBuilder)
                                     // and implementing all the necessary conversion functionality on it. See task 3871.
-                                    text = rdr.ReadLine();
+                                    text = rdr.ReadEntry();
                                     if (text == null)
                                         goto LNext;
                                     line++;
@@ -514,7 +514,7 @@ namespace Microsoft.ML.Data
                                     if (_abort)
                                         return;
 
-                                    text = rdr.ReadLine();
+                                    text = rdr.ReadEntry();
                                     if (text == null)
                                     {
                                         // We're done with this file. Queue the last partial batch.
