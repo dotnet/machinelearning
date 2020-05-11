@@ -193,7 +193,9 @@ namespace Microsoft.ML.Data
             // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
             else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
             {
-                //This is a big hack. It gives helpful information when customer accidently define OnnxSequenceType the same as member type
+                //This is a big hack. it uses DataViewTypeManager to check if there's "make-up" types in it
+                //(e.g. customer define the type "float", and this will check if "iEnumerable" in the DateTypeManager)
+                //It gives helpful information when customer accidently define OnnxSequenceType the same as member type
                 Type containerType = typeof(IEnumerable<>).MakeGenericType(itemType);
                 if (DataViewTypeManager.Knows(containerType, attributes))
                     throw Contracts.ExceptParam(nameof(rawType), $"The possible expected type '{containerType.Name}' does not match the type of the property: '{itemType.Name}'. Change the {0} property to '{containerType.Name}' may solve the issue", name);
