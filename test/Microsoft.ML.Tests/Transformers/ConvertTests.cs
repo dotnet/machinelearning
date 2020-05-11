@@ -121,7 +121,7 @@ namespace Microsoft.ML.Tests.Transformers
             public string A;
         }
 
-        [Fact, TestCategory("RunSpecificTest")]
+        [Fact]
         public void TestConvertWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
