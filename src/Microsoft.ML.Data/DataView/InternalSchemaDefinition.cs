@@ -194,8 +194,9 @@ namespace Microsoft.ML.Data
             else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
             {
                 //This is a big hack. It gives helpful information when customer accidently define OnnxSequenceType the same as member type
-                if (DataViewTypeManager.Knows(typeof(IEnumerable<>).MakeGenericType(itemType), attributes))
-                    throw Contracts.ExceptParam(nameof(rawType), "Defined uncessary container type of member {0}", name);
+                Type containerType = typeof(IEnumerable<>).MakeGenericType(itemType);
+                if (DataViewTypeManager.Knows(containerType, attributes))
+                    throw Contracts.ExceptParam(nameof(rawType), $"The possible expected type '{containerType.Name}' does not match the type of the property: '{itemType.Name}'. Change the {0} property to '{containerType.Name}' may solve the issue", name);
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type and registered custom types for member {0}", name);
             }
         }
