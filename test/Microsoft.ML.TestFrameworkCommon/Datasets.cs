@@ -10,6 +10,7 @@ namespace Microsoft.ML.TestFrameworkCommon
     public class TestDataset
     {
         public string name;
+        public string path;
         public string trainFilename;
         public string testFilename;
         public string validFilename;
@@ -154,7 +155,8 @@ namespace Microsoft.ML.TestFrameworkCommon
         public static TestDataset Digits = new TestDataset
         {
             name = "Digits",
-            trainFilename = @"external/digits.csv"
+            path = "external",
+            trainFilename = "digits.csv"
         };
 
         public static TestDataset vw = new TestDataset
@@ -202,16 +204,18 @@ namespace Microsoft.ML.TestFrameworkCommon
         public static TestDataset WikiDetox = new TestDataset
         {
             name = "WikiDetox",
-            trainFilename = "external/WikiDetoxAnnotated160kRows.tsv",
-            testFilename = "external/WikiDetoxAnnotated160kRows.tsv"
+            path = "external",
+            trainFilename = "WikiDetoxAnnotated160kRows.tsv",
+            testFilename = "WikiDetoxAnnotated160kRows.tsv"
         };
 
         public static TestDataset MSLRWeb = new TestDataset
         {
             name = "MSLRWeb",
-            trainFilename = "external/MSLRWeb10KTrain720kRows.tsv",
-            validFilename = "external/MSLRWeb10KValidate240kRows.tsv",
-            testFilename = "external/MSLRWeb10KTest240kRows.tsv"
+            path = "external",
+            trainFilename = "MSLRWeb10KTrain720kRows.tsv",
+            validFilename = "MSLRWeb10KValidate240kRows.tsv",
+            testFilename = "MSLRWeb10KTest240kRows.tsv"
         };
 
         public static TestDataset Sentiment = new TestDataset
