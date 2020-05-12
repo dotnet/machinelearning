@@ -19,7 +19,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPathDigits = GetBenchmarkDataPathAndEncureData(TestDatasets.Digits.trainFilename, TestDatasets.Digits.path);
+            _dataPathDigits = GetBenchmarkDataPathAndEnSureData(TestDatasets.Digits.trainFilename, TestDatasets.Digits.path);
 
             if (!File.Exists(_dataPathDigits))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathDigits));

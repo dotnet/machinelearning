@@ -28,7 +28,7 @@ namespace Microsoft.ML.Benchmarks
         // is running is it sometime cause process hanging when the constructor trying 
         // to load MKL, this is related to below issue:
         // https://github.com/dotnet/machinelearning/issues/1073
-        public static string GetBenchmarkDataPathAndEncureData(string name, string path = "")
+        public static string GetBenchmarkDataPathAndEnSureData(string name, string path = "")
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;

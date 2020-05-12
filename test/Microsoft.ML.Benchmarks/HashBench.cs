@@ -100,7 +100,7 @@ namespace Microsoft.ML.Benchmarks
                 getter = (ref T dst) => dst = val;
             _inRow = RowImpl.Create(type, getter);
 
-            var modelPath = GetBenchmarkDataPathAndEncureData("backcompat/MurmurHashV1.zip");
+            var modelPath = GetBenchmarkDataPathAndEnSureData("backcompat/MurmurHashV1.zip");
             var estimator = _env.Model.Load(modelPath, out var schema);
             var mapper = ((ITransformer)estimator).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];

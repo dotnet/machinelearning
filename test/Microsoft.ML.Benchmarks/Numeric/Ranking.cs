@@ -22,8 +22,8 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _mslrWeb10kValidate = GetBenchmarkDataPathAndEncureData(TestDatasets.MSLRWeb.validFilename, TestDatasets.WikiDetox.path);
-            _mslrWeb10kTrain = GetBenchmarkDataPathAndEncureData(TestDatasets.MSLRWeb.trainFilename, TestDatasets.WikiDetox.path);
+            _mslrWeb10kValidate = GetBenchmarkDataPathAndEnSureData(TestDatasets.MSLRWeb.validFilename, TestDatasets.MSLRWeb.path);
+            _mslrWeb10kTrain = GetBenchmarkDataPathAndEnSureData(TestDatasets.MSLRWeb.trainFilename, TestDatasets.MSLRWeb.path);
 
             if (!File.Exists(_mslrWeb10kValidate))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kValidate));
@@ -72,9 +72,9 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _mslrWeb10kTest = GetBenchmarkDataPathAndEncureData(TestDatasets.MSLRWeb.testFilename, TestDatasets.WikiDetox.path);
-            _mslrWeb10kValidate = GetBenchmarkDataPathAndEncureData(TestDatasets.MSLRWeb.validFilename, TestDatasets.WikiDetox.path);
-            _mslrWeb10kTrain = GetBenchmarkDataPathAndEncureData(TestDatasets.MSLRWeb.trainFilename, TestDatasets.WikiDetox.path);
+            _mslrWeb10kTest = GetBenchmarkDataPathAndEnSureData(TestDatasets.MSLRWeb.testFilename, TestDatasets.MSLRWeb.path);
+            _mslrWeb10kValidate = GetBenchmarkDataPathAndEnSureData(TestDatasets.MSLRWeb.validFilename, TestDatasets.MSLRWeb.path);
+            _mslrWeb10kTrain = GetBenchmarkDataPathAndEnSureData(TestDatasets.MSLRWeb.trainFilename, TestDatasets.MSLRWeb.path);
 
             if (!File.Exists(_mslrWeb10kTest))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kTest));
