@@ -331,9 +331,17 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="userType">The type to base the schema on.</param>
         /// <param name="direction">Accept fields and properties based on their direction.</param>
+        /// <returns>The generated schema definition.</returns>
+        public static SchemaDefinition Create(Type userType, Direction direction = Direction.Both) => Create(userType, direction, null);
+
+        /// <summary>
+        /// Create a schema definition by enumerating all public fields of the given type.
+        /// </summary>
+        /// <param name="userType">The type to base the schema on.</param>
+        /// <param name="direction">Accept fields and properties based on their direction.</param>
         /// <param name="data">onnx data information</param>
         /// <returns>The generated schema definition.</returns>
-        public static SchemaDefinition Create(Type userType, Direction direction = Direction.Both, IDataView data = null)
+        public static SchemaDefinition Create(Type userType, Direction direction, IDataView data)
         {
             // REVIEW: This will have to be updated whenever we start
             // supporting properties and not just fields.
