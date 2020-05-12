@@ -141,17 +141,19 @@ namespace Microsoft.ML.Data
         /// <param name="itemType">
         /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
-        public static void GetVectorAndItemType(MemberInfo memberInfo, out bool isVector, out Type itemType)
+        /// <param name="data">onnx data information</param>
+        /// <param name="singleName">Column name used to find the corresponding data type in onnx</param>
+        public static void GetVectorAndItemType(MemberInfo memberInfo, out bool isVector, out Type itemType, IDataView data = null, string singleName = null)
         {
             Contracts.AssertValue(memberInfo);
             switch (memberInfo)
             {
                 case FieldInfo fieldInfo:
-                    GetVectorAndItemType(fieldInfo.Name, fieldInfo.FieldType, fieldInfo.GetCustomAttributes(), out isVector, out itemType);
+                    GetVectorAndItemType(fieldInfo.Name, fieldInfo.FieldType, fieldInfo.GetCustomAttributes(), out isVector, out itemType, data, singleName);
                     break;
 
                 case PropertyInfo propertyInfo:
-                    GetVectorAndItemType(propertyInfo.Name, propertyInfo.PropertyType, propertyInfo.GetCustomAttributes(), out isVector, out itemType);
+                    GetVectorAndItemType(propertyInfo.Name, propertyInfo.PropertyType, propertyInfo.GetCustomAttributes(), out isVector, out itemType, data, singleName);
                     break;
 
                 default:
@@ -172,7 +174,9 @@ namespace Microsoft.ML.Data
         /// <param name="itemType">
         /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
-        public static void GetVectorAndItemType(string name, Type rawType, IEnumerable<Attribute> attributes, out bool isVector, out Type itemType)
+        /// <param name="data">onnx data information</param>
+        /// <param name="singleName">Column name used to find the corresponding data type in onnx</param>
+        public static void GetVectorAndItemType(string name, Type rawType, IEnumerable<Attribute> attributes, out bool isVector, out Type itemType, IDataView data = null, string singleName = null)
         {
             // Determine whether this is a vector, and also determine the raw item type.
             isVector = true;
@@ -193,24 +197,26 @@ namespace Microsoft.ML.Data
             // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
             else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
             {
+                int colIndex;
+                data.Schema.TryGetColumnIndex(singleName, out colIndex);
+                var onnxType = data.Schema[colIndex].Type;
                 //This is a big hack. it uses DataViewTypeManager to check if there's "make-up" types in it
                 //e.g. customer define the type "float", and this will check if "IEnumerable<float>" in the DateTypeManager
                 //It gives helpful information when customer accidently define OnnxSequenceType the same as member type
-                //The suggestion type here is not always correct, but will at least guide customer to next-step checks which will give more informational messages
                 Type containerType = typeof(IEnumerable<>).MakeGenericType(itemType);
                 if (DataViewTypeManager.Knows(containerType, attributes))
-                    throw Contracts.ExceptParam(nameof(rawType), $"The possible expected type '{containerType.Name}' does not match the type of the property: '{itemType.Name}'. Change the {0} property to '{containerType.Name}' may solve the issue", name);
+                    throw Contracts.ExceptParam(nameof(rawType), $"The expected type '{onnxType.RawType}' does not match the type of the {name} property: '{itemType.Name}'. Please change the {name} property to '{onnxType.RawType}'", name);
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type and registered custom types for member {0}", name);
             }
         }
 
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition.Direction direction)
+        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition.Direction direction, IDataView data = null)
         {
-            var userSchemaDefinition = SchemaDefinition.Create(userType, direction);
-            return Create(userType, userSchemaDefinition);
+            var userSchemaDefinition = SchemaDefinition.Create(userType, direction, data);
+            return Create(userType, userSchemaDefinition, data);
         }
 
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition)
+        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition, IDataView data = null)
         {
             Contracts.AssertValue(userType);
             Contracts.AssertValueOrNull(userSchemaDefinition);
