@@ -889,7 +889,7 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath(@"adult.tiny.with-schema.txt");
             string extraArgs = $"tr=lr{{{TestLearnersBase.logisticRegression.Trainer.SubComponentSettings}}} strat=Strat threads- norm=Warn";
             string loaderArgs = "loader=text{col=Features:R4:9-14 col=Label:R4:0 col=Strat:TX:1 header+}";
-            TestCore("cv", pathData, loaderArgs, extraArgs);
+            TestCore("cv", pathData, loaderArgs, extraArgs, 5);
             Done();
         }
 
