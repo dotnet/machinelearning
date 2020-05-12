@@ -221,7 +221,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Recommendation.
         /// </summary>
-        [MatrixFactorizationFact]
+        [Fact]
         public void TrainAndEvaluateRecommendation()
         {
             var mlContext = new MLContext(seed: 1);

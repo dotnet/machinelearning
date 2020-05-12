@@ -461,7 +461,8 @@ namespace Microsoft.ML.Tests
             SaveOnnxModel(onnxModel, onnxModelPath, null);
 
             // Compare model scores produced by ML.NET and ONNX's runtime.
-            if (IsOnnxRuntimeSupported())
+            // Skipping test in Linux platforms temporarily due to locale issue
+            if (IsOnnxRuntimeSupported() && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
