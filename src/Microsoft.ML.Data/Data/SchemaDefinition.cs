@@ -339,7 +339,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="userType">The type to base the schema on.</param>
         /// <param name="direction">Accept fields and properties based on their direction.</param>
-        /// <param name="data">onnx data information</param>
+        /// <param name="data">DataView that contains the expected type of input and output of transformers</param>
         /// <returns>The generated schema definition.</returns>
         public static SchemaDefinition Create(Type userType, Direction direction, IDataView data)
         {
