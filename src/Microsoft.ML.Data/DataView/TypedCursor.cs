@@ -306,8 +306,8 @@ namespace Microsoft.ML.Data
             //--------------------------------------------------------------------------------------------------------------
 
             var outSchema = schemaDefinition == null
-                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Write, data)
-                : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition, data);
+                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Write)
+                : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
 
             return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }

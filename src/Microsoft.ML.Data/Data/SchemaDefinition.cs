@@ -332,16 +332,7 @@ namespace Microsoft.ML.Data
         /// <param name="userType">The type to base the schema on.</param>
         /// <param name="direction">Accept fields and properties based on their direction.</param>
         /// <returns>The generated schema definition.</returns>
-        public static SchemaDefinition Create(Type userType, Direction direction = Direction.Both) => Create(userType, direction, null);
-
-        /// <summary>
-        /// Create a schema definition by enumerating all public fields of the given type.
-        /// </summary>
-        /// <param name="userType">The type to base the schema on.</param>
-        /// <param name="direction">Accept fields and properties based on their direction.</param>
-        /// <param name="data">DataView that contains the expected type of input and output of transformers</param>
-        /// <returns>The generated schema definition.</returns>
-        public static SchemaDefinition Create(Type userType, Direction direction, IDataView data)
+        public static SchemaDefinition Create(Type userType, Direction direction = Direction.Both)
         {
             // REVIEW: This will have to be updated whenever we start
             // supporting properties and not just fields.
@@ -410,7 +401,7 @@ namespace Microsoft.ML.Data
                 if (!colNames.Add(name))
                     throw Contracts.ExceptParam(nameof(userType), "Duplicate column name '{0}' detected, this is disallowed", name);
 
-                InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
+                InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType);
 
                 // Get the column type.
                 DataViewType columnType;

@@ -210,17 +210,13 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition.Direction direction) => Create(userType, direction, null);
-
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition.Direction direction, IDataView data)
+        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition.Direction direction)
         {
-            var userSchemaDefinition = SchemaDefinition.Create(userType, direction, data);
-            return Create(userType, userSchemaDefinition, data);
+            var userSchemaDefinition = SchemaDefinition.Create(userType, direction);
+            return Create(userType, userSchemaDefinition);
         }
 
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition) => Create(userType, userSchemaDefinition, null);
-
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition, IDataView data)
+        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition)
         {
             Contracts.AssertValue(userType);
             Contracts.AssertValueOrNull(userSchemaDefinition);
