@@ -123,6 +123,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Determine if the selected mean-squared error metric is reasonable on different platforms within the variation tolerance.
             // Windows and Mac tolerances are set at 1e-7, and Linux tolerance is set at 1e-5.
+            // Here, each build OS has a different MSE baseline metric. While these metrics differ between builds, each build is expected to
+            // produce the same metric. This is because of minor build differences and varying implementations of sub-functions, such as random
+            // variables that are first obtained with the default random numger generator in libMF C++ libraries.
             double windowsAndMacTolerance = Math.Pow(10, -7);
             double linuxTolerance = Math.Pow(10, -5);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
