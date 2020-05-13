@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -123,33 +122,26 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
             // Determine if the selected mean-squared error metric is reasonable on different platforms within the variation tolerance.
-            int variationTolerance = 7;
+            // Windows and Mac tolerances are set at 1e-7, and Linux tolerance is set at 1e-5.
+            double windowsAndMacTolerance = Math.Pow(10, -7);
+            double linuxTolerance = Math.Pow(10, -5);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                if (OsIsCentOS7())
-                {
-                    double expectedCentOS7LinuxMeanSquaredError = 0.6127260028273948; // CentOS 7 Linux baseline
-                    Assert.Equal(metrices.MeanSquaredError, expectedCentOS7LinuxMeanSquaredError, variationTolerance);
-                }
-                else
-                {
-                    double expectedUbuntuLinuxMeanSquaredError = 0.612732360518435; // Ubuntu Linux baseline
-                    Assert.Equal(metrices.MeanSquaredError, expectedUbuntuLinuxMeanSquaredError, variationTolerance);
-                }    
-                
+                double expectedLinuxMacMeanSquaredError = 0.6127260028273948; // Linux baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedLinuxMacMeanSquaredError - linuxTolerance, expectedLinuxMacMeanSquaredError + linuxTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 // Mac case
                 double expectedMacMeanSquaredError = 0.616389336408704; // Mac baseline
-                Assert.Equal(metrices.MeanSquaredError, expectedMacMeanSquaredError, variationTolerance);
+                Assert.InRange(metrices.MeanSquaredError, expectedMacMeanSquaredError - windowsAndMacTolerance, expectedMacMeanSquaredError + windowsAndMacTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
                 double expectedWindowsMeanSquaredError = 0.600329985097577; // Windows baseline
-                Assert.Equal(metrices.MeanSquaredError, expectedWindowsMeanSquaredError, variationTolerance);
+                Assert.InRange(metrices.MeanSquaredError, expectedWindowsMeanSquaredError - windowsAndMacTolerance, expectedWindowsMeanSquaredError + windowsAndMacTolerance);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
@@ -847,33 +839,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 3);
         }
 
-        /// <summary>
-        /// Returns whether or not the current build is CentOS Linux 7.
-        /// </summary>
-        internal static bool OsIsCentOS7()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                unsafe
-                {
-                    using (Process process = new Process())
-                    {
-                        process.StartInfo.FileName = "/bin/bash";
-                        process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
-                        process.StartInfo.UseShellExecute = false;
-                        process.StartInfo.RedirectStandardOutput = true;
-                        process.StartInfo.CreateNoWindow = true;
-                        process.Start();
-
-                        string distro = process.StandardOutput.ReadToEnd().Trim();
-
-                        process.WaitForExit();
-                        if (distro.Contains("CentOS Linux 7"))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            return false;
         }
     }
 }
