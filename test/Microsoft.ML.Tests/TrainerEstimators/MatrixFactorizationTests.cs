@@ -54,7 +54,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [MatrixFactorizationFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
@@ -96,10 +95,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // MF produce different matrices on different platforms, so check their content on Windows.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Assert.Equal(0.290507137775421, leftMatrix[0], 5);
-                Assert.Equal(0.558072924613953, leftMatrix[leftMatrix.Count - 1], 5);
-                Assert.Equal(0.270811557769775, rightMatrix[0], 5);
-                Assert.Equal(0.376706808805466, rightMatrix[rightMatrix.Count - 1], 5);
+                Assert.Equal(0.309137582778931, leftMatrix[0], 5);
+                Assert.Equal(0.468956589698792, leftMatrix[leftMatrix.Count - 1], 5);
+                Assert.Equal(0.303486406803131, rightMatrix[0], 5);
+                Assert.Equal(0.503888845443726, rightMatrix[rightMatrix.Count - 1], 5);
             }
             // Read the test data set as an IDataView
             var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
@@ -122,28 +121,25 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Compute prediction errors
             var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
-            // Determine if the selected metric is reasonable for different platforms
-            // Windows tolerance is set at 1e-7, and Linux tolerance is set at 1e-5
-            double windowsTolerance = Math.Pow(10, -7);
-            double linuxTolerance = Math.Pow(10, -5);
+            // Determine if the selected mean-squared error metric is reasonable on different platforms
+            double tolerance = Math.Pow(10, -7);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                var expectedUnixL2Error = 0.610332110253861; // Linux baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - linuxTolerance, expectedUnixL2Error + linuxTolerance);
+                var expectedUnixL2Error = 0.612726002827395; // Linux baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                // The Mac case is just broken. Should be fixed later. Re-enable when done.
                 // Mac case
-                //var expectedMacL2Error = 0.61192207960271; // Mac baseline
-                //Assert.InRange(metrices.L2, expectedMacL2Error - 5e-3, expectedMacL2Error + 5e-3); // 1e-7 is too small for Mac so we try 1e-5
+                var expectedMacL2Error = 0.616389336408704; // Mac baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedMacL2Error - tolerance, expectedMacL2Error + tolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
-                var expectedWindowsL2Error = 0.60226203382884; // Windows baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - windowsTolerance, expectedWindowsL2Error + windowsTolerance);
+                var expectedWindowsL2Error = 0.600329985097577; // Windows baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
