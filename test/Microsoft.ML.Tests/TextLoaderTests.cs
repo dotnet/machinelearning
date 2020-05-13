@@ -660,7 +660,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
     }
 
-    public class TextLoaderFromModelTests : BaseTestClass
+    public class TextLoaderFromModelTests : BaseTestBaseline
     {
         public TextLoaderFromModelTests(ITestOutputHelper output)
            : base(output)
@@ -919,6 +919,75 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = mlContext.Data.CreateTextLoader<BreastCancerInputModelWithoutKeyType>(separatorChar: ',').Load(breastCancerPath);
 
             Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
+        }
+
+        [Fact]
+        public void TestLoadTextWithEscapedNewLines()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var dataPath = GetDataPath("multiline.csv");
+            var baselinePath = GetBaselinePath("TextLoader", "multiline.csv");
+            var data = mlContext.Data.LoadFromTextFile(dataPath, new[]
+                {
+                    new TextLoader.Column("id", DataKind.Int32, 0),
+                    new TextLoader.Column("description", DataKind.String, 1),
+                    new TextLoader.Column("animal", DataKind.String, 2),
+                },
+           hasHeader: true, separatorChar:',', allowQuoting:true);
+
+            // Get values from loaded dataview
+            var ids = new List<string>();
+            var descriptions = new List<string>();
+            var animals = new List<string>();
+            using(var curs = data.GetRowCursorForAllColumns())
+            {
+                var idGetter = curs.GetGetter<int>(data.Schema["id"]);
+                var descriptionGetter = curs.GetGetter<ReadOnlyMemory<char>>(data.Schema["description"]);
+                var animalGetter = curs.GetGetter<ReadOnlyMemory<char>>(data.Schema["animal"]);
+
+                int id = default;
+                ReadOnlyMemory<char> description = default;
+                ReadOnlyMemory<char> animal = default;
+
+                while(curs.MoveNext())
+                {
+                    idGetter(ref id);
+                    descriptionGetter(ref description);
+                    animalGetter(ref animal);
+
+                    ids.Add(id.ToString());
+                    descriptions.Add(description.ToString());
+                    animals.Add(animal.ToString());
+                }
+            }
+
+            const int numRows = 11;
+            Assert.Equal(numRows, ids.Count());
+            Assert.Equal(numRows, descriptions.Count());
+            Assert.Equal(numRows, animals.Count());
+
+            // Compare values with baseline file
+            string line;
+            using (var file = new StreamReader(baselinePath))
+            {
+                for(int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    Assert.Equal(ids[i], line);
+                }
+
+                for (int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    Assert.Equal(descriptions[i], line);
+                }
+
+                for (int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    Assert.Equal(animals[i], line);
+                }
+            }
         }
     }
 }
