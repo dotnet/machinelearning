@@ -123,18 +123,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
             // Determine if the selected mean-squared error metric is reasonable on different platforms within the variation tolerance.
+            int variationTolerance = 7;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
                 if (OsIsCentOS7())
                 {
-                    double expectedCentOS7LinuxMeanSquaredError = 0.612732360518435; // CentOS 7 Linux baseline
-                    Assert.Equal(metrices.MeanSquaredError, expectedCentOS7LinuxMeanSquaredError);
+                    double expectedCentOS7LinuxMeanSquaredError = 0.6127260028273948; // CentOS 7 Linux baseline
+                    Assert.Equal(metrices.MeanSquaredError, expectedCentOS7LinuxMeanSquaredError, variationTolerance);
                 }
                 else
                 {
-                    double expectedUbuntuLinuxMeanSquaredError = 0.612726002827395; // Ubuntu Linux baseline
-                    Assert.Equal(metrices.MeanSquaredError, expectedUbuntuLinuxMeanSquaredError);
+                    double expectedUbuntuLinuxMeanSquaredError = 0.612732360518435; // Ubuntu Linux baseline
+                    Assert.Equal(metrices.MeanSquaredError, expectedUbuntuLinuxMeanSquaredError, variationTolerance);
                 }    
                 
             }
@@ -142,13 +143,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // Mac case
                 double expectedMacMeanSquaredError = 0.616389336408704; // Mac baseline
-                Assert.Equal(metrices.MeanSquaredError, expectedMacMeanSquaredError);
+                Assert.Equal(metrices.MeanSquaredError, expectedMacMeanSquaredError, variationTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
                 double expectedWindowsMeanSquaredError = 0.600329985097577; // Windows baseline
-                Assert.Equal(metrices.MeanSquaredError, expectedWindowsMeanSquaredError);
+                Assert.Equal(metrices.MeanSquaredError, expectedWindowsMeanSquaredError, variationTolerance);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
