@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.ML;
@@ -168,7 +169,7 @@ namespace Microsoft.ML.Sweeper
         private readonly object _lock;
         private readonly CancellationTokenSource _cts;
 
-        private readonly BufferBlock<ParameterSetWithId> _paramQueue;
+        private readonly Channel<ParameterSetWithId> _paramQueue;
         private readonly int _relaxation;
         private readonly ISweeper _baseSweeper;
         private readonly IHost _host;
@@ -208,7 +209,7 @@ namespace Microsoft.ML.Sweeper
             _lock = new object();
             _results = new List<IRunResult>();
             _nullRuns = new HashSet<int>();
-            _paramQueue = new BufferBlock<ParameterSetWithId>();
+            _paramQueue = Channel.CreateUnbounded<ParameterSetWithId>();
 
             PrepareNextBatch(null);
         }
@@ -220,12 +221,12 @@ namespace Microsoft.ML.Sweeper
             if (Utils.Size(paramSets) == 0)
             {
                 // Mark the queue as completed.
-                _paramQueue.Complete();
+                _paramQueue.Writer.Complete();
                 return;
             }
             // Assign an id to each ParameterSet and enque it.
             foreach (var paramSet in paramSets)
-                _paramQueue.Post(new ParameterSetWithId(_numGenerated++, paramSet));
+                _paramQueue.Writer.TryWrite(new ParameterSetWithId(_numGenerated++, paramSet));
             EnsureResultsSize();
         }
 
@@ -278,7 +279,7 @@ namespace Microsoft.ML.Sweeper
                 return null;
             try
             {
-                return await _paramQueue.ReceiveAsync(_cts.Token);
+                return await _paramQueue.Reader.ReadAsync(_cts.Token);
             }
             catch (InvalidOperationException)
             {
