@@ -57,6 +57,7 @@ jobs:
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
+      timeoutInMinutes: 20
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - task: Bash@3
         inputs:
