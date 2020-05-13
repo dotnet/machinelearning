@@ -472,32 +472,37 @@ namespace Microsoft.ML.Data
                         string line;
 
                         line = sr.ReadLine();
-                        if (String.IsNullOrEmpty(line)) // if it was an empty line or we've reached the end of file
+                        // if it was an empty line or if we've reached the end of file (i.e. line = null)
+                        if (string.IsNullOrEmpty(line))
                             return line;
 
-                        string entry = line;
+                        var sb = new StringBuilder(line);
 
-                        // And get more lines until the number of quotes is even
-                        while (GetNumberOf(entry, "\"") % 2 != 0)
+                        // Get more lines until the number of quote characters is even
+                        long numOfQuotes = GetNumberOfChars(line, '\"');
+                        while (numOfQuotes % 2 != 0)
                         {
                             line = sr.ReadLine();
-                            entry += line;
+
                             if (line == null) // If we've reached the end of the file
-                                return entry; // MYTODO: This will happen if we have an invalid open quote which never closes, should we throw instead?
+                                break; // MYTODO: This could happen if we have an invalid open quote which never closes so we reach the end of the file without properly closing the field, should we throw instead in this case?
+
+                            sb.Append(line); // MYTODO: should we also add a "\n" in here?
+                            numOfQuotes += GetNumberOfChars(line, '\"');
                         }
 
-                        return entry;
+                        return sb.ToString();
                     }
 
-                    public static int GetNumberOf(string s, string strSearchString)
+                    public static int GetNumberOfChars(string line, char ch)
                     {
-                        if (strSearchString.Length == 0 || s.Length == 0)
+                        int count = 0;
+                        foreach (char c in line)
                         {
-                            return 0;
+                            if (c == ch) count++;
                         }
-                        return (s.Length - s.Replace(strSearchString, string.Empty).Length) / strSearchString.Length;
+                        return count;
                     }
-
                 }
 
                 private void ThreadProc()
