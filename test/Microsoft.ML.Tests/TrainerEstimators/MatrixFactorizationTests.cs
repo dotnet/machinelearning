@@ -128,8 +128,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                double expectedLinuxMacMeanSquaredError = 0.6127260028273948; // Linux baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedLinuxMacMeanSquaredError - linuxTolerance, expectedLinuxMacMeanSquaredError + linuxTolerance);
+                double expectedLinuxMeanSquaredError = 0.6127260028273948; // Linux baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedLinuxMeanSquaredError - linuxTolerance, expectedLinuxMeanSquaredError + linuxTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
