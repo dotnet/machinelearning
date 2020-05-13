@@ -123,19 +123,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
             // Determine if the selected mean-squared error metric is reasonable on different platforms within the variation tolerance.
-            int variationTolerance = 7;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
                 if (OsIsCentOS7())
                 {
                     double expectedCentOS7LinuxMeanSquaredError = 0.612732360518435; // CentOS 7 Linux baseline
-                    Assert.Equal(metrices.MeanSquaredError, expectedCentOS7LinuxMeanSquaredError, variationTolerance);
+                    Assert.Equal(metrices.MeanSquaredError, expectedCentOS7LinuxMeanSquaredError);
                 }
                 else
                 {
                     double expectedUbuntuLinuxMeanSquaredError = 0.612726002827395; // Ubuntu Linux baseline
-                    Assert.Equal(metrices.MeanSquaredError, expectedUbuntuLinuxMeanSquaredError, variationTolerance);
+                    Assert.Equal(metrices.MeanSquaredError, expectedUbuntuLinuxMeanSquaredError);
                 }    
                 
             }
@@ -143,13 +142,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // Mac case
                 double expectedMacMeanSquaredError = 0.616389336408704; // Mac baseline
-                Assert.Equal(metrices.MeanSquaredError, expectedMacMeanSquaredError, variationTolerance);
+                Assert.Equal(metrices.MeanSquaredError, expectedMacMeanSquaredError);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
                 double expectedWindowsMeanSquaredError = 0.600329985097577; // Windows baseline
-                Assert.Equal(metrices.MeanSquaredError, expectedWindowsMeanSquaredError, variationTolerance);
+                Assert.Equal(metrices.MeanSquaredError, expectedWindowsMeanSquaredError);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
