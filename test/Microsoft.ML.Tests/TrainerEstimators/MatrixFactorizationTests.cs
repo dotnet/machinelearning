@@ -53,10 +53,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [MatrixFactorizationFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        public void MatrixFactorizationSimpleTrainAndPredict()
+        [Theory, IterationData(5), TestCategory("RunSpecificTest")]
+        public void MatrixFactorizationSimpleTrainAndPredict(int iterations)
         {
+            Console.WriteLine(iterations);
             var mlContext = new MLContext(seed: 1);
 
             // Specific column names of the considered data set
@@ -126,6 +126,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Windows tolerance is set at 1e-7, and Linux tolerance is set at 1e-5
             double windowsTolerance = Math.Pow(10, -7);
             double linuxTolerance = Math.Pow(10, -5);
+            double macTolerance = Math.Pow(10, -5);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
@@ -134,10 +135,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                // The Mac case is just broken. Should be fixed later. Re-enable when done.
                 // Mac case
-                //var expectedMacL2Error = 0.61192207960271; // Mac baseline
-                //Assert.InRange(metrices.L2, expectedMacL2Error - 5e-3, expectedMacL2Error + 5e-3); // 1e-7 is too small for Mac so we try 1e-5
+                var expectedMacL2Error = 0.593218453126428;
+                Assert.InRange(metrices.MeanSquaredError, expectedMacL2Error - macTolerance, expectedMacL2Error + macTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
