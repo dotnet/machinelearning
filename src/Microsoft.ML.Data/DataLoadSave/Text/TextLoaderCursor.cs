@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -464,6 +465,46 @@ namespace Microsoft.ML.Data
                     throw Contracts.ExceptDecode(batch.Exception, "Stream reading encountered exception");
                 }
 
+                private static class MultiLineReader
+                {
+                    public static string ReadMultiLine(TextReader sr)
+                    {
+                        string entry = string.Empty;
+
+                        // get first bit
+                        entry += sr.ReadLine();
+
+                        // And get more lines until the number of quotes is even
+                        while (GetNumberOf(entry, "\"") % 2 != 0)
+                        {
+                            string line = sr.ReadLine();
+                            entry += line;
+                            if (line == null)
+                                return entry;
+                        }
+
+                        // Then return what we've gotten
+                        if (entry == string.Empty)
+                        {
+                            return null;
+                        }
+                        else
+                        {
+                            return entry;
+                        }
+                    }
+
+                    public static int GetNumberOf(string s, string strSearchString)
+                    {
+                        if (strSearchString.Length == 0 || s.Length == 0)
+                        {
+                            return 0;
+                        }
+                        return (s.Length - s.Replace(strSearchString, string.Empty).Length) / strSearchString.Length;
+                    }
+
+                }
+
                 private void ThreadProc()
                 {
                     Contracts.Assert(_batchSize >= 2);
@@ -487,7 +528,7 @@ namespace Microsoft.ML.Data
                                     // REVIEW: Avoid allocating a string for every line. This would probably require
                                     // introducing a CharSpan type (similar to ReadOnlyMemory but based on char[] or StringBuilder)
                                     // and implementing all the necessary conversion functionality on it. See task 3871.
-                                    text = rdr.ReadEntry();
+                                    text = MultiLineReader.ReadMultiLine(rdr);
                                     if (text == null)
                                         goto LNext;
                                     line++;
@@ -514,7 +555,7 @@ namespace Microsoft.ML.Data
                                     if (_abort)
                                         return;
 
-                                    text = rdr.ReadEntry();
+                                    text = MultiLineReader.ReadMultiLine(rdr);
                                     if (text == null)
                                     {
                                         // We're done with this file. Queue the last partial batch.
