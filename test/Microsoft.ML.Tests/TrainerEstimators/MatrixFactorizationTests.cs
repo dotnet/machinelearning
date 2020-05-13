@@ -53,10 +53,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Theory, IterationData(5), TestCategory("RunSpecificTest")]
-        public void MatrixFactorizationSimpleTrainAndPredict(int iterations)
+        [MatrixFactorizationFact]
+        public void MatrixFactorizationSimpleTrainAndPredict()
         {
-            Console.WriteLine(iterations);
             var mlContext = new MLContext(seed: 1);
 
             // Specific column names of the considered data set
@@ -419,9 +418,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [MatrixFactorizationFact]
-        public void OneClassMatrixFactorizationInMemoryDataZeroBaseIndex()
+        // [MatrixFactorizationFact]
+        [Theory, IterationData(10), TestCategory("RunSpecificTest")]
+        public void OneClassMatrixFactorizationInMemoryDataZeroBaseIndex(int iterations)
         {
+            Console.WriteLine(String.Format("OneClassMatrixFactorizationInMemoryDataZeroBaseIndex {0}", iterations));
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
             // factorization problem, unspecified matrix elements are all a constant provided by user. If that constant is 0.15,
             // the following list means a 3-by-2 training matrix with elements:
@@ -487,7 +488,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
 
             // TODO TEST_STABILITY: We are seeing lower precision on non-Windows platforms
-            int precision = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 5 : 3;
+            // int precision = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 5 : 3;
+            int precision = 5;
 
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
             CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: precision);
