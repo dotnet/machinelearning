@@ -1,0 +1,8 @@
+<Project>
+  <ItemGroup>
+    <MetaFile Include="inception_v3.meta" />
+    <MetaFile Include="mobilenet_v2.meta" />
+    <MetaFile Include="resnet_v2_50_299.meta" />
+    <MetaFile Include="resnet_v2_101_299.meta" />
+  </ItemGroup>
+</Project>
