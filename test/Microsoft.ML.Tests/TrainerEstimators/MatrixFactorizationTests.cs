@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -121,25 +122,34 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Compute prediction errors
             var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
-            // Determine if the selected mean-squared error metric is reasonable on different platforms
-            double tolerance = Math.Pow(10, -7);
+            // Determine if the selected mean-squared error metric is reasonable on different platforms within the variation tolerance.
+            int variationTolerance = 7;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                var expectedUnixL2Error = 0.612726002827395; // Linux baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
+                if (OsIsCentOS7())
+                {
+                    double expectedCentOS7LinuxMeanSquaredError = 0.612732360518435; // CentOS 7 Linux baseline
+                    Assert.Equal(metrices.MeanSquaredError, expectedCentOS7LinuxMeanSquaredError, variationTolerance);
+                }
+                else
+                {
+                    double expectedUbuntuLinuxMeanSquaredError = 0.612726002827395; // Ubuntu Linux baseline
+                    Assert.Equal(metrices.MeanSquaredError, expectedUbuntuLinuxMeanSquaredError, variationTolerance);
+                }    
+                
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 // Mac case
-                var expectedMacL2Error = 0.616389336408704; // Mac baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedMacL2Error - tolerance, expectedMacL2Error + tolerance);
+                double expectedMacMeanSquaredError = 0.616389336408704; // Mac baseline
+                Assert.Equal(metrices.MeanSquaredError, expectedMacMeanSquaredError, variationTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
-                var expectedWindowsL2Error = 0.600329985097577; // Windows baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
+                double expectedWindowsMeanSquaredError = 0.600329985097577; // Windows baseline
+                Assert.Equal(metrices.MeanSquaredError, expectedWindowsMeanSquaredError, variationTolerance);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
@@ -835,6 +845,35 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if results computed by SSE code and MF predictor are the same.
             for (int i = 0; i < predictions.Count(); ++i)
                 Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 3);
+        }
+
+        /// <summary>
+        /// Returns whether or not the current build is CentOS Linux 7.
+        /// </summary>
+        internal static bool OsIsCentOS7()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                unsafe
+                {
+                    using (Process process = new Process())
+                    {
+                        process.StartInfo.FileName = "/bin/bash";
+                        process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
+                        process.StartInfo.UseShellExecute = false;
+                        process.StartInfo.RedirectStandardOutput = true;
+                        process.StartInfo.CreateNoWindow = true;
+                        process.Start();
+
+                        string distro = process.StandardOutput.ReadToEnd().Trim();
+
+                        process.WaitForExit();
+                        if (distro.Contains("CentOS Linux 7"))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            return false;
         }
     }
 }
