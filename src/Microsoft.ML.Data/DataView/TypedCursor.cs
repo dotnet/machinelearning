@@ -221,16 +221,11 @@ namespace Microsoft.ML.Data
         {
             var memberInfos = SchemaDefinition.GetMemberInfos(userType, SchemaDefinition.Direction.Write);
 
+            HashSet<string> colNames = new HashSet<string>();
             foreach (var memberInfo in memberInfos)
             {
-                string name = null;
-                if (SchemaDefinition.MemberInfoAssertion(memberInfo, userType, name))
-                {
-                    int colIndex;
-                    data.Schema.TryGetColumnIndex(name, out colIndex);
-                    var expectedType = data.Schema[colIndex].Type;
-                }
-                InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
+                if (SchemaDefinition.MemberInfoAssertion(memberInfo, userType, out string name, colNames))
+                    InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
             }
         }
 
