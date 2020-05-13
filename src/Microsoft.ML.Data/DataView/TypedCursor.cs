@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
             HashSet<string> colNames = new HashSet<string>();
             foreach (var memberInfo in memberInfos)
             {
-                if (SchemaDefinition.MemberInfoAssertion(memberInfo, userType, out string name, colNames))
+                if (SchemaDefinition.MemberInfoAssertion(memberInfo, userType, out string name, colNames, out IEnumerable<Attribute> customAttributes))
                     InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
             }
         }
