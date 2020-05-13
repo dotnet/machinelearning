@@ -217,6 +217,23 @@ namespace Microsoft.ML.Data
                  .ToArray();
         }
 
+        public static void CheckTypeWithOnnx(Type userType, IDataView data)
+        {
+            var memberInfos = SchemaDefinition.GetMemberInfos(userType, SchemaDefinition.Direction.Write);
+
+            foreach (var memberInfo in memberInfos)
+            {
+                string name = null;
+                if (SchemaDefinition.MemberInfoAssertion(memberInfo, userType, name))
+                {
+                    int colIndex;
+                    data.Schema.TryGetColumnIndex(name, out colIndex);
+                    var expectedType = data.Schema[colIndex].Type;
+                }
+                InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
+            }
+        }
+
         /// <summary>
         /// Create a Cursorable object on a given data view.
         /// </summary>
@@ -231,79 +248,8 @@ namespace Microsoft.ML.Data
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
 
-            //------------------------------------------------------------------------------------------------
-            //this is new
-            Type userType = typeof(TRow);
-            var direction = SchemaDefinition.Direction.Write;
-            // REVIEW: This will have to be updated whenever we start
-            // supporting properties and not just fields.
-            Contracts.CheckValue(userType, nameof(userType));
-
-            //SchemaDefinition cols = new SchemaDefinition();
-            HashSet<string> colNames = new HashSet<string>();
-
-            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
-            var propertyInfos =
-                userType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => (((direction & SchemaDefinition.Direction.Read) == SchemaDefinition.Direction.Read && (x.CanRead && x.GetGetMethod() != null)) ||
-                ((direction & SchemaDefinition.Direction.Write) == SchemaDefinition.Direction.Write && (x.CanWrite && x.GetSetMethod() != null))) &&
-                x.GetIndexParameters().Length == 0);
-
-            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
-
-            foreach (var memberInfo in memberInfos)
-            {
-                // Clause to handle the field that may be used to expose the cursor channel.
-                // This field does not need a column.
-                // REVIEW: maybe validate the channel attribute now, instead
-                // of later at cursor creation.
-                switch (memberInfo)
-                {
-                    case FieldInfo fieldInfo:
-                        if (fieldInfo.FieldType == typeof(IChannel))
-                            continue;
-
-                        // Const fields do not need to be mapped.
-                        if (fieldInfo.IsLiteral)
-                            continue;
-
-                        break;
-
-                    case PropertyInfo propertyInfo:
-                        if (propertyInfo.PropertyType == typeof(IChannel))
-                            continue;
-                        break;
-
-                    default:
-                        Contracts.Assert(false);
-                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
-                }
-
-                if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
-                    continue;
-
-                var customAttributes = memberInfo.GetCustomAttributes();
-                var customTypeAttributes = customAttributes.Where(x => x is DataViewTypeAttribute);
-                if (customTypeAttributes.Count() > 1)
-                    throw Contracts.ExceptParam(nameof(userType), "Member {0} cannot be marked with multiple attributes, {1}, derived from {2}.",
-                        memberInfo.Name, customTypeAttributes, typeof(DataViewTypeAttribute));
-                else if (customTypeAttributes.Count() == 1)
-                {
-                    var customTypeAttribute = (DataViewTypeAttribute)customTypeAttributes.First();
-                    customTypeAttribute.Register();
-                }
-
-                var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
-                string name = mappingNameAttr?.Name ?? memberInfo.Name;
-
-                int colIndex;
-                data.Schema.TryGetColumnIndex(name, out colIndex);
-                var expectedType = data.Schema[colIndex].Type;
-
-                InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
-            }
-            //--------------------------------------------------------------------------------------------------------------
+            if (schemaDefinition == null)
+                CheckTypeWithOnnx(typeof(TRow), data);
 
             var outSchema = schemaDefinition == null
                 ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Write)
