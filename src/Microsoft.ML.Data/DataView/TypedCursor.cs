@@ -301,23 +301,7 @@ namespace Microsoft.ML.Data
                 data.Schema.TryGetColumnIndex(name, out colIndex);
                 var expectedType = data.Schema[colIndex].Type;
 
-                Contracts.AssertValue(memberInfo);
-                switch (memberInfo)
-                {
-                    case FieldInfo fieldInfo:
-                        if (!fieldInfo.FieldType.Equals(expectedType))
-                            throw Contracts.ExceptParam(nameof(fieldInfo.FieldType), $"The expected type '{expectedType.RawType}' does not match the type of the {name} property: '{fieldInfo.FieldType.Name}'. Please change the {name} property to '{expectedType.RawType}'", name);
-                        break;
-
-                    case PropertyInfo propertyInfo:
-                        if (!propertyInfo.PropertyType.Equals(expectedType))
-                            throw Contracts.ExceptParam(nameof(propertyInfo.PropertyType), $"The expected type '{expectedType.RawType}' does not match the type of the {name} property: '{propertyInfo.PropertyType.Name}'. Please change the {name} property to '{expectedType.RawType}'", name);
-                        break;
-
-                    default:
-                        Contracts.Assert(false);
-                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
-                }
+                InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
             }
             //--------------------------------------------------------------------------------------------------------------
 
