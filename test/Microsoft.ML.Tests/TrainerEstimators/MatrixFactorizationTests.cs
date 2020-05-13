@@ -838,7 +838,5 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             for (int i = 0; i < predictions.Count(); ++i)
                 Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 3);
         }
-
-        }
     }
 }
