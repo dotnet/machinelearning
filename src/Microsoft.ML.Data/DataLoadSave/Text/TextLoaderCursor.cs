@@ -469,29 +469,24 @@ namespace Microsoft.ML.Data
                 {
                     public static string ReadMultiLine(TextReader sr)
                     {
-                        string entry = string.Empty;
+                        string line;
 
-                        // get first bit
-                        entry += sr.ReadLine();
+                        line = sr.ReadLine();
+                        if (String.IsNullOrEmpty(line)) // if it was an empty line or we've reached the end of file
+                            return line;
+
+                        string entry = line;
 
                         // And get more lines until the number of quotes is even
                         while (GetNumberOf(entry, "\"") % 2 != 0)
                         {
-                            string line = sr.ReadLine();
+                            line = sr.ReadLine();
                             entry += line;
-                            if (line == null)
-                                return entry;
+                            if (line == null) // If we've reached the end of the file
+                                return entry; // MYTODO: This will happen if we have an invalid open quote which never closes, should we throw instead?
                         }
 
-                        // Then return what we've gotten
-                        if (entry == string.Empty)
-                        {
-                            return null;
-                        }
-                        else
-                        {
-                            return entry;
-                        }
+                        return entry;
                     }
 
                     public static int GetNumberOf(string s, string strSearchString)
