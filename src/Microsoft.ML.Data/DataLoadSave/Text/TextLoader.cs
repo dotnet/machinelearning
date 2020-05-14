@@ -502,6 +502,13 @@ namespace Microsoft.ML.Data
             public bool UseThreads = true;
 
             /// <summary>
+            /// If true, new line characters are acceptable inside a quoted field, and thus one field can have multiple lines of text inside it
+            /// If <see cref="TextLoader.Options.AllowQuoting"/> is false, this option is ignored.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Escape new line characters inside a quoted field? If AllowQuoting is false, this argument is ignored.", ShortName = "multilines", Hide = true)]
+            public bool ReadMultilines = false;
+
+            /// <summary>
             /// File containing a header with feature names. If specified, the header defined in the data file is ignored regardless of <see cref="HasHeader"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.",
@@ -530,6 +537,7 @@ namespace Microsoft.ML.Data
             internal const char Separator = '\t';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
+            internal const bool ReadMultilines = false;
         }
 
         /// <summary>
@@ -694,11 +702,11 @@ namespace Microsoft.ML.Data
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
-                        Cursor.GetSomeLines(headerFile, 1, ref lines);
+                        Cursor.GetSomeLines(headerFile, 1, false, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(dataSample, 100, ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, parent._readMultilines,ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(dataSample, 1, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, false, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1081,6 +1089,7 @@ namespace Microsoft.ML.Data
         private const int SrcLim = int.MaxValue;
 
         private readonly bool _useThreads;
+        private readonly bool _readMultilines;
         private readonly OptionFlags _flags;
         private readonly long _maxRows;
         // Input size is zero for unknown - determined by the data (including sparse rows).
@@ -1138,6 +1147,7 @@ namespace Microsoft.ML.Data
             _host.Assert(Utils.Size(cols) > 0);
 
             _useThreads = options.UseThreads;
+            _readMultilines = options.AllowQuoting ? options.ReadMultilines : false;
 
             if (options.TrimWhitespace)
                 _flags |= OptionFlags.TrimWhitespace;
@@ -1350,6 +1360,8 @@ namespace Microsoft.ML.Data
 
             // REVIEW: Should we serialize this? It really isn't part of the data model.
             _useThreads = true;
+            // MYTODO: Should we serialize this? probably yes and also include it in Flags
+            _readMultilines = false;
 
             // *** Binary format ***
             // int: sizeof(Float)
@@ -1458,6 +1470,7 @@ namespace Microsoft.ML.Data
            bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace,
+           bool readMultilines = Defaults.ReadMultilines,
            IMultiStreamSource dataSample = null)
         {
             var userType = typeof(TInput);
@@ -1527,7 +1540,8 @@ namespace Microsoft.ML.Data
                 AllowQuoting = allowQuoting,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,
-                Columns = columns.ToArray()
+                Columns = columns.ToArray(),
+                ReadMultilines = readMultilines
             };
 
             return new TextLoader(host, options, dataSample: dataSample);

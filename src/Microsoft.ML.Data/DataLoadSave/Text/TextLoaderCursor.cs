@@ -146,7 +146,7 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, 0, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, 1);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._readMultilines, parent._maxRows, 1);
                 var stats = new ParseStats(parent._host, 1);
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, n, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._readMultilines, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
                     return new DataViewRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            public static void GetSomeLines(IMultiStreamSource source, int count, ref List<ReadOnlyMemory<char>> lines)
+            public static void GetSomeLines(IMultiStreamSource source, int count, bool readMultilines, ref List<ReadOnlyMemory<char>> lines)
             {
                 Contracts.AssertValue(source);
                 Contracts.Assert(count > 0);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Data
                     count = 2;
 
                 LineBatch batch;
-                var reader = new LineReader(source, count, 1, false, count, 1);
+                var reader = new LineReader(source, count, 1, false, readMultilines, count, 1);
                 try
                 {
                     batch = reader.GetBatch();
@@ -402,6 +402,7 @@ namespace Microsoft.ML.Data
             {
                 private readonly long _limit;
                 private readonly bool _hasHeader;
+                private readonly bool _readMultilines;
                 private readonly int _batchSize;
                 private readonly IMultiStreamSource _files;
 
@@ -411,7 +412,7 @@ namespace Microsoft.ML.Data
                 private Task _thdRead;
                 private volatile bool _abort;
 
-                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, long limit, int cref)
+                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, bool readMultilines, long limit, int cref)
                 {
                     // Note that files is allowed to be empty.
                     Contracts.AssertValue(files);
@@ -424,6 +425,7 @@ namespace Microsoft.ML.Data
                     _limit = limit;
                     _hasHeader = hasHeader;
                     _batchSize = batchSize;
+                    _readMultilines = readMultilines;
                     _files = files;
                     _cref = cref;
 
@@ -548,7 +550,11 @@ namespace Microsoft.ML.Data
                                     // REVIEW: Avoid allocating a string for every line. This would probably require
                                     // introducing a CharSpan type (similar to ReadOnlyMemory but based on char[] or StringBuilder)
                                     // and implementing all the necessary conversion functionality on it. See task 3871.
-                                    text = MultiLineReader.ReadMultiLine(rdr, multilineSB, true);
+                                    if (_readMultilines)
+                                        text = MultiLineReader.ReadMultiLine(rdr, multilineSB, true);
+                                    else
+                                        text = rdr.ReadLine();
+
                                     if (text == null)
                                         goto LNext;
                                     line++;
@@ -575,7 +581,11 @@ namespace Microsoft.ML.Data
                                     if (_abort)
                                         return;
 
-                                    text = MultiLineReader.ReadMultiLine(rdr, multilineSB, false);
+                                    if (_readMultilines)
+                                        text = MultiLineReader.ReadMultiLine(rdr, multilineSB, true);
+                                    else
+                                        text = rdr.ReadLine();
+
                                     if (text == null)
                                     {
                                         // We're done with this file. Queue the last partial batch.
