@@ -343,7 +343,7 @@ namespace Microsoft.ML.Data
             return (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
         }
 
-        public static bool MemberInfoAssertion(MemberInfo memberInfo, Type userType, out string name, HashSet<string> colNames, out IEnumerable<Attribute> customAttributes)
+        public static bool MemberInfoAssertion(MemberInfo memberInfo, Type userType, HashSet<string> colNames, out string name, out IEnumerable<Attribute> customAttributes)
         {
             // Clause to handle the field that may be used to expose the cursor channel.
             // This field does not need a column.
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Data
 
             foreach (var memberInfo in memberInfos)
             {
-                if (MemberInfoAssertion(memberInfo, userType, out string name, colNames, out IEnumerable<Attribute> customAttributes))
+                if (MemberInfoAssertion(memberInfo, userType, colNames, out string name, out IEnumerable<Attribute> customAttributes))
                 {
                     InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType);
 
