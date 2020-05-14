@@ -25,6 +25,7 @@
       https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json;
       https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json;
       https://pkgs.dev.azure.com/dnceng/public/_packaging/machinelearning-testdata/nuget/v3/index.json;
+      https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly%40Local/nuget/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
 
@@ -47,7 +48,7 @@
     <OutputPath Condition="'$(OutputPath)'==''">$(BaseOutputPath)$(PlatformConfig)\$(MSBuildProjectName)\</OutputPath>
 
     <PackageAssetsPath>$(ObjDir)/packages/</PackageAssetsPath>
-    
+
     <PackageOutputPath Condition="'$(PackageOutputPath)'=='' and '$(NonShippingPackage)' == 'true'">$(BinDir)packages_noship/</PackageOutputPath>
     <PackageOutputPath Condition="'$(PackageOutputPath)'==''">$(BinDir)packages/</PackageOutputPath>
 
@@ -60,7 +61,7 @@
     <ToolsDir Condition="'$(ToolsDir)'==''">$(RepoRoot)Tools/</ToolsDir>
   </PropertyGroup>
 
-  <Import Project="$(ToolsDir)BuildVersion.targets" 
+  <Import Project="$(ToolsDir)BuildVersion.targets"
           Condition="Exists('$(ToolsDir)BuildVersion.targets')" />
 
   <!-- Version properties -->
@@ -92,16 +93,16 @@
     <SourceRevisionId>$(LatestCommit)</SourceRevisionId>
   </PropertyGroup>
 
-  <Import Project="$(ToolsDir)versioning.props" 
+  <Import Project="$(ToolsDir)versioning.props"
           Condition="Exists('$(ToolsDir)versioning.props') and '$(DisableImportVersioningProps)' != 'true'" />
- 
+
   <!-- Language configuration -->
   <PropertyGroup>
     <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">8.0</LangVersion>
     <LangVersion Condition="'$(MSBuildProjectExtension)'=='.fsproj'">4.7</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <RunningOnUnix Condition="'$(OS)'!='Windows_NT'">true</RunningOnUnix>
   </PropertyGroup>
