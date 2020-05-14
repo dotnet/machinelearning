@@ -134,6 +134,9 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 // Set environment variable back to its old value.
                 Environment.SetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable, envVarOld);
                 Environment.SetEnvironmentVariable(Utils.CustomSearchDirEnvVariable, resourcePathVarOld);
+
+                if (File.Exists(GetOutputPath("copyto", "sentiment.emd")))
+                    File.Delete(GetOutputPath("copyto", "sentiment.emd"));
             }
         }
     }

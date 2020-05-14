@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -220,7 +221,7 @@ namespace Microsoft.ML.Tests.Transformers
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort), ushort.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= uint.MaxValue)
             {
@@ -247,36 +248,70 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestHashIntegerNumbers()
         {
-            HashTestPositiveIntegerCore(0, 848, 567, 518);
-            HashTestPositiveIntegerCore(1, 492, 523, 1013);
-            HashTestPositiveIntegerCore(2, 676, 512, 863);
+            HashTestPositiveIntegerCore(0, 842, 358, 20);
+            HashTestPositiveIntegerCore(1, 502, 537, 746);
+            HashTestPositiveIntegerCore(2, 407, 801, 652);
         }
 
         [Fact]
         public void TestHashString()
         {
             HashTestCore("".AsMemory(), TextDataViewType.Instance, 0, 0, 0);
-            HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 326, 636, 307);
+            HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 940, 951, 857);
         }
 
         [Fact]
         public void TestHashFloatingPointNumbers()
         {
-            HashTestCore(1f, NumberDataViewType.Single, 933, 67, 270);
-            HashTestCore(-1f, NumberDataViewType.Single, 505, 589, 245);
-            HashTestCore(0f, NumberDataViewType.Single, 848, 567, 518);
+            HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732);
+            HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780);
+            HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20);
             // Note that while we have the hash for numeric types be equal, the same is not necessarily the case for floating point numbers.
-            HashTestCore(1d, NumberDataViewType.Double, 671, 728, 123);
-            HashTestCore(-1d, NumberDataViewType.Double, 803, 699, 790);
-            HashTestCore(0d, NumberDataViewType.Double, 848, 567, 518);
+            HashTestCore(1d, NumberDataViewType.Double, 937, 667, 424);
+            HashTestCore(-1d, NumberDataViewType.Double, 930, 78, 813);
+            HashTestCore(0d, NumberDataViewType.Double, 842, 358, 20);
         }
 
         [Fact]
         public void TestHashBool()
         {
             // These are the same for the hashes of 0 and 1.
-            HashTestCore(false, BooleanDataViewType.Instance, 848, 567, 518);
-            HashTestCore(true, BooleanDataViewType.Instance, 492, 523, 1013);
+            HashTestCore(false, BooleanDataViewType.Instance, 842, 358, 20);
+            HashTestCore(true, BooleanDataViewType.Instance, 502, 537, 746);
+        }
+
+        private class HashData
+        {
+            public ReadOnlyMemory<char> Foo { get; set; }
+        }
+
+        [Fact]
+        public void TestHashBackCompatability()
+        {
+            var mlContext = new MLContext();
+
+            var samples = new[]
+            {
+                new HashData {Foo = "alibaba".AsMemory()},
+                new HashData {Foo = "ba ba".AsMemory()},
+            };
+
+            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
+
+            var modelPath = GetDataPath("backcompat", "MurmurHashV1.zip");
+            var estimator = ML.Model.Load(modelPath, out var schema);
+
+            var outputPath = GetOutputPath("Text", "murmurHash.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                using (var fs = File.Create(outputPath))
+                {
+                    var transformedData = estimator.Transform(data);
+                    DataSaverUtils.SaveDataView(ch, saver, transformedData, fs, keepHidden: true);
+                }
+            }
+            CheckEquality("Text", "murmurHash.tsv");
         }
     }
 }

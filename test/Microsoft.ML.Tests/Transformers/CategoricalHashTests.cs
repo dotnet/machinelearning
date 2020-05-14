@@ -155,7 +155,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 65536);
-            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[6] { "1:6", "1:2", "0:1", "0:3", "0:5", "1:4" });
+            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[6] { "1:2", "0:5", "1:4", "1:6", "0:3", "0:1" });
 
             column = result.Schema["CatD"];
             Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
@@ -168,7 +168,9 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 131072);
-            Assert.Equal(slots.Items().Select(x => x.Value.ToString()).Distinct(), new string[14] { "[0].", "[0].0:E", "[0].0:D", "[0].1:E", "[0].1:D", "[0].0:A", "[0].1:A", "[1].", "[1].0:E", "[1].0:D", "[1].1:E", "[1].1:D", "[1].0:A", "[1].1:A" });
+            System.Diagnostics.Trace.WriteLine(slots.Items().Select(x => x.Value.ToString()).Distinct());
+            var temp = slots.Items().Select(x => x.Value.ToString()).Distinct();
+            Assert.Equal(slots.Items().Select(x => x.Value.ToString()).Distinct(), new string[14] { "[0].", "[0].0:A", "[0].0:E", "[0].0:D", "[0].1:A", "[0].1:E", "[0].1:D", "[1].", "[1].0:A", "[1].0:E", "[1].0:D", "[1].1:A", "[1].1:E", "[1].1:D" });
             column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
             Assert.Equal(slotRanges.Items().Select(x => x.Value.ToString()), new string[4] { "0", "65535", "65536", "131071" });

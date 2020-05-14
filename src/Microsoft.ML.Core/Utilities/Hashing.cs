@@ -174,6 +174,94 @@ namespace Microsoft.ML.Internal.Utilities
             return hash;
         }
 
+        // MurmurHashV2 is an implementation of MurmurHash3_x86_32 (https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp#L94) used by Onnxruntime's
+        // MurmurHash operator, implemented to have matching hashing results between ORT and ML.NET.
+        // One key difference between the two implementations is that strings use a different hashing algorithm in the previous version, but
+        // every type uses the same implementation on V2.
+        // The V1 String Hashing Algorithm had the following properities:
+        //     - Case Conversion: used inside the hashing algorithm in ML.Net.
+        //     - Mock UTF8 encoding: strings in C# are UTF16 and need to be converted to UTF8 before hashing
+        public static uint MurmurHashV2(uint hash, ReadOnlySpan<char> span, bool toUpper = false)
+        {
+            // Byte length (in pseudo UTF-8 form).
+            int len = 0;
+
+            // Current bits, value and count.
+            ulong cur = 0;
+            int bits = 0;
+            for (int ich = 0; ich < span.Length; ich++)
+            {
+                Contracts.Assert((bits & 0x7) == 0);
+                Contracts.Assert((uint)bits <= 24);
+                Contracts.Assert(cur <= 0x00FFFFFF);
+
+                uint ch = toUpper ? char.ToUpperInvariant(span[ich]) : span[ich];
+                if (ch <= 0x007F)
+                {
+                    cur |= ch << bits;
+                    bits += 8;
+                }
+                else if (ch <= 0x07FF)
+                {
+                    cur |= (ulong)((ch & 0x003F) | ((ch << 2) & 0x1F00) | 0xC080) << bits;
+                    cur = (cur & 0xFF) << 8 | cur >> 8;
+                    bits += 16;
+                }
+                else if (ch <= 0xFFFF)
+                {
+                    cur |= (ulong)((ch & 0x003F) | ((ch << 2) & 0x3F00) | ((ch << 4) & 0x0F0000) | 0xE08080) << bits;
+                    cur = (cur & 0xFF) << 16 | ((cur >> 8) & 0xFF) << 8 | cur >> 16;
+                    bits += 24;
+                }
+                else
+                {
+                    Contracts.Assert(ch <= 0x10FFFF);
+                    cur |= (ulong)((ch & 0x003F) | ((ch << 2) & 0x3F00) | ((ch << 4) & 0x3F0000) | ((ch << 6) & 0x07000000) | 0xF0808080) << bits;
+                    cur = (cur & 0xFF) << 24 | ((cur >> 8) & 0xFF) << 16 | ((cur >> 16) & 0xFF) << 8 | cur >> 24;
+                    bits += 32;
+                }
+
+                if (bits >= 32)
+                {
+                    hash = MurmurRound(hash, (uint)cur);
+                    cur = cur >> 32;
+                    bits -= 32;
+                    len += 4;
+                }
+            }
+            Contracts.Assert((bits & 0x7) == 0);
+            Contracts.Assert((uint)bits <= 24);
+            Contracts.Assert(cur <= 0x00FFFFFF);
+
+            if (bits > 0)
+            {
+                len += bits / 8;
+            }
+
+            // tail processing
+            uint k1 = 0;
+            switch (len & 3)
+            {
+                case 3:
+                    k1 ^= (uint)(((cur >> 16) & 0xFF) << 16);
+                    goto case 2;
+                case 2:
+                    k1 ^= (uint)((cur >> 8) & 0xFF) << 8;
+                    goto case 1;
+                case 1:
+                    k1 ^= (uint)(cur & 0xFF);
+                    k1 *= 0xCC9E2D51; k1 = Rotate(k1, 15);
+                    k1 *= 0x1B873593;
+                    hash ^= k1;
+                    break;
+            }
+
+            // Final mixing ritual for the hash.
+            hash = MixHashV2(hash, len);
+
+            return hash;
+        }
+
         /// <summary>
         /// Implements the murmur hash 3 algorithm, using a mock UTF-8 encoding.
         /// The UTF-8 conversion ignores the possibilities of unicode planes other than the 0th.
@@ -276,6 +364,18 @@ namespace Microsoft.ML.Internal.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MixHash(uint hash)
         {
+            hash ^= hash >> 16;
+            hash *= 0x85ebca6b;
+            hash ^= hash >> 13;
+            hash *= 0xc2b2ae35;
+            hash ^= hash >> 16;
+            return hash;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint MixHashV2(uint hash, int len)
+        {
+            hash ^= (uint)len;
             hash ^= hash >> 16;
             hash *= 0x85ebca6b;
             hash ^= hash >> 13;

@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorization_Estimator()
         {
             string labelColumnName = "Label";
@@ -53,8 +53,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [MatrixFactorizationFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Fact]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
@@ -96,10 +95,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // MF produce different matrices on different platforms, so check their content on Windows.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Assert.Equal(0.301269173622131, leftMatrix[0], 5);
-                Assert.Equal(0.558746933937073, leftMatrix[leftMatrix.Count - 1], 5);
-                Assert.Equal(0.27028301358223, rightMatrix[0], 5);
-                Assert.Equal(0.390790820121765, rightMatrix[rightMatrix.Count - 1], 5);
+                Assert.Equal(0.309137582778931, leftMatrix[0], 5);
+                Assert.Equal(0.468956589698792, leftMatrix[leftMatrix.Count - 1], 5);
+                Assert.Equal(0.303486406803131, rightMatrix[0], 5);
+                Assert.Equal(0.503888845443726, rightMatrix[rightMatrix.Count - 1], 5);
             }
             // Read the test data set as an IDataView
             var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
@@ -122,28 +121,30 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Compute prediction errors
             var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
-            // Determine if the selected metric is reasonable for different platforms
-            // Windows tolerance is set at 1e-7, and Linux tolerance is set at 1e-5
-            double windowsTolerance = Math.Pow(10, -7);
+            // Determine if the selected mean-squared error metric is reasonable on different platforms within the variation tolerance.
+            // Windows and Mac tolerances are set at 1e-7, and Linux tolerance is set at 1e-5.
+            // Here, each build OS has a different MSE baseline metric. While these metrics differ between builds, each build is expected to
+            // produce the same metric. This is because of minor build differences and varying implementations of sub-functions, such as random
+            // variables that are first obtained with the default random numger generator in libMF C++ libraries.
+            double windowsAndMacTolerance = Math.Pow(10, -7);
             double linuxTolerance = Math.Pow(10, -5);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                var expectedUnixL2Error = 0.612974867782832; // Linux baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - linuxTolerance, expectedUnixL2Error + linuxTolerance);
+                double expectedLinuxMeanSquaredError = 0.6127260028273948; // Linux baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedLinuxMeanSquaredError - linuxTolerance, expectedLinuxMeanSquaredError + linuxTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                // The Mac case is just broken. Should be fixed later. Re-enable when done.
                 // Mac case
-                //var expectedMacL2Error = 0.61192207960271; // Mac baseline
-                //Assert.InRange(metrices.L2, expectedMacL2Error - 5e-3, expectedMacL2Error + 5e-3); // 1e-7 is too small for Mac so we try 1e-5
+                double expectedMacMeanSquaredError = 0.616389336408704; // Mac baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedMacMeanSquaredError - windowsAndMacTolerance, expectedMacMeanSquaredError + windowsAndMacTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
-                var expectedWindowsL2Error = 0.622283290742721; // Windows baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - windowsTolerance, expectedWindowsL2Error + windowsTolerance);
+                double expectedWindowsMeanSquaredError = 0.600329985097577; // Windows baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedWindowsMeanSquaredError - windowsAndMacTolerance, expectedWindowsMeanSquaredError + windowsAndMacTolerance);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
@@ -195,7 +196,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorizationInMemoryData()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
@@ -305,7 +306,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorizationInMemoryDataZeroBaseIndex()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
@@ -419,7 +420,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void OneClassMatrixFactorizationInMemoryDataZeroBaseIndex()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
@@ -495,7 +496,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: precision);
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorizationBackCompat()
         {
             // This test is meant to check backwards compatibility after the change that removed Min and Contiguous from KeyType.
@@ -563,7 +564,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void OneClassMatrixFactorizationWithUnseenColumnAndRow()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
@@ -635,7 +636,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void OneClassMatrixFactorizationSample()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
@@ -752,7 +753,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         const int _matrixColumnCount = 256;
         const int _matrixRowCount = 256;
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void InspectMatrixFactorizationModel()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).

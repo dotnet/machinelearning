@@ -17,8 +17,8 @@ namespace Microsoft.ML.Benchmarks
     [CIBenchmark]
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
-        private readonly string _dataPath = GetBenchmarkDataPath("iris.txt");
-        private readonly string _sentimentDataPath = GetBenchmarkDataPath("wikipedia-detox-250-line-data.tsv");
+        private readonly string _dataPath = GetBenchmarkDataPathAndEnsureData("iris.txt");
+        private readonly string _sentimentDataPath = GetBenchmarkDataPathAndEnsureData("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
         private readonly MLContext _mlContext = new MLContext(seed: 1);

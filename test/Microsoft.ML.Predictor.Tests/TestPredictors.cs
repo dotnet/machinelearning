@@ -281,15 +281,9 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {
-            // TODO: Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
-            // Windows runs.
+            //Skipping test temporarily on Linux. This test will be re-enabled once the cause of failure has been determined.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return;
-
-            // TODO: Results sometimes go out of error tolerance on OS X.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4);
             Done();
         }
@@ -625,7 +619,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -646,7 +640,7 @@ namespace Microsoft.ML.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -755,7 +749,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [Fact]
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -801,7 +795,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
+        [LightGBMFact]
         public void TestMulticlassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");

@@ -1489,6 +1489,13 @@ namespace Microsoft.ML.Data
                 var column = new Column();
                 column.Name = mappingAttrName?.Name ?? memberInfo.Name;
                 column.Source = mappingAttr.Sources.ToArray();
+
+                var keyTypeAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
+                if (keyTypeAttr != null)
+                {
+                    column.KeyCount = keyTypeAttr.KeyCount;
+                }
+
                 InternalDataKind dk;
                 switch (memberInfo)
                 {

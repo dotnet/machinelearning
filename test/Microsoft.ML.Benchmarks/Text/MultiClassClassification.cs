@@ -20,7 +20,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPathWiki = GetBenchmarkDataPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPathWiki = GetBenchmarkDataPathAndEnsureData(TestDatasets.WikiDetox.trainFilename, TestDatasets.WikiDetox.path);
 
             if (!File.Exists(_dataPathWiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathWiki));
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _dataPathWiki = GetBenchmarkDataPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPathWiki = GetBenchmarkDataPathAndEnsureData(TestDatasets.WikiDetox.trainFilename, TestDatasets.WikiDetox.path);
 
             if (!File.Exists(_dataPathWiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathWiki));

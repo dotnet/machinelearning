@@ -1,0 +1,9 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Foo:TX:0
+#@   col=Bar:U4[2147483648]:1
+#@ }
+Foo	Bar
+alibaba	828372952
+ba ba	290795467

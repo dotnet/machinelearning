@@ -877,5 +877,48 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Assert.StartsWith("Should define at least one public, readable field or property in TInput.", ex.Message);
             }
         }
+
+        public class BreastCancerInputModelWithKeyType
+        {
+            [LoadColumn(0)]
+            public bool IsMalignant { get; set; }
+
+            [LoadColumn(1), KeyType(10)]
+            public uint Thickness { get; set; }
+        }
+
+        public class BreastCancerInputModelWithoutKeyType
+        {
+            [LoadColumn(0)]
+            public bool IsMalignant { get; set; }
+
+            [LoadColumn(1)]
+            public uint Thickness { get; set; }
+        }
+
+        [Fact]
+        public void TestLoadTextWithKeyTypeAttribute()
+        {
+            ulong expectedCount = 10;
+
+            var mlContext = new MLContext(seed: 1);
+            string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+
+            var data = mlContext.Data.CreateTextLoader<BreastCancerInputModelWithKeyType>(separatorChar: ',').Load(breastCancerPath);
+
+            Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
+        }
+
+        [Fact]
+        public void TestLoadTextWithoutKeyTypeAttribute()
+        {
+            ulong expectedCount = 0;
+            var mlContext = new MLContext(seed: 1);
+            string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+
+            var data = mlContext.Data.CreateTextLoader<BreastCancerInputModelWithoutKeyType>(separatorChar: ',').Load(breastCancerPath);
+
+            Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
+        }
     }
 }
