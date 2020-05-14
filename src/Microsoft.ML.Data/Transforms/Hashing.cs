@@ -700,8 +700,9 @@ namespace Microsoft.ML.Transforms
                     return 0;
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                hash = Hashing.MurmurRound(hash, hi);
-                return (Hashing.MixHashV2(hash, sizeof(ulong)) & mask) + 1;
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHashV2(hash, sizeof(uint)) & mask) + 1;
             }
         }
 
