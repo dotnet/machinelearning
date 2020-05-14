@@ -467,19 +467,35 @@ namespace Microsoft.ML.Data
 
                 private static class MultiLineReader
                 {
-                    public static string ReadMultiLine(TextReader sr)
+                    // When reading lines that contain quoted fields, the quoted fields can contain
+                    // '\n' so we we'll need to read multiple lines (multilines) to get all the fields
+                    // of a given row.
+                    public static string ReadMultiLine(TextReader sr, StringBuilder sb, bool ignoreHashLine)
                     {
                         string line;
-
                         line = sr.ReadLine();
+
                         // if it was an empty line or if we've reached the end of file (i.e. line = null)
                         if (string.IsNullOrEmpty(line))
                             return line;
 
-                        var sb = new StringBuilder(line);
+                        // In ML.NET we filter out lines beginning with // and # at the beginning of the file
+                        // Or lines beginning with // elsewhere in the file.
+                        // Thus, we don't care to check if there's a quoted multiline when the line begins with
+                        // these chars.
+                        if (line[0] == '/' && line[1] == '/')
+                            return line;
+                        if (ignoreHashLine && line[0] == '#')
+                            return line;
 
                         // Get more lines until the number of quote characters is even
-                        long numOfQuotes = GetNumberOfChars(line, '\"');
+                        // 2 consecutive quotes are considered scaped quotes
+                        long numOfQuotes = GetNumberOfChars(line, '"');
+                        if (numOfQuotes % 2 == 0)
+                            return line;
+
+                        sb.Clear();
+                        sb.Append(line);
                         while (numOfQuotes % 2 != 0)
                         {
                             line = sr.ReadLine();
@@ -487,8 +503,11 @@ namespace Microsoft.ML.Data
                             if (line == null) // If we've reached the end of the file
                                 break; // MYTODO: This could happen if we have an invalid open quote which never closes so we reach the end of the file without properly closing the field, should we throw instead in this case?
 
-                            sb.Append(line); // MYTODO: should we also add a "\n" in here?
-                            numOfQuotes += GetNumberOfChars(line, '\"');
+                            if(line.Length != 0)
+                                sb.Append(" "); // MYTODO: should we use instead a "\n" in here to separate lines?
+
+                            sb.Append(line);
+                            numOfQuotes += GetNumberOfChars(line, '"');
                         }
 
                         return sb.ToString();
@@ -508,6 +527,7 @@ namespace Microsoft.ML.Data
                 private void ThreadProc()
                 {
                     Contracts.Assert(_batchSize >= 2);
+                    var multilineSB = new StringBuilder();
 
                     try
                     {
@@ -528,7 +548,7 @@ namespace Microsoft.ML.Data
                                     // REVIEW: Avoid allocating a string for every line. This would probably require
                                     // introducing a CharSpan type (similar to ReadOnlyMemory but based on char[] or StringBuilder)
                                     // and implementing all the necessary conversion functionality on it. See task 3871.
-                                    text = MultiLineReader.ReadMultiLine(rdr);
+                                    text = MultiLineReader.ReadMultiLine(rdr, multilineSB, true);
                                     if (text == null)
                                         goto LNext;
                                     line++;
@@ -555,7 +575,7 @@ namespace Microsoft.ML.Data
                                     if (_abort)
                                         return;
 
-                                    text = MultiLineReader.ReadMultiLine(rdr);
+                                    text = MultiLineReader.ReadMultiLine(rdr, multilineSB, false);
                                     if (text == null)
                                     {
                                         // We're done with this file. Queue the last partial batch.
