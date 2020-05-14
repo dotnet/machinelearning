@@ -1,0 +1,21 @@
+LIBRARY mf
+EXPORTS
+    mf_get_default_param    @1
+    read_problem    @2
+    mf_save_model    @3
+    mf_load_model    @4
+    mf_destroy_model    @5
+    mf_train    @6
+    mf_train_on_disk    @7
+    mf_train_with_validation    @8
+    mf_train_with_validation_on_disk    @9
+    mf_cross_validation    @10
+    mf_cross_validation_on_disk    @11
+    mf_predict    @12
+    calc_rmse    @13
+    calc_mae    @14
+    calc_gkl    @15
+    calc_logloss    @16
+    calc_accuracy    @17
+    calc_mpr    @18
+    calc_auc    @19

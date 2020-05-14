@@ -1,0 +1,20 @@
+image: Visual Studio 2017
+platform: x64
+configuration: Release
+
+environment:
+    matrix:
+        - CPUSET: "/D \"USESSE\""
+
+        - CPUSET: "/D \"USEAVX\" /arch:AVX"
+
+        - CPUSET: ""
+
+install: 
+    - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+    - cmd: nmake /E /F Makefile.win all
+
+build: off
+
+test_script:
+    - cd demo && demo.bat

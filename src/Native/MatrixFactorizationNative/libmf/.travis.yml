@@ -1,0 +1,23 @@
+language: cpp
+
+matrix:
+    include:
+        - os: linux
+          env: DFLAG="-DUSESSE -DUSEOMP"
+        - os: linux
+          env: DFLAG="-DUSEAVX -DUSEOMP"
+        - os: linux
+          env: DFLAG="-DUSESSE -DUSEOMP"
+        - os: linux
+          env: DFLAG="-DUSEOMP"
+        - os: linux
+          env: DFLAG="-Wl,--no-as-needed"
+        - os: osx
+          env: DFLAG="" OMPFLAG=""
+
+install:
+    - make -e all
+    - make -e lib
+
+script:
+    - cd demo && sh demo.sh

@@ -1,0 +1,36 @@
+CXX = cl.exe
+CFLAGS = /W4 /nologo /O2 /EHsc /D "_CRT_SECURE_NO_DEPRECATE"
+
+# Choose one instruction set to accelerate LIBMF
+# 1. use SSE
+CPUSET = /D "USESSE"
+# 2. use AVX
+#CPUSET = /D "USEAVX" /arch:AVX
+# 3. no acceleration
+#CPUSET =
+
+# Always use OpenMP because Visual Studio supports it.
+CFLAGS = $(CFLAGS) $(CPUSET) /D "USEOMP" /openmp
+# To disable OpenMP, please use the command below.
+#CFLAGS = $(CFLAGS) $(CPUSET) /D
+
+TARGET = windows
+
+all: $(TARGET)\mf-train.exe $(TARGET)\mf-predict.exe lib
+
+$(TARGET)\mf-predict.exe: mf.h mf-predict.cpp mf.obj
+	$(CXX) $(CFLAGS) mf-predict.cpp mf.obj -Fe$(TARGET)\mf-predict.exe
+
+$(TARGET)\mf-train.exe: mf.h mf-train.cpp mf.obj
+	$(CXX) $(CFLAGS) mf-train.cpp mf.obj -Fe$(TARGET)\mf-train.exe
+
+mf.obj: mf.cpp mf.h
+	$(CXX) $(CFLAGS) -c mf.cpp
+
+lib: mf.cpp mf.def mf.h
+	$(CXX) $(CFLAGS) -LD mf.cpp -Fe$(TARGET)\mf -link -DEF:mf.def
+	
+clean:
+	-erase /Q *.obj *.dll *.lib *.exe $(TARGET)\.
+
+
