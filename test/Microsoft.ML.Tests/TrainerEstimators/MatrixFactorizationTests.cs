@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorization_Estimator()
         {
             string labelColumnName = "Label";
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorizationInMemoryData()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorizationInMemoryDataZeroBaseIndex()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void OneClassMatrixFactorizationInMemoryDataZeroBaseIndex()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: precision);
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void MatrixFactorizationBackCompat()
         {
             // This test is meant to check backwards compatibility after the change that removed Min and Contiguous from KeyType.
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void OneClassMatrixFactorizationWithUnseenColumnAndRow()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void OneClassMatrixFactorizationSample()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
@@ -753,7 +753,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         const int _matrixColumnCount = 256;
         const int _matrixRowCount = 256;
 
-        [MatrixFactorizationFact]
+        [Fact]
         public void InspectMatrixFactorizationModel()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
