@@ -440,9 +440,11 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void TextNormalizingOnnxConversionTest()
+        // [Fact]
+        [Theory, IterationData(5), TestCategory("RunSpecificTest")]
+        public void TextNormalizingOnnxConversionTest(int iterations)
         {
+            Console.WriteLine(String.Format("TextNormalizingOnnxConversionTest Iteration {0}", iterations));
             var mlContext = new MLContext(seed: 1);
             var dataPath = GetDataPath("wikipedia-detox-250-line-test.tsv");
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
@@ -462,7 +464,7 @@ namespace Microsoft.ML.Tests
 
             // Compare model scores produced by ML.NET and ONNX's runtime.
             // Skipping test in Linux platforms temporarily
-            if (IsOnnxRuntimeSupported() && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);

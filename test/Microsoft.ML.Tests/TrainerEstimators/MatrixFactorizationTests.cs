@@ -128,7 +128,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // variables that are first obtained with the default random numger generator in libMF C++ libraries.
             double windowsAndMacTolerance = Math.Pow(10, -7);
             double linuxTolerance = Math.Pow(10, -5);
-            double macTolerance = Math.Pow(10, -5);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
@@ -424,7 +423,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OneClassMatrixFactorizationInMemoryDataZeroBaseIndex()
         {
-            Console.WriteLine(String.Format("OneClassMatrixFactorizationInMemoryDataZeroBaseIndex {0}", iterations));
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
             // factorization problem, unspecified matrix elements are all a constant provided by user. If that constant is 0.15,
             // the following list means a 3-by-2 training matrix with elements:
@@ -490,8 +488,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
 
             // TODO TEST_STABILITY: We are seeing lower precision on non-Windows platforms
-            // int precision = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 5 : 3;
-            int precision = 5;
+            int precision = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 5 : 3;
 
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
             CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: precision);
