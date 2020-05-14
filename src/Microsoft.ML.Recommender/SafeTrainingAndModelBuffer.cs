@@ -334,10 +334,21 @@ namespace Microsoft.ML.Recommender.Internal
                 ch.Info("Training {0} by {1} problem on {2} examples",
                     prob.M, prob.N, prob.Nnz);
 
+                Console.WriteLine($"prob.M: {prob.M}, prob.N: {prob.N}, prob.Nnz: {prob.Nnz}.");
+
+                Console.WriteLine($"_mfParam.Alpha: {_mfParam.Alpha}, _mfParam.C: {_mfParam.C}, _mfParam.CopyData: {_mfParam.CopyData}," +
+                    $"_mfParam.DoNmf: {_mfParam.DoNmf}, _mfParam.Eta: {_mfParam.Eta}, _mfParam.Fun: {_mfParam.Fun}," +
+                    $"_mfParam.K: {_mfParam.K}, _mfParam.LambdaP1: {_mfParam.LambdaP1}, _mfParam.LambdaP2: {_mfParam.LambdaP2}," +
+                    $"_mfParam.LambdaQ1: {_mfParam.LambdaQ1}, _mfParam.LambdaQ2: {_mfParam.LambdaQ2}, _mfParam.NrBins: {_mfParam.NrBins}," +
+                    $"_mfParam.NrIters: {_mfParam.NrIters}, _mfParam.NrThreads: {_mfParam.NrThreads}, _mfParam.Quiet: {_mfParam.Quiet}.");
+
                 fixed (MFParameter* pParam = &_mfParam)
                 {
                     _pMFModel = MFTrain(&prob, pParam);
                 }
+
+                Console.WriteLine($"_pMFModel->B: {_pMFModel->B}, _pMFModel->Fun: {_pMFModel->Fun}, _pMFModel->K: {_pMFModel->K}," +
+                    $"_pMFModel->M: {_pMFModel->M}, _pMFModel->N: {_pMFModel->N}, _pMFModel->P: {*(_pMFModel->P)}, _pMFModel->Q: {*(_pMFModel->Q)}.");
             }
         }
 
