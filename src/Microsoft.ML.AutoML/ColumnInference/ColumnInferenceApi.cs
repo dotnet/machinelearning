@@ -56,7 +56,8 @@ namespace Microsoft.ML.AutoML
                 AllowSparse = splitInference.AllowSparse,
                 AllowQuoting = splitInference.AllowQuote,
                 HasHeader = hasHeader,
-                TrimWhitespace = trimWhitespace
+                TrimWhitespace = trimWhitespace,
+                ReadMultilines = true // MYTODO: is it ok to hardcode this? it is necessary for my test to pass
             };
             var textLoader = context.Data.CreateTextLoader(typedLoaderOptions);
             var dataView = textLoader.Load(path);
@@ -92,7 +93,8 @@ namespace Microsoft.ML.AutoML
                 AllowSparse = splitInference.AllowSparse,
                 Separators = new char[] { splitInference.Separator.Value },
                 HasHeader = hasHeader,
-                TrimWhitespace = trimWhitespace
+                TrimWhitespace = trimWhitespace,
+                ReadMultilines = true // is it necessary to put this in here?
             };
 
             return new ColumnInferenceResults()

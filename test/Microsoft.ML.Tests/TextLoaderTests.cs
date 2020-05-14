@@ -933,7 +933,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     new TextLoader.Column("description", DataKind.String, 1),
                     new TextLoader.Column("animal", DataKind.String, 2),
                 },
-           hasHeader: true, separatorChar:',', allowQuoting:true);
+           hasHeader: true, separatorChar:',', allowQuoting:true, readMultilines: true);
 
             // Get values from loaded dataview
             var ids = new List<string>();

@@ -66,7 +66,8 @@ namespace Microsoft.ML.AutoML
                     } },
                     Separators = new[] { perm._sep },
                     AllowQuoting = perm._allowQuote,
-                    AllowSparse = perm._allowSparse
+                    AllowSparse = perm._allowSparse,
+                    ReadMultilines = true //MYTODO: is it ok to hard code this in here? it's necessary for the test to pass
                 };
 
                 if (TryParseFile(context, options, source, out result))
