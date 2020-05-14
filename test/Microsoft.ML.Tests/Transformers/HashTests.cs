@@ -301,30 +301,47 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestHashBackCompatability()
         {
-            var mlContext = new MLContext();
-
             var samples = new[]
             {
                 new HashData {Foo = "alibaba".AsMemory()},
                 new HashData {Foo = "ba ba".AsMemory()},
             };
 
-            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
+            IDataView data = ML.Data.LoadFromEnumerable(samples);
 
             var modelPath = GetDataPath("backcompat", "MurmurHashV1.zip");
-            var estimator = ML.Model.Load(modelPath, out var schema);
+            var model = ML.Model.Load(modelPath, out var _);
 
-            var outputPath = GetOutputPath("Text", "murmurHash.tsv");
+            var outputPath = DeleteOutputPath("Text", "murmurHash.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 using (var fs = File.Create(outputPath))
                 {
-                    var transformedData = estimator.Transform(data);
+                    var transformedData = model.Transform(data);
                     DataSaverUtils.SaveDataView(ch, saver, transformedData, fs, keepHidden: true);
                 }
             }
             CheckEquality("Text", "murmurHash.tsv");
+        }
+
+        [Fact]
+        public void TestBackCompatNoCombineOption()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[]
+            {
+                new TextLoader.Column("Features", DataKind.Single, 1, 9)
+            });
+
+            string modelPath = GetDataPath("backcompat", "hashing-before-combine.zip");
+            var model = ML.Model.Load(modelPath, out _);
+
+            var hashed = model.Transform(dataView);
+            var hashedCol = hashed.Schema["Features"];
+            Assert.True(hashedCol.Type.GetItemType() is KeyDataViewType);
+            Assert.Equal(9, hashedCol.Type.GetValueCount());
+            Assert.Equal(Math.Pow(2, 31), hashedCol.Type.GetItemType().GetKeyCount());
         }
 
         [Fact]
