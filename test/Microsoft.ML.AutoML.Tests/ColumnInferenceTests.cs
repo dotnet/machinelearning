@@ -186,5 +186,26 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(DefaultColumnNames.Features, result.ColumnInformation.NumericColumnNames.First());
             Assert.Null(result.ColumnInformation.ExampleWeightColumnName);
         }
+
+        [Fact]
+        public void InferColumnsFromMultilineInputFile()
+        {
+            // Check if we can infer the column information
+            // from and input file which has escaped newlines inside quotes
+            var dataPath = GetDataPath("multiline.csv");
+            MLContext mlContext = new MLContext();
+            var inputColumnInformation = new ColumnInformation();
+            inputColumnInformation.LabelColumnName = @"id";
+            var result = mlContext.Auto().InferColumns(dataPath, inputColumnInformation);
+
+            // File only have 3 columns: "id", "description" and "animal"
+            Assert.NotNull(result.ColumnInformation.LabelColumnName);
+            Assert.Equal(1, result.ColumnInformation.TextColumnNames.Count);
+            Assert.Equal(1, result.ColumnInformation.CategoricalColumnNames.Count);
+
+            Assert.Equal("id", result.ColumnInformation.LabelColumnName);
+            Assert.Equal("description", result.ColumnInformation.TextColumnNames.First());
+            Assert.Equal("animal", result.ColumnInformation.CategoricalColumnNames.First());
+        }
     }
 }
