@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms
         private readonly HashingEstimator.ColumnOptions[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorDataViewType[] _kvTypes;
-        private readonly bool _useOldHashing;
+        private readonly bool _nonOnnxExportableVersion;
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
         {
             var columnsLength = ColumnPairs.Length;
             _columns = new HashingEstimator.ColumnOptions[columnsLength];
-            _useOldHashing = (ctx.Header.ModelVerWritten < 0x00010003); // Version 0x00010003 will use MurmurHash3_x86_32
+            _nonOnnxExportableVersion = (ctx.Header.ModelVerWritten < 0x00010003); // Version 0x00010003 will use MurmurHash3_x86_32
             for (int i = 0; i < columnsLength; i++)
                 _columns[i] = new HashingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
             TextModelHelper.LoadAll(Host, ctx, columnsLength, out _keyValues, out _kvTypes);
@@ -358,43 +358,43 @@ namespace Microsoft.ML.Transforms
             if (srcType is KeyDataViewType)
             {
                 if (srcType.RawType == typeof(uint))
-                    return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask, _useOldHashing);
+                    return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
                 else if (srcType.RawType == typeof(ulong))
-                    return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask, _useOldHashing);
+                    return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
                 else if (srcType.RawType == typeof(ushort))
-                    return MakeScalarHashGetter<ushort, HashKey2>(input, srcCol, seed, mask, _useOldHashing);
+                    return MakeScalarHashGetter<ushort, HashKey2>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
 
                 Host.Assert(srcType.RawType == typeof(byte));
-                return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             }
 
             if (srcType.RawType == typeof(ReadOnlyMemory<char>))
-                return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(float))
-                return MakeScalarHashGetter<float, HashFloat>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<float, HashFloat>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(double))
-                return MakeScalarHashGetter<double, HashDouble>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<double, HashDouble>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(sbyte))
-                return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(short))
-                return MakeScalarHashGetter<short, HashI2>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<short, HashI2>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(int))
-                return MakeScalarHashGetter<int, HashI4>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<int, HashI4>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(long))
-                return MakeScalarHashGetter<long, HashI8>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<long, HashI8>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(byte))
-                return MakeScalarHashGetter<byte, HashU1>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<byte, HashU1>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(ushort))
-                return MakeScalarHashGetter<ushort, HashU2>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<ushort, HashU2>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(uint))
-                return MakeScalarHashGetter<uint, HashU4>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<uint, HashU4>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(ulong))
-                return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
             else if (srcType.RawType == typeof(DataViewRowId))
-                return MakeScalarHashGetter<DataViewRowId, HashU16>(input, srcCol, seed, mask, _useOldHashing);
+                return MakeScalarHashGetter<DataViewRowId, HashU16>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
 
             Host.Assert(srcType.RawType == typeof(bool));
-            return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask, _useOldHashing);
+            return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask, _nonOnnxExportableVersion);
         }
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVec(DataViewRow input, int iinfo, int srcCol, VectorDataViewType srcType)
@@ -455,8 +455,8 @@ namespace Microsoft.ML.Transforms
             var seed = ex.Seed;
 
             if (!ex.UseOrderedHashing)
-                return MakeVectorHashGetter<T, THash>(seed, mask, getSrc, _useOldHashing);
-            return MakeVectorOrderedHashGetter<T, THash>(seed, mask, getSrc, _useOldHashing);
+                return MakeVectorHashGetter<T, THash>(seed, mask, getSrc, _nonOnnxExportableVersion);
+            return MakeVectorOrderedHashGetter<T, THash>(seed, mask, getSrc, _nonOnnxExportableVersion);
         }
 
         private ValueGetter<uint> ComposeGetterCombined(DataViewRow input, int iinfo, int srcCol, VectorDataViewType srcType)
