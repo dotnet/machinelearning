@@ -27,10 +27,10 @@ namespace Microsoft.ML.RunTests
 
         private static Double[] _dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
-        private static uint[] _resultsDouble = new uint[] { 16, 16, 25, 27, 12, 2, 0, 6, 17, 4, 11, 30 };
+        private static uint[] _resultsDouble = new uint[] { 30, 30, 19, 24, 32, 25, 0, 2, 7, 30, 5, 3 };
 
         private static VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] _resultsDoubleSparse = new uint[] { 16,16,16,16, 25 };
+        private static uint[] _resultsDoubleSparse = new uint[] { 30, 30, 30, 30, 19 };
 
         [Fact()]
         public void SavePipeLabelParsers()
