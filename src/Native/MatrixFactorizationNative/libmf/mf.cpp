@@ -3471,6 +3471,9 @@ void ccd_one_class_core(
     mf_float *P = model->P;
     mf_float *Q = model->Q;
 
+    cout << "Q:" + to_string(*Q);
+    cout << endl;
+
     // Cache the prediction values on positive matrix entries.
     // Given that P=zero and Q=random initialized in 
     // Utility::init_model(mf_int m, mf_int n, mf_int k),
@@ -3539,6 +3542,9 @@ void ccd_one_class_core(
     // R ~ PQ^T \in R^{m \times n}
     for(mf_int outer = 0; outer < param.nr_iters; ++outer)
     {
+        cout << "P:" + to_string(*P) + ", Q:" + to_string(*Q) + ", m:" + to_string(m) + ", n:" + to_string(n);
+        cout << endl;
+
         // Update \bar{p}_k and \bar{q}_k. The basic idea is
         // to replace \bar{p}_k and \bar{q}_k with a and b,
         // and then minimizes the original objective function.
@@ -3749,6 +3755,13 @@ void ccd_one_class_core(
         mf_double negative_loss = 0; // for negative entries in training matrix.
         // Declare variable for storing regularization function's value.
         mf_double reg = 0;
+
+        cout << "alpha:" + to_string(alpha) + ", c:" + to_string(c) + ",m:" + to_string(m) + ", n:" + to_string(n) +
+            ", d:" + to_string(d) + ", lambda_p2:" + to_string(lambda_p2) + ", lambda_q2:" + to_string(lambda_q2)
+            + ", P:" + to_string(*P) + ", Q:" + to_string(*Q) + ", obj:" + to_string(obj) 
+            + ", positive_loss:" + to_string(positive_loss) + ", negative_loss:" + to_string(negative_loss) 
+            + ", reg:" + to_string(reg);
+        cout << endl;
 
         // Compute objective value, loss function value, and regularization
         // function value
