@@ -207,7 +207,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expectedOrdered3, vecResult.GetItemOrDefault(3));
         }
 
-        private void HashTestPositiveIntegerCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3)
+        private void HashTestPositiveInteger32BitCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3)
         {
             uint eKey = value == 0 ? 0 : expected;
             uint eoKey = value == 0 ? 0 : expectedOrdered;
@@ -228,10 +228,9 @@ namespace Microsoft.ML.Tests.Transformers
                 HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3);
                 HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
             }
-            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3);
-            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
 
             HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), ulong.MaxValue - 1), eKey, eoKey, e3Key);
 
             // Next let's check signed numbers.
 
@@ -241,6 +240,19 @@ namespace Microsoft.ML.Tests.Transformers
                 HashTestCore((short)value, NumberDataViewType.Int16, expected, expectedOrdered, expectedOrdered3);
             if (value <= int.MaxValue)
                 HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3);
+        }
+
+        private void HashTestPositiveInteger64BitCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3)
+        {
+            uint eKey = value == 0 ? 0 : expected;
+            uint eoKey = value == 0 ? 0 : expectedOrdered;
+            uint e3Key = value == 0 ? 0 : expectedOrdered3;
+
+            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3);
+            //A weird test, does not figure out which hash function to use, but can pass 32bit test cases
+            //HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), ulong.MaxValue - 1), eKey, eoKey, e3Key);
+
+            // Next let's check signed numbers.
             if (value <= long.MaxValue)
                 HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3);
         }
@@ -248,12 +260,15 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestHashIntegerNumbers()
         {
-            //HashTestPositiveIntegerCore(0, 512, 358, 20);
-            //HashTestPositiveIntegerCore(1, 502, 537, 746);
-            //HashTestPositiveIntegerCore(2, 407, 801, 652);
+            //32bit
+            HashTestPositiveInteger32BitCore(0, 842, 358, 20);
+            HashTestPositiveInteger32BitCore(1, 502, 537, 746);
+            HashTestPositiveInteger32BitCore(2, 407, 801, 652);
 
-            //temporarily skip this test
-            return;
+            //64bit
+            HashTestPositiveInteger64BitCore(0, 512, 851, 795);
+            HashTestPositiveInteger64BitCore(1, 329, 190, 574);
+            HashTestPositiveInteger64BitCore(2, 484, 713, 128);
         }
 
         [Fact]
