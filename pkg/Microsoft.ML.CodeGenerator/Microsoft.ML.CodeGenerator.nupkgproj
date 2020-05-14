@@ -6,7 +6,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.AutoML" Version="0.17.0-preview2-28706-1" />
+    <ProjectReference Include="../Microsoft.ML.AutoML/Microsoft.ML.AutoML.nupkgproj"/>
   </ItemGroup>
 
   <ItemGroup>
