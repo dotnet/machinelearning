@@ -73,7 +73,7 @@ namespace Microsoft.ML.AutoML
 
         public static TextFileSample CreateFromFullFile(string path)
         {
-            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 return CreateFromFullStream(fs);
             }
