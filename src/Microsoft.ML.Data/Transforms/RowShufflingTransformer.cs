@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -486,8 +486,8 @@ namespace Microsoft.ML.Transforms
             private int _liveCount;
             private bool _doneConsuming;
 
-            private readonly BufferBlock<int> _toProduce;
-            private readonly BufferBlock<int> _toConsume;
+            private readonly Channel<int> _toProduceChannel;
+            private readonly Channel<int> _toConsumeChannel;
             private readonly Task _producerTask;
             private Exception _producerTaskException;
 
@@ -541,13 +541,13 @@ namespace Microsoft.ML.Transforms
                 _liveCount = 1;
 
                 // Set up the producer worker.
-                _toConsume = new BufferBlock<int>();
-                _toProduce = new BufferBlock<int>();
+                _toConsumeChannel = Channel.CreateUnbounded<int>(new UnboundedChannelOptions { SingleWriter = true });
+                _toProduceChannel = Channel.CreateUnbounded<int>(new UnboundedChannelOptions { SingleWriter = true });
                 // First request the pool - 1 + block size rows, to get us going.
-                PostAssert(_toProduce, _poolRows - 1 + _blockSize);
+                PostAssert(_toProduceChannel, _poolRows - 1 + _blockSize);
                 // Queue up the remaining capacity.
                 for (int i = 1; i < _bufferDepth; ++i)
-                    PostAssert(_toProduce, _blockSize);
+                    PostAssert(_toProduceChannel, _blockSize);
 
                 _producerTask = ProduceAsync();
             }
@@ -559,28 +559,28 @@ namespace Microsoft.ML.Transforms
 
                 if (disposing)
                 {
-                    _toProduce.Complete();
+                    _toProduceChannel.Writer.Complete();
                     _producerTask.Wait();
 
                     // Complete the consumer after the producerTask has finished, since producerTask could
                     // have posted more items to _toConsume.
-                    _toConsume.Complete();
+                    _toConsumeChannel.Writer.Complete();
 
                     // Drain both BufferBlocks - this prevents what appears to be memory leaks when using the VS Debugger
                     // because if a BufferBlock still contains items, its underlying Tasks are not getting completed.
                     // See https://github.com/dotnet/corefx/issues/30582 for the VS Debugger issue.
                     // See also https://github.com/dotnet/machinelearning/issues/4399
-                    _toProduce.TryReceiveAll(out _);
-                    _toConsume.TryReceiveAll(out _);
+                    _toProduceChannel.Reader.ReadAsync();
+                    _toConsumeChannel.Reader.ReadAsync();
                 }
 
                 _disposed = true;
                 base.Dispose(disposing);
             }
 
-            public static void PostAssert<T>(ITargetBlock<T> target, T item)
+            public static void PostAssert<T>(Channel<T> target, T item)
             {
-                bool retval = target.Post(item);
+                bool retval = target.Writer.TryWrite(item);
                 Contracts.Assert(retval);
             }
 
@@ -594,10 +594,10 @@ namespace Microsoft.ML.Transforms
                 try
                 {
                     int circularIndex = 0;
-                    while (await _toProduce.OutputAvailableAsync().ConfigureAwait(false))
+                    while (await _toProduceChannel.Reader.WaitToReadAsync().ConfigureAwait(false))
                     {
                         int requested;
-                        if (!_toProduce.TryReceive(out requested))
+                        if (!_toProduceChannel.Reader.TryRead(out requested))
                         {
                             // OutputAvailableAsync returned true, but TryReceive returned false -
                             // so loop back around and try again.
@@ -618,14 +618,14 @@ namespace Microsoft.ML.Transforms
                             if (circularIndex == _pipeIndices.Length)
                                 circularIndex = 0;
                         }
-                        PostAssert(_toConsume, numRows);
+                        PostAssert(_toConsumeChannel, numRows);
                         if (numRows < requested)
                         {
                             // We've reached the end of the cursor. Send the sentinel, then exit.
                             // This assumes that the receiver will receive things in Post order
                             // (so that the sentinel is received, after the last Post).
                             if (numRows > 0)
-                                PostAssert(_toConsume, 0);
+                                PostAssert(_toConsumeChannel, 0);
                             return;
                         }
                     }
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Transforms
                 {
                     _producerTaskException = ex;
                     // Send the sentinel in this case as well, the field will be checked.
-                    PostAssert(_toConsume, 0);
+                    PostAssert(_toConsumeChannel, 0);
                 }
             }
 
@@ -652,14 +652,14 @@ namespace Microsoft.ML.Transforms
                     // We should let the producer know it can give us more stuff.
                     // It is possible for int values to be sent beyond the
                     // end of the sentinel, but we suppose this is irrelevant.
-                    PostAssert(_toProduce, _deadCount);
+                    PostAssert(_toProduceChannel, _deadCount);
                     _deadCount = 0;
                 }
 
                 while (_liveCount < _poolRows && !_doneConsuming)
                 {
                     // We are under capacity. Try to get some more.
-                    int got = _toConsume.Receive();
+                    _toConsumeChannel.Reader.TryRead(out int got);
                     if (got == 0)
                     {
                         // We've reached the end sentinel. There's no reason
