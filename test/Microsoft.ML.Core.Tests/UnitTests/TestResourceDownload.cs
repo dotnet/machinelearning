@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
@@ -137,6 +138,74 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
                 if (File.Exists(GetOutputPath("copyto", "sentiment.emd")))
                     File.Delete(GetOutputPath("copyto", "sentiment.emd"));
+            }
+        }
+
+        [Fact]
+        [TestCategory("ResourceDownload")]
+        [Trait("Category", "RunSpecificTest")]
+        public void TestMetaFileDownload()
+        {
+            int numberOfParallel = 15;
+            int numberOfIterations = 20;
+
+            var env = new ConsoleEnvironment(1);
+            var fileList = new List<string> { "inception_v3.meta", "mobilenet_v2.meta", "resnet_v2_50_299.meta", "resnet_v2_101_299.meta" };
+
+            for (int j = 0; j < numberOfIterations; j++)
+            {
+                var tasks = new List<Task>();
+                for (int i = 0; i < numberOfParallel; i++)
+                {
+                    string guid = Guid.NewGuid().ToString();
+                    var path = Path.Combine(Path.GetTempPath(), "MLNET", guid);
+
+                    foreach (var file in fileList)
+                    {
+#pragma warning disable VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
+                        tasks.Add(Task.Factory.StartNew(() => Download(env, file, path, file)));
+                        //var timeoutTask = Task.Delay(5*60*1000);
+                        //tasks.Add(timeoutTask);
+#pragma warning restore VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
+                    }
+
+                    Task.WaitAll(tasks.ToArray());
+                }
+
+                Thread.Sleep(10*1000);
+            }
+        }
+
+        private void Download(IHostEnvironment env, string url, string destDir, string destFileName)
+        {
+            if (destFileName == null)
+                destFileName = url.Split(Path.DirectorySeparatorChar).Last();
+
+            Directory.CreateDirectory(destDir);
+
+            int timeout = 10 * 60 * 1000;
+            using (var ch = env.Start("Test Download files"))
+            {
+                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, url, destFileName, destDir, timeout);
+                ensureModel.Wait();
+                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
+                if (errorResult != null)
+                {
+                    Console.WriteLine($"Dowload fail for {destDir}/{destFileName}");
+                    return;
+                }
+            }
+
+            var fileName = Path.Combine(destDir, destFileName);
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+
+            if (Directory.Exists(destDir) &&
+               (Directory.GetFileSystemEntries(destDir).Length == 0))
+            {
+                Directory.Delete(destDir);
             }
         }
     }
