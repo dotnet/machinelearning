@@ -1162,7 +1162,7 @@ namespace Microsoft.ML.Data
                                 break;
                             }
 
-                            // The logic below allow us to scape quotes (") inside quoted
+                            // The logic below allow us to escape quotes (") inside quoted
                             // fields by using doublo quotes (""). I.e. when the loader
                             // encounters "" inside a quoted field, it will output only one "
                             // and continue parsing the rest of the field.
