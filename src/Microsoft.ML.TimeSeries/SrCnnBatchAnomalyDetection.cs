@@ -97,7 +97,14 @@ namespace Microsoft.ML.TimeSeries
             _inputColumnName = inputColumnName;
 
             env.CheckUserArg(batchSize == -1 || batchSize >= MinBatchSize, nameof(batchSize), "BatchSize must be -1 or no less than 12.");
-            _batchSize = batchSize;
+            if (batchSize == -1)
+            {
+                _batchSize = (int)input.GetRowCount();
+            }
+            else
+            {
+                _batchSize = batchSize;
+            }
 
             env.CheckUserArg(threshold >= 0 && threshold <= 1, nameof(threshold), "Must be in [0,1].");
             env.CheckUserArg(detectMode == SrCnnDetectMode.AnomalyOnly
@@ -392,7 +399,7 @@ namespace Microsoft.ML.TimeSeries
                 int j = 0;
                 for (int i = data.Length - _lookaheadWindowSize - 2; i < data.Length - 1; ++i)
                 {
-                    predictArray[j] = data[i];
+                    predictArray[j++] = data[i];
                 }
                 var predictedValue = PredictNext(predictArray);
                 double[] backAddArray = new double[data.Length + _backAddWindowSize];
@@ -427,7 +434,7 @@ namespace Microsoft.ML.TimeSeries
 
                 for (int i = 0; i < length; ++i)
                 {
-                    cumsum += cumSumList[i];
+                    cumsum += data[i];
                     cumSumList[i] = cumsum;
                     cumSumShift[i] = cumsum;
                 }
