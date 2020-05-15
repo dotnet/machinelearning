@@ -599,7 +599,8 @@ namespace Microsoft.ML.Transforms
                 ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
                 var hi = Utils.GetHi(v);
-                hash = Hashing.MurmurRound(hash, hi);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -755,7 +756,8 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                hash = Hashing.MurmurRound(hash, hi);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -875,7 +877,8 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
                 var hi = Utils.GetHi((ulong)value);
-                hash = Hashing.MurmurRound(hash, hi);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
