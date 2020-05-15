@@ -421,7 +421,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        [Trait("Category", "RunSpecificTest")]
+        //[Trait("Category", "RunSpecificTest")]
         public void OneClassMatrixFactorizationInMemoryDataZeroBaseIndex()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
