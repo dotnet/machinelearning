@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.TimeSeries;
 
 namespace Samples.Dynamic
 {
@@ -29,69 +30,44 @@ namespace Samples.Dynamic
             // Convert data to IDataView.
             var dataView = ml.Data.LoadFromEnumerable(data);
 
-            // Setup the estimator arguments
+
+            // Setup the detection arguments
             string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
             string inputColumnName = nameof(TimeSeriesData.Value);
 
-            // The transformed data.
-            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(
-                outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35).Fit(
-                dataView).Transform(dataView);
+            // Do batch anomaly detection
+            var outputDataView = ml.Data.BatchDetectAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, batchSize: 512, sensitivity: 70, detectMode: SrCnnDetectMode.AnomalyAndMargin);
 
             // Getting the data of the newly created column as an IEnumerable of
             // SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
-                transformedData, reuseRowObject: false);
+                outputDataView, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-" +
                 $"transformation.");
 
-            Console.WriteLine("Data\tAlert\tScore\tMag");
+            Console.WriteLine("Data\tAlert\tScore\tMag\tExpectedValue\tBoundaryUnit\tUpperBoundary\tLowerBoundary");
 
             int k = 0;
             foreach (var prediction in predictionColumn)
                 PrintPrediction(data[k++].Value, prediction);
 
             //Prediction column obtained post-transformation.
-            //Data Alert   Score Mag
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.00    0.00
-            //5       0       0.03    0.18
-            //5       0       0.03    0.18
-            //5       0       0.03    0.18
-            //5       0       0.03    0.18
-            //5       0       0.03    0.18
-            //10      1       0.47    0.93
-            //5       0       0.31    0.50
-            //5       0       0.05    0.30
-            //5       0       0.01    0.23
-            //5       0       0.00    0.21
-            //5       0       0.01    0.25
+            //Data Alert   Score Mag ExpectedValue BoundaryUnit UpperBoundary LowerBoundary
+            // TODO: update with actual output from SrCnn
         }
 
-        private static void PrintPrediction(float value, SrCnnAnomalyDetection
+        private static void PrintPrediction(double value, SrCnnAnomalyDetection
             prediction) =>
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction
-            .Prediction[0], prediction.Prediction[1], prediction.Prediction[2]);
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}\t{5:0.00}\t{6:0.00}", value,
+                prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2],
+                prediction.Prediction[3], prediction.Prediction[4], prediction.Prediction[5]);
 
         private class TimeSeriesData
         {
-            public float Value;
+            public double Value;
 
-            public TimeSeriesData(float value)
+            public TimeSeriesData(double value)
             {
                 Value = value;
             }
@@ -99,7 +75,7 @@ namespace Samples.Dynamic
 
         private class SrCnnAnomalyDetection
         {
-            [VectorType(3)]
+            [VectorType(6)]
             public double[] Prediction { get; set; }
         }
     }
