@@ -141,19 +141,17 @@ namespace Microsoft.ML.Data
         /// <param name="itemType">
         /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
-        /// <param name="data">DataView that contains the expected type of input and output of transformers</param>
-        /// <param name="singleName">Column name used to find the corresponding expected data type</param>
-        public static void GetVectorAndItemType(MemberInfo memberInfo, out bool isVector, out Type itemType, IDataView data = null, string singleName = null)
+        public static void GetVectorAndItemType(MemberInfo memberInfo, out bool isVector, out Type itemType)
         {
             Contracts.AssertValue(memberInfo);
             switch (memberInfo)
             {
                 case FieldInfo fieldInfo:
-                    GetVectorAndItemType(fieldInfo.Name, fieldInfo.FieldType, fieldInfo.GetCustomAttributes(), out isVector, out itemType, data, singleName);
+                    GetVectorAndItemType(fieldInfo.Name, fieldInfo.FieldType, fieldInfo.GetCustomAttributes(), out isVector, out itemType);
                     break;
 
                 case PropertyInfo propertyInfo:
-                    GetVectorAndItemType(propertyInfo.Name, propertyInfo.PropertyType, propertyInfo.GetCustomAttributes(), out isVector, out itemType, data, singleName);
+                    GetVectorAndItemType(propertyInfo.Name, propertyInfo.PropertyType, propertyInfo.GetCustomAttributes(), out isVector, out itemType);
                     break;
 
                 default:
@@ -174,9 +172,7 @@ namespace Microsoft.ML.Data
         /// <param name="itemType">
         /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
-        /// <param name="data">DataView that contains the expected type of input and output of transformers</param>
-        /// <param name="singleName">Column name used to find the corresponding expected data type</param>
-        public static void GetVectorAndItemType(string name, Type rawType, IEnumerable<Attribute> attributes, out bool isVector, out Type itemType, IDataView data = null, string singleName = null)
+        public static void GetVectorAndItemType(string name, Type rawType, IEnumerable<Attribute> attributes, out bool isVector, out Type itemType)
         {
             // Determine whether this is a vector, and also determine the raw item type.
             isVector = true;
@@ -197,15 +193,6 @@ namespace Microsoft.ML.Data
             // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
             else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
             {
-                int colIndex;
-                data.Schema.TryGetColumnIndex(singleName, out colIndex);
-                var expectedType = data.Schema[colIndex].Type;
-                //This is a big hack. it uses DataViewTypeManager to check if there's "make-up" types in it
-                //e.g. customer define the type "float", and this will check if "IEnumerable<float>" in the DateTypeManager
-                //It gives helpful information when customer accidently define OnnxSequenceType the same as member type
-                Type containerType = typeof(IEnumerable<>).MakeGenericType(itemType);
-                if (DataViewTypeManager.Knows(containerType, attributes))
-                    throw Contracts.ExceptParam(nameof(rawType), $"The expected type '{expectedType.RawType}' does not match the type of the {name} property: '{itemType.Name}'. Please change the {name} property to '{expectedType.RawType}'", name);
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type and registered custom types for member {0}", name);
             }
         }

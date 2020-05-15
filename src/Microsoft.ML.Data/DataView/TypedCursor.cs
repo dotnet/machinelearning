@@ -217,15 +217,115 @@ namespace Microsoft.ML.Data
                  .ToArray();
         }
 
-        public static void CheckTypeWithOnnx(Type userType, IDataView data)
+        public static void GetVectorAndItemType(string name, Type rawType, IEnumerable<Attribute> attributes, out bool isVector, out Type itemType, IDataView data, string singleName)
         {
-            var memberInfos = SchemaDefinition.GetMemberInfos(userType, SchemaDefinition.Direction.Write);
-
-            HashSet<string> colNames = new HashSet<string>();
-            foreach (var memberInfo in memberInfos)
+            // Determine whether this is a vector, and also determine the raw item type.
+            isVector = true;
+            if (rawType.IsArray)
+                itemType = rawType.GetElementType();
+            else if (rawType.IsGenericType && rawType.GetGenericTypeDefinition() == typeof(VBuffer<>))
+                itemType = rawType.GetGenericArguments()[0];
+            else
             {
-                if (SchemaDefinition.MemberInfoAssertion(memberInfo, userType, colNames, out string name, out IEnumerable<Attribute> customAttributes))
-                    InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
+                itemType = rawType;
+                isVector = false;
+            }
+
+            // The internal type of string is ReadOnlyMemory<char>. That is, string will be stored as ReadOnlyMemory<char> in IDataView.
+            if (itemType == typeof(string))
+                itemType = typeof(ReadOnlyMemory<char>);
+            // Check if the itemType extracted from rawType is supported by ML.NET's type system.
+            // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
+            else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
+            {
+                int colIndex;
+                data.Schema.TryGetColumnIndex(singleName, out colIndex);
+                var expectedType = data.Schema[colIndex].Type;
+                //This is a big hack. it uses DataViewTypeManager to check if there's "make-up" types in it
+                //e.g. customer define the type "float", and this will check if "IEnumerable<float>" in the DateTypeManager
+                //It gives helpful information when customer accidently define OnnxSequenceType the same as member type
+                Type containerType = typeof(IEnumerable<>).MakeGenericType(itemType);
+                if (DataViewTypeManager.Knows(containerType, attributes))
+                    throw Contracts.ExceptParam(nameof(rawType), $"The expected type '{expectedType.RawType}' does not match the type of the {name} property: '{itemType.Name}'. Please change the {name} property to '{expectedType.RawType}'", name);
+                throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type and registered custom types for member {0}", name);
+            }
+        }
+
+        public static void GetVectorAndItemType(MemberInfo memberInfo, out bool isVector, out Type itemType, IDataView data, string singleName)
+        {
+            Contracts.AssertValue(memberInfo);
+            switch (memberInfo)
+            {
+                case FieldInfo fieldInfo:
+                    GetVectorAndItemType(fieldInfo.Name, fieldInfo.FieldType, fieldInfo.GetCustomAttributes(), out isVector, out itemType, data, singleName);
+                    break;
+
+                case PropertyInfo propertyInfo:
+                    GetVectorAndItemType(propertyInfo.Name, propertyInfo.PropertyType, propertyInfo.GetCustomAttributes(), out isVector, out itemType, data, singleName);
+                    break;
+
+                default:
+                    Contracts.Assert(false);
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+            }
+        }
+
+        public static void ValidateUserType(SchemaDefinition schemaDefinition, Type userType, IDataView data)
+        {
+            if (schemaDefinition == null)
+            {
+                var memberInfos = SchemaDefinition.GetMemberInfos(userType, SchemaDefinition.Direction.Write);
+
+                HashSet<string> colNames = new HashSet<string>();
+                foreach (var memberInfo in memberInfos)
+                {
+                    if (SchemaDefinition.ValidateMemberInfo(memberInfo, userType, colNames, out string name, out IEnumerable<Attribute> customAttributes))
+                        GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType, data, name);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < schemaDefinition.Count; ++i)
+                {
+                    var col = schemaDefinition[i];
+                    if (col.MemberName == null)
+                        throw Contracts.ExceptParam(nameof(schemaDefinition), "Null field name detected in schema definition");
+
+                    bool isVector;
+                    Type dataItemType;
+                    MemberInfo memberInfo = null;
+
+                    // Infer the column name.
+                    var colName = string.IsNullOrEmpty(col.ColumnName) ? col.MemberName : col.ColumnName;
+
+                    if (col.Generator == null)
+                    {
+                        memberInfo = userType.GetField(col.MemberName);
+
+                        if (memberInfo == null)
+                            memberInfo = userType.GetProperty(col.MemberName);
+
+                        if (memberInfo == null)
+                            throw Contracts.ExceptParam(nameof(schemaDefinition), "No field or property with name '{0}' found in type '{1}'",
+                                col.MemberName,
+                                userType.FullName);
+
+                        //Clause to handle the field that may be used to expose the cursor channel.
+                        //This field does not need a column.
+                        if ((memberInfo is FieldInfo && (memberInfo as FieldInfo).FieldType == typeof(IChannel)) ||
+                            (memberInfo is PropertyInfo && (memberInfo as PropertyInfo).PropertyType == typeof(IChannel)))
+                            continue;
+
+                        GetVectorAndItemType(memberInfo, out isVector, out dataItemType, data, colName);
+                    }
+                    else
+                    {
+                        var parameterType = col.ReturnType;
+                        if (parameterType == null)
+                            throw Contracts.ExceptParam(nameof(schemaDefinition), "No return parameter found in computed column.");
+                        GetVectorAndItemType("returnType", parameterType, null, out isVector, out dataItemType, data, colName);
+                    }
+                }
             }
         }
 
@@ -243,8 +343,7 @@ namespace Microsoft.ML.Data
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
 
-            if (schemaDefinition == null)
-                CheckTypeWithOnnx(typeof(TRow), data);
+            ValidateUserType(schemaDefinition, typeof(TRow), data);
 
             var outSchema = schemaDefinition == null
                 ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Write)
