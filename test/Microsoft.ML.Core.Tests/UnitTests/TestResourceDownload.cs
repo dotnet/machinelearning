@@ -155,10 +155,12 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             for (int j = 0; j < numberOfIterations; j++)
             {
                 var tasks = new List<Task>();
+                var paths = new List<string>();
                 for (int i = 0; i < numberOfParallel; i++)
                 {
                     string guid = Guid.NewGuid().ToString();
                     var path = Path.Combine(Path.GetTempPath(), "MLNET", guid);
+                    paths.Add(path);
 
                     foreach (var file in fileList)
                     {
@@ -168,9 +170,9 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                         //tasks.Add(timeoutTask);
 #pragma warning restore VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
                     }
-
-                    Task.WaitAll(tasks.ToArray());
                 }
+
+                Task.WaitAll(tasks.ToArray());
 
                 Thread.Sleep(10*1000);
             }
@@ -196,16 +198,9 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 }
             }
 
-            var fileName = Path.Combine(destDir, destFileName);
-            if (File.Exists(fileName))
+            if (File.Exists(Path.Combine(destDir, destFileName)))
             {
-                File.Delete(fileName);
-            }
-
-            if (Directory.Exists(destDir) &&
-               (Directory.GetFileSystemEntries(destDir).Length == 0))
-            {
-                Directory.Delete(destDir);
+                File.Delete(Path.Combine(destDir, destFileName));
             }
         }
     }
