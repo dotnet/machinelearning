@@ -537,7 +537,6 @@ namespace Microsoft.ML.Data
             internal const char Separator = '\t';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
-            internal const bool ReadMultilines = false;
         }
 
         /// <summary>
@@ -1470,7 +1469,6 @@ namespace Microsoft.ML.Data
            bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace,
-           bool readMultilines = Defaults.ReadMultilines,
            IMultiStreamSource dataSample = null)
         {
             var userType = typeof(TInput);
@@ -1540,8 +1538,7 @@ namespace Microsoft.ML.Data
                 AllowQuoting = allowQuoting,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,
-                Columns = columns.ToArray(),
-                ReadMultilines = readMultilines
+                Columns = columns.ToArray()
             };
 
             return new TextLoader(host, options, dataSample: dataSample);

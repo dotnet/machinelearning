@@ -927,13 +927,21 @@ namespace Microsoft.ML.EntryPoints.Tests
             var mlContext = new MLContext(seed: 1);
             var dataPath = GetDataPath("multiline.csv");
             var baselinePath = GetBaselinePath("TextLoader", "multiline.csv");
-            var data = mlContext.Data.LoadFromTextFile(dataPath, new[]
+            var options = new TextLoader.Options()
+            {
+                HasHeader = true,
+                Separator = ",",
+                AllowQuoting = true,
+                ReadMultilines = true,
+                Columns = new[]
                 {
                     new TextLoader.Column("id", DataKind.Int32, 0),
                     new TextLoader.Column("description", DataKind.String, 1),
                     new TextLoader.Column("animal", DataKind.String, 2),
                 },
-           hasHeader: true, separatorChar:',', allowQuoting:true, readMultilines: true);
+            };
+
+            var data = mlContext.Data.LoadFromTextFile(dataPath, options);
 
             // Get values from loaded dataview
             var ids = new List<string>();

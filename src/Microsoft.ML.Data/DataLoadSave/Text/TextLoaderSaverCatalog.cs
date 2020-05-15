@@ -41,8 +41,6 @@ namespace Microsoft.ML
         /// A column may also have dense values followed by sparse values represented in this fashion. For example,
         /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
         /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
-        /// <param name="readMultilines">If true, it will accept new line characters inside quoted fields. Thus, enabling that a single field contain
-        /// multiple lines of text. If allowQuoting is false, this parameter is ignored.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -57,8 +55,7 @@ namespace Microsoft.ML
             IMultiStreamSource dataSample = null,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
-            bool allowSparse = TextLoader.Defaults.AllowSparse,
-            bool readMultilines = TextLoader.Defaults.ReadMultilines)
+            bool allowSparse = TextLoader.Defaults.AllowSparse)
         {
             var options = new TextLoader.Options
             {
@@ -68,7 +65,6 @@ namespace Microsoft.ML
                 AllowQuoting = allowQuoting,
                 TrimWhitespace = trimWhitespace,
                 AllowSparse = allowSparse,
-                ReadMultilines = readMultilines
             };
 
             return new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options, dataSample: dataSample);
@@ -113,18 +109,15 @@ namespace Microsoft.ML
         /// A column may also have dense values followed by sparse values represented in this fashion. For example,
         /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
         /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
-        /// <param name="readMultilines">If true, it will accept new line characters inside quoted fields. Thus, enabling that a single field contain
-        /// multiple lines of text. If allowQuoting is false, this parameter is ignored.</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             IMultiStreamSource dataSample = null,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
-            bool allowSparse = TextLoader.Defaults.AllowSparse,
-            bool readMultilines = TextLoader.Defaults.ReadMultilines)
+            bool allowSparse = TextLoader.Defaults.AllowSparse)
             => TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting,
-                allowSparse, trimWhitespace, readMultilines, dataSample: dataSample);
+                allowSparse, trimWhitespace, dataSample: dataSample);
 
         /// <summary>
         /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
@@ -149,8 +142,6 @@ namespace Microsoft.ML
         /// A column may also have dense values followed by sparse values represented in this fashion. For example,
         /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
         /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
-        /// <param name="readMultilines">If true, it will accept new line characters inside quoted fields. Thus, enabling that a single field contain
-        /// multiple lines of text. If allowQuoting is false, this parameter is ignored.</param>
         /// <returns>The data view.</returns>
         public static IDataView LoadFromTextFile(this DataOperationsCatalog catalog,
             string path,
@@ -159,8 +150,7 @@ namespace Microsoft.ML
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
-            bool allowSparse = TextLoader.Defaults.AllowSparse,
-            bool readMultilines = TextLoader.Defaults.ReadMultilines)
+            bool allowSparse = TextLoader.Defaults.AllowSparse)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path))
@@ -175,8 +165,7 @@ namespace Microsoft.ML
                 HasHeader = hasHeader,
                 AllowQuoting = allowQuoting,
                 TrimWhitespace = trimWhitespace,
-                AllowSparse = allowSparse,
-                ReadMultilines = readMultilines
+                AllowSparse = allowSparse
             };
 
             var loader = new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options);
@@ -205,8 +194,6 @@ namespace Microsoft.ML
         /// A column may also have dense values followed by sparse values represented in this fashion. For example,
         /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
         /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
-        /// <param name="readMultilines">If true, it will accept new line characters inside quoted fields. Thus, enabling that a single field contain
-        /// multiple lines of text. If allowQuoting is false, this parameter is ignored.</param>
         /// <returns>The data view.</returns>
         public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
@@ -214,8 +201,7 @@ namespace Microsoft.ML
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
-            bool allowSparse = TextLoader.Defaults.AllowSparse,
-            bool readMultilines = TextLoader.Defaults.ReadMultilines)
+            bool allowSparse = TextLoader.Defaults.AllowSparse)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path))
@@ -226,7 +212,7 @@ namespace Microsoft.ML
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
             return TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar,
-                allowQuoting, allowSparse, trimWhitespace, readMultilines).Load(new MultiFileSource(path));
+                allowQuoting, allowSparse, trimWhitespace).Load(new MultiFileSource(path));
         }
 
         /// <summary>
