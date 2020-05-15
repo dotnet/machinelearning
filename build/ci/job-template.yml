@@ -101,6 +101,10 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
         displayName: Download Benchmark Data
+        timeoutInMinutes: 10
+      - script: ${{ parameters.buildScript }} -- /t:DownloadTensorflowMetaFiles /p:IncludeTensorflowMetaFile=true
+        displayName: Download Tensorflow Meta File
+        timeoutInMinutes: 10
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
