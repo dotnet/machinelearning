@@ -323,6 +323,10 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
                     index = (((int64_t)index * (int64_t)curPermMultiplier) % (int64_t)totalNumInstances);
                 // alpha decays with the square root of number of instances processed.
                 float thisAlpha = adjustedAlpha / (float)sqrt(1 + state->PassIteration * totalNumInstances + j);
+                cout << "i:" + to_string(i) + ", j:" + to_string(j) + 
+                    ", thisAlpha:" + to_string(thisAlpha) + ", state->PassIteration:" + to_string(state->PassIteration);
+                cout << endl;
+
                 LearnInstance(instSizes[index], instIndices[index], instValues[index], labels[index], thisAlpha, l2Const, piw,
                     weightScaling, weightVector, bias);
                 //state->TotalInstancesProcessed++;
