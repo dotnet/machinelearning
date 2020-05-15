@@ -35,13 +35,11 @@ jobs:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
-            _includeTensorflowMetaFile: true
             _targetFramework: netcoreapp2.1
           Release_Build:
             _configuration: Release
             _config_short: R
             _includeBenchmarkData: true
-            _includeTensorflowMetaFile: true
             _targetFramework: netcoreapp2.1
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
@@ -104,7 +102,7 @@ jobs:
       - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
         displayName: Download Benchmark Data
         timeoutInMinutes: 10
-      - script: ${{ parameters.buildScript }} -- /t:DownloadTensorflowMetaFiles /p:IncludeTensorflowMetaFile=$(_includeTensorflowMetaFile)
+      - script: ${{ parameters.buildScript }} -- /t:DownloadTensorflowMetaFiles /p:IncludeTensorflowMetaFile=true
         displayName: Download Tensorflow Meta File
         timeoutInMinutes: 10
       - ${{ if eq(parameters.innerLoop, 'false') }}:
