@@ -704,8 +704,10 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string Type;
         }
 
-        [Fact]
-        public void LoaderColumnsFromIrisData()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void LoaderColumnsFromIrisData(bool useOptionsObject)
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var mlContext = new MLContext(1);
@@ -719,7 +721,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
-            var dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Load(dataPath);
+            IDataView dataIris;
+            if (useOptionsObject)
+                dataIris = mlContext.Data.CreateTextLoader<Iris>(new TextLoader.Options() { Separator = ",", AllowQuoting = false }).Load(dataPath);
+            else
+                dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Load(dataPath);
+
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
@@ -735,7 +742,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
             // Load with start and end indexes
-            var dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(separatorChar: ',').Load(dataPath);
+            IDataView dataIrisStartEnd;
+            if (useOptionsObject)
+                dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(new TextLoader.Options() { Separator = ",", AllowQuoting = false }).Load(dataPath);
+            else
+                dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(separatorChar: ',').Load(dataPath);
+
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
@@ -752,7 +764,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             // load setting the distinct columns. Loading column 0 and 2
-            var dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(separatorChar: ',').Load(dataPath);
+            IDataView dataIrisColumnIndices;
+            if (useOptionsObject)
+                dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(new TextLoader.Options() { Separator = ",", AllowQuoting = false }).Load(dataPath);
+            else
+                dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(separatorChar: ',').Load(dataPath);
+
             var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
 
             Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);
