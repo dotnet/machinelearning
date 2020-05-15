@@ -11,6 +11,7 @@
 #endif
 #include <unordered_map>
 #include <string>
+#include <iostream>
 #include "../Stdafx.h"
 #include "Macros.h"
 #include "SparseBLAS.h"
