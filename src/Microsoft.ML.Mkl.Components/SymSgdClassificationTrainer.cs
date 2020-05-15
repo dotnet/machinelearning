@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers
         internal static class Defaults
         {
             public const float PositiveInstanceWeight = 1;
-            public const bool Shuffle = true;
+            public const bool Shuffle = false;
             public const long MemorySize = 1024;
             public const float L2Regularization = 0;
             public const float Tolerance = 1e-4f;
