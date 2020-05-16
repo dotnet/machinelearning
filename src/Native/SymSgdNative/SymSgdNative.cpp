@@ -22,8 +22,12 @@ inline void LearnInstance(int instSize, int* instIndices, float* instValues,
     float label, float alpha, float l2Const, float piw, float& weightScaling, float* weightVector, float& bias)
 {
     float dotProduct = 0.0f;
+    bool bInstIndices = false;
     if (instIndices) // If it is a sparse instance
+    {
         dotProduct = SDOTI(instSize, instIndices, instValues, weightVector) * weightScaling + bias;
+        bInstIndices = true;
+    }
     else // If it is dense case.
         dotProduct = SDOT(instSize, instValues, weightVector)*weightScaling + bias;
     // Compute the derivative coefficient
@@ -31,6 +35,14 @@ inline void LearnInstance(int instSize, int* instIndices, float* instValues,
     float derivative = (label > 0) ? piw * (sigmoidPrediction - 1) : sigmoidPrediction;
     float derivativeCoef = -alpha * derivative;
     weightScaling *= (1.0f - alpha*l2Const);
+
+    cout << "dotProduct:" + to_string(dotProduct) + 
+            ",bInstIndices:" + to_string(bInstIndices) +
+            ",sigmoidPrediction:" + to_string(sigmoidPrediction) +
+            ",derivative:" + to_string(derivative) +
+            ",derivativeCoef:" + to_string(derivativeCoef);
+    cout << endl;
+
     // Apply the derivative back to the weightVector
     if (instIndices) // If it is a sparse instance
         SAXPYI(instSize, instIndices, instValues, weightVector, derivativeCoef / weightScaling);
