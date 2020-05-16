@@ -987,6 +987,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 for (int i = 0; i < numRows; i++)
                 {
                     line = file.ReadLine();
+                    line = line.Replace("\\n", "\n");
                     Assert.Equal(descriptions[i], line);
                 }
 

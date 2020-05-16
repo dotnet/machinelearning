@@ -1,4 +1,4 @@
-// this file should be loaded with quoting enabled
+// this file should be loaded with quoting and readmultiline enabled
 // and it should load without problems by the TextLoader
 id,description,animal
 // this is a comment that will be ignored
