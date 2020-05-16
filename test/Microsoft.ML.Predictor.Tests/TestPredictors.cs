@@ -280,7 +280,7 @@ namespace Microsoft.ML.RunTests
         //[Fact]
         //[TestCategory("Binary")]
         [Theory]
-        [IterationData]
+        [IterationData(iterations:1)]
         [Trait("Category", "RunSpecificTest")]
         public void BinaryClassifierSymSgdTest(int iterations)
         {

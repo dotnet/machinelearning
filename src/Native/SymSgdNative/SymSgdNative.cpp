@@ -314,6 +314,8 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
     {
         // For i=[0..totalNumInstances-1], (curPermMultiplier*i) % totalNumInstances always creates a pseduo random permutation
         int64_t curPermMultiplier = (VERYLARGEPRIME % totalNumInstances);
+        cout << "curPermMultiplier:" + to_string(curPermMultiplier);
+        cout << endl;
         // In the sequential case, just apply normal SGD
         for (int i = 0; i < numPasses; i++)
         {
@@ -324,12 +326,18 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
                     index = (((int64_t)index * (int64_t)curPermMultiplier) % (int64_t)totalNumInstances);
                 // alpha decays with the square root of number of instances processed.
                 float thisAlpha = adjustedAlpha / (float)sqrt(1 + state->PassIteration * totalNumInstances + j);
-                //cout << "i:" + to_string(i) + ", j:" + to_string(j) + 
-                    //", thisAlpha:" + to_string(thisAlpha) + ", state->PassIteration:" + to_string(state->PassIteration);
-                //cout << endl;
 
                 LearnInstance(instSizes[index], instIndices[index], instValues[index], labels[index], thisAlpha, l2Const, piw,
                     weightScaling, weightVector, bias);
+
+                cout << "i:" + to_string(i) + ", j:" + to_string(j) + ", index:" + to_string(index) +
+                    ", instSizes:" + to_string(instSizes[index]) + ", instIndices:" + to_string(*(instIndices[index])) + 
+                    ", instValues:" + to_string(*(instValues[index])) + ", labels:" + to_string(labels[index]) +
+                    ", thisAlpha" + to_string(thisAlpha) + ", l2Const:" + to_string(l2Const) + 
+                    ", piw:" + to_string(piw) + ", weightScaling:" + to_string(weightScaling) +
+                    ", bias:" + to_string(bias);
+                cout << endl;
+
                 //state->TotalInstancesProcessed++;
                 if (weightScaling < 1e-6)
                 {
