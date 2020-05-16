@@ -331,8 +331,10 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
                     weightScaling, weightVector, bias);
 
                 cout << "i:" + to_string(i) + ", j:" + to_string(j) + ", index:" + to_string(index) +
-                    ", instSizes:" + to_string(instSizes[index]) + ", instIndices:" + to_string(*(instIndices[index])) + 
-                    ", instValues:" + to_string(*(instValues[index])) + ", labels:" + to_string(labels[index]) +
+                    ", instSizes:" + to_string(instSizes[index]) + 
+                    /*", instIndices:" + to_string(*(instIndices[index])) + 
+                    ", instValues:" + to_string(*(instValues[index])) + */
+                    ", labels:" + to_string(labels[index]) +
                     ", thisAlpha" + to_string(thisAlpha) + ", l2Const:" + to_string(l2Const) + 
                     ", piw:" + to_string(piw) + ", weightScaling:" + to_string(weightScaling) +
                     ", bias:" + to_string(bias);
