@@ -505,9 +505,7 @@ namespace Microsoft.ML.Data
                             if (line == null) // If we've reached the end of the file
                                 break; // MYTODO: This could happen if we have an invalid open quote which never closes so we reach the end of the file without properly closing the field, should we throw instead in this case?
 
-                            if (line.Length != 0)
-                                sb.Append(" "); // MYTODO: should we use instead a "\n" in here to separate lines?
-
+                            sb.Append("\n");
                             sb.Append(line);
                             numOfQuotes += GetNumberOfChars(line, '"');
                         }
