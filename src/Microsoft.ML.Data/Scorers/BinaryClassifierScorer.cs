@@ -187,6 +187,7 @@ namespace Microsoft.ML.Data
             Host.Assert(Bindable is IBindableCanSaveOnnx);
             Host.Assert(Bindings.InfoCount >= 2);
 
+            //bugbug
             if (!ctx.ContainsColumn(DefaultColumnNames.Features))
                 return;
 

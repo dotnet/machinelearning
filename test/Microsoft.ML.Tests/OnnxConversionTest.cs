@@ -1959,6 +1959,31 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void MyOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var data = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("VectorDouble2", DataKind.Single, 1),
+                new TextLoader.Column("VectorDouble1", DataKind.Single, 4, 8),
+                new TextLoader.Column("Label", DataKind.Boolean, 0)
+            });
+
+            //wrong1
+            var pipeline = mlContext.Transforms.Concatenate("FeaturesVector", "VectorDouble1", "VectorDouble2").Append(mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated("Label", "FeaturesVector"));
+            //wrong2
+            //var pipeline = mlContext.Transforms.Concatenate("FeaturesVector", "VectorDouble1", "VectorDouble2").Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "FeaturesVector"));
+            //right
+            //var pipeline = mlContext.Transforms.Concatenate("Features", "VectorDouble1", "VectorDouble2").Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "Features"));
+            var model = pipeline.Fit(data);
+            var transformedData = model.Transform(data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+
+            Done();
+        }
+
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];
