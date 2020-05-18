@@ -144,6 +144,42 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         [Fact]
         [TestCategory("ResourceDownload")]
         [Trait("Category", "RunSpecificTest")]
+        public void TestDatasetFileDownload()
+        {
+            int numberOfParallel = 15;
+            int numberOfIterations = 20;
+
+            var env = new ConsoleEnvironment(1);
+            var fileList = new List<string> { "MSLRWeb10KTest240kRows.tsv", "MSLRWeb10KTrain720kRows.tsv", 
+                "MSLRWeb10KValidate240kRows.tsv", "WikiDetoxAnnotated160kRows.tsv" };
+
+            for (int j = 0; j < numberOfIterations; j++)
+            {
+                var tasks = new List<Task>();
+                var paths = new List<string>();
+                for (int i = 0; i < numberOfParallel; i++)
+                {
+                    string guid = Guid.NewGuid().ToString();
+                    var path = Path.Combine(Path.GetTempPath(), "MLNET", guid);
+                    paths.Add(path);
+
+                    foreach (var file in fileList)
+                    {
+#pragma warning disable VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
+                        tasks.Add(Task.Factory.StartNew(() => Download(env, "benchmarks/" + file, path, file)));
+#pragma warning restore VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
+                    }
+                }
+
+                Task.WaitAll(tasks.ToArray());
+                Console.WriteLine($"Test: Finish download for {j}-th round.");
+                Thread.Sleep(10 * 1000);
+            }
+        }
+
+        [Fact]
+        [TestCategory("ResourceDownload")]
+        [Trait("Category", "RunSpecificTest")]
         public void TestMetaFileDownload()
         {
             int numberOfParallel = 15;
@@ -166,14 +202,12 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     {
 #pragma warning disable VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
                         tasks.Add(Task.Factory.StartNew(() => Download(env, file, path, file)));
-                        //var timeoutTask = Task.Delay(5*60*1000);
-                        //tasks.Add(timeoutTask);
 #pragma warning restore VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
                     }
                 }
 
                 Task.WaitAll(tasks.ToArray());
-
+                Console.WriteLine($"Test: Finish download for {j}-th round.");
                 Thread.Sleep(10*1000);
             }
         }
@@ -193,7 +227,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
                 if (errorResult != null)
                 {
-                    Console.WriteLine($"Dowload fail for {destDir}/{destFileName}");
+                    Console.WriteLine($"Test: Dowload fail for {destDir}/{destFileName}");
                     return;
                 }
             }
