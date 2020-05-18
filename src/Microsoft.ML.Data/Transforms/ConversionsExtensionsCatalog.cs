@@ -63,9 +63,7 @@ namespace Microsoft.ML
         /// ]]></format>
         /// </example>
         public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params ColumnOptions[] columns)
-            => new HashingEstimator(CatalogUtils.GetEnvironment(catalog),
-                columns.Select(x => new ColumnOptionsInternal(x.Name, x.InputColumnName, x.NumberOfBits, x.Seed,
-                    x.UseOrderedHashing, x.MaximumNumberOfInverts)).ToArray());
+            => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
         /// Create a <see cref="TypeConvertingEstimator"/>, which converts the type of the data to the type specified in <paramref name="outputKind"/>.

@@ -74,11 +74,8 @@ namespace Microsoft.ML.EntryPoints
 
             // Pick a unique name for the stratificationColumn.
             const string stratColName = "StratificationKey";
-            string stratCol = stratColName;
-            int col;
-            int j = 0;
-            while (data.Schema.TryGetColumnIndex(stratCol, out col))
-                stratCol = string.Format("{0}_{1:000}", stratColName, j++);
+            string stratCol = data.Schema.GetTempColumnName(stratColName);
+
             // Construct the stratification column. If user-provided stratification column exists, use HashJoin
             // of it to construct the strat column, otherwise generate a random number and use it.
             if (stratificationColumn == null)
@@ -91,13 +88,30 @@ namespace Microsoft.ML.EntryPoints
             }
             else
             {
-                data = new HashJoiningTransform(host,
-                    new HashJoiningTransform.Arguments
-                    {
-                        Columns = new[] { new HashJoiningTransform.Column { Name = stratCol, Source = stratificationColumn } },
-                        Join = true,
-                        NumberOfBits = 30
-                    }, data);
+                var col = data.Schema.GetColumnOrNull(stratificationColumn);
+                if (col == null)
+                    throw host.ExceptSchemaMismatch(nameof(stratificationColumn), "Stratification", stratificationColumn);
+
+                var type = col.Value.Type;
+                if (!RangeFilter.IsValidRangeFilterColumnType(host, type))
+                {
+                    // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
+                    var itemType = type.GetItemType();
+                    if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
+                        data = new TypeConvertingTransformer(host, stratificationColumn, DataKind.Int64, stratificationColumn).Transform(data);
+
+                    var columnOptions = new HashingEstimator.ColumnOptions(stratCol, stratificationColumn, 30, combine: true);
+                    data = new HashingEstimator(host, columnOptions).Fit(data).Transform(data);
+                }
+                else
+                {
+                    if (data.Schema[stratificationColumn].IsNormalized() || (type != NumberDataViewType.Single && type != NumberDataViewType.Double))
+                        return stratificationColumn;
+
+                    data = new NormalizingEstimator(host,
+                        new NormalizingEstimator.MinMaxColumnOptions(stratCol, stratificationColumn, ensureZeroUntouched: true))
+                        .Fit(data).Transform(data);
+                }
             }
 
             return stratCol;
