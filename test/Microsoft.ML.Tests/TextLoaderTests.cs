@@ -921,8 +921,10 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
         }
 
-        [Fact]
-        public void TestLoadTextWithEscapedNewLines()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestLoadTextWithEscapedNewLines(bool useSaved)
         {
             var mlContext = new MLContext(seed: 1);
             var dataPath = GetDataPath("multiline.csv");
@@ -942,6 +944,19 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var data = mlContext.Data.LoadFromTextFile(dataPath, options);
+            if (useSaved)
+            { 
+                // Check that loading the data view from a text file,
+                // and then saving that data view to another text file, then loading it again
+                // also matches the baseline.
+
+                var savedPath = DeleteOutputPath("saved-multiline.tsv");
+                using (var fs = File.Create(savedPath))
+                    mlContext.Data.SaveAsText(data, fs, separatorChar: '\t');
+
+                options.Separator = "\t";
+                data = mlContext.Data.LoadFromTextFile(savedPath, options);
+            }
 
             // Get values from loaded dataview
             var ids = new List<string>();
