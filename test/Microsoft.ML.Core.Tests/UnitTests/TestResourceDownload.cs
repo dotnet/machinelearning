@@ -147,7 +147,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         public void TestDatasetFileDownload()
         {
             int numberOfParallel = 15;
-            int numberOfIterations = 20;
+            int numberOfIterations = 5;
 
             var env = new ConsoleEnvironment(1);
             var fileList = new List<string> { "MSLRWeb10KTest240kRows.tsv", "MSLRWeb10KTrain720kRows.tsv", 
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         public void TestMetaFileDownload()
         {
             int numberOfParallel = 15;
-            int numberOfIterations = 20;
+            int numberOfIterations = 5;
 
             var env = new ConsoleEnvironment(1);
             var fileList = new List<string> { "inception_v3.meta", "mobilenet_v2.meta", "resnet_v2_50_299.meta", "resnet_v2_101_299.meta" };
