@@ -1454,7 +1454,7 @@ namespace Microsoft.ML.RunTests
             TestCore(null, false,
                 new[] {
                     "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
-                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text customSlotMap=0,1;2;3,4,5;6,2,0;7 table=CMSketch} bits=14 table=Dict{gb=2}}",
+                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text combine=- table=CMSketch} bits=14 table=Dict{gb=2}}",
                     "xf=Dracula{lab=Label col=D1s:Text col={name=OneText2 src=OneText} bits=14 table=Dict shared=+}"
                 }, checkTranspose: true);
 
@@ -1468,7 +1468,7 @@ namespace Microsoft.ML.RunTests
                 new[] {
                     "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:TX:0}",
                     "xf=Term{col=Label}",
-                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text customSlotMap=0,1;2;3,4,5;6,2,0;7 table=CMSketch} bits=14 table=Dict{gb=2}}",
+                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text table=CMSketch} bits=14 table=Dict{gb=2}}",
                     "xf=Dracula{lab=Label col=D1s:Text col={name=OneText2 src=OneText} bits=14 table=Dict shared=+}"
                 }, checkTranspose: true);
 
@@ -1481,15 +1481,15 @@ namespace Microsoft.ML.RunTests
             var inputData = GetDataPath("breast-cancer.txt");
             var initialCountsModel = DeleteOutputPath("CTE", "initialCounts.zip");
             var outputData = DeleteOutputPath("CTE", "countsData.txt");
-            var loaderArg = "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}";
-            MainForTest($"SaveData data={inputData} {loaderArg} xf=Dracula{{lab=Label col={{name=DT src=Text customSlotMap=0,1;2,3,4,5}} table = Dict}} out={initialCountsModel} dout={outputData}");
+            var loaderArg = "loader=Text{col=Text:TX:1-2 col=OneText:TX:1 col=Label:0}";
+            MainForTest($"SaveData data={inputData} {loaderArg} xf=Dracula{{lab=Label col={{name=DT src=Text combine=-}} table = Dict}} out={initialCountsModel} dout={outputData}");
 
             TestCore(null, false,
                 new[]
                 {
                     loaderArg,
-                    "xf=Dracula{lab=Label col={name=DT src=Text customSlotMap=0,1;2,3,4,5} table = Dict}",
-                    $"xf=Dracula{{lab=Label col={{name=DT1 src=Text customSlotMap=0,1;2,3,4,5}} inmodel={{{initialCountsModel}}}}}"
+                    "xf=Dracula{lab=Label col={name=DT src=Text combine=-} table=Dict}",
+                    $"xf=Dracula{{lab=Label col={{name=DT1 src=Text combine=-}} inmodel={{{initialCountsModel}}}}}"
                 }, loader =>
                 {
                     using (var cursor = loader.GetRowCursor(loader.Schema["DT"], loader.Schema["DT1"]))

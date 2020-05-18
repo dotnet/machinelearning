@@ -4713,7 +4713,7 @@ namespace Microsoft.ML.RunTests
             var transformer = estimator.Fit(data);
             ML.Model.Save(transformer, data.Schema, countsModel);
 
-            TestEntryPointPipelineRoutine(dataPath, "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
+            TestEntryPointPipelineRoutine(dataPath, "col=Text:TX:1-2 col=Label:0",
                 new[]
                 {
                     "Transforms.CountTargetEncoder",
@@ -4724,7 +4724,7 @@ namespace Microsoft.ML.RunTests
                       {{
                         'Name': 'DT',
                         'Src': 'Text',
-                        'CustomSlotMap': '0,1;2,3,4,5'
+                        'Combine': 'False'
                       }}
                       ],
                      'Lab': 'Label',

@@ -3,16 +3,14 @@
   Text: Vector<String, 9>
   OneText: String
   Label: Single
----- HashJoiningTransform ----
+---- RowToRowMapperTransform ----
 6 columns:
   Text: Vector<String, 9>
   OneText: String
   Label: Single
   D1: Key<UInt32, 0-16383>
   D2: Key<UInt32, 0-16383>
-  DT: Vector<Key<UInt32, 0-16383>, 5>
-    Metadata 'SlotNames': Vector<String, 5>: Length=5, Count=5
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]', [2] 'Text[3]+Text[4]+Text[5]', [3] 'Text[6]+Text[2]+Text[0]', [4] 'Text[7]'
+  DT: Vector<Key<UInt32, 0-16383>, 9>
 ---- RowToRowMapperTransform ----
 9 columns:
   Text: Vector<String, 9>
@@ -26,14 +24,9 @@
   D2: Vector<Single, 1, 4>
     Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'D2_Class000_Count', [1] 'D2_Class001_Count', [2] 'D2_Class000_LogOdds', [3] 'D2_IsBackoff'
-  DT: Vector<Key<UInt32, 0-16383>, 5>
-    Metadata 'SlotNames': Vector<String, 5>: Length=5, Count=5
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]', [2] 'Text[3]+Text[4]+Text[5]', [3] 'Text[6]+Text[2]+Text[0]', [4] 'Text[7]'
-  DT: Vector<Single, 5, 4>
-    Metadata 'SlotNames': Vector<String, 20>: Length=20, Count=20
-      [0] 'Text[0]+Text[1]_Class000_Count', [1] 'Text[0]+Text[1]_Class001_Count', [2] 'Text[0]+Text[1]_Class000_LogOdds', [3] 'Text[0]+Text[1]_IsBackoff', [4] 'Text[2]_Class000_Count', [5] 'Text[2]_Class001_Count', [6] 'Text[2]_Class000_LogOdds', [7] 'Text[2]_IsBackoff', [8] 'Text[3]+Text[4]+Text[5]_Class000_Count', [9] 'Text[3]+Text[4]+Text[5]_Class001_Count'
-      [10] 'Text[3]+Text[4]+Text[5]_Class000_LogOdds', [11] 'Text[3]+Text[4]+Text[5]_IsBackoff', [12] 'Text[6]+Text[2]+Text[0]_Class000_Count', [13] 'Text[6]+Text[2]+Text[0]_Class001_Count', [14] 'Text[6]+Text[2]+Text[0]_Class000_LogOdds', [15] 'Text[6]+Text[2]+Text[0]_IsBackoff', [16] 'Text[7]_Class000_Count', [17] 'Text[7]_Class001_Count', [18] 'Text[7]_Class000_LogOdds', [19] 'Text[7]_IsBackoff'
----- HashJoiningTransform ----
+  DT: Vector<Key<UInt32, 0-16383>, 9>
+  DT: Vector<Single, 9, 4>
+---- RowToRowMapperTransform ----
 11 columns:
   Text: Vector<String, 9>
   OneText: String
@@ -46,13 +39,8 @@
   D2: Vector<Single, 1, 4>
     Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'D2_Class000_Count', [1] 'D2_Class001_Count', [2] 'D2_Class000_LogOdds', [3] 'D2_IsBackoff'
-  DT: Vector<Key<UInt32, 0-16383>, 5>
-    Metadata 'SlotNames': Vector<String, 5>: Length=5, Count=5
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]', [2] 'Text[3]+Text[4]+Text[5]', [3] 'Text[6]+Text[2]+Text[0]', [4] 'Text[7]'
-  DT: Vector<Single, 5, 4>
-    Metadata 'SlotNames': Vector<String, 20>: Length=20, Count=20
-      [0] 'Text[0]+Text[1]_Class000_Count', [1] 'Text[0]+Text[1]_Class001_Count', [2] 'Text[0]+Text[1]_Class000_LogOdds', [3] 'Text[0]+Text[1]_IsBackoff', [4] 'Text[2]_Class000_Count', [5] 'Text[2]_Class001_Count', [6] 'Text[2]_Class000_LogOdds', [7] 'Text[2]_IsBackoff', [8] 'Text[3]+Text[4]+Text[5]_Class000_Count', [9] 'Text[3]+Text[4]+Text[5]_Class001_Count'
-      [10] 'Text[3]+Text[4]+Text[5]_Class000_LogOdds', [11] 'Text[3]+Text[4]+Text[5]_IsBackoff', [12] 'Text[6]+Text[2]+Text[0]_Class000_Count', [13] 'Text[6]+Text[2]+Text[0]_Class001_Count', [14] 'Text[6]+Text[2]+Text[0]_Class000_LogOdds', [15] 'Text[6]+Text[2]+Text[0]_IsBackoff', [16] 'Text[7]_Class000_Count', [17] 'Text[7]_Class001_Count', [18] 'Text[7]_Class000_LogOdds', [19] 'Text[7]_IsBackoff'
+  DT: Vector<Key<UInt32, 0-16383>, 9>
+  DT: Vector<Single, 9, 4>
   D1s: Key<UInt32, 0-16383>
   OneText2: Key<UInt32, 0-16383>
 ---- RowToRowMapperTransform ----
@@ -68,13 +56,8 @@
   D2: Vector<Single, 1, 4>
     Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'D2_Class000_Count', [1] 'D2_Class001_Count', [2] 'D2_Class000_LogOdds', [3] 'D2_IsBackoff'
-  DT: Vector<Key<UInt32, 0-16383>, 5>
-    Metadata 'SlotNames': Vector<String, 5>: Length=5, Count=5
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]', [2] 'Text[3]+Text[4]+Text[5]', [3] 'Text[6]+Text[2]+Text[0]', [4] 'Text[7]'
-  DT: Vector<Single, 5, 4>
-    Metadata 'SlotNames': Vector<String, 20>: Length=20, Count=20
-      [0] 'Text[0]+Text[1]_Class000_Count', [1] 'Text[0]+Text[1]_Class001_Count', [2] 'Text[0]+Text[1]_Class000_LogOdds', [3] 'Text[0]+Text[1]_IsBackoff', [4] 'Text[2]_Class000_Count', [5] 'Text[2]_Class001_Count', [6] 'Text[2]_Class000_LogOdds', [7] 'Text[2]_IsBackoff', [8] 'Text[3]+Text[4]+Text[5]_Class000_Count', [9] 'Text[3]+Text[4]+Text[5]_Class001_Count'
-      [10] 'Text[3]+Text[4]+Text[5]_Class000_LogOdds', [11] 'Text[3]+Text[4]+Text[5]_IsBackoff', [12] 'Text[6]+Text[2]+Text[0]_Class000_Count', [13] 'Text[6]+Text[2]+Text[0]_Class001_Count', [14] 'Text[6]+Text[2]+Text[0]_Class000_LogOdds', [15] 'Text[6]+Text[2]+Text[0]_IsBackoff', [16] 'Text[7]_Class000_Count', [17] 'Text[7]_Class001_Count', [18] 'Text[7]_Class000_LogOdds', [19] 'Text[7]_IsBackoff'
+  DT: Vector<Key<UInt32, 0-16383>, 9>
+  DT: Vector<Single, 9, 4>
   D1s: Key<UInt32, 0-16383>
   D1s: Vector<Single, 1, 4>
     Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4

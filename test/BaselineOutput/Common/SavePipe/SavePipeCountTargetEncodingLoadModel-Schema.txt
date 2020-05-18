@@ -1,55 +1,35 @@
 ---- BoundLoader ----
 3 columns:
-  Text: Vector<String, 9>
+  Text: Vector<String, 2>
   OneText: String
   Label: Single
----- HashJoiningTransform ----
+---- RowToRowMapperTransform ----
 4 columns:
-  Text: Vector<String, 9>
+  Text: Vector<String, 2>
   OneText: String
   Label: Single
   DT: Vector<Key<UInt32, 0-2147483647>, 2>
-    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]+Text[3]+Text[4]+Text[5]'
 ---- RowToRowMapperTransform ----
 5 columns:
-  Text: Vector<String, 9>
+  Text: Vector<String, 2>
   OneText: String
   Label: Single
   DT: Vector<Key<UInt32, 0-2147483647>, 2>
-    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]+Text[3]+Text[4]+Text[5]'
   DT: Vector<Single, 2, 4>
-    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] 'Text[0]+Text[1]_Class000_Count', [1] 'Text[0]+Text[1]_Class001_Count', [2] 'Text[0]+Text[1]_Class000_LogOdds', [3] 'Text[0]+Text[1]_IsBackoff', [4] 'Text[2]+Text[3]+Text[4]+Text[5]_Class000_Count', [5] 'Text[2]+Text[3]+Text[4]+Text[5]_Class001_Count', [6] 'Text[2]+Text[3]+Text[4]+Text[5]_Class000_LogOdds', [7] 'Text[2]+Text[3]+Text[4]+Text[5]_IsBackoff'
----- HashJoiningTransform ----
+---- RowToRowMapperTransform ----
 6 columns:
-  Text: Vector<String, 9>
+  Text: Vector<String, 2>
   OneText: String
   Label: Single
   DT: Vector<Key<UInt32, 0-2147483647>, 2>
-    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]+Text[3]+Text[4]+Text[5]'
   DT: Vector<Single, 2, 4>
-    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] 'Text[0]+Text[1]_Class000_Count', [1] 'Text[0]+Text[1]_Class001_Count', [2] 'Text[0]+Text[1]_Class000_LogOdds', [3] 'Text[0]+Text[1]_IsBackoff', [4] 'Text[2]+Text[3]+Text[4]+Text[5]_Class000_Count', [5] 'Text[2]+Text[3]+Text[4]+Text[5]_Class001_Count', [6] 'Text[2]+Text[3]+Text[4]+Text[5]_Class000_LogOdds', [7] 'Text[2]+Text[3]+Text[4]+Text[5]_IsBackoff'
   DT1: Vector<Key<UInt32, 0-2147483647>, 2>
-    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]+Text[3]+Text[4]+Text[5]'
 ---- RowToRowMapperTransform ----
 7 columns:
-  Text: Vector<String, 9>
+  Text: Vector<String, 2>
   OneText: String
   Label: Single
   DT: Vector<Key<UInt32, 0-2147483647>, 2>
-    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]+Text[3]+Text[4]+Text[5]'
   DT: Vector<Single, 2, 4>
-    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] 'Text[0]+Text[1]_Class000_Count', [1] 'Text[0]+Text[1]_Class001_Count', [2] 'Text[0]+Text[1]_Class000_LogOdds', [3] 'Text[0]+Text[1]_IsBackoff', [4] 'Text[2]+Text[3]+Text[4]+Text[5]_Class000_Count', [5] 'Text[2]+Text[3]+Text[4]+Text[5]_Class001_Count', [6] 'Text[2]+Text[3]+Text[4]+Text[5]_Class000_LogOdds', [7] 'Text[2]+Text[3]+Text[4]+Text[5]_IsBackoff'
   DT1: Vector<Key<UInt32, 0-2147483647>, 2>
-    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
-      [0] 'Text[0]+Text[1]', [1] 'Text[2]+Text[3]+Text[4]+Text[5]'
   DT1: Vector<Single, 2, 4>
-    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
-      [0] 'Text[0]+Text[1]_Class000_Count', [1] 'Text[0]+Text[1]_Class001_Count', [2] 'Text[0]+Text[1]_Class000_LogOdds', [3] 'Text[0]+Text[1]_IsBackoff', [4] 'Text[2]+Text[3]+Text[4]+Text[5]_Class000_Count', [5] 'Text[2]+Text[3]+Text[4]+Text[5]_Class001_Count', [6] 'Text[2]+Text[3]+Text[4]+Text[5]_Class000_LogOdds', [7] 'Text[2]+Text[3]+Text[4]+Text[5]_IsBackoff'
