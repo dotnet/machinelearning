@@ -119,7 +119,10 @@ namespace Microsoft.ML.AutoML
 
             if (!splitInference.IsSuccess)
             {
-                throw new InferenceException(InferenceExceptionType.ColumnSplit, "Unable to split the file provided into multiple, consistent columns.");
+                throw new InferenceException(InferenceExceptionType.ColumnSplit,
+                    "Unable to split the file provided into multiple, consistent columns. " +
+                    "Readable formats include delimited files such as CSV/TSV. " +
+                    "Check for a consistent number of columns and proper escaping and quoting.");
             }
 
             return splitInference;
