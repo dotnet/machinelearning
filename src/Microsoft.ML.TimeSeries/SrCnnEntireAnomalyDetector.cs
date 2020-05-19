@@ -42,13 +42,13 @@ namespace Microsoft.ML.TimeSeries
     /// [DetectEntireAnomalyBySrCnn](xref:Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(Microsoft.ML.AnomalyDetectionCatalog,Microsoft.ML.IDataView,System.String,System.String,System.Double,System.Int32,System.Double,SrCnnDetectMode))
     ///
     /// ### Background
-    /// In Microsoft, we developed a time-series anomaly detection service which helps customers to monitor the time-series continuously
+    /// At Microsoft, we developed a time-series anomaly detection service which helps customers to monitor the time-series continuously
     /// and alert for potential incidents on time. To tackle the problem of time-series anomaly detection,
     /// we proposed a novel algorithm based on Spectral Residual (SR) and Convolutional Neural Network
     /// (CNN). The SR model is borrowed from visual saliency detection domain to time-series anomaly detection.
     /// And here we onboarded this SR algorithm firstly.
     ///
-    /// The Spectral Residual (SR) algorithm is unsupervised, which means training step is not needed while using SR. It consists of three major steps:
+    /// The Spectral Residual (SR) algorithm is unsupervised, which means a training step is not needed when using SR. It consists of three major steps:
     /// (1) Fourier Transform to get the log amplitude spectrum;
     /// (2) calculation of spectral residual;
     /// (3) Inverse Fourier Transform that transforms the sequence back to spatial domain.
@@ -232,11 +232,11 @@ namespace Microsoft.ML.TimeSeries
                     var bLen = _previousBatch.Count - _batch.Count;
                     _previousBatch = _previousBatch.GetRange(_batch.Count, bLen);
                     _previousBatch.AddRange(_batch);
-                    _results = _modeler.Train(_previousBatch.ToArray()).Skip(bLen).ToArray();
+                    _results = _modeler.Train(_previousBatch.ToArray(), ref _results).Skip(bLen).ToArray();
                 }
                 else
                 {
-                    _results = _modeler.Train(_batch.ToArray());
+                    _results = _modeler.Train(_batch.ToArray(), ref _results);
                 }
             }
 
@@ -271,7 +271,7 @@ namespace Microsoft.ML.TimeSeries
         {
             private static readonly int _lookaheadWindowSize = 5;
             private static readonly int _backAddWindowSize = 5;
-            private static readonly int _avergingWindowSize = 3;
+            private static readonly int _averagingWindowSize = 3;
             private static readonly int _judgementWindowSize = 40;
             private static readonly double _eps = 1e-8;
             private static readonly double _deanomalyThreshold = 0.35;
@@ -316,12 +316,15 @@ namespace Microsoft.ML.TimeSeries
                 _detectMode = detectMode;
             }
 
-            public double[][] Train(double[] values)
+            public double[][] Train(double[] values, ref double[][] results)
             {
-                double[][] results = new double[values.Length][];
-                for (int i = 0; i < results.Length; ++i)
+                if (results == null)
                 {
-                    results[i] = new double[_outputLengthArray[(int)_detectMode]];
+                    results = new double[values.Length][];
+                    for (int i = 0; i < results.Length; ++i)
+                    {
+                        results[i] = new double[_outputLengthArray[(int)_detectMode]];
+                    }
                 }
                 SpectralResidual(values, results, _threshold);
                 //Optional Steps
@@ -364,7 +367,7 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 // Step 4: Calculate spectral
-                double[] filteredLogList = AverageFilter(magLogList, _avergingWindowSize);
+                double[] filteredLogList = AverageFilter(magLogList, _averagingWindowSize);
                 double[] spectralList = new double[length];
                 for (int i = 0; i < length; ++i)
                 {
@@ -499,7 +502,7 @@ namespace Microsoft.ML.TimeSeries
                 var exps = CalculateExpectedValueByFft(GetDeanomalyData(values, GetAnomalyIndex(results.Select(x => x[1]).ToArray())));
 
                 //Step 9: Calculate Boundary Unit
-                var units = CalculateBoundaryUnit(values, results.Select(x => x[0] > 0 ? true : false).ToArray());
+                var units = CalculateBoundaryUnit(values, results.Select(x => x[0] > 0).ToArray());
 
                 //Step 10: Calculate UpperBound and LowerBound
                 var margins = units.Select(x => CalculateMargin(x, sensitivity)).ToList();
@@ -563,14 +566,14 @@ namespace Microsoft.ML.TimeSeries
 
                     if (fitValues.Count > 1)
                     {
-                        deAnomalyData[idx] = CalculateInterplate(fitValues, idx);
+                        deAnomalyData[idx] = CalculateInterpolate(fitValues, idx);
                     }
                 }
 
                 return deAnomalyData;
             }
 
-            private static double CalculateInterplate(List<Tuple<int, double>> values, int idx)
+            private static double CalculateInterpolate(List<Tuple<int, double>> values, int idx)
             {
                 var n = values.Count;
                 double sumX = values.Sum(item => item.Item1);
@@ -604,7 +607,7 @@ namespace Microsoft.ML.TimeSeries
                 double[] ifftIm = new double[length];
                 FftUtils.ComputeBackwardFft(fftRe, fftIm, ifftRe, ifftIm, length);
 
-                return ifftRe.Take(length).ToArray();
+                return ifftRe;
             }
 
             private static double[] CalculateBoundaryUnit(double[] data, bool[] isAnomalys)

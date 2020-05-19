@@ -87,6 +87,7 @@ namespace Microsoft.ML.Tests
 
         private sealed class TimeSeriesDataDouble
         {
+            [LoadColumn(0)]
             public double Value { get; set; }
         }
 
@@ -586,9 +587,7 @@ namespace Microsoft.ML.Tests
                 var dataPath = GetDataPath("Timeseries", "anomaly_detection.csv");
 
                 // Load data from file into the dataView
-                dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
-                    new TextLoader.Column("Value", DataKind.Double, 0),
-                }, hasHeader: true);
+                dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
             }
             else
             {
