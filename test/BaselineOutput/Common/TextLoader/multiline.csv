@@ -9,6 +9,8 @@
 0
 19
 20
+21
+22
 this is a description
 this is a quoted description
 this is a multiline\nquoted description
@@ -19,6 +21,8 @@ here is text after the empty line
 this is a line with an empty animal
 this is a line with an empty id
 
+we also allow"quotes in the middle of fields
+or also at the end"
 this is the last row description
 dog
 cat
@@ -31,3 +35,5 @@ dog
 bird
 dog
 cat
+bird
+dog

@@ -29,4 +29,6 @@ since it is part of the ""multiline""",bird
 17, this is a line with an empty animal,""
 "", this is a line with an empty id, bird
 19,"",dog
-20,this is the last row description,cat
+20,we also allow"quotes in the middle of fields,cat
+21,or also at the end",bird
+22,this is the last row description,dog

@@ -29,5 +29,7 @@ since it is part of the ""multiline"""	bird
 17	this is a line with an empty animal	""
 0	this is a line with an empty id	bird
 19	""	dog
-20	this is the last row description	cat
-Wrote 11 rows of length 3
+20	"we also allow""quotes in the middle of fields"	cat
+21	"or also at the end"""	bird
+22	this is the last row description	dog
+Wrote 13 rows of length 3

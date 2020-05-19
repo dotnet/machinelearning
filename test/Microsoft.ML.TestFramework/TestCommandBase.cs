@@ -2152,7 +2152,7 @@ namespace Microsoft.ML.RunTests
 
         [TestCategory("DataPipeSerialization")]
         [Fact()]
-        public void SavePipeTextLoaderWithMoreOptions()
+        public void SavePipeTextLoaderWithMultilines()
         {
             string dataPath = GetDataPath("multiline.csv");
             const string loaderArgs = "loader=text{sep=, quote+ multilines+ header+ col=id:Num:0 col=description:TX:1 col=animal:TX:2}";

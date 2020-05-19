@@ -1001,7 +1001,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 }
             }
 
-            const int numRows = 11;
+            const int numRows = 13;
             Assert.Equal(numRows, ids.Count());
             Assert.Equal(numRows, descriptions.Count());
             Assert.Equal(numRows, animals.Count());
