@@ -613,7 +613,7 @@ namespace Microsoft.ML.Tests
             string inputColumnName = nameof(TimeSeriesDataDouble.Value);
 
             // Do batch anomaly detection
-            var outputDataView = ml.AnomalyDetection.BatchDetectAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
                 threshold: 0.35, batchSize: -1, sensitivity: 90.0, mode);
 
             // Getting the data of the newly created column as an IEnumerable of

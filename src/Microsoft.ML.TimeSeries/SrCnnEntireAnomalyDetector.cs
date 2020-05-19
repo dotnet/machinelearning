@@ -33,7 +33,47 @@ namespace Microsoft.ML.TimeSeries
         AnomalyAndExpectedValue = 2
     }
 
-    internal sealed class SrCnnBatchAnomalyDetector : BatchDataViewMapperBase<double, SrCnnBatchAnomalyDetector.Batch>
+    /// <summary>
+    /// Detect timeseries anomalies for entire input using Spectral Residual(SR) algorithm.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this detector, use
+    /// [DetectEntireAnomalyBySrCnn](xref:Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(Microsoft.ML.AnomalyDetectionCatalog,Microsoft.ML.IDataView,System.String,System.String,System.Double,System.Int32,System.Double,SrCnnDetectMode))
+    ///
+    /// ### Background
+    /// In Microsoft, we developed a time-series anomaly detection service which helps customers to monitor the time-series continuously
+    /// and alert for potential incidents on time. To tackle the problem of time-series anomaly detection,
+    /// we proposed a novel algorithm based on Spectral Residual (SR) and Convolutional Neural Network
+    /// (CNN). The SR model is borrowed from visual saliency detection domain to time-series anomaly detection.
+    /// And here we onboarded this SR algorithm firstly.
+    ///
+    /// The Spectral Residual (SR) algorithm is unsupervised, which means training step is not needed while using SR. It consists of three major steps:
+    /// (1) Fourier Transform to get the log amplitude spectrum;
+    /// (2) calculation of spectral residual;
+    /// (3) Inverse Fourier Transform that transforms the sequence back to spatial domain.
+    /// Mathematically, given a sequence $\mathbf{x}$, we have
+    /// $$A(f) = Amplitude(\mathfrak{F}(\mathbf{x}))\\P(f) = Phrase(\mathfrak{F}(\mathbf{x}))\\L(f) = log(A(f))\\AL(f) = h_n(f) \cdot L(f)\\R(f) = L(f) - AL(f)\\S(\mathbf{x}) = \mathfrak{F}^{-1}(exp(R(f) + P(f))^{2})$$
+    /// where $\mathfrak{F}$ and $\mathfrak{F}^{-1}$ denote Fourier Transform and Inverse Fourier Transform respectively.
+    /// $\mathbf{x}$ is the input sequence with shape $n × 1$; $A(f)$ is the amplitude spectrum of sequence $\mathbf{x}$;
+    /// $P(f)$ is the corresponding phase spectrum of sequence $\mathbf{x}$; $L(f)$ is the log representation of $A(f)$;
+    /// and $AL(f)$ is the average spectrum of $L(f)$ which can be approximated by convoluting the input sequence by $h_n(f)$,
+    /// where $h_n(f)$ is an $n × n$ matrix defined as:
+    /// $$n_f(f) = \begin{bmatrix}1&1&1&\cdots&1\\1&1&1&\cdots&1\\\vdots&\vdots&\vdots&\ddots&\vdots\\1&1&1&\cdots&1\end{bmatrix}$$
+    /// $R(f)$ is the spectral residual, i.e., the log spectrum $L(f)$ subtracting the averaged log spectrum $AL(f)$.
+    /// The spectral residual serves as a compressed representation of the sequence while the innovation part of the original sequence becomes more significant.
+    /// At last, we transfer the sequence back to spatial domain via Inverse Fourier Transform. The result sequence $S(\mathbf{x})$ is called the saliency map.
+    /// Given the saliency map $S(\mathbf{x})$, the output sequence $O(\mathbf{x})$ is computed by:
+    /// $$O(x_i) = \begin{cases}1, if \frac{S(x_i)-\overline{S(x_i)}}{S(x_i)} > \tau\\0,otherwise,\end{cases}$$
+    /// where $x_i$ represents an arbitrary point in sequence $\mathbf{x}$; $S(x_i)$is the corresponding point in the saliency map;
+    /// and $\overline{S(x_i)}$ is the local average of the preceding points of $S(x_i)$.
+    ///
+    /// * [Link to the KDD 2019 paper](https://dl.acm.org/doi/10.1145/3292500.3330680)
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode)"/>
+    internal sealed class SrCnnEntireAnomalyDetector : BatchDataViewMapperBase<double, SrCnnEntireAnomalyDetector.Batch>
     {
         private const int MinBatchSize = 12;
 
@@ -85,8 +125,8 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        public SrCnnBatchAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode)
-            : base(env, nameof(SrCnnBatchAnomalyDetector), input)
+        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode)
+            : base(env, nameof(SrCnnEntireAnomalyDetector), input)
         {
             Host.CheckValue(inputColumnName, nameof(inputColumnName));
             _inputColumnName = inputColumnName;
