@@ -1460,6 +1460,23 @@ namespace Microsoft.ML.Data
            bool trimWhitespace = Defaults.TrimWhitespace,
            IMultiStreamSource dataSample = null)
         {
+            Options options = new Options
+            {
+                HasHeader = hasHeader,
+                Separators = new[] { separator },
+                AllowQuoting = allowQuoting,
+                AllowSparse = supportSparse,
+                TrimWhitespace = trimWhitespace
+            };
+
+            return CreateTextLoader<TInput>(host, options, dataSample);
+        }
+
+        internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
+           Options options = null,
+           IMultiStreamSource dataSample = null)
+        {
+            options = options ?? new Options();
             var userType = typeof(TInput);
 
             var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
@@ -1520,15 +1537,7 @@ namespace Microsoft.ML.Data
                 columns.Add(column);
             }
 
-            Options options = new Options
-            {
-                HasHeader = hasHeader,
-                Separators = new[] { separator },
-                AllowQuoting = allowQuoting,
-                AllowSparse = supportSparse,
-                TrimWhitespace = trimWhitespace,
-                Columns = columns.ToArray()
-            };
+            options.Columns = columns.ToArray();
 
             return new TextLoader(host, options, dataSample: dataSample);
         }
