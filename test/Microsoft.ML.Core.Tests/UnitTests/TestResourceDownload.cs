@@ -143,7 +143,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
         [Fact]
         [TestCategory("ResourceDownload")]
-        [Trait("Category", "RunSpecificTest")]
+        //[Trait("Category", "RunSpecificTest")]
         public void TestDatasetFileDownload()
         {
             int numberOfParallel = 15;
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     foreach (var file in fileList)
                     {
 #pragma warning disable VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
-                        tasks.Add(Task.Factory.StartNew(() => Download(env, file, path, file)));
+                        tasks.Add(Task.Factory.StartNew(() => Download(env, "meta/" + file, path, file)));
 #pragma warning restore VSTHRD105 // Avoid method overloads that assume TaskScheduler.Current
                     }
                 }
