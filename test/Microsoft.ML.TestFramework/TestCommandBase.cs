@@ -2138,7 +2138,7 @@ namespace Microsoft.ML.RunTests
         public void SavePipeChooseColumnsByIndex()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            const string loaderArgs = "loader=text{header+ multilines+ quote+ col=Label:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9}";
+            const string loaderArgs = "loader=text{header+ col=Label:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9}";
 
             OutputPath modelPath = ModelPath();
             string extraArgs = "xf=ChooseColumnsByIndex{ind=3 ind=0}";
