@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in float value)
-                => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), sizeof(float)) & mask) + 1;
+                => float.IsNaN(value) ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), sizeof(float)) & mask) + 1;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in VBuffer<float> values)
@@ -1372,8 +1372,8 @@ namespace Microsoft.ML.Transforms
                     castNode.AddAttribute("to", NumberDataViewType.UInt32.RawType);
                     murmurNode = ctx.CreateNode(opType, castOutput, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
-                else if (srcType == NumberDataViewType.UInt32 || srcType == NumberDataViewType.Int32 || srcType == typeof(ulong) ||
-                         srcType == typeof(long) || srcType == typeof(float) || srcType == typeof(double) || srcType == TextDataViewType.Instance)
+                else if (srcType == NumberDataViewType.UInt32 || srcType == NumberDataViewType.Int32 || srcType == NumberDataViewType.UInt64 ||
+                         srcType == NumberDataViewType.Int64 || srcType == NumberDataViewType.Single || srcType == NumberDataViewType.Double || srcType == TextDataViewType.Instance)
 
                 {
                     murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");

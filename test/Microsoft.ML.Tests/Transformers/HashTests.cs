@@ -251,9 +251,6 @@ namespace Microsoft.ML.Tests.Transformers
 
             HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
 
-            //This test calls HashKey8V2 which implemented the same way as 32bit
-            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), ulong.MaxValue - 1), eKey, eoKey, e3Key);
-
             // Next let's check signed numbers.
 
             if (value <= (ulong)sbyte.MaxValue)
