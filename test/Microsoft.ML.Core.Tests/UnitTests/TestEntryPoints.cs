@@ -5682,7 +5682,7 @@ namespace Microsoft.ML.RunTests
                 getter(ref stdev);
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
-                Assert.Equal(0.00481, stdev, 5);
+                Assert.Equal(0.0087, stdev, 5);
 
                 double sum = 0;
                 double val = 0;

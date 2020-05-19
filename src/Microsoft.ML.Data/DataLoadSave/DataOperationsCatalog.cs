@@ -511,19 +511,18 @@ namespace Microsoft.ML
                 var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(env, type))
                 {
-                    // Hash the samplingKeyColumn.
-                    // REVIEW: this could currently crash, since Hash only accepts a limited set
-                    // of column types. It used to be HashJoin, but we should probably extend Hash
-                    // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
                     samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
-                    HashingEstimator.ColumnOptionsInternal columnOptions;
-                    if (seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)seed.Value);
-                    else if (((ISeededEnvironment)env).Seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)((ISeededEnvironment)env).Seed.Value);
-                    else
-                        columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30);
+                    // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
+                    var itemType = type.GetItemType();
+                    if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
+                        data = new TypeConvertingTransformer(env, origStratCol, DataKind.Int64, origStratCol).Transform(data);
+
+                    var localSeed = seed.HasValue ? seed : ((ISeededEnvironment)env).Seed.HasValue ? ((ISeededEnvironment)env).Seed : null;
+                    var columnOptions =
+                        localSeed.HasValue ?
+                        new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)localSeed.Value, combine: true) :
+                        new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, combine: true);
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
                 else
