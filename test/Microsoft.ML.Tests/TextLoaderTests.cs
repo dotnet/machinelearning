@@ -660,7 +660,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
     }
 
-    public class TextLoaderFromModelTests : BaseTestClass
+    public class TextLoaderFromModelTests : BaseTestBaseline
     {
         public TextLoaderFromModelTests(ITestOutputHelper output)
            : base(output)
@@ -936,6 +936,148 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = mlContext.Data.CreateTextLoader<BreastCancerInputModelWithoutKeyType>(separatorChar: ',').Load(breastCancerPath);
 
             Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestLoadTextWithEscapedNewLines(bool useSaved)
+        {
+            var mlContext = new MLContext(seed: 1);
+            var dataPath = GetDataPath("multiline.csv");
+            var baselinePath = GetBaselinePath("TextLoader", "multiline.csv");
+            var options = new TextLoader.Options()
+            {
+                HasHeader = true,
+                Separator = ",",
+                AllowQuoting = true,
+                ReadMultilines = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column("id", DataKind.Int32, 0),
+                    new TextLoader.Column("description", DataKind.String, 1),
+                    new TextLoader.Column("animal", DataKind.String, 2),
+                },
+            };
+
+            var data = mlContext.Data.LoadFromTextFile(dataPath, options);
+            if (useSaved)
+            { 
+                // Check that loading the data view from a text file,
+                // and then saving that data view to another text file, then loading it again
+                // also matches the baseline.
+
+                var savedPath = DeleteOutputPath("saved-multiline.tsv");
+                using (var fs = File.Create(savedPath))
+                    mlContext.Data.SaveAsText(data, fs, separatorChar: '\t');
+
+                options.Separator = "\t";
+                data = mlContext.Data.LoadFromTextFile(savedPath, options);
+            }
+
+            // Get values from loaded dataview
+            var ids = new List<string>();
+            var descriptions = new List<string>();
+            var animals = new List<string>();
+            using(var curs = data.GetRowCursorForAllColumns())
+            {
+                var idGetter = curs.GetGetter<int>(data.Schema["id"]);
+                var descriptionGetter = curs.GetGetter<ReadOnlyMemory<char>>(data.Schema["description"]);
+                var animalGetter = curs.GetGetter<ReadOnlyMemory<char>>(data.Schema["animal"]);
+
+                int id = default;
+                ReadOnlyMemory<char> description = default;
+                ReadOnlyMemory<char> animal = default;
+
+                while(curs.MoveNext())
+                {
+                    idGetter(ref id);
+                    descriptionGetter(ref description);
+                    animalGetter(ref animal);
+
+                    ids.Add(id.ToString());
+                    descriptions.Add(description.ToString());
+                    animals.Add(animal.ToString());
+                }
+            }
+
+            const int numRows = 13;
+            Assert.Equal(numRows, ids.Count());
+            Assert.Equal(numRows, descriptions.Count());
+            Assert.Equal(numRows, animals.Count());
+
+            // Compare values with baseline file
+            string line;
+            using (var file = new StreamReader(baselinePath))
+            {
+                for(int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    Assert.Equal(ids[i], line);
+                }
+
+                for (int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    line = line.Replace("\\n", "\n");
+                    Assert.Equal(descriptions[i], line);
+                }
+
+                for (int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    Assert.Equal(animals[i], line);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestInvalidMultilineCSVQuote()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            string badInputCsv =
+                "id,description,animal\n" +
+                "9,\"this is a quoted field correctly formatted\",cat\n" +
+                "10,\"this is a quoted field\nwithout closing quote,cat\n" +
+                "11,this field isn't quoted,dog\n" +
+                "12,this will reach the end of the file without finding a closing quote so it will throw,frog\n"
+                ;
+
+            var filePath = GetOutputPath("multiline-invalid.csv");
+            File.WriteAllText(filePath, badInputCsv);
+
+            bool threwException = false;
+            try
+            {
+                var options = new TextLoader.Options()
+                {
+                    HasHeader = true,
+                    Separator = ",",
+                    AllowQuoting = true,
+                    ReadMultilines = true,
+                    Columns = new[]
+                    {
+                    new TextLoader.Column("id", DataKind.Int32, 0),
+                    new TextLoader.Column("description", DataKind.String, 1),
+                    new TextLoader.Column("animal", DataKind.String, 2),
+                },
+                };
+
+                var data = mlContext.Data.LoadFromTextFile(filePath, options);
+
+                data.Preview();
+            }
+            catch(EndOfStreamException)
+            {
+                threwException = true;
+            }
+            catch(FormatException)
+            {
+                threwException = true;
+            }
+
+            Assert.True(threwException, "Invalid file should have thrown an exception");
         }
     }
 }

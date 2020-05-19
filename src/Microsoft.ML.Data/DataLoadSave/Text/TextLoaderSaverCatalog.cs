@@ -64,7 +64,7 @@ namespace Microsoft.ML
                 HasHeader = hasHeader,
                 AllowQuoting = allowQuoting,
                 TrimWhitespace = trimWhitespace,
-                AllowSparse = allowSparse
+                AllowSparse = allowSparse,
             };
 
             return new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options, dataSample: dataSample);

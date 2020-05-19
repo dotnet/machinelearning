@@ -1161,6 +1161,11 @@ namespace Microsoft.ML.Data
                                 scan.QuotingError = true;
                                 break;
                             }
+
+                            // The logic below allow us to escape quotes (") inside quoted
+                            // fields by using doublo quotes (""). I.e. when the loader
+                            // encounters "" inside a quoted field, it will output only one "
+                            // and continue parsing the rest of the field.
                             if (span[ichCur] == '"')
                             {
                                 if (ichCur > ichRun)

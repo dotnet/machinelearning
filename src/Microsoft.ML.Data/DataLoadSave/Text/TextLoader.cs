@@ -493,13 +493,20 @@ namespace Microsoft.ML.Data
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
-            public bool HasHeader;
+            public bool HasHeader = Defaults.HasHeader;
 
             /// <summary>
             /// Whether to use separate parsing threads.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use separate parsing threads?", ShortName = "threads", Hide = true)]
             public bool UseThreads = true;
+
+            /// <summary>
+            /// If true, new line characters are acceptable inside a quoted field, and thus one field can have multiple lines of text inside it
+            /// If <see cref="TextLoader.Options.AllowQuoting"/> is false, this option is ignored.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Escape new line characters inside a quoted field? If AllowQuoting is false, this argument is ignored.", ShortName = "multilines", Hide = true)]
+            public bool ReadMultilines = Defaults.ReadMultilines;
 
             /// <summary>
             /// File containing a header with feature names. If specified, the header defined in the data file is ignored regardless of <see cref="HasHeader"/>.
@@ -530,6 +537,7 @@ namespace Microsoft.ML.Data
             internal const char Separator = '\t';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
+            internal const bool ReadMultilines = false;
         }
 
         /// <summary>
@@ -694,11 +702,11 @@ namespace Microsoft.ML.Data
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
-                        Cursor.GetSomeLines(headerFile, 1, ref lines);
+                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(dataSample, 100, ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(dataSample, 1, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1055,7 +1063,7 @@ namespace Microsoft.ML.Data
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
-                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType
+                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1073,8 +1081,8 @@ namespace Microsoft.ML.Data
             HasHeader = 0x02,
             AllowQuoting = 0x04,
             AllowSparse = 0x08,
-
-            All = TrimWhitespace | HasHeader | AllowQuoting | AllowSparse
+            ReadMultilines = 0x10,
+            All = TrimWhitespace | HasHeader | AllowQuoting | AllowSparse | ReadMultilines
         }
 
         // This is reserved to mean the range extends to the end (the segment is variable).
@@ -1093,6 +1101,11 @@ namespace Microsoft.ML.Data
         private bool HasHeader
         {
             get { return (_flags & OptionFlags.HasHeader) != 0; }
+        }
+
+        private bool ReadMultilines
+        {
+            get { return (_flags & OptionFlags.ReadMultilines) != 0; }
         }
 
         private readonly IHost _host;
@@ -1147,6 +1160,8 @@ namespace Microsoft.ML.Data
                 _flags |= OptionFlags.AllowQuoting;
             if (options.AllowSparse)
                 _flags |= OptionFlags.AllowSparse;
+            if (options.AllowQuoting && options.ReadMultilines)
+                _flags |= OptionFlags.ReadMultilines;
 
             // REVIEW: This should be persisted (if it should be maintained).
             _maxRows = options.MaxRows ?? long.MaxValue;

@@ -406,6 +406,18 @@
                 "Default": true
               },
               {
+                "Name": "ReadMultilines",
+                "Type": "Bool",
+                "Desc": "Escape new line characters inside a quoted field? If AllowQuoting is false, this argument is ignored.",
+                "Aliases": [
+                  "multilines"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": false
+              },
+              {
                 "Name": "HeaderFile",
                 "Type": "String",
                 "Desc": "File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.",
