@@ -295,16 +295,10 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732, 75, 487);
             HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780, 179, 80);
             HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20, 882, 1010);
-            // Note that while we have the hash for numeric types be equal, the same is not necessarily the case for floating point numbers.
 
-            //HashTestCore(1d, NumberDataViewType.Double, 188, 57, 690);
-            //HashTestCore(-1d, NumberDataViewType.Double, 885, 804, 22);
-            //HashTestCore(0d, NumberDataViewType.Double, 512, 851, 795);
-
-            HashTestCore(1d, NumberDataViewType.Double, 937, 667, 424, 727, 510);
-            HashTestCore(-1d, NumberDataViewType.Double, 930, 78, 813, 582, 179);
-            HashTestCore(0d, NumberDataViewType.Double, 842, 358, 20, 882, 1010);
-
+            HashTestCore(1d, NumberDataViewType.Double, 188, 57, 690, 727, 36);
+            HashTestCore(-1d, NumberDataViewType.Double, 885, 804, 22, 582, 346);
+            HashTestCore(0d, NumberDataViewType.Double, 512, 851, 795, 1010, 620);
         }
 
         [Fact]
