@@ -445,5 +445,163 @@ CMT,1,1,181,0.6,CSH";
             VerifyColumnTypes(df);
 
         }
+
+        [Fact]
+        public void TestReadCsvWithAllNulls()
+        {
+            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
+null,null,null,null
+Null,Null,Null,Null
+null,null,null,null
+Null,Null,Null,Null
+null,null,null,null
+null,null,null,null";
+
+            Stream GetStream(string streamData)
+            {
+                return new MemoryStream(Encoding.Default.GetBytes(streamData));
+            }
+            DataFrame df = DataFrame.LoadCsv(GetStream(data));
+            Assert.Equal(6, df.Rows.Count);
+            Assert.Equal(4, df.Columns.Count);
+
+            Assert.True(typeof(string) == df.Columns[0].DataType);
+            Assert.True(typeof(string) == df.Columns[1].DataType);
+            Assert.True(typeof(string) == df.Columns[2].DataType);
+            Assert.True(typeof(string) == df.Columns[3].DataType);
+
+            Assert.Equal("vendor_id", df.Columns[0].Name);
+            Assert.Equal("rate_code", df.Columns[1].Name);
+            Assert.Equal("passenger_count", df.Columns[2].Name);
+            Assert.Equal("trip_time_in_secs", df.Columns[3].Name);
+            VerifyColumnTypes(df);
+
+            foreach (var column in df.Columns)
+            {
+                Assert.Equal(6, column.NullCount);
+                foreach (var value in column)
+                {
+                    Assert.Null(value);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestReadCsvWithNullsAndDataTypes()
+        {
+            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
+null,1,1,1271
+CMT,Null,1,474
+CMT,1,null,637
+Null,,,
+,,,
+CMT,1,1,null";
+
+            Stream GetStream(string streamData)
+            {
+                return new MemoryStream(Encoding.Default.GetBytes(streamData));
+            }
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(short), typeof(int), typeof(long) });
+            Assert.Equal(6, df.Rows.Count);
+            Assert.Equal(4, df.Columns.Count);
+
+            Assert.True(typeof(string) == df.Columns[0].DataType);
+            Assert.True(typeof(short) == df.Columns[1].DataType);
+            Assert.True(typeof(int) == df.Columns[2].DataType);
+            Assert.True(typeof(long) == df.Columns[3].DataType);
+
+            Assert.Equal("vendor_id", df.Columns[0].Name);
+            Assert.Equal("rate_code", df.Columns[1].Name);
+            Assert.Equal("passenger_count", df.Columns[2].Name);
+            Assert.Equal("trip_time_in_secs", df.Columns[3].Name);
+            VerifyColumnTypes(df);
+
+            foreach (var column in df.Columns)
+            {
+                if (column.DataType != typeof(string))
+                {
+                    Assert.Equal(3, column.NullCount);
+                }
+                else
+                {
+                    Assert.Equal(2, column.NullCount);
+                }
+            }
+            var nullRow = df.Rows[3];
+            Assert.Null(nullRow[0]);
+            Assert.Null(nullRow[1]);
+            Assert.Null(nullRow[2]);
+            Assert.Null(nullRow[3]);
+
+            nullRow = df.Rows[4];
+            Assert.Equal("", nullRow[0]);
+            Assert.Null(nullRow[1]);
+            Assert.Null(nullRow[2]);
+            Assert.Null(nullRow[3]);
+
+            Assert.Null(df[0, 0]);
+            Assert.Null(df[1, 1]);
+            Assert.Null(df[2, 2]);
+            Assert.Null(df[5, 3]);
+        }
+
+        [Fact]
+        public void TestReadCsvWithNulls()
+        {
+            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
+null,1,1,1271
+CMT,Null,1,474
+CMT,1,null,637
+Null,,,
+,,,
+CMT,1,1,null";
+
+            Stream GetStream(string streamData)
+            {
+                return new MemoryStream(Encoding.Default.GetBytes(streamData));
+            }
+            DataFrame df = DataFrame.LoadCsv(GetStream(data));
+            Assert.Equal(6, df.Rows.Count);
+            Assert.Equal(4, df.Columns.Count);
+
+            Assert.True(typeof(string) == df.Columns[0].DataType);
+            Assert.True(typeof(float) == df.Columns[1].DataType);
+            Assert.True(typeof(float) == df.Columns[2].DataType);
+            Assert.True(typeof(float) == df.Columns[3].DataType);
+
+            Assert.Equal("vendor_id", df.Columns[0].Name);
+            Assert.Equal("rate_code", df.Columns[1].Name);
+            Assert.Equal("passenger_count", df.Columns[2].Name);
+            Assert.Equal("trip_time_in_secs", df.Columns[3].Name);
+            VerifyColumnTypes(df);
+
+            foreach (var column in df.Columns)
+            {
+                if (column.DataType != typeof(string))
+                {
+                    Assert.Equal(3, column.NullCount);
+                }
+                else
+                {
+                    Assert.Equal(2, column.NullCount);
+                }
+            }
+            var nullRow = df.Rows[3];
+            Assert.Null(nullRow[0]);
+            Assert.Null(nullRow[1]);
+            Assert.Null(nullRow[2]);
+            Assert.Null(nullRow[3]);
+
+            nullRow = df.Rows[4];
+            Assert.Equal("", nullRow[0]);
+            Assert.Null(nullRow[1]);
+            Assert.Null(nullRow[2]);
+            Assert.Null(nullRow[3]);
+
+            Assert.Null(df[0, 0]);
+            Assert.Null(df[1, 1]);
+            Assert.Null(df[2, 2]);
+            Assert.Null(df[5, 3]);
+        }
     }
 }

@@ -463,35 +463,42 @@ namespace Microsoft.Data.Analysis
             bool columnMoveNext = columnEnumerator.MoveNext();
             if (row != null)
             {
-                    // Go through row first to make sure there are no data type incompatibilities
-                    IEnumerator<object> rowEnumerator = row.GetEnumerator();
-                    bool rowMoveNext = rowEnumerator.MoveNext();
-                    List<object> cachedObjectConversions = new List<object>();
-                    while (columnMoveNext && rowMoveNext)
+                // Go through row first to make sure there are no data type incompatibilities
+                IEnumerator<object> rowEnumerator = row.GetEnumerator();
+                bool rowMoveNext = rowEnumerator.MoveNext();
+                List<object> cachedObjectConversions = new List<object>();
+                while (columnMoveNext && rowMoveNext)
+                {
+                    DataFrameColumn column = columnEnumerator.Current;
+                    object value = rowEnumerator.Current;
+                    // StringDataFrameColumn can accept empty strings. The other columns interpret empty values as nulls
+                    if (value is string stringValue)
                     {
-                        DataFrameColumn column = columnEnumerator.Current;
-                        object value = rowEnumerator.Current;
-                        // StringDataFrameColumn can accept empty strings. The other columns interpret empty values as nulls
-                        if (value is string stringValue && string.IsNullOrEmpty(stringValue) && column.DataType != typeof(string))
+                        if (stringValue.Length == 0 && column.DataType != typeof(string))
                         {
                             value = null;
                         }
-                        if (value != null)
+                        else if (stringValue.Equals("null", StringComparison.OrdinalIgnoreCase))
                         {
-                            value = Convert.ChangeType(value, column.DataType);
-                            if (value is null)
-                            {
-                                throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), value.GetType().ToString());
-                            }
+                            value = null;
                         }
-                        cachedObjectConversions.Add(value);
-                        columnMoveNext = columnEnumerator.MoveNext();
-                        rowMoveNext = rowEnumerator.MoveNext();
                     }
-                    if (rowMoveNext)
+                    if (value != null)
                     {
-                        throw new ArgumentException(string.Format(Strings.ExceedsNumberOfColumns, Columns.Count), nameof(row));
+                        value = Convert.ChangeType(value, column.DataType);
+                        if (value is null)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), value.GetType().ToString());
+                        }
                     }
+                    cachedObjectConversions.Add(value);
+                    columnMoveNext = columnEnumerator.MoveNext();
+                    rowMoveNext = rowEnumerator.MoveNext();
+                }
+                if (rowMoveNext)
+                {
+                    throw new ArgumentException(string.Format(Strings.ExceedsNumberOfColumns, Columns.Count), nameof(row));
+                }
                 // Reset the enumerators
                 columnEnumerator = ret.Columns.GetEnumerator();
                 columnMoveNext = columnEnumerator.MoveNext();
