@@ -179,7 +179,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
         [Fact]
         [TestCategory("ResourceDownload")]
-        [Trait("Category", "RunSpecificTest")]
+        //[Trait("Category", "RunSpecificTest")]
         public void TestMetaFileDownload()
         {
             int numberOfParallel = 15;
