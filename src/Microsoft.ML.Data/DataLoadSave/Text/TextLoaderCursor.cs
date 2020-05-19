@@ -472,7 +472,7 @@ namespace Microsoft.ML.Data
                     // When reading lines that contain quoted fields, the quoted fields can contain
                     // '\n' so we we'll need to read multiple lines (multilines) to get all the fields
                     // of a given row.
-                    public static string ReadMultiLine(TextReader sr, StringBuilder sb, bool ignoreHashLine)
+                    public static string ReadMultiLine(TextReader sr, StringBuilder sb, long lineNum, bool ignoreHashLine)
                     {
                         string line;
                         line = sr.ReadLine();
@@ -503,7 +503,7 @@ namespace Microsoft.ML.Data
                             line = sr.ReadLine();
 
                             if (line == null) // If we've reached the end of the file
-                                break; // MYTODO: This could happen if we have an invalid open quote which never closes so we reach the end of the file without properly closing the field, should we throw instead in this case?
+                                throw new EndOfStreamException($"A quote opened on a field on line {lineNum} was never closed, and we've read to the last line in the file without finding the closing quote");
 
                             sb.Append("\n");
                             sb.Append(line);
@@ -549,7 +549,7 @@ namespace Microsoft.ML.Data
                                     // introducing a CharSpan type (similar to ReadOnlyMemory but based on char[] or StringBuilder)
                                     // and implementing all the necessary conversion functionality on it. See task 3871.
                                     if (_readMultilines)
-                                        text = MultiLineReader.ReadMultiLine(rdr, multilineSB, true);
+                                        text = MultiLineReader.ReadMultiLine(rdr, multilineSB, line, true);
                                     else
                                         text = rdr.ReadLine();
 
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Data
                                         return;
 
                                     if (_readMultilines)
-                                        text = MultiLineReader.ReadMultiLine(rdr, multilineSB, true);
+                                        text = MultiLineReader.ReadMultiLine(rdr, multilineSB, line, false);
                                     else
                                         text = rdr.ReadLine();
 

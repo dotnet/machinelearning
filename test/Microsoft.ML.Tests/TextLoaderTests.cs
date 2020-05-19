@@ -1013,5 +1013,54 @@ namespace Microsoft.ML.EntryPoints.Tests
                 }
             }
         }
+
+        [Fact]
+        public void TestInvalidMultilineCSVQuote()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            string badInputCsv =
+                "id,description,animal\n" +
+                "9,\"this is a quoted field correctly formatted\",cat\n" +
+                "10,\"this is a quoted field\nwithout closing quote,cat\n" +
+                "11,this field isn't quoted,dog\n" +
+                "12,this will reach the end of the file without finding a closing quote so it will throw,frog\n"
+                ;
+
+            var filePath = GetOutputPath("multiline-invalid.csv");
+            File.WriteAllText(filePath, badInputCsv);
+
+            bool threwException = false;
+            try
+            {
+                var options = new TextLoader.Options()
+                {
+                    HasHeader = true,
+                    Separator = ",",
+                    AllowQuoting = true,
+                    ReadMultilines = true,
+                    Columns = new[]
+                    {
+                    new TextLoader.Column("id", DataKind.Int32, 0),
+                    new TextLoader.Column("description", DataKind.String, 1),
+                    new TextLoader.Column("animal", DataKind.String, 2),
+                },
+                };
+
+                var data = mlContext.Data.LoadFromTextFile(filePath, options);
+
+                data.Preview();
+            }
+            catch(EndOfStreamException)
+            {
+                threwException = true;
+            }
+            catch(FormatException)
+            {
+                threwException = true;
+            }
+
+            Assert.True(threwException, "Invalid file should have thrown an exception");
+        }
     }
 }
