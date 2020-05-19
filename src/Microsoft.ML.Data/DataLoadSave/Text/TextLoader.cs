@@ -701,11 +701,11 @@ namespace Microsoft.ML.Data
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
-                        Cursor.GetSomeLines(headerFile, 1, parent._readMultilines, ref lines);
+                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(dataSample, 100, parent._readMultilines,ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(dataSample, 1, parent._readMultilines, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1062,7 +1062,7 @@ namespace Microsoft.ML.Data
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
-                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType
+                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1080,15 +1080,14 @@ namespace Microsoft.ML.Data
             HasHeader = 0x02,
             AllowQuoting = 0x04,
             AllowSparse = 0x08,
-
-            All = TrimWhitespace | HasHeader | AllowQuoting | AllowSparse
+            ReadMultilines = 0x10,
+            All = TrimWhitespace | HasHeader | AllowQuoting | AllowSparse | ReadMultilines
         }
 
         // This is reserved to mean the range extends to the end (the segment is variable).
         private const int SrcLim = int.MaxValue;
 
         private readonly bool _useThreads;
-        private readonly bool _readMultilines;
         private readonly OptionFlags _flags;
         private readonly long _maxRows;
         // Input size is zero for unknown - determined by the data (including sparse rows).
@@ -1101,6 +1100,11 @@ namespace Microsoft.ML.Data
         private bool HasHeader
         {
             get { return (_flags & OptionFlags.HasHeader) != 0; }
+        }
+
+        private bool ReadMultilines
+        {
+            get { return (_flags & OptionFlags.ReadMultilines) != 0; }
         }
 
         private readonly IHost _host;
@@ -1146,7 +1150,6 @@ namespace Microsoft.ML.Data
             _host.Assert(Utils.Size(cols) > 0);
 
             _useThreads = options.UseThreads;
-            _readMultilines = options.AllowQuoting ? options.ReadMultilines : false;
 
             if (options.TrimWhitespace)
                 _flags |= OptionFlags.TrimWhitespace;
@@ -1156,6 +1159,8 @@ namespace Microsoft.ML.Data
                 _flags |= OptionFlags.AllowQuoting;
             if (options.AllowSparse)
                 _flags |= OptionFlags.AllowSparse;
+            if (options.AllowQuoting && options.ReadMultilines)
+                _flags |= OptionFlags.ReadMultilines;
 
             // REVIEW: This should be persisted (if it should be maintained).
             _maxRows = options.MaxRows ?? long.MaxValue;
@@ -1359,8 +1364,6 @@ namespace Microsoft.ML.Data
 
             // REVIEW: Should we serialize this? It really isn't part of the data model.
             _useThreads = true;
-            // MYTODO: Should we serialize this? probably yes and also include it in Flags
-            _readMultilines = false;
 
             // *** Binary format ***
             // int: sizeof(Float)
