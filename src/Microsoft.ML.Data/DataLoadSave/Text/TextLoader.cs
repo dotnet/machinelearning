@@ -493,7 +493,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
-            public bool HasHeader;
+            public bool HasHeader = Defaults.HasHeader;
 
             /// <summary>
             /// Whether to use separate parsing threads.
@@ -506,7 +506,7 @@ namespace Microsoft.ML.Data
             /// If <see cref="TextLoader.Options.AllowQuoting"/> is false, this option is ignored.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Escape new line characters inside a quoted field? If AllowQuoting is false, this argument is ignored.", ShortName = "multilines", Hide = true)]
-            public bool ReadMultilines = false;
+            public bool ReadMultilines = Defaults.ReadMultilines;
 
             /// <summary>
             /// File containing a header with feature names. If specified, the header defined in the data file is ignored regardless of <see cref="HasHeader"/>.
@@ -537,6 +537,7 @@ namespace Microsoft.ML.Data
             internal const char Separator = '\t';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
+            internal const bool ReadMultilines = false;
         }
 
         /// <summary>
