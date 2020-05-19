@@ -87,8 +87,8 @@ namespace Microsoft.ML.Internal.Utilities
 
         /// <summary>
         /// Combines the given hash value with a uint value, using the murmur hash 3 algorithm.
-        /// Make certain to also use <see cref="MixHash"/> on the final hashed value, if you
-        /// depend upon having distinct bits.
+        /// Make certain to also use <see cref="MixHash(uint)"/> or <see cref="MixHash(uint, int)"/> on the final hashed value,
+        /// if you depend upon having distinct bits.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MurmurRound(uint hash, uint chunk)
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Internal.Utilities
             }
 
             // Final mixing ritual for the hash.
-            hash = MixHashV2(hash, len);
+            hash = MixHash(hash, len);
 
             return hash;
         }
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint MixHashV2(uint hash, int len)
+        public static uint MixHash(uint hash, int len)
         {
             hash ^= (uint)len;
             hash ^= hash >> 16;

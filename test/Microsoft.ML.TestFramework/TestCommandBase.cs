@@ -883,6 +883,16 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
+        [Fact]
+        public void CommandCrossValidationWithTextStratificationColumn()
+        {
+            string pathData = GetDataPath(@"adult.tiny.with-schema.txt");
+            string extraArgs = $"tr=lr{{{TestLearnersBase.logisticRegression.Trainer.SubComponentSettings}}} strat=Strat threads- norm=Warn";
+            string loaderArgs = "loader=text{col=Features:R4:9-14 col=Label:R4:0 col=Strat:TX:1 header+}";
+            TestCore("cv", pathData, loaderArgs, extraArgs, 5);
+            Done();
+        }
+
         [TestCategory(Cat)]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandCrossValidationVectorNoNames()

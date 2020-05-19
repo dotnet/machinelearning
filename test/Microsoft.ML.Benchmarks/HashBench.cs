@@ -83,7 +83,7 @@ namespace Microsoft.ML.Benchmarks
                 getter = (ref T dst) => dst = val;
             _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
-            var info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: numberOfBits);
+            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: numberOfBits);
             var xf = new HashingTransformer(_env, new[] { info });
             var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Benchmarks
                 getter = (ref T dst) => dst = val;
             _inRow = RowImpl.Create(type, getter);
 
-            var modelPath = GetBenchmarkDataPath("backcompat/MurmurHashV1.zip");
+            var modelPath = GetBenchmarkDataPathAndEnsureData("backcompat/MurmurHashV1.zip");
             var estimator = _env.Model.Load(modelPath, out var schema);
             var mapper = ((ITransformer)estimator).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];

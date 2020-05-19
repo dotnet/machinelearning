@@ -36,9 +36,14 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
+            var options = new TextLoader.Options
+            {
+                HasHeader = TestDatasets.Sentiment.fileHasHeader,
+                Separators = new[] { TestDatasets.Sentiment.fileSeparator }
+            };
+
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
-                hasHeader: TestDatasets.Sentiment.fileHasHeader,
-                separatorChar: TestDatasets.Sentiment.fileSeparator);
+                options);
 
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")

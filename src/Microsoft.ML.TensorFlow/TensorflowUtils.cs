@@ -167,7 +167,7 @@ namespace Microsoft.ML.TensorFlow
             catch (Exception ex)
             {
                 if (!string.IsNullOrEmpty(modelFile))
-                    throw ectx.Except($"TensorFlow exception triggered while loading model from '{modelFile}'");
+                    throw ectx.Except(ex, $"TensorFlow exception triggered while loading model from '{modelFile}'");
 #pragma warning disable MSML_NoMessagesForLoadContext
                 throw ectx.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
 #pragma warning restore MSML_NoMessagesForLoadContext

@@ -201,8 +201,7 @@ namespace Microsoft.ML.Functional.Tests
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .Append(mlContext.Transforms.Conversion.Hash(new[] {
-                    new ColumnOptions() {
-                        Name = "Features", InputColumnName = "Features", NumberOfBits =  31, UseOrderedHashing = true } }));
+                    new ColumnOptions("Features", "Features", 31, useOrderedHashing: true) }));
 
             // Transform the data.
             var transformedData = pipeline.Fit(data).Transform(data);
