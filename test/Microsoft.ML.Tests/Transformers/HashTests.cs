@@ -219,10 +219,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expectedCombinedSparse, result);
         }
 
-
-        //private void HashTestPositiveInteger32BitCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3)
-
-        private void HashTestPositiveIntegerCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
+        private void HashTestPositiveIntegerCore32Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
 
         {
             uint eKey = value == 0 ? 0 : expected;
@@ -246,52 +243,43 @@ namespace Microsoft.ML.Tests.Transformers
                 HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
 
-            //HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-            //HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
-
             HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
 
             // Next let's check signed numbers.
-
             if (value <= (ulong)sbyte.MaxValue)
                 HashTestCore((sbyte)value, NumberDataViewType.SByte, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= (ulong)short.MaxValue)
                 HashTestCore((short)value, NumberDataViewType.Int16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= int.MaxValue)
-                //HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3);
-        //}
+                HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+        }
 
-        //private void HashTestPositiveInteger64BitCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3)
-        //{
-            //uint eKey = value == 0 ? 0 : expected;
-            //uint eoKey = value == 0 ? 0 : expectedOrdered;
-            //uint e3Key = value == 0 ? 0 : expectedOrdered3;
+        private void HashTestPositiveIntegerCore64Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
 
-            //HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3);
+        {
+            uint eKey = value == 0 ? 0 : expected;
+            uint eoKey = value == 0 ? 0 : expectedOrdered;
+            uint e3Key = value == 0 ? 0 : expectedOrdered3;
+            uint ecKey = value == 0 ? 0 : expectedCombined;
+
+            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
 
             // Next let's check signed numbers.
-                HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-            //if (value <= long.MaxValue)
-                //HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+            if (value <= long.MaxValue)
+            HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
         }
 
         [Fact]
         public void TestHashIntegerNumbers()
         {
-            //32bit
-            //HashTestPositiveInteger32BitCore(0, 842, 358, 20);
-            //HashTestPositiveInteger32BitCore(1, 502, 537, 746);
-            //HashTestPositiveInteger32BitCore(2, 407, 801, 652);
+            HashTestPositiveIntegerCore32Bits(0, 842, 358, 20, 882, 1010);
+            HashTestPositiveIntegerCore32Bits(1, 502, 537, 746, 588, 286);
+            HashTestPositiveIntegerCore32Bits(2, 407, 801, 652, 696, 172);
 
-            //64bit
-            //HashTestPositiveInteger64BitCore(0, 512, 851, 795);
-            //HashTestPositiveInteger64BitCore(1, 329, 190, 574);
-            //HashTestPositiveInteger64BitCore(2, 484, 713, 128);
-
-            HashTestPositiveIntegerCore(0, 842, 358, 20, 882, 1010);
-            HashTestPositiveIntegerCore(1, 502, 537, 746, 588, 286);
-            HashTestPositiveIntegerCore(2, 407, 801, 652, 696, 172);
-
+            HashTestPositiveIntegerCore64Bits(0, 512, 851, 795, 1010, 620);
+            HashTestPositiveIntegerCore64Bits(1, 329, 190, 574, 491, 805);
+            HashTestPositiveIntegerCore64Bits(2, 484, 713, 128, 606, 326);
         }
 
         [Fact]

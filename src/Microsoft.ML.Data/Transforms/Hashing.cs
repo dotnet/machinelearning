@@ -813,7 +813,7 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ulong value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value), sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -966,7 +966,7 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in long value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value), sizeof(long)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
