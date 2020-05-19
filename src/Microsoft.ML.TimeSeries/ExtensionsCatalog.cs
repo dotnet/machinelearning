@@ -167,7 +167,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static IDataView BatchDetectAnomalyBySrCnn(this DataOperationsCatalog catalog, IDataView input, string outputColumnName, string inputColumnName,
+        public static IDataView BatchDetectAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, string outputColumnName, string inputColumnName,
             double threshold = 0.3, int batchSize = 1024, double sensitivity = 99, SrCnnDetectMode detectMode = SrCnnDetectMode.AnomalyOnly)
             => new SrCnnBatchAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, inputColumnName, outputColumnName, threshold, batchSize, sensitivity, detectMode);
 

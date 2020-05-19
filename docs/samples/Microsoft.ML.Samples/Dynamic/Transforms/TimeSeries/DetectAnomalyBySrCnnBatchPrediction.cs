@@ -35,7 +35,7 @@ namespace Samples.Dynamic
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // Do batch anomaly detection
-            var outputDataView = ml.Data.BatchDetectAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, 
+            var outputDataView = ml.AnomalyDetection.BatchDetectAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, 
                 threshold:0.35, batchSize: 512, sensitivity: 90.0, detectMode: SrCnnDetectMode.AnomalyAndMargin);
 
             // Getting the data of the newly created column as an IEnumerable of

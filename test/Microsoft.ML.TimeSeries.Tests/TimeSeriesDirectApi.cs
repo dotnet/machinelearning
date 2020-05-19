@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TimeSeries;
@@ -584,7 +583,7 @@ namespace Microsoft.ML.Tests
             IDataView dataView;
             if (loadDataFromFile)
             {
-                var dataPath = GetDataPath(Path.Combine("Timeseries", "anomaly_detection.csv"));
+                var dataPath = GetDataPath("Timeseries", "anomaly_detection.csv");
 
                 // Load data from file into the dataView
                 dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
@@ -614,7 +613,7 @@ namespace Microsoft.ML.Tests
             string inputColumnName = nameof(TimeSeriesDataDouble.Value);
 
             // Do batch anomaly detection
-            var outputDataView = ml.Data.BatchDetectAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
+            var outputDataView = ml.AnomalyDetection.BatchDetectAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
                 threshold: 0.35, batchSize: -1, sensitivity: 90.0, mode);
 
             // Getting the data of the newly created column as an IEnumerable of
@@ -639,7 +638,7 @@ namespace Microsoft.ML.Tests
                         if (k == 20)
                         {
                             Assert.Equal(1, prediction.Prediction[0]);
-                            Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                            Assert.Equal(5.00, prediction.Prediction[3], 2);
                         }
                         else
                             Assert.Equal(0, prediction.Prediction[0]);
@@ -649,10 +648,10 @@ namespace Microsoft.ML.Tests
                         if (k == 20)
                         {
                             Assert.Equal(1, prediction.Prediction[0]);
-                            Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
-                            Assert.Equal("5.00", prediction.Prediction[4].ToString("0.00"));
-                            Assert.Equal("5.01", prediction.Prediction[5].ToString("0.00"));
-                            Assert.Equal("4.99", prediction.Prediction[6].ToString("0.00"));
+                            Assert.Equal(5.00, prediction.Prediction[3], 2);
+                            Assert.Equal(5.00, prediction.Prediction[4], 2);
+                            Assert.Equal(5.01, prediction.Prediction[5], 2);
+                            Assert.Equal(4.99, prediction.Prediction[6], 2);
                         }
                         else
                             Assert.Equal(0, prediction.Prediction[0]);

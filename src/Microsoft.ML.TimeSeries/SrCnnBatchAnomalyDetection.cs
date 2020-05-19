@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
-using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
 
@@ -34,18 +33,16 @@ namespace Microsoft.ML.TimeSeries
         AnomalyAndExpectedValue = 2
     }
 
-    // TODO: SrCnn
     internal sealed class SrCnnBatchAnomalyDetector : BatchDataViewMapperBase<double, SrCnnBatchAnomalyDetector.Batch>
     {
         private const int MinBatchSize = 12;
-        private const int AnomalyOnlyOutputLength = 3;
-        private const int AnomalyAndExpectedValueOutputLength = 4;
-        private const int AnomalyAndMarginOutputLength = 7;
 
+        private static readonly int[] _outputLengthArray = {3, 7, 4};
         private readonly int _batchSize;
         private readonly string _inputColumnName;
         private readonly int _outputLength;
-        private readonly SrCnnEntireModeler _modler;
+        private readonly SrCnnEntireModeler _modeler;
+        private readonly Bindings _bindings;
 
         private class Bindings : ColumnBindingsBase
         {
@@ -89,49 +86,28 @@ namespace Microsoft.ML.TimeSeries
         }
 
         public SrCnnBatchAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode)
-            : base(env, "SrCnnBatchAnomalyDetector", input)
+            : base(env, nameof(SrCnnBatchAnomalyDetector), input)
         {
-            Contracts.CheckValue(env, nameof(env));
-
-            Contracts.CheckValue(inputColumnName, nameof(inputColumnName));
+            Host.CheckValue(inputColumnName, nameof(inputColumnName));
             _inputColumnName = inputColumnName;
 
-            env.CheckUserArg(batchSize == -1 || batchSize >= MinBatchSize, nameof(batchSize), "BatchSize must be -1 or no less than 12.");
-            if (batchSize == -1)
-            {
-                _batchSize = (int)input.GetRowCount();
-            }
-            else
-            {
-                _batchSize = batchSize;
-            }
+            Host.CheckUserArg(batchSize == -1 || batchSize >= MinBatchSize, nameof(batchSize), "BatchSize must be -1 or no less than 12.");
+            _batchSize = batchSize;
 
-            env.CheckUserArg(threshold >= 0 && threshold <= 1, nameof(threshold), "Must be in [0,1].");
-            env.CheckUserArg(detectMode == SrCnnDetectMode.AnomalyOnly
+            Host.CheckUserArg(threshold >= 0 && threshold <= 1, nameof(threshold), "Must be in [0,1].");
+            Host.CheckUserArg(detectMode == SrCnnDetectMode.AnomalyOnly
                 || detectMode == SrCnnDetectMode.AnomalyAndExpectedValue
                 || detectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(detectMode), "Invalid detectMode");
 
-            if (detectMode.Equals(SrCnnDetectMode.AnomalyOnly))
-            {
-                _outputLength = AnomalyOnlyOutputLength;
-                _modler = new SrCnnEntireModeler(threshold, sensitivity, detectMode, _outputLength);
-            }
-            else if (detectMode.Equals(SrCnnDetectMode.AnomalyAndMargin))
-            {
-                env.CheckUserArg(sensitivity >= 0 && sensitivity <= 100, nameof(sensitivity), "Must be in [0,100].");
-                _outputLength = AnomalyAndMarginOutputLength;
-                _modler = new SrCnnEntireModeler(threshold, sensitivity, detectMode, _outputLength);
-            }
-            else if (detectMode.Equals(SrCnnDetectMode.AnomalyAndExpectedValue))
-            {
-                _outputLength = AnomalyAndExpectedValueOutputLength;
-                _modler = new SrCnnEntireModeler(threshold, sensitivity, detectMode, _outputLength);
-            }
+            Host.CheckUserArg(sensitivity >= 0 && sensitivity <= 100, nameof(sensitivity), "Must be in [0,100].");
 
-            SchemaBindings = new Bindings(input.Schema, inputColumnName, outputColumnName, new VectorDataViewType(NumberDataViewType.Double, _outputLength));
+            _outputLength = _outputLengthArray[(int)detectMode];
+            _modeler = new SrCnnEntireModeler(threshold, sensitivity, detectMode);
+
+            _bindings = new Bindings(input.Schema, inputColumnName, outputColumnName, new VectorDataViewType(NumberDataViewType.Double, _outputLength));
         }
 
-        protected override ColumnBindingsBase SchemaBindings { get; }
+        protected override ColumnBindingsBase SchemaBindings => _bindings;
 
         protected override Delegate[] CreateGetters(DataViewRowCursor input, Batch currentBatch, bool[] active)
         {
@@ -140,16 +116,16 @@ namespace Microsoft.ML.TimeSeries
             return new[] { currentBatch.CreateGetter(input, _inputColumnName) };
         }
 
-        protected override Batch InitializeBatch(DataViewRowCursor input) => new Batch(_batchSize, _outputLength, _modler);
+        protected override Batch InitializeBatch(DataViewRowCursor input) => new Batch(_batchSize, _outputLength, _modeler);
 
         protected override Func<bool> GetIsNewBatchDelegate(DataViewRowCursor input)
         {
-            return () => input.Position % _batchSize == 0;
+            return () => _batchSize == -1 ? input.Position == 0 : input.Position % _batchSize == 0;
         }
 
         protected override Func<bool> GetLastInBatchDelegate(DataViewRowCursor input)
         {
-            return () => (input.Position + 1) % _batchSize == 0;
+            return () => _batchSize == -1 ? input.Position == -1 : (input.Position + 1) % _batchSize == 0;
         }
 
         protected override ValueGetter<double> GetLookAheadGetter(DataViewRowCursor input)
@@ -159,7 +135,7 @@ namespace Microsoft.ML.TimeSeries
 
         protected override Func<int, bool> GetSchemaBindingDependencies(Func<int, bool> predicate)
         {
-            return (SchemaBindings as Bindings).GetDependencies(predicate);
+            return _bindings.GetDependencies(predicate);
         }
 
         protected override void ProcessExample(Batch currentBatch, double currentInput)
@@ -173,22 +149,30 @@ namespace Microsoft.ML.TimeSeries
             currentBatch.Reset();
         }
 
-        public sealed class Batch
+        internal sealed class Batch
         {
             private List<double> _previousBatch;
             private List<double> _batch;
-            private readonly int _batchSize;
             private readonly int _outputLength;
-            private SrCnnEntireModeler _modler;
+            private SrCnnEntireModeler _modeler;
+            private int _batchSize;
             private double[][] _results;
 
             public Batch(int batchSize, int outputLength, SrCnnEntireModeler modeler)
             {
                 _batchSize = batchSize;
                 _outputLength = outputLength;
-                _previousBatch = new List<double>(batchSize);
-                _batch = new List<double>(batchSize);
-                _modler = modeler;
+                if (batchSize == -1)
+                {
+                    _previousBatch = new List<double>();
+                    _batch = new List<double>();
+                }
+                else
+                {
+                    _previousBatch = new List<double>(batchSize);
+                    _batch = new List<double>(batchSize);
+                }
+                _modeler = modeler;
             }
 
             public void AddValue(double value)
@@ -200,6 +184,7 @@ namespace Microsoft.ML.TimeSeries
 
             public void Process()
             {
+                _batchSize = _batch.Count;
                 if (_batch.Count < MinBatchSize)
                 {
                     if (_previousBatch.Count + _batch.Count < MinBatchSize)
@@ -207,11 +192,11 @@ namespace Microsoft.ML.TimeSeries
                     var bLen = _previousBatch.Count - _batch.Count;
                     _previousBatch = _previousBatch.GetRange(_batch.Count, bLen);
                     _previousBatch.AddRange(_batch);
-                    _results = _modler.Train(_previousBatch.ToArray()).Skip(bLen).ToArray();
+                    _results = _modeler.Train(_previousBatch.ToArray()).Skip(bLen).ToArray();
                 }
                 else
                 {
-                    _results = _modler.Train(_batch.ToArray());
+                    _results = _modeler.Train(_batch.ToArray());
                 }
             }
 
@@ -242,7 +227,7 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        public sealed class SrCnnEntireModeler
+        internal sealed class SrCnnEntireModeler
         {
             private static readonly int _lookaheadWindowSize = 5;
             private static readonly int _backAddWindowSize = 5;
@@ -283,14 +268,12 @@ namespace Microsoft.ML.TimeSeries
             private readonly double _threshold;
             private readonly double _sensitivity;
             private readonly SrCnnDetectMode _detectMode;
-            private readonly int _outputLength;
 
-            public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int outputLength)
+            public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode)
             {
                 _threshold = threshold;
                 _sensitivity = sensitivity;
                 _detectMode = detectMode;
-                _outputLength = outputLength;
             }
 
             public double[][] Train(double[] values)
@@ -298,9 +281,9 @@ namespace Microsoft.ML.TimeSeries
                 double[][] results = new double[values.Length][];
                 for (int i = 0; i < results.Length; ++i)
                 {
-                    results[i] = new double[_outputLength];
+                    results[i] = new double[_outputLengthArray[(int)_detectMode]];
                 }
-                SpecturalResidual(values, results, _threshold);
+                SpectralResidual(values, results, _threshold);
                 //Optional Steps
                 if (_detectMode == SrCnnDetectMode.AnomalyAndMargin)
                 {
@@ -313,7 +296,7 @@ namespace Microsoft.ML.TimeSeries
                 return results;
             }
 
-            private static void SpecturalResidual(double[] values, double[][] results, double threshold)
+            private static void SpectralResidual(double[] values, double[][] results, double threshold)
             {
                 // Step 1: Get backadd wave
                 double[] backAddList = BackAdd(values);
@@ -380,7 +363,7 @@ namespace Microsoft.ML.TimeSeries
                 // Step 7: Calculate raw score and set result
                 for (int i = 0; i < results.GetLength(0); ++i)
                 {
-                    var score = CalculateSocre(ifftMagList[i], filteredIfftMagList[i]);
+                    var score = CalculateScore(ifftMagList[i], filteredIfftMagList[i]);
                     score /= 10.0f;
                     score = Math.Min(score, 1);
                     score = Math.Max(score, 0);
@@ -449,7 +432,7 @@ namespace Microsoft.ML.TimeSeries
                 return cumSumList;
             }
 
-            private static double CalculateSocre(double mag, double avgMag)
+            private static double CalculateScore(double mag, double avgMag)
             {
                 double safeDivisor = avgMag;
                 if (Math.Abs(safeDivisor) < _eps)

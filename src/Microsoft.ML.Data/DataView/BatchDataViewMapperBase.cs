@@ -16,11 +16,12 @@ namespace Microsoft.ML.Data.DataView
         public DataViewSchema Schema => SchemaBindings.AsSchema;
 
         private readonly IDataView _source;
-        private readonly IHost _host;
+        protected readonly IHost Host;
 
         protected BatchDataViewMapperBase(IHostEnvironment env, string registrationName, IDataView input)
         {
-            _host = env.Register(registrationName);
+            Contracts.CheckValue(env, nameof(env));
+            Host = env.Register(registrationName);
             _source = input;
         }
 
@@ -28,8 +29,8 @@ namespace Microsoft.ML.Data.DataView
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(columnsNeeded, nameof(columnsNeeded));
-            _host.CheckValueOrNull(rand);
+            Host.CheckValue(columnsNeeded, nameof(columnsNeeded));
+            Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, SchemaBindings.AsSchema);
 
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Data.DataView
             {
                 var activeInput = SchemaBindings.GetActiveInput(predicate);
                 var inputCursor = _source.GetRowCursor(_source.Schema.Where(c => activeInput[c.Index]), null);
-                return new BindingsWrappedRowCursor(_host, inputCursor, SchemaBindings);
+                return new BindingsWrappedRowCursor(Host, inputCursor, SchemaBindings);
             }
             var active = SchemaBindings.GetActive(predicate);
             Contracts.Assert(active.Length == SchemaBindings.ColumnCount);
@@ -89,7 +90,7 @@ namespace Microsoft.ML.Data.DataView
             public override DataViewSchema Schema => _parent.Schema;
 
             public Cursor(BatchDataViewMapperBase<TInput, TBatch> parent, DataViewRowCursor input, DataViewRowCursor lookAheadCursor, bool[] active)
-                : base(parent._host)
+                : base(parent.Host)
             {
                 _parent = parent;
                 _input = input;
