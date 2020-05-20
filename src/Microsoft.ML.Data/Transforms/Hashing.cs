@@ -1355,8 +1355,6 @@ namespace Microsoft.ML.Transforms
                 OnnxNode isZeroNode;
 
                 var srcType = _srcTypes[iinfo].GetItemType();
-                if (srcType is KeyDataViewType)
-                    return false;
                 if (_parent._columns[iinfo].Combine)
                     return false;
 
