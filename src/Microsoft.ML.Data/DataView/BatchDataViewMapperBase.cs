@@ -61,7 +61,7 @@ namespace Microsoft.ML.Data.DataView
         }
 
         protected abstract ColumnBindingsBase SchemaBindings { get; }
-        protected abstract TBatch InitializeBatch(DataViewRowCursor input);
+        protected abstract TBatch CreateBatch(DataViewRowCursor input);
         protected abstract void ProcessBatch(TBatch currentBatch);
         protected abstract void ProcessExample(TBatch currentBatch, TInput currentInput);
         protected abstract Func<bool> GetLastInBatchDelegate(DataViewRowCursor lookAheadCursor);
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Data.DataView
                 _lookAheadCursor = lookAheadCursor;
                 _active = active;
 
-                _currentBatch = _parent.InitializeBatch(_input);
+                _currentBatch = _parent.CreateBatch(_input);
 
                 _getters = _parent.CreateGetters(_input, _currentBatch, _active);
 

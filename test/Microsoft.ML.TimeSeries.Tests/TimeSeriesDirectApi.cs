@@ -578,7 +578,8 @@ namespace Microsoft.ML.Tests
         [Theory, CombinatorialData]
         public void TestSrCnnBatchAnomalyDetector(
             [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)]SrCnnDetectMode mode,
-            [CombinatorialValues(true, false)]bool loadDataFromFile)
+            [CombinatorialValues(true, false)]bool loadDataFromFile,
+            [CombinatorialValues(-1, 24, 26, 512)]int batchSize)
         {
             var ml = new MLContext(1);
             IDataView dataView;
@@ -613,7 +614,7 @@ namespace Microsoft.ML.Tests
 
             // Do batch anomaly detection
             var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
-                threshold: 0.35, batchSize: -1, sensitivity: 90.0, mode);
+                threshold: 0.35, batchSize: batchSize, sensitivity: 90.0, mode);
 
             // Getting the data of the newly created column as an IEnumerable of
             // SrCnnAnomalyDetection.
