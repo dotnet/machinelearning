@@ -803,6 +803,43 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
+        [Fact]
+        public void TestTextLoaderBackCompat_VerWritt_0x0001000C()
+        {
+            // Checks backward compatibility with a text loader created with "verWrittenCur: 0x0001000C"
+            // Model generated with:
+            // loader=text{header+ col=SepalLength:Num:0 col=SepalWidth:Num:1 col=PetalLength:Num:2 col=PetalWidth:Num:2 col=Cat:TX:1-8 col=Num:9-14 col=Type:TX:4}
+            var mlContext = new MLContext(1);
+            string textLoaderModelPath = GetDataPath("backcompat/textloader_VerWritt_0x0001000C.zip");
+            string irisPath = GetDataPath(TestDatasets.irisData.trainFilename);
+
+            IDataView iris;
+            using (FileStream modelfs = File.OpenRead(textLoaderModelPath))
+            using (var rep = RepositoryReader.Open(modelfs, mlContext))
+            {
+                iris = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(irisPath), false);
+            }
+
+            var previewIris = iris.Preview(1);
+            var irisFirstRow = new Dictionary<string, float>();
+            irisFirstRow["SepalLength"] = 5.1f;
+            irisFirstRow["SepalWidth"] = 3.5f;
+            irisFirstRow["PetalLength"] = 1.4f;
+            irisFirstRow["PetalWidth"] = 0.2f;
+
+            Assert.Equal(5, previewIris.ColumnView.Length);
+            Assert.Equal("SepalLength", previewIris.Schema[0].Name);
+            Assert.Equal(NumberDataViewType.Single, previewIris.Schema[0].Type);
+            int index = 0;
+            foreach (var entry in irisFirstRow)
+            {
+                Assert.Equal(entry.Key, previewIris.RowView[0].Values[index].Key);
+                Assert.Equal(entry.Value, previewIris.RowView[0].Values[index++].Value);
+            }
+            Assert.Equal("Type", previewIris.RowView[0].Values[index].Key);
+            Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
+        }
+
         private class IrisNoFields
         {
         }
@@ -939,12 +976,20 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void TestLoadTextWithEscapedNewLines(bool useSaved)
+        [InlineData(true, false)]
+        [InlineData(false, false)]
+        [InlineData(true, true)]
+        [InlineData(false, true)]
+        public void TestLoadTextWithEscapedNewLinesAndEscapeChar(bool useSaved, bool useCustomEscapeChar)
         {
             var mlContext = new MLContext(seed: 1);
-            var dataPath = GetDataPath("multiline.csv");
+            string dataPath;
+
+            if (!useCustomEscapeChar)
+                dataPath = GetDataPath("multiline.csv");
+            else
+                dataPath = GetDataPath("multiline-escapechar.csv");
+
             var baselinePath = GetBaselinePath("TextLoader", "multiline.csv");
             var options = new TextLoader.Options()
             {
@@ -952,6 +997,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Separator = ",",
                 AllowQuoting = true,
                 ReadMultilines = true,
+                EscapeChar = useCustomEscapeChar ? '\\' : TextLoader.Defaults.EscapeChar,
                 Columns = new[]
                 {
                     new TextLoader.Column("id", DataKind.Int32, 0),
@@ -962,16 +1008,23 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             var data = mlContext.Data.LoadFromTextFile(dataPath, options);
             if (useSaved)
-            { 
+            {
                 // Check that loading the data view from a text file,
                 // and then saving that data view to another text file, then loading it again
                 // also matches the baseline.
 
-                var savedPath = DeleteOutputPath("saved-multiline.tsv");
+                string savedPath;
+
+                if (!useCustomEscapeChar)
+                    savedPath = DeleteOutputPath("multiline-saved.tsv");
+                else
+                    savedPath = DeleteOutputPath("multiline-escapechar-saved.tsv");
+
                 using (var fs = File.Create(savedPath))
                     mlContext.Data.SaveAsText(data, fs, separatorChar: '\t');
 
                 options.Separator = "\t";
+                options.EscapeChar = '"'; // TextSaver always uses " as escape char
                 data = mlContext.Data.LoadFromTextFile(savedPath, options);
             }
 
