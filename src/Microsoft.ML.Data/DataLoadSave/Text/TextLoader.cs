@@ -1070,7 +1070,8 @@ namespace Microsoft.ML.Data
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
-                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
+                //verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
+                verWrittenCur: 0x0001000D, // Added escapeChar option
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1383,6 +1384,7 @@ namespace Microsoft.ML.Data
             // int: inputSize: 0 for determined from data
             // int: number of separators
             // char[]: separators
+            // char: escapeChar
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
             host.CheckDecode(cbFloat == sizeof(float));
@@ -1406,6 +1408,15 @@ namespace Microsoft.ML.Data
 
             if (_separators.Contains(':'))
                 host.CheckDecode((_flags & OptionFlags.AllowSparse) == 0);
+
+            if(ctx.Header.ModelVerWritten >= 0x0001000D)
+            {
+                _escapeChar = ctx.Reader.ReadChar();
+            }
+            else
+            {
+                _escapeChar = Defaults.EscapeChar;
+            }
 
             _bindings = new Bindings(ctx, this);
             _parser = new Parser(this);
@@ -1447,6 +1458,7 @@ namespace Microsoft.ML.Data
             // int: inputSize: 0 for determined from data
             // int: number of separators
             // char[]: separators
+            // char: escapeChar
             // bindings
             ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(_maxRows);
@@ -1455,6 +1467,7 @@ namespace Microsoft.ML.Data
             _host.Assert(0 <= _inputSize && _inputSize < SrcLim);
             ctx.Writer.Write(_inputSize);
             ctx.Writer.WriteCharArray(_separators);
+            ctx.Writer.Write(_escapeChar);
 
             _bindings.Save(ctx);
         }
