@@ -23,14 +23,16 @@ namespace Microsoft.ML.AutoML
 
             public bool AllowQuote { get; set; }
             public bool AllowSparse { get; set; }
+            public bool  ReadMultilines { get; set; }
 
-            public ColumnSplitResult(bool isSuccess, char? separator, bool allowQuote, bool allowSparse, int columnCount)
+            public ColumnSplitResult(bool isSuccess, char? separator, bool allowQuote, bool readMultilines, bool allowSparse, int columnCount)
             {
                 IsSuccess = isSuccess;
                 Separator = separator;
                 AllowQuote = allowQuote;
                 AllowSparse = allowSparse;
                 ColumnCount = columnCount;
+                ReadMultilines = readMultilines;
             }
         }
 
@@ -78,7 +80,7 @@ namespace Microsoft.ML.AutoML
                     break;
                 }
             }
-            return foundAny ? result : new ColumnSplitResult(false, null, true, true, 0);
+            return foundAny ? result : new ColumnSplitResult(false, null, true, true, true, 0);
         }
 
         private static bool TryParseFile(MLContext context, TextLoader.Options options, IMultiStreamSource source,
@@ -114,7 +116,7 @@ namespace Microsoft.ML.AutoML
                 // disallow single-column case
                 if (mostCommon.Key <= 1) { return false; }
 
-                result = new ColumnSplitResult(true, options.Separators.First(), options.AllowQuoting, options.AllowSparse, mostCommon.Key);
+                result = new ColumnSplitResult(true, options.Separators.First(), options.AllowQuoting, options.ReadMultilines, options.AllowSparse, mostCommon.Key);
                 return true;
             }
             // fail gracefully if unable to instantiate data view with swept arguments
