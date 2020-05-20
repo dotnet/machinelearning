@@ -1487,11 +1487,11 @@ namespace Microsoft.ML.Data
         internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
            bool hasHeader = Defaults.HasHeader,
            char separator = Defaults.Separator,
-           char decimalMarker = Defaults.DecimalMarker,
            bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace,
-           IMultiStreamSource dataSample = null)
+           IMultiStreamSource dataSample = null,
+           char decimalMarker = Defaults.DecimalMarker)
         {
             Options options = new Options
             {
