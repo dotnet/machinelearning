@@ -50,12 +50,14 @@ namespace Microsoft.ML.AutoML
         {
             var sparse = new[] { false, true };
             var quote = new[] { true, false };
+            var tryMultiline = new[] { false, true };
             var foundAny = false;
             var result = default(ColumnSplitResult);
             foreach (var perm in (from _allowSparse in sparse
                                     from _allowQuote in quote
                                     from _sep in separatorCandidates
-                                    select new { _allowSparse, _allowQuote, _sep }))
+                                    from _tryMultiline in tryMultiline
+                                    select new { _allowSparse, _allowQuote, _sep, _tryMultiline }))
             {
                 var options = new TextLoader.Options
                 {
@@ -66,7 +68,8 @@ namespace Microsoft.ML.AutoML
                     } },
                     Separators = new[] { perm._sep },
                     AllowQuoting = perm._allowQuote,
-                    AllowSparse = perm._allowSparse
+                    AllowSparse = perm._allowSparse,
+                    ReadMultilines = perm._tryMultiline,
                 };
 
                 if (TryParseFile(context, options, source, out result))

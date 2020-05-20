@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -185,6 +186,19 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Single(result.ColumnInformation.NumericColumnNames);
             Assert.Equal(DefaultColumnNames.Features, result.ColumnInformation.NumericColumnNames.First());
             Assert.Null(result.ColumnInformation.ExampleWeightColumnName);
+        }
+
+        [Fact]
+        public void TrySplitColumns_should_split_on_dataset_with_newline_between_double_quotes()
+        {
+            var context = new MLContext();
+            var dataset = Path.Combine("TestData", "DatasetWithNewlineBetweenQuotes.txt");
+            var sample = TextFileSample.CreateFromFullFile(dataset);
+            var result = TextFileContents.TrySplitColumns(context, sample, TextFileContents.DefaultSeparators);
+
+            result.ColumnCount.Should().Be(4);
+            result.Separator.Should().Be(',');
+            result.IsSuccess.Should().BeTrue();
         }
     }
 }

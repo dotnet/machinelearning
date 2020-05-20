@@ -1,0 +1,36 @@
+﻿id,Column1,Column2,Column3
+1,this is a description, 1,2
+2,"this is a quote description",1,2
+3,"this is a quote description with double quote("")",1,2
+4,"this is a quote description with ""a pair of double quote""",1,2
+5,"this is a quote description with new line
+quote",1,2
+6,"this is a quote description with
+new line1 and
+new line2 and empty line
+
+and double quote""",1,2
+7, this is a description with single quote("),1,2
+// empty line between quotes
+8,"",1,2
+// single quote between quotes
+9,"""",1,2
+// simply newline between quotes
+10,"
+
+
+
+",1,2
+// simply signle quote and newline between quotes 
+11,"
+
+""""
+
+""
+
+""
+
+",1,2
+
+
+
