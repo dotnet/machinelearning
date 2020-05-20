@@ -1206,10 +1206,7 @@ namespace Microsoft.ML.Data
                                         break;
                                     }
 
-                                    if (span[ichCur] != '"')
-                                        continue;
-
-                                    if (ichCur - 1 > ichRun)
+                                    if (span[ichCur] == '"')
                                     {
                                         // Don't include escapeChar in span
                                         _sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun - 1));
@@ -1222,11 +1219,9 @@ namespace Microsoft.ML.Data
                                 if (span[ichCur] == '"')
                                 {
                                     if (ichCur > ichRun)
-                                    {
                                         _sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
-                                        ichCur++;
-                                    }
 
+                                    ichCur++;
                                     break;
                                 }
                             }
