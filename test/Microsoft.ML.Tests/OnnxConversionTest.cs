@@ -750,7 +750,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.ReplaceMissingValues("FeaturesVector").
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Features").
                 Append(mlContext.Transforms.NormalizeMinMax("Features")).
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
                 Append(mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyMulticlassTrainer.Options() { NumberOfThreads = 1 }));
