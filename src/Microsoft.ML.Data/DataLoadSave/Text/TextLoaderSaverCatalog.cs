@@ -93,6 +93,7 @@ namespace Microsoft.ML
         /// names and their data types in the schema of the loaded data.</typeparam>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
+        /// <param name="decimalChar">Decimal separator character. Default is '.'</param>
         /// <param name="hasHeader">Whether the file has a header with feature names. When a <see paramref="dataSample"/> is provided, <see langword="true"/>
         /// indicates that the first line in the <see paramref="dataSample"/> will be used for feature names, and that when <see cref="TextLoader.Load(IMultiStreamSource)"/>
         /// is called, the first line will be skipped. When there is no <see paramref="dataSample"/> provided, <see langword="true"/> just indicates that the loader should
@@ -111,13 +112,14 @@ namespace Microsoft.ML
         /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             char separatorChar = TextLoader.Defaults.Separator,
+            char decimalChar = TextLoader.Defaults.DecimalMarker,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             IMultiStreamSource dataSample = null,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
             bool allowSparse = TextLoader.Defaults.AllowSparse)
-            => TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting,
-                allowSparse, trimWhitespace, dataSample: dataSample);
+            => TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, decimalChar,
+                allowQuoting, allowSparse, trimWhitespace, dataSample: dataSample);
 
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
@@ -221,6 +223,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">The path to the file.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
+        /// <param name="decimalChar">Decimal separator character. Default is '.'</param>
         /// <param name="hasHeader">Whether the file has a header. When <see langword="true"/>, the loader will skip the first line when
         /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
@@ -240,6 +243,7 @@ namespace Microsoft.ML
         public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
             char separatorChar = TextLoader.Defaults.Separator,
+            char decimalChar = TextLoader.Defaults.DecimalMarker,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
@@ -254,7 +258,7 @@ namespace Microsoft.ML
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
             return TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar,
-                allowQuoting, allowSparse, trimWhitespace).Load(new MultiFileSource(path));
+                decimalChar, allowQuoting, allowSparse, trimWhitespace).Load(new MultiFileSource(path));
         }
 
         /// <summary>

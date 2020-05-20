@@ -475,6 +475,12 @@ namespace Microsoft.ML.Data
             public char[] Separators = new[] { Defaults.Separator };
 
             /// <summary>
+            /// The character that should be used as the decimal marker.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, Name = "Decimal Marker", HelpText = "Character symbol used to separate the integer part from the fractional part of a number written in decimal form.", ShortName = "decimal")]
+            public char DecimalMarker = Defaults.DecimalMarker;
+
+            /// <summary>
             /// Specifies the input columns that should be mapped to <see cref="IDataView"/> columns.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
@@ -535,6 +541,7 @@ namespace Microsoft.ML.Data
             internal const bool AllowQuoting = false;
             internal const bool AllowSparse = false;
             internal const char Separator = '\t';
+            internal const char DecimalMarker = '.';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
             internal const bool ReadMultilines = false;
@@ -1063,7 +1070,8 @@ namespace Microsoft.ML.Data
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
-                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
+                //verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
+                verWrittenCur: 0x0001000D, // Added decimal marker option to allow for ',' to be a decimal marker
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1094,6 +1102,7 @@ namespace Microsoft.ML.Data
         // Input size is zero for unknown - determined by the data (including sparse rows).
         private readonly int _inputSize;
         private readonly char[] _separators;
+        private readonly char _decimalMarker;
         private readonly Bindings _bindings;
 
         private readonly Parser _parser;
@@ -1210,6 +1219,9 @@ namespace Microsoft.ML.Data
                 }
             }
 
+            if (options.DecimalMarker == ',' && _separators.Contains<char>(','))
+                throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker and separator cannot be the same '{0}' character.", options.DecimalMarker);
+            _decimalMarker = options.DecimalMarker;
             _bindings = new Bindings(this, cols, headerFile, dataSample);
             _parser = new Parser(this);
         }
@@ -1373,6 +1385,7 @@ namespace Microsoft.ML.Data
             // int: inputSize: 0 for determined from data
             // int: number of separators
             // char[]: separators
+            // char: decimal marker
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
             host.CheckDecode(cbFloat == sizeof(float));
@@ -1397,6 +1410,8 @@ namespace Microsoft.ML.Data
             if (_separators.Contains(':'))
                 host.CheckDecode((_flags & OptionFlags.AllowSparse) == 0);
 
+            _decimalMarker = ctx.Reader.ReadChar();
+            host.CheckDecode(_decimalMarker == '.' || _decimalMarker == ',');
             _bindings = new Bindings(ctx, this);
             _parser = new Parser(this);
         }
@@ -1437,6 +1452,7 @@ namespace Microsoft.ML.Data
             // int: inputSize: 0 for determined from data
             // int: number of separators
             // char[]: separators
+            // char: decimal marker
             // bindings
             ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(_maxRows);
@@ -1445,6 +1461,7 @@ namespace Microsoft.ML.Data
             _host.Assert(0 <= _inputSize && _inputSize < SrcLim);
             ctx.Writer.Write(_inputSize);
             ctx.Writer.WriteCharArray(_separators);
+            ctx.Writer.Write(_decimalMarker);
 
             _bindings.Save(ctx);
         }
@@ -1470,6 +1487,7 @@ namespace Microsoft.ML.Data
         internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
            bool hasHeader = Defaults.HasHeader,
            char separator = Defaults.Separator,
+           char decimalMarker = Defaults.DecimalMarker,
            bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace,
@@ -1479,6 +1497,7 @@ namespace Microsoft.ML.Data
             {
                 HasHeader = hasHeader,
                 Separators = new[] { separator },
+                DecimalMarker = decimalMarker,
                 AllowQuoting = allowQuoting,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace
