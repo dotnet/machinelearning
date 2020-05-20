@@ -1246,9 +1246,6 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [CombinatorialData]
-        // Due to lack of Onnxruntime support, long/ulong, double, floats, and OrderedHashing are not supported.
-        // An InvalidOperationException stating that the onnx pipeline can't be fully converted is thrown
-        // when users try to convert the items mentioned above.
         public void MurmurHashScalarTest(
             [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Int64, DataKind.Byte,
             DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
@@ -1301,7 +1298,7 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [CombinatorialData]
-        // Due to lack of Onnxruntime support, long/ulong, double, floats, and OrderedHashing are not supported.
+        // Due to lack of Onnxruntime support, OrderedHashing is not supported.
         // An InvalidOperationException stating that the onnx pipeline can't be fully converted is thrown
         // when users try to convert the items mentioned above.
         public void MurmurHashVectorTest(

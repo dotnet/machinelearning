@@ -1382,8 +1382,7 @@ namespace Microsoft.ML.Transforms
                     isZeroNode.AddAttribute("to", NumberDataViewType.Int64.RawType);
                 }
 
-                // Numeric input types are limited to those supported by the Onnxruntime MurmurHash operator, which currently only supports
-                // uints and ints. Thus, ulongs, longs, doubles and floats are not supported.
+                // Since these numeric types are not supported by Onnxruntime, we cast them to UInt32.
                 if (srcType == NumberDataViewType.UInt16 || srcType == NumberDataViewType.Int16 ||
                     srcType == NumberDataViewType.SByte || srcType == NumberDataViewType.Byte ||
                     srcType == BooleanDataViewType.Instance)
@@ -1393,15 +1392,9 @@ namespace Microsoft.ML.Transforms
                     castNode.AddAttribute("to", NumberDataViewType.UInt32.RawType);
                     murmurNode = ctx.CreateNode(opType, castOutput, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
-                else if (srcType == NumberDataViewType.UInt32 || srcType == NumberDataViewType.Int32 || srcType == NumberDataViewType.UInt64 ||
-                         srcType == NumberDataViewType.Int64 || srcType == NumberDataViewType.Single || srcType == NumberDataViewType.Double || srcType == TextDataViewType.Instance)
-
-                {
-                    murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
-                }
                 else
                 {
-                    return false;
+                    murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
 
                 murmurNode.AddAttribute("positive", 1);
