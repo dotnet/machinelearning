@@ -709,11 +709,11 @@ namespace Microsoft.ML.Data
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
-                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, ref lines, parent._decimalMarker);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, ref lines, parent._decimalMarker);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, ref lines, parent._decimalMarker);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1410,8 +1410,11 @@ namespace Microsoft.ML.Data
             if (_separators.Contains(':'))
                 host.CheckDecode((_flags & OptionFlags.AllowSparse) == 0);
 
-            _decimalMarker = ctx.Reader.ReadChar();
-            host.CheckDecode(_decimalMarker == '.' || _decimalMarker == ',');
+            if (ctx.Header.ModelVerWritten >= 0x0001000D)
+            {
+                _decimalMarker = ctx.Reader.ReadChar();
+                host.CheckDecode(_decimalMarker == '.' || _decimalMarker == ',');
+            }
             _bindings = new Bindings(ctx, this);
             _parser = new Parser(this);
         }

@@ -146,7 +146,7 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, 0, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._maxRows, 1);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._maxRows, 1, parent._decimalMarker);
                 var stats = new ParseStats(parent._host, 1);
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, n, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._maxRows, cthd);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._maxRows, cthd, parent._decimalMarker);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
                     return new DataViewRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            public static void GetSomeLines(IMultiStreamSource source, int count, bool readMultilines, char[] separators, ref List<ReadOnlyMemory<char>> lines)
+            public static void GetSomeLines(IMultiStreamSource source, int count, bool readMultilines, char[] separators, ref List<ReadOnlyMemory<char>> lines, char decimalMarker)
             {
                 Contracts.AssertValue(source);
                 Contracts.Assert(count > 0);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Data
                     count = 2;
 
                 LineBatch batch;
-                var reader = new LineReader(source, count, 1, false, readMultilines, separators, count, 1);
+                var reader = new LineReader(source, count, 1, false, readMultilines, separators, count, 1, decimalMarker);
                 try
                 {
                     batch = reader.GetBatch();
@@ -404,6 +404,7 @@ namespace Microsoft.ML.Data
                 private readonly bool _hasHeader;
                 private readonly bool _readMultilines;
                 private readonly char[] _separators;
+                private readonly char _decimalMarker;
                 private readonly int _batchSize;
                 private readonly IMultiStreamSource _files;
 
@@ -413,7 +414,7 @@ namespace Microsoft.ML.Data
                 private Task _thdRead;
                 private volatile bool _abort;
 
-                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, bool readMultilines, char[] separators, long limit, int cref)
+                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, bool readMultilines, char[] separators, long limit, int cref, char decimalMarker)
                 {
                     // Note that files is allowed to be empty.
                     Contracts.AssertValue(files);
@@ -430,6 +431,7 @@ namespace Microsoft.ML.Data
                     _separators = separators;
                     _files = files;
                     _cref = cref;
+                    _decimalMarker = decimalMarker;
 
                     _queue = new BlockingQueue<LineBatch>(bufSize);
                     _thdRead = Utils.RunOnBackgroundThreadAsync(ThreadProc);

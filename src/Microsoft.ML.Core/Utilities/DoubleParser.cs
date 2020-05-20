@@ -527,6 +527,8 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.Assert(num == 0);
             Contracts.Assert(exp == 0);
 
+            const char decimalMarker = '.';
+
             if (ich >= span.Length)
                 return false;
 
@@ -554,7 +556,7 @@ namespace Microsoft.ML.Internal.Utilities
                         return false;
                     break;
 
-                case '.':
+                case decimalMarker:
                     goto LPoint;
 
                 // The common cases.
@@ -571,7 +573,7 @@ namespace Microsoft.ML.Internal.Utilities
                     break;
             }
 
-            // Get digits before '.'
+            // Get digits before the decimal marker, which may be '.' or ','
             uint d;
             for (; ; )
             {
@@ -593,14 +595,14 @@ namespace Microsoft.ML.Internal.Utilities
             }
             Contracts.Assert(i < span.Length);
 
-            if (span[i] != '.')
+            if (span[i] != decimalMarker)
                 goto LAfterDigits;
 
             LPoint:
             Contracts.Assert(i < span.Length);
-            Contracts.Assert(span[i] == '.');
+            Contracts.Assert(span[i] == decimalMarker);
 
-            // Get the digits after '.'
+            // Get the digits after the decimal marker, which may be '.' or ','
             for (; ; )
             {
                 if (++i >= span.Length)

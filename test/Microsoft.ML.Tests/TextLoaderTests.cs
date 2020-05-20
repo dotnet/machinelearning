@@ -803,6 +803,41 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
+        [Fact]
+        public void TestCommaAsDecimalMarker()
+        {
+            string dataPath = GetDataPath("iris_decimal_marker_as_comma.txt");
+
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext(seed: 1);
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
+                        },
+                DecimalMarker = ','
+            });
+            // Data
+            var textData = reader.Load(GetDataPath(dataPath));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
+
+            // Pipeline
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                mlContext.BinaryClassification.Trainers.LinearSvm(new Trainers.LinearSvmTrainer.Options { NumberOfIterations = 100 }),
+                useProbabilities: false);
+
+            var model = pipeline.Fit(data);
+            var predictions = model.Transform(data);
+
+            // Metrics
+            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+            Assert.True(metrics.MicroAccuracy > 0.83);
+        }
+
         private class IrisNoFields
         {
         }
