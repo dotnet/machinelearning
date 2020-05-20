@@ -12,7 +12,6 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal static class DefaultColumnNames
     {
-        //bugbug
         public const string Features = "Features";
         public const string Label = "Label";
         public const string GroupId = "GroupId";

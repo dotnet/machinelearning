@@ -1959,7 +1959,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        /*[Fact]
         public void MyOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1982,7 +1982,7 @@ namespace Microsoft.ML.Tests
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             Done();
-        }
+        }*/
 
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {

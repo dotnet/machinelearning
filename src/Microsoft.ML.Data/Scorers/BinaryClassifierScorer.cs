@@ -187,9 +187,8 @@ namespace Microsoft.ML.Data
             Host.Assert(Bindable is IBindableCanSaveOnnx);
             Host.Assert(Bindings.InfoCount >= 2);
 
-            //bugbug
             if (!ctx.ContainsColumn(DefaultColumnNames.Features))
-                return;
+                throw Contracts.ExceptParam(nameof(DefaultColumnNames.Features), $"Please use default Column Names: '{DefaultColumnNames.Features}'");
 
             base.SaveAsOnnxCore(ctx);
             int delta = Bindings.DerivedColumnCount;
