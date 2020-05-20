@@ -522,6 +522,12 @@ namespace Microsoft.ML.Data
             public long? MaxRows;
 
             /// <summary>
+            /// Character to use to escape quotes inside quoted fields.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Character to use to escape quotes inside quoted fields", ShortName = "escapechar")]
+            public char EscapeChar = Defaults.EscapeChar;
+
+            /// <summary>
             /// Checks that all column specifications are valid (that is, ranges are disjoint and have min&lt;=max).
             /// </summary>
             internal bool IsValid()
@@ -538,6 +544,7 @@ namespace Microsoft.ML.Data
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
             internal const bool ReadMultilines = false;
+            internal const char EscapeChar = '"';
         }
 
         /// <summary>
@@ -702,11 +709,11 @@ namespace Microsoft.ML.Data
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
-                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1090,6 +1097,7 @@ namespace Microsoft.ML.Data
 
         private readonly bool _useThreads;
         private readonly OptionFlags _flags;
+        private readonly char _escapeChar;
         private readonly long _maxRows;
         // Input size is zero for unknown - determined by the data (including sparse rows).
         private readonly int _inputSize;
@@ -1162,6 +1170,8 @@ namespace Microsoft.ML.Data
                 _flags |= OptionFlags.AllowSparse;
             if (options.AllowQuoting && options.ReadMultilines)
                 _flags |= OptionFlags.ReadMultilines;
+
+            _escapeChar = options.EscapeChar;
 
             // REVIEW: This should be persisted (if it should be maintained).
             _maxRows = options.MaxRows ?? long.MaxValue;
