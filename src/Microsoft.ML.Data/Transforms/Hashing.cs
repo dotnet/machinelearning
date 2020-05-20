@@ -1349,8 +1349,10 @@ namespace Microsoft.ML.Transforms
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariable, string dstVariable)
             {
                 string castOutput;
+                string isGreaterThanZeroOutput = "";
                 OnnxNode castNode;
                 OnnxNode murmurNode;
+                OnnxNode isZeroNode;
 
                 var srcType = _srcTypes[iinfo].GetItemType();
                 if (srcType is KeyDataViewType)
@@ -1360,6 +1362,25 @@ namespace Microsoft.ML.Transforms
 
                 var opType = "MurmurHash3";
                 string murmurOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "MurmurOutput");
+
+                // Get zero value indeces
+                if (_srcTypes[iinfo] is KeyDataViewType)
+                {
+                    var optType2 = "Cast";
+                    castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastOutput", true);
+                    isZeroNode = ctx.CreateNode(optType2, srcVariable, castOutput, ctx.GetNodeName(optType2), "");
+                    isZeroNode.AddAttribute("to", NumberDataViewType.Int64.RawType);
+
+                    var zero = ctx.AddInitializer(0);
+                    var isGreaterThanZeroOutputBool = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "isGreaterThanZeroOutputBool");
+                    optType2 = "Greater";
+                    ctx.CreateNode(optType2, new[] { castOutput, zero }, new[] { isGreaterThanZeroOutputBool }, ctx.GetNodeName(optType2), "");
+
+                    isGreaterThanZeroOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "isGreaterThanZeroOutput");
+                    optType2 = "Cast";
+                    isZeroNode = ctx.CreateNode(optType2, isGreaterThanZeroOutputBool, isGreaterThanZeroOutput, ctx.GetNodeName(optType2), "");
+                    isZeroNode.AddAttribute("to", NumberDataViewType.Int64.RawType);
+                }
 
                 // Numeric input types are limited to those supported by the Onnxruntime MurmurHash operator, which currently only supports
                 // uints and ints. Thus, ulongs, longs, doubles and floats are not supported.
@@ -1417,10 +1438,17 @@ namespace Microsoft.ML.Transforms
                 string one = ctx.AddInitializer(1);
                 ctx.CreateNode(opType, new[] { castOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
 
-                opType = "Cast";
-                var castNodeFinal = ctx.CreateNode(opType, addOutput, dstVariable, ctx.GetNodeName(opType), "");
-                castNodeFinal.AddAttribute("to", _dstTypes[iinfo].GetItemType().RawType);
+                string mulOutput = ctx.AddIntermediateVariable(vectorShape, "MulOutput");
+                if (_srcTypes[iinfo] is KeyDataViewType)
+                {
+                    opType = "Mul";
+                    ctx.CreateNode(opType, new[] { isGreaterThanZeroOutput, addOutput }, new[] { mulOutput }, ctx.GetNodeName(opType), "");
+                }
 
+                opType = "Cast";
+                var input = (_srcTypes[iinfo] is KeyDataViewType) ? mulOutput: addOutput;
+                var castNodeFinal = ctx.CreateNode(opType, input, dstVariable, ctx.GetNodeName(opType), "");
+                castNodeFinal.AddAttribute("to", _dstTypes[iinfo].GetItemType().RawType);
                 return true;
             }
 
