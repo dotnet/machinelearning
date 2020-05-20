@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in float value)
-                => float.IsNaN(value) ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), sizeof(uint)) & mask) + 1;
+                => float.IsNaN(value) ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), sizeof(float)) & mask) + 1;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in VBuffer<float> values)
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Transforms
                 if (double.IsNaN(value))
                     return 0;
 
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value), sizeof(double)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -600,8 +600,6 @@ namespace Microsoft.ML.Transforms
                 ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
                 var hi = Utils.GetHi(v);
-                if (hi == 0)
-                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
@@ -815,7 +813,7 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ulong value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value), sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -832,8 +830,6 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                if (hi == 0)
-                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
@@ -970,7 +966,7 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in long value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value), sizeof(long)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -987,8 +983,6 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
                 var hi = Utils.GetHi((ulong)value);
-                if (hi == 0)
-                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
@@ -1378,8 +1372,9 @@ namespace Microsoft.ML.Transforms
                     castNode.AddAttribute("to", NumberDataViewType.UInt32.RawType);
                     murmurNode = ctx.CreateNode(opType, castOutput, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
-                else if (srcType == NumberDataViewType.UInt32 ||
-                    srcType == NumberDataViewType.Int32 || srcType == TextDataViewType.Instance)
+                else if (srcType == NumberDataViewType.UInt32 || srcType == NumberDataViewType.Int32 || srcType == NumberDataViewType.UInt64 ||
+                         srcType == NumberDataViewType.Int64 || srcType == NumberDataViewType.Single || srcType == NumberDataViewType.Double || srcType == TextDataViewType.Instance)
+
                 {
                     murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }

@@ -827,7 +827,7 @@ namespace Microsoft.ML.Data.IO
                 for (; ichCur < ichLim; ichCur++)
                 {
                     char ch = span[ichCur];
-                    if (ch != '"' && ch != sep && ch != ':')
+                    if (ch != '"' && ch != sep && ch != ':' && ch != '\n')
                         continue;
                     if (!quoted)
                     {

@@ -219,7 +219,8 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expectedCombinedSparse, result);
         }
 
-        private void HashTestPositiveIntegerCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
+        private void HashTestPositiveIntegerCore32Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
+
         {
             uint eKey = value == 0 ? 0 : expected;
             uint eoKey = value == 0 ? 0 : expectedOrdered;
@@ -241,29 +242,44 @@ namespace Microsoft.ML.Tests.Transformers
                 HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
                 HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
-            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
 
             HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
 
             // Next let's check signed numbers.
-
             if (value <= (ulong)sbyte.MaxValue)
                 HashTestCore((sbyte)value, NumberDataViewType.SByte, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= (ulong)short.MaxValue)
                 HashTestCore((short)value, NumberDataViewType.Int16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= int.MaxValue)
                 HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+        }
+
+        private void HashTestPositiveIntegerCore64Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
+
+        {
+            uint eKey = value == 0 ? 0 : expected;
+            uint eoKey = value == 0 ? 0 : expectedOrdered;
+            uint e3Key = value == 0 ? 0 : expectedOrdered3;
+            uint ecKey = value == 0 ? 0 : expectedCombined;
+
+            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+
+            // Next let's check signed numbers.
             if (value <= long.MaxValue)
-                HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+            HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
         }
 
         [Fact]
         public void TestHashIntegerNumbers()
         {
-            HashTestPositiveIntegerCore(0, 842, 358, 20, 882, 1010);
-            HashTestPositiveIntegerCore(1, 502, 537, 746, 588, 286);
-            HashTestPositiveIntegerCore(2, 407, 801, 652, 696, 172);
+            HashTestPositiveIntegerCore32Bits(0, 842, 358, 20, 882, 1010);
+            HashTestPositiveIntegerCore32Bits(1, 502, 537, 746, 588, 286);
+            HashTestPositiveIntegerCore32Bits(2, 407, 801, 652, 696, 172);
+
+            HashTestPositiveIntegerCore64Bits(0, 512, 851, 795, 1010, 620);
+            HashTestPositiveIntegerCore64Bits(1, 329, 190, 574, 491, 805);
+            HashTestPositiveIntegerCore64Bits(2, 484, 713, 128, 606, 326);
         }
 
         [Fact]
@@ -279,10 +295,10 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732, 75, 487);
             HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780, 179, 80);
             HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20, 882, 1010);
-            // Note that while we have the hash for numeric types be equal, the same is not necessarily the case for floating point numbers.
-            HashTestCore(1d, NumberDataViewType.Double, 937, 667, 424, 727, 510);
-            HashTestCore(-1d, NumberDataViewType.Double, 930, 78, 813, 582, 179);
-            HashTestCore(0d, NumberDataViewType.Double, 842, 358, 20, 882, 1010);
+
+            HashTestCore(1d, NumberDataViewType.Double, 188, 57, 690, 727, 36);
+            HashTestCore(-1d, NumberDataViewType.Double, 885, 804, 22, 582, 346);
+            HashTestCore(0d, NumberDataViewType.Double, 512, 851, 795, 1010, 620);
         }
 
         [Fact]

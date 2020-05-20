@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -145,7 +146,7 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, 0, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, 1);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._maxRows, 1);
                 var stats = new ParseStats(parent._host, 1);
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
@@ -162,7 +163,7 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, n, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
                     return new DataViewRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
@@ -204,7 +205,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            public static void GetSomeLines(IMultiStreamSource source, int count, ref List<ReadOnlyMemory<char>> lines)
+            public static void GetSomeLines(IMultiStreamSource source, int count, bool readMultilines, char[] separators, ref List<ReadOnlyMemory<char>> lines)
             {
                 Contracts.AssertValue(source);
                 Contracts.Assert(count > 0);
@@ -214,7 +215,7 @@ namespace Microsoft.ML.Data
                     count = 2;
 
                 LineBatch batch;
-                var reader = new LineReader(source, count, 1, false, count, 1);
+                var reader = new LineReader(source, count, 1, false, readMultilines, separators, count, 1);
                 try
                 {
                     batch = reader.GetBatch();
@@ -401,6 +402,8 @@ namespace Microsoft.ML.Data
             {
                 private readonly long _limit;
                 private readonly bool _hasHeader;
+                private readonly bool _readMultilines;
+                private readonly char[] _separators;
                 private readonly int _batchSize;
                 private readonly IMultiStreamSource _files;
 
@@ -410,7 +413,7 @@ namespace Microsoft.ML.Data
                 private Task _thdRead;
                 private volatile bool _abort;
 
-                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, long limit, int cref)
+                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, bool readMultilines, char[] separators, long limit, int cref)
                 {
                     // Note that files is allowed to be empty.
                     Contracts.AssertValue(files);
@@ -423,6 +426,8 @@ namespace Microsoft.ML.Data
                     _limit = limit;
                     _hasHeader = hasHeader;
                     _batchSize = batchSize;
+                    _readMultilines = readMultilines;
+                    _separators = separators;
                     _files = files;
                     _cref = cref;
 
@@ -464,6 +469,176 @@ namespace Microsoft.ML.Data
                     throw Contracts.ExceptDecode(batch.Exception, "Stream reading encountered exception");
                 }
 
+                private class MultiLineReader
+                {
+                    private readonly char _sep0;
+                    private readonly char[] _separators;
+                    private readonly bool _sepsContainsSpace;
+                    private readonly StringBuilder _sb;
+                    private readonly TextReader _rdr;
+
+                    public MultiLineReader(TextReader rdr, char[] separators)
+                    {
+                        Contracts.AssertNonEmpty(separators);
+                        _sep0 = separators[0];
+                        _separators = separators;
+                        _sepsContainsSpace = IsSep(' ');
+                        _sb = new StringBuilder();
+                        _rdr = rdr;
+                    }
+
+                    // When reading lines that contain quoted fields, the quoted fields can contain
+                    // '\n' so we we'll need to read multiple lines (multilines) to get all the fields
+                    // of a given row.
+                    public string ReadMultiLine(long lineNum, bool ignoreHashLine)
+                    {
+                        string line;
+                        line = _rdr.ReadLine();
+
+                        // if it was an empty line or if we've reached the end of file (i.e. line = null)
+                        if (string.IsNullOrEmpty(line))
+                            return line;
+
+                        // In ML.NET we filter out lines beginning with // and # at the beginning of the file
+                        // Or lines beginning with // elsewhere in the file.
+                        // Thus, we don't care to check if there's a quoted multiline when the line begins with
+                        // these chars.
+                        if (line[0] == '/' && line[1] == '/')
+                            return line;
+                        if (ignoreHashLine && line[0] == '#')
+                            return line;
+
+                        // Get more lines until the last field of the line doesn't contain its newline
+                        // inside a quoted field
+                        bool lastFieldIncludesNewLine = LastFieldIncludesNewLine(line, false);
+                        if (!lastFieldIncludesNewLine)
+                            return line;
+
+                        _sb.Clear();
+                        _sb.Append(line);
+                        while (lastFieldIncludesNewLine)
+                        {
+                            line = _rdr.ReadLine();
+
+                            if (line == null)
+                                throw new EndOfStreamException($"A quoted field opened on line {lineNum} was never closed, and we've read to the last line in the file without finding the closing quote");
+
+                            _sb.Append("\n");
+                            _sb.Append(line);
+                            lastFieldIncludesNewLine = LastFieldIncludesNewLine(line, true);
+                        }
+
+                        return _sb.ToString();
+                    }
+
+                    // The startsInsideQuoted parameter indicates if the last field of the previous line
+                    // ended in a quoted field which included the newline character,
+                    // if it is true, then the beginning of this line is considered to be part
+                    // of the last field of the previous line.
+                    public bool LastFieldIncludesNewLine(string line, bool startsInsideQuoted = false)
+                    {
+                        if (line.Length == 0)
+                            return startsInsideQuoted;
+
+                        int ichCur = 0;
+                        int ichLim = line.Length;
+                        bool quotingError = false;
+
+                        bool ret = FieldIncludesNewLine(ref line, ref ichCur, ichLim, ref quotingError, startsInsideQuoted);
+                        while (ichCur < ichLim)
+                        {
+                            ret = FieldIncludesNewLine(ref line, ref ichCur, ichLim, ref quotingError, false);
+                            if(quotingError)
+                                return false;
+
+                            // Skip empty fields
+                            while (ichCur < ichLim && IsSep(line[ichCur]))
+                                ichCur++;
+                        }
+
+                        return ret;
+                    }
+
+                    private bool FieldIncludesNewLine(ref string line, ref int ichCur, int ichLim,
+                        ref bool quotingError, bool startsInsideQuoted)
+                    {
+                        if (!startsInsideQuoted && !_sepsContainsSpace)
+                        {
+                            // Ignore leading spaces
+                            while (ichCur < ichLim && line[ichCur] == ' ')
+                                ichCur++;
+                        }
+
+                        if(startsInsideQuoted || line[ichCur] == '"')
+                        {
+                            // Quoted Field Case
+
+                            if (!startsInsideQuoted)
+                                ichCur++;
+
+                            for (; ; ichCur++)
+                            {
+                                if (ichCur >= ichLim)
+                                    // We've reached the end of the line without finding the closing quote,
+                                    // so next line will start on this quoted field
+                                    return true;
+
+                                if (line[ichCur] == '"')
+                                {
+                                    if (++ichCur >= ichLim)
+                                        // Last character in line was the closing quote of the field
+                                        return false;
+
+                                    if (line[ichCur] == '"')
+                                        // 2 Double quotes means escaped quote
+                                        continue;
+
+                                    // If it wasn't an escaped quote, then this is supposed to be
+                                    // the closing quote of the field, and there should only be spaces remaining
+                                    // until the next separator.
+
+                                    if (!_sepsContainsSpace)
+                                    {
+                                        // Ignore leading spaces
+                                        while (ichCur < ichLim && line[ichCur] == ' ')
+                                            ichCur++;
+                                    }
+
+                                    // If there's anything else than spaces or the next separator,
+                                    // this will actually be a QuotingError on the parser, so we decide that this
+                                    // line contains a quoting error, and so it's not going to be considered a valid field
+                                    // and the rest of the line should be ignored.
+                                    if (ichCur >= ichLim || IsSep(line[ichCur]))
+                                        return false;
+
+                                    quotingError = true;
+                                    return false;
+                                }
+                            }
+                        }
+
+                        // Unquoted field case.
+                        // An unquoted field shouldn't contain new lines
+                        while(ichCur < ichLim && !IsSep(line[ichCur]))
+                        {
+                            ichCur++;
+                        }
+                        return false;
+                    }
+
+                    private bool IsSep(char ch)
+                    {
+                        if (ch == _sep0)
+                            return true;
+                        for (int i = 1; i < _separators.Length; i++)
+                        {
+                            if (ch == _separators[i])
+                                return true;
+                        }
+                        return false;
+                    }
+                }
+
                 private void ThreadProc()
                 {
                     Contracts.Assert(_batchSize >= 2);
@@ -480,6 +655,7 @@ namespace Microsoft.ML.Data
                             string path = _files.GetPathOrNull(ifile);
                             using (var rdr = _files.OpenTextReader(ifile))
                             {
+                                var multilineReader = new MultiLineReader(rdr, _separators);
                                 string text;
                                 long line = 0;
                                 for (; ; )
@@ -487,7 +663,11 @@ namespace Microsoft.ML.Data
                                     // REVIEW: Avoid allocating a string for every line. This would probably require
                                     // introducing a CharSpan type (similar to ReadOnlyMemory but based on char[] or StringBuilder)
                                     // and implementing all the necessary conversion functionality on it. See task 3871.
-                                    text = rdr.ReadLine();
+                                    if (_readMultilines)
+                                        text = multilineReader.ReadMultiLine(line, true);
+                                    else
+                                        text = rdr.ReadLine();
+
                                     if (text == null)
                                         goto LNext;
                                     line++;
@@ -514,7 +694,11 @@ namespace Microsoft.ML.Data
                                     if (_abort)
                                         return;
 
-                                    text = rdr.ReadLine();
+                                    if (_readMultilines)
+                                        text = multilineReader.ReadMultiLine(line, false);
+                                    else
+                                        text = rdr.ReadLine();
+
                                     if (text == null)
                                     {
                                         // We're done with this file. Queue the last partial batch.

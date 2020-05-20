@@ -99,7 +99,7 @@
 
   <ItemGroup Condition="'$(IncludeTensorflowMetaFile)' == 'true'">
     <MetaFile Update="@(MetaFile)">
-      <Url>https://aka.ms/mlnet-resources/%(Identity)</Url>
+      <Url>https://aka.ms/mlnet-resources/meta/%(Identity)</Url>
       <DestinationFile>$([System.IO.Path]::GetTempPath())/MLNET/</DestinationFile>
     </MetaFile>
 
