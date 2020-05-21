@@ -201,7 +201,7 @@ namespace Microsoft.ML.TimeSeries
             private SrCnnEntireModeler _modeler;
             private int _batchSize;
             private double[][] _results;
-            private int _bLen = 0;
+            private int _bLen;
 
             public Batch(int batchSize, int outputLength, double threshold, double sensitivity, SrCnnDetectMode detectMode)
             {
