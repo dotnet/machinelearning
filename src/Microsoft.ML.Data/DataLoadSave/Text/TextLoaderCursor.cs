@@ -575,6 +575,9 @@ namespace Microsoft.ML.Data
                                 ichCur++;
                         }
 
+                        if (ichCur >= ichLim) // if there were only leading spaces on the line
+                            return startsInsideQuoted;
+
                         if(startsInsideQuoted || line[ichCur] == '"')
                         {
                             // Quoted Field Case
