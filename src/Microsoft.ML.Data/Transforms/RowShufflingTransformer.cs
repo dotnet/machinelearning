@@ -557,23 +557,6 @@ namespace Microsoft.ML.Transforms
                 if (_disposed)
                     return;
 
-                if (disposing)
-                {
-                    _toProduceChannel.Writer.Complete();
-                    _producerTask.Wait();
-
-                    // Complete the channel after the producerTask has finished, since producerTask could
-                    // have posted more items to _toConsumeChannel.
-                    _toConsumeChannel.Writer.Complete();
-
-                    // Drain both BufferBlocks - this prevents what appears to be memory leaks when using the VS Debugger
-                    // because if a BufferBlock still contains items, its underlying Tasks are not getting completed.
-                    // See https://github.com/dotnet/corefx/issues/30582 for the VS Debugger issue.
-                    // See also https://github.com/dotnet/machinelearning/issues/4399
-                    //_toProduceChannel.Reader.ReadAsync();
-                    //_toConsumeChannel.Reader.ReadAsync();
-                }
-
                 _disposed = true;
                 base.Dispose(disposing);
             }
@@ -660,18 +643,21 @@ namespace Microsoft.ML.Transforms
                 while (_liveCount < _poolRows && !_doneConsuming)
                 {
                     // We are under capacity. Try to get some more.
-                    _toConsumeChannel.Reader.TryRead(out int got);
-                    if (got == 0)
+                    var hasReadItem = _toConsumeChannel.Reader.TryRead(out int got);
+                    if (hasReadItem)
                     {
-                        // We've reached the end of the Channel. There's no reason
-                        // to attempt further communication with the producer.
-                        // Check whether something horrible happened.
-                        if (_producerTaskException != null)
-                            throw Ch.Except(_producerTaskException, "Shuffle input cursor reader failed with an exception");
-                        _doneConsuming = true;
-                        break;
+                        if (got == 0)
+                        {
+                            // We've reached the end of the Channel. There's no reason
+                            // to attempt further communication with the producer.
+                            // Check whether something horrible happened.
+                            if (_producerTaskException != null)
+                                throw Ch.Except(_producerTaskException, "Shuffle input cursor reader failed with an exception");
+                            _doneConsuming = true;
+                            break;
+                        }
+                        _liveCount += got;
                     }
-                    _liveCount += got;
                 }
                 if (_liveCount == 0)
                     return false;
