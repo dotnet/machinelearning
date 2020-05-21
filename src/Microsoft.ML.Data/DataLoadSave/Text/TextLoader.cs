@@ -1409,7 +1409,7 @@ namespace Microsoft.ML.Data
             if (_separators.Contains(':'))
                 host.CheckDecode((_flags & OptionFlags.AllowSparse) == 0);
 
-            if(ctx.Header.ModelVerWritten >= 0x0001000D)
+            if (ctx.Header.ModelVerWritten >= 0x0001000D)
             {
                 _escapeChar = ctx.Reader.ReadChar();
             }
