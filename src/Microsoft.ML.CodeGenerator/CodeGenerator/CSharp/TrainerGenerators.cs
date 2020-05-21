@@ -68,6 +68,15 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             }
         }
 
+        internal class LightGbmRanking : LightGbmBase
+        {
+            internal override string OptionsName => "LightGbmRankingTrainer.Options";
+
+            public LightGbmRanking(PipelineNode node) : base(node)
+            {
+            }
+        }
+
         internal class AveragedPerceptron : TrainerGeneratorBase
         {
             //ClassName of the trainer
@@ -179,6 +188,19 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             internal override string OptionsName => "FastTreeRegressionTrainer.Options";
 
             public FastTreeRegression(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class FastTreeRanking : FastTreeBase
+        {
+            //ClassName of the trainer
+            internal override string MethodName => "FastTree";
+
+            //ClassName of the options to trainer
+            internal override string OptionsName => "FastTreeRankingTrainer.Options";
+
+            public FastTreeRanking(PipelineNode node) : base(node)
             {
             }
         }

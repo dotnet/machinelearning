@@ -26,6 +26,10 @@ namespace Microsoft.ML.AutoML
             MulticlassClassificationMetric.LogLoss,
         };
 
+        private static RankingMetric[] _minimizingRankingMetrics = new RankingMetric[]
+        {
+        };
+
         public OptimizingMetricInfo(RegressionMetric regressionMetric)
         {
             IsMaximizing = !_minimizingRegressionMetrics.Contains(regressionMetric);
@@ -39,6 +43,11 @@ namespace Microsoft.ML.AutoML
         public OptimizingMetricInfo(MulticlassClassificationMetric multiMetric)
         {
             IsMaximizing = !_minimizingMulticlassMetrics.Contains(multiMetric);
+        }
+
+        public OptimizingMetricInfo(RankingMetric rankingMetric)
+        {
+            IsMaximizing = !_minimizingRankingMetrics.Contains(rankingMetric);
         }
     }
 }

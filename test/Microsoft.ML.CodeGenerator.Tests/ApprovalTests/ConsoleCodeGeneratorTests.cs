@@ -77,7 +77,7 @@ namespace mlnet.Tests
         public void ConsoleAppModelBuilderCSFileContentRegressionTest()
         {
             (Pipeline pipeline,
-                        ColumnInferenceResults columnInference) = GetMockedRegressionPipelineAndInference();
+                        ColumnInferenceResults columnInference) = GetMockedRankingPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Regression));
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
@@ -86,7 +86,20 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ConsoleAppModelBuilderCSFileContentRankingTest()
+        {
+            (Pipeline pipeline,
+                        ColumnInferenceResults columnInference) = GetMockedRankingPipelineAndInference();
 
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Ranking));
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
+                false, false, false, false);
+
+            Approvals.Verify(result.modelBuilderCSFileContent);
+        }
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
@@ -567,6 +580,44 @@ namespace mlnet.Tests
                 // same learners with different hyperparams
                 var hyperparams1 = new Microsoft.ML.AutoML.ParameterSet(new List<Microsoft.ML.AutoML.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
                 var trainer1 = new SuggestedTrainer(context, new LightGbmRegressionExtension(), new ColumnInformation(), hyperparams1);
+                var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
+                var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, true);
+
+                this._mockedPipeline = inferredPipeline1.ToPipeline();
+                var textLoaderArgs = new TextLoader.Options()
+                {
+                    Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("col1", DataKind.Single, 1),
+                        new TextLoader.Column("col2", DataKind.Single, 0),
+                        new TextLoader.Column("col3", DataKind.String, 0),
+                        new TextLoader.Column("col4", DataKind.Int32, 0),
+                        new TextLoader.Column("col5", DataKind.UInt32, 0),
+                    },
+                    AllowQuoting = true,
+                    AllowSparse = true,
+                    HasHeader = true,
+                    Separators = new[] { ',' }
+                };
+
+                this._columnInference = new ColumnInferenceResults()
+                {
+                    TextLoaderOptions = textLoaderArgs,
+                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+                };
+            }
+            return (_mockedPipeline, _columnInference);
+        }
+
+        //TODO
+        private (Pipeline, ColumnInferenceResults) GetMockedRankingPipelineAndInference()
+        {
+            if (_mockedPipeline == null)
+            {
+                MLContext context = new MLContext();
+                // same learners with different hyperparams
+                var hyperparams1 = new Microsoft.ML.AutoML.ParameterSet(new List<Microsoft.ML.AutoML.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
+                var trainer1 = new SuggestedTrainer(context, new LightGbmRankingExtension(), new ColumnInformation(), hyperparams1);
                 var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
                 var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, true);
 

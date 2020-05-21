@@ -155,7 +155,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(DefaultColumnNames.Weight, result.ColumnInformation.ExampleWeightColumnName);
             Assert.Equal(DefaultColumnNames.User, result.ColumnInformation.UserIdColumnName);
             Assert.Equal(DefaultColumnNames.Item, result.ColumnInformation.ItemIdColumnName);
-            Assert.Equal(3, result.ColumnInformation.NumericColumnNames.Count());
+            Assert.Equal(4, result.ColumnInformation.NumericColumnNames.Count());
         }
 
         [Fact]

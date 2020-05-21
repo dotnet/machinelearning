@@ -411,6 +411,7 @@ namespace Microsoft.ML.Data
 
             SetScorer();
         }
+
         internal BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
         {

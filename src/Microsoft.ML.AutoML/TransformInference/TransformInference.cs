@@ -156,6 +156,9 @@ namespace Microsoft.ML.AutoML
 
             // For image columns, use image transforms.
             yield return new Experts.Image(context);
+
+            // For groupId columns, use GroupId transforms.
+            yield return new Experts.GroupId(context);
         }
 
         internal static class Experts
@@ -203,6 +206,28 @@ namespace Microsoft.ML.AutoML
                     {
                         if (column.Purpose == ColumnPurpose.UserId ||
                             column.Purpose == ColumnPurpose.ItemId)
+                        {
+                            yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
+                        }
+                    }
+                }
+            }
+
+            internal sealed class GroupId : TransformInferenceExpertBase
+            {
+                public GroupId(MLContext context) : base(context)
+                {
+                }
+
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
+                {
+                    if (task != TaskKind.Ranking)
+                    {
+                        yield break;
+                    }
+                    foreach (var column in columns)
+                    {
+                        if (column.Purpose == ColumnPurpose.GroupId && !column.Type.IsKey())
                         {
                             yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
                         }
@@ -380,7 +405,7 @@ namespace Microsoft.ML.AutoML
                 suggestedTransforms.AddRange(suggestions);
             }
 
-            if (task != TaskKind.Recommendation)
+            if (task != TaskKind.Recommendation && task != TaskKind.Ranking)
             {
                 var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms, intermediateCols);
                 if (finalFeaturesConcatTransform != null)

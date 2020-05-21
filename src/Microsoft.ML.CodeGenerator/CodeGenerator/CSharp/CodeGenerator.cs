@@ -148,7 +148,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 _settings.StablePackageVersion, _settings.UnstablePackageVersion, _settings.Target);
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
-            var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name, includeOnnxPackage);
+            var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod,
+                transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name, includeOnnxPackage);
             modelBuilderCSFileContent = Utils.FormatCode(modelBuilderCSFileContent);
 
             return (predictProgramCSFileContent, predictProjectFileContent, modelBuilderCSFileContent);
