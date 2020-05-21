@@ -709,11 +709,11 @@ namespace Microsoft.ML.Data
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
-                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, ref lines, parent._decimalMarker);
+                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, ref lines, parent._decimalMarker);
+                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, ref lines, parent._decimalMarker);
+                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1219,7 +1219,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            if (options.DecimalMarker == ',' && _separators.Contains<char>(','))
+            if (_separators.Contains(options.DecimalMarker))
                 throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker and separator cannot be the same '{0}' character.", options.DecimalMarker);
             _decimalMarker = options.DecimalMarker;
             _bindings = new Bindings(this, cols, headerFile, dataSample);
@@ -1607,6 +1607,7 @@ namespace Microsoft.ML.Data
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
+                DoubleParser.DecimalMarker = _loader._decimalMarker;
                 var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.Create(_loader, _files, active);
             }
@@ -1614,6 +1615,7 @@ namespace Microsoft.ML.Data
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
+                DoubleParser.DecimalMarker = _loader._decimalMarker;
                 var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.CreateSet(_loader, _files, active, n);
             }

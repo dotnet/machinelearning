@@ -633,7 +633,6 @@ namespace Microsoft.ML.Data
             }
 
             private readonly char[] _separators;
-            private readonly char _decimalMarker;
             private readonly OptionFlags _flags;
             private readonly int _inputSize;
             private readonly ColInfo[] _infos;
@@ -684,7 +683,6 @@ namespace Microsoft.ML.Data
                 }
 
                 _separators = parent._separators;
-                _decimalMarker = parent._decimalMarker;
                 _flags = parent._flags;
                 _inputSize = parent._inputSize;
                 Contracts.Assert(_inputSize >= 0);

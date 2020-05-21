@@ -17,6 +17,13 @@ namespace Microsoft.ML.Internal.Utilities
         private const ulong TopThreeBits = 0xE000000000000000UL;
         private const char InfinitySymbol = '\u221E';
 
+        // The decimal marker that separates the integer part from the fractional part of a number
+        // written in decimal from can vary across different cultures as either '.' or ','. The
+        // default decimal marker in ML .NET is '.', however through this static char variable,
+        // we allow users to specify the decimal marker used in their datasets as ',' as well.
+        [BestFriend]
+        internal static char DecimalMarker = '.';
+
         // REVIEW: casting ulong to Double doesn't always do the right thing, for example
         // with 0x84595161401484A0UL. Hence the gymnastics several places in this code. Note that
         // long to Double does work. The work around is:
@@ -527,8 +534,6 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.Assert(num == 0);
             Contracts.Assert(exp == 0);
 
-            const char decimalMarker = '.';
-
             if (ich >= span.Length)
                 return false;
 
@@ -556,7 +561,8 @@ namespace Microsoft.ML.Internal.Utilities
                         return false;
                     break;
 
-                case decimalMarker:
+                case '.':
+                case ',':
                     goto LPoint;
 
                 // The common cases.
@@ -595,12 +601,12 @@ namespace Microsoft.ML.Internal.Utilities
             }
             Contracts.Assert(i < span.Length);
 
-            if (span[i] != decimalMarker)
+            if (span[i] != DecimalMarker)
                 goto LAfterDigits;
 
             LPoint:
             Contracts.Assert(i < span.Length);
-            Contracts.Assert(span[i] == decimalMarker);
+            Contracts.Assert(span[i] == DecimalMarker);
 
             // Get the digits after the decimal marker, which may be '.' or ','
             for (; ; )
