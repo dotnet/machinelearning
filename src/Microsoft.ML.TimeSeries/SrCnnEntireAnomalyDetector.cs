@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
@@ -142,7 +143,6 @@ namespace Microsoft.ML.TimeSeries
                 || detectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(detectMode), "Invalid detectMode");
 
             Host.CheckUserArg(sensitivity >= 0 && sensitivity <= 100, nameof(sensitivity), "Must be in [0,100].");
-
             _outputLength = _outputLengthArray[(int)detectMode];
             _threshold = threshold;
             _sensitivity = sensitivity;
@@ -201,6 +201,7 @@ namespace Microsoft.ML.TimeSeries
             private SrCnnEntireModeler _modeler;
             private int _batchSize;
             private double[][] _results;
+            private int _bLen = 0;
 
             public Batch(int batchSize, int outputLength, double threshold, double sensitivity, SrCnnDetectMode detectMode)
             {
@@ -231,13 +232,14 @@ namespace Microsoft.ML.TimeSeries
                 _batchSize = _batch.Count;
                 if (_batch.Count < MinBatchSize)
                 {
-                    if (_previousBatch.Count + _batch.Count < MinBatchSize)
-                        return;
-                    var bLen = _previousBatch.Count - _batch.Count;
-                    _previousBatch = _previousBatch.GetRange(_batch.Count, bLen);
+                    if (_previousBatch.Count == 0)
+                    {
+                        throw new InvalidOperationException("The input must contain no less than 12 points.");
+                    }
+                    _bLen = _previousBatch.Count - _batch.Count;
+                    _previousBatch = _previousBatch.GetRange(_batch.Count, _bLen);
                     _previousBatch.AddRange(_batch);
                     _modeler.Train(_previousBatch.ToArray(), ref _results);
-                    _results = _results.Skip(bLen).ToArray();
                 }
                 else
                 {
@@ -251,6 +253,7 @@ namespace Microsoft.ML.TimeSeries
                 _previousBatch = _batch;
                 _batch = tempBatch;
                 _batch.Clear();
+                _bLen = 0;
             }
 
             public ValueGetter<VBuffer<double>> CreateGetter(DataViewRowCursor input, string inputCol)
@@ -262,7 +265,7 @@ namespace Microsoft.ML.TimeSeries
                         double src = default;
                         srcGetter(ref src);
                         var result = VBufferEditor.Create(ref dst, _outputLength);
-                        _results[input.Position % _batchSize].CopyTo(result.Values);
+                        _results[input.Position % _batchSize + _bLen].CopyTo(result.Values);
                         dst = result.Commit();
                     };
                 return getter;
@@ -381,22 +384,6 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            private void AllocateZeroArray(ref double[] arr, int length)
-            {
-                if (arr == null)
-                {
-                    arr = new double[length];
-                }
-                else if (arr.Length != length)
-                {
-                    Array.Resize<double>(ref arr, length);
-                }
-                for (int i = 0; i < arr.Length; ++i)
-                {
-                    arr[i] = 0.0;
-                }
-            }
-
             private void SpectralResidual(double[] values, double[][] results, double threshold)
             {
                 // Step 1: Get backadd wave
@@ -407,7 +394,7 @@ namespace Microsoft.ML.TimeSeries
                 AllocateDoubleArray(ref _fftRe, length);
                 AllocateDoubleArray(ref _fftIm, length);
 
-                AllocateZeroArray(ref _zeroArray, length);
+                AllocateDoubleArray(ref _zeroArray, length);
                 FftUtils.ComputeForwardFft(_backAddArray, _zeroArray, _fftRe, _fftIm, length);
 
                 // Step 3: Calculate mags of FFT
@@ -650,7 +637,7 @@ namespace Microsoft.ML.TimeSeries
                 int length = data.Length;
                 AllocateDoubleArray(ref _fftRe, length);
                 AllocateDoubleArray(ref _fftIm, length);
-                AllocateZeroArray(ref _zeroArray, length);
+                AllocateDoubleArray(ref _zeroArray, length);
                 FftUtils.ComputeForwardFft(data, _zeroArray, _fftRe, _fftIm, length);
 
                 for (int i = 0; i < length; ++i)
