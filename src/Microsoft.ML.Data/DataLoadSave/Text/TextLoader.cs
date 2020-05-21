@@ -1219,6 +1219,8 @@ namespace Microsoft.ML.Data
                 }
             }
 
+            if (options.DecimalMarker != '.' && options.DecimalMarker != ',')
+                throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker cannot be the '{0}' character. It must be '.' or ','.", options.DecimalMarker);
             if (_separators.Contains(options.DecimalMarker))
                 throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker and separator cannot be the same '{0}' character.", options.DecimalMarker);
             _decimalMarker = options.DecimalMarker;
@@ -1493,14 +1495,12 @@ namespace Microsoft.ML.Data
            bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace,
-           IMultiStreamSource dataSample = null,
-           char decimalMarker = Defaults.DecimalMarker)
+           IMultiStreamSource dataSample = null)
         {
             Options options = new Options
             {
                 HasHeader = hasHeader,
                 Separators = new[] { separator },
-                DecimalMarker = decimalMarker,
                 AllowQuoting = allowQuoting,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace
