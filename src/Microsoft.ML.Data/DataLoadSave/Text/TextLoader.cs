@@ -522,9 +522,9 @@ namespace Microsoft.ML.Data
             public long? MaxRows;
 
             /// <summary>
-            /// Character to use to escape quotes inside quoted fields.
+            /// Character to use to escape quotes inside quoted fields. It can't be a character used as separator.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Character to use to escape quotes inside quoted fields", ShortName = "escapechar")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Character to use to escape quotes inside quoted fields. It can't be a character used as separator.", ShortName = "escapechar")]
             public char EscapeChar = Defaults.EscapeChar;
 
             /// <summary>
@@ -1172,8 +1172,6 @@ namespace Microsoft.ML.Data
             if (options.AllowQuoting && options.ReadMultilines)
                 _flags |= OptionFlags.ReadMultilines;
 
-            _escapeChar = options.EscapeChar;
-
             // REVIEW: This should be persisted (if it should be maintained).
             _maxRows = options.MaxRows ?? long.MaxValue;
             _host.CheckUserArg(_maxRows >= 0, nameof(options.MaxRows));
@@ -1220,6 +1218,10 @@ namespace Microsoft.ML.Data
                         _separators = new char[] { ',' };
                 }
             }
+
+            _escapeChar = options.EscapeChar;
+            if(_separators.Contains(_escapeChar))
+                throw _host.ExceptUserArg(nameof(Options.EscapeChar), "EscapeChar '{0}' can't be used both as EscapeChar and separator", _escapeChar);
 
             _bindings = new Bindings(this, cols, headerFile, dataSample);
             _parser = new Parser(this);
@@ -1417,6 +1419,8 @@ namespace Microsoft.ML.Data
             {
                 _escapeChar = Defaults.EscapeChar;
             }
+
+            host.CheckDecode(_separators.Contains(_escapeChar));
 
             _bindings = new Bindings(ctx, this);
             _parser = new Parser(this);
