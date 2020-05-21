@@ -343,16 +343,8 @@ namespace Microsoft.ML.Data
             return (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
         }
 
-        public static bool ValidateMemberInfo(MemberInfo memberInfo, Type userType, HashSet<string> colNames, out string name, out IEnumerable<Attribute> customAttributes)
+        public static bool CheckMemberInfo(MemberInfo memberInfo)
         {
-            // Clause to handle the field that may be used to expose the cursor channel.
-            // This field does not need a column.
-            // REVIEW: maybe validate the channel attribute now, instead
-            // of later at cursor creation.
-
-            name = null;
-            customAttributes = null;
-
             switch (memberInfo)
             {
                 case FieldInfo fieldInfo:
@@ -376,6 +368,22 @@ namespace Microsoft.ML.Data
             }
 
             if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
+                return false;
+
+            return true;
+        }
+
+        public static bool ValidateMemberInfo(MemberInfo memberInfo, Type userType, HashSet<string> colNames, out string name, out IEnumerable<Attribute> customAttributes)
+        {
+            // Clause to handle the field that may be used to expose the cursor channel.
+            // This field does not need a column.
+            // REVIEW: maybe validate the channel attribute now, instead
+            // of later at cursor creation.
+
+            name = null;
+            customAttributes = null;
+
+            if (!CheckMemberInfo(memberInfo))
                 return false;
 
             customAttributes = memberInfo.GetCustomAttributes();
