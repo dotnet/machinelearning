@@ -146,7 +146,7 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, 0, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._maxRows, 1);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._escapeChar, parent._maxRows, 1);
                 var stats = new ParseStats(parent._host, 1);
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, n, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._maxRows, cthd);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._escapeChar, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
                     return new DataViewRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            public static void GetSomeLines(IMultiStreamSource source, int count, bool readMultilines, char[] separators, ref List<ReadOnlyMemory<char>> lines)
+            public static void GetSomeLines(IMultiStreamSource source, int count, bool readMultilines, char[] separators, char escapeChar, ref List<ReadOnlyMemory<char>> lines)
             {
                 Contracts.AssertValue(source);
                 Contracts.Assert(count > 0);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Data
                     count = 2;
 
                 LineBatch batch;
-                var reader = new LineReader(source, count, 1, false, readMultilines, separators, count, 1);
+                var reader = new LineReader(source, count, 1, false, readMultilines, separators, escapeChar, count, 1);
                 try
                 {
                     batch = reader.GetBatch();
@@ -404,6 +404,7 @@ namespace Microsoft.ML.Data
                 private readonly bool _hasHeader;
                 private readonly bool _readMultilines;
                 private readonly char[] _separators;
+                private readonly char _escapeChar;
                 private readonly int _batchSize;
                 private readonly IMultiStreamSource _files;
 
@@ -413,7 +414,7 @@ namespace Microsoft.ML.Data
                 private Task _thdRead;
                 private volatile bool _abort;
 
-                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, bool readMultilines, char[] separators, long limit, int cref)
+                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, bool readMultilines, char[] separators, char escapeChar, long limit, int cref)
                 {
                     // Note that files is allowed to be empty.
                     Contracts.AssertValue(files);
@@ -428,6 +429,7 @@ namespace Microsoft.ML.Data
                     _batchSize = batchSize;
                     _readMultilines = readMultilines;
                     _separators = separators;
+                    _escapeChar = escapeChar;
                     _files = files;
                     _cref = cref;
 
@@ -474,15 +476,19 @@ namespace Microsoft.ML.Data
                     private readonly char _sep0;
                     private readonly char[] _separators;
                     private readonly bool _sepsContainsSpace;
+                    private readonly char _escapeChar;
+                    private readonly bool _escapeCharIsDoubleQuote;
                     private readonly StringBuilder _sb;
                     private readonly TextReader _rdr;
 
-                    public MultiLineReader(TextReader rdr, char[] separators)
+                    public MultiLineReader(TextReader rdr, char[] separators, char escapeChar)
                     {
                         Contracts.AssertNonEmpty(separators);
                         _sep0 = separators[0];
                         _separators = separators;
                         _sepsContainsSpace = IsSep(' ');
+                        _escapeChar = escapeChar;
+                        _escapeCharIsDoubleQuote = (escapeChar == '"');
                         _sb = new StringBuilder();
                         _rdr = rdr;
                     }
@@ -569,6 +575,9 @@ namespace Microsoft.ML.Data
                                 ichCur++;
                         }
 
+                        if (ichCur >= ichLim) // if there were only leading spaces on the line
+                            return startsInsideQuoted;
+
                         if(startsInsideQuoted || line[ichCur] == '"')
                         {
                             // Quoted Field Case
@@ -576,45 +585,76 @@ namespace Microsoft.ML.Data
                             if (!startsInsideQuoted)
                                 ichCur++;
 
-                            for (; ; ichCur++)
+                            if (_escapeCharIsDoubleQuote)
                             {
-                                if (ichCur >= ichLim)
-                                    // We've reached the end of the line without finding the closing quote,
-                                    // so next line will start on this quoted field
-                                    return true;
-
-                                if (line[ichCur] == '"')
+                                for (; ; ichCur++)
                                 {
-                                    if (++ichCur >= ichLim)
-                                        // Last character in line was the closing quote of the field
-                                        return false;
+                                    if (ichCur >= ichLim)
+                                        // We've reached the end of the line without finding the closing quote,
+                                        // so next line will start on this quoted field
+                                        return true;
 
                                     if (line[ichCur] == '"')
-                                        // 2 Double quotes means escaped quote
-                                        continue;
-
-                                    // If it wasn't an escaped quote, then this is supposed to be
-                                    // the closing quote of the field, and there should only be spaces remaining
-                                    // until the next separator.
-
-                                    if (!_sepsContainsSpace)
                                     {
-                                        // Ignore leading spaces
-                                        while (ichCur < ichLim && line[ichCur] == ' ')
-                                            ichCur++;
+                                        if (++ichCur >= ichLim)
+                                            // Last character in line was the closing quote of the field
+                                            return false;
+
+                                        if (line[ichCur] == '"')
+                                            // 2 Double quotes means escaped quote
+                                            continue;
+
+                                        // If it wasn't an escaped quote, then this is supposed to be
+                                        // the closing quote of the field
+                                        break;
                                     }
-
-                                    // If there's anything else than spaces or the next separator,
-                                    // this will actually be a QuotingError on the parser, so we decide that this
-                                    // line contains a quoting error, and so it's not going to be considered a valid field
-                                    // and the rest of the line should be ignored.
-                                    if (ichCur >= ichLim || IsSep(line[ichCur]))
-                                        return false;
-
-                                    quotingError = true;
-                                    return false;
                                 }
                             }
+                            else
+                            {
+                                for (; ; ichCur++)
+                                {
+                                    if (ichCur >= ichLim)
+                                        // We've reached the end of the line without finding the closing quote,
+                                        // so next line will start on this quoted field
+                                        return true;
+
+                                    if (line[ichCur] == _escapeChar)
+                                    {
+                                        if (++ichCur >= ichLim)
+                                            // Last character in line was escapeChar
+                                            return true;
+
+                                        // Whatever char comes after an escapeChar is ignored
+                                        continue;
+                                    }
+                                    else if (line[ichCur] == '"')
+                                    {
+                                        // Since this wasn't an escaped quote, then this is supposed to be
+                                        // the closing quote of the field
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // After finding the closing quote of the field...
+                            // There should only be empty spaces until the next separator
+                            if (!_sepsContainsSpace)
+                            {
+                                // Ignore leading spaces
+                                while (ichCur < ichLim && line[ichCur] == ' ')
+                                    ichCur++;
+                            }
+
+                            // If there's anything else than spaces or the next separator,
+                            // this will actually be a QuotingError on the parser, so we decide that this
+                            // line contains a quoting error, and so it's not going to be considered a valid field
+                            // and the rest of the line should be ignored.
+                            if (ichCur >= ichLim || IsSep(line[ichCur]))
+                                return false;
+
+                            quotingError = true;
+                            return false;
                         }
 
                         // Unquoted field case.
@@ -655,7 +695,7 @@ namespace Microsoft.ML.Data
                             string path = _files.GetPathOrNull(ifile);
                             using (var rdr = _files.OpenTextReader(ifile))
                             {
-                                var multilineReader = new MultiLineReader(rdr, _separators);
+                                var multilineReader = new MultiLineReader(rdr, _separators, _escapeChar);
                                 string text;
                                 long line = 0;
                                 for (; ; )

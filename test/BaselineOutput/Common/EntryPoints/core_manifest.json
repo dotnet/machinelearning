@@ -440,6 +440,18 @@
                 "SortOrder": 150.0,
                 "IsNullable": true,
                 "Default": null
+              },
+              {
+                "Name": "EscapeChar",
+                "Type": "Char",
+                "Desc": "Character to use to escape quotes inside quoted fields. It can't be a character used as separator.",
+                "Aliases": [
+                  "escapechar"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": "\""
               }
             ]
           },
