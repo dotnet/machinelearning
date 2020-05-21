@@ -562,16 +562,16 @@ namespace Microsoft.ML.Transforms
                     _toProduceChannel.Writer.Complete();
                     _producerTask.Wait();
 
-                    // Complete the consumer after the producerTask has finished, since producerTask could
-                    // have posted more items to _toConsume.
+                    // Complete the channel after the producerTask has finished, since producerTask could
+                    // have posted more items to _toConsumeChannel.
                     _toConsumeChannel.Writer.Complete();
 
                     // Drain both BufferBlocks - this prevents what appears to be memory leaks when using the VS Debugger
                     // because if a BufferBlock still contains items, its underlying Tasks are not getting completed.
                     // See https://github.com/dotnet/corefx/issues/30582 for the VS Debugger issue.
                     // See also https://github.com/dotnet/machinelearning/issues/4399
-                    _toProduceChannel.Reader.ReadAsync();
-                    _toConsumeChannel.Reader.ReadAsync();
+                    //_toProduceChannel.Reader.ReadAsync();
+                    //_toConsumeChannel.Reader.ReadAsync();
                 }
 
                 _disposed = true;
@@ -599,7 +599,8 @@ namespace Microsoft.ML.Transforms
                         int requested;
                         if (!_toProduceChannel.Reader.TryRead(out requested))
                         {
-                            // OutputAvailableAsync returned true, but TryReceive returned false -
+                            // The producer Channel's Reader.WaitToReadAsync returned true,
+                            // but the Reader's TryRead returned false -
                             // so loop back around and try again.
                             continue;
                         }
@@ -651,7 +652,7 @@ namespace Microsoft.ML.Transforms
                 {
                     // We should let the producer know it can give us more stuff.
                     // It is possible for int values to be sent beyond the
-                    // end of the sentinel, but we suppose this is irrelevant.
+                    // end of the Channel, but we suppose this is irrelevant.
                     PostAssert(_toProduceChannel, _deadCount);
                     _deadCount = 0;
                 }
@@ -662,7 +663,7 @@ namespace Microsoft.ML.Transforms
                     _toConsumeChannel.Reader.TryRead(out int got);
                     if (got == 0)
                     {
-                        // We've reached the end sentinel. There's no reason
+                        // We've reached the end of the Channel. There's no reason
                         // to attempt further communication with the producer.
                         // Check whether something horrible happened.
                         if (_producerTaskException != null)
