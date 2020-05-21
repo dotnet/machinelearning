@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
@@ -234,7 +233,7 @@ namespace Microsoft.ML.TimeSeries
                 {
                     if (_previousBatch.Count == 0)
                     {
-                        throw new InvalidOperationException("The input must contain no less than 12 points.");
+                        throw Contracts.Except("The input must contain no less than 12 points.");
                     }
                     _bLen = _previousBatch.Count - _batch.Count;
                     _previousBatch = _previousBatch.GetRange(_batch.Count, _bLen);
