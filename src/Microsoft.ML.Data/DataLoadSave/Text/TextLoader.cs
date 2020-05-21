@@ -1420,7 +1420,7 @@ namespace Microsoft.ML.Data
                 _escapeChar = Defaults.EscapeChar;
             }
 
-            host.CheckDecode(_separators.Contains(_escapeChar));
+            host.CheckDecode(!_separators.Contains(_escapeChar));
 
             _bindings = new Bindings(ctx, this);
             _parser = new Parser(this);
