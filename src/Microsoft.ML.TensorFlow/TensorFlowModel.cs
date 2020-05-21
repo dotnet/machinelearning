@@ -16,7 +16,7 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class TensorFlowModel : IDisposable
     {
-        internal Session Session { get; }
+        public Session Session { get; }
         internal string ModelPath { get; }
 
         private readonly IHostEnvironment _env;
