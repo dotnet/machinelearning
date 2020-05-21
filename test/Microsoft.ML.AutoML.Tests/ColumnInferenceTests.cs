@@ -212,7 +212,7 @@ namespace Microsoft.ML.AutoML.Test
             inputColumnInformation.LabelColumnName = @"id";
             var result = mlContext.Auto().InferColumns(dataPath, inputColumnInformation);
 
-            // File only have 3 columns: "id", "description" and "animal"
+            // File has 3 columns: "id", "description" and "animal"
             Assert.NotNull(result.ColumnInformation.LabelColumnName);
             Assert.Equal(1, result.ColumnInformation.TextColumnNames.Count);
             Assert.Equal(1, result.ColumnInformation.CategoricalColumnNames.Count);
