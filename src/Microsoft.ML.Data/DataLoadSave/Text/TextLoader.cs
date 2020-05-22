@@ -475,6 +475,12 @@ namespace Microsoft.ML.Data
             public char[] Separators = new[] { Defaults.Separator };
 
             /// <summary>
+            /// The character that should be used as the decimal marker. Default value is '.'. Only '.' and ',' are allowed to be decimal markers.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, Name = "Decimal Marker", HelpText = "Character symbol used to separate the integer part from the fractional part of a number written in decimal form.", ShortName = "decimal")]
+            public char DecimalMarker = Defaults.DecimalMarker;
+
+            /// <summary>
             /// Specifies the input columns that should be mapped to <see cref="IDataView"/> columns.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
@@ -541,6 +547,7 @@ namespace Microsoft.ML.Data
             internal const bool AllowQuoting = false;
             internal const bool AllowSparse = false;
             internal const char Separator = '\t';
+            internal const char DecimalMarker = '.';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
             internal const bool ReadMultilines = false;
@@ -1071,7 +1078,7 @@ namespace Microsoft.ML.Data
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
                 //verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
-                verWrittenCur: 0x0001000D, // Added escapeChar option
+                verWrittenCur: 0x0001000D, // Added escapeChar option and decimal marker option to allow for ',' to be a decimal marker
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1103,6 +1110,7 @@ namespace Microsoft.ML.Data
         // Input size is zero for unknown - determined by the data (including sparse rows).
         private readonly int _inputSize;
         private readonly char[] _separators;
+        private readonly char _decimalMarker;
         private readonly Bindings _bindings;
 
         private readonly Parser _parser;
@@ -1219,6 +1227,11 @@ namespace Microsoft.ML.Data
                 }
             }
 
+            if (options.DecimalMarker != '.' && options.DecimalMarker != ',')
+                throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker cannot be the '{0}' character. It must be '.' or ','.", options.DecimalMarker);
+            if (!options.AllowQuoting && options.DecimalMarker == ',' && _separators.Contains(','))
+                throw _host.ExceptUserArg(nameof(Options.AllowQuoting), "Quoting must be allowed if decimal marker and separator are the ',' character.");
+            _decimalMarker = options.DecimalMarker;
             _escapeChar = options.EscapeChar;
             if(_separators.Contains(_escapeChar))
                 throw _host.ExceptUserArg(nameof(Options.EscapeChar), "EscapeChar '{0}' can't be used both as EscapeChar and separator", _escapeChar);
@@ -1387,6 +1400,7 @@ namespace Microsoft.ML.Data
             // int: number of separators
             // char[]: separators
             // char: escapeChar
+            // char: decimal marker
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
             host.CheckDecode(cbFloat == sizeof(float));
@@ -1414,10 +1428,13 @@ namespace Microsoft.ML.Data
             if (ctx.Header.ModelVerWritten >= 0x0001000D)
             {
                 _escapeChar = ctx.Reader.ReadChar();
+                _decimalMarker = ctx.Reader.ReadChar();
+                host.CheckDecode(_decimalMarker == '.' || _decimalMarker == ',');
             }
             else
             {
                 _escapeChar = Defaults.EscapeChar;
+                _decimalMarker = Defaults.DecimalMarker;
             }
 
             host.CheckDecode(!_separators.Contains(_escapeChar));
@@ -1463,6 +1480,7 @@ namespace Microsoft.ML.Data
             // int: number of separators
             // char[]: separators
             // char: escapeChar
+            // char: decimal marker
             // bindings
             ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(_maxRows);
@@ -1472,6 +1490,7 @@ namespace Microsoft.ML.Data
             ctx.Writer.Write(_inputSize);
             ctx.Writer.WriteCharArray(_separators);
             ctx.Writer.Write(_escapeChar);
+            ctx.Writer.Write(_decimalMarker);
 
             _bindings.Save(ctx);
         }
@@ -1612,6 +1631,7 @@ namespace Microsoft.ML.Data
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
+                DoubleParser.DecimalMarker = _loader._decimalMarker;
                 var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.Create(_loader, _files, active);
             }
@@ -1619,6 +1639,7 @@ namespace Microsoft.ML.Data
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
+                DoubleParser.DecimalMarker = _loader._decimalMarker;
                 var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.CreateSet(_loader, _files, active, n);
             }

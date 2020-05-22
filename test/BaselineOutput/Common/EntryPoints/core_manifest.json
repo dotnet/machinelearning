@@ -370,6 +370,18 @@
                 ]
               },
               {
+                "Name": "Decimal Marker",
+                "Type": "Char",
+                "Desc": "Character symbol used to separate the integer part from the fractional part of a number written in decimal form.",
+                "Aliases": [
+                  "decimal"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": "."
+              },
+              {
                 "Name": "TrimWhitespace",
                 "Type": "Bool",
                 "Desc": "Remove trailing whitespace from lines",
