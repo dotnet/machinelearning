@@ -32,6 +32,7 @@ namespace Microsoft.ML.AutoML
             public int MaxRowsToRead;
             public uint? LabelColumnIndex;
             public string Label;
+            public bool ReadMultilines;
 
             public Arguments()
             {
@@ -262,6 +263,7 @@ namespace Microsoft.ML.AutoML
                 Separators = new[] { args.Separator },
                 AllowSparse = args.AllowSparse,
                 AllowQuoting = args.AllowQuote,
+                ReadMultilines = args.ReadMultilines,
             };
             var textLoader = context.Data.CreateTextLoader(textLoaderOptions);
             var idv = textLoader.Load(fileSource);

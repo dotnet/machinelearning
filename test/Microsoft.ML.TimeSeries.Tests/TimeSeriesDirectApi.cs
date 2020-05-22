@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
@@ -87,9 +85,15 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        private sealed class TimeSeriesDataDouble
+        {
+            [LoadColumn(0)]
+            public double Value { get; set; }
+        }
+
         private sealed class SrCnnAnomalyDetection
         {
-            [VectorType(3)]
+            [VectorType]
             public double[] Prediction { get; set; }
         }
 
@@ -567,6 +571,92 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(1, prediction.Prediction[0]);
                 else
                     Assert.Equal(0, prediction.Prediction[0]);
+                k += 1;
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void TestSrCnnBatchAnomalyDetector(
+            [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)]SrCnnDetectMode mode,
+            [CombinatorialValues(true, false)]bool loadDataFromFile,
+            [CombinatorialValues(-1, 24, 26, 512)]int batchSize)
+        {
+            var ml = new MLContext(1);
+            IDataView dataView;
+            if (loadDataFromFile)
+            {
+                var dataPath = GetDataPath("Timeseries", "anomaly_detection.csv");
+
+                // Load data from file into the dataView
+                dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+            }
+            else
+            {
+                // Generate sample series data with an anomaly
+                var data = new List<TimeSeriesDataDouble>();
+                for (int index = 0; index < 20; index++)
+                {
+                    data.Add(new TimeSeriesDataDouble { Value = 5 } );
+                }
+                data.Add(new TimeSeriesDataDouble { Value = 10 });
+                for (int index = 0; index < 5; index++)
+                {
+                    data.Add(new TimeSeriesDataDouble { Value = 5 });
+                }
+
+                // Convert data to IDataView.
+                dataView = ml.Data.LoadFromEnumerable(data);
+            }
+
+            // Setup the detection arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
+            // Do batch anomaly detection
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
+                threshold: 0.35, batchSize: batchSize, sensitivity: 90.0, mode);
+
+            // Getting the data of the newly created column as an IEnumerable of
+            // SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                outputDataView, reuseRowObject: false);
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                switch (mode)
+                {
+                    case SrCnnDetectMode.AnomalyOnly:
+                        Assert.Equal(3, prediction.Prediction.Length);
+                        if (k == 20)
+                            Assert.Equal(1, prediction.Prediction[0]);
+                        else
+                            Assert.Equal(0, prediction.Prediction[0]);
+                        break;
+                    case SrCnnDetectMode.AnomalyAndExpectedValue:
+                        Assert.Equal(4, prediction.Prediction.Length);
+                        if (k == 20)
+                        {
+                            Assert.Equal(1, prediction.Prediction[0]);
+                            Assert.Equal(5.00, prediction.Prediction[3], 2);
+                        }
+                        else
+                            Assert.Equal(0, prediction.Prediction[0]);
+                        break;
+                    case SrCnnDetectMode.AnomalyAndMargin:
+                        Assert.Equal(7, prediction.Prediction.Length);
+                        if (k == 20)
+                        {
+                            Assert.Equal(1, prediction.Prediction[0]);
+                            Assert.Equal(5.00, prediction.Prediction[3], 2);
+                            Assert.Equal(5.00, prediction.Prediction[4], 2);
+                            Assert.Equal(5.01, prediction.Prediction[5], 2);
+                            Assert.Equal(4.99, prediction.Prediction[6], 2);
+                        }
+                        else
+                            Assert.Equal(0, prediction.Prediction[0]);
+                        break;
+                }
                 k += 1;
             }
         }

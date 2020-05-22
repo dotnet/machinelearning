@@ -1272,12 +1272,20 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void TestLoadTextWithEscapedNewLines(bool useSaved)
+        [InlineData(true, false)]
+        [InlineData(false, false)]
+        [InlineData(true, true)]
+        [InlineData(false, true)]
+        public void TestLoadTextWithEscapedNewLinesAndEscapeChar(bool useSaved, bool useCustomEscapeChar)
         {
             var mlContext = new MLContext(seed: 1);
-            var dataPath = GetDataPath("multiline.csv");
+            string dataPath;
+
+            if (!useCustomEscapeChar)
+                dataPath = GetDataPath("multiline.csv");
+            else
+                dataPath = GetDataPath("multiline-escapechar.csv");
+
             var baselinePath = GetBaselinePath("TextLoader", "multiline.csv");
             var options = new TextLoader.Options()
             {
@@ -1285,6 +1293,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Separator = ",",
                 AllowQuoting = true,
                 ReadMultilines = true,
+                EscapeChar = useCustomEscapeChar ? '\\' : TextLoader.Defaults.EscapeChar,
                 Columns = new[]
                 {
                     new TextLoader.Column("id", DataKind.Int32, 0),
@@ -1295,16 +1304,23 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             var data = mlContext.Data.LoadFromTextFile(dataPath, options);
             if (useSaved)
-            { 
+            {
                 // Check that loading the data view from a text file,
                 // and then saving that data view to another text file, then loading it again
                 // also matches the baseline.
 
-                var savedPath = DeleteOutputPath("saved-multiline.tsv");
+                string savedPath;
+
+                if (!useCustomEscapeChar)
+                    savedPath = DeleteOutputPath("multiline-saved.tsv");
+                else
+                    savedPath = DeleteOutputPath("multiline-escapechar-saved.tsv");
+
                 using (var fs = File.Create(savedPath))
                     mlContext.Data.SaveAsText(data, fs, separatorChar: '\t');
 
                 options.Separator = "\t";
+                options.EscapeChar = '"'; // TextSaver always uses " as escape char
                 data = mlContext.Data.LoadFromTextFile(savedPath, options);
             }
 

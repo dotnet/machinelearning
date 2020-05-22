@@ -528,6 +528,12 @@ namespace Microsoft.ML.Data
             public long? MaxRows;
 
             /// <summary>
+            /// Character to use to escape quotes inside quoted fields. It can't be a character used as separator.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Character to use to escape quotes inside quoted fields. It can't be a character used as separator.", ShortName = "escapechar")]
+            public char EscapeChar = Defaults.EscapeChar;
+
+            /// <summary>
             /// Checks that all column specifications are valid (that is, ranges are disjoint and have min&lt;=max).
             /// </summary>
             internal bool IsValid()
@@ -545,6 +551,7 @@ namespace Microsoft.ML.Data
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
             internal const bool ReadMultilines = false;
+            internal const char EscapeChar = '"';
         }
 
         /// <summary>
@@ -709,11 +716,11 @@ namespace Microsoft.ML.Data
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
-                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1098,6 +1105,7 @@ namespace Microsoft.ML.Data
 
         private readonly bool _useThreads;
         private readonly OptionFlags _flags;
+        private readonly char _escapeChar;
         private readonly long _maxRows;
         // Input size is zero for unknown - determined by the data (including sparse rows).
         private readonly int _inputSize;
@@ -1222,6 +1230,10 @@ namespace Microsoft.ML.Data
             if (options.DecimalMarker != '.' && options.DecimalMarker != ',')
                 throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker cannot be the '{0}' character. It must be '.' or ','.", options.DecimalMarker);
             _decimalMarker = options.DecimalMarker;
+            _escapeChar = options.EscapeChar;
+            if(_separators.Contains(_escapeChar))
+                throw _host.ExceptUserArg(nameof(Options.EscapeChar), "EscapeChar '{0}' can't be used both as EscapeChar and separator", _escapeChar);
+
             _bindings = new Bindings(this, cols, headerFile, dataSample);
             _parser = new Parser(this);
         }
@@ -1385,6 +1397,7 @@ namespace Microsoft.ML.Data
             // int: inputSize: 0 for determined from data
             // int: number of separators
             // char[]: separators
+            // char: escapeChar
             // char: decimal marker
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
@@ -1412,9 +1425,17 @@ namespace Microsoft.ML.Data
 
             if (ctx.Header.ModelVerWritten >= 0x0001000D)
             {
+                _escapeChar = ctx.Reader.ReadChar();
                 _decimalMarker = ctx.Reader.ReadChar();
                 host.CheckDecode(_decimalMarker == '.' || _decimalMarker == ',');
             }
+            else
+            {
+                _escapeChar = Defaults.EscapeChar;
+            }
+
+            host.CheckDecode(!_separators.Contains(_escapeChar));
+
             _bindings = new Bindings(ctx, this);
             _parser = new Parser(this);
         }
@@ -1455,6 +1476,7 @@ namespace Microsoft.ML.Data
             // int: inputSize: 0 for determined from data
             // int: number of separators
             // char[]: separators
+            // char: escapeChar
             // char: decimal marker
             // bindings
             ctx.Writer.Write(sizeof(float));
@@ -1464,6 +1486,7 @@ namespace Microsoft.ML.Data
             _host.Assert(0 <= _inputSize && _inputSize < SrcLim);
             ctx.Writer.Write(_inputSize);
             ctx.Writer.WriteCharArray(_separators);
+            ctx.Writer.Write(_escapeChar);
             ctx.Writer.Write(_decimalMarker);
 
             _bindings.Save(ctx);
