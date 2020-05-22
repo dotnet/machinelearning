@@ -563,13 +563,12 @@ namespace Microsoft.ML.Transforms
         private readonly struct HashDouble : IHasher<double>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-
             public uint HashCoreOld(uint seed, uint mask, in double value)
             {
                 if (double.IsNaN(value))
                     return 0;
 
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -578,7 +577,7 @@ namespace Microsoft.ML.Transforms
                 if (double.IsNaN(value))
                     return 0;
 
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(double)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(double)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -589,17 +588,19 @@ namespace Microsoft.ML.Transforms
                 {
                     if (double.IsNaN(value))
                         return 0;
-                    hash = HashRound(hash, value);
+                    hash = HashRound(hash, value, false);
                 }
                 return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, double value)
+            private uint HashRound(uint seed, double value, bool old)
             {
                 ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
                 var hi = Utils.GetHi(v);
+                if (old && hi == 0)
+                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
@@ -707,7 +708,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (value == 0)
                     return 0;
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -715,7 +716,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (value == 0)
                     return 0;
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(uint)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -726,17 +727,17 @@ namespace Microsoft.ML.Transforms
                 {
                     if (value == 0)
                         return 0;
-                    hash = HashRound(hash, value);
+                    hash = HashRound(hash, value, false);
                 }
                 return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, ulong value)
+            private uint HashRound(uint seed, ulong value, bool old)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                if (hi == 0)
+                if (old && hi == 0)
                     return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
@@ -807,13 +808,13 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCoreOld(uint seed, uint mask, in ulong value)
             {
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ulong value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(ulong)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -821,15 +822,17 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(hash, value);
+                    hash = HashRound(hash, value, false);
                 return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, ulong value)
+            private uint HashRound(uint seed, ulong value, bool old)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
+                if (old && hi == 0)
+                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
@@ -960,13 +963,13 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCoreOld(uint seed, uint mask, in long value)
             {
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in long value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(long)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(long)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -974,15 +977,17 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(hash, value);
+                    hash = HashRound(hash, value, false);
                 return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, long value)
+            private uint HashRound(uint seed, long value, bool old)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
                 var hi = Utils.GetHi((ulong)value);
+                if (old && hi == 0)
+                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
