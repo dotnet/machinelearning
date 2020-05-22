@@ -17,6 +17,14 @@ namespace Microsoft.ML.Internal.Utilities
         private const ulong TopThreeBits = 0xE000000000000000UL;
         private const char InfinitySymbol = '\u221E';
 
+        // Note for future development: DoubleParser is a static class and DecimalMarker is a
+        // static variable, which means only one instance of these can exist at once. As such,
+        // the value of DecimalMarker cannot vary when datasets with differing decimal markers
+        // are loaded together at once, which would result in not being able to accurately read
+        // the dataset with the differing decimal marker. Although this edge case where we attempt
+        // to load in datasets with different decimal markers at once is unlikely to occur, we
+        // should still be aware of this and plan to fix it in the future.
+
         // The decimal marker that separates the integer part from the fractional part of a number
         // written in decimal from can vary across different cultures as either '.' or ','. The
         // default decimal marker in ML .NET is '.', however through this static char variable,
@@ -562,7 +570,12 @@ namespace Microsoft.ML.Internal.Utilities
                     break;
 
                 case '.':
+                    if (DecimalMarker != '.') // Decimal marker was not '.', but we encountered a '.', which must be an error.
+                        return false; // Since this was an error, return false, which will later make the caller to set NaN as the out value.
+                    goto LPoint;
                 case ',':
+                    if (DecimalMarker != ',') // Same logic as above.
+                        return false;
                     goto LPoint;
 
                 // The common cases.

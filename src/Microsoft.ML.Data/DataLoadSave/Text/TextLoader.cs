@@ -1071,7 +1071,7 @@ namespace Microsoft.ML.Data
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
                 //verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
-                verWrittenCur: 0x0001000D, // Added decimal marker option to allow for ',' to be a decimal marker
+                verWrittenCur: 0x0001000D, // Added escapeChar option and decimal marker option to allow for ',' to be a decimal marker
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1221,8 +1221,6 @@ namespace Microsoft.ML.Data
 
             if (options.DecimalMarker != '.' && options.DecimalMarker != ',')
                 throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker cannot be the '{0}' character. It must be '.' or ','.", options.DecimalMarker);
-            if (_separators.Contains(options.DecimalMarker))
-                throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker and separator cannot be the same '{0}' character.", options.DecimalMarker);
             _decimalMarker = options.DecimalMarker;
             _bindings = new Bindings(this, cols, headerFile, dataSample);
             _parser = new Parser(this);
