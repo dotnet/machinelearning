@@ -7,6 +7,7 @@ namespace Samples.Dynamic
 {
     public static class LocalizeRootCause
     {
+        // This is the string defined as the aggregation symbol in the AnomalyDimension and point dimension.
         private static string AGG_SYMBOL = "##SUM##";
         public static void Example()
         {
