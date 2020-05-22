@@ -475,7 +475,7 @@ namespace Microsoft.ML.Data
             public char[] Separators = new[] { Defaults.Separator };
 
             /// <summary>
-            /// The character that should be used as the decimal marker.
+            /// The character that should be used as the decimal marker. Default value is '.'. Only '.' and ',' are allowed to be decimal markers.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, Name = "Decimal Marker", HelpText = "Character symbol used to separate the integer part from the fractional part of a number written in decimal form.", ShortName = "decimal")]
             public char DecimalMarker = Defaults.DecimalMarker;
@@ -1229,6 +1229,8 @@ namespace Microsoft.ML.Data
 
             if (options.DecimalMarker != '.' && options.DecimalMarker != ',')
                 throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker cannot be the '{0}' character. It must be '.' or ','.", options.DecimalMarker);
+            if (!options.AllowQuoting && options.DecimalMarker == ',' && options.Separator == ",")
+                throw _host.ExceptUserArg(nameof(Options.AllowQuoting), "Quoting must be allowed if decimal marker and separator are the ',' character.");
             _decimalMarker = options.DecimalMarker;
             _escapeChar = options.EscapeChar;
             if(_separators.Contains(_escapeChar))
@@ -1432,6 +1434,7 @@ namespace Microsoft.ML.Data
             else
             {
                 _escapeChar = Defaults.EscapeChar;
+                _decimalMarker = Defaults.DecimalMarker;
             }
 
             host.CheckDecode(!_separators.Contains(_escapeChar));

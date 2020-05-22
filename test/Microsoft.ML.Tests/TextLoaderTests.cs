@@ -840,16 +840,70 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
         }
 
-        [Fact]
-        public void TestCommaAsDecimalMarkerFloat()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestCommaAsDecimalMarkerFloat(bool useCsvVersion)
         {
+            // When userCsvVersion == false:
             // Datasets iris.txt and iris-decimal-marker-as-comma.txt are the exact same, except for their
             // decimal markers. Decimal marker in iris.txt is '.', and ',' in iris-decimal-marker-as-comma.txt.
             // Here, the features are of type float (Single), and the test checks for decimal markers with floats.
+
+            // When userCsvVersion == true:
+            // Check to confirm TextLoader can read data from a CSV file where the separator is ',', decimals
+            // enclosed with quotes, and with the decimal marker being ','. Features are of type float (Single), 
+            // and the test checks for decimal markers with floats.
             var mlContext = new MLContext(seed: 1);
 
+            string dataPathDecimalMarkerComma;
+            TextLoader.Options options = new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.UInt32, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) })
+                        },
+            };
+            if (useCsvVersion)
+            {
+                dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.csv");
+                options.DecimalMarker = ',';
+                options.Separator = ",";
+                options.AllowQuoting = true;
+                options.HasHeader = true;
+            }
+            else
+            {
+                dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.txt");
+                options.DecimalMarker = ',';
+            }
+
+            // Read dataset with comma as decimal marker.
+            var readerDecimalMarkerComma = new TextLoader(mlContext, options);
+            var textDataDecimalMarkerComma = readerDecimalMarkerComma.Load(GetDataPath(dataPathDecimalMarkerComma));
+
+            // Load values from iris database with comma as decimal marker.
+            DataViewSchema columnsComma = textDataDecimalMarkerComma.Schema;
+            using DataViewRowCursor cursorComma = textDataDecimalMarkerComma.GetRowCursor(columnsComma);
+            UInt32 labelComma = default;
+            ValueGetter<UInt32> labelDelegateComma = cursorComma.GetGetter<UInt32>(columnsComma[0]);
+            VBuffer<Single> featuresComma = default;
+            ValueGetter<VBuffer<Single>> featuresDelegateComma = cursorComma.GetGetter<VBuffer<Single>>(columnsComma[1]);
+
+            // Iterate over each row and save labels and features to array for future comparison
+            int count = 0;
             UInt32[] labels = new uint[150];
             float[][] features = new float[150][];
+            while (cursorComma.MoveNext())
+            {
+                //Get values from respective columns
+                labelDelegateComma(ref labelComma);
+                featuresDelegateComma(ref featuresComma);
+                labels[count] = labelComma;
+                features[count] = featuresComma.GetValues().ToArray();
+                count++;
+            }
 
             // Read dataset with period as decimal marker.
             string dataPathDecimalMarkerPeriod = GetDataPath("iris.txt");
@@ -864,56 +918,23 @@ namespace Microsoft.ML.EntryPoints.Tests
             });
             var textDataDecimalMarkerPeriod = readerDecimalMarkerPeriod.Load(GetDataPath(dataPathDecimalMarkerPeriod));
 
-            // Load values from iris.txt
+            // Load values from iris.txt where '.' is the decimal marker.
             DataViewSchema columnsPeriod = textDataDecimalMarkerPeriod.Schema;
             using DataViewRowCursor cursorPeriod = textDataDecimalMarkerPeriod.GetRowCursor(columnsPeriod);
             UInt32 labelPeriod = default;
-            ValueGetter<UInt32> labelDelegatePeriod = cursorPeriod.GetGetter<UInt32>(columnsPeriod[0]);
+            ValueGetter<UInt32> labelDelegatePeriod = cursorComma.GetGetter<UInt32>(columnsPeriod[0]);
             VBuffer<Single> featuresPeriod = default;
             ValueGetter<VBuffer<Single>> featuresDelegatePeriod = cursorPeriod.GetGetter<VBuffer<Single>>(columnsPeriod[1]);
 
-            // Iterate over each row and save labels and features to array for future comparison
-            int count = 0;
-            while (cursorPeriod.MoveNext())
-            {
-                //Get values from respective columns
-                labelDelegatePeriod(ref labelPeriod);
-                featuresDelegatePeriod(ref featuresPeriod);
-                labels[count] = labelPeriod;
-                features[count] = featuresPeriod.GetValues().ToArray();
-                count++;
-            }
-
-            // Read dataset with comma as decimal marker.
-            string dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.txt");
-            var readerDecimalMarkerComma = new TextLoader(mlContext, new TextLoader.Options()
-            {
-                Columns = new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.UInt32, 0),
-                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
-                        },
-                DecimalMarker = ','
-            });
-            var textDataDecimalMarkerComma = readerDecimalMarkerComma.Load(GetDataPath(dataPathDecimalMarkerComma));
-
-            // Load values from iris-decimal-marker-as-comma.txt
-            DataViewSchema columnsComma = textDataDecimalMarkerComma.Schema;
-            using DataViewRowCursor cursorComma = textDataDecimalMarkerComma.GetRowCursor(columnsComma);
-            UInt32 labelComma = default;
-            ValueGetter<UInt32> labelDelegateComma = cursorComma.GetGetter<UInt32>(columnsComma[0]);
-            VBuffer<Single> featuresComma = default;
-            ValueGetter<VBuffer<Single>> featuresDelegateComma = cursorComma.GetGetter<VBuffer<Single>>(columnsComma[1]);
-
-            // Check values from iris-decimal-marker-as-comma.txt match those in iris.txt
+            // Check values from database with ',' as decimal marker with database with '.' as decimal marker.
             count = 0;
             while (cursorComma.MoveNext())
             {
                 //Get values from respective columns
-                labelDelegateComma(ref labelComma);
-                featuresDelegateComma(ref featuresComma);
-                Assert.Equal(labels[count], labelComma);
-                Assert.Equal(features[count], featuresComma.GetValues().ToArray());
+                labelDelegatePeriod(ref labelPeriod);
+                featuresDelegatePeriod(ref featuresPeriod);
+                Assert.Equal(labels[count], labelPeriod);
+                Assert.Equal(features[count], featuresPeriod.GetValues().ToArray());
                 count++;
             }
         }
@@ -933,7 +954,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.UInt32, 0),
-                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Features", DataKind.Double, new [] { new TextLoader.Range(1, 4) }),
                         },
                 DecimalMarker = '.'
             });
@@ -947,11 +968,10 @@ namespace Microsoft.ML.EntryPoints.Tests
             VBuffer<Double> featuresPeriod = default;
             ValueGetter<VBuffer<Double>> featuresDelegatePeriod = cursorPeriod.GetGetter<VBuffer<Double>>(columnsPeriod[1]);
 
-            UInt32[] labels = new uint[150];
-            double[][] features = new double[150][];
-
             // Iterate over each row and save labels and features to array for future comparison
             int count = 0;
+            UInt32[] labels = new uint[150];
+            double[][] features = new double[150][];
             while (cursorPeriod.MoveNext())
             {
                 //Get values from respective columns
@@ -969,7 +989,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.UInt32, 0),
-                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Features", DataKind.Double, new [] { new TextLoader.Range(1, 4) }),
                         },
                 DecimalMarker = ','
             });
@@ -996,143 +1016,52 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
-        [Fact]
-        public void TestWrongDecimalMarkerInputs()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestWrongDecimalMarkerInputs(bool useCommaAsDecimalMarker)
         {
             // When DecimalMarker does not match the actual decimal marker used in the dataset,
             // we obtain values of NaN. Check that the values are indeed NaN in this case.
+            // Do this check for both cases where decimal markers in the dataset are '.' and ','.
             var mlContext = new MLContext(seed: 1);
 
-            // Try reading a dataset where '.' is the actual decimal marker, but DecimalMarker = ','.
-            string dataPathDecimalMarkerPeriod = GetDataPath("iris.txt");
-            var readerDecimalMarkerComma = new TextLoader(mlContext, new TextLoader.Options()
+            // Try reading a dataset where '.' is the actual decimal marker, but DecimalMarker = ',',
+            // and vice versa.
+            string dataPath;
+            TextLoader.Options options = new TextLoader.Options()
             {
                 Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.UInt32, 0),
-                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) })
                         },
-                DecimalMarker = ','
-            });
-            var textDataMismatched1 = readerDecimalMarkerComma.Load(GetDataPath(dataPathDecimalMarkerPeriod));
+            };
+            if (useCommaAsDecimalMarker)
+            {
+                dataPath = GetDataPath("iris.txt"); //  Has '.' as decimal marker inside dataset
+                options.DecimalMarker = ','; // Choose wrong decimal marker on purpose
+            }
+            else
+            {
+                dataPath = GetDataPath("iris-decimal-marker-as-comma.txt"); // Has ',' as decimal marker inside dataset
+                options.DecimalMarker = '.'; // Choose wrong decimal marker on purpose
+            }
+            var reader = new TextLoader(mlContext, options);
+            var textData = reader.Load(GetDataPath(dataPath));
 
             // Check that the features being loaded are NaN.
-            DataViewSchema columnsPeriod = textDataMismatched1.Schema;
-            using DataViewRowCursor cursorPeriod = textDataMismatched1.GetRowCursor(columnsPeriod);
+            DataViewSchema columns = textData.Schema;
+            using DataViewRowCursor cursor = textData.GetRowCursor(columns);
             VBuffer<Single> featuresPeriod = default;
-            ValueGetter<VBuffer<Single>> featuresDelegatePeriod = cursorPeriod.GetGetter<VBuffer<Single>>(columnsPeriod[1]);
+            ValueGetter<VBuffer<Single>> featuresDelegatePeriod = cursor.GetGetter<VBuffer<Single>>(columns[1]);
             
-            // Iterate over each row
-            while (cursorPeriod.MoveNext())
+            // Iterate over each row and check that feature values are NaN.
+            while (cursor.MoveNext())
             {
                 featuresDelegatePeriod.Invoke(ref featuresPeriod);
                 foreach(float feature in featuresPeriod.GetValues().ToArray())
                     Assert.Equal(feature, Single.NaN);
-            }
-
-            // Try reading a dataset where ',' is the actual decimal marker, but DecimalMarker = '.'.
-            string dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.txt");
-            var readerDecimalMarkerPeriod = new TextLoader(mlContext, new TextLoader.Options()
-            {
-                Columns = new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.UInt32, 0),
-                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
-                        },
-                DecimalMarker = '.'
-            });
-            var textDataMismatched2 = readerDecimalMarkerPeriod.Load(GetDataPath(dataPathDecimalMarkerComma));
-
-            DataViewSchema columnsComma = textDataMismatched2.Schema;
-            using DataViewRowCursor cursorComma = textDataMismatched2.GetRowCursor(columnsComma);
-            VBuffer<Single> featuresComma = default;
-            ValueGetter<VBuffer<Single>> featuresDelegateComma = cursorComma.GetGetter<VBuffer<Single>>(columnsComma[1]);
-
-            // Iterate over each row
-            while (cursorComma.MoveNext())
-            {
-                featuresDelegateComma.Invoke(ref featuresComma);
-                foreach (float feature in featuresComma.GetValues().ToArray())
-                    Assert.Equal(feature, Single.NaN);
-            }
-        }
-
-        [Fact]
-        public void TestCommaAsDecimalMarkerWithSeperatorAsCommaInCSV()
-        {
-            // Check to confirm TextLoader can read data from a CSV file where the separator is ',' and decimals
-            // enclosed with quotes and with the decimal marker ',' can be successfully read.
-            string dataPathCsv = GetDataPath("iris-decimal-marker-as-comma.csv");
-
-            var mlContext = new MLContext(seed: 1);
-            var readerCsv = new TextLoader(mlContext, new TextLoader.Options()
-            {
-                Columns = new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.Single, 0),
-                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
-                        },
-                DecimalMarker = ',',
-                Separator = ",",
-                AllowQuoting = true,
-                HasHeader = true
-            });
-            var textDataCsv = readerCsv.Load(GetDataPath(dataPathCsv));
-
-            // Load values from iris-decimal-marker-as-comma.csv
-            DataViewSchema columnsCsv = textDataCsv.Schema;
-            using DataViewRowCursor cursorCsv = textDataCsv.GetRowCursor(columnsCsv);
-            UInt32 labelCsv = default;
-            ValueGetter<UInt32> labelDelegatePeriod = cursorCsv.GetGetter<UInt32>(columnsCsv[0]);
-            VBuffer<Double> featuresCsv = default;
-            ValueGetter<VBuffer<Double>> featuresDelegatePeriod = cursorCsv.GetGetter<VBuffer<Double>>(columnsCsv[1]);
-
-            UInt32[] labels = new uint[150];
-            double[][] features = new double[150][];
-
-            // Iterate over each row and save labels and features to array for future comparison
-            int count = 0;
-            while (cursorCsv.MoveNext())
-            {
-                //Get values from respective columns
-                labelDelegatePeriod(ref labelCsv);
-                featuresDelegatePeriod(ref featuresCsv);
-                labels[count] = labelCsv;
-                features[count] = featuresCsv.GetValues().ToArray();
-                count++;
-            }
-
-            // Read dataset with comma as decimal marker.
-            string dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.txt");
-            var readerDecimalMarkerComma = new TextLoader(mlContext, new TextLoader.Options()
-            {
-                Columns = new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.UInt32, 0),
-                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
-                        },
-                DecimalMarker = ','
-            });
-            var textDataDecimalMarkerComma = readerDecimalMarkerComma.Load(GetDataPath(dataPathDecimalMarkerComma));
-
-            // Load values from iris-decimal-marker-as-comma.txt
-            DataViewSchema columnsComma = textDataDecimalMarkerComma.Schema;
-            using DataViewRowCursor cursorComma = textDataDecimalMarkerComma.GetRowCursor(columnsComma);
-            UInt32 labelComma = default;
-            ValueGetter<UInt32> labelDelegateComma = cursorComma.GetGetter<UInt32>(columnsComma[0]);
-            VBuffer<Double> featuresComma = default;
-            ValueGetter<VBuffer<Double>> featuresDelegateComma = cursorComma.GetGetter<VBuffer<Double>>(columnsComma[1]);
-
-            // Check values from iris-decimal-marker-as-comma.txt match those in iris-decimal-marker-as-comma.csv
-            count = 0;
-            while (cursorComma.MoveNext())
-            {
-                //Get values from respective columns
-                labelDelegateComma(ref labelComma);
-                featuresDelegateComma(ref featuresComma);
-                Assert.Equal(labels[count], labelComma);
-                Assert.Equal(features[count], featuresComma.GetValues().ToArray());
-                count++;
             }
         }
 
