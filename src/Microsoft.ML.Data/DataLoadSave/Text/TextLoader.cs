@@ -1229,7 +1229,7 @@ namespace Microsoft.ML.Data
 
             if (options.DecimalMarker != '.' && options.DecimalMarker != ',')
                 throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker cannot be the '{0}' character. It must be '.' or ','.", options.DecimalMarker);
-            if (!options.AllowQuoting && options.DecimalMarker == ',' && options.Separator == ",")
+            if (!options.AllowQuoting && options.DecimalMarker == ',' && _separators.Contains(','))
                 throw _host.ExceptUserArg(nameof(Options.AllowQuoting), "Quoting must be allowed if decimal marker and separator are the ',' character.");
             _decimalMarker = options.DecimalMarker;
             _escapeChar = options.EscapeChar;
