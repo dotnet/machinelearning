@@ -1120,7 +1120,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 // There should always be 1, and only 1, custom instance of ValueCreatorCache, corresponding to the comma option
                 // Even after running multiple times the loop above.
                 Assert.Equal(1, customInstancesCount);
-                Assert.True((bool)customInstancesContainsMethod.Invoke(customInstancesObject, new[] { new DoubleParser.Options(',') }));
+                Assert.True((bool)customInstancesContainsMethod.Invoke(customInstancesObject, new[] { (object) DoubleParser.OptionFlags.UseCommaAsDecimalMarker }));
             }
         }
 

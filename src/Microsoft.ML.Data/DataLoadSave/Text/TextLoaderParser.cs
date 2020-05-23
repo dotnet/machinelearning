@@ -42,15 +42,15 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            private static readonly ConcurrentDictionary<DoubleParser.Options, ValueCreatorCache> _customInstances
-                = new ConcurrentDictionary<DoubleParser.Options, ValueCreatorCache>();
+            private static readonly ConcurrentDictionary<DoubleParser.OptionFlags, ValueCreatorCache> _customInstances
+                = new ConcurrentDictionary<DoubleParser.OptionFlags, ValueCreatorCache>();
 
-            public static ValueCreatorCache GetInstanceWithDoubleParserOptions(DoubleParser.Options doubleParserOptions)
+            public static ValueCreatorCache GetInstanceWithDoubleParserOptionFlags(DoubleParser.OptionFlags doubleParserOptionFlags)
             {
-                if (!_customInstances.ContainsKey(doubleParserOptions))
-                    return _customInstances.GetOrAdd(doubleParserOptions, new ValueCreatorCache(doubleParserOptions));
+                if (!_customInstances.ContainsKey(doubleParserOptionFlags))
+                    return _customInstances.GetOrAdd(doubleParserOptionFlags, new ValueCreatorCache(doubleParserOptionFlags));
 
-                return _customInstances[doubleParserOptions];
+                return _customInstances[doubleParserOptionFlags];
             }
 
             private readonly Conversions _conv;
@@ -59,12 +59,12 @@ namespace Microsoft.ML.Data
             private readonly Func<RowSet, ColumnPipe>[] _creatorsOne;
             private readonly Func<RowSet, ColumnPipe>[] _creatorsVec;
 
-            private ValueCreatorCache(DoubleParser.Options doubleParserOptions = null)
+            private ValueCreatorCache(DoubleParser.OptionFlags doubleParserOptionFlags = DoubleParser.OptionFlags.Default)
             {
-                if (doubleParserOptions == null)
+                if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
                     _conv = Conversions.Instance;
                 else
-                    _conv = Conversions.CreateInstanceWithDoubleParserOptions(doubleParserOptions);
+                    _conv = Conversions.CreateInstanceWithDoubleParserOptions(doubleParserOptionFlags);
 
                 _creatorsOne = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
                 _creatorsVec = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
@@ -666,12 +666,16 @@ namespace Microsoft.ML.Data
                 _infos = parent._bindings.Infos;
                 _creator = new Func<RowSet, ColumnPipe>[_infos.Length];
 
-                var doubpleParserOptions = new DoubleParser.Options(parent._decimalMarker);
                 ValueCreatorCache cache;
-                if (doubpleParserOptions.AreOptionsDefault)
+
+                var doubleParserOptionFlags = DoubleParser.OptionFlags.Default;
+                if (parent._decimalMarker == ',')
+                    doubleParserOptionFlags |= DoubleParser.OptionFlags.UseCommaAsDecimalMarker;
+
+                if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
                     cache = ValueCreatorCache.DefaultInstance;
                 else
-                    cache = ValueCreatorCache.GetInstanceWithDoubleParserOptions(doubpleParserOptions);
+                    cache = ValueCreatorCache.GetInstanceWithDoubleParserOptionFlags(doubleParserOptionFlags);
 
                 var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();

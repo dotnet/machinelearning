@@ -66,11 +66,11 @@ namespace Microsoft.ML.Data.Conversion
             }
         }
 
-        // Currently only TextLoader could use non-default DoubleParser Options
-        private DoubleParser.Options _doubleParserOptions;
-        public static Conversions CreateInstanceWithDoubleParserOptions(DoubleParser.Options doubleParserOptions)
+        // Currently only TextLoader could create instances using non-default DoubleParser.OptionFlags
+        private readonly DoubleParser.OptionFlags _doubleParserOptionFlags;
+        public static Conversions CreateInstanceWithDoubleParserOptions(DoubleParser.OptionFlags doubleParserOptionFlags)
         {
-            return new Conversions(doubleParserOptions);
+            return new Conversions(doubleParserOptionFlags);
         }
 
         // Maps from {src,dst} pair of DataKind to ValueMapper. The {src,dst} pair is
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Data.Conversion
         // This has TryParseMapper<T> delegates for parsing values from text.
         private readonly Dictionary<Type, Delegate> _tryParseDelegates;
 
-        private Conversions(DoubleParser.Options doubleParserOptions = null)
+        private Conversions(DoubleParser.OptionFlags doubleParserOptionFlags = DoubleParser.OptionFlags.Default)
         {
             _delegatesStd = new Dictionary<(Type src, Type dst), Delegate>();
             _delegatesAll = new Dictionary<(Type src, Type dst), Delegate>();
@@ -110,10 +110,7 @@ namespace Microsoft.ML.Data.Conversion
             _hasZeroDelegates = new Dictionary<Type, Delegate>();
             _getNADelegates = new Dictionary<Type, Delegate>();
             _tryParseDelegates = new Dictionary<Type, Delegate>();
-            if (doubleParserOptions == null)
-                _doubleParserOptions = new DoubleParser.Options();
-            else
-                _doubleParserOptions = doubleParserOptions;
+            _doubleParserOptionFlags = doubleParserOptionFlags;
 
             // !!! WARNING !!!: Do NOT add any standard conversions without clearing from the IDV Type System
             // design committee. Any changes also require updating the IDV Type System Specification.
@@ -1345,7 +1342,7 @@ namespace Microsoft.ML.Data.Conversion
         public bool TryParse(in TX src, out R4 dst)
         {
             var span = src.Span;
-            if (DoubleParser.TryParse(span, out dst, _doubleParserOptions.DecimalMarker))
+            if (DoubleParser.TryParse(span, out dst, _doubleParserOptionFlags))
                 return true;
             dst = R4.NaN;
             return IsStdMissing(ref span);
@@ -1358,7 +1355,7 @@ namespace Microsoft.ML.Data.Conversion
         public bool TryParse(in TX src, out R8 dst)
         {
             var span = src.Span;
-            if (DoubleParser.TryParse(span, out dst, _doubleParserOptions.DecimalMarker))
+            if (DoubleParser.TryParse(span, out dst, _doubleParserOptionFlags))
                 return true;
             dst = R8.NaN;
             return IsStdMissing(ref span);
@@ -1642,7 +1639,7 @@ namespace Microsoft.ML.Data.Conversion
         public void Convert(in TX src, ref R4 value)
         {
             var span = src.Span;
-            if (DoubleParser.TryParse(span, out value, _doubleParserOptions.DecimalMarker))
+            if (DoubleParser.TryParse(span, out value, _doubleParserOptionFlags))
                 return;
             // Unparsable is mapped to NA.
             value = R4.NaN;
@@ -1650,7 +1647,7 @@ namespace Microsoft.ML.Data.Conversion
         public void Convert(in TX src, ref R8 value)
         {
             var span = src.Span;
-            if (DoubleParser.TryParse(span, out value, _doubleParserOptions.DecimalMarker))
+            if (DoubleParser.TryParse(span, out value, _doubleParserOptionFlags))
                 return;
             // Unparsable is mapped to NA.
             value = R8.NaN;
