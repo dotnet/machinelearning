@@ -30,15 +30,21 @@ namespace Microsoft.ML.Data
             private static readonly FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>> _getCreatorVecCoreMethodInfo
                 = FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>>.Create(target => target.GetCreatorVecCore<int>);
 
-            private static volatile ValueCreatorCache _instance;
-            public static ValueCreatorCache Instance
+            private static volatile ValueCreatorCache _defaultInstance;
+            public static ValueCreatorCache DefaultInstance
             {
                 get
                 {
-                    return _instance ??
-                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null) ??
-                        _instance;
+                    return _defaultInstance ??
+                        Interlocked.CompareExchange(ref _defaultInstance, new ValueCreatorCache(), null) ??
+                        _defaultInstance;
                 }
+            }
+
+            public static ValueCreatorCache CreateInstanceWithDoubleParserOptions(DoubleParser.Options doubleParserOptions)
+            {
+                // REVIEW: This can be more efficient if we actually store in a cache the resulting instance of this particular doubleParserOptions
+                return new ValueCreatorCache(doubleParserOptions);
             }
 
             private readonly Conversions _conv;
@@ -47,9 +53,12 @@ namespace Microsoft.ML.Data
             private readonly Func<RowSet, ColumnPipe>[] _creatorsOne;
             private readonly Func<RowSet, ColumnPipe>[] _creatorsVec;
 
-            private ValueCreatorCache()
+            private ValueCreatorCache(DoubleParser.Options doubleParserOptions = null)
             {
-                _conv = Conversions.Instance;
+                if (doubleParserOptions == null)
+                    _conv = Conversions.Instance;
+                else
+                    _conv = Conversions.CreateInstanceWithDoubleParserOptions(doubleParserOptions);
 
                 _creatorsOne = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
                 _creatorsVec = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
@@ -650,7 +659,13 @@ namespace Microsoft.ML.Data
 
                 _infos = parent._bindings.Infos;
                 _creator = new Func<RowSet, ColumnPipe>[_infos.Length];
-                var cache = ValueCreatorCache.Instance;
+
+                ValueCreatorCache cache;
+                if (parent._doubleParserOptions.AreOptionsDefault)
+                    cache = ValueCreatorCache.DefaultInstance;
+                else
+                    cache = ValueCreatorCache.CreateInstanceWithDoubleParserOptions(parent._doubleParserOptions);
+
                 var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 for (int i = 0; i < _creator.Length; i++)
