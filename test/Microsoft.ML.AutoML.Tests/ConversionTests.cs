@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML.Test
             foreach(var missingValue in missingValues)
             {
                 float value;
-                var success = Conversions.Instance.TryParse(missingValue.AsMemory(), out value);
+                var success = Conversions.DefaultInstance.TryParse(missingValue.AsMemory(), out value);
                 _output.WriteLine($"{missingValue} parsed as {value}");
                 Assert.True(success);
                 //Assert.Equal(float.NaN, value);
@@ -51,7 +51,7 @@ namespace Microsoft.ML.AutoML.Test
 
             foreach (var value in values)
             {
-                var success = Conversions.Instance.TryParse(value.AsMemory(), out float _);
+                var success = Conversions.DefaultInstance.TryParse(value.AsMemory(), out float _);
                 Assert.False(success);
             }
         }
@@ -70,7 +70,7 @@ namespace Microsoft.ML.AutoML.Test
 
             foreach (var missingValue in missingValues)
             {
-                var success = Conversions.Instance.TryParse(missingValue.AsMemory(), out bool _);
+                var success = Conversions.DefaultInstance.TryParse(missingValue.AsMemory(), out bool _);
                 Assert.True(success);
             }
         }
@@ -88,7 +88,7 @@ namespace Microsoft.ML.AutoML.Test
 
             foreach (var value in values)
             {
-                var success = Conversions.Instance.TryParse(value.AsMemory(), out bool _);
+                var success = Conversions.DefaultInstance.TryParse(value.AsMemory(), out bool _);
                 Assert.False(success);
             }
         }

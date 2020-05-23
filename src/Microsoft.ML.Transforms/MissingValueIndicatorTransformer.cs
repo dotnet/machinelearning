@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
 
             private static Delegate GetIsNADelegate<T>(DataViewType type)
             {
-                return Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
+                return Data.Conversion.Conversions.DefaultInstance.GetIsNAPredicate<T>(type.GetItemType());
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.inputColumnName, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                if (!inputSchema.TryFindColumn(colPair.inputColumnName, out var col) || !Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))

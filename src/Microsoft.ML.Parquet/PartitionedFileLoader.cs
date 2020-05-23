@@ -626,7 +626,7 @@ namespace Microsoft.ML.Data
                 Ch.Check(col >= 0 && col < _colValues.Length);
                 Ch.AssertValue(type);
 
-                var conv = Conversions.Instance.GetStandardConversion(TextDataViewType.Instance, type) as ValueMapper<ReadOnlyMemory<char>, TValue>;
+                var conv = Conversions.DefaultInstance.GetStandardConversion(TextDataViewType.Instance, type) as ValueMapper<ReadOnlyMemory<char>, TValue>;
                 if (conv == null)
                 {
                     throw Ch.Except("Invalid TValue: '{0}' of the conversion.", typeof(TValue));

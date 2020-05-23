@@ -38,7 +38,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(0 <= col && col < schema.Count);
             var type = schema[col].Type.GetItemType();
             Contracts.Assert(type.RawType == typeof(T));
-            var conv = Conversion.Conversions.Instance;
+            var conv = Conversion.Conversions.DefaultInstance;
 
             // First: if not key, then get the standard string conversion.
             if (!(type is KeyDataViewType keyType))

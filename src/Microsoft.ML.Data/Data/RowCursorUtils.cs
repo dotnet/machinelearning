@@ -94,7 +94,7 @@ namespace Microsoft.ML.Data
 
             var getter = row.GetGetter<TSrc>(row.Schema[col]);
             bool identity;
-            var conv = Conversions.Instance.GetStandardConversion<TSrc, TDst>(typeSrc, typeDst, out identity);
+            var conv = Conversions.DefaultInstance.GetStandardConversion<TSrc, TDst>(typeSrc, typeDst, out identity);
             if (identity)
             {
                 Contracts.Assert(typeof(TSrc) == typeof(TDst));
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(typeof(TSrc) == typeSrc.RawType);
 
             var getter = row.GetGetter<TSrc>(row.Schema[col]);
-            var conv = Conversions.Instance.GetStringConversion<TSrc>(typeSrc);
+            var conv = Conversions.DefaultInstance.GetStringConversion<TSrc>(typeSrc);
 
             var src = default(TSrc);
             return
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Data
 
             var getter = getterFact.GetGetter<VBuffer<TSrc>>();
             bool identity;
-            var conv = Conversions.Instance.GetStandardConversion<TSrc, TDst>(typeSrc.ItemType, typeDst, out identity);
+            var conv = Conversions.DefaultInstance.GetStandardConversion<TSrc, TDst>(typeSrc.ItemType, typeDst, out identity);
             if (identity)
             {
                 Contracts.Assert(typeof(TSrc) == typeof(TDst));

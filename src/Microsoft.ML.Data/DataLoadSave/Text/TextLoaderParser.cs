@@ -62,7 +62,7 @@ namespace Microsoft.ML.Data
             private ValueCreatorCache(DoubleParser.OptionFlags doubleParserOptionFlags = DoubleParser.OptionFlags.Default)
             {
                 if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
-                    _conv = Conversions.Instance;
+                    _conv = Conversions.DefaultInstance;
                 else
                     _conv = Conversions.CreateInstanceWithDoubleParserOptions(doubleParserOptionFlags);
 
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(typeof(TResult) == type.RawType);
                 _conv = conv;
                 _values = new TResult[Rows.Count];
-                HasNA = Conversions.Instance.TryGetIsNAPredicate(type, out var del);
+                HasNA = Conversions.DefaultInstance.TryGetIsNAPredicate(type, out var del);
             }
 
             public override void Reset(int irow, int size)
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Data
                 _values = new VectorValue[Rows.Count];
                 for (int i = 0; i < _values.Length; i++)
                     _values[i] = new VectorValue(this);
-                HasNA = Conversions.Instance.TryGetIsNAPredicate(type, out var del);
+                HasNA = Conversions.DefaultInstance.TryGetIsNAPredicate(type, out var del);
             }
 
             public override void Reset(int irow, int size)
@@ -1043,7 +1043,7 @@ namespace Microsoft.ML.Data
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
                                 int csrc;
-                                if (!Conversions.Instance.TryParse(in spanT, out csrc) || csrc <= 0)
+                                if (!Conversions.DefaultInstance.TryParse(in spanT, out csrc) || csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;

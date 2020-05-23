@@ -55,14 +55,14 @@ namespace Microsoft.ML.Data.Conversion
 
         // Default instance used by most of the codebase
         // Currently, only TextLoader would sometimes not use this instance
-        private static volatile Conversions _instance;
-        public static Conversions Instance // MYTODO: Should I rename this to "DefaultInstance"? It is used in over 99 places on the codebase
+        private static volatile Conversions _defaultInstance;
+        public static Conversions DefaultInstance
         {
             get
             {
-                return _instance ??
-                    Interlocked.CompareExchange(ref _instance, new Conversions(), null) ??
-                    _instance;
+                return _defaultInstance ??
+                    Interlocked.CompareExchange(ref _defaultInstance, new Conversions(), null) ??
+                    _defaultInstance;
             }
         }
 
