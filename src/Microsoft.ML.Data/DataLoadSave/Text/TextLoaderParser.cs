@@ -660,11 +660,12 @@ namespace Microsoft.ML.Data
                 _infos = parent._bindings.Infos;
                 _creator = new Func<RowSet, ColumnPipe>[_infos.Length];
 
+                var doubpleParserOptions = new DoubleParser.Options(parent._decimalMarker);
                 ValueCreatorCache cache;
-                if (parent._doubleParserOptions.AreOptionsDefault)
+                if (doubpleParserOptions.AreOptionsDefault)
                     cache = ValueCreatorCache.DefaultInstance;
                 else
-                    cache = ValueCreatorCache.CreateInstanceWithDoubleParserOptions(parent._doubleParserOptions);
+                    cache = ValueCreatorCache.CreateInstanceWithDoubleParserOptions(doubpleParserOptions);
 
                 var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
