@@ -156,7 +156,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from data processing of <paramref name="inputColumnName"/>.
         /// The column data is a vector of <see cref="System.Double"/>. The length of this vector varies depending on <paramref name="detectMode"/>.</param>
         /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
-        /// <param name="threshold">The threshold to determine anomaly. Scores larger than the threshold are considered as anomalies. This value must fall between [0,1]. Default value is 0.3.</param>
+        /// <param name="threshold">The threshold to determine an anomaly. An anomaly is detected when the calculated anomaly score for a given time-series chunk is more than the set threshold. This threshold must fall between [0,1], and its default value is 0.3.</param>
         /// <param name="batchSize">Divide the input data into batches to fit srcnn model.
         /// When set to -1, use the whole input to fit model instead of batch by batch, when set to a positive integer, use this number as batch size.
         /// Must be -1 or a positive integer no less than 12. Default value is 1024.</param>
