@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -41,10 +42,15 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public static ValueCreatorCache CreateInstanceWithDoubleParserOptions(DoubleParser.Options doubleParserOptions)
+            private static readonly ConcurrentDictionary<DoubleParser.Options, ValueCreatorCache> _customInstances
+                = new ConcurrentDictionary<DoubleParser.Options, ValueCreatorCache>();
+
+            public static ValueCreatorCache GetInstanceWithDoubleParserOptions(DoubleParser.Options doubleParserOptions)
             {
-                // REVIEW: This can be more efficient if we actually store in a cache the resulting instance of this particular doubleParserOptions
-                return new ValueCreatorCache(doubleParserOptions);
+                if (!_customInstances.ContainsKey(doubleParserOptions))
+                    return _customInstances.GetOrAdd(doubleParserOptions, new ValueCreatorCache(doubleParserOptions));
+
+                return _customInstances[doubleParserOptions];
             }
 
             private readonly Conversions _conv;
@@ -665,7 +671,7 @@ namespace Microsoft.ML.Data
                 if (doubpleParserOptions.AreOptionsDefault)
                     cache = ValueCreatorCache.DefaultInstance;
                 else
-                    cache = ValueCreatorCache.CreateInstanceWithDoubleParserOptions(doubpleParserOptions);
+                    cache = ValueCreatorCache.GetInstanceWithDoubleParserOptions(doubpleParserOptions);
 
                 var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();

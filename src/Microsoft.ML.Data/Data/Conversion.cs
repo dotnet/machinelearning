@@ -53,10 +53,8 @@ namespace Microsoft.ML.Data.Conversion
 
         // REVIEW: Reconcile implementations with TypeUtils, and clarify the distinction.
 
-        // Options for the DoubleParser, currently the TextLoader would use non-default options
-        private DoubleParser.Options _doubleParserOptions;
-
         // Default instance used by most of the codebase
+        // Currently, only TextLoader would sometimes not use this instance
         private static volatile Conversions _instance;
         public static Conversions Instance // MYTODO: Should I rename this to "DefaultInstance"? It is used in over 99 places on the codebase
         {
@@ -68,6 +66,8 @@ namespace Microsoft.ML.Data.Conversion
             }
         }
 
+        // Currently only TextLoader could use non-default DoubleParser Options
+        private DoubleParser.Options _doubleParserOptions;
         public static Conversions CreateInstanceWithDoubleParserOptions(DoubleParser.Options doubleParserOptions)
         {
             return new Conversions(doubleParserOptions);

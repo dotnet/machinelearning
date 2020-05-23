@@ -42,6 +42,23 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 DecimalMarker = decimalMarker;
             }
+
+            // Need the methods below to use this class
+            // as Key in the dictionary used in TextLoader
+            public bool Equals(Options other)
+            {
+                return other.DecimalMarker == DecimalMarker;
+            }
+
+            public override bool Equals(object o)
+            {
+                return Equals(o as Options);
+            }
+
+            public override int GetHashCode()
+            {
+                return DecimalMarker.GetHashCode();
+            }
         }
 
         private const ulong TopBit = 0x8000000000000000UL;
