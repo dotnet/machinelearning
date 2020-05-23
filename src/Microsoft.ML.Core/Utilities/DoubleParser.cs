@@ -23,8 +23,6 @@ namespace Microsoft.ML.Internal.Utilities
             // a number and its decimal part). If this isn't set, then
             // default behavior is to use "." as decimal marker.
             UseCommaAsDecimalMarker = 0x01,
-
-            All = UseCommaAsDecimalMarker
         }
 
         private const ulong TopBit = 0x8000000000000000UL;
