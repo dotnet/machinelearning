@@ -1002,6 +1002,105 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        public void TestDifferentDecimalMarkersAtTheSameTime(bool useCorrectPeriod, bool useCorrectComma)
+        {
+            // Using 2 different textloaders, with different decimal markers
+            // should yield the expected results even when using their cursors at the same time
+            // in all of the scenarios tested here
+
+            var mlContext = new MLContext(seed: 1);
+
+            var periodPath = GetDataPath("iris.txt");
+            var commaPath = GetDataPath("iris-decimal-marker-as-comma.txt");
+
+            var optionsPeriod = new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                    new TextLoader.Column("Label", DataKind.UInt32, 0),
+                    new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
+                },
+                DecimalMarker = '.'
+            };
+
+            var optionsComma = new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                    new TextLoader.Column("Label", DataKind.UInt32, 0),
+                    new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
+                },
+                DecimalMarker = ','
+            };
+
+            IDataView dataViewPeriod;
+            IDataView dataViewComma;
+
+            if(useCorrectPeriod)
+                dataViewPeriod = mlContext.Data.LoadFromTextFile(periodPath, optionsPeriod);
+            else
+                dataViewPeriod = mlContext.Data.LoadFromTextFile(commaPath, optionsPeriod);
+
+            if(useCorrectComma)
+                dataViewComma = mlContext.Data.LoadFromTextFile(commaPath, optionsComma);
+            else
+                dataViewComma = mlContext.Data.LoadFromTextFile(periodPath, optionsComma);
+
+            VBuffer<Single> featuresPeriod = default;
+            VBuffer<Single> featuresComma = default;
+
+            using (var cursorPeriod = dataViewPeriod.GetRowCursor(dataViewPeriod.Schema))
+            using(var cursorComma = dataViewComma.GetRowCursor(dataViewComma.Schema))
+            {
+                var delegatePeriod = cursorPeriod.GetGetter<VBuffer<Single>>(dataViewPeriod.Schema["Features"]);
+                var delegateComma = cursorComma.GetGetter<VBuffer<Single>>(dataViewPeriod.Schema["Features"]);
+                while (cursorPeriod.MoveNext() && cursorComma.MoveNext())
+                {
+                    delegatePeriod(ref featuresPeriod);
+                    delegateComma(ref featuresComma);
+
+                    var featuresPeriodArray = featuresPeriod.GetValues().ToArray();
+                    var featuresCommaArray = featuresComma.GetValues().ToArray();
+                    Assert.Equal(featuresPeriodArray.Length, featuresCommaArray.Length);
+
+                    for(int i = 0; i < featuresPeriodArray.Length; i++)
+                    {
+                        if(useCorrectPeriod && useCorrectComma)
+                        {
+                            // Check that none of the two files loadad NaNs
+                            // As both of them should have been loaded correctly
+                            Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
+                            Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
+                        }
+                        else if (!useCorrectPeriod && !useCorrectComma)
+                        {
+                            // Check that everything was loaded as NaN
+                            // Because the wrong decimal marker was used for both loaders
+                            Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
+                            Assert.Equal(Single.NaN, featuresPeriodArray[i]);
+                        }
+                        else if(!useCorrectPeriod && useCorrectComma)
+                        {
+                            // Check that only the file with commas was loaded correctly
+                            Assert.Equal(Single.NaN, featuresPeriodArray[i]);
+                            Assert.NotEqual(Single.NaN, featuresCommaArray[i]);
+                        }
+                        else
+                        {
+                            // Check that only the file with periods was loaded correctly
+                            Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
+                            Assert.Equal(Single.NaN, featuresCommaArray[i]);
+                        }
+                    }
+                }
+            }
+        }
+
         private class IrisNoFields
         {
         }
