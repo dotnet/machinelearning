@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -1110,14 +1111,16 @@ namespace Microsoft.ML.EntryPoints.Tests
                 // Check how many custom instances there are of TextLoader.ValueCreatorCache
                 var vccType = typeof(TextLoader).GetNestedType("ValueCreatorCache", BindingFlags.NonPublic | BindingFlags.Static);
                 var customInstancesInfo = vccType.GetField("_customInstances", BindingFlags.NonPublic | BindingFlags.Static);
-                var customInstancesValue = customInstancesInfo.GetValue(null);
-                var customInstancesCount = (int)customInstancesValue.GetType().GetProperty("Count").GetValue(customInstancesValue, null);
+                var customInstancesObject = customInstancesInfo.GetValue(null);
+                var customInstancesCount = (int)customInstancesObject.GetType().GetProperty("Count").GetValue(customInstancesObject, null);
+                var customInstancesContainsMethod = customInstancesObject.GetType().GetMethod("ContainsKey");
 
                 // Regardless of useCorrectPeriod and useCorrectComma
                 // Since we always created a TextLoader with Comma as DecimalMarker
-                // There should always be 1, and only 1, custom instance of ValueCreatorCache
+                // There should always be 1, and only 1, custom instance of ValueCreatorCache, corresponding to the comma option
                 // Even after running multiple times the loop above.
                 Assert.Equal(1, customInstancesCount);
+                Assert.True((bool)customInstancesContainsMethod.Invoke(customInstancesObject, new[] { new DoubleParser.Options(',') }));
             }
         }
 
