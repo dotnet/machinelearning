@@ -276,16 +276,16 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestHashIntegerNumbers()
         {
-            HashTestPositiveIntegerCore32Bits(0, 842, 358, 20, 882, 1010);
-            HashTestPositiveIntegerCore32Bits(1, 502, 537, 746, 588, 286);
-            HashTestPositiveIntegerCore32Bits(2, 407, 801, 652, 696, 172);
+            HashTestPositiveIntegerCore32Bits(0, 842, 358, 20, 429, 333);
+            HashTestPositiveIntegerCore32Bits(1, 502, 537, 746, 847, 711);
+            HashTestPositiveIntegerCore32Bits(2, 407, 801, 652, 727, 462);
 
-            HashTestPositiveIntegerCore64Bits(0, 512, 851, 795, 904, 84);
-            HashTestPositiveIntegerCore64Bits(1, 329, 190, 574, 894, 602);
-            HashTestPositiveIntegerCore64Bits(2, 484, 713, 128, 990, 413);
+            HashTestPositiveIntegerCore64Bits(0, 512, 851, 795, 333, 113);
+            HashTestPositiveIntegerCore64Bits(1, 329, 190, 574, 880, 471);
+            HashTestPositiveIntegerCore64Bits(2, 484, 713, 128, 95, 9);
 
-            HashTestPositiveIntegerCore128Bits(0, 362, 161, 115, 882, 1010);
-            HashTestPositiveIntegerCore128Bits(1294, 712, 920, 291, 945, 331);
+            HashTestPositiveIntegerCore128Bits(0, 362, 161, 115, 429, 333);
+            HashTestPositiveIntegerCore128Bits(1294, 712, 920, 291, 859, 353);
         }
 
         [Fact]
@@ -298,14 +298,14 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestHashFloatingPointNumbers()
         {
-            HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732, 75, 487);
-            HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780, 179, 80);
-            HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20, 882, 1010);
+            HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732, 56, 557);
+            HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780, 116, 515);
+            HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20, 429, 333);
             HashTestCore(float.NaN, NumberDataViewType.Single, 0, 0, 0, 0, 0);
 
-            HashTestCore(1d, NumberDataViewType.Double, 188, 57, 690, 151, 779);
-            HashTestCore(-1d, NumberDataViewType.Double, 885, 804, 22, 716, 428);
-            HashTestCore(0d, NumberDataViewType.Double, 512, 851, 795, 904, 84);
+            HashTestCore(1d, NumberDataViewType.Double, 188, 57, 690, 655, 896);
+            HashTestCore(-1d, NumberDataViewType.Double, 885, 804, 22, 461, 309);
+            HashTestCore(0d, NumberDataViewType.Double, 512, 851, 795, 333, 113);
             HashTestCore(double.NaN, NumberDataViewType.Double, 0, 0, 0, 0, 0);
         }
 
@@ -313,8 +313,8 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestHashBool()
         {
             // These are the same for the hashes of 0 and 1.
-            HashTestCore(false, BooleanDataViewType.Instance, 842, 358, 20, 882, 1010);
-            HashTestCore(true, BooleanDataViewType.Instance, 502, 537, 746, 588, 286);
+            HashTestCore(false, BooleanDataViewType.Instance, 842, 358, 20, 429, 333);
+            HashTestCore(true, BooleanDataViewType.Instance, 502, 537, 746, 847, 711);
         }
 
         private class HashData
