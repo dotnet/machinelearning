@@ -1388,7 +1388,7 @@ namespace Microsoft.ML.Transforms
                 // Since these numeric types are not supported by Onnxruntime, we cast them to UInt32.
                 if (srcType == NumberDataViewType.UInt16 || srcType == NumberDataViewType.Int16 ||
                     srcType == NumberDataViewType.SByte || srcType == NumberDataViewType.Byte ||
-                    srcType == BooleanDataViewType.Instance)
+                    srcType == BooleanDataViewType.Instance || srcType is KeyDataViewType)
                 {
                     castOutput = ctx.AddIntermediateVariable(NumberDataViewType.UInt32, "CastOutput", true);
                     castNode = ctx.CreateNode("Cast", srcVariable, castOutput, ctx.GetNodeName(opType), "");

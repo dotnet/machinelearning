@@ -395,7 +395,7 @@ namespace Microsoft.ML.Transforms.Onnx
                         // then throw an exception.
                         // This is done except in the case where the ONNX model input node expects a UInt32 but the input column is actually KeyDataViewType
                         // This is done to support a corner case originated in NimbusML. For more info, see: https://github.com/microsoft/NimbusML/issues/426
-                        if (!(type.GetItemType() is KeyDataViewType && inputNodeInfo.DataViewType.GetItemType().RawType == typeof(UInt32)))
+                        if (!(type.GetItemType() is KeyDataViewType && type.GetItemType().RawType == inputNodeInfo.DataViewType.GetItemType().RawType))
                             throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
                     }
 
