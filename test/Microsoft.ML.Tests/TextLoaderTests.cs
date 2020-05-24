@@ -1023,20 +1023,20 @@ namespace Microsoft.ML.EntryPoints.Tests
             var optionsPeriod = new TextLoader.Options()
             {
                 Columns = new[]
-            {
+                {
                         new TextLoader.Column("Label", DataKind.UInt32, 0),
                         new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
-                    },
+                },
                 DecimalMarker = '.'
             };
 
             var optionsComma = new TextLoader.Options()
             {
                 Columns = new[]
-                        {
+                {
                         new TextLoader.Column("Label", DataKind.UInt32, 0),
                         new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
-                    },
+                },
                 DecimalMarker = ','
             };
 
