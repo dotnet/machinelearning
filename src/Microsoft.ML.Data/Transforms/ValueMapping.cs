@@ -495,7 +495,7 @@ namespace Microsoft.ML.Transforms
                         // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                         // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                         // computing max and min.
-                        if (Data.Conversion.Conversions.Instance.TryParseKey(in value, ulong.MaxValue - 1, out res))
+                        if (Data.Conversion.Conversions.DefaultInstance.TryParseKey(in value, ulong.MaxValue - 1, out res))
                         {
                             if (res < keyMin && res != 0)
                                 keyMin = res;
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Transforms
                         }
                         // If parsing as key did not succeed, the value can still be 0, so we try parsing it as a ulong. If it succeeds,
                         // then the value is 0, and we update min accordingly.
-                        else if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryParse(in value, out res))
+                        else if (Microsoft.ML.Data.Conversion.Conversions.DefaultInstance.TryParse(in value, out res))
                         {
                             keyMin = 0;
                         }
@@ -863,7 +863,7 @@ namespace Microsoft.ML.Transforms
                     // First check if there is a String->ValueType conversion method. If so, call the conversion method with an
                     // empty string, the returned value will be the new missing value.
                     // NOTE this will return NA for R4 and R8 types.
-                    if (Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValue>(
+                    if (Data.Conversion.Conversions.DefaultInstance.TryGetStandardConversion<ReadOnlyMemory<char>, TValue>(
                                                                         TextDataViewType.Instance,
                                                                         ValueColumn.Type,
                                                                         out conv,

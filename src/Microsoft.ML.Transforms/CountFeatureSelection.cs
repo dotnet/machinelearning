@@ -399,8 +399,8 @@ namespace Microsoft.ML.Transforms
                         getter(ref t);
                         VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = t;
                     };
-                _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
-                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
+                _isDefault = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(type);
+                if (!Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate<T>(type, out _isMissing))
                     _isMissing = (in T value) => false;
             }
 
@@ -410,8 +410,8 @@ namespace Microsoft.ML.Transforms
                 var size = type.Size;
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
-                _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
+                _isDefault = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(type.ItemType);
+                if (!Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
                     _isMissing = (in T value) => false;
             }
 

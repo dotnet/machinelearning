@@ -82,7 +82,7 @@ namespace Microsoft.ML.AutoML
                         bool value;
                         // (note: Conversions.Instance.TryParse parses an empty string as a Boolean)
                         return !string.IsNullOrEmpty(x.ToString()) &&
-                            Conversions.Instance.TryParse(in x, out value);
+                            Conversions.DefaultInstance.TryParse(in x, out value);
                     }))
                 {
                     return true;
@@ -164,7 +164,7 @@ namespace Microsoft.ML.AutoML
                         col.SuggestedType = BooleanDataViewType.Instance;
                         bool first;
 
-                        col.HasHeader = !Conversions.Instance.TryParse(in col.RawData[0], out first);
+                        col.HasHeader = !Conversions.DefaultInstance.TryParse(in col.RawData[0], out first);
                     }
                 }
             }
@@ -179,7 +179,7 @@ namespace Microsoft.ML.AutoML
                             .All(x =>
                             {
                                 float value;
-                                return Conversions.Instance.TryParse(in x, out value);
+                                return Conversions.DefaultInstance.TryParse(in x, out value);
                             })
                             )
                         {

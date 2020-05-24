@@ -142,8 +142,8 @@ namespace Microsoft.ML.Data
             public InputMapper()
             {
                 _seps = new char[] { ' ', '\t' };
-                _tryFloatParse = Conversions.Instance.GetTryParseConversion<float>(NumberDataViewType.Single);
-                _tryLongParse = Conversions.Instance.GetTryParseConversion<long>(NumberDataViewType.Int64);
+                _tryFloatParse = Conversions.DefaultInstance.GetTryParseConversion<float>(NumberDataViewType.Single);
+                _tryLongParse = Conversions.DefaultInstance.GetTryParseConversion<long>(NumberDataViewType.Int64);
             }
 
             public void MapInput(Input input, IntermediateInput intermediate)
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Data
                 var inputValues = input.FeatureKeys.GetValues();
                 for (int i = 0; i < inputValues.Length; i++)
                 {
-                    if (Conversions.Instance.TryParse(in inputValues[i], out uint index))
+                    if (Conversions.DefaultInstance.TryParse(in inputValues[i], out uint index))
                     {
                         if (index < _offset)
                         {
@@ -671,7 +671,7 @@ namespace Microsoft.ML.Data
         private static uint InferMax(IHostEnvironment env, IDataView view)
         {
             ulong keyMax = 0;
-            var parser = Conversions.Instance.GetTryParseConversion<ulong>(NumberDataViewType.UInt64);
+            var parser = Conversions.DefaultInstance.GetTryParseConversion<ulong>(NumberDataViewType.UInt64);
             var col = view.Schema.GetColumnOrNull(nameof(IntermediateInput.FeatureKeys));
             env.Assert(col.HasValue);
 

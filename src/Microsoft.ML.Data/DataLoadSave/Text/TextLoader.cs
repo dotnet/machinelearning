@@ -1631,7 +1631,6 @@ namespace Microsoft.ML.Data
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
-                DoubleParser.DecimalMarker = _loader._decimalMarker;
                 var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.Create(_loader, _files, active);
             }
@@ -1639,7 +1638,6 @@ namespace Microsoft.ML.Data
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
-                DoubleParser.DecimalMarker = _loader._decimalMarker;
                 var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.CreateSet(_loader, _files, active, n);
             }

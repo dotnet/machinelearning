@@ -1525,7 +1525,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
+                Conversions.DefaultInstance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
             return new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
         }
@@ -1813,7 +1813,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
+                Conversions.DefaultInstance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
             if (Info.NeedCalibration)
@@ -2210,7 +2210,7 @@ namespace Microsoft.ML.Trainers
 
             VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(weights, ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
+                Conversions.DefaultInstance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
             return new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
         }

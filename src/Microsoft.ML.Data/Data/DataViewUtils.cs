@@ -1352,7 +1352,7 @@ namespace Microsoft.ML.Data
             var floatGetter = cursor.GetGetter<T>(cursor.Schema[i]);
             T v = default(T);
             ValueMapper<T, StringBuilder> conversion;
-            if (!Conversions.Instance.TryGetStringConversion<T>(colType, out conversion))
+            if (!Conversions.DefaultInstance.TryGetStringConversion<T>(colType, out conversion))
             {
                 var error = $"Cannot display {colType}";
                 conversion = (in T src, ref StringBuilder builder) =>
@@ -1383,7 +1383,7 @@ namespace Microsoft.ML.Data
             var vbuf = default(VBuffer<T>);
             const int previewValues = 100;
             ValueMapper<T, StringBuilder> conversion;
-            Conversions.Instance.TryGetStringConversion<T>(colType, out conversion);
+            Conversions.DefaultInstance.TryGetStringConversion<T>(colType, out conversion);
             StringBuilder dst = null;
             ValueGetter<ReadOnlyMemory<char>> getter =
                 (ref ReadOnlyMemory<char> value) =>

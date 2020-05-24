@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -999,6 +1001,126 @@ namespace Microsoft.ML.EntryPoints.Tests
                 featuresDelegatePeriod.Invoke(ref featuresPeriod);
                 foreach(float feature in featuresPeriod.GetValues().ToArray())
                     Assert.Equal(feature, Single.NaN);
+            }
+        }
+
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        public void TestDifferentDecimalMarkersAtTheSameTime(bool useCorrectPeriod, bool useCorrectComma)
+        {
+            // Using 2 different textloaders, with different decimal markers
+            // should yield the expected results even when using their cursors at the same time
+            // in all of the scenarios tested here
+
+            var mlContext = new MLContext(seed: 1);
+
+            var periodPath = GetDataPath("iris.txt");
+            var commaPath = GetDataPath("iris-decimal-marker-as-comma.txt");
+
+            var optionsPeriod = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("Label", DataKind.UInt32, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
+                },
+                DecimalMarker = '.'
+            };
+
+            var optionsComma = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("Label", DataKind.UInt32, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
+                },
+                DecimalMarker = ','
+            };
+
+            for (int j = 0; j < 2; j++)
+            {
+                // Run various times inside the same test, to also test that TextLoader is only creating 1
+                // Custom instance of ValueCreatorCache
+
+                IDataView dataViewPeriod;
+                IDataView dataViewComma;
+
+                if (useCorrectPeriod)
+                    dataViewPeriod = mlContext.Data.LoadFromTextFile(periodPath, optionsPeriod);
+                else
+                    dataViewPeriod = mlContext.Data.LoadFromTextFile(commaPath, optionsPeriod);
+
+                if (useCorrectComma)
+                    dataViewComma = mlContext.Data.LoadFromTextFile(commaPath, optionsComma);
+                else
+                    dataViewComma = mlContext.Data.LoadFromTextFile(periodPath, optionsComma);
+
+                VBuffer<Single> featuresPeriod = default;
+                VBuffer<Single> featuresComma = default;
+
+
+                using (var cursorPeriod = dataViewPeriod.GetRowCursor(dataViewPeriod.Schema))
+                using (var cursorComma = dataViewComma.GetRowCursor(dataViewComma.Schema))
+                {
+                    var delegatePeriod = cursorPeriod.GetGetter<VBuffer<Single>>(dataViewPeriod.Schema["Features"]);
+                    var delegateComma = cursorComma.GetGetter<VBuffer<Single>>(dataViewPeriod.Schema["Features"]);
+                    while (cursorPeriod.MoveNext() && cursorComma.MoveNext())
+                    {
+                        delegatePeriod(ref featuresPeriod);
+                        delegateComma(ref featuresComma);
+
+                        var featuresPeriodArray = featuresPeriod.GetValues().ToArray();
+                        var featuresCommaArray = featuresComma.GetValues().ToArray();
+                        Assert.Equal(featuresPeriodArray.Length, featuresCommaArray.Length);
+
+                        for (int i = 0; i < featuresPeriodArray.Length; i++)
+                        {
+                            if (useCorrectPeriod && useCorrectComma)
+                            {
+                                // Check that none of the two files loadad NaNs
+                                // As both of them should have been loaded correctly
+                                Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
+                                Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
+                            }
+                            else if (!useCorrectPeriod && !useCorrectComma)
+                            {
+                                // Check that everything was loaded as NaN
+                                // Because the wrong decimal marker was used for both loaders
+                                Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
+                                Assert.Equal(Single.NaN, featuresPeriodArray[i]);
+                            }
+                            else if (!useCorrectPeriod && useCorrectComma)
+                            {
+                                // Check that only the file with commas was loaded correctly
+                                Assert.Equal(Single.NaN, featuresPeriodArray[i]);
+                                Assert.NotEqual(Single.NaN, featuresCommaArray[i]);
+                            }
+                            else
+                            {
+                                // Check that only the file with periods was loaded correctly
+                                Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
+                                Assert.Equal(Single.NaN, featuresCommaArray[i]);
+                            }
+                        }
+                    }
+                }
+
+                // Check how many custom instances there are of TextLoader.ValueCreatorCache
+                var vccType = typeof(TextLoader).GetNestedType("ValueCreatorCache", BindingFlags.NonPublic | BindingFlags.Static);
+                var customInstancesInfo = vccType.GetField("_customInstances", BindingFlags.NonPublic | BindingFlags.Static);
+                var customInstancesObject = customInstancesInfo.GetValue(null);
+                var customInstancesCount = (int)customInstancesObject.GetType().GetProperty("Count").GetValue(customInstancesObject, null);
+                var customInstancesContainsMethod = customInstancesObject.GetType().GetMethod("ContainsKey");
+
+                // Regardless of useCorrectPeriod and useCorrectComma
+                // Since we always created a TextLoader with Comma as DecimalMarker
+                // There should always be 1, and only 1, custom instance of ValueCreatorCache, corresponding to the comma option
+                // Even after running multiple times the loop above.
+                Assert.Equal(1, customInstancesCount);
+                Assert.True((bool)customInstancesContainsMethod.Invoke(customInstancesObject, new[] { (object) DoubleParser.OptionFlags.UseCommaAsDecimalMarker }));
             }
         }
 

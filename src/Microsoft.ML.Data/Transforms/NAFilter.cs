@@ -297,7 +297,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<T>(cursor.Input.Schema[info.Index]);
-                    var hasBad = Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(info.Type);
+                    var hasBad = Data.Conversion.Conversions.DefaultInstance.GetIsNAPredicate<T>(info.Type);
                     return new ValueOne<T>(cursor, getSrc, hasBad);
                 }
 
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type.RawType == typeof(VBuffer<T>));
 
                     var getSrc = cursor.Input.GetGetter<VBuffer<T>>(cursor.Input.Schema[info.Index]);
-                    var hasBad = Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorDataViewType)info.Type);
+                    var hasBad = Data.Conversion.Conversions.DefaultInstance.GetHasMissingPredicate<T>((VectorDataViewType)info.Type);
                     return new ValueVec<T>(cursor, getSrc, hasBad);
                 }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -30,15 +31,26 @@ namespace Microsoft.ML.Data
             private static readonly FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>> _getCreatorVecCoreMethodInfo
                 = FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>>.Create(target => target.GetCreatorVecCore<int>);
 
-            private static volatile ValueCreatorCache _instance;
-            public static ValueCreatorCache Instance
+            private static volatile ValueCreatorCache _defaultInstance;
+            public static ValueCreatorCache DefaultInstance
             {
                 get
                 {
-                    return _instance ??
-                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null) ??
-                        _instance;
+                    return _defaultInstance ??
+                        Interlocked.CompareExchange(ref _defaultInstance, new ValueCreatorCache(), null) ??
+                        _defaultInstance;
                 }
+            }
+
+            private static readonly ConcurrentDictionary<DoubleParser.OptionFlags, ValueCreatorCache> _customInstances
+                = new ConcurrentDictionary<DoubleParser.OptionFlags, ValueCreatorCache>();
+
+            public static ValueCreatorCache GetInstanceWithDoubleParserOptionFlags(DoubleParser.OptionFlags doubleParserOptionFlags)
+            {
+                if (!_customInstances.ContainsKey(doubleParserOptionFlags))
+                    return _customInstances.GetOrAdd(doubleParserOptionFlags, new ValueCreatorCache(doubleParserOptionFlags));
+
+                return _customInstances[doubleParserOptionFlags];
             }
 
             private readonly Conversions _conv;
@@ -47,9 +59,12 @@ namespace Microsoft.ML.Data
             private readonly Func<RowSet, ColumnPipe>[] _creatorsOne;
             private readonly Func<RowSet, ColumnPipe>[] _creatorsVec;
 
-            private ValueCreatorCache()
+            private ValueCreatorCache(DoubleParser.OptionFlags doubleParserOptionFlags = DoubleParser.OptionFlags.Default)
             {
-                _conv = Conversions.Instance;
+                if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
+                    _conv = Conversions.DefaultInstance;
+                else
+                    _conv = Conversions.CreateInstanceWithDoubleParserOptions(doubleParserOptionFlags);
 
                 _creatorsOne = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
                 _creatorsVec = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
@@ -243,7 +258,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(typeof(TResult) == type.RawType);
                 _conv = conv;
                 _values = new TResult[Rows.Count];
-                HasNA = Conversions.Instance.TryGetIsNAPredicate(type, out var del);
+                HasNA = Conversions.DefaultInstance.TryGetIsNAPredicate(type, out var del);
             }
 
             public override void Reset(int irow, int size)
@@ -425,7 +440,7 @@ namespace Microsoft.ML.Data
                 _values = new VectorValue[Rows.Count];
                 for (int i = 0; i < _values.Length; i++)
                     _values[i] = new VectorValue(this);
-                HasNA = Conversions.Instance.TryGetIsNAPredicate(type, out var del);
+                HasNA = Conversions.DefaultInstance.TryGetIsNAPredicate(type, out var del);
             }
 
             public override void Reset(int irow, int size)
@@ -650,7 +665,18 @@ namespace Microsoft.ML.Data
 
                 _infos = parent._bindings.Infos;
                 _creator = new Func<RowSet, ColumnPipe>[_infos.Length];
-                var cache = ValueCreatorCache.Instance;
+
+                ValueCreatorCache cache;
+
+                var doubleParserOptionFlags = DoubleParser.OptionFlags.Default;
+                if (parent._decimalMarker == ',')
+                    doubleParserOptionFlags |= DoubleParser.OptionFlags.UseCommaAsDecimalMarker;
+
+                if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
+                    cache = ValueCreatorCache.DefaultInstance;
+                else
+                    cache = ValueCreatorCache.GetInstanceWithDoubleParserOptionFlags(doubleParserOptionFlags);
+
                 var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 for (int i = 0; i < _creator.Length; i++)
@@ -1017,7 +1043,7 @@ namespace Microsoft.ML.Data
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
                                 int csrc;
-                                if (!Conversions.Instance.TryParse(in spanT, out csrc) || csrc <= 0)
+                                if (!Conversions.DefaultInstance.TryParse(in spanT, out csrc) || csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;

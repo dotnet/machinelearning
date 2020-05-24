@@ -254,7 +254,7 @@ namespace Microsoft.ML.Trainers
 
             VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
+                Conversions.DefaultInstance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
             return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
