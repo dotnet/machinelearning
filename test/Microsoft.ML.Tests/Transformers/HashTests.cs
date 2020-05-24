@@ -220,7 +220,6 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         private void HashTestPositiveIntegerCore32Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
-
         {
             uint eKey = value == 0 ? 0 : expected;
             uint eoKey = value == 0 ? 0 : expectedOrdered;
@@ -243,9 +242,6 @@ namespace Microsoft.ML.Tests.Transformers
                 HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
 
-            HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
-
             // Next let's check signed numbers.
             if (value <= (ulong)sbyte.MaxValue)
                 HashTestCore((sbyte)value, NumberDataViewType.SByte, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
@@ -256,7 +252,6 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         private void HashTestPositiveIntegerCore64Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
-
         {
             uint eKey = value == 0 ? 0 : expected;
             uint eoKey = value == 0 ? 0 : expectedOrdered;
@@ -268,6 +263,14 @@ namespace Microsoft.ML.Tests.Transformers
             // Next let's check signed numbers.
             if (value <= long.MaxValue)
             HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+
+            // ulong keys
+            HashTestCore(value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
+        }
+
+        private void HashTestPositiveIntegerCore128Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
+        {
+            HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
         }
 
         [Fact]
@@ -277,9 +280,12 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestPositiveIntegerCore32Bits(1, 502, 537, 746, 588, 286);
             HashTestPositiveIntegerCore32Bits(2, 407, 801, 652, 696, 172);
 
-            HashTestPositiveIntegerCore64Bits(0, 512, 851, 795, 1010, 620);
-            HashTestPositiveIntegerCore64Bits(1, 329, 190, 574, 491, 805);
-            HashTestPositiveIntegerCore64Bits(2, 484, 713, 128, 606, 326);
+            HashTestPositiveIntegerCore64Bits(0, 512, 851, 795, 904, 84);
+            HashTestPositiveIntegerCore64Bits(1, 329, 190, 574, 894, 602);
+            HashTestPositiveIntegerCore64Bits(2, 484, 713, 128, 990, 413);
+
+            HashTestPositiveIntegerCore128Bits(0, 362, 161, 115, 882, 1010);
+            HashTestPositiveIntegerCore128Bits(1294, 712, 920, 291, 945, 331);
         }
 
         [Fact]
@@ -295,10 +301,12 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732, 75, 487);
             HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780, 179, 80);
             HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20, 882, 1010);
+            HashTestCore(float.NaN, NumberDataViewType.Single, 0, 0, 0, 0, 0);
 
-            HashTestCore(1d, NumberDataViewType.Double, 188, 57, 690, 727, 36);
-            HashTestCore(-1d, NumberDataViewType.Double, 885, 804, 22, 582, 346);
-            HashTestCore(0d, NumberDataViewType.Double, 512, 851, 795, 1010, 620);
+            HashTestCore(1d, NumberDataViewType.Double, 188, 57, 690, 151, 779);
+            HashTestCore(-1d, NumberDataViewType.Double, 885, 804, 22, 716, 428);
+            HashTestCore(0d, NumberDataViewType.Double, 512, 851, 795, 904, 84);
+            HashTestCore(double.NaN, NumberDataViewType.Double, 0, 0, 0, 0, 0);
         }
 
         [Fact]

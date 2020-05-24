@@ -590,7 +590,7 @@ namespace Microsoft.ML.Transforms
                         return 0;
                     hash = HashRound(hash, value, false);
                 }
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, sizeof(double)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (value == 0)
                     return 0;
-                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -729,7 +729,7 @@ namespace Microsoft.ML.Transforms
                         return 0;
                     hash = HashRound(hash, value, false);
                 }
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -823,7 +823,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = HashRound(hash, value, false);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -842,13 +842,13 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCoreOld(uint seed, uint mask, in DataViewRowId value)
             {
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in DataViewRowId value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), 2 * sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -856,18 +856,18 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(hash, value);
+                    hash = HashRound(hash, value, false);
                 return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, DataViewRowId value)
+            private uint HashRound(uint seed, DataViewRowId value, bool old)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Low));
                 var hi = Utils.GetHi(value.Low);
-                if (hi != 0)
+                if (old && hi != 0)
                     hash = Hashing.MurmurRound(hash, hi);
-                if (value.High != 0)
+                if (old && value.High != 0)
                 {
                     hash = Hashing.MurmurRound(hash, Utils.GetLo(value.High));
                     hi = Utils.GetHi(value.High);
@@ -978,7 +978,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = HashRound(hash, value, false);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, sizeof(long)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
