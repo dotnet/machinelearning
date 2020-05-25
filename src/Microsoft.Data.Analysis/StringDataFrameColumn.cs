@@ -19,7 +19,7 @@ namespace Microsoft.Data.Analysis
     {
         private List<List<string>> _stringBuffers = new List<List<string>>(); // To store more than intMax number of strings
 
-        public StringDataFrameColumn(string name, long length) : base(name, length, typeof(string))
+        public StringDataFrameColumn(string name, long length = 0) : base(name, length, typeof(string))
         {
             int numberOfBuffersRequired = Math.Max((int)(length / int.MaxValue), 1);
             for (int i = 0; i < numberOfBuffersRequired; i++)
