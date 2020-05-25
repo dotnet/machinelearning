@@ -156,7 +156,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from data processing of <paramref name="inputColumnName"/>.
         /// The column data is a vector of <see cref="System.Double"/>. The length of this vector varies depending on <paramref name="detectMode"/>.</param>
         /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
-        /// <param name="threshold">The threshold to determine an anomaly. An anomaly is detected when the calculated anomaly score for a given time-series chunk is more than the set threshold. This threshold must fall between [0,1], and its default value is 0.3.</param>
+        /// <param name="threshold">The threshold to determine an anomaly. An anomaly is detected when the calculated SR raw score for a given point is more than the set threshold. This threshold must  fall between [0,1], and its default value is 0.3.</param>
         /// <param name="batchSize">Divide the input data into batches to fit srcnn model.
         /// When set to -1, use the whole input to fit model instead of batch by batch, when set to a positive integer, use this number as batch size.
         /// Must be -1 or a positive integer no less than 12. Default value is 1024.</param>
@@ -165,6 +165,7 @@ namespace Microsoft.ML
         /// When set to AnomalyOnly, the output vector would be a 3-element Double vector of (IsAnomaly, RawScore, Mag).
         /// When set to AnomalyAndExpectedValue, the output vector would be a 4-element Double vector of (IsAnomaly, RawScore, Mag, ExpectedValue).
         /// When set to AnomalyAndMargin, the output vector would be a 7-element Double vector of (IsAnomaly, AnomalyScore, Mag, ExpectedValue, BoundaryUnit, UpperBoundary, LowerBoundary).
+        /// The RawScore is output by SR to determine whether a point is an anomaly or not, under AnomalyAndMargin mode, when a point is an anomaly, an AnomalyScore will be calculated according to sensitivity setting.
         /// Default value is AnomalyOnly.</param>
         /// <example>
         /// <format type="text/markdown">
