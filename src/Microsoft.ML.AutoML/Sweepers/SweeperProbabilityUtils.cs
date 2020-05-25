@@ -98,13 +98,15 @@ namespace Microsoft.ML.AutoML
                 }
                 else if (sweepParam is LongValueGenerator lvg)
                 {
+                    var longValue = GetIfIParameterValueOfT<long>(pset) ?? long.Parse(pset.ValueText);
                     // Normalizing all numeric parameters to [0,1] range.
-                    result.Add(lvg.NormalizeValue(new LongParameterValue(pset.Name, long.Parse(pset.ValueText))));
+                    result.Add(lvg.NormalizeValue(new LongParameterValue(pset.Name, longValue)));
                 }
                 else if (sweepParam is FloatValueGenerator fvg)
                 {
+                    var floatValue = GetIfIParameterValueOfT<float>(pset) ?? float.Parse(pset.ValueText);
                     // Normalizing all numeric parameters to [0,1] range.
-                    result.Add(fvg.NormalizeValue(new FloatParameterValue(pset.Name, float.Parse(pset.ValueText))));
+                    result.Add(fvg.NormalizeValue(new FloatParameterValue(pset.Name, floatValue)));
                 }
                 else
                 {
@@ -114,6 +116,10 @@ namespace Microsoft.ML.AutoML
 
             return result.ToArray();
         }
+
+        private static T? GetIfIParameterValueOfT<T>(IParameterValue parameterValue)
+            where T : struct =>
+            parameterValue is IParameterValue<T> pvt ? pvt.Value : default(T?);
 
         public static ParameterSet FloatArrayAsParameterSet(IValueGenerator[] sweepParams, float[] array, bool expandedCategoricals = true)
         {
