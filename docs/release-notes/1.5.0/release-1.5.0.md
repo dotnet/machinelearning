@@ -9,9 +9,9 @@
   - Enable TextLoader to accept new lines in quoted fields  ([#5125](https://github.com/dotnet/machinelearning/pull/5125))
   - Add escapeChar support to TextLoader ([#5147](https://github.com/dotnet/machinelearning/pull/5147))
   - Add public generic methods to TextLoader catalog that accept Options objects ([#5134](https://github.com/dotnet/machinelearning/pull/5134))
-  - Added decimal marker option in TextLoader ([#5145](https://github.com/dotnet/machinelearning/pull/5145))
+  - Added decimal marker option in TextLoader ([#5145](https://github.com/dotnet/machinelearning/pull/5145), [#5154](https://github.com/dotnet/machinelearning/pull/5154))
 - Onnxruntime updated to v1.3 ([#5104](https://github.com/dotnet/machinelearning/pull/5104)). This brings support for additional data types for the HashingEstimator.
-- Onnx export for OneHotHashEncodingTransformer and HashingTransormer ([#5013](https://github.com/dotnet/machinelearning/pull/5013))
+- Onnx export for OneHotHashEncodingTransformer and HashingTransormer ([#5013](https://github.com/dotnet/machinelearning/pull/5013), [#5152](https://github.com/dotnet/machinelearning/pull/5152), [#5138](https://github.com/dotnet/machinelearning/pull/5138))
 - Support for Categorical features in CalculateFeatureContribution of LightGBM ([#5018](https://github.com/dotnet/machinelearning/pull/5018))
   
 
