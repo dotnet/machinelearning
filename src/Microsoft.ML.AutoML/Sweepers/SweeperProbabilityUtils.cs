@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.ML.Internal.CpuMath;
 
 namespace Microsoft.ML.AutoML
@@ -104,7 +105,7 @@ namespace Microsoft.ML.AutoML
                 }
                 else if (sweepParam is FloatValueGenerator fvg)
                 {
-                    var floatValue = GetIfIParameterValueOfT<float>(pset) ?? float.Parse(pset.ValueText);
+                    var floatValue = GetIfIParameterValueOfT<float>(pset) ?? float.Parse(pset.ValueText, CultureInfo.InvariantCulture);
                     // Normalizing all numeric parameters to [0,1] range.
                     result.Add(fvg.NormalizeValue(new FloatParameterValue(pset.Name, floatValue)));
                 }
