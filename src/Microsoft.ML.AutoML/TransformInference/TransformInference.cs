@@ -184,7 +184,7 @@ namespace Microsoft.ML.AutoML
 
                     if (!col.Type.IsKey())
                     {
-                        yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName,
+                        yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, col.ColumnName,
                             col.ColumnName);
                     }
                 }

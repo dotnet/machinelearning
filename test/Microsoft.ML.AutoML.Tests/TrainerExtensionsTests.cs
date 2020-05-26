@@ -283,7 +283,12 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void BuildFastTreeRankingPipelineNode()
         {
-            var pipelineNode = new FastTreeRankingExtension().CreatePipelineNode(null, new ColumnInformation());
+            var columnInfo = new ColumnInformation()
+            {
+                LabelColumnName = "L",
+                GroupIdColumnName = "GId"
+            };
+            var pipelineNode = new FastTreeRankingExtension().CreatePipelineNode(null, columnInfo);
             var expectedJson = @"{
   ""Name"": ""FastTreeRanking"",
   ""NodeType"": ""Trainer"",
@@ -294,27 +299,8 @@ namespace Microsoft.ML.AutoML.Test
     ""Score""
   ],
   ""Properties"": {
-    ""LabelColumnName"": ""Label""
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
-        }
-
-        [Fact]
-        public void BuildRankingPipelineNode()
-        {
-            var pipelineNode = new FastTreeRankingExtension().CreatePipelineNode(null, new ColumnInformation());
-            var expectedJson = @"{
-  ""Name"": ""FastTreeRanking"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
-  ""Properties"": {
-    ""LabelColumnName"": ""Label""
+    ""LabelColumnName"": ""L"",
+    ""RowGroupColumnName"": ""GId""
   }
 }";
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);

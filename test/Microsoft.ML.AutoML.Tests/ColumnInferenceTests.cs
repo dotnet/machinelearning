@@ -141,7 +141,8 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void DefaultColumnNamesInferredCorrectly()
         {
-            var result = new MLContext(1).Auto().InferColumns(Path.Combine("TestData", "DatasetWithDefaultColumnNames.txt"),
+            var result = new MLContext(1).Auto()
+                .InferColumns(Path.Combine("TestData", "DatasetWithDefaultColumnNames.txt"),
                 new ColumnInformation()
                 {
                     LabelColumnName = DefaultColumnNames.Label,
@@ -155,7 +156,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(DefaultColumnNames.Weight, result.ColumnInformation.ExampleWeightColumnName);
             Assert.Equal(DefaultColumnNames.User, result.ColumnInformation.UserIdColumnName);
             Assert.Equal(DefaultColumnNames.Item, result.ColumnInformation.ItemIdColumnName);
-            Assert.Equal(4, result.ColumnInformation.NumericColumnNames.Count());
+            Assert.Equal(3, result.ColumnInformation.NumericColumnNames.Count());
         }
 
         [Fact]

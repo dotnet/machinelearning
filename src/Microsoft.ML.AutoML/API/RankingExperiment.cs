@@ -44,7 +44,7 @@ namespace Microsoft.ML.AutoML
         Dcg
     }
     /// <summary>
-    /// Enumeration of ML.NET multiclass classification trainers used by AutoML.
+    /// Enumeration of ML.NET ranking trainers used by AutoML.
     /// </summary>
     public enum RankingTrainer
     {
@@ -91,7 +91,7 @@ namespace Microsoft.ML.AutoML
     }
 
     /// <summary>
-    /// AutoML experiment on ranking classification datasets.
+    /// AutoML experiment on ranking datasets.
     /// </summary>
     /// <example>
     /// <format type="text/markdown">
