@@ -1,7 +1,7 @@
-At Mircosoft, we develop a decision tree based root cause localization method which helps to find out the root causes for an anomaly incident at a specific timestamp incrementally. 
+At Microsoft, we have developed a decision tree based root cause localization method which helps to find out the root causes for an anomaly incident at a specific timestamp incrementally. 
 
 ## Multi-Dimensional Root Cause Localization
-It's a common case that one measure is collected with many dimensions (*e.g.*, Province, ISP) whose values are categorical(*e.g.*, Beijing or Shanghai for dimension Province). When a measure's value deviates from its expected value, this measure encounters anomalies. In such case, operators would like to localize the root cause dimension combinations rapidly and accurately. Multi-dimensional root cause localization is critical to troubleshoot and mitigate such case.
+It's a common case that one measure is collected with many dimensions (*e.g.*, Province, ISP) whose values are categorical(*e.g.*, Beijing or Shanghai for dimension Province). When a measure's value deviates from its expected value, this measure encounters anomalies. In such case, users would like to localize the root cause dimension combinations rapidly and accurately. Multi-dimensional root cause localization is critical to troubleshoot and mitigate such case.
 
 ## Algorithm
 
@@ -13,7 +13,7 @@ The decision tree based root cause localization method is unsupervised, which me
 
 ### Decision Tree
 
-[Decision tree](https://en.wikipedia.org/wiki/Decision_tree) algorithm chooses the highest information gain to split or construct a decision tree.  We use it to choose the dimension which contributes the most to the anomaly. Following are some concepts used in decision tree.
+The [Decision tree](https://en.wikipedia.org/wiki/Decision_tree) algorithm chooses the highest information gain to split or construct a decision tree.  We use it to choose the dimension which contributes the most to the anomaly. Below are some concepts used in decision trees.
 
 #### Information Entropy
 
@@ -30,7 +30,7 @@ $$Gain(D, a) = Ent(D) - \sum_{v=1}^{|V|} \frac{|D^V|}{|D |} Ent(D^v) $$
 
 Where $Ent(D^v)$ is the entropy of set points in D for which dimension $a$ is equal to $v$, $|D|$ is the total number of points in dataset $D$.  $|D^V|$ is the total number of points in dataset $D$ for which dimension $a$ is equal to $v$.
 
-For all aggregated dimensions, we calculate the information for each dimension. The greater the reduction in this uncertainty, the more information is gained about D from dimension $a$.
+For all aggregated dimensions, we calculate the information for each dimension. The greater the reduction in this uncertainty, the more information is gained about $D$ from dimension $a$.
 
 #### Entropy Gain Ratio
 
