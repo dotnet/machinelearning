@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
@@ -1200,29 +1199,32 @@ namespace Microsoft.ML.Tests
             public uint Value { get; set; }
         }
 
-        [Fact]
-        public void MurmurHashKeyTest()
+        [Theory]
+        [CombinatorialData]
+        public void MurmurHashKeyTest(
+            [CombinatorialValues(/*DataKind.Byte, DataKind.UInt16, */DataKind.UInt32/*, DataKind.UInt64*/)]DataKind keyType)
         {
-            var mlContext = new MLContext();
+            var dataFile = DeleteOutputPath("KeysToOnnx.txt");
+            File.WriteAllLines(dataFile,
+                new[]
+                {
+                    "2",
+                    "5",
+                    "19"
+                });
 
-            var samples = new[]
+            var data = ML.Data.LoadFromTextFile(dataFile, new[]
             {
-                new HashData {Value = 232},
-                new HashData {Value = 42},
-                new HashData {Value = 0},
-            };
+                new TextLoader.Column("Value", keyType, new[]
+                {
+                    new TextLoader.Range(0)
+                }, new KeyCount(10))
+            });
 
-            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
-
-            var hashEstimator = mlContext.Transforms.Conversion.MapValueToKey("Value").Append(mlContext.Transforms.Conversion.Hash(new[]
-            {
-                new HashingEstimator.ColumnOptions(
-                    "ValueHashed",
-                    "Value")
-            }));
+            var hashEstimator = ML.Transforms.Conversion.Hash("ValueHashed", "Value");
             var model = hashEstimator.Fit(data);
             var transformedData = model.Transform(data);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+            var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, data);
 
             var onnxFileName = "MurmurHashV2.onnx";
             var onnxTextName = "MurmurHashV2.txt";
@@ -1236,7 +1238,7 @@ namespace Microsoft.ML.Tests
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = ML.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
                 CompareSelectedColumns<uint>("ValueHashed", "ValueHashed", transformedData, onnxResult);
