@@ -1202,7 +1202,7 @@ namespace Microsoft.ML.Tests
         [Theory]
         [CombinatorialData]
         public void MurmurHashKeyTest(
-            [CombinatorialValues(/*DataKind.Byte, DataKind.UInt16, */DataKind.UInt32/*, DataKind.UInt64*/)]DataKind keyType)
+            [CombinatorialValues(DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.UInt64)]DataKind keyType)
         {
             var dataFile = DeleteOutputPath("KeysToOnnx.txt");
             File.WriteAllLines(dataFile,
