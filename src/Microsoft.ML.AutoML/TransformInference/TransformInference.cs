@@ -184,7 +184,7 @@ namespace Microsoft.ML.AutoML
 
                     if (!col.Type.IsKey())
                     {
-                        yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, col.ColumnName,
+                        yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName,
                             col.ColumnName);
                     }
                 }
@@ -229,7 +229,7 @@ namespace Microsoft.ML.AutoML
                     {
                         if (column.Purpose == ColumnPurpose.GroupId && !column.Type.IsKey())
                         {
-                            yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
+                            yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
                         }
                     }
                 }

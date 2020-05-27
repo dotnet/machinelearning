@@ -28,7 +28,7 @@ namespace Microsoft.ML.AutoML.Test
                     new DatasetColumnInfo("Label", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[
   {
-    ""Name"": ""KeyToValueMapping"", 
+    ""Name"": ""KeyToValueMapping"",
     ""NodeType"": ""Transform"",
     ""InColumns"": [
       ""PredictedLabel""
