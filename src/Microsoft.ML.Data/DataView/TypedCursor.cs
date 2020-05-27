@@ -217,10 +217,10 @@ namespace Microsoft.ML.Data
                  .ToArray();
         }
 
-        public static bool ValidateMemberInfo(MemberInfo memberInfo, IDataView data)
+        public static void ValidateMemberInfo(MemberInfo memberInfo, IDataView data)
         {
             if (!SchemaDefinition.CheckMemberInfo(memberInfo))
-                return false;
+                return;
 
             var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
             var singleName = mappingNameAttr?.Name ?? memberInfo.Name;
@@ -253,8 +253,6 @@ namespace Microsoft.ML.Data
                 if (!actualType.Equals(expectedType.RawType))
                     throw Contracts.ExceptParam(nameof(actualType), $"The expected type '{expectedType.RawType}' does not match the type of the '{singleName}' property: '{actualType.Name}'. Please change the {singleName} property to '{expectedType.RawType}'");
             }
-
-            return true;
         }
 
         public static void ValidateUserType(SchemaDefinition schemaDefinition, Type userType, IDataView data)
@@ -292,9 +290,7 @@ namespace Microsoft.ML.Data
                     {
                         memberInfo = col.ReturnType;
                     }
-
-                    if (!ValidateMemberInfo(memberInfo, data))
-                        continue;
+                    ValidateMemberInfo(memberInfo, data);
                 }
             }
 
@@ -302,10 +298,7 @@ namespace Microsoft.ML.Data
                 return;
 
             foreach (var memberInfo in memberInfos)
-            {
-                if (!ValidateMemberInfo(memberInfo, data))
-                    continue;
-            }
+                ValidateMemberInfo(memberInfo, data);
         }
 
         /// <summary>
