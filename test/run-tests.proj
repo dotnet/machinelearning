@@ -10,7 +10,7 @@
     <Message Importance="High" Text="Running tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
-             Properties="VSTestNoBuild=true;VSTestBlame=true" />
+             Properties="VSTestNoBuild=true;VSTestBlame=true;VSTestCollect=XPlat Code Coverage;VSTestSetting=$(MSBuildThisFileDirectory)\coverlet.runsettings" />
   </Target>
 
   <Target Name="RunCITests">

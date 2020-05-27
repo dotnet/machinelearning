@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.TestFramework;

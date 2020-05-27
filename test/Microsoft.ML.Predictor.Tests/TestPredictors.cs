@@ -25,6 +25,7 @@ namespace Microsoft.ML.RunTests
     using TestLearners = TestLearnersBase;
     using Microsoft.ML.TestFrameworkCommon;
     using Microsoft.ML.TestFrameworkCommon.Attributes;
+    using System.Diagnostics;
 
     /// <summary>
     /// Tests using maml commands (IDV) functionality.
