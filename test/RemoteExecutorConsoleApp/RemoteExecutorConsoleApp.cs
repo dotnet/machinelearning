@@ -17,8 +17,6 @@ namespace RemoteExecutorConsoleApp
     {
         static int Main(string[] args)
         {
-            //Debugger.Launch();
-
             if (args.Length < 4)
             {
                 Console.Error.WriteLine("Usage: {0} assemblyName typeName methodName exceptionFile [additionalArgs]", typeof(Program).GetTypeInfo().Assembly.GetName().Name);
@@ -112,7 +110,6 @@ namespace RemoteExecutorConsoleApp
             catch (PlatformNotSupportedException)
             {
             }
-
             return exitCode;
         }
 

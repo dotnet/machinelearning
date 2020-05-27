@@ -26,7 +26,7 @@ namespace Microsoft.ML.TestFramework
         public static readonly string HostRunner = Path.GetFullPath(@"RemoteExecutorConsoleApp.exe");
         private static readonly string _extraParameter = "";
 #else
-        public static readonly string HostRunner = "dotnet.exe";
+        public static readonly string HostRunner = "dotnet";
         private static readonly string _extraParameter = TestConsoleApp;
 #endif
         /// <summary>A timeout (milliseconds) after which a wait on a remote operation should be considered a failure.</summary>
