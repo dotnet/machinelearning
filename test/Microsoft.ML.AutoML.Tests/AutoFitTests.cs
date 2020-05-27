@@ -154,7 +154,6 @@ namespace Microsoft.ML.AutoML.Test
                 Assert.True(col.Name == expectedOutputNames[col.Index]);
         }
 
-
         [Fact]
         public void AutoFitRecommendationTest()
         {

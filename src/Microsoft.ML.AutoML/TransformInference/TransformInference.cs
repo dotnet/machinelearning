@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.AutoML
 {
@@ -229,7 +230,7 @@ namespace Microsoft.ML.AutoML
                     {
                         if (column.Purpose == ColumnPurpose.GroupId && !column.Type.IsKey())
                         {
-                            yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
+                            yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName, OneHotEncodingEstimator.OutputKind.Key);
                         }
                     }
                 }
