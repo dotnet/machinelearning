@@ -7,9 +7,6 @@ dotnet_sort_system_directives_first = true
 # VSTHRD002: Avoid problematic synchronous waits
 dotnet_diagnostic.VSTHRD002.severity = none
 
-# MSML_NoInstanceInitializers: No initializers on instance fields or properties
-dotnet_diagnostic.MSML_NoInstanceInitializers.severity = none
-
 [test/**/*.cs]
 
 # MSML_GeneralName: This name should be PascalCased
