@@ -433,10 +433,9 @@ namespace Microsoft.ML.Data
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText =
-                    "Whether the input may include quoted values, which can contain separator characters, colons," +
-                    " and distinguish empty values from missing values. When true, consecutive separators denote a" +
-                    " missing value and an empty value is denoted by \"\". When false, consecutive separators" +
-                    " denote an empty value.",
+                    "Whether the input may include double-quoted values. This parameter is used to distinguish separator characters in an input value" +
+                    "from actual separators. When true, separators within double quotes are treated as part of the input value. When false, all" +
+                    "separators, even those within quotes, are treated as delimiting a new column.",
                 ShortName = "quote")]
             public bool AllowQuoting = Defaults.AllowQuoting;
 
