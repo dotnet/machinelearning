@@ -5,15 +5,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
-using Test.Model;
+using Namespace.Model;
+ 
+using Microsoft.ML.CodeGenerator.Helper;
+using Microsoft.ML.CodeGenerator.Helper.ImageClassification;
 
-namespace Test.Model
+namespace Namespace.Model
 {
-    public class ConsumeModel
+	public class ConsumeModel
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
-        public static string MLNetModelPath = Path.GetFullPath("\path\to\model");
+        public static string MLNetModelPath = Path.GetFullPath("MLNetModelName");
+ 
+        public static string OnnxModelPath = Path.GetFullPath("OnnxModelName");
+
+        public static string OnnxLabelPath = Path.GetFullPath("OnnxLabelName");
 
         // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app
@@ -27,11 +34,13 @@ namespace Test.Model
         {
             // Create new MLContext
             MLContext mlContext = new MLContext();
+ 
+            LabelMapping.Label = Utilities.GeltLabelFromJsonFile(OnnxLabelPath);
 
             // Load model & create prediction engine
             ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
-
+            
             return predEngine;
         }
     }

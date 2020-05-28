@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.ML.LightGBM" Version="1.4.0-preview3-28229-2" />
     <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.4.0-preview3-28229-2" />
     <PackageReference Include="Microsoft.ML.FastTree" Version="1.4.0-preview3-28229-2" />
+    <PackageReference Include="Microsoft.ML.CodeGenerator.Helper" Version="1.2.3" />
   </ItemGroup>
 
   <ItemGroup>

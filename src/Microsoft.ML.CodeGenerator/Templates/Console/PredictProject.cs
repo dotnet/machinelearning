@@ -54,6 +54,8 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
  if (IncludeOnnxPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n    <PackageReference Include=\"Microsoft.ML.OnnxRuntime\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(OnnxRuntimePackageVersion));
             this.Write("\" />\r\n");
 }
  if (IncludeResNet18Package){ 
@@ -71,7 +73,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write(this.ToStringHelper.ToStringWithCulture(UnstablePackageVersion));
             this.Write("\" />\r\n");
 }
-            this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.CodeGenerator.Helper\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(CodeGenHelperPackageVersion));
+            this.Write("\" />\r\n  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -96,6 +100,8 @@ public bool IncludeResNet18Package {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
+public string CodeGenHelperPackageVersion {get;set;}
+public string OnnxRuntimePackageVersion {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 
     }

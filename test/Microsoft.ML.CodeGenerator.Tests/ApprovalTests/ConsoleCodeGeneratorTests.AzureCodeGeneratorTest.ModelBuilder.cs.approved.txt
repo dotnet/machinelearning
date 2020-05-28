@@ -6,13 +6,14 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Test.Model;
+using Microsoft.ML.CodeGenerator.Helper.ImageClassification;
 namespace Test.ConsoleApp
 {
     public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"\path\to\file";
-        private static string MLNET_MODEL = @"\path\to\model";
-        private static string ONNX_MODEL = @"\path\to\onnx";
+        private static string MLNET_MODEL = ConsumeModel.MLNetModelPath;
+        private static string ONNX_MODEL = ConsumeModel.OnnxModelPath;
 
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
@@ -47,7 +48,7 @@ namespace Test.ConsoleApp
             // 2. Map scores to labels to make model output easier to understand and use
             var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL)
                                       .Append(mlContext.Transforms.CustomMapping<LabelMappingInput, LabelMappingOutput>(
-                                          (input, output) => LabelMapping.Mapping(input, output),
+                                          LabelMapping.Mapping,
                                           contractName: nameof(LabelMapping)));
             return pipeline;
         }

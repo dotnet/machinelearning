@@ -53,6 +53,8 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
  if (IncludeOnnxModel){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n    <PackageReference Include=\"Microsoft.ML.OnnxRuntime\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(OnnxRuntimePackageVersion));
             this.Write("\" />\r\n");
 }
  if (IncludeImageClassificationPackage){ 
@@ -66,11 +68,14 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write(this.ToStringHelper.ToStringWithCulture(UnstablePackageVersion));
             this.Write("\" />\r\n");
 }
-            this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
-                    "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.CodeGenerator.Helper\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(CodeGenHelperPackageVersion));
+            this.Write("\" />\r\n  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <Co" +
+                    "pyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
  if (IncludeOnnxModel){ 
             this.Write("    <None Update=\"bestModel.onnx\">\r\n      <CopyToOutputDirectory>PreserveNewest</" +
-                    "CopyToOutputDirectory>\r\n    </None>\r\n");
+                    "CopyToOutputDirectory>\r\n    </None>\r\n    <None Update=\"bestModelMap.json\">\r\n    " +
+                    "  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
 }
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n");
  if (Target==CSharp.GenerateTarget.Cli) {
@@ -91,6 +96,8 @@ public bool IncludeOnnxModel {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
+public string CodeGenHelperPackageVersion {get;set;}
+public string OnnxRuntimePackageVersion {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 
     }

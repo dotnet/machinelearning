@@ -43,14 +43,30 @@ namespace Microsoft.ML.CodeGenerator.Tests
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void TestConsumeModel()
+        public void TestConsumeModel_NonAzureImage()
         {
             var consumeModel = new ConsumeModel()
             {
                 Namespace = "Namespace",
-                HasNormalizeMapping = true,
-                HasLabelMapping = true,
-                MLNetModelpath = @"/path/to/model",
+                IsAzureImage = false,
+                MLNetModelName = @"mlmodel.zip",
+            };
+
+            Approvals.Verify(consumeModel.TransformText());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestConsumeModel_AzureImage()
+        {
+            var consumeModel = new ConsumeModel()
+            {
+                Namespace = "Namespace",
+                IsAzureImage = true,
+                MLNetModelName = @"mlmodel.zip",
+                OnnxLabelName = "onnx.json",
+                OnnxModelName = "onnx.onnx"
             };
 
             Approvals.Verify(consumeModel.TransformText());

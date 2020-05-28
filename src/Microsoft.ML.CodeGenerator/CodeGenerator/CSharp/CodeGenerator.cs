@@ -187,7 +187,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             {
                 Namespace = namespaceValue,
                 Target = _settings.Target,
-                MLNetModelpath = _settings.ModelPath,
+                MLNetModelName = _settings.ModelPath,
             };
             return consumeModel.TransformText();
         }
@@ -331,7 +331,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
 
         #region Model project
-        private static string GenerateModelProjectFileContent(bool includeLightGbmPackage,
+        private string GenerateModelProjectFileContent(bool includeLightGbmPackage,
             bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage,
                 bool includeImageClassificationPackage, bool includeRecommenderPackage, bool includeOnnxModel,
                 string stablePackageVersion, string unstablePackageVersion, GenerateTarget target)
@@ -347,6 +347,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeRecommenderPackage = includeRecommenderPackage,
                 StablePackageVersion = stablePackageVersion,
                 UnstablePackageVersion = unstablePackageVersion,
+                CodeGenHelperPackageVersion = _settings.CodeGenHelperPackageVersion,
+                OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
                 Target = target,
             };
 
@@ -376,7 +378,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         #endregion
 
         #region Predict Project
-        private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeLightGbmPackage,
+        private string GeneratPredictProjectFileContent(string namespaceValue, bool includeLightGbmPackage,
             bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage,
                 bool includeImageClassificationPackage, bool includeRecommenderPackage,
                 bool includeOnnxPackage, bool includeResNet18Package,
@@ -395,6 +397,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeRecommenderPackage = includeRecommenderPackage,
                 StablePackageVersion = stablePackageVersion,
                 UnstablePackageVersion = unstablePackageVersion,
+                CodeGenHelperPackageVersion = _settings.CodeGenHelperPackageVersion,
+                OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
                 Target = target,
             };
             return predictProjectFileContent.TransformText();

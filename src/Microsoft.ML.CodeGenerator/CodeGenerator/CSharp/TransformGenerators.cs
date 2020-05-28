@@ -396,7 +396,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             return @"CustomMapping<NormalizeInput, NormalizeOutput>(
-                                          (input, output) => NormalizeMapping.Mapping(input, output),
+                                          NormalizeMapping.Mapping,
                                           contractName: nameof(NormalizeMapping))";
         }
     }
@@ -409,7 +409,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             return @"CustomMapping<LabelMappingInput, LabelMappingOutput>(
-                                          (input, output) => LabelMapping.Mapping(input, output),
+                                          LabelMapping.Mapping,
                                           contractName: nameof(LabelMapping))";
         }
     }

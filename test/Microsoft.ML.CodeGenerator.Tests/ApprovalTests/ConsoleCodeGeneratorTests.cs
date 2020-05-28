@@ -212,9 +212,11 @@ namespace mlnet.Tests
                 StablePackageVersion = "stableversion",
                 UnstablePackageVersion = "unstableversion",
                 OnnxModelPath = @"/path/to/onnxModel",
+                OnnxRuntimePacakgeVersion = "1.2.3",
+                CodeGenHelperPackageVersion = "1.2.3",
+                OnnxLabelPath = "onnx.json",
                 IsAzureAttach = true,
                 IsImage = true,
-                ClassificationLabel = new string[] {"label1", "label2", "label3"},
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
             foreach (var project in codeGen.ToSolution())
@@ -247,6 +249,9 @@ namespace mlnet.Tests
                 StablePackageVersion = "StablePackageVersion",
                 UnstablePackageVersion = "UnstablePackageVersion",
                 OnnxModelPath = @"\path\to\onnx",
+                OnnxRuntimePacakgeVersion = "1.2.3",
+                CodeGenHelperPackageVersion = "1.2.3",
+                OnnxLabelPath = "onnx.json",
                 IsAzureAttach = true,
                 IsImage = false,
                 OnnxInputMapping = mapping,
@@ -880,7 +885,9 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip",
                 StablePackageVersion = StablePackageVersion,
-                UnstablePackageVersion = UnstablePackageVersion
+                UnstablePackageVersion = UnstablePackageVersion,
+                OnnxRuntimePacakgeVersion = "1.2.3",
+                CodeGenHelperPackageVersion = "1.2.3",
             };
         }
     }
