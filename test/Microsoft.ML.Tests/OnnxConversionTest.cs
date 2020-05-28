@@ -80,7 +80,7 @@ namespace Microsoft.ML.Tests
             var transformedData = model.Transform(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data, 11);
             var onnxFileName = "model.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data, 11);
 
             var onnxFileName = "model.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Tests
             {
                 var model = estimator.Fit(dataView);
                 var transformedData = model.Transform(dataView);
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
 
                 // Compare model scores produced by ML.NET and ONNX's runtime
                 if (IsOnnxRuntimeSupported())
@@ -442,6 +442,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TextNormalizingOnnxConversionTest()
         {
+            //invalid graph need documentation in estimators
             var mlContext = new MLContext(seed: 1);
             var dataPath = GetDataPath("wikipedia-detox-250-line-test.tsv");
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
@@ -453,7 +454,7 @@ namespace Microsoft.ML.Tests
                 new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.None, columns: new[] { ("OriginalText", "text") }));
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
 
             var onnxFileName = $"TextNormalizing.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
@@ -691,7 +692,7 @@ namespace Microsoft.ML.Tests
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data, 11);
 
             // Step 3: Save ONNX model as binary and text files.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -724,7 +725,7 @@ namespace Microsoft.ML.Tests
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data, 11);
 
             // Step 3: Save ONNX model as binary and text files.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -756,7 +757,7 @@ namespace Microsoft.ML.Tests
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data, 11);
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "MultiClassClassification", "BreastCancer");
             var onnxFileName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.onnx";
@@ -951,7 +952,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
-            var onnxConversionContext = new OnnxContextImpl(mlContext, "A Simple Pipeline", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
+            var onnxConversionContext = new OnnxContextImpl(mlContext, "A Simple Pipeline", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable, 11);
 
             LinkedList<ITransformCanSaveOnnx> transforms = null;
             using (var conversionChannel = (mlContext as IChannelProvider).Start("ONNX conversion"))
@@ -1011,7 +1012,7 @@ namespace Microsoft.ML.Tests
             var onnxFileName = "SmallWordEmbed.onnx";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
             var onnxFilePath = GetOutputPath(subDir, onnxFileName);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data, 11);
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
             CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
@@ -1166,6 +1167,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void OneHotHashEncodingOnnxConversionTest()
         {
+            //invalid graph need documentation in estimators
             var mlContext = new MLContext();
             string dataPath = GetDataPath("breast-cancer.txt");
 
@@ -1175,7 +1177,7 @@ namespace Microsoft.ML.Tests
                 });
             var model = pipe.Fit(dataView);
             var transformedData = model.Transform(dataView);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
 
             var onnxFileName = "OneHotHashEncoding.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
@@ -1204,6 +1206,7 @@ namespace Microsoft.ML.Tests
         public void MurmurHashKeyTest(
             [CombinatorialValues(DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.UInt64)]DataKind keyType)
         {
+            //invalid graph need documentation in estimators
             var dataFile = DeleteOutputPath("KeysToOnnx.txt");
             File.WriteAllLines(dataFile,
                 new[]
@@ -1224,7 +1227,7 @@ namespace Microsoft.ML.Tests
             var hashEstimator = ML.Transforms.Conversion.Hash("ValueHashed", "Value");
             var model = hashEstimator.Fit(data);
             var transformedData = model.Transform(data);
-            var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, data);
+            var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, data, 11);
 
             var onnxFileName = "MurmurHashV2.onnx";
             var onnxTextName = "MurmurHashV2.txt";
@@ -1253,6 +1256,7 @@ namespace Microsoft.ML.Tests
             DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
             [CombinatorialValues(1, 5, 31)] int numberOfBits, bool useOrderedHashing)
         {
+            //invalid graph need documentation in estimators
 
             var mlContext = new MLContext();
             string dataPath = GetDataPath("type-samples.txt");
@@ -1276,7 +1280,7 @@ namespace Microsoft.ML.Tests
             var hashEstimator = new HashingEstimator(Env, "Value", useOrderedHashing: useOrderedHashing, numberOfBits: numberOfBits);
             var model = hashEstimator.Fit(dataView);
             var transformedData = model.Transform(dataView);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
 
             var onnxFileName = "MurmurHashV2.onnx";
             var onnxTextName = "MurmurHashV2.txt";
@@ -1308,7 +1312,7 @@ namespace Microsoft.ML.Tests
             DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
             [CombinatorialValues(1, 5, 31)] int numberOfBits)
         {
-
+            //invalid graph need documentation in estimators
             var mlContext = new MLContext();
             string dataPath = GetDataPath("type-samples.txt");
 
@@ -1343,7 +1347,7 @@ namespace Microsoft.ML.Tests
             var hashEstimator = new HashingEstimator(Env, "Value", useOrderedHashing: false, numberOfBits: numberOfBits);
             var model = hashEstimator.Fit(dataView);
             var transformedData = model.Transform(dataView);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
 
             var onnxFileName = "MurmurHashV2.onnx";
             var onnxTextName = "MurmurHashV2.txt";
@@ -1400,7 +1404,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var mlnetData = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformedData, false);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
             var onnxFileName = "IndicateMissingValues.onnx";
@@ -1713,6 +1717,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void MulticlassTrainersOnnxConversionTest()
         {
+            //invalid graph need documentation in estimators
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -1759,7 +1764,7 @@ namespace Microsoft.ML.Tests
                 var model = pipeline.Fit(dataView);
                 var transformedData = model.Transform(dataView);
 
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
                 var onnxFileName = $"{estimator.ToString()}.onnx";
                 var onnxModelPath = GetOutputPath(onnxFileName);
 
@@ -1896,6 +1901,7 @@ namespace Microsoft.ML.Tests
         [InlineData(DataKind.Double)]
         public void FeatureSelectionOnnxTest(DataKind dataKind)
         {
+            //invalid graph need documentation in estimators
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -1926,7 +1932,7 @@ namespace Microsoft.ML.Tests
                     break;
                 var model = pipelines[i].Fit(dataView);
                 var transformedData = model.Transform(dataView);
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
 
                 var onnxFileName = "countfeatures.onnx";
                 var onnxModelPath = GetOutputPath(onnxFileName);
@@ -1969,7 +1975,7 @@ namespace Microsoft.ML.Tests
 
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
 
             var onnxFileName = "selectcolumns.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
@@ -2081,6 +2087,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void NonDefaultColNamesMultiClassificationOnnxConversionTest()
         {
+            //invalid graph need documentation in estimators
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -2125,7 +2132,7 @@ namespace Microsoft.ML.Tests
                 var model = pipeline.Fit(dataView);
                 var transformedData = model.Transform(dataView);
 
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 11);
                 var onnxFileName = $"{estimator.ToString()}.onnx";
                 var onnxModelPath = GetOutputPath(onnxFileName);
 

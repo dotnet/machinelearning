@@ -31,10 +31,11 @@ namespace Microsoft.ML.Model.OnnxConverter
         private readonly string _domain;
         private readonly string _producerVersion;
         private readonly long _modelVersion;
+        private readonly int _opSetVersion;
         private readonly OnnxVersion _onnxVersion;
 
         public OnnxContextImpl(IHostEnvironment env, string name, string producerName,
-            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion)
+            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion, int opSetVersion = 9)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OnnxContext));
@@ -53,6 +54,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             _producerName = producerName;
             _producerVersion = producerVersion;
             _modelVersion = modelVersion;
+            _opSetVersion = opSetVersion;
             _domain = domain;
             _onnxVersion = onnxVersion;
         }
@@ -409,7 +411,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         /// Makes the ONNX model based on the context.
         /// </summary>
         public OnnxCSharpToProtoWrapper.ModelProto MakeModel()
-            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues, _initializers);
+            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _opSetVersion, _inputs, _outputs, _intermediateValues, _initializers);
 
         /// <summary>
         /// Return either "Experimental" or "Stable". The string "Experimental" indicates that some experimental features which are
