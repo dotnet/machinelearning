@@ -708,8 +708,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.3.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.3.0 (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
-    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the
-    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library (version 1.3.0).
+    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
     /// Models are scored on CPU if the project references Microsoft.ML.OnnxRuntime and on the GPU if the project references Microsoft.ML.OnnxRuntime.Gpu.
     /// Every project using the OnnxScoringEstimator must reference one of the above two packages.
     ///
