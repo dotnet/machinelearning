@@ -1448,6 +1448,7 @@ namespace Microsoft.ML.Transforms
                 return true;
             }
 
+            //This estimator requires OpSet 11
             void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));

@@ -442,7 +442,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TextNormalizingOnnxConversionTest()
         {
-            //invalid graph need documentation in estimators
             var mlContext = new MLContext(seed: 1);
             var dataPath = GetDataPath("wikipedia-detox-250-line-test.tsv");
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
@@ -1167,7 +1166,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void OneHotHashEncodingOnnxConversionTest()
         {
-            //invalid graph need documentation in estimators
             var mlContext = new MLContext();
             string dataPath = GetDataPath("breast-cancer.txt");
 
@@ -1206,7 +1204,6 @@ namespace Microsoft.ML.Tests
         public void MurmurHashKeyTest(
             [CombinatorialValues(DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.UInt64)]DataKind keyType)
         {
-            //invalid graph need documentation in estimators
             var dataFile = DeleteOutputPath("KeysToOnnx.txt");
             File.WriteAllLines(dataFile,
                 new[]
@@ -1256,8 +1253,6 @@ namespace Microsoft.ML.Tests
             DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
             [CombinatorialValues(1, 5, 31)] int numberOfBits, bool useOrderedHashing)
         {
-            //invalid graph need documentation in estimators
-
             var mlContext = new MLContext();
             string dataPath = GetDataPath("type-samples.txt");
 
@@ -1312,7 +1307,6 @@ namespace Microsoft.ML.Tests
             DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
             [CombinatorialValues(1, 5, 31)] int numberOfBits)
         {
-            //invalid graph need documentation in estimators
             var mlContext = new MLContext();
             string dataPath = GetDataPath("type-samples.txt");
 
@@ -1717,7 +1711,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void MulticlassTrainersOnnxConversionTest()
         {
-            //invalid graph need documentation in estimators
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -1901,7 +1894,6 @@ namespace Microsoft.ML.Tests
         [InlineData(DataKind.Double)]
         public void FeatureSelectionOnnxTest(DataKind dataKind)
         {
-            //invalid graph need documentation in estimators
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -2087,7 +2079,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void NonDefaultColNamesMultiClassificationOnnxConversionTest()
         {
-            //invalid graph need documentation in estimators
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
