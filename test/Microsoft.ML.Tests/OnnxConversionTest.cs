@@ -486,6 +486,7 @@ namespace Microsoft.ML.Tests
             bool ensureZeroMean,
             LpNormNormalizingEstimatorBase.NormFunction norm)
         {
+            // Compare vector columns.
             var mlContext = new MLContext(seed: 1);
 
             var samples = new List<DataPoint>()
@@ -2142,6 +2143,310 @@ namespace Microsoft.ML.Tests
                     CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 4);
                 }
             }
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NormalizeMinMaxOnnxConversionTest(
+            bool fixZero)
+        {
+            // Compare vector columns.
+            var mlContext = new MLContext(seed: 1);
+
+            var vecSamples = new DataPoint[]
+            {
+                new DataPoint { Features = new float[3] {0.01f, 0.02f, 0.03f} },
+                new DataPoint { Features = new float[3] {0.04f, 0.05f, 0.06f} },
+                new DataPoint { Features = new float[3] {0.07f, 0.08f, 0.09f} },
+                new DataPoint { Features = new float[3] {0.10f, 0.11f, 0.12f} },
+                new DataPoint { Features = new float[3] {0.13f, 0.14f, 0.15f} }
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(vecSamples);
+
+            var pipe = mlContext.Transforms.NormalizeMinMax(nameof(DataPoint.Features), fixZero: fixZero);
+
+            var model = pipe.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = $"NormMinMaxVec-{fixZero}.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
+            }
+
+            // Compare scalar columns.
+            mlContext = new MLContext(seed: 1);
+
+            var scalarSamples = new[]
+            {
+                new { Features = 0.03f },
+                new { Features = 0.06f },
+                new { Features = 0.09f },
+                new { Features = 0.12f },
+                new { Features = 0.15f }
+            };
+            dataView = mlContext.Data.LoadFromEnumerable(scalarSamples);
+
+            pipe = mlContext.Transforms.NormalizeMinMax(nameof(DataPoint.Features), fixZero: fixZero);
+
+            model = pipe.Fit(dataView);
+            transformedData = model.Transform(dataView);
+            onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            onnxFileName = $"NormMinMaxScalar-{fixZero}.onnx";
+            onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
+            }
+
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NormalizeMeanVarianceOnnxConversionTest(
+            bool fixZero)
+        {
+            // Compare vector columns.
+            var mlContext = new MLContext(seed: 1);
+
+            var vecSamples = new DataPoint[]
+            {
+                new DataPoint { Features = new float[3] {0.01f, 0.02f, 0.03f} },
+                new DataPoint { Features = new float[3] {0.04f, 0.05f, 0.06f} },
+                new DataPoint { Features = new float[3] {0.07f, 0.08f, 0.09f} },
+                new DataPoint { Features = new float[3] {0.10f, 0.11f, 0.12f} },
+                new DataPoint { Features = new float[3] {0.13f, 0.14f, 0.15f} }
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(vecSamples);
+
+            var pipe = mlContext.Transforms.NormalizeMeanVariance(nameof(DataPoint.Features), fixZero: fixZero);
+
+            var model = pipe.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = $"NormMeanVarVec-{fixZero}.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
+            }
+
+            // Compare scalar columns.
+            mlContext = new MLContext(seed: 1);
+
+            var scalarSamples = new[]
+            {
+                new { Features = 0.03f },
+                new { Features = 0.06f },
+                new { Features = 0.09f },
+                new { Features = 0.12f },
+                new { Features = 0.15f }
+            };
+            dataView = mlContext.Data.LoadFromEnumerable(scalarSamples);
+
+            pipe = mlContext.Transforms.NormalizeMeanVariance(nameof(DataPoint.Features), fixZero: fixZero);
+
+            model = pipe.Fit(dataView);
+            transformedData = model.Transform(dataView);
+            onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            onnxFileName = $"NormMeanVarScalar-{fixZero}.onnx";
+            onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
+            }
+
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NormalizeLogMeanVarianceOnnxConversionTest(
+            bool fixZero)
+        {
+            // Compare vector columns.
+            var mlContext = new MLContext(seed: 1);
+
+            var vecSamples = new DataPoint[]
+            {
+                new DataPoint { Features = new float[3] {0.01f, 0.02f, 0.03f} },
+                new DataPoint { Features = new float[3] {0.04f, 0.05f, 0.06f} },
+                new DataPoint { Features = new float[3] {0.07f, 0.08f, 0.09f} },
+                new DataPoint { Features = new float[3] {0.10f, 0.11f, 0.12f} },
+                new DataPoint { Features = new float[3] {0.13f, 0.14f, 0.15f} }
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(vecSamples);
+
+            var pipe = mlContext.Transforms.NormalizeLogMeanVariance(nameof(DataPoint.Features), fixZero: fixZero, useCdf: false);
+
+            var model = pipe.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = $"NormLogMeanVarVec-{fixZero}.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
+            }
+
+            // Compare scalar columns.
+            mlContext = new MLContext(seed: 1);
+
+            var scalarSamples = new[]
+            {
+                new { Features = 0.03f },
+                new { Features = 0.06f },
+                new { Features = 0.09f },
+                new { Features = 0.12f },
+                new { Features = 0.15f }
+            };
+            dataView = mlContext.Data.LoadFromEnumerable(scalarSamples);
+
+            pipe = mlContext.Transforms.NormalizeLogMeanVariance(nameof(DataPoint.Features), fixZero: fixZero, useCdf: false);
+
+            model = pipe.Fit(dataView);
+            transformedData = model.Transform(dataView);
+            onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            onnxFileName = $"NormLogMeanVarScalar-{fixZero}.onnx";
+            onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
+            }
+
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NormalizeRobustScalingOnnxConversionTest(
+            bool centerData)
+        {
+            // Compare vector columns.
+            var mlContext = new MLContext(seed: 1);
+
+            var vecSamples = new DataPoint[]
+            {
+                new DataPoint { Features = new float[3] {0.01f, 0.02f, 0.03f} },
+                new DataPoint { Features = new float[3] {0.04f, 0.05f, 0.06f} },
+                new DataPoint { Features = new float[3] {0.07f, 0.08f, 0.09f} },
+                new DataPoint { Features = new float[3] {0.10f, 0.11f, 0.12f} },
+                new DataPoint { Features = new float[3] {0.13f, 0.14f, 0.15f} }
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(vecSamples);
+
+            var pipe = mlContext.Transforms.NormalizeRobustScaling(nameof(DataPoint.Features), centerData: centerData);
+
+            var model = pipe.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = $"NormRobScalVec-{centerData}.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
+            }
+
+            // Compare scalar columns.
+            mlContext = new MLContext(seed: 1);
+
+            var scalarSamples = new[]
+            {
+                new { Features = 0.03f },
+                new { Features = 0.06f },
+                new { Features = 0.09f },
+                new { Features = 0.12f },
+                new { Features = 0.15f }
+            };
+            dataView = mlContext.Data.LoadFromEnumerable(scalarSamples);
+
+            pipe = mlContext.Transforms.NormalizeRobustScaling(nameof(DataPoint.Features), centerData: centerData);
+
+            model = pipe.Fit(dataView);
+            transformedData = model.Transform(dataView);
+            onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            onnxFileName = $"NormRobScalScalar-{centerData}.onnx";
+            onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
+            }
+
             Done();
         }
 
