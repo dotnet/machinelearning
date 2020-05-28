@@ -370,6 +370,18 @@
                 ]
               },
               {
+                "Name": "Decimal Marker",
+                "Type": "Char",
+                "Desc": "Character symbol used to separate the integer part from the fractional part of a number written in decimal form.",
+                "Aliases": [
+                  "decimal"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": "."
+              },
+              {
                 "Name": "TrimWhitespace",
                 "Type": "Bool",
                 "Desc": "Remove trailing whitespace from lines",
@@ -440,6 +452,18 @@
                 "SortOrder": 150.0,
                 "IsNullable": true,
                 "Default": null
+              },
+              {
+                "Name": "EscapeChar",
+                "Type": "Char",
+                "Desc": "Character to use to escape quotes inside quoted fields. It can't be a character used as separator.",
+                "Aliases": [
+                  "escapechar"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": "\""
               }
             ]
           },

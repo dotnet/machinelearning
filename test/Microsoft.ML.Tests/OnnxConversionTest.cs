@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
@@ -1195,11 +1194,60 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        private class HashData
+        {
+            public uint Value { get; set; }
+        }
+
         [Theory]
         [CombinatorialData]
-        // Due to lack of Onnxruntime support, long/ulong, double, floats, and OrderedHashing are not supported.
-        // An InvalidOperationException stating that the onnx pipeline can't be fully converted is thrown
-        // when users try to convert the items mentioned above.
+        public void MurmurHashKeyTest(
+            [CombinatorialValues(DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.UInt64)]DataKind keyType)
+        {
+            var dataFile = DeleteOutputPath("KeysToOnnx.txt");
+            File.WriteAllLines(dataFile,
+                new[]
+                {
+                    "2",
+                    "5",
+                    "19"
+                });
+
+            var data = ML.Data.LoadFromTextFile(dataFile, new[]
+            {
+                new TextLoader.Column("Value", keyType, new[]
+                {
+                    new TextLoader.Range(0)
+                }, new KeyCount(10))
+            });
+
+            var hashEstimator = ML.Transforms.Conversion.Hash("ValueHashed", "Value");
+            var model = hashEstimator.Fit(data);
+            var transformedData = model.Transform(data);
+            var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, data);
+
+            var onnxFileName = "MurmurHashV2.onnx";
+            var onnxTextName = "MurmurHashV2.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = ML.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedColumns<uint>("ValueHashed", "ValueHashed", transformedData, onnxResult);
+            }
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void MurmurHashScalarTest(
             [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Int64, DataKind.Byte,
             DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
@@ -1252,7 +1300,7 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [CombinatorialData]
-        // Due to lack of Onnxruntime support, long/ulong, double, floats, and OrderedHashing are not supported.
+        // Due to lack of Onnxruntime support, OrderedHashing is not supported.
         // An InvalidOperationException stating that the onnx pipeline can't be fully converted is thrown
         // when users try to convert the items mentioned above.
         public void MurmurHashVectorTest(
@@ -1956,6 +2004,144 @@ namespace Microsoft.ML.Tests
             SaveOnnxModel(onnxModel, null, onnxTextModelPath);
             CheckEquality(subDir, onnxFileName, digitsOfPrecision: 1);
 
+            Done();
+        }
+
+        private class BreastCancerMulticlassExampleNonDefaultColNames
+        {
+            [LoadColumn(1)]
+            public string Label;
+
+            [LoadColumn(2, 9), VectorType(8)]
+            public float[] MyFeatureVector;
+        }
+
+        private class BreastCancerBinaryClassificationNonDefaultColNames
+        {
+            [LoadColumn(0)]
+            public bool Label;
+
+            [LoadColumn(2, 9), VectorType(8)]
+            public float[] MyFeatureVector;
+        }
+
+        [Fact]
+        public void NonDefaultColNamesBinaryClassificationOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string dataPath = GetDataPath("breast-cancer.txt");
+            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassificationNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+            List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
+            {
+                mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.FastForest("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.FastTree("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.LinearSvm("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.Prior(),
+                mlContext.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.SdcaNonCalibrated("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.SgdCalibrated("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.SgdNonCalibrated("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression("Label", "MyFeatureVector"),
+            };
+            if (Environment.Is64BitProcess)
+            {
+                estimators.Add(mlContext.BinaryClassification.Trainers.LightGbm("Label", "MyFeatureVector"));
+            }
+
+            var initialPipeline = mlContext.Transforms.ReplaceMissingValues("MyFeatureVector").
+                Append(mlContext.Transforms.NormalizeMinMax("MyFeatureVector"));
+            foreach (var estimator in estimators)
+            {
+                var pipeline = initialPipeline.Append(estimator);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+                var onnxFileName = $"{estimator.ToString()}.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                // Compare model scores produced by ML.NET and ONNX's runtime.
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 3); //compare scores
+                    CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult); //compare predicted labels
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void NonDefaultColNamesMultiClassificationOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExampleNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+
+            List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
+            {
+                mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy("Label", "MyFeatureVector"),
+                mlContext.MulticlassClassification.Trainers.NaiveBayes("Label", "MyFeatureVector"),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector")),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector"), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression("Label", "MyFeatureVector")),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression("Label", "MyFeatureVector"), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LinearSvm("Label", "MyFeatureVector")),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LinearSvm("Label", "MyFeatureVector"), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.FastForest("Label", "MyFeatureVector")),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.FastForest("Label", "MyFeatureVector"), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy("Label", "MyFeatureVector"),
+                mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated("Label", "MyFeatureVector")
+            };
+
+            if (Environment.Is64BitProcess)
+            {
+                estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "MyFeatureVector"));
+            }
+
+            var initialPipeline = mlContext.Transforms.ReplaceMissingValues("MyFeatureVector")
+                .Append(mlContext.Transforms.NormalizeMinMax("MyFeatureVector"))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"));
+
+            foreach (var estimator in estimators)
+            {
+                var pipeline = initialPipeline.Append(estimator);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxFileName = $"{estimator.ToString()}.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                // Compare results produced by ML.NET and ONNX's runtime.
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedColumns<uint>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 4);
+                }
+            }
             Done();
         }
 
