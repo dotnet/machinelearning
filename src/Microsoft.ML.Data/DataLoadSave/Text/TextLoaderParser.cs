@@ -930,10 +930,14 @@ namespace Microsoft.ML.Data
                     _srcNeeded = srcNeeded;
                     _quoting = (flags & OptionFlags.AllowQuoting) != 0;
                     _sparse = (flags & OptionFlags.AllowSparse) != 0;
-                    _keepEmpty = (flags & OptionFlags.ImputeEmptyFloats) != 0;
                     _sb = new StringBuilder();
                     _blank = ReadOnlyMemory<char>.Empty;
                     Fields = new FieldSet();
+
+                    // If we want to impute empty float fields, then we must keep
+                    // all empty fields spans, as there's no way for the Parser.HelperImpl
+                    // to know beforehand which fields belong to a float field
+                    _keepEmpty = (flags & OptionFlags.ImputeEmptyFloats) != 0;
                 }
 
                 /// <summary>
@@ -985,7 +989,7 @@ namespace Microsoft.ML.Data
                             else if(_keepEmpty)
                             {
                                 Fields.EnsureSpace();
-                                Fields.Spans[Fields.Count] = ReadOnlyMemory<char>.Empty;
+                                Fields.Spans[Fields.Count] = _blank;
                                 Fields.Indices[Fields.Count++] = src;
                             }
 
