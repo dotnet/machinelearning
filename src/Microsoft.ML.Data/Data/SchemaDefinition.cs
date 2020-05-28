@@ -326,7 +326,7 @@ namespace Microsoft.ML.Data
             Both = Read | Write
         }
 
-        public static MemberInfo[] GetMemberInfos(Type userType, Direction direction)
+        internal static MemberInfo[] GetMemberInfos(Type userType, Direction direction)
         {
             // REVIEW: This will have to be updated whenever we start
             // supporting properties and not just fields.
@@ -343,10 +343,14 @@ namespace Microsoft.ML.Data
             return (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
         }
 
-        public static bool CheckMemberInfo(MemberInfo memberInfo)
+        public static bool NeedToCheckMemberInfo(MemberInfo memberInfo)
         {
             switch (memberInfo)
             {
+                // Clause to handle the field that may be used to expose the cursor channel.
+                // This field does not need a column.
+                // REVIEW: maybe validate the channel attribute now, instead
+                // of later at cursor creation.
                 case FieldInfo fieldInfo:
                     if (fieldInfo.FieldType == typeof(IChannel))
                         return false;
@@ -373,17 +377,12 @@ namespace Microsoft.ML.Data
             return true;
         }
 
-        public static bool ValidateMemberInfo(MemberInfo memberInfo, Type userType, HashSet<string> colNames, out string name, out IEnumerable<Attribute> customAttributes)
+        public static bool GetNameAndCustomAttributes(MemberInfo memberInfo, Type userType, HashSet<string> colNames, out string name, out IEnumerable<Attribute> customAttributes)
         {
-            // Clause to handle the field that may be used to expose the cursor channel.
-            // This field does not need a column.
-            // REVIEW: maybe validate the channel attribute now, instead
-            // of later at cursor creation.
-
             name = null;
             customAttributes = null;
 
-            if (!CheckMemberInfo(memberInfo))
+            if (!NeedToCheckMemberInfo(memberInfo))
                 return false;
 
             customAttributes = memberInfo.GetCustomAttributes();
@@ -423,50 +422,51 @@ namespace Microsoft.ML.Data
 
             foreach (var memberInfo in memberInfos)
             {
-                if (ValidateMemberInfo(memberInfo, userType, colNames, out string name, out IEnumerable<Attribute> customAttributes))
+                if (!GetNameAndCustomAttributes(memberInfo, userType, colNames, out string name, out IEnumerable<Attribute> customAttributes))
+                    continue;
+
+                InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType);
+
+                // Get the column type.
+                DataViewType columnType;
+                if (!DataViewTypeManager.Knows(dataType, customAttributes))
                 {
-                    InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType);
-
-                    // Get the column type.
-                    DataViewType columnType;
-                    if (!DataViewTypeManager.Knows(dataType, customAttributes))
+                    PrimitiveDataViewType itemType;
+                    var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
+                    if (keyAttr != null)
                     {
-                        PrimitiveDataViewType itemType;
-                        var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
-                        if (keyAttr != null)
-                        {
-                            if (!KeyDataViewType.IsValidDataType(dataType))
-                                throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
-                            if (keyAttr.KeyCount == null)
-                                itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
-                            else
-                                itemType = new KeyDataViewType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
-                        }
+                        if (!KeyDataViewType.IsValidDataType(dataType))
+                            throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
+                        if (keyAttr.KeyCount == null)
+                            itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
                         else
-                            itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
-
-                        var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
-                        if (vectorAttr != null && !isVector)
-                            throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
-                        if (isVector)
-                        {
-                            int[] dims = vectorAttr?.Dims;
-                            if (dims != null && dims.Any(d => d < 0))
-                                throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
-                            if (Utils.Size(dims) == 0)
-                                columnType = new VectorDataViewType(itemType, 0);
-                            else
-                                columnType = new VectorDataViewType(itemType, dims);
-                        }
-                        else
-                            columnType = itemType;
+                            itemType = new KeyDataViewType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
                     }
                     else
-                        columnType = DataViewTypeManager.GetDataViewType(dataType, customAttributes);
+                        itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
 
-                    cols.Add(new Column(memberInfo.Name, columnType, name));
+                    var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
+                    if (vectorAttr != null && !isVector)
+                        throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
+                    if (isVector)
+                    {
+                        int[] dims = vectorAttr?.Dims;
+                        if (dims != null && dims.Any(d => d < 0))
+                            throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
+                        if (Utils.Size(dims) == 0)
+                            columnType = new VectorDataViewType(itemType, 0);
+                        else
+                            columnType = new VectorDataViewType(itemType, dims);
+                    }
+                    else
+                        columnType = itemType;
                 }
+                else
+                    columnType = DataViewTypeManager.GetDataViewType(dataType, customAttributes);
+
+                cols.Add(new Column(memberInfo.Name, columnType, name));
             }
+
             return cols;
         }
     }

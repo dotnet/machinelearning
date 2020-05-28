@@ -63,7 +63,45 @@ namespace Microsoft.ML.Tests
             {
                 Assert.Equal(onnxOut[keys[i]], input.Input[i]);
             }
+        }
 
+        public class WrongOutputObj
+        {
+            [ColumnName("output")]
+            [OnnxSequenceType(typeof(IEnumerable<float>))]
+            public IEnumerable<float> Output;
+        }
+
+        public static PredictionEngine<FloatInput, WrongOutputObj> LoadModelWithWrongCustomType(string onnxModelFilePath)
+        {
+            var ctx = new MLContext(1);
+            var dataView = ctx.Data.LoadFromEnumerable(new List<FloatInput>());
+
+            var pipeline = ctx.Transforms.ApplyOnnxModel(
+                                modelFile: onnxModelFilePath,
+                                outputColumnNames: new[] { "output" }, inputColumnNames: new[] { "input" });
+
+            var model = pipeline.Fit(dataView);
+            return ctx.Model.CreatePredictionEngine<FloatInput, WrongOutputObj>(model);
+        }
+
+        [OnnxFact]
+        public void OnnxSequenceTypeWithColumnNameAttributeTestWithWrongCustomType()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
+            //var predictor = LoadModelWithWrongCustomType(modelFile);
+            var expectedExceptionMessage = "The expected type 'System.Collections.Generic.IEnumerable`1[System.Collections.Generic.IDictionary`2[System.String,System.Single]]'" +
+                " does not match the type of the 'output' member: 'System.Collections.Generic.IEnumerable`1[System.Single]'." +
+                " Please change the output member to 'System.Collections.Generic.IEnumerable`1[System.Collections.Generic.IDictionary`2[System.String,System.Single]]'\r\nParameter name: actualType";
+            try
+            {
+                var predictor = LoadModelWithWrongCustomType(modelFile);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Equal(ex.Message, expectedExceptionMessage);
+                return;
+            }
         }
     }
 }

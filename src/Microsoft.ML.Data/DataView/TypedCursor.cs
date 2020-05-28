@@ -217,9 +217,9 @@ namespace Microsoft.ML.Data
                  .ToArray();
         }
 
-        public static void ValidateMemberInfo(MemberInfo memberInfo, IDataView data)
+        private static void ValidateMemberInfo(MemberInfo memberInfo, IDataView data)
         {
-            if (!SchemaDefinition.CheckMemberInfo(memberInfo))
+            if (!SchemaDefinition.NeedToCheckMemberInfo(memberInfo))
                 return;
 
             var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Data
                 data.Schema.TryGetColumnIndex(singleName, out colIndex);
                 DataViewType expectedType = data.Schema[colIndex].Type;
                 if (!actualType.Equals(expectedType.RawType))
-                    throw Contracts.ExceptParam(nameof(actualType), $"The expected type '{expectedType.RawType}' does not match the type of the '{singleName}' property: '{actualType.Name}'. Please change the {singleName} property to '{expectedType.RawType}'");
+                    throw Contracts.ExceptParam(nameof(actualType), $"The expected type '{expectedType.RawType}' does not match the type of the '{singleName}' member: '{actualType}'. Please change the {singleName} member to '{expectedType.RawType}'");
             }
         }
 
@@ -262,6 +262,12 @@ namespace Microsoft.ML.Data
             if (schemaDefinition == null)
             {
                 memberInfos = SchemaDefinition.GetMemberInfos(userType, SchemaDefinition.Direction.Write);
+
+                if (memberInfos == null)
+                    return;
+
+                foreach (var memberInfo in memberInfos)
+                    ValidateMemberInfo(memberInfo, data);
             }
             else
             {
@@ -293,12 +299,6 @@ namespace Microsoft.ML.Data
                     ValidateMemberInfo(memberInfo, data);
                 }
             }
-
-            if (memberInfos == null)
-                return;
-
-            foreach (var memberInfo in memberInfos)
-                ValidateMemberInfo(memberInfo, data);
         }
 
         /// <summary>
