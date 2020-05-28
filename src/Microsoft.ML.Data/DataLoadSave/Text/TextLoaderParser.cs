@@ -671,6 +671,8 @@ namespace Microsoft.ML.Data
                 var doubleParserOptionFlags = DoubleParser.OptionFlags.Default;
                 if (parent._decimalMarker == ',')
                     doubleParserOptionFlags |= DoubleParser.OptionFlags.UseCommaAsDecimalMarker;
+                if ((parent._flags & OptionFlags.ImputeEmptyFloats) != 0)
+                    doubleParserOptionFlags |= DoubleParser.OptionFlags.EmptyAsNaN;
 
                 if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
                     cache = ValueCreatorCache.DefaultInstance;
@@ -900,6 +902,7 @@ namespace Microsoft.ML.Data
                 private readonly int _srcNeeded;
                 private readonly bool _quoting;
                 private readonly bool _sparse;
+                private readonly bool _keepEmpty;
                 // This is a working buffer.
                 private readonly StringBuilder _sb;
 
@@ -927,6 +930,7 @@ namespace Microsoft.ML.Data
                     _srcNeeded = srcNeeded;
                     _quoting = (flags & OptionFlags.AllowQuoting) != 0;
                     _sparse = (flags & OptionFlags.AllowSparse) != 0;
+                    _keepEmpty = (flags & OptionFlags.ImputeEmptyFloats) != 0;
                     _sb = new StringBuilder();
                     _blank = ReadOnlyMemory<char>.Empty;
                     Fields = new FieldSet();
@@ -972,12 +976,19 @@ namespace Microsoft.ML.Data
                             if (scan.QuotingError)
                                 _stats.LogBadFmt(ref scan, "Illegal quoting");
 
-                            if (!scan.Span.IsEmpty)
+                            if (!scan.Span.IsEmpty || _keepEmpty)
                             {
                                 Fields.EnsureSpace();
                                 Fields.Spans[Fields.Count] = scan.Span;
                                 Fields.Indices[Fields.Count++] = src;
                             }
+                            else if(_keepEmpty)
+                            {
+                                Fields.EnsureSpace();
+                                Fields.Spans[Fields.Count] = ReadOnlyMemory<char>.Empty;
+                                Fields.Indices[Fields.Count++] = src;
+                            }
+
                             if (++src > _srcNeeded || !more)
                                 break;
                         }
