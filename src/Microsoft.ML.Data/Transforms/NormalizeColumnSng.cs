@@ -680,6 +680,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Based on the algorithm on GeeksForGeeks https://www.geeksforgeeks.org/median-of-stream-of-integers-running-integers/.
+        /// This heap approach uses much less memory and is faster then other approaches I could find, specifically list based ones.
         /// </summary>
         /// <param name="num">The new number to account for in our median calculation.</param>
         /// <param name="median">The current median.</param>

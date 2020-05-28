@@ -1033,9 +1033,63 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void TestHeapMedianAlgorithm()
+        {
+            // Generate 100,000 random numbers
+            var numberOfItems = 100000;
+            var numbers = GenerateRandomFloats(numberOfItems);
+
+            // Allocate memory for median ahead of time. 
+            float linqMedian = default;
+            float heapMedian = default;
+
+            // Find the median using LINQ so we can compare it to the heap approach.
+            int numberCount = numbers.Count();
+            int halfIndex = numbers.Count() / 2;
+            var sortedNumbers = numbers.OrderBy(n => n);
+
+            if ((numberCount % 2) == 0)
+            {
+                linqMedian = ((sortedNumbers.ElementAt(halfIndex) +
+                    sortedNumbers.ElementAt((halfIndex - 1))) / 2);
+            }
+            else
+            {
+                linqMedian = sortedNumbers.ElementAt(halfIndex);
+            }
+
+            // Find the median using the heap approach.
+            // Create the heaps
+            var minHeap = new MedianAggregatorUtils.MinHeap<float>((numberOfItems / 2) + 1);
+            var maxHeap = new MedianAggregatorUtils.MaxHeap<float>((numberOfItems / 2) + 1);
+
+            foreach (var num in numbers)
+            {
+                MedianAggregatorUtils.GetMedianSoFar(num, ref heapMedian, ref maxHeap, ref minHeap);
+            }
+
+            // Compare the medians, they should be equal.
+            Assert.Equal(linqMedian, heapMedian);
+        }
+
+        static List<float> GenerateRandomFloats(int num, int min = int.MinValue, int max = int.MaxValue, int seed = 0)
+        {
+            var rand = new Random(seed);
+
+            var list = new List<float>(num);
+
+            for (int i = 0; i < num; i++)
+            {
+                list.Add(rand.Next(min, max));
+            }
+
+            return list;
+        }
+
+        [Fact]
         public void TestMinHeapForMedianNormalizer()
         {
-            // Simple test with all values in order
+            // Simple test with all values in order.
             MedianAggregatorUtils.MinHeap<float> heap = new MedianAggregatorUtils.MinHeap<float>(10);
             heap.Add(-1);
             heap.Add(-2);
@@ -1046,7 +1100,7 @@ namespace Microsoft.ML.Tests.Transformers
             var min = heap.Peek();
             Assert.Equal(-5, min);
 
-            // Test with duplicate values
+            // Test with duplicate values.
             heap = new MedianAggregatorUtils.MinHeap<float>(10);
             heap.Add(-5);
             heap.Add(-2);
@@ -1057,7 +1111,7 @@ namespace Microsoft.ML.Tests.Transformers
             min = heap.Peek();
             Assert.Equal(-5, min);
 
-            // Test with values in reverse order
+            // Test with values in reverse order.
             heap = new MedianAggregatorUtils.MinHeap<float>(10);
             heap.Add(-5);
             heap.Add(-4);
@@ -1068,7 +1122,7 @@ namespace Microsoft.ML.Tests.Transformers
             min = heap.Peek();
             Assert.Equal(-5, min);
 
-            // Test with repeated duplicated values
+            // Test with repeated duplicated values.
             heap = new MedianAggregatorUtils.MinHeap<float>(10);
             heap.Add(-5);
             heap.Add(-5);
@@ -1078,7 +1132,7 @@ namespace Microsoft.ML.Tests.Transformers
             min = heap.Peek();
             Assert.Equal(-5, min);
 
-            // Test with positive and negative numbers
+            // Test with positive and negative numbers.
             heap = new MedianAggregatorUtils.MinHeap<float>(10);
             heap.Add(1);
             heap.Add(-2);
@@ -1089,7 +1143,7 @@ namespace Microsoft.ML.Tests.Transformers
             min = heap.Peek();
             Assert.Equal(-10, min);
 
-            // Large heap test to make sure correct min is chosen
+            // Large heap test to make sure correct min is chosen.
             heap = new MedianAggregatorUtils.MinHeap<float>(10000);
             Random rand = new Random(0);
             min = float.MaxValue;
@@ -1108,7 +1162,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestMaxHeapForMedianNormalizer()
         {
-            // Simple test with all values in order
+            // Simple test with all values in order.
             MedianAggregatorUtils.MaxHeap<float> heap = new MedianAggregatorUtils.MaxHeap<float>(10);
             heap.Add(1);
             heap.Add(2);
@@ -1119,7 +1173,7 @@ namespace Microsoft.ML.Tests.Transformers
             var max = heap.Peek();
             Assert.Equal(5, max);
 
-            // Test with duplicate values
+            // Test with duplicate values.
             heap = new MedianAggregatorUtils.MaxHeap<float>(10);
             heap.Add(5);
             heap.Add(2);
@@ -1130,7 +1184,7 @@ namespace Microsoft.ML.Tests.Transformers
             max = heap.Peek();
             Assert.Equal(5, max);
 
-            // Test with values in reverse order
+            // Test with values in reverse order.
             heap = new MedianAggregatorUtils.MaxHeap<float>(10);
             heap.Add(5);
             heap.Add(4);
@@ -1141,7 +1195,7 @@ namespace Microsoft.ML.Tests.Transformers
             max = heap.Peek();
             Assert.Equal(5, max);
 
-            // Test with repeated duplicated values
+            // Test with repeated duplicated values.
             heap = new MedianAggregatorUtils.MaxHeap<float>(10);
             heap.Add(5);
             heap.Add(5);
@@ -1152,7 +1206,7 @@ namespace Microsoft.ML.Tests.Transformers
             max = heap.Peek();
             Assert.Equal(5, max);
 
-            // Test with positive and negative numbers
+            // Test with positive and negative numbers.
             heap = new MedianAggregatorUtils.MaxHeap<float>(10);
             heap.Add(-1);
             heap.Add(2);
@@ -1163,7 +1217,7 @@ namespace Microsoft.ML.Tests.Transformers
             max = heap.Peek();
             Assert.Equal(10, max);
 
-            // Large heap test to make sure correct min is chosen
+            // Large heap test to make sure correct min is chosen.
             heap = new MedianAggregatorUtils.MaxHeap<float>(10000);
             Random rand = new Random(0);
             max = float.MinValue;

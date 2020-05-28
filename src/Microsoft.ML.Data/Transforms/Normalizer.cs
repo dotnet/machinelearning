@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms
     /// * Log Mean Variance - Rescale each row to unit variance, optionally, zero mean based on computations in log scale.
     /// * Binning - Bucketizes the data in each row and performs a linear rescale based on the calculated bins.
     /// * Supervised Binning - Bucketize the data in each row and performas a linear rescale based on the calculated bins. The bin calculation is based on correlation of the Label column.
-    /// * Robust Scaling - Centers the data and scales based on the range of data and the quantile min and max values provided.
+    /// * Robust Scaling - Optionally centers the data and scales based on the range of data and the quantile min and max values provided. This method is more robust to outliers.
     ///
     /// ### Estimator Details
     /// The interval of the normalized data depends on whether fixZero is specified or not. fixZero defaults to true.
@@ -71,6 +71,7 @@ namespace Microsoft.ML.Transforms
     /// * [NormalizeLogMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeLogMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean))
     /// * [NormalizeBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Int32))
     /// * [NormalizeSupervisedBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeSupervisedBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.String,System.Int64,System.Boolean,System.Int32,System.Int32))
+    /// * [NormalizeRobustScaling](xref:Microsoft.ML.NormalizationCatalog.NormalizeRobustScaling(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.UInt32,System.UInt32))
     ///
     /// Check the above links for usage examples.
     /// ]]>
@@ -116,7 +117,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             SupervisedBinning = 4,
             /// <summary>
-            /// Centers the data around 0 and then scales based on the data range and the quantile min and max values provided.
+            /// Optionally centers the data around 0 and then scales based on the data range and the quantile min and max values provided.
             /// </summary>
             RobustScaling = 5
         }
