@@ -89,17 +89,18 @@ namespace Microsoft.ML.Tests
         public void OnnxSequenceTypeWithColumnNameAttributeTestWithWrongCustomType()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
-            //var predictor = LoadModelWithWrongCustomType(modelFile);
             var expectedExceptionMessage = "The expected type 'System.Collections.Generic.IEnumerable`1[System.Collections.Generic.IDictionary`2[System.String,System.Single]]'" +
                 " does not match the type of the 'output' member: 'System.Collections.Generic.IEnumerable`1[System.Single]'." +
-                " Please change the output member to 'System.Collections.Generic.IEnumerable`1[System.Collections.Generic.IDictionary`2[System.String,System.Single]]'\r\nParameter name: actualType";
+                " Please change the output member to 'System.Collections.Generic.IEnumerable`1[System.Collections.Generic.IDictionary`2[System.String,System.Single]]'";
             try
             {
                 var predictor = LoadModelWithWrongCustomType(modelFile);
+                Assert.True(false);
             }
             catch (System.Exception ex)
             {
-                Assert.Equal(ex.Message, expectedExceptionMessage);
+                //truncate the string to only necessary information as Linux and Windows have different way of encoding the string
+                Assert.Equal(expectedExceptionMessage, ex.Message.Substring(0, 387));
                 return;
             }
         }

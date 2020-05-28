@@ -343,7 +343,7 @@ namespace Microsoft.ML.Data
             return (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
         }
 
-        public static bool NeedToCheckMemberInfo(MemberInfo memberInfo)
+        internal static bool NeedToCheckMemberInfo(MemberInfo memberInfo)
         {
             switch (memberInfo)
             {
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Data
             return true;
         }
 
-        public static bool GetNameAndCustomAttributes(MemberInfo memberInfo, Type userType, HashSet<string> colNames, out string name, out IEnumerable<Attribute> customAttributes)
+        internal static bool GetNameAndCustomAttributes(MemberInfo memberInfo, Type userType, HashSet<string> colNames, out string name, out IEnumerable<Attribute> customAttributes)
         {
             name = null;
             customAttributes = null;

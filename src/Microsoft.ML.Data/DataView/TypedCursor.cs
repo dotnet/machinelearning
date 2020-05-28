@@ -255,7 +255,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public static void ValidateUserType(SchemaDefinition schemaDefinition, Type userType, IDataView data)
+        private static void ValidateUserType(SchemaDefinition schemaDefinition, Type userType, IDataView data)
         {
             //Get memberInfos
             MemberInfo[] memberInfos = null;
