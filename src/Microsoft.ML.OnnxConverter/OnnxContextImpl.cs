@@ -61,7 +61,11 @@ namespace Microsoft.ML.Model.OnnxConverter
 
         internal class OptionalOpSetVersion
         {
-            private int _defaultOpSetVersion = 11;
+            private int _defaultOpSetVersion;
+            internal OptionalOpSetVersion()
+            {
+                _defaultOpSetVersion = 11;
+            }
             internal int OpSetVersion
             {
                 get { return _defaultOpSetVersion; }
