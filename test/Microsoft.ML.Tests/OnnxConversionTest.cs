@@ -486,6 +486,7 @@ namespace Microsoft.ML.Tests
             bool ensureZeroMean,
             LpNormNormalizingEstimatorBase.NormFunction norm)
         {
+            // Compare vector columns.
             var mlContext = new MLContext(seed: 1);
 
             var samples = new List<DataPoint>()
@@ -2143,6 +2144,165 @@ namespace Microsoft.ML.Tests
                 }
             }
             Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NormalizingEstimatorConversionTests(
+            bool fixZero)
+        {
+            // Shared variables.
+            var columnsToCompare = new string[] { "Features" };
+            IEstimator<ITransformer> pipe;
+            string onnxFileName;
+
+            // Data for vector inputs.
+            var vecSamples = new DataPoint[]
+            {
+                new DataPoint { Features = new float[3] {0.01f, 0.02f, 0.03f} },
+                new DataPoint { Features = new float[3] {0.04f, 0.05f, 0.06f} },
+                new DataPoint { Features = new float[3] {0.07f, 0.08f, 0.09f} },
+                new DataPoint { Features = new float[3] {0.10f, 0.11f, 0.12f} },
+                new DataPoint { Features = new float[3] {0.13f, 0.14f, 0.15f} }
+            };
+
+            // Data for scalar inputs.
+            var scalarSamples = new[]
+            {
+                new { Features = 0.03f },
+                new { Features = 0.06f },
+                new { Features = 0.09f },
+                new { Features = 0.12f },
+                new { Features = 0.15f }
+            };
+
+            // Test vector input NormalizeMinMax.
+            pipe = ML.Transforms.NormalizeMinMax(nameof(DataPoint.Features), fixZero: fixZero);
+            onnxFileName = $"NormMinMaxVec-{fixZero}.onnx";
+            TestPipeline(pipe, vecSamples, onnxFileName, columnsToCompare);
+
+            // Test scalar input NormalizeMinMax.
+            pipe = ML.Transforms.NormalizeMinMax(nameof(DataPoint.Features), fixZero: fixZero);
+            onnxFileName = $"NormMinMaxScalar-{fixZero}.onnx";
+            TestPipeline(pipe, scalarSamples, onnxFileName, columnsToCompare);
+
+            // Test vector input NormalizeMeanVariance.
+            pipe = ML.Transforms.NormalizeMeanVariance(nameof(DataPoint.Features), fixZero: fixZero);
+            onnxFileName = $"NormMeanVarVec-{fixZero}.onnx";
+            TestPipeline(pipe, vecSamples, onnxFileName, columnsToCompare);
+
+            // Test scalar input NormalizeMeanVariance.
+            pipe = ML.Transforms.NormalizeMeanVariance(nameof(DataPoint.Features), fixZero: fixZero);
+            onnxFileName = $"NormMeanVarScalar-{fixZero}.onnx";
+            TestPipeline(pipe, scalarSamples, onnxFileName, columnsToCompare);
+
+            // Test vector input NormalizeLogMeanVariance.
+            pipe = ML.Transforms.NormalizeLogMeanVariance(nameof(DataPoint.Features), fixZero: fixZero, useCdf: false);
+            onnxFileName = $"NormLogMeanVarVec-{fixZero}.onnx";
+            TestPipeline(pipe, vecSamples, onnxFileName, columnsToCompare);
+
+            // Test scalar input NormalizeLogMeanVariance.
+            pipe = ML.Transforms.NormalizeLogMeanVariance(nameof(DataPoint.Features), fixZero: fixZero, useCdf: false);
+            onnxFileName = $"NormLogMeanVarScalar-{fixZero}.onnx";
+            TestPipeline(pipe, scalarSamples, onnxFileName, columnsToCompare);
+
+            // Test vector input NormalizeRobustScaling.
+            pipe = ML.Transforms.NormalizeRobustScaling(nameof(DataPoint.Features), centerData: fixZero);
+            onnxFileName = $"NormRobScalVec-{fixZero}.onnx";
+            TestPipeline(pipe, vecSamples, onnxFileName, columnsToCompare);
+
+            // Test scalar input NormalizeRobustScaling.
+            pipe = ML.Transforms.NormalizeRobustScaling(nameof(DataPoint.Features), centerData: fixZero);
+            onnxFileName = $"NormRobScalScalar-{fixZero}.onnx";
+            TestPipeline(pipe, scalarSamples, onnxFileName, columnsToCompare);
+
+            Done();
+        }
+
+        /// <summary>
+        /// Helper method that takes a single IEstimator{ITransformer} and an IEnumerable{TRow} and converts the IEstimator{ITransformer} to an
+        /// EstimatorChain{ITransformer} and the IEnumerable{TRow} into an IDataView and then calls the actual testing method.
+        /// </summary>
+        /// <typeparam name="TRow">The type of the IEnumerable, will be auto detected.</typeparam>
+        /// <param name="pipeline">A single IEstimator{ITransformer} to be tested.</param>
+        /// <param name="data">The test data as a IEnumerable{TRow}.</param>
+        /// <param name="onnxFileName">Name to save the ONNX model file.</param>
+        /// <param name="columnsToCompare">Which columns you want to compare. This assumes that the column name in ONNX is the same as ML.Net, so only 1 name per column is provided.</param>
+        /// <param name="schemaDefinition">Optional schema definition for the IEnumerable{TRow}.</param>
+        private void TestPipeline<TRow>(IEstimator<ITransformer> pipeline, IEnumerable<TRow> data, string onnxFileName, string[] columnsToCompare, SchemaDefinition schemaDefinition = null)
+            where TRow : class
+        {
+            var dataView = ML.Data.LoadFromEnumerable(data, schemaDefinition);
+            TestPipeline(pipeline, dataView, onnxFileName, columnsToCompare);
+        }
+
+        /// <summary>
+        /// Helper method that takes a single IEstimator{ITransformer} and an IDataView and converts the IEstimator{ITransformer} to an
+        /// EstimatorChain{ITransformer} and then calls the actual testing method.
+        /// </summary>
+        /// <param name="pipeline">A single IEstimator{ITransformer} to be tested.</param>
+        /// <param name="dataView">The test data.</param>
+        /// <param name="onnxFileName">Name to save the ONNX model file.</param>
+        /// <param name="columnsToCompare">Which columns you want to compare. This assumes that the column name in ONNX is the same as ML.Net, so only 1 name per column is provided.</param>
+        private void TestPipeline(IEstimator<ITransformer> pipeline, IDataView dataView, string onnxFileName, string[] columnsToCompare)
+        {
+            var chain = new EstimatorChain<ITransformer>().Append(pipeline);
+            TestPipeline(chain, dataView, onnxFileName, columnsToCompare);
+        }
+
+        /// <summary>
+        /// Helper method that takes an EstimatorChain{TLastTransformer} and an IEnumerable{TRow} and converts the IEnumerable{TRow} into an IDataView and then
+        /// calls the actual testing method.
+        /// </summary>
+        /// <typeparam name="TLastTransformer">The type of for the EstimatorChain. Will be auto detected.</typeparam>
+        /// <typeparam name="TRow">The type of the IEnumerable. Will be auto detected.</typeparam>
+        /// <param name="pipeline">A single IEstimator{ITransformer} to be tested.</param>
+        /// <param name="data">The test data as a IEnumerable{TRow}.</param>
+        /// <param name="onnxFileName">Name to save the ONNX model file.</param>
+        /// <param name="columnsToCompare">Which columns you want to compare. This assumes that the column name in ONNX is the same as ML.Net, so only 1 name per column is provided.</param>
+        /// <param name="schemaDefinition">Optional schema definition for the IEnumerable{TRow}.</param>
+        private void TestPipeline<TLastTransformer, TRow>(EstimatorChain<TLastTransformer> pipeline, IEnumerable<TRow> data, string onnxFileName, string[] columnsToCompare, SchemaDefinition schemaDefinition = null)
+            where TLastTransformer : class, ITransformer
+            where TRow : class
+        {
+            var dataView = ML.Data.LoadFromEnumerable(data, schemaDefinition);
+            TestPipeline(pipeline, dataView, onnxFileName, columnsToCompare);
+        }
+
+        /// <summary>
+        /// Testing method that takes an EstimatorChain{TLastTransformer} and an IDataView and converst the IEnumerable{TRow} into an IDataView and then
+        /// converts the chain to an ONNX model and compares the results.
+        /// </summary>
+        /// <typeparam name="TLastTransformer">The type of for the EstimatorChain. Will be auto detected.</typeparam>
+        /// <param name="pipeline">A single IEstimator{ITransformer} to be tested.</param>
+        /// <param name="dataView">The test data.</param>
+        /// <param name="onnxFileName">Name to save the ONNX model file.</param>
+        /// <param name="columnsToCompare">Which columns you want to compare. This assumes that the column name in ONNX is the same as ML.Net, so only 1 name per column is provided.</param>
+        private void TestPipeline<TLastTransformer>(EstimatorChain<TLastTransformer> pipeline, IDataView dataView, string onnxFileName, params string[] columnsToCompare)
+            where TLastTransformer : class, ITransformer
+        {
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = ML.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+
+                // Compare all the columns between ML.Net and ONNX.
+                foreach(var column in columnsToCompare)
+                {
+                    CompareResults(column, column, transformedData, onnxResult);
+                }
+            }
         }
 
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)

@@ -898,7 +898,7 @@ namespace Microsoft.ML.Transforms
             return col.ItemType == NumberDataViewType.Single;
         }
 
-        internal const string ExpectedColumnType = "Expected Single or known-size vector of Single";
+        internal const string ExpectedColumnType = "Expected known-size vector of Single";
 
         /// <summary>
         /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
