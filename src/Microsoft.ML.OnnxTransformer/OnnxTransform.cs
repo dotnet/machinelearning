@@ -705,15 +705,15 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
     /// | Output column data type | As specified by the ONNX model |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.2.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.2.0 (for GPU processing if GPU is available) |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.3.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.3.0 (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
-    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the
-    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library (version 1.2.0).
-    /// Models are scored on CPU by default.
+    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
+    /// Models are scored on CPU if the project references Microsoft.ML.OnnxRuntime and on the GPU if the project references Microsoft.ML.OnnxRuntime.Gpu.
+    /// Every project using the OnnxScoringEstimator must reference one of the above two packages.
     ///
     /// To run on a GPU, use the
-    /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) (version 1.2.0) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
+    /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
     /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.1 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 7.6.5](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#default-gpu-cuda)).
     /// Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
     ///
