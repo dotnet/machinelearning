@@ -2202,11 +2202,7 @@ namespace Microsoft.ML.Tests
             }
             catch (System.Exception ex)
             {
-#if DEBUG
                 Assert.Contains("OpSet version 9 is older than HashTransform's minimum OpSet version requirement: 11", ex.Message);
-#else
-                Assert.Contains("Assert.True() Failure", ex.Message);
-#endif
                 return;
             }
             Done();

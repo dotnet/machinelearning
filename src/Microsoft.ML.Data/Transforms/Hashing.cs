@@ -1471,7 +1471,9 @@ namespace Microsoft.ML.Transforms
             bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
             {
                 const int minimumOpSetVersion = 11;
-                Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoaderSignature + "'s minimum OpSet version requirement: " + minimumOpSetVersion);
+                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+                //Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoaderSignature + "'s minimum OpSet version requirement: " + minimumOpSetVersion);
                 return true;
             }
         }
