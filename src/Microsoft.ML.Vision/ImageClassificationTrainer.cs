@@ -1494,6 +1494,12 @@ namespace Microsoft.ML.Vision
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void Dispose(bool disposing)
+        {
             if (_isDisposed)
                 return;
 
@@ -1508,6 +1514,29 @@ namespace Microsoft.ML.Vision
             }
 
             _isDisposed = true;
+        }
+
+        // Finalizer to clean-up remaining Tensor objects generated in TensorFlow C libraries
+        // not cleaned up by GC
+        ~ImageClassificationModelParameters()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private unsafe void Dispose(bool disposing)
+        {
+            // Free unmanaged resources.
+            if (_pMFModel != null)
+            {
+                MFDestroyModel(ref _pMFModel);
+                _host.Assert(_pMFModel == null);
+            }
         }
     }
 }
