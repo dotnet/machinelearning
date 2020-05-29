@@ -2203,6 +2203,7 @@ namespace Microsoft.ML.Tests
             }
             catch (System.Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 Assert.Contains(expectedExceptionMessageSubString, ex.Message);
                 return;
             }
