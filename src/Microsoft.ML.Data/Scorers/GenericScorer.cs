@@ -28,7 +28,6 @@ namespace Microsoft.ML.Data
     internal sealed class GenericScorer : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
     {
         public const string LoadName = "GenericScorer";
-        public const int MinimumOpSetVersion = 9;
 
         public sealed class Arguments : ScorerArgumentsBase
         {
@@ -147,7 +146,8 @@ namespace Microsoft.ML.Data
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
         {
-            Contracts.Assert(ctx.GetOpSetVersion() >= MinimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoadName + "'s minimum OpSet version requirement: " + MinimumOpSetVersion);
+            const int minimumOpSetVersion = 9;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoadName + "'s minimum OpSet version requirement: " + minimumOpSetVersion);
             return (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
         }
 
