@@ -2195,7 +2195,6 @@ namespace Microsoft.ML.Tests
             var model = pipe.Fit(dataView);
             var transformedData = model.Transform(dataView);
 
-            var expectedExceptionMessageSubString = "OpSet version 9 is older than HashTransform's minimum OpSet version requirement: 11";
             try
             {
                 var onnxModel = mlContext.Model.ConvertToOnnxProtobufWithCustomOpSetVersion(model, dataView, 9);
@@ -2204,7 +2203,7 @@ namespace Microsoft.ML.Tests
             catch (System.Exception ex)
             {
 #if DEBUG
-                Assert.Contains(expectedExceptionMessageSubString, ex.Message);
+                Assert.Contains("OpSet version 9 is older than HashTransform's minimum OpSet version requirement: 11", ex.Message);
 #else
                 Assert.Contains("Assert.True() Failure", ex.Message);
 #endif
