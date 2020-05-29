@@ -2203,8 +2203,11 @@ namespace Microsoft.ML.Tests
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine(ex.Message);
+#if DEBUG
                 Assert.Contains(expectedExceptionMessageSubString, ex.Message);
+#else
+                Assert.Contains("Assert.True() Failure", ex.Message);
+#endif
                 return;
             }
             Done();
