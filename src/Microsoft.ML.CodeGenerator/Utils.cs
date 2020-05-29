@@ -246,6 +246,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
         internal static IList<string> GenerateClassLabels(ColumnInferenceResults columnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
             IList<string> result = new List<string>();
+            HashSet<string> columnNames = new HashSet<string>();
             foreach (var column in columnInferenceResults.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();
@@ -268,36 +269,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     dataKind = column.DataKind;
                     columnName = column.Name;
                 }
-                switch (dataKind)
-                {
-                    case Microsoft.ML.Data.DataKind.String:
-                        sb.Append(Symbols.StringSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Boolean:
-                        sb.Append(Symbols.BoolSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Single:
-                        sb.Append(Symbols.FloatSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Double:
-                        sb.Append(Symbols.DoubleSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Int32:
-                        sb.Append(Symbols.IntSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.UInt32:
-                        sb.Append(Symbols.UIntSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Int64:
-                        sb.Append(Symbols.LongSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.UInt64:
-                        sb.Append(Symbols.UlongSymbol);
-                        break;
-                    default:
-                        throw new ArgumentException($"The data type '{column.DataKind}' is not handled currently.");
-
-                }
+                sb.Append(GetSymbolOfDataKind(dataKind));
 
                 if (range > 0)
                 {
@@ -309,12 +281,45 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
-                sb.Append(Utils.Normalize(column.Name));
+                string normalizedColumnName = Utils.Normalize(column.Name);
+                if (columnNames.Contains(normalizedColumnName))
+                {
+                    normalizedColumnName = normalizedColumnName + "_" + GetSymbolOfDataKind(dataKind);
+                    if (columnNames.Contains(normalizedColumnName))
+                        throw new ArgumentException($"The column '{column.Name}' with type '{dataKind}' is not unique in the dataset.");
+                }
+                columnNames.Add(normalizedColumnName);
+                sb.Append(normalizedColumnName);
                 sb.Append("{get; set;}");
                 result.Add(sb.ToString());
                 result.Add("\r\n");
             }
             return result;
+        }
+
+        internal static string GetSymbolOfDataKind(DataKind dataKind)
+        {
+            switch (dataKind)
+            {
+                case DataKind.String:
+                    return Symbols.StringSymbol;
+                case DataKind.Boolean:
+                    return Symbols.BoolSymbol;
+                case DataKind.Single:
+                    return Symbols.FloatSymbol;
+                case DataKind.Double:
+                    return Symbols.DoubleSymbol;
+                case DataKind.Int32:
+                    return Symbols.IntSymbol;
+                case DataKind.UInt32:
+                    return Symbols.UIntSymbol;
+                case DataKind.Int64:
+                    return Symbols.LongSymbol;
+                case DataKind.UInt64:
+                    return Symbols.UlongSymbol;
+                default:
+                    throw new ArgumentException($"The data type '{dataKind}' is not handled currently.");
+            }
         }
     }
 }

@@ -257,84 +257,12 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             return (trainerString, trainerUsings);
         }
 
+        /// <summary>
+        /// Utilize <see cref="ML.CodeGenerator.Utilities.Utils.GenerateClassLabels(ColumnInferenceResults, IDictionary{string, CodeGeneratorSettings.ColumnMapping})"/>
+        /// </summary>
         internal IList<string> GenerateClassLabels(IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
-            IList<string> result = new List<string>();
-            HashSet<string> columnNames = new HashSet<string>();
-            foreach (var column in _columnInferenceResult.TextLoaderOptions.Columns)
-            {
-                StringBuilder sb = new StringBuilder();
-                int range = (column.Source[0].Max - column.Source[0].Min).Value;
-                bool isArray = range > 0;
-                sb.Append(Symbols.PublicSymbol);
-                sb.Append(Symbols.Space);
-
-                // if column is in columnMapping, use the type and name in that
-                DataKind dataKind;
-                string columnName;
-
-                if (columnMapping != null && columnMapping.ContainsKey(column.Name))
-                {
-                    dataKind = columnMapping[column.Name].ColumnType;
-                    columnName = columnMapping[column.Name].ColumnName;
-                }
-                else
-                {
-                    dataKind = column.DataKind;
-                    columnName = column.Name;
-                }
-                sb.Append(GetSymbolOfDataKind(dataKind));
-
-                if (range > 0)
-                {
-                    result.Add($"[ColumnName(\"{columnName}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
-                    sb.Append("[]");
-                }
-                else
-                {
-                    result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
-                }
-                sb.Append(" ");
-                string normalizedColumnName = Utils.Normalize(column.Name);
-                if (columnNames.Contains(Utils.Normalize(column.Name)))
-                {
-                    normalizedColumnName = normalizedColumnName + "_" + GetSymbolOfDataKind(dataKind);
-                    if (columnNames.Contains(normalizedColumnName))
-                        throw new ArgumentException($"The column '{column.Name}' with type '{dataKind}' is not unique in the dataset.");
-                }
-                else
-                    columnNames.Add(normalizedColumnName);
-                sb.Append(normalizedColumnName);
-                sb.Append("{get; set;}");
-                result.Add(sb.ToString());
-                result.Add("\r\n");
-            }
-            return result;
-        }
-
-        public string GetSymbolOfDataKind(DataKind dataKind)
-        {
-            switch (dataKind)
-            {
-                case DataKind.String:
-                    return Symbols.StringSymbol;
-                case DataKind.Boolean:
-                    return Symbols.BoolSymbol;
-                case DataKind.Single:
-                    return Symbols.FloatSymbol;
-                case DataKind.Double:
-                    return Symbols.DoubleSymbol;
-                case DataKind.Int32:
-                    return Symbols.IntSymbol;
-                case DataKind.UInt32:
-                    return Symbols.UIntSymbol;
-                case DataKind.Int64:
-                    return Symbols.LongSymbol;
-                case DataKind.UInt64:
-                    return Symbols.UlongSymbol;
-                default:
-                    throw new ArgumentException($"The data type '{dataKind}' is not handled currently.");
-            }
+            return Utils.GenerateClassLabels(_columnInferenceResult, columnMapping);
         }
 
         #region Model project

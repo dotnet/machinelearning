@@ -152,6 +152,14 @@ namespace mlnet.Tests
             },
             new TextLoader.Column[]
             {
+                new TextLoader.Column(){ Name = "id", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Int32 },
+                new TextLoader.Column(){ Name = "shape", Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.Int32 },
+                new TextLoader.Column(){ Name = "Shape", Source = new TextLoader.Range[]{new TextLoader.Range(2) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "color", Source = new TextLoader.Range[]{new TextLoader.Range(3) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "price", Source = new TextLoader.Range[]{new TextLoader.Range(4) }, DataKind = DataKind.Double },
+            },
+            new TextLoader.Column[]
+            {
                 new TextLoader.Column(){ Name = "vin", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Int32 },
                 new TextLoader.Column(){ Name = "Make", Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.String },
                 new TextLoader.Column(){ Name = "Model", Source = new TextLoader.Range[]{new TextLoader.Range(2) }, DataKind = DataKind.Int32 },
@@ -181,6 +189,24 @@ namespace mlnet.Tests
                 "\r\n",
                 "[ColumnName(\"Country\"), LoadColumn(2)]",
                 "public string Country_string{get; set;}",
+                "\r\n"
+            },
+            new List<string>
+            {
+                "[ColumnName(\"id\"), LoadColumn(0)]",
+                "public int Id{get; set;}",
+                "\r\n",
+                "[ColumnName(\"shape\"), LoadColumn(1)]",
+                "public int Shape{get; set;}",
+                "\r\n",
+                "[ColumnName(\"Shape\"), LoadColumn(2)]",
+                "public string Shape_string{get; set;}",
+                "\r\n",
+                "[ColumnName(\"color\"), LoadColumn(3)]",
+                "public string Color{get; set;}",
+                "\r\n",
+                "[ColumnName(\"price\"), LoadColumn(4)]",
+                "public double Price{get; set;}",
                 "\r\n"
             },
             new List<string>
