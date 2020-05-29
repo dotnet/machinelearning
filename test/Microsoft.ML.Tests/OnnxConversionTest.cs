@@ -2235,8 +2235,7 @@ namespace Microsoft.ML.Tests
             where TRow : class
         {
             var dataView = mlContext.Data.LoadFromEnumerable(data, schemaDefinition);
-            var chain = new EstimatorChain<ITransformer>().Append(pipeline);
-            TestPipeline(mlContext, chain, dataView, onnxFileName, columnsToCompare);
+            TestPipeline(mlContext, pipeline, dataView, onnxFileName, columnsToCompare);
         }
 
         /// <summary>
