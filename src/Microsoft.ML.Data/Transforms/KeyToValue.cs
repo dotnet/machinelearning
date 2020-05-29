@@ -323,16 +323,16 @@ namespace Microsoft.ML.Transforms
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
                     DataViewType outputItemType = TypeOutput.GetItemType();
-                    _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(outputItemType, out _naMapsToDefault);
+                    _na = Data.Conversion.Conversions.DefaultInstance.GetNAOrDefault<TValue>(outputItemType, out _naMapsToDefault);
 
                     if (_naMapsToDefault)
                     {
                         // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
-                        _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(outputItemType);
+                        _isDefault = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<TValue>(outputItemType);
                     }
 
                     bool identity;
-                    _convertToUInt = Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberDataViewType.UInt32, out identity);
+                    _convertToUInt = Data.Conversion.Conversions.DefaultInstance.GetStandardConversion<TKey, UInt32>(typeKey, NumberDataViewType.UInt32, out identity);
                 }
 
                 private void MapKey(in TKey src, ref TValue dst)
@@ -505,7 +505,8 @@ namespace Microsoft.ML.Transforms
                     // Onnx expects the input keys to be int64s. But the input data can come from an ML.NET node that
                     // may output a uint32. So cast it here to ensure that the data is treated correctly
                     opType = "Cast";
-                    var castNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastNodeOutput");
+                    var srcShape = (int)ctx.RetrieveShapeOrNull(srcVariableName)[1];
+                    var castNodeOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, srcShape), "CastNodeOutput");
                     var castNode = ctx.CreateNode(opType, srcVariableName, castNodeOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
                     castNode.AddAttribute("to", t);
@@ -513,11 +514,11 @@ namespace Microsoft.ML.Transforms
                     var labelEncoderOutput = dstVariableName;
                     var labelEncoderInput = srcVariableName;
                     if (TypeOutput == NumberDataViewType.Double || TypeOutput == BooleanDataViewType.Instance)
-                        labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "CastNodeOutput");
+                        labelEncoderOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, srcShape), "CastNodeOutput");
                     else if (TypeOutput == NumberDataViewType.Int64 || TypeOutput == NumberDataViewType.UInt16 ||
                         TypeOutput == NumberDataViewType.Int32 || TypeOutput == NumberDataViewType.Int16 ||
                         TypeOutput == NumberDataViewType.UInt64 || TypeOutput == NumberDataViewType.UInt32)
-                        labelEncoderOutput = ctx.AddIntermediateVariable(TextDataViewType.Instance, "CastNodeOutput");
+                        labelEncoderOutput = ctx.AddIntermediateVariable(new VectorDataViewType(TextDataViewType.Instance, srcShape), "CastNodeOutput");
 
                     opType = "LabelEncoder";
                     var node = ctx.CreateNode(opType, castNodeOutput, labelEncoderOutput, ctx.GetNodeName(opType));

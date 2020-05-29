@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -72,7 +73,8 @@ namespace Microsoft.ML.RunTests
 
         // Full paths to the baseline directories.
         private string _baselineCommonDir;
-        private string _baselineBuildStringDir;
+        private IEnumerable<string> _baselineConfigDirs;
+        private string _usedSpecificBaselineConfig;
 
         // The writer to write to test log files.
         protected TestLogger TestLogger;
@@ -92,7 +94,7 @@ namespace Microsoft.ML.RunTests
             Contracts.Check(Directory.Exists(baselineRootDir));
 
             _baselineCommonDir = Path.Combine(baselineRootDir, "Common");
-            _baselineBuildStringDir = Path.Combine(baselineRootDir, BuildString);
+            _baselineConfigDirs = GetConfigurationDirs();
 
             string logDir = Path.Combine(OutDir, _logRootRelPath);
             Directory.CreateDirectory(logDir);
@@ -106,6 +108,45 @@ namespace Microsoft.ML.RunTests
             ML = new MLContext(42);
             ML.Log += LogTestOutput;
             ML.AddStandardComponents();
+        }
+
+        private IEnumerable<string> GetConfigurationDirs()
+        {
+            // Sometimes different configuration will have combination.
+            // for example: one test can run on windows, have different result both
+            // on x64 vs x86 and dotnet core 3.1 vs others, so we have 4 combination:
+            // x64-netcore3.1, x86-netcore3.1, x64-rest, x86-rest. In some cases x64 vs x86
+            // have different results, in some cases netcore 3.1 vs rest have different results,
+            // the most complicate situation is 12 combinations (x64 vs x86, netcoreapp3.1 vs rest,
+            // win vs linux vs osx) have different results.
+            // So use list of string to return different configurations and test will try to search
+            // through this list and use the one file first found, make sure we don't have baseline file
+            // at different configuration folders.
+            var configurationDirs = new List<string>();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                configurationDirs.Add("osx-x64");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                configurationDirs.Add("linux-x64");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (Environment.Is64BitProcess)
+                    configurationDirs.Add("win-x64");
+                else
+                    configurationDirs.Add("win-x86");
+
+            // Use netcore 3.1 result file if necessary.
+            // The small difference comes from CPUMath using different instruction set:
+            // 1. net framework and net core 2.1 uses CpuMathUtils.netstandard that uses SSE instruction set;
+            // 2. net core 3.1 uses CpuMathUtils.netcoreapp that uses AVX, SSE or direct floating point calculation
+            // depending on hardward avaibility.
+            // AVX and SSE generates slightly different result due to nature of floating point math.
+            // So Ideally we should adding AVX support at CPUMath native library, 
+            // use below issue to track: https://github.com/dotnet/machinelearning/issues/5044
+            // don't need netcoreapp21 as this is the default case
+            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+                configurationDirs.Add("netcoreapp31");
+
+            return configurationDirs;
         }
 
         private void LogTestOutput(object sender, LoggingEventArgs e)
@@ -125,6 +166,12 @@ namespace Microsoft.ML.RunTests
             Log("Test {0}: {1}: {2}", TestName,
                 _normal ? "completed normally" : "aborted",
                 IsPassing ? "passed" : "failed");
+
+            if (_usedSpecificBaselineConfig != null)
+            {
+                Log(String.Format("Test {0} is using {1} configuration specific baselines.",
+                    TestName, _usedSpecificBaselineConfig));
+            }
 
             if (!_normal)
                 Assert.Equal(0, _failures);
@@ -210,14 +257,21 @@ namespace Microsoft.ML.RunTests
             Contracts.Assert(IsActive);
             subDir = subDir ?? string.Empty;
 
-            // first check the Common folder, and use it if it exists
-            string commonBaselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, name));
-            if (File.Exists(commonBaselinePath))
+            string baselinePath;
+
+            // first check if a platform specific baseline exists
+            foreach (var baselineConfigDir in _baselineConfigDirs)
             {
-                return commonBaselinePath;
+                baselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, baselineConfigDir, name));
+                if (File.Exists(baselinePath))
+                {
+                    _usedSpecificBaselineConfig = baselineConfigDir;
+                    return baselinePath;
+                }
             }
 
-            return Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, name));
+            // Platform specific baseline does not exist, use Common baseline
+            return Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, name));
         }
 
         // These are used to normalize output.
@@ -348,6 +402,7 @@ namespace Microsoft.ML.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
+
             bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
 
             // No need to keep the raw (unnormalized) output file.
@@ -430,6 +485,8 @@ namespace Microsoft.ML.RunTests
         {
             Contracts.Assert(skip >= 0);
 
+            Output.WriteLine($"Comparing {outPath} and {basePath}");
+
             using (StreamReader baseline = OpenReader(basePath))
             using (StreamReader result = OpenReader(outPath))
             {
@@ -475,7 +532,10 @@ namespace Microsoft.ML.RunTests
                     count++;
                     var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision, parseOption);
 
-                    if (!inRange || line1 != line2)
+                    var line1Core = line1.Replace(" ", "").Replace("\t", "");
+                    var line2Core = line2.Replace(" ", "").Replace("\t", "");
+
+                    if (!inRange || line1Core != line2Core)
                     {
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
@@ -555,7 +615,7 @@ namespace Microsoft.ML.RunTests
             // limitting to the digits we care about. 
             delta = Math.Round(delta, digitsOfPrecision);
 
-            bool inRange = delta > -allowedVariance && delta < allowedVariance;
+            bool inRange = delta >= -allowedVariance && delta <= allowedVariance;
 
             // for some cases, rounding up is not beneficial
             // so checking on whether the difference is significant prior to rounding, and failing only then. 

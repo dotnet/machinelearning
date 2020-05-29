@@ -33,7 +33,7 @@ namespace Microsoft.ML.Benchmarks
                 PetalWidth = 5.1f,
             };
 
-            string irisDataPath = GetBenchmarkDataPath("iris.txt");
+            string irisDataPath = GetBenchmarkDataPathAndEnsureData("iris.txt");
 
             var env = new MLContext(seed: 1);
 
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Benchmarks
                 SentimentText = "Not a big fan of this."
             };
 
-            string sentimentDataPath = GetBenchmarkDataPath("wikipedia-detox-250-line-data.tsv");
+            string sentimentDataPath = GetBenchmarkDataPathAndEnsureData("wikipedia-detox-250-line-data.tsv");
 
             var mlContext = new MLContext(seed: 1);
 
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
                 Features = new[] { 5f, 1f, 1f, 1f, 2f, 1f, 3f, 1f, 1f }
             };
 
-            string breastCancerDataPath = GetBenchmarkDataPath("breast-cancer.txt");
+            string breastCancerDataPath = GetBenchmarkDataPathAndEnsureData("breast-cancer.txt");
 
             var env = new MLContext(seed: 1);
 

@@ -123,7 +123,7 @@ namespace Microsoft.ML.Data.IO
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else
-                    Conv = Conversions.Instance.GetStringConversion<T>(type);
+                    Conv = Conversions.DefaultInstance.GetStringConversion<T>(type);
 
                 var d = default(T);
                 Conv(in d, ref Sb);
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Data.IO
                 for (; ichCur < ichLim; ichCur++)
                 {
                     char ch = span[ichCur];
-                    if (ch != '"' && ch != sep && ch != ':')
+                    if (ch != '"' && ch != sep && ch != ':' && ch != '\n')
                         continue;
                     if (!quoted)
                     {

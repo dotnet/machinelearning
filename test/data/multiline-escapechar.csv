@@ -1,0 +1,34 @@
+// this file should be loaded with quoting and readmultiline enabled
+// and it should load without problems by the TextLoader
+id,description,animal
+// this is a comment that will be ignored
+// this is a comment with "quotes" that will also be ignored
+// this is a comment with a "quote without close quote that will also be ignored
+10,this is a description,dog
+11,"this is a quoted description",cat
+12,"this is a multiline
+quoted description", bird
+13,"this has one\"doublequote which should be escaped as a single quote",dog
+14,"this has \"doublequotes\" inside of it",cat
+15, "this is a multiline
+quoted description with
+
+\"doublequotes\" and
+
+empty new lines and
+
+
+
+escaped quotes inside of \"it\"
+
+//and this comment with // shouldn't be ignored
+since it is part of the \"multiline\"",bird
+// this line should be ignored, and the next line is empty:
+
+16, here is text after the empty line, dog
+17, this is a line with an empty animal,""
+"", this is a line with an empty id, bird
+19,"",dog
+20,we also allow"quotes in the middle of fields,cat
+21,or also at the end",bird
+22,this is the last row description,dog

@@ -134,5 +134,12 @@ namespace Microsoft.ML.Data
             TopKAccuracy = topKAccuracy;
             PerClassLogLoss = perClassLogLoss.ToImmutableArray();
         }
+
+        internal MulticlassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
+            int topKPredictionCount, double topKAccuracy, double[] perClassLogLoss, ConfusionMatrix confusionMatrix)
+            : this(accuracyMicro, accuracyMacro, logLoss, logLossReduction, topKPredictionCount, topKAccuracy, perClassLogLoss)
+        {
+            ConfusionMatrix = confusionMatrix;
+        }
     }
 }

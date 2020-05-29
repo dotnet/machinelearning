@@ -370,7 +370,7 @@ namespace Microsoft.ML.Data
 
             protected override ValueGetter<VBuffer<T>> GetGetterCore()
             {
-                var isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_view.Schema[_col].Type);
+                var isDefault = Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(_view.Schema[_col].Type);
                 bool valid = false;
                 VBuffer<T> cached = default(VBuffer<T>);
                 return
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(itemType.RawType == typeof(T));
                 int vecLen = type.GetValueCount();
                 Ch.Assert(vecLen > 0);
-                InPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(itemType);
+                InPredicate<T> isDefault = Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(itemType);
                 int maxPossibleSize = _rbuff.Length * vecLen;
                 const int sparseThresholdRatio = 5;
                 int sparseThreshold = (maxPossibleSize + sparseThresholdRatio - 1) / sparseThresholdRatio;

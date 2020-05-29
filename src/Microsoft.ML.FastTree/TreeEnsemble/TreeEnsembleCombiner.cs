@@ -65,9 +65,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 foreach (var t in tree.TrainedEnsemble.Trees)
                 {
                     var bytes = new byte[t.SizeInBytes()];
-                    int position = -1;
+                    int position = 0;
                     t.ToByteArray(bytes, ref position);
-                    position = -1;
+                    position = 0;
                     var tNew = new InternalRegressionTree(bytes, ref position);
                     if (paramA != 1)
                     {

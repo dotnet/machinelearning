@@ -22,7 +22,7 @@ namespace micro
         {
             _context = new MLContext(1);
             var data = _context.Data.LoadFromTextFile<SentimentData>(
-                GetBenchmarkDataPath("wikipedia-detox-250-line-data.tsv"), hasHeader: true);
+                GetBenchmarkDataPathAndEnsureData("wikipedia-detox-250-line-data.tsv"), hasHeader: true);
 
             // Pipeline.
             var pipeline = _context.Transforms.Text.FeaturizeText("Features", "SentimentText")

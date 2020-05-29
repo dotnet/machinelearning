@@ -340,5 +340,130 @@ namespace Microsoft.ML.Tests.Transformers
 
             Done();
         }
+
+        [NotCentOS7Fact]
+        public void LoadFromFileTest()
+        {
+            // File contents are:
+            //Date
+            //2025 / 6 / 30
+            //2020 / 4 / 27
+            //2020 / 3 / 22
+
+            var dataPath = GetDataPath("dates1.csv");
+
+            MLContext mlContext = new MLContext(1);
+
+            // Load data from file into the dataView
+            var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
+                    new TextLoader.Column("Date", DataKind.DateTime, 0),
+            }, hasHeader: true);
+
+            var x = dataView.Preview();
+
+            // Build the pipeline, fit, and transform it.
+            var pipeline = mlContext.Transforms.FeaturizeDateTime("Date", "DTC");
+            var model = pipeline.Fit(dataView);
+            var output = model.Transform(dataView);
+
+            // Get the data from the first row and make sure it matches expected
+            var row = output.Preview().RowView[0].Values;
+
+            // Assert the data from the first row is what we expect
+            Assert.Equal(2025, row[1].Value);                           // Year
+            Assert.Equal((byte)6, row[2].Value);                        // Month
+            Assert.Equal((byte)30, row[3].Value);                       // Day
+            Assert.Equal((byte)0, row[4].Value);                        // Hour
+            Assert.Equal((byte)0, row[5].Value);                        // Minute
+            Assert.Equal((byte)0, row[6].Value);                        // Second
+            Assert.Equal((byte)0, row[7].Value);                        // AmPm
+            Assert.Equal((byte)0, row[8].Value);                        // Hour12
+            Assert.Equal((byte)1, row[9].Value);                        // DayOfWeek
+            Assert.Equal((byte)91, row[10].Value);                      // DayOfQuarter
+            Assert.Equal((ushort)180, row[11].Value);                   // DayOfYear
+            Assert.Equal((ushort)4, row[12].Value);                     // WeekOfMonth
+            Assert.Equal((byte)2, row[13].Value);                       // QuarterOfYear
+            Assert.Equal((byte)1, row[14].Value);                       // HalfOfYear
+            Assert.Equal((byte)27, row[15].Value);                      // WeekIso
+            Assert.Equal(2025, row[16].Value);                          // YearIso
+            Assert.Equal("June", row[17].Value.ToString());             // MonthLabel
+            Assert.Equal("am", row[18].Value.ToString());               // AmPmLabel
+            Assert.Equal("Monday", row[19].Value.ToString());           // DayOfWeekLabel
+            Assert.Equal("", row[20].Value.ToString());  // HolidayName
+            Assert.Equal((byte)0, row[21].Value);                       // IsPaidTimeOff
+
+            TestEstimatorCore(pipeline, dataView);
+            Done();
+        }
+
+        public class DateString
+        {
+            [LoadColumn(0)]
+            public string DateStr { get; set; }
+        }
+
+        public class DateObject
+        {
+            public DateTime Date { get; set; }
+        }
+
+        [NotCentOS7Fact]
+        public void LoadFromFileWithCustomMappingTest()
+        {
+            // File contents are:
+            // Date
+            //30.06.25
+            //27.06.20
+            //22.03.20
+            // Since the textloader won't be able to parse correctly the dates
+            // as DateTimes, we'll need to load them as strings and then use a
+            // CustomMappingTransformer to correctly parse them into DateTime objects
+            var dataPath = GetDataPath("dates2.csv");
+
+            // Load data from file into the dataView
+            MLContext mlContext = new MLContext(1);
+            var dataView = mlContext.Data.LoadFromTextFile<DateString>(dataPath, hasHeader: true);
+
+            // Define the custom mapping action
+            Action<DateString, DateObject> parseDateTime = (input, output) =>
+            {
+                output.Date = DateTime.ParseExact(input.DateStr, "dd.MM.yy", null);
+            };
+
+            // Build the pipeline, fit, and transform it.
+            var pipeline = mlContext.Transforms.CustomMapping(parseDateTime, null)
+                .Append(mlContext.Transforms.FeaturizeDateTime("Date", "DTC"));
+
+            var model = pipeline.Fit(dataView);
+            var output = model.Transform(dataView);
+
+            // Get the data from the first row and make sure it matches expected
+            var row = output.Preview().RowView[0].Values;
+
+            // Assert the data from the first row is what we expect
+            Assert.Equal(2025, row[2].Value);                           // Year
+            Assert.Equal((byte)6, row[3].Value);                        // Month
+            Assert.Equal((byte)30, row[4].Value);                       // Day
+            Assert.Equal((byte)0, row[5].Value);                        // Hour
+            Assert.Equal((byte)0, row[6].Value);                        // Minute
+            Assert.Equal((byte)0, row[7].Value);                        // Second
+            Assert.Equal((byte)0, row[8].Value);                        // AmPm
+            Assert.Equal((byte)0, row[9].Value);                        // Hour12
+            Assert.Equal((byte)1, row[10].Value);                        // DayOfWeek
+            Assert.Equal((byte)91, row[11].Value);                      // DayOfQuarter
+            Assert.Equal((ushort)180, row[12].Value);                   // DayOfYear
+            Assert.Equal((ushort)4, row[13].Value);                     // WeekOfMonth
+            Assert.Equal((byte)2, row[14].Value);                       // QuarterOfYear
+            Assert.Equal((byte)1, row[15].Value);                       // HalfOfYear
+            Assert.Equal((byte)27, row[16].Value);                      // WeekIso
+            Assert.Equal(2025, row[17].Value);                          // YearIso
+            Assert.Equal("June", row[18].Value.ToString());             // MonthLabel
+            Assert.Equal("am", row[19].Value.ToString());               // AmPmLabel
+            Assert.Equal("Monday", row[20].Value.ToString());           // DayOfWeekLabel
+            Assert.Equal("", row[21].Value.ToString());  // HolidayName
+            Assert.Equal((byte)0, row[22].Value);                       // IsPaidTimeOff
+
+            Done();
+        }
     }
 }

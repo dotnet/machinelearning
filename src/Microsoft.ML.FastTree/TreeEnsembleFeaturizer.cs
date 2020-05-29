@@ -733,8 +733,8 @@ namespace Microsoft.ML.Data
             // key-types we just upfront convert it to the most general type (ulong) and work from there.
             KeyDataViewType dstType = new KeyDataViewType(typeof(ulong), type.Count);
             bool identity;
-            var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
-            var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);
+            var converter = Conversions.DefaultInstance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
+            var isNa = Conversions.DefaultInstance.GetIsNAPredicate<TInput>(type);
 
             ValueMapper<TInput, Single> mapper;
             if (seed == 0)

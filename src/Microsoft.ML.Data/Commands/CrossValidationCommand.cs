@@ -328,11 +328,14 @@ namespace Microsoft.ML.Data
                 {
                     ch.Info("Hashing the stratification column");
                     var origStratCol = stratificationColumn;
-                    int tmp;
-                    int inc = 0;
-                    while (input.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
-                        stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    output = new HashingEstimator(Host, origStratCol, stratificationColumn, 30).Fit(input).Transform(input);
+                    stratificationColumn = input.Schema.GetTempColumnName("strat");
+
+                    // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
+                    var itemType = type.GetItemType();
+                    if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
+                        input = new TypeConvertingTransformer(Host, origStratCol, DataKind.Int64, origStratCol).Transform(input);
+
+                    output = new HashingEstimator(Host, stratificationColumn, origStratCol, 30).Fit(input).Transform(input);
                 }
             }
 

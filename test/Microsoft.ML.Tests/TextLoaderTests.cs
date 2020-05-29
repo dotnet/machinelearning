@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -660,7 +662,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
     }
 
-    public class TextLoaderFromModelTests : BaseTestClass
+    public class TextLoaderFromModelTests : BaseTestBaseline
     {
         public TextLoaderFromModelTests(ITestOutputHelper output)
            : base(output)
@@ -704,8 +706,10 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string Type;
         }
 
-        [Fact]
-        public void LoaderColumnsFromIrisData()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void LoaderColumnsFromIrisData(bool useOptionsObject)
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var mlContext = new MLContext(1);
@@ -719,7 +723,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
-            var dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Load(dataPath);
+            IDataView dataIris;
+            if (useOptionsObject)
+                dataIris = mlContext.Data.CreateTextLoader<Iris>(new TextLoader.Options() { Separator = ",", AllowQuoting = false }).Load(dataPath);
+            else
+                dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Load(dataPath);
+
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
@@ -735,7 +744,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
             // Load with start and end indexes
-            var dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(separatorChar: ',').Load(dataPath);
+            IDataView dataIrisStartEnd;
+            if (useOptionsObject)
+                dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(new TextLoader.Options() { Separator = ",", AllowQuoting = false }).Load(dataPath);
+            else
+                dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(separatorChar: ',').Load(dataPath);
+
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
@@ -752,7 +766,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             // load setting the distinct columns. Loading column 0 and 2
-            var dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(separatorChar: ',').Load(dataPath);
+            IDataView dataIrisColumnIndices;
+            if (useOptionsObject)
+                dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(new TextLoader.Options() { Separator = ",", AllowQuoting = false }).Load(dataPath);
+            else
+                dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(separatorChar: ',').Load(dataPath);
+
             var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
 
             Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);
@@ -783,6 +802,325 @@ namespace Microsoft.ML.EntryPoints.Tests
                 var result = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(breastCancerPath), false);
                 Assert.True(result.Schema.TryGetColumnIndex("key", out int featureIdx));
                 Assert.True(result.Schema[featureIdx].Type is KeyDataViewType keyType && keyType.Count == typeof(uint).ToMaxInt());
+            }
+        }
+
+        [Fact]
+        public void TestTextLoaderBackCompat_VerWritt_0x0001000C()
+        {
+            // Checks backward compatibility with a text loader created with "verWrittenCur: 0x0001000C"
+            // Model generated with:
+            // loader=text{header+ col=SepalLength:Num:0 col=SepalWidth:Num:1 col=PetalLength:Num:2 col=PetalWidth:Num:2 col=Cat:TX:1-8 col=Num:9-14 col=Type:TX:4}
+            var mlContext = new MLContext(1);
+            string textLoaderModelPath = GetDataPath("backcompat/textloader_VerWritt_0x0001000C.zip");
+            string irisPath = GetDataPath(TestDatasets.irisData.trainFilename);
+
+            IDataView iris;
+            using (FileStream modelfs = File.OpenRead(textLoaderModelPath))
+            using (var rep = RepositoryReader.Open(modelfs, mlContext))
+            {
+                iris = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(irisPath), false);
+            }
+
+            var previewIris = iris.Preview(1);
+            var irisFirstRow = new Dictionary<string, float>();
+            irisFirstRow["SepalLength"] = 5.1f;
+            irisFirstRow["SepalWidth"] = 3.5f;
+            irisFirstRow["PetalLength"] = 1.4f;
+            irisFirstRow["PetalWidth"] = 0.2f;
+
+            Assert.Equal(5, previewIris.ColumnView.Length);
+            Assert.Equal("SepalLength", previewIris.Schema[0].Name);
+            Assert.Equal(NumberDataViewType.Single, previewIris.Schema[0].Type);
+            int index = 0;
+            foreach (var entry in irisFirstRow)
+            {
+                Assert.Equal(entry.Key, previewIris.RowView[0].Values[index].Key);
+                Assert.Equal(entry.Value, previewIris.RowView[0].Values[index++].Value);
+            }
+            Assert.Equal("Type", previewIris.RowView[0].Values[index].Key);
+            Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestCommaAsDecimalMarker(bool useCsvVersion)
+        {
+            // When userCsvVersion == false:
+            // Datasets iris.txt and iris-decimal-marker-as-comma.txt are the exact same, except for their
+            // decimal markers. Decimal marker in iris.txt is '.', and ',' in iris-decimal-marker-as-comma.txt.
+
+            // When userCsvVersion == true:
+            // Check to confirm TextLoader can read data from a CSV file where the separator is ',', decimals
+            // are enclosed with quotes, and with the decimal marker being ','.
+
+            // Do these checks with both float and double as types of features being read, to test decimal marker
+            // recognition with both doubles and floats.
+            TestCommaAsDecimalMarkerHelper<float>(useCsvVersion);
+            TestCommaAsDecimalMarkerHelper<double>(useCsvVersion);
+        }
+        
+        private void TestCommaAsDecimalMarkerHelper<T>(bool useCsvVersion)
+        {
+            // Datasets iris.txt and iris-decimal-marker-as-comma.txt are the exact same, except for their
+            // decimal markers. Decimal marker in iris.txt is '.', and ',' in iris-decimal-marker-as-comma.txt.
+            // Datasets iris.txt and iris-decimal-marker-as-comma.csv have the exact same data, however the .csv
+            // version has ',' as decimal marker and separator, and feature values are enclosed with quotes.
+            // T varies as either float or double, so that decimal markers can be tested for both floating
+            // point value types.
+            var mlContext = new MLContext(seed: 1);
+
+            // Read dataset with period as decimal marker.
+            string dataPathDecimalMarkerPeriod = GetDataPath("iris.txt");
+            var readerDecimalMarkerPeriod = new TextLoader(mlContext, new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.UInt32, 0),
+                            new TextLoader.Column("Features", typeof(T) == typeof(double) ? DataKind.Double : DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
+                        },
+                DecimalMarker = '.'
+            });
+            var textDataDecimalMarkerPeriod = readerDecimalMarkerPeriod.Load(GetDataPath(dataPathDecimalMarkerPeriod));
+
+            // Load values from iris.txt
+            DataViewSchema columnsPeriod = textDataDecimalMarkerPeriod.Schema;
+            using DataViewRowCursor cursorPeriod = textDataDecimalMarkerPeriod.GetRowCursor(columnsPeriod);
+            UInt32 labelPeriod = default;
+            ValueGetter<UInt32> labelDelegatePeriod = cursorPeriod.GetGetter<UInt32>(columnsPeriod[0]);
+            VBuffer<T> featuresPeriod = default;
+            ValueGetter<VBuffer<T>> featuresDelegatePeriod = cursorPeriod.GetGetter<VBuffer<T>>(columnsPeriod[1]);
+
+            // Iterate over each row and save labels and features to array for future comparison
+            int count = 0;
+            UInt32[] labels = new uint[150];
+            T[][] features = new T[150][];
+            while (cursorPeriod.MoveNext())
+            {
+                //Get values from respective columns
+                labelDelegatePeriod(ref labelPeriod);
+                featuresDelegatePeriod(ref featuresPeriod);
+                labels[count] = labelPeriod;
+                features[count] = featuresPeriod.GetValues().ToArray();
+                count++;
+            }
+
+            // Read dataset with comma as decimal marker.
+            // Dataset is either the .csv version or the .txt version.
+            string dataPathDecimalMarkerComma;
+            TextLoader.Options options = new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.UInt32, 0),
+                            new TextLoader.Column("Features", typeof(T) == typeof(double) ? DataKind.Double : DataKind.Single, new [] { new TextLoader.Range(1, 4) })
+                        },
+            };
+            // Set TextLoader.Options for the .csv or .txt cases.
+            if (useCsvVersion)
+            {
+                dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.csv");
+                options.DecimalMarker = ',';
+                options.Separator = ",";
+                options.AllowQuoting = true;
+                options.HasHeader = true;
+            }
+            else
+            {
+                dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.txt");
+                options.DecimalMarker = ',';
+            }
+            var readerDecimalMarkerComma = new TextLoader(mlContext, options);
+            var textDataDecimalMarkerComma = readerDecimalMarkerComma.Load(GetDataPath(dataPathDecimalMarkerComma));
+
+            // Load values from dataset with comma as decimal marker
+            DataViewSchema columnsComma = textDataDecimalMarkerComma.Schema;
+            using DataViewRowCursor cursorComma = textDataDecimalMarkerComma.GetRowCursor(columnsComma);
+            UInt32 labelComma = default;
+            ValueGetter<UInt32> labelDelegateComma = cursorComma.GetGetter<UInt32>(columnsComma[0]);
+            VBuffer<T> featuresComma = default;
+            ValueGetter<VBuffer<T>> featuresDelegateComma = cursorComma.GetGetter<VBuffer<T>>(columnsComma[1]);
+
+            // Check values from dataset with comma as decimal marker match those in iris.txt (period decimal marker)
+            count = 0;
+            while (cursorComma.MoveNext())
+            {
+                //Get values from respective columns
+                labelDelegateComma(ref labelComma);
+                featuresDelegateComma(ref featuresComma);
+                Assert.Equal(labels[count], labelComma);
+                Assert.Equal(features[count], featuresComma.GetValues().ToArray());
+                count++;
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestWrongDecimalMarkerInputs(bool useCommaAsDecimalMarker)
+        {
+            // When DecimalMarker does not match the actual decimal marker used in the dataset,
+            // we obtain values of NaN. Check that the values are indeed NaN in this case.
+            // Do this check for both cases where decimal markers in the dataset are '.' and ','.
+            var mlContext = new MLContext(seed: 1);
+
+            // Try reading a dataset where '.' is the actual decimal marker, but DecimalMarker = ',',
+            // and vice versa.
+            string dataPath;
+            TextLoader.Options options = new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.UInt32, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) })
+                        },
+            };
+            if (useCommaAsDecimalMarker)
+            {
+                dataPath = GetDataPath("iris.txt"); //  Has '.' as decimal marker inside dataset
+                options.DecimalMarker = ','; // Choose wrong decimal marker on purpose
+            }
+            else
+            {
+                dataPath = GetDataPath("iris-decimal-marker-as-comma.txt"); // Has ',' as decimal marker inside dataset
+                options.DecimalMarker = '.'; // Choose wrong decimal marker on purpose
+            }
+            var reader = new TextLoader(mlContext, options);
+            var textData = reader.Load(GetDataPath(dataPath));
+
+            // Check that the features being loaded are NaN.
+            DataViewSchema columns = textData.Schema;
+            using DataViewRowCursor cursor = textData.GetRowCursor(columns);
+            VBuffer<Single> featuresPeriod = default;
+            ValueGetter<VBuffer<Single>> featuresDelegatePeriod = cursor.GetGetter<VBuffer<Single>>(columns[1]);
+            
+            // Iterate over each row and check that feature values are NaN.
+            while (cursor.MoveNext())
+            {
+                featuresDelegatePeriod.Invoke(ref featuresPeriod);
+                foreach(float feature in featuresPeriod.GetValues().ToArray())
+                    Assert.Equal(feature, Single.NaN);
+            }
+        }
+
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        public void TestDifferentDecimalMarkersAtTheSameTime(bool useCorrectPeriod, bool useCorrectComma)
+        {
+            // Using 2 different textloaders, with different decimal markers
+            // should yield the expected results even when using their cursors at the same time
+            // in all of the scenarios tested here
+
+            var mlContext = new MLContext(seed: 1);
+
+            var periodPath = GetDataPath("iris.txt");
+            var commaPath = GetDataPath("iris-decimal-marker-as-comma.txt");
+
+            var optionsPeriod = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("Label", DataKind.UInt32, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
+                },
+                DecimalMarker = '.'
+            };
+
+            var optionsComma = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("Label", DataKind.UInt32, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
+                },
+                DecimalMarker = ','
+            };
+
+            for (int j = 0; j < 2; j++)
+            {
+                // Run various times inside the same test, to also test that TextLoader is only creating 1
+                // Custom instance of ValueCreatorCache
+
+                IDataView dataViewPeriod;
+                IDataView dataViewComma;
+
+                if (useCorrectPeriod)
+                    dataViewPeriod = mlContext.Data.LoadFromTextFile(periodPath, optionsPeriod);
+                else
+                    dataViewPeriod = mlContext.Data.LoadFromTextFile(commaPath, optionsPeriod);
+
+                if (useCorrectComma)
+                    dataViewComma = mlContext.Data.LoadFromTextFile(commaPath, optionsComma);
+                else
+                    dataViewComma = mlContext.Data.LoadFromTextFile(periodPath, optionsComma);
+
+                VBuffer<Single> featuresPeriod = default;
+                VBuffer<Single> featuresComma = default;
+
+
+                using (var cursorPeriod = dataViewPeriod.GetRowCursor(dataViewPeriod.Schema))
+                using (var cursorComma = dataViewComma.GetRowCursor(dataViewComma.Schema))
+                {
+                    var delegatePeriod = cursorPeriod.GetGetter<VBuffer<Single>>(dataViewPeriod.Schema["Features"]);
+                    var delegateComma = cursorComma.GetGetter<VBuffer<Single>>(dataViewPeriod.Schema["Features"]);
+                    while (cursorPeriod.MoveNext() && cursorComma.MoveNext())
+                    {
+                        delegatePeriod(ref featuresPeriod);
+                        delegateComma(ref featuresComma);
+
+                        var featuresPeriodArray = featuresPeriod.GetValues().ToArray();
+                        var featuresCommaArray = featuresComma.GetValues().ToArray();
+                        Assert.Equal(featuresPeriodArray.Length, featuresCommaArray.Length);
+
+                        for (int i = 0; i < featuresPeriodArray.Length; i++)
+                        {
+                            if (useCorrectPeriod && useCorrectComma)
+                            {
+                                // Check that none of the two files loadad NaNs
+                                // As both of them should have been loaded correctly
+                                Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
+                                Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
+                            }
+                            else if (!useCorrectPeriod && !useCorrectComma)
+                            {
+                                // Check that everything was loaded as NaN
+                                // Because the wrong decimal marker was used for both loaders
+                                Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
+                                Assert.Equal(Single.NaN, featuresPeriodArray[i]);
+                            }
+                            else if (!useCorrectPeriod && useCorrectComma)
+                            {
+                                // Check that only the file with commas was loaded correctly
+                                Assert.Equal(Single.NaN, featuresPeriodArray[i]);
+                                Assert.NotEqual(Single.NaN, featuresCommaArray[i]);
+                            }
+                            else
+                            {
+                                // Check that only the file with periods was loaded correctly
+                                Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
+                                Assert.Equal(Single.NaN, featuresCommaArray[i]);
+                            }
+                        }
+                    }
+                }
+
+                // Check how many custom instances there are of TextLoader.ValueCreatorCache
+                var vccType = typeof(TextLoader).GetNestedType("ValueCreatorCache", BindingFlags.NonPublic | BindingFlags.Static);
+                var customInstancesInfo = vccType.GetField("_customInstances", BindingFlags.NonPublic | BindingFlags.Static);
+                var customInstancesObject = customInstancesInfo.GetValue(null);
+                var customInstancesCount = (int)customInstancesObject.GetType().GetProperty("Count").GetValue(customInstancesObject, null);
+                var customInstancesContainsMethod = customInstancesObject.GetType().GetMethod("ContainsKey");
+
+                // Regardless of useCorrectPeriod and useCorrectComma
+                // Since we always created a TextLoader with Comma as DecimalMarker
+                // There should always be 1, and only 1, custom instance of ValueCreatorCache, corresponding to the comma option
+                // Even after running multiple times the loop above.
+                Assert.Equal(1, customInstancesCount);
+                Assert.True((bool)customInstancesContainsMethod.Invoke(customInstancesObject, new[] { (object) DoubleParser.OptionFlags.UseCommaAsDecimalMarker }));
             }
         }
 
@@ -876,6 +1214,207 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 Assert.StartsWith("Should define at least one public, readable field or property in TInput.", ex.Message);
             }
+        }
+
+        public class BreastCancerInputModelWithKeyType
+        {
+            [LoadColumn(0)]
+            public bool IsMalignant { get; set; }
+
+            [LoadColumn(1), KeyType(10)]
+            public uint Thickness { get; set; }
+        }
+
+        public class BreastCancerInputModelWithoutKeyType
+        {
+            [LoadColumn(0)]
+            public bool IsMalignant { get; set; }
+
+            [LoadColumn(1)]
+            public uint Thickness { get; set; }
+        }
+
+        [Fact]
+        public void TestLoadTextWithKeyTypeAttribute()
+        {
+            ulong expectedCount = 10;
+
+            var mlContext = new MLContext(seed: 1);
+            string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+
+            var data = mlContext.Data.CreateTextLoader<BreastCancerInputModelWithKeyType>(separatorChar: ',').Load(breastCancerPath);
+
+            Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
+        }
+
+        [Fact]
+        public void TestLoadTextWithoutKeyTypeAttribute()
+        {
+            ulong expectedCount = 0;
+            var mlContext = new MLContext(seed: 1);
+            string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+
+            var data = mlContext.Data.CreateTextLoader<BreastCancerInputModelWithoutKeyType>(separatorChar: ',').Load(breastCancerPath);
+
+            Assert.Equal(expectedCount, data.Schema[1].Type.GetKeyCount());
+        }
+
+        [Theory]
+        [InlineData(true, false)]
+        [InlineData(false, false)]
+        [InlineData(true, true)]
+        [InlineData(false, true)]
+        public void TestLoadTextWithEscapedNewLinesAndEscapeChar(bool useSaved, bool useCustomEscapeChar)
+        {
+            var mlContext = new MLContext(seed: 1);
+            string dataPath;
+
+            if (!useCustomEscapeChar)
+                dataPath = GetDataPath("multiline.csv");
+            else
+                dataPath = GetDataPath("multiline-escapechar.csv");
+
+            var baselinePath = GetBaselinePath("TextLoader", "multiline.csv");
+            var options = new TextLoader.Options()
+            {
+                HasHeader = true,
+                Separator = ",",
+                AllowQuoting = true,
+                ReadMultilines = true,
+                EscapeChar = useCustomEscapeChar ? '\\' : TextLoader.Defaults.EscapeChar,
+                Columns = new[]
+                {
+                    new TextLoader.Column("id", DataKind.Int32, 0),
+                    new TextLoader.Column("description", DataKind.String, 1),
+                    new TextLoader.Column("animal", DataKind.String, 2),
+                },
+            };
+
+            var data = mlContext.Data.LoadFromTextFile(dataPath, options);
+            if (useSaved)
+            {
+                // Check that loading the data view from a text file,
+                // and then saving that data view to another text file, then loading it again
+                // also matches the baseline.
+
+                string savedPath;
+
+                if (!useCustomEscapeChar)
+                    savedPath = DeleteOutputPath("multiline-saved.tsv");
+                else
+                    savedPath = DeleteOutputPath("multiline-escapechar-saved.tsv");
+
+                using (var fs = File.Create(savedPath))
+                    mlContext.Data.SaveAsText(data, fs, separatorChar: '\t');
+
+                options.Separator = "\t";
+                options.EscapeChar = '"'; // TextSaver always uses " as escape char
+                data = mlContext.Data.LoadFromTextFile(savedPath, options);
+            }
+
+            // Get values from loaded dataview
+            var ids = new List<string>();
+            var descriptions = new List<string>();
+            var animals = new List<string>();
+            using(var curs = data.GetRowCursorForAllColumns())
+            {
+                var idGetter = curs.GetGetter<int>(data.Schema["id"]);
+                var descriptionGetter = curs.GetGetter<ReadOnlyMemory<char>>(data.Schema["description"]);
+                var animalGetter = curs.GetGetter<ReadOnlyMemory<char>>(data.Schema["animal"]);
+
+                int id = default;
+                ReadOnlyMemory<char> description = default;
+                ReadOnlyMemory<char> animal = default;
+
+                while(curs.MoveNext())
+                {
+                    idGetter(ref id);
+                    descriptionGetter(ref description);
+                    animalGetter(ref animal);
+
+                    ids.Add(id.ToString());
+                    descriptions.Add(description.ToString());
+                    animals.Add(animal.ToString());
+                }
+            }
+
+            const int numRows = 13;
+            Assert.Equal(numRows, ids.Count());
+            Assert.Equal(numRows, descriptions.Count());
+            Assert.Equal(numRows, animals.Count());
+
+            // Compare values with baseline file
+            string line;
+            using (var file = new StreamReader(baselinePath))
+            {
+                for(int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    Assert.Equal(ids[i], line);
+                }
+
+                for (int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    line = line.Replace("\\n", "\n");
+                    Assert.Equal(descriptions[i], line);
+                }
+
+                for (int i = 0; i < numRows; i++)
+                {
+                    line = file.ReadLine();
+                    Assert.Equal(animals[i], line);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestInvalidMultilineCSVQuote()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            string badInputCsv =
+                "id,description,animal\n" +
+                "9,\"this is a quoted field correctly formatted\",cat\n" +
+                "10,\"this is a quoted field\nwithout closing quote,cat\n" +
+                "11,this field isn't quoted,dog\n" +
+                "12,this will reach the end of the file without finding a closing quote so it will throw,frog\n"
+                ;
+
+            var filePath = GetOutputPath("multiline-invalid.csv");
+            File.WriteAllText(filePath, badInputCsv);
+
+            bool threwException = false;
+            try
+            {
+                var options = new TextLoader.Options()
+                {
+                    HasHeader = true,
+                    Separator = ",",
+                    AllowQuoting = true,
+                    ReadMultilines = true,
+                    Columns = new[]
+                    {
+                    new TextLoader.Column("id", DataKind.Int32, 0),
+                    new TextLoader.Column("description", DataKind.String, 1),
+                    new TextLoader.Column("animal", DataKind.String, 2),
+                },
+                };
+
+                var data = mlContext.Data.LoadFromTextFile(filePath, options);
+
+                data.Preview();
+            }
+            catch(EndOfStreamException)
+            {
+                threwException = true;
+            }
+            catch(FormatException)
+            {
+                threwException = true;
+            }
+
+            Assert.True(threwException, "Invalid file should have thrown an exception");
         }
     }
 }

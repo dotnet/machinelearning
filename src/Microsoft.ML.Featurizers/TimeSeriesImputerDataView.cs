@@ -159,7 +159,7 @@ namespace Microsoft.ML.Transforms
 
                         var outputDataSize = IntPtr.Zero;
                         NativeBinaryArchiveData* outputData = default;
-                        while(outputDataSize == IntPtr.Zero && SharedState.SourceCanMoveNext)
+                        while (outputDataSize == IntPtr.Zero && SharedState.SourceCanMoveNext)
                         {
                             BuildColumnByteArray(allColumns, allImputedColumnNames);
                             QueueDataForNonImputedColumns(allColumns, allImputedColumnNames);
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Transforms
 
             private void BuildColumnByteArray(Dictionary<string, TypedColumn> allColumns, string[] columns)
             {
-                foreach(var column in columns.Where(x => x != IsRowImputedColumnName))
+                foreach (var column in columns.Where(x => x != IsRowImputedColumnName))
                 {
                     allColumns[column].SerializeValue(SharedState.BinWriter);
                 }

@@ -6,10 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model.OnnxConverter;
@@ -72,7 +70,8 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.NormalizeMinMax("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options()
+                {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -124,6 +123,9 @@ namespace Microsoft.ML.Tests
 
             [LoadColumn(2)]
             public string F2;
+
+            [LoadColumn(3, 7), VectorType(6)]
+            public string[] F3;
         }
 
         private class BreastCancerMulticlassExample
@@ -144,7 +146,7 @@ namespace Microsoft.ML.Tests
             public float[] Features;
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline. Tracked by https://github.com/dotnet/machinelearning/issues/2087")]
+        [Fact]
         public void KmeansOnnxConversionTest()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -459,7 +461,7 @@ namespace Microsoft.ML.Tests
 
             // Compare model scores produced by ML.NET and ONNX's runtime.
             // Skipping test in Linux platforms temporarily
-            if (IsOnnxRuntimeSupported() && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
@@ -496,7 +498,7 @@ namespace Microsoft.ML.Tests
             };
             var dataView = mlContext.Data.LoadFromEnumerable(samples);
 
-            var pipe = mlContext.Transforms.NormalizeLpNorm(nameof(DataPoint.Features), norm:norm, ensureZeroMean: ensureZeroMean);
+            var pipe = mlContext.Transforms.NormalizeLpNorm(nameof(DataPoint.Features), norm: norm, ensureZeroMean: ensureZeroMean);
 
             var model = pipe.Fit(dataView);
             var transformedData = model.Transform(dataView);
@@ -547,40 +549,54 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [CombinatorialData]
-        public void KeyToVectorTest(OneHotEncodingEstimator.OutputKind outputKind)
+        public void KeyToVectorTest([CombinatorialValues(DataKind.Single, DataKind.Int64, DataKind.Int32, DataKind.Int16, DataKind.UInt64,
+            DataKind.UInt32, DataKind.UInt16, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind valueType,
+            OneHotEncodingEstimator.OutputKind outputKind)
         {
             var mlContext = new MLContext(seed: 1);
+            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
-            string dataPath = GetDataPath("breast-cancer.txt");
-
-            var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                separatorChar: '\t',
-                hasHeader: true);
-
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", outputKind);
-
-            var model = pipeline.Fit(data);
-            var transformedData = model.Transform(data);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
-
-            // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
-            // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
-            // can support Linux and Mac.
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
-            var onnxTextName = "KeyToVector.txt";
-            var onnxFileName = "KeyToVector.onnx";
-            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
-            var onnxModelPath = GetOutputPath(subDir, onnxFileName);
-            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
-
-            // Binary OutputKind is currently not supported. 
-            if (IsOnnxRuntimeSupported() && OneHotEncodingEstimator.OutputKind.Binary != outputKind)
+            TextLoader.Column[] columnsVector = new[]
             {
-                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-                var onnxTransformer = onnxEstimator.Fit(data);
-                var onnxResult = onnxTransformer.Transform(data);
-                CompareResults("F2", "F2", transformedData, onnxResult);
+                new TextLoader.Column("Key", valueType, 0, 3)
+            };
+            TextLoader.Column[] columnsScalar = new[]
+            {
+                new TextLoader.Column("Key", valueType, 0)
+            };
+            IDataView[] dataViews =
+            {
+                mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
+                mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
+            };
+
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("Vector", "Key", outputKind);
+
+            for (int j = 0; j < dataViews.Length; j++)
+            {
+                if (OneHotEncodingEstimator.OutputKind.Binary == outputKind) break;
+                var model = pipeline.Fit(dataViews[j]);
+                var transformedData = model.Transform(dataViews[j]);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataViews[j]);
+
+                // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
+                // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
+                // can support Linux and Mac.
+                var onnxTextName = "KeyToVector.txt";
+                var onnxFileName = "KeyToVector.onnx";
+                var onnxTextPath = GetOutputPath(onnxTextName);
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+                // Binary OutputKind is currently not supported.
+                if (IsOnnxRuntimeSupported() && OneHotEncodingEstimator.OutputKind.Binary != outputKind)
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataViews[j]);
+                    var onnxResult = onnxTransformer.Transform(dataViews[j]);
+                    CompareResults("Vector", "Vector", transformedData, onnxResult);
+                }
             }
             Done();
         }
@@ -666,7 +682,8 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.NormalizeMinMax("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options()
+                {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -1015,7 +1032,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-            
+
             // Compare model scores produced by ML.NET and ONNX's runtime. 
             var onnxFileName = $"TokenizingByCharacters.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
@@ -1082,7 +1099,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
             string filePath = GetDataPath("type-conversion.txt");
 
-            TextLoader.Column[] columns = new []
+            TextLoader.Column[] columns = new[]
             {
                 new TextLoader.Column("Value", fromKind, 0, 0)
             };
@@ -1146,6 +1163,208 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void OneHotHashEncodingOnnxConversionTest()
+        {
+            var mlContext = new MLContext();
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
+            var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
+                    new OneHotHashEncodingEstimator.ColumnOptions("Output", "F3", useOrderedHashing:false),
+                });
+            var model = pipe.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = "OneHotHashEncoding.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<float>("Output", "Output", transformedData, onnxResult);
+            }
+            Done();
+        }
+
+        private class HashData
+        {
+            public uint Value { get; set; }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MurmurHashKeyTest(
+            [CombinatorialValues(DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.UInt64)]DataKind keyType)
+        {
+            var dataFile = DeleteOutputPath("KeysToOnnx.txt");
+            File.WriteAllLines(dataFile,
+                new[]
+                {
+                    "2",
+                    "5",
+                    "19"
+                });
+
+            var data = ML.Data.LoadFromTextFile(dataFile, new[]
+            {
+                new TextLoader.Column("Value", keyType, new[]
+                {
+                    new TextLoader.Range(0)
+                }, new KeyCount(10))
+            });
+
+            var hashEstimator = ML.Transforms.Conversion.Hash("ValueHashed", "Value");
+            var model = hashEstimator.Fit(data);
+            var transformedData = model.Transform(data);
+            var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, data);
+
+            var onnxFileName = "MurmurHashV2.onnx";
+            var onnxTextName = "MurmurHashV2.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = ML.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedColumns<uint>("ValueHashed", "ValueHashed", transformedData, onnxResult);
+            }
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MurmurHashScalarTest(
+            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Int64, DataKind.Byte,
+            DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
+            [CombinatorialValues(1, 5, 31)] int numberOfBits, bool useOrderedHashing)
+        {
+
+            var mlContext = new MLContext();
+            string dataPath = GetDataPath("type-samples.txt");
+
+            var column = (type == DataKind.SByte) ? 0 :
+                (type == DataKind.Byte) ? 2 :
+                (type == DataKind.Int16) ? 4 :
+                (type == DataKind.UInt16) ? 6 :
+                (type == DataKind.Int32) ? 8 :
+                (type == DataKind.UInt32) ? 10 :
+                (type == DataKind.Int64) ? 12 :
+                (type == DataKind.UInt64) ? 14 :
+                (type == DataKind.Single) ? 16 :
+                (type == DataKind.Double) ? 18 :
+                (type == DataKind.String) ? 20 : 22;
+
+            var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Value", type, column),
+            }, separatorChar: '\t', hasHeader: true);
+
+            var hashEstimator = new HashingEstimator(Env, "Value", useOrderedHashing: useOrderedHashing, numberOfBits: numberOfBits);
+            var model = hashEstimator.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = "MurmurHashV2.onnx";
+            var onnxTextName = "MurmurHashV2.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<uint>("Value", "Value", transformedData, onnxResult);
+            }
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        // Due to lack of Onnxruntime support, OrderedHashing is not supported.
+        // An InvalidOperationException stating that the onnx pipeline can't be fully converted is thrown
+        // when users try to convert the items mentioned above.
+        public void MurmurHashVectorTest(
+            [CombinatorialValues(DataKind.SByte, DataKind.Int16, DataKind.Int32, DataKind.Int64, DataKind.Byte,
+            DataKind.UInt16, DataKind.UInt32, DataKind.UInt64, DataKind.Single, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind type,
+            [CombinatorialValues(1, 5, 31)] int numberOfBits)
+        {
+
+            var mlContext = new MLContext();
+            string dataPath = GetDataPath("type-samples.txt");
+
+            var columnStart = (type == DataKind.SByte) ? 0 :
+                (type == DataKind.Byte) ? 2 :
+                (type == DataKind.Int16) ? 4 :
+                (type == DataKind.UInt16) ? 6 :
+                (type == DataKind.Int32) ? 8 :
+                (type == DataKind.UInt32) ? 10 :
+                (type == DataKind.Int64) ? 12 :
+                (type == DataKind.UInt64) ? 14 :
+                (type == DataKind.Single) ? 16 :
+                (type == DataKind.Double) ? 18 :
+                (type == DataKind.String) ? 20 : 22;
+
+            var columnEnd = (type == DataKind.SByte) ? 1 :
+                (type == DataKind.Byte) ? 3 :
+                (type == DataKind.Int16) ? 5 :
+                (type == DataKind.UInt16) ? 7 :
+                (type == DataKind.Int32) ? 9 :
+                (type == DataKind.UInt32) ? 11 :
+                (type == DataKind.Int64) ? 13 :
+                (type == DataKind.UInt64) ? 15 :
+                (type == DataKind.Single) ? 17 :
+                (type == DataKind.Double) ? 19 :
+                (type == DataKind.String) ? 21 : 23;
+
+            var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Value", type, columnStart, columnEnd),
+            }, separatorChar: '\t', hasHeader: true);
+
+            var hashEstimator = new HashingEstimator(Env, "Value", useOrderedHashing: false, numberOfBits: numberOfBits);
+            var model = hashEstimator.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = "MurmurHashV2.onnx";
+            var onnxTextName = "MurmurHashV2.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<uint>("Value", "Value", transformedData, onnxResult);
+            }
+            Done();
+        }
+
         private class TransformedDataPoint : DataPoint, IEquatable<TransformedDataPoint>
         {
             [VectorType(3)]
@@ -1206,42 +1425,52 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
-        [InlineData(DataKind.Single)]
-        [InlineData(DataKind.Int64)]
-        [InlineData(DataKind.Int32)]
-        [InlineData(DataKind.Int16)]
-        [InlineData(DataKind.UInt64)]
-        [InlineData(DataKind.UInt32)]
-        [InlineData(DataKind.UInt16)]
-        [InlineData(DataKind.Double)]
-        [InlineData(DataKind.String)]
-        [InlineData(DataKind.Boolean)]
-        public void ValueToKeyMappingOnnxConversionTest(DataKind valueType)
+        [CombinatorialData]
+        public void ValueToKeyMappingOnnxConversionTest(
+            [CombinatorialValues(DataKind.Single, DataKind.Int64, DataKind.Int32, DataKind.Int16, DataKind.UInt64,
+            DataKind.UInt32, DataKind.UInt16, DataKind.Double, DataKind.String, DataKind.Boolean)] DataKind valueType,
+            [CombinatorialValues(1, 2)] int maximumNumberOfKeys, ValueToKeyMappingEstimator.KeyOrdinality keyOrdinality,
+            bool addKeyValueAnnotationsAsText)
         {
             var mlContext = new MLContext(seed: 1);
-            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
+            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt")
+                : GetDataPath("type-conversion.txt");
 
-            TextLoader.Column[] columns = new[]
+            TextLoader.Column[] columnsVector = new[]
             {
-                new TextLoader.Column("Value", valueType, 0, 0)
+                new TextLoader.Column("Value", valueType, 0, 3)
             };
-            var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value");
-
-            var model = pipeline.Fit(dataView);
-            var mlnetResult = model.Transform(dataView);
-
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-            var onnxFileName = "ValueToKey.onnx";
-            var onnxModelPath = GetOutputPath(onnxFileName);
-            SaveOnnxModel(onnxModel, onnxModelPath, null);
-
-            if (IsOnnxRuntimeSupported())
+            TextLoader.Column[] columnsScalar = new[]
             {
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-                var onnxTransformer = onnxEstimator.Fit(dataView);
-                var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<uint>("Key", "Key", mlnetResult, onnxResult);
+                new TextLoader.Column("Value", valueType, 0)
+            };
+            IDataView[] dataViews =
+            {
+                mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
+                mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
+            };
+
+            for (int j = 0; j < dataViews.Length; j++)
+            {
+                var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value",
+                    maximumNumberOfKeys: maximumNumberOfKeys, keyOrdinality: keyOrdinality,
+                    addKeyValueAnnotationsAsText: addKeyValueAnnotationsAsText);
+
+                var model = pipeline.Fit(dataViews[j]);
+                var mlnetResult = model.Transform(dataViews[j]);
+
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataViews[j]);
+                var onnxFileName = "ValueToKey.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (IsOnnxRuntimeSupported())
+                {
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataViews[j]);
+                    var onnxResult = onnxTransformer.Transform(dataViews[j]);
+                    CompareSelectedColumns<uint>("Key", "Key", mlnetResult, onnxResult);
+                }
             }
             Done();
         }
@@ -1262,11 +1491,20 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
             string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
-            TextLoader.Column[] columns = new[]
+            TextLoader.Column[] columnsVector = new[]
             {
-                new TextLoader.Column("Value", valueType, 0, 0)
+                new TextLoader.Column("Value", valueType, 0, 3)
             };
-            var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
+            TextLoader.Column[] columnsScalar = new[]
+            {
+                new TextLoader.Column("Value", valueType, 0)
+            };
+            IDataView[] dataViews =
+            {
+                mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
+                mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
+            };
+
             IEstimator<ITransformer>[] pipelines =
             {
                 mlContext.Transforms.Conversion.MapValueToKey("Key", "Value").
@@ -1275,22 +1513,26 @@ namespace Microsoft.ML.Tests
                 mlContext.Transforms.Conversion.MapValueToKey("Value").
                 Append(mlContext.Transforms.Conversion.MapKeyToValue("Value"))
             };
+
             for (int i = 0; i < pipelines.Length; i++)
             {
-                var model = pipelines[i].Fit(dataView);
-                var mlnetResult = model.Transform(dataView);
-
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-                var onnxFileName = "KeyToValue.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
-
-                if (IsOnnxRuntimeSupported())
+                for (int j = 0; j < dataViews.Length; j++)
                 {
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-                    var onnxTransformer = onnxEstimator.Fit(dataView);
-                    var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareResults("Value", "Value", mlnetResult, onnxResult);
+                    var model = pipelines[i].Fit(dataViews[i]);
+                    var mlnetResult = model.Transform(dataViews[i]);
+
+                    var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataViews[i]);
+                    var onnxFileName = "KeyToValue.onnx";
+                    var onnxModelPath = GetOutputPath(onnxFileName);
+                    SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                    if (IsOnnxRuntimeSupported())
+                    {
+                        var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                        var onnxTransformer = onnxEstimator.Fit(dataViews[i]);
+                        var onnxResult = onnxTransformer.Transform(dataViews[i]);
+                        CompareResults("Value", "Value", mlnetResult, onnxResult);
+                    }
                 }
             }
             Done();
@@ -1399,7 +1641,7 @@ namespace Microsoft.ML.Tests
                     CompareSelectedColumns<float>(columnName, columnName, transformedData, onnxResult, 3);
 
                     VBuffer<ReadOnlyMemory<char>> mlNetSlots = default;
-                    VBuffer<ReadOnlyMemory<char>> onnxSlots= default;
+                    VBuffer<ReadOnlyMemory<char>> onnxSlots = default;
                     transformedData.Schema[columnName].GetSlotNames(ref mlNetSlots);
                     onnxResult.Schema[columnName].GetSlotNames(ref onnxSlots);
                     Assert.Equal(mlNetSlots.Length, onnxSlots.Length);
@@ -1765,6 +2007,144 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        private class BreastCancerMulticlassExampleNonDefaultColNames
+        {
+            [LoadColumn(1)]
+            public string Label;
+
+            [LoadColumn(2, 9), VectorType(8)]
+            public float[] MyFeatureVector;
+        }
+
+        private class BreastCancerBinaryClassificationNonDefaultColNames
+        {
+            [LoadColumn(0)]
+            public bool Label;
+
+            [LoadColumn(2, 9), VectorType(8)]
+            public float[] MyFeatureVector;
+        }
+
+        [Fact]
+        public void NonDefaultColNamesBinaryClassificationOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string dataPath = GetDataPath("breast-cancer.txt");
+            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassificationNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+            List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
+            {
+                mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.FastForest("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.FastTree("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.LinearSvm("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.Prior(),
+                mlContext.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.SdcaNonCalibrated("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.SgdCalibrated("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.SgdNonCalibrated("Label", "MyFeatureVector"),
+                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression("Label", "MyFeatureVector"),
+            };
+            if (Environment.Is64BitProcess)
+            {
+                estimators.Add(mlContext.BinaryClassification.Trainers.LightGbm("Label", "MyFeatureVector"));
+            }
+
+            var initialPipeline = mlContext.Transforms.ReplaceMissingValues("MyFeatureVector").
+                Append(mlContext.Transforms.NormalizeMinMax("MyFeatureVector"));
+            foreach (var estimator in estimators)
+            {
+                var pipeline = initialPipeline.Append(estimator);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+                var onnxFileName = $"{estimator.ToString()}.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                // Compare model scores produced by ML.NET and ONNX's runtime.
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 3); //compare scores
+                    CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult); //compare predicted labels
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void NonDefaultColNamesMultiClassificationOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExampleNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+
+            List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
+            {
+                mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy("Label", "MyFeatureVector"),
+                mlContext.MulticlassClassification.Trainers.NaiveBayes("Label", "MyFeatureVector"),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector")),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector"), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression("Label", "MyFeatureVector")),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression("Label", "MyFeatureVector"), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LinearSvm("Label", "MyFeatureVector")),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LinearSvm("Label", "MyFeatureVector"), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.FastForest("Label", "MyFeatureVector")),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.FastForest("Label", "MyFeatureVector"), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy("Label", "MyFeatureVector"),
+                mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated("Label", "MyFeatureVector")
+            };
+
+            if (Environment.Is64BitProcess)
+            {
+                estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "MyFeatureVector"));
+            }
+
+            var initialPipeline = mlContext.Transforms.ReplaceMissingValues("MyFeatureVector")
+                .Append(mlContext.Transforms.NormalizeMinMax("MyFeatureVector"))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"));
+
+            foreach (var estimator in estimators)
+            {
+                var pipeline = initialPipeline.Append(estimator);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxFileName = $"{estimator.ToString()}.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                // Compare results produced by ML.NET and ONNX's runtime.
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedColumns<uint>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 4);
+                }
+            }
+            Done();
+        }
+
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];
@@ -1796,7 +2176,6 @@ namespace Microsoft.ML.Tests
                 CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right);
             else if (leftType == TextDataViewType.Instance)
                 CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
-
         }
 
         private void CompareSelectedColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)

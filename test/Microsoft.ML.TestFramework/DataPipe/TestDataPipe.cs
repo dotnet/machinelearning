@@ -20,17 +20,17 @@ namespace Microsoft.ML.RunTests
     {
         private static float[] _dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
-        private static uint[] _resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
+        private static uint[] _resultsFloat = new uint[] { 16, 16, 26, 12, 22, 12, 0, 13, 8, 4, 31, 14 };
 
         private static VBuffer<Single> _dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] _resultsFloatSparse = new uint[] { 21, 21, 21, 21, 16 };
+        private static uint[] _resultsFloatSparse = new uint[] { 16, 16, 16, 16, 26 };
 
         private static Double[] _dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
-        private static uint[] _resultsDouble = new uint[] { 21, 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
+        private static uint[] _resultsDouble = new uint[] { 30, 30, 19, 24, 32, 25, 0, 2, 7, 30, 5, 3 };
 
         private static VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] _resultsDoubleSparse = new uint[] { 21, 21, 21, 21, 31 };
+        private static uint[] _resultsDoubleSparse = new uint[] { 30, 30, 30, 30, 19 };
 
         [Fact()]
         public void SavePipeLabelParsers()
@@ -1099,7 +1099,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptionsInternal("F1", "F1", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1", "F1", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<uint>(cursor.Schema[1]);
@@ -1130,7 +1130,7 @@ namespace Microsoft.ML.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptionsInternal("F1V", "F1V", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1V", "F1V", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(cursor.Schema[1]);

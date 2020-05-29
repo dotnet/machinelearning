@@ -5,6 +5,10 @@
   <Import Project="build/Dependencies.props" />
 
   <PropertyGroup>
+	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
@@ -20,6 +24,7 @@
       https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
       https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json;
       https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json;
+      https://pkgs.dev.azure.com/dnceng/public/_packaging/machinelearning-testdata/nuget/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
 

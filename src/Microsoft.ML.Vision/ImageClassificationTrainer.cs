@@ -1319,7 +1319,7 @@ namespace Microsoft.ML.Vision
             var modelFileName = ModelFileName[arch];
             var modelFilePath = Path.Combine(_resourcePath, modelFileName);
             int timeout = 10 * 60 * 1000;
-            DownloadIfNeeded(env, modelFileName, _resourcePath, modelFileName, timeout);
+            DownloadIfNeeded(env, @"meta\" + modelFileName, _resourcePath, modelFileName, timeout);
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 

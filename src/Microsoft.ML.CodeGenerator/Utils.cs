@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -101,7 +102,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     return "Single.NegativeInfinity";
                 }
 
-                return f?.ToString() + "F";
+                return f?.ToString(CultureInfo.InvariantCulture) + "F";
             }
 
             if (val is bool)

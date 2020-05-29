@@ -55,6 +55,7 @@ namespace Microsoft.ML.AutoML
                 Separators = new[] { splitInference.Separator.Value },
                 AllowSparse = splitInference.AllowSparse,
                 AllowQuoting = splitInference.AllowQuote,
+                ReadMultilines = splitInference.ReadMultilines,
                 HasHeader = hasHeader,
                 TrimWhitespace = trimWhitespace
             };
@@ -91,6 +92,7 @@ namespace Microsoft.ML.AutoML
                 AllowQuoting = splitInference.AllowQuote,
                 AllowSparse = splitInference.AllowSparse,
                 Separators = new char[] { splitInference.Separator.Value },
+                ReadMultilines = splitInference.ReadMultilines,
                 HasHeader = hasHeader,
                 TrimWhitespace = trimWhitespace
             };
@@ -119,7 +121,10 @@ namespace Microsoft.ML.AutoML
 
             if (!splitInference.IsSuccess)
             {
-                throw new InferenceException(InferenceExceptionType.ColumnSplit, "Unable to split the file provided into multiple, consistent columns.");
+                throw new InferenceException(InferenceExceptionType.ColumnSplit,
+                    "Unable to split the file provided into multiple, consistent columns. " +
+                    "Readable formats include delimited files such as CSV/TSV. " +
+                    "Check for a consistent number of columns and proper escaping and quoting.");
             }
 
             return splitInference;
@@ -136,6 +141,7 @@ namespace Microsoft.ML.AutoML
                     Separator = splitInference.Separator.Value,
                     AllowSparse = splitInference.AllowSparse,
                     AllowQuote = splitInference.AllowQuote,
+                    ReadMultilines = splitInference.ReadMultilines,
                     HasHeader = hasHeader,
                     LabelColumnIndex = labelColumnIndex,
                     Label = label

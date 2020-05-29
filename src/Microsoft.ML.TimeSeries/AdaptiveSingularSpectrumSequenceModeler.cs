@@ -209,9 +209,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// The constructor for Adaptive SSA model.
         /// </summary>
         /// <param name="env">The exception context.</param>
-        /// <param name="trainSize">The length of series from the beginning used for training.</param>
-        /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
-        /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
+        /// <param name="trainSize">The length of series from the beginning used for training (parameter N).
+        /// Must be at least twice the windowSize.</param>
+        /// <param name="seriesLength">This parameter must be greater than windowSize.</param>
+        /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).
+        /// We recommend you set this to be more than twice the maximum seasonality in the data. For example,
+        /// if your data can exhibit both monthly and yearly seasonality, and you have data points from each day,
+        /// set this to be twice the number of days in a year.</param>
         /// <param name="discountFactor">The discount factor in [0,1] used for online updates (default = 1).</param>
         /// <param name="rankSelectionMethod">The rank selection method (default = Exact).</param>
         /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r). This parameter should be in the range in [1, windowSize].
