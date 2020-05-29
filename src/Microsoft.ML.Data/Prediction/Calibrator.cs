@@ -756,7 +756,8 @@ namespace Microsoft.ML.Calibrators
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
         {
             const int minimumOpSetVersion = 9;
-            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than SchemaBindableCalibratedModel's minimum OpSet version requirement: " + minimumOpSetVersion);
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than SchemaBindableCalibratedModel's minimum OpSet version requirement: {minimumOpSetVersion}");
             return (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
         }
 
@@ -1663,7 +1664,8 @@ namespace Microsoft.ML.Calibrators
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
         {
             const int minimumOpSetVersion = 9;
-            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than PlattCalibrator's minimum OpSet version requirement: " + minimumOpSetVersion);
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than PlattCalibrator's minimum OpSet version requirement: {minimumOpSetVersion}");
             return true;
         }
 
