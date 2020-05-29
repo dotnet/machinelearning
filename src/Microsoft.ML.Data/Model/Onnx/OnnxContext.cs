@@ -44,6 +44,12 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract bool ContainsColumn(string colName);
 
         /// <summary>
+        /// Get the OpSet version
+        /// </summary>
+        /// <returns>OpSet version </returns>
+        public abstract int GetOpSetVersion();
+
+        /// <summary>
         /// Stops tracking a column.
         /// </summary>
         /// <param name="colName">Column name to stop tracking</param>

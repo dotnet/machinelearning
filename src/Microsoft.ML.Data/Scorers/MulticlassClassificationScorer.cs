@@ -43,6 +43,7 @@ namespace Microsoft.ML.Data
         }
 
         public const string LoaderSignature = "MultiClassScoreTrans";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -88,7 +89,12 @@ namespace Microsoft.ML.Data
 
             public VectorDataViewType Type => _type;
             bool ICanSavePfa.CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
-            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+            {
+                const int minimumOpSetVersion = 9;
+                Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoaderSignature + "'s minimum OpSet version requirement: " + minimumOpSetVersion);
+                return (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+            }
 
             private static VersionInfo GetVersionInfo()
             {

@@ -46,7 +46,11 @@ namespace Microsoft.ML.Data
 
         bool ICanSavePfa.CanSavePfa => (ValueMapper as ICanSavePfa)?.CanSavePfa == true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) {
+            const int minimumOpSetVersion = 9;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than SchemaBindablePredictor's minimum OpSet version requirement: " + minimumOpSetVersion);
+            return (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true; ;
+        }
 
         public SchemaBindablePredictorWrapperBase(IPredictor predictor)
         {

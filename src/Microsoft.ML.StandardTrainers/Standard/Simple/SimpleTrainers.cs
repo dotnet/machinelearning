@@ -348,7 +348,12 @@ namespace Microsoft.ML.Trainers
 
         private readonly float _prob;
         private readonly float _raw;
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+        {
+            const int minimumOpSetVersion = 9;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoaderSignature + "'s minimum OpSet version requirement: " + minimumOpSetVersion);
+            return true;
+        }
 
         /// <summary>
         /// Instantiates a model that returns the prior probability of the positive class in the training set.

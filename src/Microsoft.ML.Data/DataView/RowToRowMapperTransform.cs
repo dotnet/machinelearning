@@ -88,7 +88,12 @@ namespace Microsoft.ML.Data
 
         public override DataViewSchema OutputSchema => _bindings.Schema;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+        {
+            const int minimumOpSetVersion = 9;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoaderSignature + "'s minimum OpSet version requirement: " + minimumOpSetVersion);
+            return _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
+        }
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 

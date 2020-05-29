@@ -255,7 +255,12 @@ namespace Microsoft.ML.Trainers
 
         DataViewType IValueMapper.OutputType => _outputType;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+        {
+            const int minimumOpSetVersion = 9;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than MulticlassNaiveBayes's minimum OpSet version requirement: " + minimumOpSetVersion);
+            return true;
+        }
 
         /// <summary>
         /// Get the label histogram.

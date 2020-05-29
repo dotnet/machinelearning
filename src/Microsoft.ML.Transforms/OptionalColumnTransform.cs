@@ -534,7 +534,12 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        public bool CanSaveOnnx(OnnxContext ctx)
+        {
+            const int minimumOpSetVersion = 9;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + RegistrationName + "'s minimum OpSet version requirement: " + minimumOpSetVersion);
+            return true;
+        }
 
         private bool SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, DataViewType columnType)
         {

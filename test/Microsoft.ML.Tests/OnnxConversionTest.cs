@@ -2145,6 +2145,70 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void PcaOnnxConversionWithCustomOpsetVersionTest()
+        {
+            var dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+
+            var mlContext = new MLContext(seed: 1);
+            var dataView = mlContext.Data.LoadFromTextFile(dataSource, new[] {
+                new TextLoader.Column("label", DataKind.Single, 11),
+                new TextLoader.Column("features", DataKind.Single, 0, 10)
+            }, hasHeader: true, separatorChar: ';');
+
+            bool[] zeroMeans = { true, false };
+            foreach (var zeroMean in zeroMeans)
+            {
+                var pipeline = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1, ensureZeroMean: zeroMean);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobufWithCustomOpSetVersion(model, dataView, 9);
+
+                var onnxFileName = "pca.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedColumns<float>("pca", "pca", transformedData, onnxResult);
+                }
+            }
+
+            Done();
+        }
+
+        [Fact]
+        public void OneHotHashEncodingOnnxConversionWithCustomOpSetVersionTest()
+        {
+            var mlContext = new MLContext();
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
+            var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
+                    new OneHotHashEncodingEstimator.ColumnOptions("Output", "F3", useOrderedHashing:false),
+                });
+            var model = pipe.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+
+            var expectedExceptionMessage = "Assert failed: OpSet version 9 is older than HashTransform's minimum OpSet version requirement: 11";
+            try
+            {
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobufWithCustomOpSetVersion(model, dataView, 9);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Equal(expectedExceptionMessage, ex.Message.Substring(0, 98));
+                return;
+            }
+            Done();
+        }
+
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];

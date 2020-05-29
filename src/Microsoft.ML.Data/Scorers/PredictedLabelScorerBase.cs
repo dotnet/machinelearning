@@ -270,7 +270,12 @@ namespace Microsoft.ML.Data
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+        {
+            const int minimumOpSetVersion = 11;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than PredictedLabelScorer's minimum OpSet version requirement: " + minimumOpSetVersion);
+            return (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        }
 
         [BestFriend]
         private protected PredictedLabelScorerBase(ScorerArgumentsBase args, IHostEnvironment env, IDataView data,

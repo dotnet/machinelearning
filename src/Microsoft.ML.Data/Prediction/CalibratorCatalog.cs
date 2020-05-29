@@ -228,7 +228,12 @@ namespace Microsoft.ML.Calibrators
             private readonly int _scoreColIndex;
             private CalibratorTransformer<TCalibrator> _parent;
 
-            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _calibrator is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
+            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+            {
+                const int minimumOpSetVersion = 9;
+                Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than CalibratorTransformer's minimum OpSet version requirement: " + minimumOpSetVersion);
+                return _calibrator is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
+            }
 
             internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, DataViewSchema inputSchema) :
                 base(parent.Host, inputSchema, parent)

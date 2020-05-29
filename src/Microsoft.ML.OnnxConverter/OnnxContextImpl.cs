@@ -32,6 +32,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         private readonly string _producerVersion;
         private readonly long _modelVersion;
         private readonly OnnxVersion _onnxVersion;
+        private readonly OptionalOpSetVersion _optionalOpSetVersion;
 
         public OnnxContextImpl(IHostEnvironment env, string name, string producerName,
             string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion)
@@ -55,6 +56,24 @@ namespace Microsoft.ML.Model.OnnxConverter
             _modelVersion = modelVersion;
             _domain = domain;
             _onnxVersion = onnxVersion;
+            _optionalOpSetVersion = new OptionalOpSetVersion();
+        }
+
+        internal class OptionalOpSetVersion
+        {
+            private int _defaultOpSetVersion = 11;
+            internal int OpSetVersion
+            {
+                get { return _defaultOpSetVersion; }
+                set { _defaultOpSetVersion = value; }
+            }
+        }
+
+        public void ModifyOpSetVersion(int customOpSetVersion)
+        {
+            if (customOpSetVersion > _optionalOpSetVersion.OpSetVersion)
+                throw _host.ExceptParam(nameof(customOpSetVersion), $"User defined OpSet version is newer than the current most updated OpSet version '{_optionalOpSetVersion.OpSetVersion}'");
+            _optionalOpSetVersion.OpSetVersion = customOpSetVersion;
         }
 
         public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
@@ -125,6 +144,11 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             _host.CheckNonEmpty(prefix, nameof(prefix));
             return GetUniqueName(prefix, _nodeNames.Contains);
+        }
+
+        public override int GetOpSetVersion()
+        {
+            return _optionalOpSetVersion.OpSetVersion;
         }
 
         /// <summary>
@@ -409,7 +433,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         /// Makes the ONNX model based on the context.
         /// </summary>
         public OnnxCSharpToProtoWrapper.ModelProto MakeModel()
-            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues, _initializers);
+            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _optionalOpSetVersion.OpSetVersion, _inputs, _outputs, _intermediateValues, _initializers);
 
         /// <summary>
         /// Return either "Experimental" or "Stable". The string "Experimental" indicates that some experimental features which are

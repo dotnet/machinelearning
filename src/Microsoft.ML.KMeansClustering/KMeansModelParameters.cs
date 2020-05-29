@@ -55,7 +55,12 @@ namespace Microsoft.ML.Trainers
         DataViewType IValueMapper.InputType => _inputType;
         DataViewType IValueMapper.OutputType => _outputType;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+        {
+            const int minimumOpSetVersion = 9;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoaderSignature + "'s minimum OpSet version requirement: " + minimumOpSetVersion);
+            return true;
+        }
 
         private readonly int _dimensionality;
         private readonly int _k;

@@ -451,7 +451,12 @@ namespace Microsoft.ML.Trainers
         DataViewType IValueMapper.OutputType => OutputType;
 
         bool ICanSavePfa.CanSavePfa => true;
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+        {
+            const int minimumOpSetVersion = 9;
+            Contracts.Assert(ctx.GetOpSetVersion() >= minimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than MultiClassLogisticRegression's minimum OpSet version requirement: " + minimumOpSetVersion);
+            return true;
+        }
 
         internal LinearMulticlassModelParametersBase(IHostEnvironment env, string name, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, name)

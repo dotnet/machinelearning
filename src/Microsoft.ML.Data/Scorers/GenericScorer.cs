@@ -28,6 +28,7 @@ namespace Microsoft.ML.Data
     internal sealed class GenericScorer : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
     {
         public const string LoadName = "GenericScorer";
+        public const int MinimumOpSetVersion = 9;
 
         public sealed class Arguments : ScorerArgumentsBase
         {
@@ -144,7 +145,11 @@ namespace Microsoft.ML.Data
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
+        {
+            Contracts.Assert(ctx.GetOpSetVersion() >= MinimumOpSetVersion, "OpSet version " + ctx.GetOpSetVersion() + " is older than " + LoadName + "'s minimum OpSet version requirement: " + MinimumOpSetVersion);
+            return (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        }
 
         /// <summary>
         /// The <see cref="SignatureDataScorer"/> entry point for creating a <see cref="GenericScorer"/>.
