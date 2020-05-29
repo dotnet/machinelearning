@@ -144,7 +144,7 @@ namespace Microsoft.ML.AutoML.Test
                     });
 
             RunDetail<RankingMetrics> bestRun = experimentResult.BestRun;
-            Assert.True(experimentResult.RunDetails.Count() > 1);
+            Assert.True(experimentResult.RunDetails.Count() > 0);
             Assert.NotNull(bestRun.ValidationMetrics);
             Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains[0] > .2));
             var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);

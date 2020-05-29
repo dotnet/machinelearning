@@ -230,8 +230,8 @@ namespace Microsoft.ML.AutoML
                     {
                         if (column.Purpose == ColumnPurpose.GroupId && !column.Type.IsKey())
                         {
-                            //yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName, OneHotEncodingEstimator.OutputKind.Key);
-                            yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
+                            yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName, OneHotEncodingEstimator.OutputKind.Key);
+                            //yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
                         }
                     }
                 }
