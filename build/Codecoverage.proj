@@ -20,7 +20,7 @@
     <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\*\*\coverage.opencover.xml -targetdir:$(BaseOutputPath)$(PlatformConfig) -filefilters:+*.cs;+*.fs -reporttypes:Cobertura" />
 
     <ItemGroup>
-      <_CodecovArgs Include="-f;$(BaseOutputPath)$(PlatformConfig)\coverage\Cobertura.xml" />
+      <_CodecovArgs Include="-f;$(BaseOutputPath)$(PlatformConfig)\coverage\coverage.opencover.xml" />
 
       <!-- Report an error if the upload fails -->
       <_CodecovArgs Include="--required" />

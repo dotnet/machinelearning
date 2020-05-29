@@ -110,7 +110,7 @@ namespace RemoteExecutorConsoleApp
             catch (PlatformNotSupportedException)
             {
             }
-
+            
             return exitCode;
         }
 
