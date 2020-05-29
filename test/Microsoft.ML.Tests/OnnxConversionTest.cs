@@ -1181,7 +1181,6 @@ namespace Microsoft.ML.Tests
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
 
-
             if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
