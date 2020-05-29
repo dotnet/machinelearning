@@ -2244,8 +2244,7 @@ namespace Microsoft.ML.Tests
         /// <param name="dataView">The test data.</param>
         /// <param name="onnxFileName">Name to save the ONNX model file.</param>
         /// <param name="columnsToCompare">Which columns you want to compare. This assumes that the column name in ONNX is the same as ML.Net, so only 1 name per column is provided.</param>
-        /// <param name="schemaDefinition">Optional schema definition for the IEnumerable{TRow}.</param>
-        private void TestPipeline(IEstimator<ITransformer> pipeline, IDataView dataView, string onnxFileName, string[] columnsToCompare, SchemaDefinition schemaDefinition = null)
+        private void TestPipeline(IEstimator<ITransformer> pipeline, IDataView dataView, string onnxFileName, string[] columnsToCompare)
         {
             var chain = new EstimatorChain<ITransformer>().Append(pipeline);
             TestPipeline(chain, dataView, onnxFileName, columnsToCompare);
