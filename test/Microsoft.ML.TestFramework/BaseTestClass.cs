@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -78,7 +79,9 @@ namespace Microsoft.ML.TestFramework
         void IDisposable.Dispose()
         {
             Cleanup();
-            Console.WriteLine($"Finished test: {FullTestName}");
+            Process proc = Process.GetCurrentProcess();
+            Console.WriteLine($"Finished test: {FullTestName} " +
+                $"with memory usage {proc.PrivateMemorySize64.ToString("N", CultureInfo.InvariantCulture)}");
         }
 
         protected virtual void Initialize()
