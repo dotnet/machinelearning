@@ -2162,7 +2162,7 @@ namespace Microsoft.ML.Tests
                 var pipeline = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1, ensureZeroMean: zeroMean);
                 var model = pipeline.Fit(dataView);
                 var transformedData = model.Transform(dataView);
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobufWithCustomOpSetVersion(model, dataView, 9);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 9);
 
                 var onnxFileName = "pca.onnx";
                 var onnxModelPath = GetOutputPath(onnxFileName);
@@ -2197,12 +2197,23 @@ namespace Microsoft.ML.Tests
 
             try
             {
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobufWithCustomOpSetVersion(model, dataView, 9);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 9);
                 Assert.True(false);
             }
             catch (System.Exception ex)
             {
-                Assert.Contains("OpSet version 9 is older than HashTransform's minimum OpSet version requirement: 11", ex.Message);
+                Assert.Contains("Requested OpSet version 9 is lower than HashTransform's minimum OpSet version requirement: 11", ex.Message);
+                return;
+            }
+
+            try
+            {
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 12);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Contains("Requested OpSet version 12 is higher than the current most updated OpSet version 11", ex.Message);
                 return;
             }
             Done();

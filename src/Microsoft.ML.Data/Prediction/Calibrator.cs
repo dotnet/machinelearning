@@ -1661,13 +1661,7 @@ namespace Microsoft.ML.Calibrators
         /// </summary>
         public Double Offset { get; }
         bool ICanSavePfa.CanSavePfa => true;
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than PlattCalibrator's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Initializes a new instance of <see cref="PlattCalibrator"/>.
@@ -1762,6 +1756,10 @@ namespace Microsoft.ML.Calibrators
             _host.CheckValue(ctx, nameof(ctx));
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));
             _host.Check(Utils.Size(scoreProbablityColumnNames) == 2);
+
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than PlattCalibrator's minimum OpSet version requirement: {minimumOpSetVersion}");
 
             // The Affine operator is no longer supported in the v11 opset.
             // So we have to decompose it using Mul and Add

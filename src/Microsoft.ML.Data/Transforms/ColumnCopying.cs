@@ -237,6 +237,10 @@ namespace Microsoft.ML.Transforms
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
+                const int minimumOpSetVersion = 9;
+                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+
                 var opType = "Identity";
 
                 foreach (var column in _columns)

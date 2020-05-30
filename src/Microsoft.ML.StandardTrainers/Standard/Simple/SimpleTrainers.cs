@@ -348,13 +348,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly float _prob;
         private readonly float _raw;
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
-            return true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Instantiates a model that returns the prior probability of the positive class in the training set.
@@ -410,6 +404,10 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(Utils.Size(outputs) >= 3);
+
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
 
             string scoreVarName = outputs[1];
             string probVarName = outputs[2];

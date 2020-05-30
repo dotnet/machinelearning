@@ -451,13 +451,7 @@ namespace Microsoft.ML.Trainers
         DataViewType IValueMapper.OutputType => OutputType;
 
         bool ICanSavePfa.CanSavePfa => true;
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than MultiClassLogisticRegression's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         internal LinearMulticlassModelParametersBase(IHostEnvironment env, string name, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, name)
@@ -984,6 +978,11 @@ namespace Microsoft.ML.Trainers
         private bool SaveAsOnnxCore(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
+
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than MultiClassLogisticRegression's minimum OpSet version requirement: {minimumOpSetVersion}");
+
             Host.Assert(outputs[0] == DefaultColumnNames.PredictedLabel);
             Host.Assert(outputs[1] == DefaultColumnNames.Score);
 

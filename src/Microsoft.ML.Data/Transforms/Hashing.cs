@@ -1451,6 +1451,11 @@ namespace Microsoft.ML.Transforms
             void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
+
+                const int minimumOpSetVersion = 11;
+                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+
                 for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
                     var info = _parent.ColumnPairs[iinfo];
@@ -1468,13 +1473,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-            {
-                const int minimumOpSetVersion = 11;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
-                return true;
-            }
+            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
         }
 
         private abstract class InvertHashHelper

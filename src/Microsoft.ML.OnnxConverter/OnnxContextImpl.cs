@@ -14,6 +14,7 @@ namespace Microsoft.ML.Model.OnnxConverter
     /// </summary>
     internal sealed class OnnxContextImpl : OnnxContext
     {
+        public const int CurrentOpSetVersion = 11;
         private readonly List<OnnxCSharpToProtoWrapper.NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
         // The map from IDataView column names to variable names.
@@ -32,10 +33,10 @@ namespace Microsoft.ML.Model.OnnxConverter
         private readonly string _producerVersion;
         private readonly long _modelVersion;
         private readonly OnnxVersion _onnxVersion;
-        private readonly OptionalOpSetVersion _optionalOpSetVersion;
+        private readonly int _opSetVersion;
 
         public OnnxContextImpl(IHostEnvironment env, string name, string producerName,
-            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion)
+            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion, int opSetVersion = 11)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OnnxContext));
@@ -56,28 +57,9 @@ namespace Microsoft.ML.Model.OnnxConverter
             _modelVersion = modelVersion;
             _domain = domain;
             _onnxVersion = onnxVersion;
-            _optionalOpSetVersion = new OptionalOpSetVersion();
-        }
-
-        internal class OptionalOpSetVersion
-        {
-            private int _defaultOpSetVersion;
-            internal OptionalOpSetVersion()
-            {
-                _defaultOpSetVersion = 11;
-            }
-            internal int OpSetVersion
-            {
-                get { return _defaultOpSetVersion; }
-                set { _defaultOpSetVersion = value; }
-            }
-        }
-
-        public void ModifyOpSetVersion(int customOpSetVersion)
-        {
-            if (customOpSetVersion > _optionalOpSetVersion.OpSetVersion)
-                throw _host.ExceptParam(nameof(customOpSetVersion), $"User defined OpSet version is newer than the current most updated OpSet version '{_optionalOpSetVersion.OpSetVersion}'");
-            _optionalOpSetVersion.OpSetVersion = customOpSetVersion;
+            _opSetVersion = opSetVersion <= CurrentOpSetVersion ?
+                            opSetVersion :
+                            throw _host.ExceptParam(nameof(opSetVersion), $"Requested OpSet version {opSetVersion} is higher than the current most updated OpSet version {CurrentOpSetVersion}");
         }
 
         public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
@@ -152,7 +134,7 @@ namespace Microsoft.ML.Model.OnnxConverter
 
         public override int GetOpSetVersion()
         {
-            return _optionalOpSetVersion.OpSetVersion;
+            return _opSetVersion;
         }
 
         /// <summary>
@@ -437,7 +419,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         /// Makes the ONNX model based on the context.
         /// </summary>
         public OnnxCSharpToProtoWrapper.ModelProto MakeModel()
-            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _optionalOpSetVersion.OpSetVersion, _inputs, _outputs, _intermediateValues, _initializers);
+            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _opSetVersion, _inputs, _outputs, _intermediateValues, _initializers);
 
         /// <summary>
         /// Return either "Experimental" or "Stable". The string "Experimental" indicates that some experimental features which are

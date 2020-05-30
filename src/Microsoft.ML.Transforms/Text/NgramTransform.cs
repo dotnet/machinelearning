@@ -745,6 +745,10 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
+                const int minimumOpSetVersion = 9;
+                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+
                 int numColumns = _parent.ColumnPairs.Length;
                 for (int iinfo = 0; iinfo < numColumns; ++iinfo)
                 {

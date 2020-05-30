@@ -270,13 +270,7 @@ namespace Microsoft.ML.Data
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 11;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than PredictedLabelScorer's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         [BestFriend]
         private protected PredictedLabelScorerBase(ScorerArgumentsBase args, IHostEnvironment env, IDataView data,
@@ -370,6 +364,11 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);
+
+            const int minimumOpSetVersion = 11;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than PredictedLabelScorer's minimum OpSet version requirement: {minimumOpSetVersion}");
+
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;
 
             var schema = Bindings.RowMapper.InputRoleMappedSchema;

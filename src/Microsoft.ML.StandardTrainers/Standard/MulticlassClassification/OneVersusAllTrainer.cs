@@ -506,13 +506,7 @@ namespace Microsoft.ML.Trainers
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
 
-            public bool CanSaveOnnx(OnnxContext ctx)
-            {
-                const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
-                return Predictors.All(pred => (pred as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true);
-            }
+            public bool CanSaveOnnx(OnnxContext ctx) => Predictors.All(pred => (pred as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true);
 
             public abstract bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn);
 
@@ -666,6 +660,9 @@ namespace Microsoft.ML.Trainers
 
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
+                const int minimumOpSetVersion = 9;
+                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
 
                 string opType = "Concat";
@@ -796,6 +793,9 @@ namespace Microsoft.ML.Trainers
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
                 Contracts.Assert(outputNames.Length >= 2);
+                const int minimumOpSetVersion = 9;
+                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
 
                 string opType;
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
@@ -916,6 +916,9 @@ namespace Microsoft.ML.Trainers
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
                 Contracts.Assert(outputNames.Length >= 2);
+                const int minimumOpSetVersion = 9;
+                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
 
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
 

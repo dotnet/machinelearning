@@ -517,6 +517,10 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(((ICanSaveOnnx)this).CanSaveOnnx(ctx));
 
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {RegistrationName}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+
             for (int iinfo = 0; iinfo < _bindings.ColumnTypes.Length; ++iinfo)
             {
                 var columnType = _bindings.ColumnTypes[iinfo];
@@ -534,13 +538,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public bool CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than {RegistrationName}'s minimum OpSet version requirement: {minimumOpSetVersion}");
-            return true;
-        }
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         private bool SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, DataViewType columnType)
         {

@@ -55,13 +55,7 @@ namespace Microsoft.ML.Trainers
         DataViewType IValueMapper.InputType => _inputType;
         DataViewType IValueMapper.OutputType => _outputType;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
-            return true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         private readonly int _dimensionality;
         private readonly int _k;
@@ -321,6 +315,10 @@ namespace Microsoft.ML.Trainers
             //                                                                   |
             //                                                                   v
             //                                           L [l] <--- ArgMin <---  Y [l, k]
+
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
 
             // Allocate C, which is a constant tensor in prediction phase
             var shapeC = new long[] { _centroids.Length, _centroids[0].Length };

@@ -144,13 +144,7 @@ namespace Microsoft.ML.Data
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than {LoadName}'s minimum OpSet version requirement: {minimumOpSetVersion}");
-            return (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         /// <summary>
         /// The <see cref="SignatureDataScorer"/> entry point for creating a <see cref="GenericScorer"/>.
@@ -231,7 +225,12 @@ namespace Microsoft.ML.Data
         void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
+
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoadName}'s minimum OpSet version requirement: {minimumOpSetVersion}");
             Host.Assert(Bindable is IBindableCanSaveOnnx);
+
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;
 
             var schema = _bindings.RowMapper.InputRoleMappedSchema;

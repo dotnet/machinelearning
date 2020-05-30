@@ -46,12 +46,7 @@ namespace Microsoft.ML.Data
 
         bool ICanSavePfa.CanSavePfa => (ValueMapper as ICanSavePfa)?.CanSavePfa == true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than SchemaBindablePredictor's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true; ;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         public SchemaBindablePredictorWrapperBase(IPredictor predictor)
         {
@@ -114,6 +109,11 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
+
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than SchemaBindablePredictor's minimum OpSet version requirement: {minimumOpSetVersion}");
+
             Contracts.Assert(ValueMapper is ISingleCanSaveOnnx);
             var mapper = (ISingleCanSaveOnnx)ValueMapper;
             return SaveAsOnnxCore(ctx, schema, outputNames);

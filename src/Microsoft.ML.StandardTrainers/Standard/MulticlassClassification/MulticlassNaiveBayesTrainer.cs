@@ -255,13 +255,7 @@ namespace Microsoft.ML.Trainers
 
         DataViewType IValueMapper.OutputType => _outputType;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than MulticlassNaiveBayes's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Get the label histogram.
@@ -427,6 +421,10 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than MulticlassNaiveBayes's minimum OpSet version requirement: {minimumOpSetVersion}");
+
             float[] featureHistogram = new float[_featureHistogram[0].Length * _labelHistogram.Length];
             float[] labelHistogramExpanded = new float[_featureHistogram[0].Length * _labelHistogram.Length];
 

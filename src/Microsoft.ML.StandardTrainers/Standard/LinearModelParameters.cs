@@ -101,14 +101,7 @@ namespace Microsoft.ML.Trainers
 
         bool ICanSavePfa.CanSavePfa => true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than LinearModel's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return true;
-        }
-
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
         /// <summary>
         /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
         /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight.
@@ -143,6 +136,11 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(Utils.Size(outputs) >= 1);
+
+            const int minimumOpSetVersion = 9;
+            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than LinearModel's minimum OpSet version requirement: {minimumOpSetVersion}");
+
             string opType = "LinearRegressor";
             string scoreVarName = (Utils.Size(outputs) >= 2) ? outputs[1] : outputs[0]; // Get Score from PredictedLabel and/or Score columns
             var node = ctx.CreateNode(opType, new[] { featureColumn }, new[] { scoreVarName }, ctx.GetNodeName(opType));

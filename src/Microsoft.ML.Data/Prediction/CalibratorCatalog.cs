@@ -228,13 +228,7 @@ namespace Microsoft.ML.Calibrators
             private readonly int _scoreColIndex;
             private CalibratorTransformer<TCalibrator> _parent;
 
-            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-            {
-                const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than CalibratorTransformer's minimum OpSet version requirement: {minimumOpSetVersion}");
-                return _calibrator is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
-            }
+            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _calibrator is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
             internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, DataViewSchema inputSchema) :
                 base(parent.Host, inputSchema, parent)
@@ -254,6 +248,10 @@ namespace Microsoft.ML.Calibrators
 
             void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
             {
+                const int minimumOpSetVersion = 9;
+                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
+                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than CalibratorTransformer's minimum OpSet version requirement: {minimumOpSetVersion}");
+
                 var scoreName = InputSchema[_scoreColIndex].Name;
                 var probabilityName = GetOutputColumnsCore()[0].Name;
                 Host.CheckValue(ctx, nameof(ctx));
