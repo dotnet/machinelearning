@@ -2808,13 +2808,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         bool ICanSavePfa.CanSavePfa => true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than FastTreeTraining's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.

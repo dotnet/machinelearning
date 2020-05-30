@@ -302,13 +302,7 @@ namespace Microsoft.ML.Calibrators
 
         FeatureContributionCalculator ICalculateFeatureContribution.FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than ValueMapperCalibratedModel's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         private protected ValueMapperCalibratedModelParametersBase(IHostEnvironment env, string name, TSubModel predictor, TCalibrator calibrator)
             : base(env, name, predictor, calibrator)
@@ -753,13 +747,7 @@ namespace Microsoft.ML.Calibrators
         /// </summary>
         bool ICanSavePfa.CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx)
-        {
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"OpSet version {ctx.GetOpSetVersion()} is older than SchemaBindableCalibratedModel's minimum OpSet version requirement: {minimumOpSetVersion}");
-            return (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
-        }
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         internal SchemaBindableCalibratedModelParameters(IHostEnvironment env, TSubModel predictor, TCalibrator calibrator)
             : base(env, LoaderSignature, predictor, calibrator)
