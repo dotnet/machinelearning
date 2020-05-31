@@ -1522,21 +1522,5 @@ namespace Microsoft.ML.Vision
         {
             Dispose(false);
         }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private unsafe void Dispose(bool disposing)
-        {
-            // Free unmanaged resources.
-            if (_pMFModel != null)
-            {
-                MFDestroyModel(ref _pMFModel);
-                _host.Assert(_pMFModel == null);
-            }
-        }
     }
 }
