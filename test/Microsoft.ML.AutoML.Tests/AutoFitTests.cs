@@ -119,7 +119,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
         }
 
-        [Fact]
+        [LightGBMFact]
         public void AutoFitRankingTest()
         {
             string labelColumnName = "Label";
