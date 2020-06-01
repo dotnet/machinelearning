@@ -406,8 +406,7 @@ namespace Microsoft.ML.Trainers
             Host.Check(Utils.Size(outputs) >= 3);
 
             const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
             string scoreVarName = outputs[1];
             string probVarName = outputs[2];

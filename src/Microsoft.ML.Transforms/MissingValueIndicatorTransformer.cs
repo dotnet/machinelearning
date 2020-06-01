@@ -443,8 +443,7 @@ namespace Microsoft.ML.Transforms
                 Host.CheckValue(ctx, nameof(ctx));
 
                 const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoadName}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoadName);
 
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {

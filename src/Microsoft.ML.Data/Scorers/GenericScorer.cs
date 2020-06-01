@@ -227,8 +227,8 @@ namespace Microsoft.ML.Data
             Host.CheckValue(ctx, nameof(ctx));
 
             const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoadName}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
             Host.Assert(Bindable is IBindableCanSaveOnnx);
 
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;

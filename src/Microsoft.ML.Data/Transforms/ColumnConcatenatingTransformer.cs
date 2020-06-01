@@ -903,8 +903,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(CanSaveOnnx(ctx));
 
                 const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
                 {

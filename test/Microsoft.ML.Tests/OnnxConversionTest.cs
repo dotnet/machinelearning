@@ -2208,12 +2208,12 @@ namespace Microsoft.ML.Tests
 
             try
             {
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 12);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 13);
                 Assert.True(false);
             }
             catch (System.Exception ex)
             {
-                Assert.Contains("Requested OpSet version 12 is higher than the current most updated OpSet version 11", ex.Message);
+                Assert.Contains("Requested OpSet version 13 is higher than the current most updated OpSet version 12", ex.Message);
                 return;
             }
             Done();

@@ -365,9 +365,8 @@ namespace Microsoft.ML.Data
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);
 
-            const int minimumOpSetVersion = 11;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than PredictedLabelScorer's minimum OpSet version requirement: {minimumOpSetVersion}");
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "PredictedLabelScorer");
 
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;
 

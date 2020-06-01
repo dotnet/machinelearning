@@ -111,8 +111,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(schema, nameof(schema));
 
             const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than SchemaBindablePredictor's minimum OpSet version requirement: {minimumOpSetVersion}");
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "SchemaBindablePredictor");
 
             Contracts.Assert(ValueMapper is ISingleCanSaveOnnx);
             var mapper = (ISingleCanSaveOnnx)ValueMapper;

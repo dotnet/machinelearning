@@ -14,7 +14,8 @@ namespace Microsoft.ML.Model.OnnxConverter
     /// </summary>
     internal sealed class OnnxContextImpl : OnnxContext
     {
-        public const int CurrentOpSetVersion = 11;
+        public const int CurrentOpSetVersion = 12;
+        public const int MinimumOpSetVersion = 9;
         private readonly List<OnnxCSharpToProtoWrapper.NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
         // The map from IDataView column names to variable names.
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         private readonly int _opSetVersion;
 
         public OnnxContextImpl(IHostEnvironment env, string name, string producerName,
-            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion, int opSetVersion = 11)
+            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion, int opSetVersion = CurrentOpSetVersion)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OnnxContext));
@@ -58,7 +59,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             _domain = domain;
             _onnxVersion = onnxVersion;
             _opSetVersion = opSetVersion <= CurrentOpSetVersion ?
-                            opSetVersion :
+                            opSetVersion >= MinimumOpSetVersion ? opSetVersion : throw _host.ExceptParam(nameof(opSetVersion), $"Requested OpSet version {opSetVersion} is lower than the minimum required OpSet version {MinimumOpSetVersion}") :
                             throw _host.ExceptParam(nameof(opSetVersion), $"Requested OpSet version {opSetVersion} is higher than the current most updated OpSet version {CurrentOpSetVersion}");
         }
 
@@ -132,9 +133,10 @@ namespace Microsoft.ML.Model.OnnxConverter
             return GetUniqueName(prefix, _nodeNames.Contains);
         }
 
-        public override int GetOpSetVersion()
+        public override void CheckOpSetVersion(int thisTransformerMinumumOpSetVersion, string registerTransformerName)
         {
-            return _opSetVersion;
+            if (_opSetVersion < thisTransformerMinumumOpSetVersion)
+                throw Contracts.ExceptParam(nameof(thisTransformerMinumumOpSetVersion), $"Requested OpSet version {_opSetVersion} is lower than {registerTransformerName}'s minimum OpSet version requirement: {thisTransformerMinumumOpSetVersion}");
         }
 
         /// <summary>

@@ -1746,8 +1746,7 @@ namespace Microsoft.ML.Calibrators
             _host.Check(Utils.Size(scoreProbablityColumnNames) == 2);
 
             const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than PlattCalibrator's minimum OpSet version requirement: {minimumOpSetVersion}");
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "PlattCalibrator");
 
             // The Affine operator is no longer supported in the v11 opset.
             // So we have to decompose it using Mul and Add

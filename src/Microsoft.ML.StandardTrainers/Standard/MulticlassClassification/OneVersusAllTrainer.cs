@@ -661,8 +661,7 @@ namespace Microsoft.ML.Trainers
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
                 const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
 
                 string opType = "Concat";
@@ -794,8 +793,7 @@ namespace Microsoft.ML.Trainers
             {
                 Contracts.Assert(outputNames.Length >= 2);
                 const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 string opType;
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
@@ -917,8 +915,7 @@ namespace Microsoft.ML.Trainers
             {
                 Contracts.Assert(outputNames.Length >= 2);
                 const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
 

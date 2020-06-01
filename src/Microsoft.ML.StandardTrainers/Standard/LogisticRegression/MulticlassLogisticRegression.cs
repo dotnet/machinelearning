@@ -980,8 +980,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(ctx, nameof(ctx));
 
             const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than MultiClassLogisticRegression's minimum OpSet version requirement: {minimumOpSetVersion}");
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "MultiClassLogisticRegression");
 
             Host.Assert(outputs[0] == DefaultColumnNames.PredictedLabel);
             Host.Assert(outputs[1] == DefaultColumnNames.Score);

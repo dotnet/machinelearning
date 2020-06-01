@@ -518,8 +518,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(((ICanSaveOnnx)this).CanSaveOnnx(ctx));
 
             const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {RegistrationName}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
             for (int iinfo = 0; iinfo < _bindings.ColumnTypes.Length; ++iinfo)
             {

@@ -226,8 +226,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(_bindable is IBindableCanSaveOnnx);
 
                 const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 return ((IBindableCanSaveOnnx)_bindable).SaveAsOnnx(ctx, schema, outputNames);
             }

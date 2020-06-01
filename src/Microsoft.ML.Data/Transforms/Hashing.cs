@@ -1453,8 +1453,7 @@ namespace Microsoft.ML.Transforms
                 Host.CheckValue(ctx, nameof(ctx));
 
                 const int minimumOpSetVersion = 11;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {

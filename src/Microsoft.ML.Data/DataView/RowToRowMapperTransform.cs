@@ -218,10 +218,6 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
 
-            const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
-
             if (_mapper is ISaveAsOnnx onnx)
             {
                 Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");

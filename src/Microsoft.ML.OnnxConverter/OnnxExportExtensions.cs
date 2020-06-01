@@ -46,7 +46,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The class that <see cref="ConvertToOnnxProtobuf(ModelOperationsCatalog, ITransformer, IDataView, int)"/> attached to.</param>
         /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
         /// <param name="inputData">The input of the specified transform.</param>
-        /// <param name="opSetVersion">Set custom value to OpSet version</param>
+        /// <param name="opSetVersion">Set custom value to OpSet version(we currently support versions higher than 9)</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         [BestFriend]
         internal static ModelProto ConvertToOnnxProtobuf(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, int opSetVersion)

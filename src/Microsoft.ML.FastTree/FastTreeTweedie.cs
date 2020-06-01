@@ -535,8 +535,7 @@ namespace Microsoft.ML.Trainers.FastTree
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             const int minimumOpSetVersion = 9;
-            if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than {LoaderSignature}'s minimum OpSet version requirement: {minimumOpSetVersion}");
+            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
             // Mapping score to prediction
             var fastTreeOutput = ctx.AddIntermediateVariable(null, "FastTreeOutput", true);

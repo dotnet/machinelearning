@@ -249,8 +249,7 @@ namespace Microsoft.ML.Calibrators
             void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
             {
                 const int minimumOpSetVersion = 9;
-                if (ctx.GetOpSetVersion() < minimumOpSetVersion)
-                    throw Contracts.ExceptParam(nameof(minimumOpSetVersion), $"Requested OpSet version {ctx.GetOpSetVersion()} is lower than CalibratorTransformer's minimum OpSet version requirement: {minimumOpSetVersion}");
+                ctx.CheckOpSetVersion(minimumOpSetVersion, "CalibratorTransformer");
 
                 var scoreName = InputSchema[_scoreColIndex].Name;
                 var probabilityName = GetOutputColumnsCore()[0].Name;
