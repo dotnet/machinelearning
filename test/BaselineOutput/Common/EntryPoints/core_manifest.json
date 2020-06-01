@@ -19706,12 +19706,9 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "Combine",
+                  "Name": "Join",
                   "Type": "Bool",
                   "Desc": "Whether the values need to be combined for a single hash",
-                  "Aliases": [
-                    "join"
-                  ],
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -19720,7 +19717,7 @@
                 {
                   "Name": "CustomSlotMap",
                   "Type": "String",
-                  "Desc": "Which slots should be combined together. Example: 0,3,5;0,1;3;2,1,0. Overrides 'combine'.",
+                  "Desc": "Which slots should be combined together. Example: 0,3,5;0,1;3;2,1,0. Overrides 'join'.",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": false,
@@ -19815,12 +19812,9 @@
           "Default": 31
         },
         {
-          "Name": "Combine",
+          "Name": "Join",
           "Type": "Bool",
           "Desc": "Whether the values need to be combined for a single hash",
-          "Aliases": [
-            "join"
-          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,

@@ -36,9 +36,9 @@ namespace Microsoft.ML.Transforms
         public const int NumBitsMin = 1;
         public const int NumBitsLim = 32;
 
-        internal static class Defaults
+        private static class Defaults
         {
-            public const bool Combine = true;
+            public const bool Join = true;
             public const int NumberOfBits = NumBitsLim - 1;
             public const uint Seed = 314489979;
             public const bool Ordered = true;
@@ -52,8 +52,8 @@ namespace Microsoft.ML.Transforms
                 SortOrder = 1)]
             public Column[] Columns;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the values need to be combined for a single hash", ShortName = "join")]
-            public bool Combine = Defaults.Combine;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the values need to be combined for a single hash")]
+            public bool Join = Defaults.Join;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
@@ -68,11 +68,12 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Column : OneToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the values need to be combined for a single hash", ShortName = "join")]
-            public bool? Combine;
+            // REVIEW: rename to 'combine' (with 'join' as a secondary name) once possible
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the values need to be combined for a single hash")]
+            public bool? Join;
 
             // REVIEW: maybe the language could support ranges
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Which slots should be combined together. Example: 0,3,5;0,1;3;2,1,0. Overrides 'combine'.")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Which slots should be combined together. Example: 0,3,5;0,1;3;2,1,0. Overrides 'join'.")]
             public string CustomSlotMap;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive.", ShortName = "bits")]
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Transforms
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (Combine != null || !string.IsNullOrEmpty(CustomSlotMap) || NumberOfBits != null ||
+                if (Join != null || !string.IsNullOrEmpty(CustomSlotMap) || NumberOfBits != null ||
                     Seed != null || Ordered != null)
                 {
                     return false;
@@ -181,15 +182,15 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="combine">Whether the values need to be combined for a single hash.</param>
+        /// <param name="join">Whether the values need to be combined for a single hash.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         public HashJoiningTransform(IHostEnvironment env,
             IDataView input,
             string name,
             string source = null,
-             bool combine = Defaults.Combine,
+             bool join = Defaults.Join,
             int numberOfBits = Defaults.NumberOfBits)
-            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, Combine = combine, NumberOfBits = numberOfBits }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, Join = join, NumberOfBits = numberOfBits }, input)
         {
         }
 
@@ -209,7 +210,7 @@ namespace Microsoft.ML.Transforms
                 var numberOfBits = args.Columns[i].NumberOfBits ?? args.NumberOfBits;
                 Host.CheckUserArg(NumBitsMin <= numberOfBits && numberOfBits < NumBitsLim, nameof(args.NumberOfBits));
                 _exes[i] = CreateColumnOptionsEx(
-                    args.Columns[i].Combine ?? args.Combine,
+                    args.Columns[i].Join ?? args.Join,
                     args.Columns[i].CustomSlotMap,
                     args.Columns[i].NumberOfBits ?? args.NumberOfBits,
                     args.Columns[i].Seed ?? args.Seed,
@@ -217,13 +218,6 @@ namespace Microsoft.ML.Transforms
                     Infos[i]);
             }
 
-            SetMetadata();
-        }
-
-        public HashJoiningTransform(IHostEnvironment env, HashJoiningTransform other, IDataView input)
-            : base(env, RegistrationName, other, input, TestColumnType)
-        {
-            _exes = other._exes;
             SetMetadata();
         }
 
