@@ -42,8 +42,8 @@ namespace Microsoft.ML.AutoML
                 { TrainerName.SymbolicSgdLogisticRegressionOva, typeof(SymbolicSgdLogisticRegressionOvaExtension) },
                 { TrainerName.MatrixFactorization, typeof(MatrixFactorizationExtension) },
                 { TrainerName.ImageClassification, typeof(ImageClassificationExtension) },
-                { TrainerName.LightGbmRanking, typeof(LightGbmRankingExtension)},
-                { TrainerName.FastTreeRanking, typeof(FastTreeRankingExtension)},
+                { TrainerName.LightGbmRanking, typeof(LightGbmRankingExtension) },
+                { TrainerName.FastTreeRanking, typeof(FastTreeRankingExtension) },
             };
 
         private static readonly IDictionary<Type, TrainerName> _extensionTypesToTrainerNames =

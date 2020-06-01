@@ -25,7 +25,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     {
                         {"NumberOfLeaves","numberOfLeaves" },
                         {"LabelColumnName","labelColumnName" },
-                        {"RowGroupdColumnName","rowGroupdColumnName" },
                         {"FeatureColumnName","featureColumnName" },
                         {"MinimumExampleCountPerLeaf","minimumExampleCountPerLeaf" },
                         {"LearningRate","learningRate" },
@@ -65,15 +64,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             internal override string OptionsName => "LightGbmRegressionTrainer.Options";
 
             public LightGbmRegression(PipelineNode node) : base(node)
-            {
-            }
-        }
-
-        internal class LightGbmRanking : LightGbmBase
-        {
-            internal override string OptionsName => "LightGbmRankingTrainer.Options";
-
-            public LightGbmRanking(PipelineNode node) : base(node)
             {
             }
         }
@@ -128,7 +118,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         {"ExampleWeightColumnName","exampleWeightColumnName" },
                         {"LabelColumnName","labelColumnName" },
                         {"FeatureColumnName","featureColumnName" },
-                        {"RowGroupdColumnName","rowGroupdColumnName" },
                         {"LearningRate","learningRate" },
                         {"NumberOfLeaves","numberOfLeaves" },
                         {"NumberOfTrees","numberOfTrees" },
@@ -190,19 +179,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             internal override string OptionsName => "FastTreeRegressionTrainer.Options";
 
             public FastTreeRegression(PipelineNode node) : base(node)
-            {
-            }
-        }
-
-        internal class FastTreeRanking : FastTreeBase
-        {
-            //ClassName of the trainer
-            internal override string MethodName => "FastTree";
-
-            //ClassName of the options to trainer
-            internal override string OptionsName => "FastTreeRankingTrainer.Options";
-
-            public FastTreeRanking(PipelineNode node) : base(node)
             {
             }
         }

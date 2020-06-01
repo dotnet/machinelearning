@@ -12,7 +12,7 @@ using Microsoft.ML.AutoML;
 namespace Microsoft.ML.CodeGenerator.CSharp
 {
     /// <summary>
-    /// Supports generation of code for trainers (Binary,Multi,Regression,Ranking)
+    /// Supports generation of code for trainers (Binary,Multi,Regression)
     /// </summary>
     internal abstract class TrainerGeneratorBase : ITrainerGenerator
     {

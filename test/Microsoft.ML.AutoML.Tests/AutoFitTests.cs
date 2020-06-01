@@ -131,8 +131,8 @@ namespace Microsoft.ML.AutoML.Test
             // STEP 1: Load data
             var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName, featuresColumnName));
             var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
-            var testDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
-
+            var testDataView = mlContext.Data.TakeRows(trainDataView, 500);
+            trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
             // STEP 2: Run AutoML experiment
             ExperimentResult<RankingMetrics> experimentResult = mlContext.Auto()
                 .CreateRankingExperiment(5)
