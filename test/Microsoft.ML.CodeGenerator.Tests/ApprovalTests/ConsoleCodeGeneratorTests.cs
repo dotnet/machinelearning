@@ -83,24 +83,10 @@ namespace mlnet.Tests
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
                 false, false, false, false);
 
-
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [Fact]
-        [UseReporter(typeof(DiffReporter))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void ConsoleAppModelBuilderCSFileContentRankingTest()
-        {
-            (Pipeline pipeline,
-                        ColumnInferenceResults columnInference) = GetMockedRankingPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Ranking));
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
-                false, false, false, false);
-
-            Approvals.Verify(result.modelBuilderCSFileContent);
-        }
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
@@ -540,7 +526,6 @@ namespace mlnet.Tests
         {
             if (_mockedPipeline == null)
             {
-
                 MLContext context = new MLContext();
                 // same learners with different hyperparams
                 var hyperparams1 = new Microsoft.ML.AutoML.ParameterSet(new List<Microsoft.ML.AutoML.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
@@ -608,50 +593,6 @@ namespace mlnet.Tests
                     ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
                 };
             }
-            return (_mockedPipeline, _columnInference);
-        }
-
-        private (Pipeline, ColumnInferenceResults) GetMockedRankingPipelineAndInference()
-        {
-            if (_mockedPipeline == null)
-            {
-                MLContext context = new MLContext();
-                var hyperParam = new Dictionary<string, object>()
-                {
-                    {"rowGroupdColumnName","groupId" },
-                    {"LabelColumnName","Label" },
-                };
-                var oneHotHashPipelineNode = new PipelineNode(nameof(EstimatorName.OneHotHashEncoding), PipelineNodeType.Transform, "groupId", "groupId");
-                var lightGbmPipelineNode = new PipelineNode(nameof(TrainerName.LightGbmRanking), PipelineNodeType.Trainer, "Features", "Score", hyperParam);
-                var pipeline = new Pipeline(new PipelineNode[]
-                {
-                    oneHotHashPipelineNode,
-                    lightGbmPipelineNode
-                });
-                _mockedPipeline = pipeline;
-                var textLoaderArgs = new TextLoader.Options()
-                {
-                    Columns = new[] {
-                        new TextLoader.Column("Label", DataKind.Boolean, 0),
-                        new TextLoader.Column("groupId", DataKind.Single, 1),
-                        new TextLoader.Column("col1", DataKind.Single, 0),
-                        new TextLoader.Column("col2", DataKind.String, 0),
-                        new TextLoader.Column("col3", DataKind.Int32, 0),
-                        new TextLoader.Column("col4", DataKind.UInt32, 0),
-                    },
-                    AllowQuoting = true,
-                    AllowSparse = true,
-                    HasHeader = true,
-                    Separators = new[] { ',' }
-                };
-
-                this._columnInference = new ColumnInferenceResults()
-                {
-                    TextLoaderOptions = textLoaderArgs,
-                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" , GroupIdColumnName = "groupId"}
-                };
-            }
-
             return (_mockedPipeline, _columnInference);
         }
 
