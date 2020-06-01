@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
 using Microsoft.ML.Runtime;
@@ -337,6 +338,8 @@ namespace Microsoft.ML.TimeSeries
             private double[] _trends;
             private double[] _curWindow;
 
+            private int _period;
+
             public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode)
             {
                 _threshold = threshold;
@@ -359,11 +362,53 @@ namespace Microsoft.ML.TimeSeries
                 {
                     Array.Resize<double[]>(ref results, values.Length);
                 }
-                SpectralResidual(values, results, _threshold);
+
+                Cyclic seasonalDetector = new Cyclic(values);
+                int minPeriodRepeatCount = 4;
+                int rawPeriod = seasonalDetector.DetectCyclic(out double seasonalConfidence);
+
+                if (rawPeriod != -1 && rawPeriod * minPeriodRepeatCount <= values.Length)
+                {
+                    _period = rawPeriod;
+                }
+
+                bool isTemporal = true;
+                double[] seriesToDetect = values.ToArray();
+                double[] trends = new double[values.Length];
+                double[] seasonal = new double[values.Length];
+                double[] loss = new double[values.Length];
+
+                if (_period > 0)
+                {
+                    StlConfiguration config = new StlConfiguration(_period);
+                    InnerStl stl = new InnerStl(values, config, isTemporal);
+                    bool success = stl.Decomposition();
+
+                    if (success)
+                    {
+                        seriesToDetect = stl.Residual.ToArray();
+                        //trends = stl.TrendComponent.ToArray();
+                        //seasonal = stl.SeasonalComponent.ToArray();
+                    }
+                }
+
+                SpectralResidual(seriesToDetect, results, _threshold);
                 //Optional Steps
                 if (_detectMode == SrCnnDetectMode.AnomalyAndMargin)
                 {
-                    GetMargin(values, results, _sensitivity);
+                    if (_period > 0)
+                    {
+                        GetMarginPeriod(values, results, seriesToDetect, _sensitivity);
+                        //for (int i=0; i<values.Length; ++i)
+                        //{
+                        //    results[i][1] = trends[i];
+                        //    results[i][2] = seasonal[i];
+                        //}
+                    }
+                    else
+                    {
+                        GetMargin(values, results, _sensitivity);
+                    }
                 }
                 else if (_detectMode == SrCnnDetectMode.AnomalyAndExpectedValue)
                 {
@@ -388,7 +433,7 @@ namespace Microsoft.ML.TimeSeries
                 // Step 1: Get backadd wave
                 BackAdd(values);
 
-                // Step 2: FFT transformation
+                // Step 2: FftTransform transformation
                 int length = _backAddArray.Length;
                 AllocateDoubleArray(ref _fftRe, length);
                 AllocateDoubleArray(ref _fftIm, length);
@@ -396,7 +441,7 @@ namespace Microsoft.ML.TimeSeries
                 AllocateDoubleArray(ref _zeroArray, length);
                 FftUtils.ComputeForwardFft(_backAddArray, _zeroArray, _fftRe, _fftIm, length);
 
-                // Step 3: Calculate mags of FFT
+                // Step 3: Calculate mags of FftTransform
                 AllocateDoubleArray(ref _magList, length);
                 AllocateDoubleArray(ref _magLogList, length);
                 for (int i = 0; i < length; ++i)
@@ -541,6 +586,96 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
+            private void GetMarginPeriod(double[] values, double[][] results, IReadOnlyList<double> residual, double sensitivity)
+            {
+                //Step 8: Calculated Expected Value
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    results[i][3] = values[i] - residual[i];
+                }
+
+                //Step 9: Calculate Boundary Unit
+                CalculateBoundaryUnit(values, results.Select(x => x[0] > 0).ToArray());
+
+                for (int i = 0; i < results.Length; ++i)
+                {
+                    //Step 10: Calculate UpperBound and LowerBound
+                    var margin = CalculateMargin(_units[i], sensitivity);
+                    results[i][4] = _units[i];
+                    results[i][5] = results[i][3] + margin;
+                    results[i][6] = results[i][3] - margin;
+
+                    // update anomaly result according to the boundary
+                    results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || results[i][5] < values[i]) ? 1 : 0;
+                }
+
+                List<Tuple<int, int>> segments = new List<Tuple<int, int>>();
+                int start = -1;
+                int cursor = -1;
+                for(int i = 0; i < values.Length; ++i)
+                {
+                    // this is a outlier
+                    if (results[i][6] > values[i] || values[i] > results[i][5])
+                    {
+                        if (cursor + 1 == i)
+                        {
+                            cursor = i;
+                        }
+                        else
+                        {
+                            if (start > -1)
+                            {
+                                segments.Add(new Tuple<int, int>(start, cursor));
+                            }
+                            start = i;
+                            cursor = i;
+                        }
+                    }
+                }
+
+                if (start > -1)
+                {
+                    segments.Add(new Tuple<int, int>(start, Math.Max(start, cursor)));
+                }
+
+                List<int> anomalyIndex = new List<int>();
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    if(results[i][0] > 0)
+                    {
+                        anomalyIndex.Add(i);
+                    }
+                }
+
+                // more than one anomaly, update anomaly results
+                if (anomalyIndex.Count > 1)
+                {
+                    cursor = 0;
+                    for(int i = 0; i < anomalyIndex.Count - 1; ++i)
+                    {
+                        while (cursor < segments.Count && anomalyIndex[i] >= segments[cursor].Item2)
+                        {
+                            ++cursor;
+                        }
+
+                        if (cursor < segments.Count && segments[cursor].Item1 <= anomalyIndex[i] && anomalyIndex[i+1] <= segments[cursor].Item2)
+                        {
+                            for (int j = anomalyIndex[i]; j < anomalyIndex[i+1]; ++j)
+                            {
+                                results[j][0] = 1;
+                            }
+                        }
+                    }
+                }
+
+                //Step 11: Update Anomaly Score
+                for (int i = 0; i < results.Length; ++i)
+                {
+                    results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
+                }
+
+            }
+
             private void GetMargin(double[] values, double[][] results, double sensitivity)
             {
                 //Step 8: Calculate Expected Value
@@ -558,8 +693,12 @@ namespace Microsoft.ML.TimeSeries
                     results[i][4] = _units[i];
                     results[i][5] = _ifftRe[i] + margin;
                     results[i][6] = _ifftRe[i] - margin;
+
                     //Step 11: Update Anomaly Score
                     results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
+
+                    // update anomaly result according to the boundary
+                    results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || results[i][5] < values[i]) ? 1 : 0;
                 }
             }
 
