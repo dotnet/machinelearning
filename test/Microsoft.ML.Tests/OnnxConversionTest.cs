@@ -1127,8 +1127,12 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void PcaOnnxConversionTest()
+        [Theory]
+        [InlineData(9)]
+        [InlineData(10)]
+        [InlineData(11)]
+        [InlineData(12)]
+        public void PcaOnnxConversionTest(int customOpSetVersion)
         {
             var dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
 
@@ -1144,7 +1148,7 @@ namespace Microsoft.ML.Tests
                 var pipeline = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1, ensureZeroMean: zeroMean);
                 var model = pipeline.Fit(dataView);
                 var transformedData = model.Transform(dataView);
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, customOpSetVersion);
 
                 var onnxFileName = "pca.onnx";
                 var onnxModelPath = GetOutputPath(onnxFileName);
@@ -1160,7 +1164,6 @@ namespace Microsoft.ML.Tests
                     CompareSelectedColumns<float>("pca", "pca", transformedData, onnxResult);
                 }
             }
-
             Done();
         }
 
@@ -2145,43 +2148,6 @@ namespace Microsoft.ML.Tests
             }
             Done();
         }
-
-        [Fact]
-        public void PcaOnnxConversionWithCustomOpsetVersionTest()
-        {
-            var dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-
-            var mlContext = new MLContext(seed: 1);
-            var dataView = mlContext.Data.LoadFromTextFile(dataSource, new[] {
-                new TextLoader.Column("label", DataKind.Single, 11),
-                new TextLoader.Column("features", DataKind.Single, 0, 10)
-            }, hasHeader: true, separatorChar: ';');
-
-            bool[] zeroMeans = { true, false };
-            foreach (var zeroMean in zeroMeans)
-            {
-                var pipeline = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1, ensureZeroMean: zeroMean);
-                var model = pipeline.Fit(dataView);
-                var transformedData = model.Transform(dataView);
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 9);
-
-                var onnxFileName = "pca.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
-
-                if (IsOnnxRuntimeSupported())
-                {
-                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-                    var onnxTransformer = onnxEstimator.Fit(dataView);
-                    var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedColumns<float>("pca", "pca", transformedData, onnxResult);
-                }
-            }
-            
-          Done();
-        }
         
         [Fact]
         public void OneHotHashEncodingOnnxConversionWithCustomOpSetVersionTest()
@@ -2195,6 +2161,32 @@ namespace Microsoft.ML.Tests
                 });
             var model = pipe.Fit(dataView);
             var transformedData = model.Transform(dataView);
+
+            try
+            {
+                var onnxModelPath = GetOutputPath("onnxmodel_custom_opset_version_test.onnx");
+                using (FileStream stream = new FileStream(onnxModelPath, FileMode.Create))
+                    mlContext.Model.ConvertToOnnx(model, dataView, 9, stream);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Contains("Requested OpSet version 9 is lower than HashTransform's minimum OpSet version requirement: 11", ex.Message);
+                return;
+            }
+
+            try
+            {
+                var onnxModelPath = GetOutputPath("onnxmodel_custom_opset_version_test.onnx");
+                using (FileStream stream = new FileStream(onnxModelPath, FileMode.Create))
+                    mlContext.Model.ConvertToOnnx(model, dataView, 13, stream);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Contains("Requested OpSet version 13 is higher than the current most updated OpSet version 12", ex.Message);
+                return;
+            }
 
             try
             {
@@ -2217,6 +2209,7 @@ namespace Microsoft.ML.Tests
                 Assert.Contains("Requested OpSet version 13 is higher than the current most updated OpSet version 12", ex.Message);
                 return;
             }
+
             Done();
         }
 
