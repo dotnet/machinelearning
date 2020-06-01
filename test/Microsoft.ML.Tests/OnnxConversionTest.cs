@@ -1104,7 +1104,7 @@ namespace Microsoft.ML.Tests
             var onnxTextName = "IndicateMissingValues.txt";
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
 
-            TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("MissingIndicator") }, onnxTextName);
+            TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("MissingIndicator") }, onnxTextName, subDir);
 
             CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
             Done();
