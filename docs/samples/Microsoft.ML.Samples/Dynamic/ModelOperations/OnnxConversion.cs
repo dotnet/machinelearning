@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML;
-using Microsoft.ML.Calibrators;
-using Microsoft.ML.Transforms.Onnx;
 
 namespace Samples.Dynamic.ModelOperations
 {
