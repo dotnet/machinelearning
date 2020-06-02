@@ -323,7 +323,7 @@ namespace Microsoft.ML.Tests
                 while (curs.MoveNext())
                 {
                     getScoresa(ref buffera);
-                    getScoresb(ref bufferb);
+                    getScoresb(ref bufferb); 
                     Assert.Equal(5, buffera.Length);
                     Assert.Equal(5, bufferb.Length);
                     Assert.Equal(0, buffera.GetValues().ToArray().Sum());
