@@ -248,9 +248,6 @@ namespace Microsoft.ML.Calibrators
 
             void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
             {
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, "CalibratorTransformer");
-
                 var scoreName = InputSchema[_scoreColIndex].Name;
                 var probabilityName = GetOutputColumnsCore()[0].Name;
                 Host.CheckValue(ctx, nameof(ctx));

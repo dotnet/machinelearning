@@ -608,9 +608,6 @@ namespace Microsoft.ML.Transforms
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 for (int iinfo = 0; iinfo < _srcCols.Length; ++iinfo)
                 {
                     string inputColumnName = InputSchema[_srcCols[iinfo]].Name;
@@ -630,6 +627,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 string opType;
 
                 if ((_norms[iinfo] != LpNormNormalizingEstimatorBase.NormFunction.StandardDeviation) && (_ensureZeroMeans[iinfo] == false))

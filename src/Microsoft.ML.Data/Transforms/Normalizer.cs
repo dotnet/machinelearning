@@ -758,9 +758,6 @@ namespace Microsoft.ML.Transforms
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 for (int iinfo = 0; iinfo < _parent.Columns.Length; ++iinfo)
                 {
                     var info = _parent.Columns[iinfo];
@@ -824,6 +821,9 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.Columns.Length);
                 Contracts.Assert(_parent.Columns[iinfo] == info);
                 Contracts.Assert(CanSaveOnnx(ctx));
+
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 int valueCount = info.InputType.GetValueCount();
                 if (valueCount == 0)

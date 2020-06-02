@@ -217,9 +217,6 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 for (int iinfo = 0; iinfo < _isSourceVector.Length; ++iinfo)
                 {
                     string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
@@ -235,6 +232,9 @@ namespace Microsoft.ML.Transforms.Text
 
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 string opType = "Tokenizer";
                 DataViewType dataViewType;
                 if (_isSourceVector[iinfo])

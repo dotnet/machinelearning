@@ -500,6 +500,9 @@ namespace Microsoft.ML.Transforms
 
                 public override bool SaveOnnx(OnnxContext ctx, string srcVariableName, string dstVariableName)
                 {
+                    const int minimumOpSetVersion = 9;
+                    ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                     string opType;
 
                     // Onnx expects the input keys to be int64s. But the input data can come from an ML.NET node that
@@ -576,9 +579,6 @@ namespace Microsoft.ML.Transforms
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
                 {
                     var info = _parent.ColumnPairs[iinfo];

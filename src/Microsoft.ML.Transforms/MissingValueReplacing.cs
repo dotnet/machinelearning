@@ -847,9 +847,6 @@ namespace Microsoft.ML.Transforms
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoadName);
-
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {
                     ColInfo info = _infos[iinfo];
@@ -870,6 +867,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoadName);
+
                 Type rawType;
                 var type = _infos[iinfo].TypeSrc;
                 if (type is VectorDataViewType vectorType)

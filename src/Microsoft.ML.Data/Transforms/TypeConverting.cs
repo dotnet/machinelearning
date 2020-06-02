@@ -478,9 +478,6 @@ namespace Microsoft.ML.Transforms
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
                     string inputColumnName = _parent._columns[iinfo].InputColumnName;
@@ -500,6 +497,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 var opType = "Cast";
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType), "");
                 var t = _parent._columns[iinfo].OutputKind.ToInternalDataKind().ToType();

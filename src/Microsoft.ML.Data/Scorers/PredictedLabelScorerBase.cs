@@ -365,9 +365,6 @@ namespace Microsoft.ML.Data
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);
 
-            const int minimumOpSetVersion = 9;
-            ctx.CheckOpSetVersion(minimumOpSetVersion, "PredictedLabelScorer");
-
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;
 
             var schema = Bindings.RowMapper.InputRoleMappedSchema;

@@ -517,9 +517,6 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(((ICanSaveOnnx)this).CanSaveOnnx(ctx));
 
-            const int minimumOpSetVersion = 9;
-            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
             for (int iinfo = 0; iinfo < _bindings.ColumnTypes.Length; ++iinfo)
             {
                 var columnType = _bindings.ColumnTypes[iinfo];
@@ -541,6 +538,9 @@ namespace Microsoft.ML.Transforms
 
         private bool SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, DataViewType columnType)
         {
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
             Type type = columnType.RawType;
 
             int size;

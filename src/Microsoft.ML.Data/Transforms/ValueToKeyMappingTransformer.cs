@@ -812,6 +812,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 OnnxNode node;
                 long[] termIds;
                 string opType = "LabelEncoder";
@@ -899,9 +902,6 @@ namespace Microsoft.ML.Transforms
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
-
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {

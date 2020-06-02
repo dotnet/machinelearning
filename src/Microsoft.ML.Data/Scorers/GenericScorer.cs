@@ -225,10 +225,6 @@ namespace Microsoft.ML.Data
         void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-
-            const int minimumOpSetVersion = 9;
-            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
             Host.Assert(Bindable is IBindableCanSaveOnnx);
 
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;

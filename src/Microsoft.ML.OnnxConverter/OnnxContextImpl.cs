@@ -14,8 +14,8 @@ namespace Microsoft.ML.Model.OnnxConverter
     /// </summary>
     internal sealed class OnnxContextImpl : OnnxContext
     {
-        public const int CurrentOpSetVersion = 12;
-        public const int MinimumOpSetVersion = 9;
+        private const int CurrentOpSetVersion = 12;
+        private const int MinimumOpSetVersion = 9;
         private readonly List<OnnxCSharpToProtoWrapper.NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
         // The map from IDataView column names to variable names.
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public override void CheckOpSetVersion(int thisTransformerMinumumOpSetVersion, string registerTransformerName)
         {
             if (_opSetVersion < thisTransformerMinumumOpSetVersion)
-                throw Contracts.ExceptParam(nameof(thisTransformerMinumumOpSetVersion), $"Requested OpSet version {_opSetVersion} is lower than {registerTransformerName}'s minimum OpSet version requirement: {thisTransformerMinumumOpSetVersion}");
+                throw _host.ExceptParam(nameof(thisTransformerMinumumOpSetVersion), $"Requested OpSet version {_opSetVersion} is lower than {registerTransformerName}'s minimum OpSet version requirement: {thisTransformerMinumumOpSetVersion}");
         }
 
         /// <summary>

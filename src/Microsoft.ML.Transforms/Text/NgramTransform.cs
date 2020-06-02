@@ -745,9 +745,6 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 int numColumns = _parent.ColumnPairs.Length;
                 for (int iinfo = 0; iinfo < numColumns; ++iinfo)
                 {
@@ -773,6 +770,9 @@ namespace Microsoft.ML.Transforms.Text
 
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 var transformInfo = _parent._transformInfos[iinfo];
 
                 // TfIdfVectorizer accepts strings, int32 and int64 tensors.

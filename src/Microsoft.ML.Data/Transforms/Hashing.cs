@@ -1353,6 +1353,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariable, string dstVariable)
             {
+                const int minimumOpSetVersion = 11;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 string castOutput;
                 string isGreaterThanZeroOutput = "";
                 OnnxNode castNode;
@@ -1451,10 +1454,6 @@ namespace Microsoft.ML.Transforms
             void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
-
-                const int minimumOpSetVersion = 11;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
                     var info = _parent.ColumnPairs[iinfo];

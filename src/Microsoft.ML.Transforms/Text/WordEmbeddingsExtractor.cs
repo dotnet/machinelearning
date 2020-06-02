@@ -331,9 +331,6 @@ namespace Microsoft.ML.Transforms.Text
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 foreach (var (outputColumnName, inputColumnName) in _parent.ColumnPairs)
                 {
                     var srcVariableName = ctx.GetVariableName(inputColumnName);
@@ -416,6 +413,9 @@ namespace Microsoft.ML.Transforms.Text
                 //                                                 nameP
                 //                                                   |
                 //                                               P [j * 3]
+
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 long[] axes = new long[] { 0 };
                 // Allocate D, a constant tensor representing word embedding weights.

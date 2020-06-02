@@ -604,9 +604,6 @@ namespace Microsoft.ML.Transforms
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 for (int i = 0; i < _numColumns; i++)
                 {
                     var colPair = _parent.ColumnPairs[i];
@@ -627,6 +624,9 @@ namespace Microsoft.ML.Transforms
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 Host.CheckValue(ctx, nameof(ctx));
+
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 TransformInfo transformInfo = _parent._transformInfos[iinfo];
 

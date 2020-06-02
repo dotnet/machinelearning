@@ -110,9 +110,6 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
 
-            const int minimumOpSetVersion = 9;
-            ctx.CheckOpSetVersion(minimumOpSetVersion, "SchemaBindablePredictor");
-
             Contracts.Assert(ValueMapper is ISingleCanSaveOnnx);
             var mapper = (ISingleCanSaveOnnx)ValueMapper;
             return SaveAsOnnxCore(ctx, schema, outputNames);

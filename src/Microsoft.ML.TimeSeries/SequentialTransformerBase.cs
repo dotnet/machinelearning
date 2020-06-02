@@ -898,9 +898,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             Host.CheckValue(ctx, nameof(ctx));
 
-            const int minimumOpSetVersion = 9;
-            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
             if (_mapper is ISaveAsOnnx onnx)
             {
                 Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
