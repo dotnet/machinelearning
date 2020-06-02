@@ -43,7 +43,6 @@ namespace Microsoft.ML.Data
         }
 
         public const string LoaderSignature = "MultiClassScoreTrans";
-
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -224,7 +223,6 @@ namespace Microsoft.ML.Data
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.Check(((ICanSaveOnnx)this).CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
                 Contracts.Assert(_bindable is IBindableCanSaveOnnx);
-
                 return ((IBindableCanSaveOnnx)_bindable).SaveAsOnnx(ctx, schema, outputNames);
             }
 

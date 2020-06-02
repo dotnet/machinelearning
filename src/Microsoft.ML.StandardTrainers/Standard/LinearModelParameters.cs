@@ -102,6 +102,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => true;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+
         /// <summary>
         /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
         /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight.

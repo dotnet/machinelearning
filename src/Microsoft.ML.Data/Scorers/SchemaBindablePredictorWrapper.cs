@@ -109,7 +109,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
-
             Contracts.Assert(ValueMapper is ISingleCanSaveOnnx);
             var mapper = (ISingleCanSaveOnnx)ValueMapper;
             return SaveAsOnnxCore(ctx, schema, outputNames);

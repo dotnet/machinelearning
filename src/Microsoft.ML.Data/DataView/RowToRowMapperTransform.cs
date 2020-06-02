@@ -217,7 +217,6 @@ namespace Microsoft.ML.Data
         void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-
             if (_mapper is ISaveAsOnnx onnx)
             {
                 Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");

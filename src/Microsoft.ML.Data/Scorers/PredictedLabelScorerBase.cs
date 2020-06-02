@@ -364,7 +364,6 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);
-
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;
 
             var schema = Bindings.RowMapper.InputRoleMappedSchema;

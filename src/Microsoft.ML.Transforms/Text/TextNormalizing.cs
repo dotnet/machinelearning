@@ -218,7 +218,6 @@ namespace Microsoft.ML.Transforms.Text
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
-
                 for (int iinfo = 0; iinfo < _types.Length; ++iinfo)
                 {
                     string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
