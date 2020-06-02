@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>opencover</Format>          
+          <Exclude>[*]Microsoft.ML.*Contracts*,[*]Microsoft.ML.Internal.Utilities*,[*]Microsoft.ML.Data.VBuffer*</Exclude> <!-- [Assembly-Filter]Type-Filter -->
+          <Include>[Microsoft.ML.*]*</Include> <!-- [Assembly-Filter]Type-Filter -->
+          <ExcludeByAttribute>Obsolete,ExcludeFromCodeCoverage</ExcludeByAttribute>
+          <ExcludeByFile>$(RepoRoot)src\Microsoft.ML.OnnxConverter\OnnxMl.cs,$(RepoRoot)src\Microsoft.ML.TensorFlow\TensorFlow\Buffer.cs,$(RepoRoot)src\Microsoft.ML.TensorFlow\TensorFlow\Tensor.cs,$(RepoRoot)src\Microsoft.ML.TensorFlow\TensorFlow\Tensorflow.cs</ExcludeByFile> <!-- Globbing filter -->
+          <SingleHit>true</SingleHit>
+          <IncludeTestAssembly>true</IncludeTestAssembly>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
