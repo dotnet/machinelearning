@@ -467,8 +467,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 Host.AssertValue(input);
 
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
+                var activeIndex = _parent.Model.ModelInfo.OutputNames.IndexOf(_parent.Outputs[iinfo]);
 
-                if (_parent.Model.ModelInfo.OutputsInfo[iinfo].DataViewType is VectorDataViewType vectorType)
+                if (_parent.Model.ModelInfo.OutputsInfo[activeIndex].DataViewType is VectorDataViewType vectorType)
                 {
                     var elemRawType = vectorType.ItemType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
@@ -479,9 +480,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
                 else
                 {
-                    var type = _parent.Model.ModelInfo.OutputsInfo[iinfo].DataViewType.RawType;
+                    var type = _parent.Model.ModelInfo.OutputsInfo[activeIndex].DataViewType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
-                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, activeIndex);
                 }
             }
 
@@ -558,7 +559,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return valueGetter;
             }
 
-            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames)
+            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, int activeIndex)
             {
                 Host.AssertValue(input);
                 var outputCache = new OnnxRuntimeOutputCacher();
@@ -567,7 +568,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
                     var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
                     var trueValue = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => value.AsDictionary<string, float>());
-                    var caster = _parent.Model.ModelInfo.OutputsInfo[iinfo].Caster;
+                    var caster = _parent.Model.ModelInfo.OutputsInfo[activeIndex].Caster;
                     dst = (T)caster(namedOnnxValue);
                 };
                 return valueGetter;
