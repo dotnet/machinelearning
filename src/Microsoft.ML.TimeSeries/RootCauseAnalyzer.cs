@@ -13,16 +13,17 @@ namespace Microsoft.ML.TimeSeries
     public class RootCauseAnalyzer
     {
         private static double _anomalyRatioThreshold = 0.5;
-        private static double _anomalyDeltaThreshold = 0.95;
         private static double _anomalyPreDeltaThreshold = 2;
 
         private RootCauseLocalizationInput _src;
         private double _beta;
+        private double _anomalyDeltaThreshold;
 
-        public RootCauseAnalyzer(RootCauseLocalizationInput src, double beta)
+        public RootCauseAnalyzer(RootCauseLocalizationInput src, double beta, double anomalyDeltaThreshold)
         {
             _src = src;
             _beta = beta;
+            _anomalyDeltaThreshold = anomalyDeltaThreshold;
         }
 
         public RootCause Analyze()
