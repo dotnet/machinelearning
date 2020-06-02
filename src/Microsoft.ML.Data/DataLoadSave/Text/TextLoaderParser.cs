@@ -980,7 +980,7 @@ namespace Microsoft.ML.Data
                             if (scan.QuotingError)
                                 _stats.LogBadFmt(ref scan, "Illegal quoting");
 
-                            if (!scan.Span.IsEmpty || _keepEmpty)
+                            if (!scan.Span.IsEmpty)
                             {
                                 Fields.EnsureSpace();
                                 Fields.Spans[Fields.Count] = scan.Span;
