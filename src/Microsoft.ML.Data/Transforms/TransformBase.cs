@@ -907,7 +907,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(originFn != null);
                 var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
                             $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
