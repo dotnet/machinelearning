@@ -86,7 +86,7 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <summary>
-        /// This produces zero for an empty string.
+        /// This produces zero for an empty string, or NaN depending on the <see cref="DoubleParser.OptionFlags.EmptyAsNaN"/> used.
         /// </summary>
         public static bool TryParse(ReadOnlySpan<char> span, out Single value, OptionFlags flags = OptionFlags.Default)
         {
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <summary>
-        /// This produces zero for an empty string.
+        /// This produces zero for an empty string, or NaN depending on the <see cref="DoubleParser.OptionFlags.EmptyAsNaN"/> used.
         /// </summary>
         public static bool TryParse(ReadOnlySpan<char> span, out Double value, OptionFlags flags = OptionFlags.Default)
         {
