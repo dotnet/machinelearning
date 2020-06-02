@@ -21,14 +21,22 @@ namespace  <#= Namespace #>.Model
         // its default value, which is the name of the field.
         [ColumnName("PredictedLabel")]
         public bool Prediction { get; set; }
-
 <# } if("MulticlassClassification".Equals(TaskType)){ #>
         // ColumnName attribute is used to change the column name from
         // its default value, which is the name of the field.
         [ColumnName("PredictedLabel")]
         public <#= PredictionLabelType#> Prediction { get; set; }
 <# }#>
-<#if("MulticlassClassification".Equals(TaskType)){ #>
+<#if("ObjectDetection".Equals(TaskType)){ #>
+        [ColumnName("boxes")]
+        public float[] Boxes { get; set; }
+
+        [ColumnName("PredictedLabels)]
+        public string[] Labels { get; set; }
+
+        [ColumnName("scores")]
+        public float[] Scores { get; set; }
+<#} else if("MulticlassClassification".Equals(TaskType)){ #>
         public float[] Score { get; set; }
 <#}else{ #>
         public float Score { get; set; }

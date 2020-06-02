@@ -1,0 +1,62 @@
+﻿<#@ template language="C#" linePragmas="false" visibility="internal" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="..\..\Console\Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
+
+using System;
+using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
+
+namespace Microsoft.ML.ModelBuilder.AutoMLService.RemoteAutoML.ObjectDetectionTransformerHelpers
+{
+    [CustomMappingFactoryAttribute(nameof(ReshapeTransformer))]
+    class ReshapeTransformer : CustomMappingFactory<Input, Output>
+    {
+        // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
+        public static void Mapping(Input input, Output output)
+        {
+            var values = input.Reshape.GetValues().ToArray();
+
+            for (int x = 0; x < values.Count(); x++)
+            {
+                // normalize from [0, 255] to [0, 1]
+                values[x] /= 255;
+            };
+
+            output.Reshape = new VBuffer<float>(values.Count(), values);
+        }
+
+        // This factory method will be called when loading the model to get the mapping operation.
+        public override Action<Input, Output> GetMapping()
+        {
+            return Mapping;
+        }
+    }
+
+    public class Input
+    {
+        [ColumnName("input")]
+        [VectorType(3, 800, 600)]
+        public VBuffer<float> Reshape;
+    }
+
+    public class Output
+    {
+        [ColumnName("input")]
+        [VectorType(1 * 3 * 600 * 800)]
+        public VBuffer<float> Reshape;
+    }
+}
+
+<#+
+public string Namespace {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
+#>
+

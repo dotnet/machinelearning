@@ -228,6 +228,43 @@ namespace mlnet.Tests
         }
 
 
+        // Tevin: added to test OD codeGen
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void AzureObjectDetectionCodeGeneratorTest()
+        {
+            string onnxPath = @"C:\Users\Tevin\Desktop\bestModel.onnx";
+            (var pipeline, var columnInference) = GetMockedAzureObjectDetectionPipelineAndInference(onnxPath);
+            var setting = new CodeGeneratorSettings()
+            {
+                TrainDataset = @"C:\Users\Tevin\Downloads\ODCSV.csv",
+                ModelPath = @"C:\Users\Tevin\Desktop\Model",
+                MlTask = TaskKind.ObjectDetection,
+                OutputName = @"CodeGenTest",
+                OutputBaseDir = @"C:\Users\Tevin\Desktop\Model",
+                LabelName = "Label",
+                Target = GenerateTarget.ModelBuilder,
+                StablePackageVersion = "stableversion",
+                UnstablePackageVersion = "unstableversion",
+                OnnxModelPath = onnxPath,
+                IsAzureAttach = true,
+                IsImage = false,
+                IsObjectDetection = true,
+                ClassificationLabel = new string[] { "label1", "label2", "label3" },
+            };
+            var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
+            foreach (var project in codeGen.ToSolution())
+            {
+                foreach (var projectFile in project)
+                {
+                    NamerFactory.AdditionalInformation = projectFile.Name;
+                    Approvals.Verify(((ICSharpFile)projectFile).File);
+                }
+            }
+        }
+
+
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
@@ -594,6 +631,64 @@ namespace mlnet.Tests
                 };
             }
             return (_mockedPipeline, _columnInference);
+        }
+
+        private (Pipeline, ColumnInferenceResults) GetMockedAzureObjectDetectionPipelineAndInference(string onnxModelPath)
+        {
+            var onnxPipeLineNode = new PipelineNode(
+                nameof(SpecialTransformer.ApplyOnnxModel),
+                PipelineNodeType.Transform,
+                new[] { "input" },
+                new[] { "boxes", "labels", "scores" },
+                new Dictionary<string, object>()
+                {
+                    { "outputColumnNames", new List<string>() { "boxes", "labels", "scores" } },
+                    { "inputColumnNames", "input" },
+                    { "modelFile", "awesomeModel.onnx" },   // it doesn't matter what modelFile is
+                });
+            var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImagePath", onnxModelPath);
+            var resizeImageNode = new PipelineNode(
+                nameof(SpecialTransformer.ResizeImage),
+                PipelineNodeType.Transform,
+                onnxModelPath,
+                onnxModelPath,
+                new Dictionary<string, object>()
+                {
+                    { "imageWidth", 800 },
+                    { "imageHeight", 600 },
+                });
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, onnxModelPath, onnxModelPath);
+            var normalizeMapping = new PipelineNode(nameof(SpecialTransformer.ReshapeTransformer), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var labelMapping = new PipelineNode(nameof(SpecialTransformer.ObjectDetectionLabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var bestPipeLine = new Pipeline(new PipelineNode[]
+            {
+                loadImageNode,
+                resizeImageNode,
+                extractPixelsNode,
+                normalizeMapping,
+                onnxPipeLineNode,
+                labelMapping,
+            });
+
+            var textLoaderArgs = new TextLoader.Options()
+            {
+                Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("ImagePath", DataKind.String, 1), // 0?
+                    },
+                AllowQuoting = true,
+                AllowSparse = true,
+                HasHeader = true,
+                Separators = new[] { '\t' }
+            };
+
+            var columnInference = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = textLoaderArgs,
+                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+            };
+
+            return (bestPipeLine, columnInference);
         }
 
         private (Pipeline, ColumnInferenceResults) GetMockedAzureImagePipelineAndInference()

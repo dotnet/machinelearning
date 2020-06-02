@@ -41,6 +41,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public bool IsImage { get; set; }
 
+        public bool IsObjectDetection { get; set; }
+
         /// <summary>
         /// classification label
         /// for Azure image only

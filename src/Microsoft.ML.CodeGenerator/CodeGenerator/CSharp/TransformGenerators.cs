@@ -414,6 +414,34 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
+    // Tevin: added to include OD label mapping
+    internal class CustomObjectDetectionLabelMapping: TransformGeneratorBase
+    {
+        public CustomObjectDetectionLabelMapping(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ObjectDetectionLabelMapping";
+
+        public override string GenerateTransformer()
+        {
+            return @"CustomMapping<ObjectDetectionLabelMappingInput, ModelOutput>( // added this line not sure what to do.
+                                          (input, output) => ObjectDetectionLabelMapping.Mapping(input, output),
+                                          contractName: nameof(ObjectDetectionLabelMapping))";
+        }
+    }
+
+    // Tevin: added to have the reshaper for OD
+    internal class CustomReshapeTransformer : TransformGeneratorBase
+    {
+        public CustomReshapeTransformer(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ObjectDetectionLabelMapping";
+
+        public override string GenerateTransformer()
+        {
+            return @"CustomMapping<Input, Output>(
+                                          (input, output) => ReshapeTransformer.Mapping(input, output),
+                                          contractName: nameof(ReshapeTransformer))";
+        }
+    }
+
     internal class ApplyOnnxModel : TransformGeneratorBase
     {
         public ApplyOnnxModel(PipelineNode node) : base(node) { }

@@ -64,6 +64,16 @@ if(HasLabelMapping){
                     "babilities (likelihood of specified Labels)\r\n            mlContext.ComponentCata" +
                     "log.RegisterAssembly(typeof(LabelMapping).Assembly);\r\n");
 } 
+if(HasReshapeTransformer){ 
+            this.Write(" \r\n\t\t\t// Register ReshapeTransformer to calculate probabilities for each Label.\r\n" +
+                    "            mlContext.ComponentCatalog.RegisterAssembly(typeof(ReshapeTransforme" +
+                    "r).Assembly);\r\n");
+} 
+if(HasObjectDetectionLabelMapping){ 
+            this.Write(" \r\n\t\t\t// Register ObjectDetectionMapping to map predicted labels to correct strin" +
+                    "g.\r\n            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetecti" +
+                    "onOnnxMapping).Assembly);\r\n");
+} 
             this.Write("\r\n            // Load model & create prediction engine\r\n            string modelP" +
                     "ath = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelpath));
@@ -83,6 +93,8 @@ public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public bool HasNormalizeMapping {get; set;}=false;
 public bool HasLabelMapping {get; set;}=false;
+public bool HasReshapeTransformer {get; set;}=false;
+public bool HasObjectDetectionLabelMapping {get; set;}=false;
 public string MLNetModelpath {get; set;}
 
 
