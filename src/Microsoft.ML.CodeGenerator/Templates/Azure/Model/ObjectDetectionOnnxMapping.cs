@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CodeGenerator.Templates.Console
+namespace Microsoft.ML.CodeGenerator.Templates.Azure.Model
 {
     using System.Linq;
     using System.Text;
@@ -18,7 +18,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal partial class ModelOutputClass : ModelOutputClassBase
+    internal partial class ObjectDetectionOnnxMapping : ObjectDetectionOnnxMappingBase
     {
         /// <summary>
         /// Create the template output
@@ -30,38 +30,56 @@ CLI_Annotation();
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
-            this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace  ");
+            this.Write("\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.ML.Transforms;\r\nusing System;\r\nusing " +
+                    "System.Linq;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
-if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
-                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
-                    "ctedLabel\")]\r\n        public bool Prediction { get; set; }\r\n");
- } if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
-                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
-                    "ctedLabel\")]\r\n        public ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
-            this.Write(" Prediction { get; set; }\r\n");
- }
-if("ObjectDetection".Equals(TaskType)){ 
-            this.Write("        [ColumnName(\"boxes\")]\r\n        public float[] Boxes { get; set; }\r\n\r\n    " +
-                    "    [ColumnName(\"PredictedLabels)]\r\n        public string[] Labels { get; set; }" +
-                    "\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Scores { get; set; }\r" +
-                    "\n");
-} else if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("        public float[] Score { get; set; }\r\n");
-}else{ 
-            this.Write("        public float Score { get; set; }\r\n");
+            this.Write(@".Model
+{
+    [CustomMappingFactoryAttribute(nameof(ObjectDetectionLabelMapping))]
+    public class ObjectDetectionLabelMapping : CustomMappingFactory<ObjectDetectionLabelMappingInput, ModelOutput>
+    {
+        public static string[] Label = new string[]{");
+foreach(var label in ImportLabels){
+            this.Write("\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(label));
+            this.Write("\",");
 }
-            this.Write("    }\r\n}\r\n");
+            this.Write("};\r\n\r\n        public static void Mapping(ObjectDetectionLabelMappingInput input, " +
+                    "ModelOutput output)\r\n        {\r\n            long[] oldLabels = input.Labels.GetV" +
+                    "alues().ToArray();\r\n            output.Labels = new string[oldLabels.Length];\r\n " +
+                    "           output.Scores = input.Scores.GetValues().ToArray();\r\n            outp" +
+                    "ut.Boxes = input.Boxes.GetValues().ToArray();\r\n            for (int i = 0; i < o" +
+                    "ldLabels.Length; i++)\r\n            {\r\n                output.Labels[i] = Label[o" +
+                    "ldLabels[i]];\r\n            }\r\n        }\r\n\r\n        // This factory method will b" +
+                    "e called when loading the model to get the mapping operation.\r\n        public ov" +
+                    "erride Action<ObjectDetectionLabelMappingInput, ModelOutput> GetMapping()\r\n     " +
+                    "   {\r\n            return Mapping;\r\n        }\r\n    }\r\n\r\n    public class ObjectDe" +
+                    "tectionLabelMappingInput\r\n    {\r\n        [ColumnName(\"labels\")]\r\n        public " +
+                    "VBuffer<long> Labels;\r\n\r\n        [ColumnName(\"scores\")]\r\n        public VBuffer<" +
+                    "float> Scores;\r\n\r\n        [ColumnName(\"boxes\")]\r\n        public VBuffer<float> B" +
+                    "oxes;\r\n    }\r\n\r\n    public class BoundingBox\r\n    {\r\n        public float Top;\r\n" +
+                    "\r\n        public float Left;\r\n\r\n        public float Right;\r\n\r\n        public fl" +
+                    "oat Bottom;\r\n\r\n        public string Label;\r\n\r\n        public float Score;\r\n\r\n  " +
+                    "      public override string ToString()\r\n        {\r\n            return $\"Top: {t" +
+                    "his.Top}, Left: {this.Left}, Right: {this.Right}, Bottom: {this.Bottom}, Label: " +
+                    "{this.Label}, Score: {this.Score}\";\r\n        }\r\n    }\r\n\r\n\r\n    public class Mode" +
+                    "lOutput\r\n    {\r\n        [ColumnName(\"boxes\")]\r\n        public float[] Boxes;\r\n\r\n" +
+                    "        [ColumnName(\"PredictedLabels\")]\r\n        public string[] Labels;\r\n\r\n    " +
+                    "    [ColumnName(\"scores\")]\r\n        public float[] Scores;\r\n\r\n        private Bo" +
+                    "undingBox[] BoundingBoxes\r\n        {\r\n            get\r\n            {\r\n          " +
+                    "      var boundingBoxes = new List<BoundingBox>();\r\n                return bound" +
+                    "ingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n        public BoundingBox[] Ge" +
+                    "tBoundingBoxes()\r\n        {\r\n            return this.BoundingBoxes;\r\n        }\r\n" +
+                    "\r\n        public override string ToString()\r\n        {\r\n            var sb = new" +
+                    " StringBuilder();\r\n\r\n            foreach (var box in this.BoundingBoxes)\r\n      " +
+                    "      {\r\n                sb.AppendLine(box.ToString());\r\n            }\r\n\r\n      " +
+                    "      return sb.ToString();\r\n        }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
-public string TaskType {get;set;}
-public string PredictionLabelType {get;set;}
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public string[] ImportLabels {get; set;} = new string[0];
 
 
 void CLI_Annotation()
@@ -90,7 +108,7 @@ this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal class ModelOutputClassBase
+    internal class ObjectDetectionOnnxMappingBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

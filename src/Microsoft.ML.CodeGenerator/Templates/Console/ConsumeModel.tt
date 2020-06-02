@@ -42,6 +42,14 @@ namespace <#= Namespace #>.Model
 			// Register LabelMapping to map predicted Labels to their corresponding probabilities (likelihood of specified Labels)
             mlContext.ComponentCatalog.RegisterAssembly(typeof(LabelMapping).Assembly);
 <#} #>
+<#if(HasReshapeTransformer){ #> 
+			// Register ReshapeTransformer to calculate probabilities for each Label.
+            mlContext.ComponentCatalog.RegisterAssembly(typeof(ReshapeTransformer).Assembly);
+<#} #>
+<#if(HasObjectDetectionLabelMapping){ #> 
+			// Register ObjectDetectionMapping to map predicted labels to correct string.
+            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionOnnxMapping).Assembly);
+<#} #>
 
             // Load model & create prediction engine
             string modelPath = @"<#= MLNetModelpath #>";
@@ -57,5 +65,7 @@ public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public bool HasNormalizeMapping {get; set;}=false;
 public bool HasLabelMapping {get; set;}=false;
+public bool HasReshapeTransformer {get; set;}=false;
+public bool HasObjectDetectionLabelMapping {get; set;}=false;
 public string MLNetModelpath {get; set;}
 #>
