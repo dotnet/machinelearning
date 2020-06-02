@@ -733,11 +733,11 @@ namespace Microsoft.ML.Transforms
                 Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
                 Ch.CheckParam(_colToActivesIndex[column.Index] >= 0, nameof(column), "requested column not active");
 
-                var originalGetter = _getters[_colToActivesIndex[column.Index]];
-                ValueGetter<TValue> getter = originalGetter as ValueGetter<TValue>;
+                var originGetter = _getters[_colToActivesIndex[column.Index]];
+                ValueGetter<TValue> getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originalGetter.GetType().GetGenericArguments().First()}'.");
+                            $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
                 return getter;
             }
         }

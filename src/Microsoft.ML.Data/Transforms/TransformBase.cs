@@ -229,12 +229,12 @@ namespace Microsoft.ML.Data
                 if (isSrc)
                     return Input.GetGetter<TValue>(Input.Schema[index]);
 
-                var originalFn = _getters[index];
-                Contracts.Assert(originalFn != null);
-                var fn = originalFn as ValueGetter<TValue>;
+                var originFn = _getters[index];
+                Contracts.Assert(originFn != null);
+                var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
                     throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originalFn.GetType().GetGenericArguments().First()}'.");
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
 
@@ -903,12 +903,12 @@ namespace Microsoft.ML.Data
                 if (isSrc)
                     return Input.GetGetter<TValue>(Input.Schema[index]);
 
-                var originalFn = _getters[index];
-                Ch.Assert(originalFn != null);
-                var fn = originalFn as ValueGetter<TValue>;
+                var originFn = _getters[index];
+                Ch.Assert(originFn != null);
+                var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
                     throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originalFn.GetType().GetGenericArguments().First()}'.");
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
 

@@ -426,11 +426,11 @@ namespace Microsoft.ML.Transforms
                     return false;
                 }
 
-                var originalFn = _values[index].GetGetter();
-                fn = originalFn as ValueGetter<TValue>;
+                var originFn = _values[index].GetGetter();
+                fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
                     throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originalFn.GetType().GetGenericArguments().First()}'.");
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return true;
             }
 

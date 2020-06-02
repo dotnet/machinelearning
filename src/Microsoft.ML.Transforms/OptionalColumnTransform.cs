@@ -485,12 +485,12 @@ namespace Microsoft.ML.Transforms
                 if (_getters[index] == null)
                     return Input.GetGetter<TValue>(_bindings.AsSchema[_bindings.SrcCols[index]]);
 
-                var originalFn = _getters[index];
-                Ch.Assert(originalFn != null);
-                var fn = originalFn as ValueGetter<TValue>;
+                var originFn = _getters[index];
+                Ch.Assert(originFn != null);
+                var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
                     throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originalFn.GetType().GetGenericArguments().First()}'.");
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
 

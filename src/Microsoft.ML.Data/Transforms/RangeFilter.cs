@@ -321,11 +321,11 @@ namespace Microsoft.ML.Transforms
 
                 if (column.Index != Parent._index)
                     return Input.GetGetter<TValue>(column);
-                var originalFn = GetGetter();
-                var fn = originalFn as ValueGetter<TValue>;
+                var originFn = GetGetter();
+                var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
                     throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originalFn.GetType().GetGenericArguments().First()}'.");
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
 
                 return fn;
             }
