@@ -15,6 +15,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             // Set default value
             Target = GenerateTarget.Cli;
+            OnnxInputMapping = new Dictionary<string, ColumnMapping>();
         }
 
         public string LabelName { get; set; }
@@ -47,7 +48,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public bool IsImage { get; set; }
 
-        public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; } = new Dictionary<string, ColumnMapping>();
+        public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; }
 
         internal TaskKind MlTask { get; set; }
 
