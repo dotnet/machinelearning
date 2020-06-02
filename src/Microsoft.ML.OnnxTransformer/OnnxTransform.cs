@@ -340,6 +340,17 @@ namespace Microsoft.ML.Transforms.Onnx
             return new[] { 1 };
         }
 
+        /// <summary>
+        /// In the case that the ML.Net user wants a subset of columns or lists the columns in a different order then specified in the ONNX model,
+        /// we need to map from the ONNX model index to the ML.Net column index. This method does that mapping for us.
+        /// </summary>
+        /// <param name="iinfo">The index of the ML.Net column requested.</param>
+        /// <returns>The index o fht e</returns>
+        internal int MapDataViewColumnToOnnxOutputTensor(int iinfo)
+        {
+            return Model.ModelInfo.OutputNames.IndexOf(Outputs[iinfo]);
+        }
+
         private sealed class Mapper : MapperBase
         {
             private readonly OnnxTransformer _parent;
@@ -467,9 +478,11 @@ namespace Microsoft.ML.Transforms.Onnx
                 Host.AssertValue(input);
 
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
-                var activeIndex = _parent.Model.ModelInfo.OutputNames.IndexOf(_parent.Outputs[iinfo]);
 
-                if (_parent.Model.ModelInfo.OutputsInfo[activeIndex].DataViewType is VectorDataViewType vectorType)
+                // Determine the mapping from the ML.Net column index to the ONNX output tensor index.
+                var mlnetOnnxMapping = _parent.MapDataViewColumnToOnnxOutputTensor(iinfo);
+
+                if (_parent.Model.ModelInfo.OutputsInfo[mlnetOnnxMapping].DataViewType is VectorDataViewType vectorType)
                 {
                     var elemRawType = vectorType.ItemType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
@@ -480,9 +493,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
                 else
                 {
-                    var type = _parent.Model.ModelInfo.OutputsInfo[activeIndex].DataViewType.RawType;
+                    var type = _parent.Model.ModelInfo.OutputsInfo[mlnetOnnxMapping].DataViewType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
-                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, activeIndex);
+                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, mlnetOnnxMapping);
                 }
             }
 
@@ -559,7 +572,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return valueGetter;
             }
 
-            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, int activeIndex)
+            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, int mlnetOnnxMapping)
             {
                 Host.AssertValue(input);
                 var outputCache = new OnnxRuntimeOutputCacher();
@@ -568,7 +581,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
                     var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
                     var trueValue = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => value.AsDictionary<string, float>());
-                    var caster = _parent.Model.ModelInfo.OutputsInfo[activeIndex].Caster;
+                    var caster = _parent.Model.ModelInfo.OutputsInfo[mlnetOnnxMapping].Caster;
                     dst = (T)caster(namedOnnxValue);
                 };
                 return valueGetter;
