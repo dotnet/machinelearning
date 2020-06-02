@@ -792,9 +792,11 @@ namespace Microsoft.ML.Transforms
             {
                 _ch.Check(IsColumnActive(column));
 
-                var fn = _allColumns[column.Name].GetGetter() as ValueGetter<TValue>;
+                var originalFn = _allColumns[column.Name].GetGetter();
+                var fn = originalFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw _ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                    throw _ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                            $"expected type: '{originalFn.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
 

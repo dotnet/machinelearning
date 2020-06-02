@@ -480,9 +480,11 @@ namespace Microsoft.ML.Data
                 {
                     Ch.CheckParam(column.Index == 0, nameof(column));
                     Ch.CheckParam(_isActive, nameof(column), "requested column not active");
+
                     ValueGetter<TValue> getter = _getter as ValueGetter<TValue>;
                     if (getter == null)
-                        throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                            $"expected type: '{_getter.GetType().GetGenericArguments().First()}'.");
                     return getter;
                 }
 

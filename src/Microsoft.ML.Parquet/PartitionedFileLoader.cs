@@ -421,11 +421,11 @@ namespace Microsoft.ML.Data
             {
                 Ch.Check(IsColumnActive(column));
 
-                var getter = _getters[column.Index] as ValueGetter<TValue>;
+                var originalGetter = _getters[column.Index];
+                var getter = originalGetter as ValueGetter<TValue>;
                 if (getter == null)
-                {
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
-                }
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                            $"expected type: '{originalGetter.GetType().GetGenericArguments().First()}'.");
 
                 return getter;
             }

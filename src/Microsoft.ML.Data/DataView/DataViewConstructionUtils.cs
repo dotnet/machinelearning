@@ -427,7 +427,8 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(getter);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Host.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", column, typeof(TValue));
+                    throw Host.Except($"Invalid TValue in GetGetter for column #{column}: '{typeof(TValue)}', " +
+                        $"expected type: '{getter.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
         }
