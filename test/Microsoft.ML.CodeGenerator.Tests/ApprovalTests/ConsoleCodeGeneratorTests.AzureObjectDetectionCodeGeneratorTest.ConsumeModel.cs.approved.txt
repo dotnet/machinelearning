@@ -33,7 +33,7 @@ namespace CodeGenTest.Model
             mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionOnnxMapping).Assembly);
 
             // Load model & create prediction engine
-            string modelPath = @"C:\Users\Tevin\Desktop\Model";
+            string modelPath = @"/path/to/model";
             ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
 

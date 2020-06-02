@@ -234,15 +234,15 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureObjectDetectionCodeGeneratorTest()
         {
-            string onnxPath = @"C:\Users\Tevin\Desktop\bestModel.onnx";
+            string onnxPath = @"/path/to/onnxModel";
             (var pipeline, var columnInference) = GetMockedAzureObjectDetectionPipelineAndInference(onnxPath);
             var setting = new CodeGeneratorSettings()
             {
-                TrainDataset = @"C:\Users\Tevin\Downloads\ODCSV.csv",
-                ModelPath = @"C:\Users\Tevin\Desktop\Model",
+                TrainDataset = @"/path/to/dataset",
+                ModelPath = @"/path/to/model",
                 MlTask = TaskKind.ObjectDetection,
                 OutputName = @"CodeGenTest",
-                OutputBaseDir = @"C:\Users\Tevin\Desktop\Model",
+                OutputBaseDir = @"/path/to/codegen",
                 LabelName = "Label",
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "stableversion",

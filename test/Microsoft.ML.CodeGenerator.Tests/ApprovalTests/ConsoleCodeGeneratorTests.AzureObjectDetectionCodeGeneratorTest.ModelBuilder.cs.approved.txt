@@ -10,9 +10,9 @@ namespace CodeGenTest.ConsoleApp
 {
     public static class ModelBuilder
     {
-        private static string TRAIN_DATA_FILEPATH = @"C:\Users\Tevin\Downloads\ODCSV.csv";
-        private static string MLNET_MODEL = @"C:\Users\Tevin\Desktop\Model";
-        private static string ONNX_MODEL = @"C:\Users\Tevin\Desktop\bestModel.onnx";
+        private static string TRAIN_DATA_FILEPATH = @"/path/to/dataset";
+        private static string MLNET_MODEL = @"/path/to/model";
+        private static string ONNX_MODEL = @"/path/to/onnxModel";
 
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
@@ -45,7 +45,7 @@ namespace CodeGenTest.ConsoleApp
             // Data process configuration with pipeline data transformations to:
             // 1. Score using provided onnx model
             // 2. Map scores to labels to make model output easier to understand and use
-            var pipeline = mlContext.Transforms.LoadImages("C:\Users\Tevin\Desktop\bestModel.onnx", null, "ImagePath")
+            var pipeline = mlContext.Transforms.LoadImages("/path/to/onnxModel", null, "ImagePath")
                                       .Append(mlContext.Transforms.ResizeImages("ImageSource_featurized", 224, 224, "ImageSource_featurized"))
                                       .Append(mlContext.Transforms.ExtractPixels("ImageSource_featurized", "ImageSource_featurized"))
                                       .Append(mlContext.Transforms.CustomMapping<Input, Output>(
