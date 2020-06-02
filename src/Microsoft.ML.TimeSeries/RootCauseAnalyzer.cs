@@ -422,7 +422,7 @@ namespace Microsoft.ML.TimeSeries
 
         private static string GetDicCode(Dictionary<string, Object> dic)
         {
-            return string.Join(";", dic.Select(x => x.Key + "=" + (string)x.Value).ToArray());
+            return string.Join(";", dic.Select(x => x.Key + "=" + Convert.ToString(x.Value)).ToArray());
         }
 
         private void BuildTree(PointTree tree, List<string> aggDims, Point point, Object aggSymbol)
@@ -570,6 +570,10 @@ namespace Microsoft.ML.TimeSeries
             else
             {
                 a = (1 - Math.Pow(2, -surprise));
+                if (Double.IsNaN(a))
+                {
+                    a = 1;
+                }
                 b = (1 - Math.Pow(2, -ep));
             }
 
