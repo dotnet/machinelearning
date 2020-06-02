@@ -336,8 +336,6 @@ namespace Microsoft.ML.Tests
         public void OnnxModelOutputDifferentOrder()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
-            var env = new ConsoleEnvironment(seed: 1);
-            var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.LoadFromEnumerable(
                 new TestDataMulti[] {
@@ -369,27 +367,11 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
                 }
             }
-        }
 
-        [OnnxFact]
-        public void OnnxModelOutputSubset()
-        {
-            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
-            var env = new ConsoleEnvironment(seed: 1);
-            var samplevector = GetSampleArrayData();
-
-            var dataView = ML.Data.LoadFromEnumerable(
-                new TestDataMulti[] {
-                    new TestDataMulti()
-                    {
-                        ina = new float[] {1,2,3,4,5},
-                        inb = new float[] {1,2,3,4,5}
-                    }
-                });
             // The model returns the output columns in the order outa, outb. We are doing only a subset, outb, to make sure the mapping works.
-            var onnx = ML.Transforms.ApplyOnnxModel(new[] { "outb"}, new[] { "ina", "inb" }, modelFile).Fit(dataView).Transform(dataView);
+            onnx = ML.Transforms.ApplyOnnxModel(new[] { "outb" }, new[] { "ina", "inb" }, modelFile).Fit(dataView).Transform(dataView);
 
-            var outbCol = onnx.Schema["outb"];
+            outbCol = onnx.Schema["outb"];
             using (var curs = onnx.GetRowCursor(outbCol))
             {
                 var getScoresb = curs.GetGetter<VBuffer<float>>(outbCol);
