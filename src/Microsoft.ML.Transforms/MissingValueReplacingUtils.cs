@@ -7,7 +7,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Newtonsoft.Json;
 
 namespace Microsoft.ML.Transforms
 {
