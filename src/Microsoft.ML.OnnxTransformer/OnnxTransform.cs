@@ -342,10 +342,10 @@ namespace Microsoft.ML.Transforms.Onnx
 
         /// <summary>
         /// In the case that the ML.Net user wants a subset of columns or lists the columns in a different order then specified in the ONNX model,
-        /// we need to map from the ONNX model index to the ML.Net column index. This method does that mapping for us.
+        /// we need to map from the ML.Net dataview column index to the ONNX model output index. This method does that mapping.
         /// </summary>
         /// <param name="iinfo">The index of the ML.Net column requested.</param>
-        /// <returns>The index o fht e</returns>
+        /// <returns>The index of ONNX output.</returns>
         internal int MapDataViewColumnToOnnxOutputTensor(int iinfo)
         {
             return Model.ModelInfo.OutputNames.IndexOf(Outputs[iinfo]);
