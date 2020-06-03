@@ -226,7 +226,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="DTRootCauseLocalizationEstimator"/>, which localizes root causess using decision tree algorithm.
+        /// Create <see cref="DTRootCauseLocalizationEstimator"/>, which localizes root causes using decision tree algorithm.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>

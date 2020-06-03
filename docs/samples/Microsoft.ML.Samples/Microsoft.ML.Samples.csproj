@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!--<TargetFramework>netcoreapp2.1</TargetFramework>-->
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
     <SignAssembly>false</SignAssembly>
     <!--This ensures that we can never make the mistake of adding this as a friend assembly. Please don't remove.-->

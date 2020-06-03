@@ -101,6 +101,33 @@ namespace Microsoft.ML.Tests
         private static Object _rootCauseAggSymbol = "##SUM##";
 
 
+        private class RootCauseLocalizationData
+        {
+            [RootCauseLocalizationInputType]
+            public RootCauseLocalizationInput Input { get; set; }
+
+            public RootCauseLocalizationData()
+            {
+                Input = null;
+            }
+
+            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
+            {
+                Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateteType, aggregateSymbol);
+            }
+        }
+
+        private class RootCauseLocalizationTransformedData
+        {
+            [RootCauseType()]
+            public RootCause RootCause { get; set; }
+
+            public RootCauseLocalizationTransformedData()
+            {
+                RootCause = null;
+            }
+        }
+
         [Fact]
         public void ChangeDetection()
         {
@@ -581,18 +608,15 @@ namespace Microsoft.ML.Tests
             [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)]SrCnnDetectMode mode,
             [CombinatorialValues(true, false)]bool loadDataFromFile,
             [CombinatorialValues(-1, 24, 26, 512)]int batchSize)
-        {
             var ml = new MLContext(1);
             IDataView dataView;
             if (loadDataFromFile)
             {
                 var dataPath = GetDataPath("Timeseries", "anomaly_detection.csv");
-
                 // Load data from file into the dataView
                 dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
             }
             else
-            {
                 // Generate sample series data with an anomaly
                 var data = new List<TimeSeriesDataDouble>();
                 for (int index = 0; index < 20; index++)
@@ -608,11 +632,9 @@ namespace Microsoft.ML.Tests
                 // Convert data to IDataView.
                 dataView = ml.Data.LoadFromEnumerable(data);
             }
-
             // Setup the detection arguments
             string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
             string inputColumnName = nameof(TimeSeriesDataDouble.Value);
-
             // Do batch anomaly detection
             var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
                 threshold: 0.35, batchSize: batchSize, sensitivity: 90.0, mode);
@@ -624,7 +646,6 @@ namespace Microsoft.ML.Tests
 
             int k = 0;
             foreach (var prediction in predictionColumn)
-            {
                 switch (mode)
                 {
                     case SrCnnDetectMode.AnomalyOnly:
