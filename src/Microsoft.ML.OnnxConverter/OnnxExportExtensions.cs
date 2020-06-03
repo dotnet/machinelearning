@@ -73,7 +73,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, IDataView, int, Stream)"/> attached to.</param>
         /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
         /// <param name="inputData">The input of the specified transform.</param>
-        /// <param name="opSetVersion"></param>
+        /// <param name="opSetVersion">The OpSet version to use for exporting the model. This value must be greater than or equal to 9 and less than or equal to 12</param>
         /// <param name="stream">The stream to write the protobuf model to.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, int opSetVersion, Stream stream) =>
