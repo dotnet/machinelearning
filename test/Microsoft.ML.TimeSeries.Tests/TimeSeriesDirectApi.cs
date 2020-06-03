@@ -664,7 +664,74 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSrCnnAnomalyDetectorWithSeasonalData()
         {
+            var ml = new MLContext(1);
+            IDataView dataView;
+            var dataPath = GetDataPath("Timeseries", "period_no_anomaly.csv");
 
+            // Load data from file into the dataView
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+
+            // Setup the detection arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
+            // Do batch anomaly detection
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
+                threshold: 0.3, batchSize: -1, sensitivity: 53.0, detectMode: SrCnnDetectMode.AnomalyAndMargin, period: 288);
+
+                        // Getting the data of the newly created column as an IEnumerable of
+            // SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                outputDataView, reuseRowObject: false);
+
+            foreach (var prediction in predictionColumn)
+            {
+                Assert.Equal(7, prediction.Prediction.Length);
+                Assert.Equal(0, prediction.Prediction[0]);
+            }
+        }
+
+        [Fact]
+        public void TestSrCnnAnomalyDetectorWithSeasonalAnomalyData()
+        {
+            var ml = new MLContext(1);
+            IDataView dataView;
+            var dataPath = GetDataPath("Timeseries", "period_anomaly.csv");
+
+            // Load data from file into the dataView
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+
+            // Setup the detection arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
+            // Do batch anomaly detection
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
+                threshold: 0.3, batchSize: -1, sensitivity: 53.0, detectMode: SrCnnDetectMode.AnomalyAndMargin, period: 288);
+
+            // Getting the data of the newly created column as an IEnumerable of
+            // SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                outputDataView, reuseRowObject: false);
+
+            var anomalyStartIndex = 2988;
+            var anomalyEndIndex = 3095;
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                Assert.Equal(7, prediction.Prediction.Length);
+                if (anomalyStartIndex <= k && k <= anomalyEndIndex)
+                {
+                    Assert.Equal(1, prediction.Prediction[0]);
+                }
+                else
+                {
+                    Assert.Equal(0, prediction.Prediction[0]);
+                }
+
+                ++k;
+            }
         }
 
         [Fact]
