@@ -409,6 +409,12 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void TestSeasonality()
+        {
+
+        }
+
+        [Fact]
         public void SsaForecastPredictionEngine()
         {
             const int changeHistorySize = 10;
