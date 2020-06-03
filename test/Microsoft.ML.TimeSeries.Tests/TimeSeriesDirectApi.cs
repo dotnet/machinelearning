@@ -665,7 +665,6 @@ namespace Microsoft.ML.Tests
         {
             // Create an root cause localizatiom input
             var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _rootCauseAggSymbol);
-
             var ml = new MLContext(1);
             RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
             Assert.NotNull(rootCause);
@@ -680,6 +679,16 @@ namespace Microsoft.ML.Tests
             expectedDim.Add("DataCenter", "DC1");
             foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
             {
+                Assert.Equal(expectedDim[pair.Key], pair.Value);
+            }
+            var newRootCauseInput = new RootCauseLocalizationData(timeStamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timeStamp, GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _aggSymbol);
+
+            Dictionary<string, string> expectedDim = new Dictionary<string, string>();
+            expectedDim.Add("Country","UK");
+            expectedDim.Add("DeviceType",_aggSymbol);
+            expectedDim.Add("DataCenter","DC1");
+
+            foreach (KeyValuePair<string, string> pair in transformedRootCause.RootCause.Items[0].Dimension) {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
             }
         }
@@ -742,5 +751,24 @@ namespace Microsoft.ML.Tests
         private static DateTime GetRootCauseTimestamp()
         {
             return new DateTime(2020, 3, 23, 0, 0, 0);
+
+            return points;
+        }
+
+        private static Dictionary<string, string> GetAnomalyDimension()
+        {
+            Dictionary<string, string> dim = new Dictionary<string, string>();
+            dim.Add("Country", "UK");
+            dim.Add("DeviceType", _aggSymbol);
+            dim.Add("DataCenter", _aggSymbol);
+
+            return dim;
+        }
+
+        private static DateTime GetCurrentTimestamp()
+        {
+            return new DateTime();
+        }
+
     }
 }

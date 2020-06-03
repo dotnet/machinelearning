@@ -14,6 +14,7 @@ namespace Microsoft.ML.Samples
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 if (type.Name.Equals("LocalizeRootCauseEvaluation"))
+                //if (type.Name.Equals("LocalizeRootCauseByDT"))
                 {
                     var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 
