@@ -24,7 +24,7 @@ namespace Microsoft.ML.Internal.Utilities
             // default behavior is to use "." as decimal marker.
             UseCommaAsDecimalMarker = 0x01,
 
-            // If this flag is set, then empty spans (or those with only spaces)
+            // If this flag is set, then empty spans (or those with only white-space)
             // will be parsed as NaN. If it isn't set, then default behavior
             // is to return them as 0.
             EmptyAsNaN = 0x02,
