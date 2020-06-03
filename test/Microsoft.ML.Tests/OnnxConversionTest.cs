@@ -1954,39 +1954,6 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
-        {
-            var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
-            var leftType = leftColumn.Type.GetItemType();
-            var rightType = rightColumn.Type.GetItemType();
-
-            if (leftType == NumberDataViewType.SByte)
-                CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Byte)
-                CompareSelectedColumns<byte>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int16)
-                CompareSelectedColumns<short>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt16)
-                CompareSelectedColumns<ushort>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int32)
-                CompareSelectedColumns<int>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt32)
-                CompareSelectedColumns<uint>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int64)
-                CompareSelectedColumns<long>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt64)
-                CompareSelectedColumns<ulong>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Single)
-                CompareSelectedColumns<float>(leftColumnName, rightColumnName, left, right, precision);
-            else if (leftType == NumberDataViewType.Double)
-                CompareSelectedColumns<double>(leftColumnName, rightColumnName, left, right, precision);
-            else if (leftType == BooleanDataViewType.Instance)
-                CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == TextDataViewType.Instance)
-                CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
-        }
-
         private void CompareSelectedColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];

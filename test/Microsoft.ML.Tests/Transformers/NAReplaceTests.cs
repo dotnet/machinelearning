@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -20,10 +22,31 @@ namespace Microsoft.ML.Tests.Transformers
         {
             public float A;
             public double B;
+
             [VectorType(2)]
             public float[] C;
+
             [VectorType(2)]
             public double[] D;
+        }
+
+        private class TestOutputClass
+        {
+            public float A;
+
+            [VectorType(2)]
+            public float[] CA;
+
+            [VectorType(2)]
+            public float[] CB;
+
+            public double B;
+
+            [VectorType(2)]
+            public double[] DA;
+
+            [VectorType(2)]
+            public double[] DB;
         }
 
         public NAReplaceTests(ITestOutputHelper output) : base(output)
@@ -35,62 +58,42 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[]
             {
-                new { floatCol = 1f, floatVec = new float[] { 1f, 10f, 3f } },
-                new { floatCol = 2f, floatVec = new float[] { float.NaN, 9f, 3f } },
-                new { floatCol = float.NaN, floatVec = new float[] { 2f, float.NaN, 3f } },
-                new { floatCol = 2f, floatVec = new float[] { 3f, 9f, 3f } },
-                new { floatCol = float.NaN, floatVec = new float[] { 1f, float.NaN, 3f } },
+                new TestClass { A = 1f, B = 1d, C = new float[] { 1f, 10f }, D = new double[] { 1f, 10f } },
+                new TestClass { A = 2f, B = 2d, C = new float[] { float.NaN, 9f }, D = new double[] { double.NaN, 9f } },
+                new TestClass { A = float.NaN, B = double.NaN, C = new float[] { 2f, float.NaN }, D = new double[] { 2f, double.NaN } },
+                new TestClass { A = 2f, B = 2f, C = new float[] { 3f, 9f}, D = new double[] { 3f, 9f} },
+                new TestClass{ A = float.NaN, B = double.NaN, C = new float[] { 1f, float.NaN }, D = new double[] { 1f, double.NaN } },
             };
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.ReplaceMissingValues(
-                new MissingValueReplacingEstimator.ColumnOptions("floatCol", "floatCol", MissingValueReplacingEstimator.ReplacementMode.Mode),
-                new MissingValueReplacingEstimator.ColumnOptions("floatVecAcross", "floatVec", MissingValueReplacingEstimator.ReplacementMode.Mode, imputeBySlot: false),
-                new MissingValueReplacingEstimator.ColumnOptions("floatVecBy", "floatVec", MissingValueReplacingEstimator.ReplacementMode.Mode)
+                new MissingValueReplacingEstimator.ColumnOptions("A", "A", MissingValueReplacingEstimator.ReplacementMode.Mode),
+                new MissingValueReplacingEstimator.ColumnOptions("CA", "C", MissingValueReplacingEstimator.ReplacementMode.Mode, imputeBySlot: false),
+                new MissingValueReplacingEstimator.ColumnOptions("CB", "C", MissingValueReplacingEstimator.ReplacementMode.Mode),
+                new MissingValueReplacingEstimator.ColumnOptions("B", "B", MissingValueReplacingEstimator.ReplacementMode.Mode),
+                new MissingValueReplacingEstimator.ColumnOptions("DA", "D", MissingValueReplacingEstimator.ReplacementMode.Mode, imputeBySlot: false),
+                new MissingValueReplacingEstimator.ColumnOptions("DB", "D", MissingValueReplacingEstimator.ReplacementMode.Mode)
                 );
 
-            var transformed = pipe.Fit(dataView).Transform(dataView);
+            var transformedDataview = pipe.Fit(dataView).Transform(dataView);
 
-            var floatCol = transformed.GetColumn<float>("floatCol");
-            var floatVecAcross = transformed.GetColumn<VBuffer<float>>("floatVecAcross");
-            var floatVecBy = transformed.GetColumn<VBuffer<float>>("floatVecBy");
-
-            var expectedFloatCol = new float[] { 1, 2, 2, 2, 2 };
-            var expectedFloatVecAcross = new VBuffer<float>[]
+            var expectedOutput = new TestOutputClass[]
             {
-                new VBuffer<float>(3, new float[] { 1f, 10f, 3f }),
-                new VBuffer<float>(3, new float[]{ 3f, 9f, 3f }),
-                new VBuffer<float>(3, new float[]{ 2f, 3f, 3f }),
-                new VBuffer<float>(3, new float[]{ 3f, 9f, 3f }),
-                new VBuffer<float>(3, new float[]{ 1f, 3f, 3f })
+                new TestOutputClass{ A = 1, CA = new float[] { 1, 10 }, CB = new float[] { 1, 10 }, B = 1, DA = new double[] { 1, 10 }, DB = new double[] { 1, 10 } },
+                new TestOutputClass{ A = 2, CA = new float[] { 9, 9 }, CB = new float[] { 1, 9 }, B = 2, DA = new double[] { 9, 9 }, DB = new double[] { 1, 9 } },
+                new TestOutputClass{ A = 2, CA = new float[] { 2, 9 }, CB = new float[] { 2, 9 }, B = 2, DA = new double[] { 2, 9 }, DB = new double[] { 2, 9 } },
+                new TestOutputClass{ A = 2, CA = new float[] { 3, 9 }, CB = new float[] { 3, 9 }, B = 2, DA = new double[] { 3, 9 }, DB = new double[] { 3, 9 } },
+                new TestOutputClass{ A = 2, CA = new float[] { 1, 9 }, CB = new float[] { 1, 9 }, B = 2, DA = new double[] { 1, 9 }, DB = new double[] { 1, 9 } }
             };
-            var expectedFloatVecBy = new VBuffer<float>[]
-            {
-                new VBuffer<float>(3, new float[] { 1f, 10f, 3f }),
-                new VBuffer<float>(3, new float[]{ 1f, 9f, 3f }),
-                new VBuffer<float>(3, new float[]{ 2f, 9f, 3f }),
-                new VBuffer<float>(3, new float[]{ 3f, 9f, 3f }),
-                new VBuffer<float>(3, new float[]{ 1f, 9f, 3f })
-            };
-            var index = 0;
 
-            foreach (var val in floatCol)
-            {
-                Assert.Equal(expectedFloatCol[index++], val);
-            }
-
-            index = 0;
-            foreach (var val in floatVecAcross)
-            {
-                Assert.Equal(expectedFloatVecAcross[index++], val);
-            }
-
-            index = 0;
-            foreach (var val in floatVecBy)
-            {
-                Assert.Equal(expectedFloatVecBy[index++], val);
-            }
-
+            var expectedOutputDataview = ML.Data.LoadFromEnumerable(expectedOutput);
+            // Compare all output results
+            CompareResults("A", "A", expectedOutputDataview, transformedDataview);
+            CompareResults("CA", "CA", expectedOutputDataview, transformedDataview);
+            CompareResults("CB", "CB", expectedOutputDataview, transformedDataview);
+            CompareResults("B", "B", expectedOutputDataview, transformedDataview);
+            CompareResults("DA", "DA", expectedOutputDataview, transformedDataview);
+            CompareResults("DB", "DB", expectedOutputDataview, transformedDataview);
 
             TestEstimatorCore(pipe, dataView);
             Done();
@@ -134,12 +137,13 @@ namespace Microsoft.ML.Tests.Transformers
             var est = ML.Transforms.ReplaceMissingValues("A", "ScalarFloat", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Maximum)
                 .Append(ML.Transforms.ReplaceMissingValues("B", "ScalarDouble", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
                 .Append(ML.Transforms.ReplaceMissingValues("C", "VectorFloat", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
-                .Append(ML.Transforms.ReplaceMissingValues("D", "VectorDoulbe", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Minimum));
+                .Append(ML.Transforms.ReplaceMissingValues("D", "VectorDoulbe", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Minimum))
+                .Append(ML.Transforms.ReplaceMissingValues("E", "VectorDoulbe", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mode));
 
             TestEstimatorCore(est, data, invalidInput: invalidData);
             var outputPath = GetOutputPath("NAReplace", "featurized.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
-            var view = ML.Transforms.SelectColumns("A", "B", "C", "D").Fit(savedData).Transform(savedData);
+            var view = ML.Transforms.SelectColumns("A", "B", "C", "D", "E").Fit(savedData).Transform(savedData);
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(view, fs, headerRow: true, keepHidden: true);
 
