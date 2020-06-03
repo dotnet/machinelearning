@@ -38,6 +38,7 @@
       $(TraversalBuildDependsOn);
       DownloadExternalTestFiles;
       DownloadTensorflowMetaFiles;
+      DeleteTestHost;
     </TraversalBuildDependsOn>
   </PropertyGroup>
 
@@ -114,6 +115,18 @@
             Retries="5"
             SkipUnchangedFiles="true">
     </DownloadFile>
+  </Target>
+
+  <!-- Delete testhost.dll and testhost.exe from output folder,
+  start test from dotnet.exe to keep consistent behavior with older version of Microsoft.NET.Test.Sdk -->
+  <Target Name="DeleteTestHost">
+    <Message Importance="High" Text="Delete testhost.dll and testhost.exe from output folder..." />
+    <ItemGroup>
+        <FilesToClean Include="$(MSBuildThisFileDirectory)\bin\**\testhost.dll" />
+        <FilesToClean Include="$(MSBuildThisFileDirectory)\bin\**\testhost.exe" />
+    </ItemGroup>
+    <Delete Files="@(FilesToClean)"/>
+    <RemoveDir Directories="@(FoldersToClean)" />
   </Target>
 
   <Target Name="RunTests">
