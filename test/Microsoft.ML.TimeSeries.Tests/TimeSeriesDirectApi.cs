@@ -8,8 +8,6 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TimeSeries;
-using Microsoft.ML.TestFrameworkCommon;
-using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -530,10 +528,9 @@ namespace Microsoft.ML.Tests
         {
             var ml = new MLContext(1);
             IDataView dataView;
-            if(loadDataFromFile)
+            if (loadDataFromFile)
             {
                 var dataPath = GetDataPath(Path.Combine("Timeseries", "anomaly_detection.csv"));
-                
                 // Load data from file into the dataView
                 dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
                     new TextLoader.Column("Value", DataKind.Single, 0),
@@ -580,44 +577,53 @@ namespace Microsoft.ML.Tests
 
         [Theory, CombinatorialData]
         public void TestSrCnnBatchAnomalyDetector(
-            [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)]SrCnnDetectMode mode,
-            [CombinatorialValues(true, false)]bool loadDataFromFile,
-            [CombinatorialValues(-1, 24, 26, 512)]int batchSize)
+               [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)] SrCnnDetectMode mode,
+               [CombinatorialValues(true, false)] bool loadDataFromFile,
+               [CombinatorialValues(-1, 24, 26, 512)] int batchSize)
+        {
             var ml = new MLContext(1);
             IDataView dataView;
             if (loadDataFromFile)
             {
                 var dataPath = GetDataPath("Timeseries", "anomaly_detection.csv");
+
                 // Load data from file into the dataView
                 dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
             }
             else
+            {
                 // Generate sample series data with an anomaly
                 var data = new List<TimeSeriesDataDouble>();
                 for (int index = 0; index < 20; index++)
                 {
-                    data.Add(new TimeSeriesDataDouble { Value = 5 } );
+                    data.Add(new TimeSeriesDataDouble { Value = 5 });
                 }
                 data.Add(new TimeSeriesDataDouble { Value = 10 });
                 for (int index = 0; index < 5; index++)
                 {
                     data.Add(new TimeSeriesDataDouble { Value = 5 });
                 }
+
                 // Convert data to IDataView.
                 dataView = ml.Data.LoadFromEnumerable(data);
             }
+
             // Setup the detection arguments
             string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
             string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
             // Do batch anomaly detection
             var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
                 threshold: 0.35, batchSize: batchSize, sensitivity: 90.0, mode);
+
             // Getting the data of the newly created column as an IEnumerable of
             // SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
                 outputDataView, reuseRowObject: false);
+
             int k = 0;
             foreach (var prediction in predictionColumn)
+            {
                 switch (mode)
                 {
                     case SrCnnDetectMode.AnomalyOnly:
@@ -654,249 +660,91 @@ namespace Microsoft.ML.Tests
                 k += 1;
             }
         }
+
+        [Fact]
         public void RootCauseLocalization()
         {
             // Create an root cause localizatiom input
             var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _rootCauseAggSymbol);
+
             var ml = new MLContext(1);
             RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
+
             Assert.NotNull(rootCause);
             Assert.Equal(1, (int)rootCause.Items.Count);
             Assert.Equal(3, (int)rootCause.Items[0].Dimension.Count);
             Assert.Equal(AnomalyDirection.Up, rootCause.Items[0].Direction);
             Assert.Equal(1, (int)rootCause.Items[0].Path.Count);
             Assert.Equal("DataCenter", rootCause.Items[0].Path[0]);
+
             Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
             expectedDim.Add("Country", "UK");
             expectedDim.Add("DeviceType", _rootCauseAggSymbol);
             expectedDim.Add("DataCenter", "DC1");
+
             foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
             {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
             }
-            var newRootCauseInput = new RootCauseLocalizationData(timeStamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timeStamp, GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _aggSymbol);
-            Dictionary<string, string> expectedDim = new Dictionary<string, string>();
-            expectedDim.Add("Country","UK");
-            expectedDim.Add("DeviceType",_aggSymbol);
-            expectedDim.Add("DataCenter","DC1");
-
-            foreach (KeyValuePair<string, string> pair in transformedRootCause.RootCause.Items[0].Dimension) {
-                Assert.Equal(expectedDim[pair.Key], pair.Value);
-            }
         }
+
         private static List<TimeSeriesPoint> GetRootCauseLocalizationPoints()
         {
             List<TimeSeriesPoint> points = new List<TimeSeriesPoint>();
+
             Dictionary<string, Object> dic1 = new Dictionary<string, Object>();
             dic1.Add("Country", "UK");
             dic1.Add("DeviceType", "Laptop");
             dic1.Add("DataCenter", "DC1");
             points.Add(new TimeSeriesPoint(200, 100, true, dic1));
+
             Dictionary<string, Object> dic2 = new Dictionary<string, Object>();
             dic2.Add("Country", "UK");
             dic2.Add("DeviceType", "Mobile");
             dic2.Add("DataCenter", "DC1");
             points.Add(new TimeSeriesPoint(1000, 100, true, dic2));
+
             Dictionary<string, Object> dic3 = new Dictionary<string, Object>();
             dic3.Add("Country", "UK");
             dic3.Add("DeviceType", _rootCauseAggSymbol);
             dic3.Add("DataCenter", "DC1");
             points.Add(new TimeSeriesPoint(1200, 200, true, dic3));
+
             Dictionary<string, Object> dic4 = new Dictionary<string, Object>();
             dic4.Add("Country", "UK");
             dic4.Add("DeviceType", "Laptop");
             dic4.Add("DataCenter", "DC2");
             points.Add(new TimeSeriesPoint(100, 100, false, dic4));
+
             Dictionary<string, Object> dic5 = new Dictionary<string, Object>();
             dic5.Add("Country", "UK");
             dic5.Add("DeviceType", "Mobile");
             dic5.Add("DataCenter", "DC2");
             points.Add(new TimeSeriesPoint(200, 200, false, dic5));
+
             Dictionary<string, Object> dic6 = new Dictionary<string, Object>();
             dic6.Add("Country", "UK");
             dic6.Add("DeviceType", _rootCauseAggSymbol);
             dic6.Add("DataCenter", "DC2");
             points.Add(new TimeSeriesPoint(300, 300, false, dic6));
+
             Dictionary<string, Object> dic7 = new Dictionary<string, Object>();
             dic7.Add("Country", "UK");
             dic7.Add("DeviceType", _rootCauseAggSymbol);
             dic7.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new TimeSeriesPoint(1500, 500, true, dic7));
+
             Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
             dic8.Add("Country", "UK");
             dic8.Add("DeviceType", "Laptop");
             dic8.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new TimeSeriesPoint(300, 200, true, dic8));
+
             Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
             dic9.Add("Country", "UK");
             dic9.Add("DeviceType", "Mobile");
             dic9.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new TimeSeriesPoint(1200, 300, true, dic9));
-            return points;
-        private static Dictionary<string, Object> GetRootCauseAnomalyDimension()
-            Dictionary<string, Object> dim = new Dictionary<string, Object>();
-            dim.Add("Country", "UK");
-            dim.Add("DeviceType", _rootCauseAggSymbol);
-            dim.Add("DataCenter", _rootCauseAggSymbol);
-            return dim;
-        }
-        private static DateTime GetRootCauseTimestamp()
-        {
-            return new DateTime(2020, 3, 23, 0, 0, 0);
-            return points;
-        }
-        private static Dictionary<string, string> GetAnomalyDimension()
-        {
-            Dictionary<string, string> dim = new Dictionary<string, string>();
-            dim.Add("Country", "UK");
-            dim.Add("DeviceType", _aggSymbol);
-            dim.Add("DataCenter", _aggSymbol);
-            return dim;
-        }
-        private static DateTime GetCurrentTimestamp()
-        {
-            return new DateTime();
-
-            Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
-            expectedDim.Add("Country", "UK");
-            expectedDim.Add("DeviceType", _rootCauseAggSymbol);
-            expectedDim.Add("DataCenter", "DC1");
-
-            foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
-            {
-                Assert.Equal(expectedDim[pair.Key], pair.Value);
-            }
-        }
-        private static List<Point> GetRootCauseLocalizationPoints()
-        {
-            List<Point> points = new List<Point>();
-            Dictionary<string, string> dic1 = new Dictionary<string, string>();
-            dic1.Add("Country", "UK");
-            dic1.Add("DeviceType", "Laptop");
-            dic1.Add("DataCenter", "DC1");
-            points.Add(new Point(200, 100, true, dic1));
-            Dictionary<string, string> dic2 = new Dictionary<string, string>();
-            dic2.Add("Country", "UK");
-            dic2.Add("DeviceType", "Mobile");
-            dic2.Add("DataCenter", "DC1");
-            points.Add(new Point(1000, 100, true, dic2));
-
-            Dictionary<string, string> dic3 = new Dictionary<string, string>();
-            dic3.Add("Country", "UK");
-            dic3.Add("DeviceType", _aggSymbol);
-            dic3.Add("DataCenter", "DC1");
-            points.Add(new Point(1200, 200, true, dic3));
-            Dictionary<string, string> dic4 = new Dictionary<string, string>();
-            dic4.Add("Country", "UK");
-            dic4.Add("DeviceType", "Laptop");
-            dic4.Add("DataCenter", "DC2");
-            points.Add(new Point(100, 100, false, dic4));
-
-            Dictionary<string, string> dic5 = new Dictionary<string, string>();
-            dic5.Add("Country", "UK");
-            dic5.Add("DeviceType", "Mobile");
-            dic5.Add("DataCenter", "DC2");
-            points.Add(new Point(200, 200, false, dic5));
-
-            Dictionary<string, string> dic6 = new Dictionary<string, string>();
-            dic6.Add("Country", "UK");
-            dic6.Add("DeviceType", _aggSymbol);
-            dic6.Add("DataCenter", "DC2");
-            points.Add(new Point(300, 300, false, dic6));
-
-            Dictionary<string, string> dic7 = new Dictionary<string, string>();
-            dic7.Add("Country", "UK");
-            dic7.Add("DeviceType", _aggSymbol);
-            dic7.Add("DataCenter", _aggSymbol);
-            points.Add(new Point(1500, 500, true, dic7));
-
-            Dictionary<string, string> dic8 = new Dictionary<string, string>();
-            dic8.Add("Country", "UK");
-            dic8.Add("DeviceType", "Laptop");
-            dic8.Add("DataCenter", _aggSymbol);
-            points.Add(new Point(300, 200, true, dic8));
-
-            Dictionary<string, string> dic9 = new Dictionary<string, string>();
-            dic9.Add("Country", "UK");
-            dic9.Add("DeviceType", "Mobile");
-            dic9.Add("DataCenter", _aggSymbol);
-            points.Add(new Point(1200, 300, true, dic9));
-
-            return points;
-        }
-
-        private static Dictionary<string, string> GetAnomalyDimension()
-        {
-            Dictionary<string, string> dim = new Dictionary<string, string>();
-            dim.Add("Country", "UK");
-            dim.Add("DeviceType", _aggSymbol);
-            dim.Add("DataCenter", _aggSymbol);
-
-            return dim;
-        }
-
-        private static DateTime GetCurrentTimestamp()
-        {
-            return new DateTime(2020, 3, 23, 0, 0, 0);
-        }
-
-        private static List<Point> GetRootCauseLocalizationPoints()
-        {
-            List<Point> points = new List<Point>();
-
-            Dictionary<string, Object> dic1 = new Dictionary<string, Object>();
-            dic1.Add("Country", "UK");
-            dic1.Add("DeviceType", "Laptop");
-            dic1.Add("DataCenter", "DC1");
-            points.Add(new Point(200, 100, true, dic1));
-
-            Dictionary<string, Object> dic2 = new Dictionary<string, Object>();
-            dic2.Add("Country", "UK");
-            dic2.Add("DeviceType", "Mobile");
-            dic2.Add("DataCenter", "DC1");
-            points.Add(new Point(1000, 100, true, dic2));
-
-            Dictionary<string, Object> dic3 = new Dictionary<string, Object>();
-            dic3.Add("Country", "UK");
-            dic3.Add("DeviceType", _rootCauseAggSymbol);
-            dic3.Add("DataCenter", "DC1");
-            points.Add(new Point(1200, 200, true, dic3));
-
-            Dictionary<string, Object> dic4 = new Dictionary<string, Object>();
-            dic4.Add("Country", "UK");
-            dic4.Add("DeviceType", "Laptop");
-            dic4.Add("DataCenter", "DC2");
-            points.Add(new Point(100, 100, false, dic4));
-
-            Dictionary<string, Object> dic5 = new Dictionary<string, Object>();
-            dic5.Add("Country", "UK");
-            dic5.Add("DeviceType", "Mobile");
-            dic5.Add("DataCenter", "DC2");
-            points.Add(new Point(200, 200, false, dic5));
-
-            Dictionary<string, Object> dic6 = new Dictionary<string, Object>();
-            dic6.Add("Country", "UK");
-            dic6.Add("DeviceType", _rootCauseAggSymbol);
-            dic6.Add("DataCenter", "DC2");
-            points.Add(new Point(300, 300, false, dic6));
-
-            Dictionary<string, Object> dic7 = new Dictionary<string, Object>();
-            dic7.Add("Country", "UK");
-            dic7.Add("DeviceType", _rootCauseAggSymbol);
-            dic7.Add("DataCenter", _rootCauseAggSymbol);
-            points.Add(new Point(1500, 500, true, dic7));
-
-            Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
-            dic8.Add("Country", "UK");
-            dic8.Add("DeviceType", "Laptop");
-            dic8.Add("DataCenter", _rootCauseAggSymbol);
-            points.Add(new Point(300, 200, true, dic8));
-
-            Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
-            dic9.Add("Country", "UK");
-            dic9.Add("DeviceType", "Mobile");
-            dic9.Add("DataCenter", _rootCauseAggSymbol);
-            points.Add(new Point(1200, 300, true, dic9));
 
             return points;
         }

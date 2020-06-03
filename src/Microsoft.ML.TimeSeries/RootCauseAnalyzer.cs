@@ -357,13 +357,11 @@ namespace Microsoft.ML.TimeSeries
                     {
                         dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise, Math.Abs(scoreList[i].ExplanatoryScore), beta);
                     }
-                    }
                 }
             }
             else if (dst.Items.Count == 1)
             {
                 TimeSeriesPoint rootCausePoint = GetPointByDimension(dimPointMapping, dst.Items[0].Dimension, pointTree, aggType, aggSymbol);
-                Point rootCausePoint = GetPointByDimension(dimPointMapping, dst.Items[0].Dimension, pointTree, aggType, aggSymbol);
                 if (anomalyPoint != null && rootCausePoint != null)
                 {
                     Tuple<double, double> scores = GetSurpriseAndExplanatoryScore(rootCausePoint, anomalyPoint);
@@ -416,7 +414,6 @@ namespace Microsoft.ML.TimeSeries
                 return p;
             }
             else
-            {
             {
                 return null;
             }
@@ -573,9 +570,6 @@ namespace Microsoft.ML.TimeSeries
             {
                 a = (1 - Math.Pow(2, -surprise));
                 b = (1 - Math.Pow(2, -ep));
-            }
-
-            return beta * a + (1 - beta) * b;
             }
 
             return beta * a + (1 - beta) * b;
@@ -739,7 +733,6 @@ namespace Microsoft.ML.TimeSeries
             if (other != null)
                 return DimensionKey.CompareTo(other.DimensionKey);
             else
-                throw new ArgumentException("Object is not a BestDimension");
                 throw new ArgumentException("Object is not a BestDimension");
         }
     }
