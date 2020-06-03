@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.ML;
@@ -223,7 +224,8 @@ namespace Microsoft.ML.Transforms
             {
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                            $"expected type: '{_getter.GetType().GetGenericArguments().First().GetGenericArguments().First()}'.");
                 return getter;
             }
         }

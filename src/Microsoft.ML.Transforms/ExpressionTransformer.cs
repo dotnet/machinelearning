@@ -609,7 +609,7 @@ namespace Microsoft.ML.Transforms
             var src0 = default(VBuffer<T0>);
 
             var dstDef = fn(default(T0));
-            var isDef = Conversions.Instance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
+            var isDef = Conversions.DefaultInstance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
             if (isDef(in dstDef))
             {
                 // Sparsity is preserved.
@@ -668,7 +668,7 @@ namespace Microsoft.ML.Transforms
             ectx.Assert(inputColumns.Length == 2);
             ectx.Assert(perm.Length == 2);
 
-            var isDef = Conversions.Instance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
+            var isDef = Conversions.DefaultInstance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
             var fn = (Func<T0, T1, TDst>)del;
             var getSrc0 = input.GetGetter<VBuffer<T0>>(inputColumns[perm[0]]);
             var getSrc1 = input.GetGetter<T1>(inputColumns[perm[1]]);
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Transforms
             ectx.Assert(inputColumns.Length == 3);
             ectx.Assert(perm.Length == 3);
 
-            var isDef = Conversions.Instance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
+            var isDef = Conversions.DefaultInstance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
             var fn = (Func<T0, T1, T2, TDst>)del;
             var getSrc0 = input.GetGetter<VBuffer<T0>>(inputColumns[perm[0]]);
             var getSrc1 = input.GetGetter<T1>(inputColumns[perm[1]]);
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Transforms
             ectx.Assert(inputColumns.Length == 4);
             ectx.Assert(perm.Length == 4);
 
-            var isDef = Conversions.Instance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
+            var isDef = Conversions.DefaultInstance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
             var fn = (Func<T0, T1, T2, T3, TDst>)del;
             var getSrc0 = input.GetGetter<VBuffer<T0>>(inputColumns[perm[0]]);
             var getSrc1 = input.GetGetter<T1>(inputColumns[perm[1]]);
@@ -857,7 +857,7 @@ namespace Microsoft.ML.Transforms
             ectx.Assert(inputColumns.Length == 5);
             ectx.Assert(perm.Length == 5);
 
-            var isDef = Conversions.Instance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
+            var isDef = Conversions.DefaultInstance.GetIsDefaultPredicate<TDst>(outputColumnItemType);
             var fn = (Func<T0, T1, T2, T3, T4, TDst>)del;
             var getSrc0 = input.GetGetter<VBuffer<T0>>(inputColumns[perm[0]]);
             var getSrc1 = input.GetGetter<T1>(inputColumns[perm[1]]);

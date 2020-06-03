@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -60,6 +61,70 @@ namespace Microsoft.ML.Benchmarks
             }
 
             return filePath;
+        }
+    }
+
+    public class RandomFile
+    {
+        public static string CreateRandomFile(string path, int numRows, int numColumns, int maxWordLength)
+        {
+            // Create file with random strings
+            // to use as dataset of the benchmark
+
+            Random random = new Random(1);
+
+            using (StreamWriter file = new StreamWriter(path))
+            {
+                for (int i = 0; i < numRows; i++)
+                    file.WriteLine(CreateRandomLine(numColumns, maxWordLength, random));
+            }
+            return path;
+        }
+
+        public static string CreateRandomLine(int columns, int maxWordLength, Random random)
+        {
+            var lineSB = new System.Text.StringBuilder();
+            for (int i = 0; i < columns; i++)
+            {
+                lineSB.Append(CreateRandomColumn(random.Next(100), maxWordLength, random));
+                lineSB.Append(",");
+            }
+            return lineSB.ToString();
+        }
+
+        public static string CreateRandomColumn(int numwords, int maxWordLength, Random random)
+        {
+            const string characters =
+                "01234567890" +
+                "abcdefghijklmnopqrstuvwxyz" +
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            var columnSB = new System.Text.StringBuilder();
+            int wordLength;
+
+            bool quoted = false;
+            if (random.NextDouble() > 0.5)
+            {
+                quoted = true;
+                columnSB.Append('"');
+            }
+
+            for (int i = 0; i < numwords; i++)
+            {
+                wordLength = random.Next(1, maxWordLength);
+                for (int j = 0; j < wordLength; j++)
+                    columnSB.Append(characters[random.Next(characters.Length)]);
+
+                columnSB.Append(" ");
+            }
+
+            if (quoted)
+                columnSB.Append('"');
+
+            if (random.Next(2) == 0) // sometimes return the column as lowercase
+                return columnSB.ToString().ToLower();
+
+            return columnSB.ToString();
         }
     }
 }

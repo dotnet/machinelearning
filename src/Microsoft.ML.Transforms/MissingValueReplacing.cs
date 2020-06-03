@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms
         private static string TestType<T>(DataViewType type)
         {
             Contracts.Assert(type.GetItemType().RawType == typeof(T));
-            if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.GetItemType(), out InPredicate<T> isNA))
+            if (!Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate(type.GetItemType(), out InPredicate<T> isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
                     type, LoadName);
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(srcType != null);
             Host.Assert(srcType.Size == src.Length);
             VBufferUtils.Densify<T>(ref src);
-            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
+            InPredicate<T> defaultPred = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(srcType.ItemType);
             _repIsDefault[iinfo] = new BitArray(srcType.Size);
             var srcValues = src.GetValues();
             for (int slot = 0; slot < srcValues.Length; slot++)
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.Assert(values.Length == type.GetVectorSize());
             BitArray defaultSlots = new BitArray(values.Length);
-            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.GetItemType());
+            InPredicate<T> defaultPred = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(type.GetItemType());
             T[] typedValues = (T[])values;
             for (int slot = 0; slot < values.Length; slot++)
             {
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private Delegate GetIsNADelegate<T>(DataViewType type)
-            => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
+            => Data.Conversion.Conversions.DefaultInstance.GetIsNAPredicate<T>(type.GetItemType());
 
         /// <summary>
         /// Converts a string to its respective value in the corresponding type.
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Transforms
             {
                 // Handles converting input strings to correct types.
                 var srcTxt = srcStr.AsMemory();
-                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextDataViewType.Instance, dstType.GetItemType(), out bool identity);
+                var strToT = Data.Conversion.Conversions.DefaultInstance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextDataViewType.Instance, dstType.GetItemType(), out bool identity);
                 strToT(in srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(in val))
@@ -667,7 +667,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
-                var isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.GetItemType());
+                var isDefault = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.GetItemType());
 
                 var src = default(VBuffer<T>);
                 ValueGetter<VBuffer<T>> getter;
@@ -867,6 +867,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoadName);
+
                 Type rawType;
                 var type = _infos[iinfo].TypeSrc;
                 if (type is VectorDataViewType vectorType)

@@ -416,18 +416,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Contains(4, ids);
             split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.DateTimeStrat));
             ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
-            Assert.Contains(0, ids);
-            Assert.Contains(7, ids);
-            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.DateTimeOffsetStrat));
-            ids = split.TrainSet.GetColumn<int>(split.TrainSet.Schema[nameof(Input.Id)]);
-            Assert.Contains(1, ids);
-            Assert.Contains(3, ids);
-            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.TimeSpanStrat));
-            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
-            Assert.Contains(4, ids);
             Assert.Contains(5, ids);
             Assert.Contains(6, ids);
+            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.DateTimeOffsetStrat));
+            ids = split.TrainSet.GetColumn<int>(split.TrainSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(4, ids);
             Assert.Contains(7, ids);
+            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.TimeSpanStrat));
+            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(1, ids);
+            Assert.Contains(2, ids);
         }
     }
 }

@@ -297,7 +297,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<T>(cursor.Input.Schema[info.Index]);
-                    var hasBad = Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(info.Type);
+                    var hasBad = Data.Conversion.Conversions.DefaultInstance.GetIsNAPredicate<T>(info.Type);
                     return new ValueOne<T>(cursor, getSrc, hasBad);
                 }
 
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type.RawType == typeof(VBuffer<T>));
 
                     var getSrc = cursor.Input.GetGetter<VBuffer<T>>(cursor.Input.Schema[info.Index]);
-                    var hasBad = Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorDataViewType)info.Type);
+                    var hasBad = Data.Conversion.Conversions.DefaultInstance.GetHasMissingPredicate<T>((VectorDataViewType)info.Type);
                     return new ValueVec<T>(cursor, getSrc, hasBad);
                 }
 
@@ -426,9 +426,11 @@ namespace Microsoft.ML.Transforms
                     return false;
                 }
 
-                fn = _values[index].GetGetter() as ValueGetter<TValue>;
+                var originFn = _values[index].GetGetter();
+                fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return true;
             }
 

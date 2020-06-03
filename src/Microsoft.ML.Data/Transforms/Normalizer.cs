@@ -47,6 +47,7 @@ namespace Microsoft.ML.Transforms
     /// * Log Mean Variance - Rescale each row to unit variance, optionally, zero mean based on computations in log scale.
     /// * Binning - Bucketizes the data in each row and performs a linear rescale based on the calculated bins.
     /// * Supervised Binning - Bucketize the data in each row and performas a linear rescale based on the calculated bins. The bin calculation is based on correlation of the Label column.
+    /// * Robust Scaling - Optionally centers the data and scales based on the range of data and the quantile min and max values provided. This method is more robust to outliers.
     ///
     /// ### Estimator Details
     /// The interval of the normalized data depends on whether fixZero is specified or not. fixZero defaults to true.
@@ -54,7 +55,8 @@ namespace Microsoft.ML.Transforms
     /// and maximum values are mapped to 0 and 1 respectively and remaining values fall in between.
     /// When fixZero is set, the normalized interval is $[-1,1]$ with the distribution of the normalized values depending on the normalization mode, but the behavior is different.
     /// With Min Max, the distribution depends on how far away the number is from 0, resulting in the number with the largest distance being mapped to 1 if its a positive number
-    /// or -1 if its a negative number. The distance from 0 will affect the distribution with a majority of numbers that are closer together normalizing towards 0.
+    /// or -1 if its a negative number. The distance from 0 will affect the distribution with a majority of numbers that are closer together normalizing towards 0. Robust Scaling
+    /// does not use fixZero, and its values are not constrained to $[0,1]$ or $[-1,1]$. Its scaling is based on the range of the data and the quantile min and max provided.
     ///
     /// The equation for the output $y$ of applying both Mean Variance and Log Mean Variance on input $x$ without
     /// using the CDF option is: $y = (x - \text{offset}) \text{scale}$. Where offset and scale are computed during training.
@@ -69,6 +71,7 @@ namespace Microsoft.ML.Transforms
     /// * [NormalizeLogMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeLogMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean))
     /// * [NormalizeBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Int32))
     /// * [NormalizeSupervisedBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeSupervisedBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.String,System.Int64,System.Boolean,System.Int32,System.Int32))
+    /// * [NormalizeRobustScaling](xref:Microsoft.ML.NormalizationCatalog.NormalizeRobustScaling(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.UInt32,System.UInt32))
     ///
     /// Check the above links for usage examples.
     /// ]]>
@@ -85,6 +88,9 @@ namespace Microsoft.ML.Transforms
             public const int MaximumBinCount = 1024;
             public const int MininimumBinSize = 10;
             public const long MaximumExampleCount = 1000000000;
+            public const bool CenterData = true;
+            public const uint QuantileMin = 25;
+            public const uint QuantileMax = 75;
         }
 
         [BestFriend]
@@ -109,7 +115,11 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Bucketize and then rescale to between -1 and 1. Calculates bins based on correlation with the Label column.
             /// </summary>
-            SupervisedBinning = 4
+            SupervisedBinning = 4,
+            /// <summary>
+            /// Optionally centers the data around 0 and then scales based on the data range and the quantile min and max values provided.
+            /// </summary>
+            RobustScaling = 5
         }
 
         [BestFriend]
@@ -146,6 +156,8 @@ namespace Microsoft.ML.Transforms
                         return new BinningColumnOptions(outputColumnName, inputColumnName);
                     case NormalizationMode.SupervisedBinning:
                         return new SupervisedBinningColumOptions(outputColumnName, inputColumnName);
+                    case NormalizationMode.RobustScaling:
+                        return new RobustScalingColumnOptions(outputColumnName, inputColumnName);
                     default:
                         throw Contracts.ExceptParam(nameof(mode), "Unknown normalizer mode");
                 }
@@ -245,6 +257,26 @@ namespace Microsoft.ML.Transforms
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
                 => NormalizeTransform.SupervisedBinUtils.CreateBuilder(this, host, LabelColumnName, srcIndex, srcType, cursor);
+        }
+
+        [BestFriend]
+        internal sealed class RobustScalingColumnOptions : ControlZeroColumnOptionsBase
+        {
+            public readonly bool CenterData;
+            public readonly uint QuantileMin;
+            public readonly uint QuantileMax;
+
+            public RobustScalingColumnOptions(string outputColumnName, string inputColumnName = null,
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool centerData = Defaults.CenterData, uint quantileMin = Defaults.QuantileMin, uint quantileMax = Defaults.QuantileMax)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, false)
+            {
+                CenterData = centerData;
+                QuantileMin = quantileMin;
+                QuantileMax = quantileMax;
+            }
+
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
+                => NormalizeTransform.RobustScaleUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
         private readonly IHost _host;
@@ -789,6 +821,9 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.Columns.Length);
                 Contracts.Assert(_parent.Columns[iinfo] == info);
                 Contracts.Assert(CanSaveOnnx(ctx));
+
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 int valueCount = info.InputType.GetValueCount();
                 if (valueCount == 0)

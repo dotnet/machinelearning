@@ -324,6 +324,65 @@ namespace Microsoft.ML
                             column.OutputColumnName, column.InputColumnName, labelColumnName, maximumExampleCount, fixZero, maximumBinCount, mininimumExamplesPerBin)).ToArray());
 
         /// <summary>
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes using statistics that are robust to outliers by centering the data around 0 (removing the median) and scales
+        /// the data according to the quantile range (defaults to the interquartile range).
+        /// </summary>
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        ///                                The data type on this column is the same as the input column.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        ///                               The data type on this column should be <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.</param>
+        /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
+        /// <param name="centerData">Whether to center the data around 0 be removing the median. Defaults to true.</param>
+        /// <param name="quantileMin">Quantile min used to scale the data. Defaults to 25.</param>
+        /// <param name="quantileMax">Quantile max used to scale the data. Defaults to 75.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[NormalizeRobustScaling](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeSupervisedBinning.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static NormalizingEstimator NormalizeRobustScaling(this TransformsCatalog catalog,
+            string outputColumnName, string inputColumnName = null,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+            bool centerData = NormalizingEstimator.Defaults.CenterData,
+            uint quantileMin = NormalizingEstimator.Defaults.QuantileMin,
+            uint quantileMax = NormalizingEstimator.Defaults.QuantileMax)
+        {
+            var columnOptions = new NormalizingEstimator.RobustScalingColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, centerData, quantileMin, quantileMax);
+            return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        }
+
+        /// <summary>
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes using statistics that are robust to outliers by centering the data around 0 (removing the median) and scales
+        /// the data according to the quantile range (defaults to the interquartile range).
+        /// </summary>
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="columns">The pairs of input and output columns.
+        ///             The input columns must be of data type <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.
+        ///             The data type for the output column will be the same as the associated input column.</param>
+        /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
+        /// <param name="centerData">Whether to center the data around 0 be removing the median. Defaults to true.</param>
+        /// <param name="quantileMin">Quantile min used to scale the data. Defaults to 25.</param>
+        /// <param name="quantileMax">Quantile max used to scale the data. Defaults to 75.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[NormalizeBinning](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeBinningMulticolumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static NormalizingEstimator NormalizeRobustScaling(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+            bool centerData = NormalizingEstimator.Defaults.CenterData,
+            uint quantileMin = NormalizingEstimator.Defaults.QuantileMin,
+            uint quantileMax = NormalizingEstimator.Defaults.QuantileMax) =>
+            new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog),
+                columns.Select(column =>
+                    new NormalizingEstimator.RobustScalingColumnOptions(column.OutputColumnName, column.InputColumnName, maximumExampleCount, centerData, quantileMin, quantileMax)).ToArray());
+
+        /// <summary>
         /// Normalize (rescale) columns according to specified custom parameters.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>

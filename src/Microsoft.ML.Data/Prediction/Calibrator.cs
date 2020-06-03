@@ -1745,6 +1745,9 @@ namespace Microsoft.ML.Calibrators
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));
             _host.Check(Utils.Size(scoreProbablityColumnNames) == 2);
 
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "PlattCalibrator");
+
             // The Affine operator is no longer supported in the v11 opset.
             // So we have to decompose it using Mul and Add
             string opType = "Mul";

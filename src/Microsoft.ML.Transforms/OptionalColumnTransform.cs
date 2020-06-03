@@ -485,10 +485,12 @@ namespace Microsoft.ML.Transforms
                 if (_getters[index] == null)
                     return Input.GetGetter<TValue>(_bindings.AsSchema[_bindings.SrcCols[index]]);
 
-                Ch.Assert(_getters[index] != null);
-                var fn = _getters[index] as ValueGetter<TValue>;
+                var originFn = _getters[index];
+                Ch.Assert(originFn != null);
+                var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
 
@@ -538,6 +540,9 @@ namespace Microsoft.ML.Transforms
 
         private bool SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, DataViewType columnType)
         {
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
             Type type = columnType.RawType;
 
             int size;

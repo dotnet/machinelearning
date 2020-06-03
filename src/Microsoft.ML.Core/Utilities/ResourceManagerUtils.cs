@@ -140,6 +140,7 @@ namespace Microsoft.ML.Internal.Utilities
                 }
                 catch (Exception ex)
                 {
+                    downloadResult += $"DownloadFailed with exception {ex.Message}" + @"\n";
                     // ignore any Exception and retrying download
                     ch.Warning($"{i+1} - th try: Dowload {fileName} from {url} fail with exception {ex.Message}");
                 }

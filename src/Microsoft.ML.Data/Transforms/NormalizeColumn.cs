@@ -152,6 +152,9 @@ namespace Microsoft.ML.Transforms
             public const bool LogMeanVarCdf = true;
             public const int NumBins = 1024;
             public const int MinBinSize = 10;
+            public const bool CenterData = true;
+            public const int QuantileMin = 25;
+            public const int QuantileMax = 75;
         }
 
         public abstract class ControlZeroArgumentsBase : ArgumentsBase
@@ -243,6 +246,18 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of examples per bin")]
             public int MinBinSize = Defaults.MinBinSize;
+        }
+
+        public sealed class RobustScalingArguments : AffineArgumentsBase
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Should the data be centered around 0", Name = "CenterData", ShortName = "center", SortOrder = 1)]
+            public bool CenterData = Defaults.CenterData;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum quantile value. Defaults to 25", Name = "QuantileMin", ShortName = "qmin", SortOrder = 2)]
+            public uint QuantileMin = Defaults.QuantileMin;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum quantile value. Defaults to 75", Name = "QuantileMax", ShortName = "qmax", SortOrder = 3)]
+            public uint QuantileMax = Defaults.QuantileMax;
         }
 
         internal const string MinMaxNormalizerSummary = "Normalizes the data based on the observed minimum and maximum values of the data.";
@@ -1143,6 +1158,46 @@ namespace Microsoft.ML.Transforms
                 if (!schema.TryGetColumnIndex(labelColumnName, out labelColumnId))
                     throw host.ExceptUserArg(nameof(SupervisedBinArguments.LabelColumn), "Label column '{0}' not found", labelColumnName);
                 return labelColumnId;
+            }
+        }
+
+        internal static partial class RobustScaleUtils
+        {
+            public static IColumnFunctionBuilder CreateBuilder(RobustScalingArguments args, IHost host,
+                int icol, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
+            {
+                Contracts.AssertValue(host);
+                host.AssertValue(args);
+
+                return CreateBuilder(new NormalizingEstimator.RobustScalingColumnOptions(
+                    args.Columns[icol].Name,
+                    args.Columns[icol].Source ?? args.Columns[icol].Name,
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
+                    args.CenterData,
+                    args.QuantileMin,
+                    args.QuantileMax), host, srcIndex, srcType, cursor);
+            }
+
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.RobustScalingColumnOptions column, IHost host,
+                int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
+            {
+                var srcColumn = cursor.Schema[srcIndex];
+                if (srcType is NumberDataViewType)
+                {
+                    if (srcType == NumberDataViewType.Single)
+                        return Sng.RobustScalerOneColumnFunctionBuilder.Create(column, host, srcType, column.CenterData, column.QuantileMin, column.QuantileMax, cursor.GetGetter<Single>(srcColumn));
+                    if (srcType == NumberDataViewType.Double)
+                        return Dbl.RobustScalerOneColumnFunctionBuilder.Create(column, host, srcType, column.CenterData, column.QuantileMin, column.QuantileMax, cursor.GetGetter<double>(srcColumn));
+                }
+                if (srcType is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
+                {
+                    if (vectorType.ItemType == NumberDataViewType.Single)
+                        return Sng.RobustScalerVecFunctionBuilder.Create(column, host, srcType as VectorDataViewType, column.CenterData, column.QuantileMin, column.QuantileMax, cursor.GetGetter<VBuffer<float>>(srcColumn));
+                    if (vectorType.ItemType == NumberDataViewType.Double)
+                        return Dbl.RobustScalerVecFunctionBuilder.Create(column, host, srcType as VectorDataViewType, column.CenterData, column.QuantileMin, column.QuantileMax, cursor.GetGetter<VBuffer<double>>(srcColumn));
+                }
+
+                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: Single, Double, Vector of Single or Vector of Double. Got: {0}.", srcType.ToString());
             }
         }
     }
