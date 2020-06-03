@@ -905,8 +905,12 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void PcaOnnxConversionTest()
+        [Theory]
+        [InlineData(9)]
+        [InlineData(10)]
+        [InlineData(11)]
+        [InlineData(12)]
+        public void PcaOnnxConversionTest(int customOpSetVersion)
         {
             var dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
 
@@ -920,11 +924,24 @@ namespace Microsoft.ML.Tests
             foreach (var zeroMean in zeroMeans)
             {
                 var pipeline = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1, ensureZeroMean: zeroMean);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, customOpSetVersion);
+
                 var onnxFileName = "pca.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
 
-                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("pca") });
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedColumns<float>("pca", "pca", transformedData, onnxResult);
+                }
             }
-
             Done();
         }
 
@@ -1687,6 +1704,70 @@ namespace Microsoft.ML.Tests
 
                 TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 4), new ColumnComparison("PredictedLabel") });
             }
+            Done();
+        }
+        
+        [Fact]
+        public void OneHotHashEncodingOnnxConversionWithCustomOpSetVersionTest()
+        {
+            var mlContext = new MLContext();
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
+            var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
+                    new OneHotHashEncodingEstimator.ColumnOptions("Output", "F3", useOrderedHashing:false),
+                });
+            var model = pipe.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+
+            try
+            {
+                var onnxModelPath = GetOutputPath("onnxmodel_custom_opset_version_test.onnx");
+                using (FileStream stream = new FileStream(onnxModelPath, FileMode.Create))
+                    mlContext.Model.ConvertToOnnx(model, dataView, 9, stream);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Contains("Requested OpSet version 9 is lower than HashTransform's minimum OpSet version requirement: 11", ex.Message);
+                return;
+            }
+
+            try
+            {
+                var onnxModelPath = GetOutputPath("onnxmodel_custom_opset_version_test.onnx");
+                using (FileStream stream = new FileStream(onnxModelPath, FileMode.Create))
+                    mlContext.Model.ConvertToOnnx(model, dataView, 13, stream);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Contains("Requested OpSet version 13 is higher than the current most updated OpSet version 12", ex.Message);
+                return;
+            }
+
+            try
+            {
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 9);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Contains("Requested OpSet version 9 is lower than HashTransform's minimum OpSet version requirement: 11", ex.Message);
+                return;
+            }
+
+            try
+            {
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView, 13);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Contains("Requested OpSet version 13 is higher than the current most updated OpSet version 12", ex.Message);
+                return;
+            }
+
             Done();
         }
 
