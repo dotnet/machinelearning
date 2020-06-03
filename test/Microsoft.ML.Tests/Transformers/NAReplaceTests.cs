@@ -8,6 +8,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,6 +28,72 @@ namespace Microsoft.ML.Tests.Transformers
 
         public NAReplaceTests(ITestOutputHelper output) : base(output)
         {
+        }
+
+        [Fact]
+        public void NAReplaceMode()
+        {
+            var data = new[]
+            {
+                new { floatCol = 1f, floatVec = new float[] { 1f, 10f, 3f } },
+                new { floatCol = 2f, floatVec = new float[] { float.NaN, 9f, 3f } },
+                new { floatCol = float.NaN, floatVec = new float[] { 2f, float.NaN, 3f } },
+                new { floatCol = 2f, floatVec = new float[] { 3f, 9f, 3f } },
+                new { floatCol = float.NaN, floatVec = new float[] { 1f, float.NaN, 3f } },
+            };
+
+            var dataView = ML.Data.LoadFromEnumerable(data);
+            var pipe = ML.Transforms.ReplaceMissingValues(
+                new MissingValueReplacingEstimator.ColumnOptions("floatCol", "floatCol", MissingValueReplacingEstimator.ReplacementMode.Mode),
+                new MissingValueReplacingEstimator.ColumnOptions("floatVecAcross", "floatVec", MissingValueReplacingEstimator.ReplacementMode.Mode, imputeBySlot: false),
+                new MissingValueReplacingEstimator.ColumnOptions("floatVecBy", "floatVec", MissingValueReplacingEstimator.ReplacementMode.Mode)
+                );
+
+            var transformed = pipe.Fit(dataView).Transform(dataView);
+
+            var floatCol = transformed.GetColumn<float>("floatCol");
+            var floatVecAcross = transformed.GetColumn<VBuffer<float>>("floatVecAcross");
+            var floatVecBy = transformed.GetColumn<VBuffer<float>>("floatVecBy");
+
+            var expectedFloatCol = new float[] { 1, 2, 2, 2, 2 };
+            var expectedFloatVecAcross = new VBuffer<float>[]
+            {
+                new VBuffer<float>(3, new float[] { 1f, 10f, 3f }),
+                new VBuffer<float>(3, new float[]{ 3f, 9f, 3f }),
+                new VBuffer<float>(3, new float[]{ 2f, 3f, 3f }),
+                new VBuffer<float>(3, new float[]{ 3f, 9f, 3f }),
+                new VBuffer<float>(3, new float[]{ 1f, 3f, 3f })
+            };
+            var expectedFloatVecBy = new VBuffer<float>[]
+            {
+                new VBuffer<float>(3, new float[] { 1f, 10f, 3f }),
+                new VBuffer<float>(3, new float[]{ 1f, 9f, 3f }),
+                new VBuffer<float>(3, new float[]{ 2f, 9f, 3f }),
+                new VBuffer<float>(3, new float[]{ 3f, 9f, 3f }),
+                new VBuffer<float>(3, new float[]{ 1f, 9f, 3f })
+            };
+            var index = 0;
+
+            foreach (var val in floatCol)
+            {
+                Assert.Equal(expectedFloatCol[index++], val);
+            }
+
+            index = 0;
+            foreach (var val in floatVecAcross)
+            {
+                Assert.Equal(expectedFloatVecAcross[index++], val);
+            }
+
+            index = 0;
+            foreach (var val in floatVecBy)
+            {
+                Assert.Equal(expectedFloatVecBy[index++], val);
+            }
+
+
+            TestEstimatorCore(pipe, dataView);
+            Done();
         }
 
         [Fact]
