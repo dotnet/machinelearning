@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Data;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -12,6 +12,9 @@ using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.VisualBasic.CompilerServices;
+
+using Microsoft.VisualBasic.FileIO;
 
 namespace Microsoft.ML.Tests
 {
