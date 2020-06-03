@@ -123,6 +123,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<I1, R8>(Convert);
             AddAux<I1, SB>(Convert);
             AddStd<I1, BL>(Convert);
+            AddStd<I1, TX>(Convert);
 
             AddStd<I2, I1>(Convert);
             AddStd<I2, I2>(Convert);
@@ -132,6 +133,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<I2, R8>(Convert);
             AddAux<I2, SB>(Convert);
             AddStd<I2, BL>(Convert);
+            AddStd<I2, TX>(Convert);
 
             AddStd<I4, I1>(Convert);
             AddStd<I4, I2>(Convert);
@@ -141,6 +143,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<I4, R8>(Convert);
             AddAux<I4, SB>(Convert);
             AddStd<I4, BL>(Convert);
+            AddStd<I4, TX>(Convert);
 
             AddStd<I8, I1>(Convert);
             AddStd<I8, I2>(Convert);
@@ -150,6 +153,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<I8, R8>(Convert);
             AddAux<I8, SB>(Convert);
             AddStd<I8, BL>(Convert);
+            AddStd<I8, TX>(Convert);
 
             AddStd<U1, U1>(Convert);
             AddStd<U1, U2>(Convert);
@@ -160,6 +164,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<U1, R8>(Convert);
             AddAux<U1, SB>(Convert);
             AddStd<U1, BL>(Convert);
+            AddStd<U1, TX>(Convert);
 
             AddStd<U2, U1>(Convert);
             AddStd<U2, U2>(Convert);
@@ -170,6 +175,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<U2, R8>(Convert);
             AddAux<U2, SB>(Convert);
             AddStd<U2, BL>(Convert);
+            AddStd<U2, TX>(Convert);
 
             AddStd<U4, U1>(Convert);
             AddStd<U4, U2>(Convert);
@@ -180,6 +186,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<U4, R8>(Convert);
             AddAux<U4, SB>(Convert);
             AddStd<U4, BL>(Convert);
+            AddStd<U4, TX>(Convert);
 
             AddStd<U8, U1>(Convert);
             AddStd<U8, U2>(Convert);
@@ -190,6 +197,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<U8, R8>(Convert);
             AddAux<U8, SB>(Convert);
             AddStd<U8, BL>(Convert);
+            AddStd<U8, TX>(Convert);
 
             AddStd<UG, U1>(Convert);
             AddStd<UG, U2>(Convert);
@@ -197,16 +205,19 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<UG, U8>(Convert);
             // REVIEW: Conversion from UG to R4/R8, should we?
             AddAux<UG, SB>(Convert);
+            AddStd<UG, TX>(Convert);
 
             AddStd<R4, R4>(Convert);
             AddStd<R4, BL>(Convert);
             AddStd<R4, R8>(Convert);
             AddAux<R4, SB>(Convert);
+            AddStd<R4, TX>(Convert);
 
             AddStd<R8, R4>(Convert);
             AddStd<R8, R8>(Convert);
             AddStd<R8, BL>(Convert);
             AddAux<R8, SB>(Convert);
+            AddStd<R8, TX>(Convert);
 
             AddStd<TX, I1>(Convert);
             AddStd<TX, U1>(Convert);
@@ -234,22 +245,26 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<BL, R8>(Convert);
             AddStd<BL, BL>(Convert);
             AddAux<BL, SB>(Convert);
+            AddStd<BL, TX>(Convert);
 
             AddStd<TS, I8>(Convert);
             AddStd<TS, R4>(Convert);
             AddStd<TS, R8>(Convert);
             AddAux<TS, SB>(Convert);
+            AddStd<TS, TX>(Convert);
 
             AddStd<DT, I8>(Convert);
             AddStd<DT, R4>(Convert);
             AddStd<DT, R8>(Convert);
             AddStd<DT, DT>(Convert);
             AddAux<DT, SB>(Convert);
+            AddStd<DT, TX>(Convert);
 
             AddStd<DZ, I8>(Convert);
             AddStd<DZ, R4>(Convert);
             AddStd<DZ, R8>(Convert);
             AddAux<DZ, SB>(Convert);
+            AddStd<DZ, TX>(Convert);
 
             AddIsNA<R4>(IsNA);
             AddIsNA<R8>(IsNA);
@@ -920,6 +935,24 @@ namespace Microsoft.ML.Data.Conversion
         public void Convert(in DT src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
         public void Convert(in DZ src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
         #endregion ToStringBuilder
+
+        #region ToTX
+        public void Convert(in I1 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in I2 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in I4 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in I8 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in U1 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in U2 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in U4 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in U8 src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in UG src, ref TX dst) => dst = string.Format("0x{0:x16}{1:x16}", src.High, src.Low).AsMemory();
+        public void Convert(in R4 src, ref TX dst) => dst = src.ToString("G7", CultureInfo.InvariantCulture).AsMemory();
+        public void Convert(in R8 src, ref TX dst) => dst = src.ToString("G17", CultureInfo.InvariantCulture).AsMemory();
+        public void Convert(in BL src, ref TX dst) => dst = src.ToString().AsMemory();
+        public void Convert(in TS src, ref TX dst) => dst = string.Format("{0:c}", src).AsMemory();
+        public void Convert(in DT src, ref TX dst) => string.Format("{0:o}", src).AsMemory();
+        public void Convert(in DZ src, ref TX dst) => string.Format("{0:o}", src).AsMemory();
+        #endregion ToTX
 
         #region ToBL
         public void Convert(in R8 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
