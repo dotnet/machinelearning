@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -12,9 +11,6 @@ using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.VisualBasic.CompilerServices;
-
-using Microsoft.VisualBasic.FileIO;
 
 namespace Microsoft.ML.Tests
 {
@@ -664,8 +660,6 @@ namespace Microsoft.ML.Tests
                 k += 1;
             }
         }
-
-        [Fact]
         public void RootCauseLocalization()
         {
             // Create an root cause localizatiom input
@@ -673,99 +667,79 @@ namespace Microsoft.ML.Tests
 
             var ml = new MLContext(1);
             RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
-
             Assert.NotNull(rootCause);
             Assert.Equal(1, (int)rootCause.Items.Count);
             Assert.Equal(3, (int)rootCause.Items[0].Dimension.Count);
             Assert.Equal(AnomalyDirection.Up, rootCause.Items[0].Direction);
             Assert.Equal(1, (int)rootCause.Items[0].Path.Count);
             Assert.Equal("DataCenter", rootCause.Items[0].Path[0]);
-
             Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
             expectedDim.Add("Country", "UK");
             expectedDim.Add("DeviceType", _rootCauseAggSymbol);
             expectedDim.Add("DataCenter", "DC1");
-
             foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
             {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
             }
         }
-
         private static List<TimeSeriesPoint> GetRootCauseLocalizationPoints()
         {
             List<TimeSeriesPoint> points = new List<TimeSeriesPoint>();
-
             Dictionary<string, Object> dic1 = new Dictionary<string, Object>();
             dic1.Add("Country", "UK");
             dic1.Add("DeviceType", "Laptop");
             dic1.Add("DataCenter", "DC1");
             points.Add(new TimeSeriesPoint(200, 100, true, dic1));
-
             Dictionary<string, Object> dic2 = new Dictionary<string, Object>();
             dic2.Add("Country", "UK");
             dic2.Add("DeviceType", "Mobile");
             dic2.Add("DataCenter", "DC1");
             points.Add(new TimeSeriesPoint(1000, 100, true, dic2));
-
             Dictionary<string, Object> dic3 = new Dictionary<string, Object>();
             dic3.Add("Country", "UK");
             dic3.Add("DeviceType", _rootCauseAggSymbol);
             dic3.Add("DataCenter", "DC1");
             points.Add(new TimeSeriesPoint(1200, 200, true, dic3));
-
             Dictionary<string, Object> dic4 = new Dictionary<string, Object>();
             dic4.Add("Country", "UK");
             dic4.Add("DeviceType", "Laptop");
             dic4.Add("DataCenter", "DC2");
             points.Add(new TimeSeriesPoint(100, 100, false, dic4));
-
             Dictionary<string, Object> dic5 = new Dictionary<string, Object>();
             dic5.Add("Country", "UK");
             dic5.Add("DeviceType", "Mobile");
             dic5.Add("DataCenter", "DC2");
             points.Add(new TimeSeriesPoint(200, 200, false, dic5));
-
             Dictionary<string, Object> dic6 = new Dictionary<string, Object>();
             dic6.Add("Country", "UK");
             dic6.Add("DeviceType", _rootCauseAggSymbol);
             dic6.Add("DataCenter", "DC2");
             points.Add(new TimeSeriesPoint(300, 300, false, dic6));
-
             Dictionary<string, Object> dic7 = new Dictionary<string, Object>();
             dic7.Add("Country", "UK");
             dic7.Add("DeviceType", _rootCauseAggSymbol);
             dic7.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new TimeSeriesPoint(1500, 500, true, dic7));
-
             Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
             dic8.Add("Country", "UK");
             dic8.Add("DeviceType", "Laptop");
             dic8.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new TimeSeriesPoint(300, 200, true, dic8));
-
             Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
             dic9.Add("Country", "UK");
             dic9.Add("DeviceType", "Mobile");
             dic9.Add("DataCenter", _rootCauseAggSymbol);
             points.Add(new TimeSeriesPoint(1200, 300, true, dic9));
-
             return points;
-        }
-
         private static Dictionary<string, Object> GetRootCauseAnomalyDimension()
-        {
             Dictionary<string, Object> dim = new Dictionary<string, Object>();
             dim.Add("Country", "UK");
             dim.Add("DeviceType", _rootCauseAggSymbol);
             dim.Add("DataCenter", _rootCauseAggSymbol);
-
             return dim;
         }
-
         private static DateTime GetRootCauseTimestamp()
         {
             return new DateTime(2020, 3, 23, 0, 0, 0);
-        }
     }
 }

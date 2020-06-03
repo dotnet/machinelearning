@@ -13,15 +13,19 @@ namespace Microsoft.ML.Samples
             int samples = 0;
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
-                var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-
-                if (sample != null)
+                if (type.Name.Equals("LocalizeRootCauseEvaluation"))
                 {
-                    Console.WriteLine(type.Name);
-                    sample.Invoke(null, null);
-                    samples++;
+                    var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+
+                    if (sample != null)
+                    {
+                        Console.WriteLine(type.Name);
+                        sample.Invoke(null, null);
+                        samples++;
+                    }
                 }
             }
+
 
             Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
