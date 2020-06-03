@@ -689,6 +689,9 @@ namespace Microsoft.ML.Transforms
 
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 var dim = info.TypeSrc.GetValueCount();
 
                 string opType = "Cast";

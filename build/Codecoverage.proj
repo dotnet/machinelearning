@@ -16,8 +16,8 @@
       <_ReportGeneratorPath>$(PkgReportGenerator)\tools\net47\ReportGenerator.exe</_ReportGeneratorPath>
     </PropertyGroup>
 
-    <Message Importance="high" Text="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -filefilters:+https*;+*.fs -reporttypes:Cobertura" />
-    <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -filefilters:+https*;+*.fs -reporttypes:Cobertura" />
+    <Message Importance="high" Text="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\*\*\coverage.opencover.xml -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -filefilters:+*.cs;+*.fs -reporttypes:Cobertura" />
+    <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\*\*\coverage.opencover.xml -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -filefilters:+*.cs;+*.fs -reporttypes:Cobertura" />
 
     <ItemGroup>
       <_CodecovArgs Include="-f;$(BaseOutputPath)$(PlatformConfig)\coverage\Cobertura.xml" />

@@ -867,6 +867,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoadName);
+
                 Type rawType;
                 var type = _infos[iinfo].TypeSrc;
                 if (type is VectorDataViewType vectorType)

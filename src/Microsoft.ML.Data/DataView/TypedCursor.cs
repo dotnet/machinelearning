@@ -217,6 +217,90 @@ namespace Microsoft.ML.Data
                  .ToArray();
         }
 
+        private static void ValidateMemberInfo(MemberInfo memberInfo, IDataView data)
+        {
+            if (!SchemaDefinition.NeedToCheckMemberInfo(memberInfo))
+                return;
+
+            var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+            var singleName = mappingNameAttr?.Name ?? memberInfo.Name;
+
+            Type actualType = null;
+            bool isVector = false;
+            IEnumerable<Attribute> customAttributes = null;
+            switch (memberInfo)
+            {
+                case FieldInfo fieldInfo:
+                    InternalSchemaDefinition.GetMappedType(fieldInfo.FieldType, out actualType, out isVector);
+                    customAttributes = fieldInfo.GetCustomAttributes();
+                    break;
+
+                case PropertyInfo propertyInfo:
+                    InternalSchemaDefinition.GetMappedType(propertyInfo.PropertyType, out actualType, out isVector);
+                    customAttributes = propertyInfo.GetCustomAttributes();
+                    break;
+
+                default:
+                    Contracts.Assert(false);
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+            }
+
+            if (!actualType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(actualType, customAttributes))
+            {
+                int colIndex;
+                data.Schema.TryGetColumnIndex(singleName, out colIndex);
+                DataViewType expectedType = data.Schema[colIndex].Type;
+                if (!actualType.Equals(expectedType.RawType))
+                    throw Contracts.ExceptParam(nameof(actualType), $"The expected type '{expectedType.RawType}' does not match the type of the '{singleName}' member: '{actualType}'. Please change the {singleName} member to '{expectedType.RawType}'");
+            }
+        }
+
+        private static void ValidateUserType(SchemaDefinition schemaDefinition, Type userType, IDataView data)
+        {
+            //Get memberInfos
+            MemberInfo[] memberInfos = null;
+            if (schemaDefinition == null)
+            {
+                memberInfos = SchemaDefinition.GetMemberInfos(userType, SchemaDefinition.Direction.Write);
+
+                if (memberInfos == null)
+                    return;
+
+                foreach (var memberInfo in memberInfos)
+                    ValidateMemberInfo(memberInfo, data);
+            }
+            else
+            {
+                for (int i = 0; i < schemaDefinition.Count; ++i)
+                {
+                    var col = schemaDefinition[i];
+                    if (col.MemberName == null)
+                        throw Contracts.ExceptParam(nameof(schemaDefinition), "Null field name detected in schema definition");
+
+                    MemberInfo memberInfo = null;
+                    // Infer the column name.
+                    var colName = string.IsNullOrEmpty(col.ColumnName) ? col.MemberName : col.ColumnName;
+
+                    if (col.Generator == null)
+                    {
+                        memberInfo = userType.GetField(col.MemberName);
+
+                        if (memberInfo == null)
+                            memberInfo = userType.GetProperty(col.MemberName);
+
+                        if ((memberInfo is FieldInfo && (memberInfo as FieldInfo).FieldType == typeof(IChannel)) ||
+                        (memberInfo is PropertyInfo && (memberInfo as PropertyInfo).PropertyType == typeof(IChannel)))
+                            continue;
+                    }
+                    else
+                    {
+                        memberInfo = col.ReturnType;
+                    }
+                    ValidateMemberInfo(memberInfo, data);
+                }
+            }
+        }
+
         /// <summary>
         /// Create a Cursorable object on a given data view.
         /// </summary>
@@ -230,6 +314,8 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(env);
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
+
+            ValidateUserType(schemaDefinition, typeof(TRow), data);
 
             var outSchema = schemaDefinition == null
                 ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Write)

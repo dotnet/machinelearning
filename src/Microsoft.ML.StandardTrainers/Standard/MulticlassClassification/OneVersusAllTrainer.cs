@@ -660,6 +660,8 @@ namespace Microsoft.ML.Trainers
 
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
 
                 string opType = "Concat";
@@ -790,6 +792,8 @@ namespace Microsoft.ML.Trainers
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
                 Contracts.Assert(outputNames.Length >= 2);
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 string opType;
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
@@ -910,6 +914,8 @@ namespace Microsoft.ML.Trainers
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
                 Contracts.Assert(outputNames.Length >= 2);
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
 
