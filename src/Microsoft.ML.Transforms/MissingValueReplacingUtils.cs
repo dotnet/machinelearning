@@ -385,7 +385,7 @@ namespace Microsoft.ML.Transforms
 
             public void Update(TType val)
             {
-                // We don't include non finate values in the mode, so if its not finite then just return.
+                // We don't include non finite values in the mode, so if its not finite then just return.
                 if (!_validityCheck(val))
                     return;
 
