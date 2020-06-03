@@ -8,12 +8,7 @@
 
   <Target Name="RunTests">
     <Message Importance="High" Text="Running tests ..." />
-    <MSBuild Condition="'$(Coverage)' == 'true'"
-             Targets="VSTest"
-             Projects="@(Project)"
-             Properties="VSTestNoBuild=true;VSTestBlame=true;VSTestCollect=XPlat Code Coverage;VSTestSetting=$(MSBuildThisFileDirectory)\coverlet.runsettings" />
-    <MSBuild Condition="'$(Coverage)' == 'false'"
-             Targets="VSTest"
+    <MSBuild Targets="VSTest"
              Projects="@(Project)"
              Properties="VSTestNoBuild=true;VSTestBlame=true" />
   </Target>
