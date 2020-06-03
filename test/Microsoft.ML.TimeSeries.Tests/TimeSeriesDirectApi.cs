@@ -769,15 +769,15 @@ namespace Microsoft.ML.Tests
             return new DateTime();
 
             Dictionary<string, string> expectedDim = new Dictionary<string, string>();
-            expectedDim.Add("Country","UK");
-            expectedDim.Add("DeviceType",_aggSymbol);
-            expectedDim.Add("DataCenter","DC1");
+            expectedDim.Add("Country", "UK");
+            expectedDim.Add("DeviceType", _aggSymbol);
+            expectedDim.Add("DataCenter", "DC1");
 
-            foreach (KeyValuePair<string, string> pair in transformedRootCause.RootCause.Items[0].Dimension) {
+            foreach (KeyValuePair<string, string> pair in transformedRootCause.RootCause.Items[0].Dimension)
+            {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
             }
         }
-
 
         private static List<Point> GetRootCauseLocalizationPoints()
         {
@@ -852,8 +852,7 @@ namespace Microsoft.ML.Tests
 
         private static DateTime GetCurrentTimestamp()
         {
-            return new DateTime();
+            return new DateTime(2020, 3, 23, 0, 0, 0);
         }
-
     }
 }

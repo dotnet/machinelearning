@@ -85,6 +85,10 @@ namespace Microsoft.ML.TimeSeries
     public sealed class RootCause
     {
         public List<RootCauseItem> Items { get; set; }
+        public RootCause()
+        {
+            Items = new List<RootCauseItem>();
+        }
     }
 
     public sealed class RootCauseLocalizationInput
