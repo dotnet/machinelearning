@@ -46,6 +46,10 @@ namespace Microsoft.ML.TimeSeries
         /// The string you defined as a aggregated symbol in the AnomalyDimension and point dimension.
         /// </summary>
         public Object AggregateSymbol { get; set; }
+        //When the anomaly incident occurs
+        //Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause
+        //A list of points at different timestamp. If the slices don't contain point data corresponding to the anomaly timestamp, the root cause localization alogorithm will not calculate the root cause as no information at the anomaly timestamp is provided.
+        //The aggregated symbol in the AnomalyDimension and point dimension should be consistent
 
         public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, AggregateType aggregateType, Object aggregateSymbol)
         {
