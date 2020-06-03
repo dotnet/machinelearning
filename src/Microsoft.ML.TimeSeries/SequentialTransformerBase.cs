@@ -987,12 +987,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 if (isSrc)
                     return _input.GetGetter<TValue>(column);
 
-                var originFn = _getters[index];
-                Contracts.Assert(originFn != null);
-                var fn = originFn as ValueGetter<TValue>;
+                Contracts.Assert(_getters[index] != null);
+                var fn = _getters[index] as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
                 return fn;
             }
 
@@ -1063,8 +1061,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Ch.AssertValue(getter);
                 if (getter is ValueGetter<TValue> fn)
                     return fn;
-                throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                            $"expected type: '{getter.GetType().GetGenericArguments().First()}'.");
+                throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
             }
 
             protected override void Dispose(bool disposing)

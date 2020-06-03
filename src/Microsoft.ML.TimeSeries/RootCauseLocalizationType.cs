@@ -38,22 +38,22 @@ namespace Microsoft.ML.TimeSeries
         public List<MetricSlice> Slices { get; set; }
 
         /// <summary>
-        /// The aggregated type, the type should be  <see cref="TimeSeries.AggregateType"/>
+        /// The aggregated type, the type should be  <see cref="AggregateType"/>
         /// </summary>
-        public AggregateType AggregateType { get; set; }
+        public AggregateType AggType { get; set; }
 
         /// <summary>
         /// The string you defined as a aggregated symbol in the AnomalyDimension and point dimension.
         /// </summary>
-        public Object AggregateSymbol { get; set; }
+        public Object AggSymbol { get; set; }
 
         public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, AggregateType aggregateType, Object aggregateSymbol)
         {
             AnomalyTimestamp = anomalyTimestamp;
             AnomalyDimension = anomalyDimension;
             Slices = slices;
-            AggregateType = aggregateType;
-            AggregateSymbol = aggregateSymbol;
+            AggType = aggregateType;
+            AggSymbol = aggregateSymbol;
         }
 
         public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, string aggregateSymbol)
@@ -61,8 +61,8 @@ namespace Microsoft.ML.TimeSeries
             AnomalyTimestamp = anomalyTimestamp;
             AnomalyDimension = anomalyDimension;
             Slices = slices;
-            AggregateType = AggregateType.Unknown;
-            AggregateSymbol = aggregateSymbol;
+            AggType = AggregateType.Unknown;
+            AggSymbol = aggregateSymbol;
         }
     }
 
@@ -162,16 +162,16 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// A list of points
         /// </summary>
-        public List<TimeSeriesPoint> Points { get; set; }
+        public List<Point> Points { get; set; }
 
-        public MetricSlice(DateTime timeStamp, List<TimeSeriesPoint> points)
+        public MetricSlice(DateTime timeStamp, List<Point> points)
         {
             TimeStamp = timeStamp;
             Points = points;
         }
     }
 
-    public sealed class TimeSeriesPoint : IEquatable<TimeSeriesPoint>
+    public sealed class Point : IEquatable<Point>
     {
         /// <summary>
         /// Value of a time series point
@@ -194,11 +194,11 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         public double Delta { get; set; }
 
-        public TimeSeriesPoint(Dictionary<string, Object> dimension)
+        public Point(Dictionary<string, Object> dimension)
         {
             Dimension = dimension;
         }
-        public TimeSeriesPoint(double value, double expectedValue, bool isAnomaly, Dictionary<string, Object> dimension)
+        public Point(double value, double expectedValue, bool isAnomaly, Dictionary<string, Object> dimension)
         {
             Value = value;
             ExpectedValue = expectedValue;
@@ -207,7 +207,7 @@ namespace Microsoft.ML.TimeSeries
             Delta = value - expectedValue;
         }
 
-        public bool Equals(TimeSeriesPoint other)
+        public bool Equals(Point other)
         {
             foreach (KeyValuePair<string, Object> item in Dimension)
             {

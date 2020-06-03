@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -31,26 +30,15 @@ namespace Microsoft.ML.Data
             private static readonly FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>> _getCreatorVecCoreMethodInfo
                 = FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>>.Create(target => target.GetCreatorVecCore<int>);
 
-            private static volatile ValueCreatorCache _defaultInstance;
-            public static ValueCreatorCache DefaultInstance
+            private static volatile ValueCreatorCache _instance;
+            public static ValueCreatorCache Instance
             {
                 get
                 {
-                    return _defaultInstance ??
-                        Interlocked.CompareExchange(ref _defaultInstance, new ValueCreatorCache(), null) ??
-                        _defaultInstance;
+                    return _instance ??
+                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null) ??
+                        _instance;
                 }
-            }
-
-            private static readonly ConcurrentDictionary<DoubleParser.OptionFlags, ValueCreatorCache> _customInstances
-                = new ConcurrentDictionary<DoubleParser.OptionFlags, ValueCreatorCache>();
-
-            public static ValueCreatorCache GetInstanceWithDoubleParserOptionFlags(DoubleParser.OptionFlags doubleParserOptionFlags)
-            {
-                if (!_customInstances.ContainsKey(doubleParserOptionFlags))
-                    return _customInstances.GetOrAdd(doubleParserOptionFlags, new ValueCreatorCache(doubleParserOptionFlags));
-
-                return _customInstances[doubleParserOptionFlags];
             }
 
             private readonly Conversions _conv;
@@ -59,12 +47,9 @@ namespace Microsoft.ML.Data
             private readonly Func<RowSet, ColumnPipe>[] _creatorsOne;
             private readonly Func<RowSet, ColumnPipe>[] _creatorsVec;
 
-            private ValueCreatorCache(DoubleParser.OptionFlags doubleParserOptionFlags = DoubleParser.OptionFlags.Default)
+            private ValueCreatorCache()
             {
-                if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
-                    _conv = Conversions.DefaultInstance;
-                else
-                    _conv = Conversions.CreateInstanceWithDoubleParserOptions(doubleParserOptionFlags);
+                _conv = Conversions.Instance;
 
                 _creatorsOne = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
                 _creatorsVec = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
@@ -258,7 +243,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(typeof(TResult) == type.RawType);
                 _conv = conv;
                 _values = new TResult[Rows.Count];
-                HasNA = Conversions.DefaultInstance.TryGetIsNAPredicate(type, out var del);
+                HasNA = Conversions.Instance.TryGetIsNAPredicate(type, out var del);
             }
 
             public override void Reset(int irow, int size)
@@ -440,7 +425,7 @@ namespace Microsoft.ML.Data
                 _values = new VectorValue[Rows.Count];
                 for (int i = 0; i < _values.Length; i++)
                     _values[i] = new VectorValue(this);
-                HasNA = Conversions.DefaultInstance.TryGetIsNAPredicate(type, out var del);
+                HasNA = Conversions.Instance.TryGetIsNAPredicate(type, out var del);
             }
 
             public override void Reset(int irow, int size)
@@ -649,7 +634,6 @@ namespace Microsoft.ML.Data
 
             private readonly char[] _separators;
             private readonly OptionFlags _flags;
-            private readonly char _escapeChar;
             private readonly int _inputSize;
             private readonly ColInfo[] _infos;
 
@@ -665,18 +649,7 @@ namespace Microsoft.ML.Data
 
                 _infos = parent._bindings.Infos;
                 _creator = new Func<RowSet, ColumnPipe>[_infos.Length];
-
-                ValueCreatorCache cache;
-
-                var doubleParserOptionFlags = DoubleParser.OptionFlags.Default;
-                if (parent._decimalMarker == ',')
-                    doubleParserOptionFlags |= DoubleParser.OptionFlags.UseCommaAsDecimalMarker;
-
-                if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
-                    cache = ValueCreatorCache.DefaultInstance;
-                else
-                    cache = ValueCreatorCache.GetInstanceWithDoubleParserOptionFlags(doubleParserOptionFlags);
-
+                var cache = ValueCreatorCache.Instance;
                 var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 for (int i = 0; i < _creator.Length; i++)
@@ -711,7 +684,6 @@ namespace Microsoft.ML.Data
 
                 _separators = parent._separators;
                 _flags = parent._flags;
-                _escapeChar = parent._escapeChar;
                 _inputSize = parent._inputSize;
                 Contracts.Assert(_inputSize >= 0);
             }
@@ -724,7 +696,7 @@ namespace Microsoft.ML.Data
                 minSize = int.MaxValue;
                 maxSize = 0;
                 var stats = new ParseStats(parent._host, cref: 1, maxShow: 0);
-                var impl = new HelperImpl(stats, parent._flags, parent._separators, parent._escapeChar, 0, int.MaxValue);
+                var impl = new HelperImpl(stats, parent._flags, parent._separators, 0, int.MaxValue);
                 try
                 {
                     foreach (var line in lines)
@@ -760,7 +732,7 @@ namespace Microsoft.ML.Data
 
                 var sb = new StringBuilder();
                 var stats = new ParseStats(parent._host, cref: 1, maxShow: 0);
-                var impl = new HelperImpl(stats, parent._flags, parent._separators, parent._escapeChar, parent._inputSize, int.MaxValue);
+                var impl = new HelperImpl(stats, parent._flags, parent._separators, parent._inputSize, int.MaxValue);
                 try
                 {
                     impl.GatherFields(textHeader, textHeader.Span);
@@ -876,7 +848,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(stats);
                 Contracts.Assert(srcNeeded >= 0);
-                return new HelperImpl(stats, _flags, _separators, _escapeChar, _inputSize, srcNeeded);
+                return new HelperImpl(stats, _flags, _separators, _inputSize, srcNeeded);
             }
 
             /// <summary>
@@ -895,7 +867,6 @@ namespace Microsoft.ML.Data
                 private readonly char _sep0;
                 private readonly char _sep1;
                 private readonly bool _sepContainsSpace;
-                private readonly char _escapeChar;
                 private readonly int _inputSize;
                 private readonly int _srcNeeded;
                 private readonly bool _quoting;
@@ -908,7 +879,7 @@ namespace Microsoft.ML.Data
 
                 public readonly FieldSet Fields;
 
-                public HelperImpl(ParseStats stats, OptionFlags flags, char[] seps, char escapeChar, int inputSize, int srcNeeded)
+                public HelperImpl(ParseStats stats, OptionFlags flags, char[] seps, int inputSize, int srcNeeded)
                 {
                     Contracts.AssertValue(stats);
                     // inputSize == 0 means unknown.
@@ -922,7 +893,6 @@ namespace Microsoft.ML.Data
                     _sep0 = _seps[0];
                     _sep1 = _seps.Length > 1 ? _seps[1] : '\0';
                     _sepContainsSpace = IsSep(' ');
-                    _escapeChar = escapeChar;
                     _inputSize = inputSize;
                     _srcNeeded = srcNeeded;
                     _quoting = (flags & OptionFlags.AllowQuoting) != 0;
@@ -1043,7 +1013,7 @@ namespace Microsoft.ML.Data
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
                                 int csrc;
-                                if (!Conversions.DefaultInstance.TryParse(in spanT, out csrc) || csrc <= 0)
+                                if (!Conversions.Instance.TryParse(in spanT, out csrc) || csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;
@@ -1182,74 +1152,29 @@ namespace Microsoft.ML.Data
                         ichCur++;
                         _sb.Clear();
                         int ichRun = ichCur;
-                        if (_escapeChar == '"')
+                        for (; ; ichCur++)
                         {
-                            for (; ; ichCur++)
+                            Contracts.Assert(ichCur <= ichLim);
+                            if (ichCur >= ichLim)
                             {
-                                Contracts.Assert(ichCur <= ichLim);
-                                if (ichCur >= ichLim)
-                                {
-                                    // Missing close quote!
-                                    scan.QuotingError = true;
-                                    break;
-                                }
-
-                                // The logic below allow us to escape double quotes (") inside quoted
-                                // fields by using 2 double quotes (""). I.e. when the loader
-                                // encounters "" inside a quoted field, it will output only one "
-                                // and continue parsing the rest of the field.
-                                if (span[ichCur] == '"')
-                                {
-                                    if (ichCur > ichRun)
-                                        _sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
-                                    if (++ichCur >= ichLim)
-                                        break;
-                                    if (span[ichCur] != '"')
-                                        break;
-                                    ichRun = ichCur;
-                                }
+                                // Missing close quote!
+                                scan.QuotingError = true;
+                                break;
                             }
-                        }
-                        else
-                        {
-                            for (; ; ichCur++)
+
+                            // The logic below allow us to escape quotes (") inside quoted
+                            // fields by using doublo quotes (""). I.e. when the loader
+                            // encounters "" inside a quoted field, it will output only one "
+                            // and continue parsing the rest of the field.
+                            if (span[ichCur] == '"')
                             {
-                                Contracts.Assert(ichCur <= ichLim);
-                                if (ichCur >= ichLim)
-                                {
-                                    // Missing close quote!
-                                    scan.QuotingError = true;
+                                if (ichCur > ichRun)
+                                    _sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
+                                if (++ichCur >= ichLim)
                                     break;
-                                }
-
-                                if (span[ichCur] == _escapeChar)
-                                {
-                                    ichCur++;
-                                    if (ichCur >= ichLim)
-                                    {
-                                        // Missing close quote!
-                                        scan.QuotingError = true;
-                                        break;
-                                    }
-
-                                    if (span[ichCur] == '"')
-                                    {
-                                        // Don't include escapeChar in span
-                                        _sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun - 1));
-                                        ichRun = ichCur;
-                                    }
-
-                                    continue;
-                                }
-
-                                if (span[ichCur] == '"')
-                                {
-                                    if (ichCur > ichRun)
-                                        _sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
-
-                                    ichCur++;
+                                if (span[ichCur] != '"')
                                     break;
-                                }
+                                ichRun = ichCur;
                             }
                         }
 

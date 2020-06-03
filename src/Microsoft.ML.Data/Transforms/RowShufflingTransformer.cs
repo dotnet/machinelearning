@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -732,12 +731,9 @@ namespace Microsoft.ML.Transforms
             {
                 Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
                 Ch.CheckParam(_colToActivesIndex[column.Index] >= 0, nameof(column), "requested column not active");
-
-                var originGetter = _getters[_colToActivesIndex[column.Index]];
-                ValueGetter<TValue> getter = originGetter as ValueGetter<TValue>;
+                ValueGetter<TValue> getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;
             }
         }

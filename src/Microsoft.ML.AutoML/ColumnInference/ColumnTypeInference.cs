@@ -32,7 +32,6 @@ namespace Microsoft.ML.AutoML
             public int MaxRowsToRead;
             public uint? LabelColumnIndex;
             public string Label;
-            public bool ReadMultilines;
 
             public Arguments()
             {
@@ -82,7 +81,7 @@ namespace Microsoft.ML.AutoML
                         bool value;
                         // (note: Conversions.Instance.TryParse parses an empty string as a Boolean)
                         return !string.IsNullOrEmpty(x.ToString()) &&
-                            Conversions.DefaultInstance.TryParse(in x, out value);
+                            Conversions.Instance.TryParse(in x, out value);
                     }))
                 {
                     return true;
@@ -164,7 +163,7 @@ namespace Microsoft.ML.AutoML
                         col.SuggestedType = BooleanDataViewType.Instance;
                         bool first;
 
-                        col.HasHeader = !Conversions.DefaultInstance.TryParse(in col.RawData[0], out first);
+                        col.HasHeader = !Conversions.Instance.TryParse(in col.RawData[0], out first);
                     }
                 }
             }
@@ -179,7 +178,7 @@ namespace Microsoft.ML.AutoML
                             .All(x =>
                             {
                                 float value;
-                                return Conversions.DefaultInstance.TryParse(in x, out value);
+                                return Conversions.Instance.TryParse(in x, out value);
                             })
                             )
                         {
@@ -263,7 +262,6 @@ namespace Microsoft.ML.AutoML
                 Separators = new[] { args.Separator },
                 AllowSparse = args.AllowSparse,
                 AllowQuoting = args.AllowQuote,
-                ReadMultilines = args.ReadMultilines,
             };
             var textLoader = context.Data.CreateTextLoader(textLoaderOptions);
             var idv = textLoader.Load(fileSource);

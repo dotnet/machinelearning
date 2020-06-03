@@ -4,7 +4,6 @@
 
 using System;
 using System.Data.Common;
-using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
@@ -159,11 +158,9 @@ namespace Microsoft.ML.Data
                 Ch.CheckParam(column.Index < _getters.Length, nameof(column), "requested column not valid.");
                 Ch.Check(IsColumnActive(column));
 
-                var originFn = _getters[column.Index];
-                var fn = originFn as ValueGetter<TValue>;
+                var fn = _getters[column.Index] as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                        $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                    throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
                 return fn;
             }
 

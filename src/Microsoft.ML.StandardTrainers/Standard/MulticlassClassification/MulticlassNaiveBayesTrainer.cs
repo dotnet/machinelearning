@@ -421,9 +421,6 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
-            const int minimumOpSetVersion = 9;
-            ctx.CheckOpSetVersion(minimumOpSetVersion, "MulticlassNaiveBayes");
-
             float[] featureHistogram = new float[_featureHistogram[0].Length * _labelHistogram.Length];
             float[] labelHistogramExpanded = new float[_featureHistogram[0].Length * _labelHistogram.Length];
 

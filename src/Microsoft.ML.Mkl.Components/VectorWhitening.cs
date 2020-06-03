@@ -641,9 +641,6 @@ namespace Microsoft.ML.Transforms
 
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 var model = _parent._models[iinfo];
                 int dimension = _srcTypes[iinfo].GetValueCount();
                 Host.Assert(model.Length == dimension * dimension);

@@ -325,11 +325,9 @@ namespace Microsoft.ML.Data
                     Ch.Check(column.Index < Schema.Count);
                     Ch.Check(column.Index < _active.Length && _active[column.Index], "the requested column is not active");
 
-                    var originColumnValue = _view._columns[column.Index];
-                    var columnValue = originColumnValue as Column<TValue>;
+                    var columnValue = _view._columns[column.Index] as Column<TValue>;
                     if (columnValue == null)
-                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{originColumnValue.Type.RawType}'.");
+                        throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
 
                     return
                         (ref TValue value) =>

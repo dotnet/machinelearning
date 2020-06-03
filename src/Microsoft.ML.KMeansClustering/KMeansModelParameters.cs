@@ -316,9 +316,6 @@ namespace Microsoft.ML.Trainers
             //                                                                   v
             //                                           L [l] <--- ArgMin <---  Y [l, k]
 
-            const int minimumOpSetVersion = 9;
-            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
             // Allocate C, which is a constant tensor in prediction phase
             var shapeC = new long[] { _centroids.Length, _centroids[0].Length };
             var tensorC = new List<float>();

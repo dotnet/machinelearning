@@ -29,7 +29,7 @@ namespace Microsoft.ML.Benchmarks
             _mlContext = new MLContext(seed: 1);
             var path = Path.GetTempFileName();
             Console.WriteLine($"Created dataset in temporary file:\n{path}\n");
-            path = RandomFile.CreateRandomFile(path, _numRows, _numColumns, _maxWordLength);
+            path = CreateRandomFile(path);
 
             var columns = new List<TextLoader.Column>();
             for(int i = 0; i < _numColumns; i++)
@@ -41,8 +41,7 @@ namespace Microsoft.ML.Benchmarks
             {
                 Columns = columns.ToArray(),
                 HasHeader = false,
-                Separators = new char[] { ',' },
-                AllowQuoting = true
+                Separators = new char[] { ',' }
             });
 
             _dataset = textLoader.Load(path);
@@ -116,6 +115,57 @@ namespace Microsoft.ML.Benchmarks
             //  Global total time: 00:01:59(119.89 sec), executed benchmarks: 1
 
             return model;
+        }
+
+        public static string CreateRandomFile(string path)
+        {
+            // Create file with random strings
+            // to use as dataset of the benchmark
+
+            Random random = new Random(1);
+
+            using (StreamWriter file = new StreamWriter(path))
+            {
+                for(int i = 0; i < _numRows; i++)
+                    file.WriteLine(CreateRandomLine(_numColumns, random));
+            }
+            return path;
+        }
+
+        public static string CreateRandomLine(int columns, Random random)
+        {
+            var lineSB = new System.Text.StringBuilder();
+            for(int i = 0; i < columns; i++)
+            {
+                lineSB.Append(CreateRandomColumn(random, random.Next(100)));
+                lineSB.Append(",");
+            }
+            return lineSB.ToString();
+        }
+
+        public static string CreateRandomColumn(Random random, int numwords)
+        {
+            const string characters =
+                "01234567890" +
+                "abcdefghijklmnopqrstuvwxyz" +
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            var columnSB = new System.Text.StringBuilder();
+            int wordLength;
+
+            for(int i = 0; i < numwords; i++)
+            {
+                wordLength = random.Next(1, _maxWordLength);
+                for(int j = 0; j < wordLength; j++)
+                    columnSB.Append(characters[random.Next(characters.Length)]);
+                
+                columnSB.Append(" ");
+            }
+
+            if (random.Next(2) == 0) // sometimes return the column as lowercase
+                return columnSB.ToString().ToLower();
+
+            return columnSB.ToString();
         }
     }
 }

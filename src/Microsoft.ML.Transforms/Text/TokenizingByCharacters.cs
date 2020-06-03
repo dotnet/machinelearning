@@ -231,9 +231,6 @@ namespace Microsoft.ML.Transforms.Text
 
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
-                const int minimumOpSetVersion = 9;
-                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
-
                 string opType = "Tokenizer";
                 DataViewType dataViewType;
                 if (_isSourceVector[iinfo])

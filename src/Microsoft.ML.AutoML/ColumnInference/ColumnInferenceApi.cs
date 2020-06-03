@@ -55,7 +55,6 @@ namespace Microsoft.ML.AutoML
                 Separators = new[] { splitInference.Separator.Value },
                 AllowSparse = splitInference.AllowSparse,
                 AllowQuoting = splitInference.AllowQuote,
-                ReadMultilines = splitInference.ReadMultilines,
                 HasHeader = hasHeader,
                 TrimWhitespace = trimWhitespace
             };
@@ -92,7 +91,6 @@ namespace Microsoft.ML.AutoML
                 AllowQuoting = splitInference.AllowQuote,
                 AllowSparse = splitInference.AllowSparse,
                 Separators = new char[] { splitInference.Separator.Value },
-                ReadMultilines = splitInference.ReadMultilines,
                 HasHeader = hasHeader,
                 TrimWhitespace = trimWhitespace
             };
@@ -141,7 +139,6 @@ namespace Microsoft.ML.AutoML
                     Separator = splitInference.Separator.Value,
                     AllowSparse = splitInference.AllowSparse,
                     AllowQuote = splitInference.AllowQuote,
-                    ReadMultilines = splitInference.ReadMultilines,
                     HasHeader = hasHeader,
                     LabelColumnIndex = labelColumnIndex,
                     Label = label

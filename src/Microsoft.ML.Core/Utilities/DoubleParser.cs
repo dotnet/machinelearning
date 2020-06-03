@@ -12,19 +12,6 @@ namespace Microsoft.ML.Internal.Utilities
     [BestFriend]
     internal static class DoubleParser
     {
-        [BestFriend]
-        [Flags]
-        internal enum OptionFlags : uint
-        {
-            Default = 0x00,
-
-            // If this flag is set, then a "," will be used as Decimal Marker
-            // (i.e., the punctuation mark that separates the integer part of
-            // a number and its decimal part). If this isn't set, then
-            // default behavior is to use "." as decimal marker.
-            UseCommaAsDecimalMarker = 0x01,
-        }
-
         private const ulong TopBit = 0x8000000000000000UL;
         private const ulong TopTwoBits = 0xC000000000000000UL;
         private const ulong TopThreeBits = 0xE000000000000000UL;
@@ -83,9 +70,9 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>
         /// This produces zero for an empty string.
         /// </summary>
-        public static bool TryParse(ReadOnlySpan<char> span, out Single value, OptionFlags flags = OptionFlags.Default)
+        public static bool TryParse(ReadOnlySpan<char> span, out Single value)
         {
-            var res = Parse(span, out value, flags);
+            var res = Parse(span, out value);
             Contracts.Assert(res != Result.Empty || value == 0);
             return res <= Result.Empty;
         }
@@ -93,14 +80,14 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>
         /// This produces zero for an empty string.
         /// </summary>
-        public static bool TryParse(ReadOnlySpan<char> span, out Double value, OptionFlags flags = OptionFlags.Default)
+        public static bool TryParse(ReadOnlySpan<char> span, out Double value)
         {
-            var res = Parse(span, out value, flags);
+            var res = Parse(span, out value);
             Contracts.Assert(res != Result.Empty || value == 0);
             return res <= Result.Empty;
         }
 
-        public static Result Parse(ReadOnlySpan<char> span, out Single value, OptionFlags flags = OptionFlags.Default)
+        public static Result Parse(ReadOnlySpan<char> span, out Single value)
         {
             int ich = 0;
             for (; ; ich++)
@@ -131,7 +118,7 @@ namespace Microsoft.ML.Internal.Utilities
             }
 
             int ichEnd;
-            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out value, out ichEnd, flags))
+            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out value, out ichEnd))
             {
                 value = default(Single);
                 return Result.Error;
@@ -148,7 +135,7 @@ namespace Microsoft.ML.Internal.Utilities
             return Result.Good;
         }
 
-        public static Result Parse(ReadOnlySpan<char> span, out Double value, OptionFlags flags = OptionFlags.Default)
+        public static Result Parse(ReadOnlySpan<char> span, out Double value)
         {
             int ich = 0;
             for (; ; ich++)
@@ -179,7 +166,7 @@ namespace Microsoft.ML.Internal.Utilities
             }
 
             int ichEnd;
-            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out value, out ichEnd, flags))
+            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out value, out ichEnd))
             {
                 value = default(Double);
                 return Result.Error;
@@ -196,14 +183,14 @@ namespace Microsoft.ML.Internal.Utilities
             return Result.Good;
         }
 
-        public static bool TryParse(ReadOnlySpan<char> span, out Single value, out int ichEnd, OptionFlags flags = OptionFlags.Default)
+        public static bool TryParse(ReadOnlySpan<char> span, out Single value, out int ichEnd)
         {
             bool neg = false;
             ulong num = 0;
             long exp = 0;
 
             ichEnd = 0;
-            if (!TryParseCore(span, ref ichEnd, ref neg, ref num, ref exp, flags))
+            if (!TryParseCore(span, ref ichEnd, ref neg, ref num, ref exp))
                 return TryParseSpecial(span, ref ichEnd, out value);
 
             if (num == 0)
@@ -285,14 +272,14 @@ namespace Microsoft.ML.Internal.Utilities
             return true;
         }
 
-        public static bool TryParse(ReadOnlySpan<char> span, out Double value, out int ichEnd, OptionFlags flags = OptionFlags.Default)
+        public static bool TryParse(ReadOnlySpan<char> span, out Double value, out int ichEnd)
         {
             bool neg = false;
             ulong num = 0;
             long exp = 0;
 
             ichEnd = 0;
-            if (!TryParseCore(span, ref ichEnd, ref neg, ref num, ref exp, flags))
+            if (!TryParseCore(span, ref ichEnd, ref neg, ref num, ref exp))
                 return TryParseSpecial(span, ref ichEnd, out value);
 
             if (num == 0)
@@ -533,18 +520,12 @@ namespace Microsoft.ML.Internal.Utilities
             return false;
         }
 
-        private static bool TryParseCore(ReadOnlySpan<char> span, ref int ich, ref bool neg, ref ulong num, ref long exp, OptionFlags flags = OptionFlags.Default)
+        private static bool TryParseCore(ReadOnlySpan<char> span, ref int ich, ref bool neg, ref ulong num, ref long exp)
         {
             Contracts.Assert(0 <= ich & ich <= span.Length);
             Contracts.Assert(!neg);
             Contracts.Assert(num == 0);
             Contracts.Assert(exp == 0);
-
-            char decimalMarker;
-            if ((flags & OptionFlags.UseCommaAsDecimalMarker) != 0)
-                decimalMarker = ',';
-            else
-                decimalMarker = '.';
 
             if (ich >= span.Length)
                 return false;
@@ -574,12 +555,6 @@ namespace Microsoft.ML.Internal.Utilities
                     break;
 
                 case '.':
-                    if (decimalMarker != '.') // Decimal marker was not '.', but we encountered a '.', which must be an error.
-                        return false; // Since this was an error, return false, which will later make the caller to set NaN as the out value.
-                    goto LPoint;
-                case ',':
-                    if (decimalMarker != ',') // Same logic as above.
-                        return false;
                     goto LPoint;
 
                 // The common cases.
@@ -596,7 +571,7 @@ namespace Microsoft.ML.Internal.Utilities
                     break;
             }
 
-            // Get digits before the decimal marker, which may be '.' or ','
+            // Get digits before '.'
             uint d;
             for (; ; )
             {
@@ -618,14 +593,14 @@ namespace Microsoft.ML.Internal.Utilities
             }
             Contracts.Assert(i < span.Length);
 
-            if (span[i] != decimalMarker)
+            if (span[i] != '.')
                 goto LAfterDigits;
 
             LPoint:
             Contracts.Assert(i < span.Length);
-            Contracts.Assert(span[i] == decimalMarker);
+            Contracts.Assert(span[i] == '.');
 
-            // Get the digits after the decimal marker, which may be '.' or ','
+            // Get the digits after '.'
             for (; ; )
             {
                 if (++i >= span.Length)

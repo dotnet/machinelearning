@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TimeSeries;
@@ -134,7 +136,7 @@ namespace Microsoft.ML
         /// <param name="windowSize">The size of the sliding window for computing spectral residual.</param>
         /// <param name="backAddWindowSize">The number of points to add back of training window. No more than <paramref name="windowSize"/>, usually keep default value.</param>
         /// <param name="lookaheadWindowSize">The number of pervious points used in prediction. No more than <paramref name="windowSize"/>, usually keep default value.</param>
-        /// <param name="averagingWindowSize">The size of sliding window to generate a saliency map for the series. No more than <paramref name="windowSize"/>, usually keep default value.</param>
+        /// <param name="averageingWindowSize">The size of sliding window to generate a saliency map for the series. No more than <paramref name="windowSize"/>, usually keep default value.</param>
         /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point. No more than <paramref name="windowSize"/>.</param>
         /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly. Should be in (0,1)</param>
         /// <example>
@@ -145,48 +147,15 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static SrCnnAnomalyEstimator DetectAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-            int windowSize = 64, int backAddWindowSize = 5, int lookaheadWindowSize = 5, int averagingWindowSize = 3, int judgementWindowSize = 21, double threshold = 0.3)
-            => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averagingWindowSize, judgementWindowSize, threshold, inputColumnName);
-
-        /// <summary>
-        /// Create <see cref="SrCnnEntireAnomalyDetector"/>, which detects timeseries anomalies for entire input using SRCNN algorithm.
-        /// </summary>
-        /// <param name="catalog">The AnomalyDetectionCatalog.</param>
-        /// <param name="input">Input DataView.</param>
-        /// <param name="outputColumnName">Name of the column resulting from data processing of <paramref name="inputColumnName"/>.
-        /// The column data is a vector of <see cref="System.Double"/>. The length of this vector varies depending on <paramref name="detectMode"/>.</param>
-        /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
-        /// <param name="threshold">The threshold to determine an anomaly. An anomaly is detected when the calculated SR raw score for a given point is more than the set threshold. This threshold must  fall between [0,1], and its default value is 0.3.</param>
-        /// <param name="batchSize">Divide the input data into batches to fit srcnn model.
-        /// When set to -1, use the whole input to fit model instead of batch by batch, when set to a positive integer, use this number as batch size.
-        /// Must be -1 or a positive integer no less than 12. Default value is 1024.</param>
-        /// <param name="sensitivity">Sensitivity of boundaries, only useful when srCnnDetectMode is AnomalyAndMargin. Must be in [0,100]. Default value is 99.</param>
-        /// <param name="detectMode">An enum type of <see cref="SrCnnDetectMode"/>.
-        /// When set to AnomalyOnly, the output vector would be a 3-element Double vector of (IsAnomaly, RawScore, Mag).
-        /// When set to AnomalyAndExpectedValue, the output vector would be a 4-element Double vector of (IsAnomaly, RawScore, Mag, ExpectedValue).
-        /// When set to AnomalyAndMargin, the output vector would be a 7-element Double vector of (IsAnomaly, AnomalyScore, Mag, ExpectedValue, BoundaryUnit, UpperBoundary, LowerBoundary).
-        /// The RawScore is output by SR to determine whether a point is an anomaly or not, under AnomalyAndMargin mode, when a point is an anomaly, an AnomalyScore will be calculated according to sensitivity setting.
-        /// Default value is AnomalyOnly.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[DetectEntireAnomalyBySrCnn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectEntireAnomalyBySrCnn.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, string outputColumnName, string inputColumnName,
-            double threshold = 0.3, int batchSize = 1024, double sensitivity = 99, SrCnnDetectMode detectMode = SrCnnDetectMode.AnomalyOnly)
-            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, inputColumnName, outputColumnName, threshold, batchSize, sensitivity, detectMode);
+            int windowSize = 64, int backAddWindowSize = 5, int lookaheadWindowSize = 5, int averageingWindowSize = 3, int judgementWindowSize = 21, double threshold = 0.3)
+            => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
         /// <summary>
         /// Create <see cref="RootCause"/>, which localizes root causes using decision tree algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog.</param>
         /// <param name="src">Root cause's input. The data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
-        /// <param name="beta">Beta is a weight parameter for user to choose.
-        /// It is used when score is calculated for each root cause item. The range of beta should be in [0,1].
-        /// For a larger beta, root cause items which have a large difference between value and expected value will get a high score.
-        /// For a small beta, root cause items which have a high relative change will get a low score.</param>
+        /// <param name="beta">Beta is a weight parameter for user to choose. It is used when score is calculated for each root cause item. The range of beta should be in [0,1]. For a larger beta, root cause point which has a large difference between value and expected value will get a high score. On the contrary, for a small beta, root cause items which has a high relative change will get a high score.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

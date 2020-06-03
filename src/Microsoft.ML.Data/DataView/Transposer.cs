@@ -317,8 +317,7 @@ namespace Microsoft.ML.Data
                     _getter = GetGetterCore();
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
-                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                        $"expected type: '{_getter.GetType().GetGenericArguments().First().GetGenericArguments().First()}'.");
+                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;
             }
 
@@ -371,7 +370,7 @@ namespace Microsoft.ML.Data
 
             protected override ValueGetter<VBuffer<T>> GetGetterCore()
             {
-                var isDefault = Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(_view.Schema[_col].Type);
+                var isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_view.Schema[_col].Type);
                 bool valid = false;
                 VBuffer<T> cached = default(VBuffer<T>);
                 return
@@ -519,7 +518,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(itemType.RawType == typeof(T));
                 int vecLen = type.GetValueCount();
                 Ch.Assert(vecLen > 0);
-                InPredicate<T> isDefault = Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(itemType);
+                InPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(itemType);
                 int maxPossibleSize = _rbuff.Length * vecLen;
                 const int sparseThresholdRatio = 5;
                 int sparseThreshold = (maxPossibleSize + sparseThresholdRatio - 1) / sparseThresholdRatio;
@@ -1168,11 +1167,9 @@ namespace Microsoft.ML.Data
                         {
                             Contracts.Check(IsColumnActive(column) && column.Index < _getters.Length);
                             Contracts.AssertValue(_getters[column.Index]);
-                            var originFn = _getters[column.Index];
-                            var fn = originFn as ValueGetter<TValue>;
+                            var fn = _getters[column.Index] as ValueGetter<TValue>;
                             if (fn == null)
-                                throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
-                                    $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
+                                throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
                             return fn;
                         }
 
@@ -1504,8 +1501,7 @@ namespace Microsoft.ML.Data
 
                     var getter = _getter as ValueGetter<TValue>;
                     if (getter == null)
-                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
-                            $"expected type: '{_getter.GetType().GetGenericArguments().First()}'.");
+                        throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                     return getter;
                 }
 

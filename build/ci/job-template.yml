@@ -57,6 +57,7 @@ jobs:
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
+      timeoutInMinutes: 20
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - task: Bash@3
         inputs:
@@ -103,7 +104,7 @@ jobs:
         timeoutInMinutes: 10
       - script: ${{ parameters.buildScript }} -- /t:DownloadTensorflowMetaFiles /p:IncludeTensorflowMetaFile=true
         displayName: Download Tensorflow Meta File
-        timeoutInMinutes: 20
+        timeoutInMinutes: 10
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
