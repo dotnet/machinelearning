@@ -74,7 +74,7 @@ namespace Microsoft.ML.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode)"/>
+    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode, int)"/>
     internal sealed class SrCnnEntireAnomalyDetector : BatchDataViewMapperBase<double, SrCnnEntireAnomalyDetector.Batch>
     {
         private const int MinBatchSize = 12;
@@ -87,6 +87,7 @@ namespace Microsoft.ML.TimeSeries
         private readonly double _threshold;
         private readonly double _sensitivity;
         private readonly SrCnnDetectMode _detectMode;
+        private readonly int _period;
 
         private class Bindings : ColumnBindingsBase
         {
@@ -129,13 +130,17 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode)
+        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode, int period)
             : base(env, nameof(SrCnnEntireAnomalyDetector), input)
         {
             Host.CheckValue(inputColumnName, nameof(inputColumnName));
             _inputColumnName = inputColumnName;
 
+            Host.CheckUserArg(period >= 0, nameof(period), "Must be integer equal or greater than 0.");
+            _period = period;
+
             Host.CheckUserArg(batchSize == -1 || batchSize >= MinBatchSize, nameof(batchSize), "BatchSize must be -1 or no less than 12.");
+            Host.CheckUserArg(batchSize >= 4 * period || batchSize == -1 || period == 0, nameof(batchSize), "BatchSize must be at least four times the length of one period.");
             _batchSize = batchSize;
 
             Host.CheckUserArg(threshold >= 0 && threshold <= 1, nameof(threshold), "Must be in [0,1].");
@@ -144,6 +149,7 @@ namespace Microsoft.ML.TimeSeries
                 || detectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(detectMode), "Invalid detectMode");
 
             Host.CheckUserArg(sensitivity >= 0 && sensitivity <= 100, nameof(sensitivity), "Must be in [0,100].");
+
             _outputLength = _outputLengthArray[(int)detectMode];
             _threshold = threshold;
             _sensitivity = sensitivity;
@@ -161,7 +167,7 @@ namespace Microsoft.ML.TimeSeries
             return new[] { currentBatch.CreateGetter(input, _inputColumnName) };
         }
 
-        protected override Batch CreateBatch(DataViewRowCursor input) => new Batch(_batchSize, _outputLength, _threshold, _sensitivity, _detectMode);
+        protected override Batch CreateBatch(DataViewRowCursor input) => new Batch(_batchSize, _outputLength, _threshold, _sensitivity, _detectMode, _period);
 
         protected override Func<bool> GetIsNewBatchDelegate(DataViewRowCursor input)
         {
@@ -204,7 +210,7 @@ namespace Microsoft.ML.TimeSeries
             private double[][] _results;
             private int _bLen;
 
-            public Batch(int batchSize, int outputLength, double threshold, double sensitivity, SrCnnDetectMode detectMode)
+            public Batch(int batchSize, int outputLength, double threshold, double sensitivity, SrCnnDetectMode detectMode, int period)
             {
                 _batchSize = batchSize;
                 _outputLength = outputLength;
@@ -218,7 +224,7 @@ namespace Microsoft.ML.TimeSeries
                     _previousBatch = new List<double>(batchSize);
                     _batch = new List<double>(batchSize);
                 }
-                _modeler = new SrCnnEntireModeler(threshold, sensitivity, detectMode);
+                _modeler = new SrCnnEntireModeler(threshold, sensitivity, detectMode, period);
             }
 
             public void AddValue(double value)
@@ -341,11 +347,12 @@ namespace Microsoft.ML.TimeSeries
 
             private int _period;
 
-            public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode)
+            public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int period)
             {
                 _threshold = threshold;
                 _sensitivity = sensitivity;
                 _detectMode = detectMode;
+                _period = period;
                 _predictArray = new double[_lookaheadWindowSize + 1];
             }
 
@@ -364,37 +371,18 @@ namespace Microsoft.ML.TimeSeries
                     Array.Resize<double[]>(ref results, values.Length);
                 }
 
-                int minPeriodRepeatCount = 4;
-                Cyclic seasonalDetector = new Cyclic(values);
-                int rawPeriod1 = seasonalDetector.DetectCyclic(out double seasonalConfidence);
-                int rawPeriod2 = SerialCorrelation.DetectSeasonality(values);
-                //Trace.Assert(rawPeriod == rawPeriod2);
-                int rawPeriod = rawPeriod2;
-                Console.WriteLine("{0}, {1}, {2}", rawPeriod1, rawPeriod2, seasonalConfidence);
-
-                if (rawPeriod != -1 && rawPeriod * minPeriodRepeatCount <= values.Length)
-                {
-                    _period = rawPeriod;
-                }
-
                 bool isTemporal = true;
                 double[] seriesToDetect = values.ToArray();
-                //double[] trends = new double[values.Length];
-                //double[] seasonal = new double[values.Length];
-                //double[] loss = new double[values.Length];
 
                 if (_period > 0)
                 {
                     StlConfiguration config = new StlConfiguration(_period);
                     InnerStl stl = new InnerStl(values, config, isTemporal);
                     bool success = stl.Decomposition();
-                    //bool success = stl.DecompositionSimple();
 
                     if (success)
                     {
                         seriesToDetect = stl.Residual.ToArray();
-                        //trends = stl.TrendComponent.ToArray();
-                        //seasonal = stl.SeasonalComponent.ToArray();
                     }
                 }
 
@@ -405,11 +393,6 @@ namespace Microsoft.ML.TimeSeries
                     if (_period > 0)
                     {
                         GetMarginPeriod(values, results, seriesToDetect, _sensitivity);
-                        //for (int i=0; i<values.Length; ++i)
-                        //{
-                        //    results[i][1] = trends[i];
-                        //    results[i][2] = seasonal[i];
-                        //}
                     }
                     else
                     {

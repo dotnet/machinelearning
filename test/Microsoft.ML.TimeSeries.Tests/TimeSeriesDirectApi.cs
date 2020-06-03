@@ -662,6 +662,12 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void TestSrCnnAnomalyDetectorWithSeasonalData()
+        {
+
+        }
+
+        [Fact]
         public void RootCauseLocalization()
         {
             // Create an root cause localizatiom input
