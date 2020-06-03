@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Microsoft.ML.TimeSeries
@@ -256,6 +257,32 @@ namespace Microsoft.ML.TimeSeries
                 }
                 Mrs /= nonOutlierCount;
             }
+            return true;
+        }
+
+        public bool DecompositionSimple()
+        {
+            if (_config.Np <= 0)
+            {
+                for (int i = 0; i < _y.Count; ++i)
+                {
+                    _residual[i] = _y[i];
+                }
+            } else
+            {
+                double[] sum = new double[_config.Np];
+                for (int i = 0; i < _y.Count; i++)
+                {
+                    var indexInPeriod = i % _config.Np;
+                    sum[indexInPeriod] += _y[i];
+                }
+                double[] averages = sum.Select((s, i) => s / (_y.Count / _config.Np)).ToArray();
+                for (int i = 0; i < _y.Count; ++i)
+                {
+                    _residual[i] = _y[i] - averages[i % _config.Np];
+                }
+            }
+
             return true;
         }
 

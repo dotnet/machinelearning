@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
@@ -363,9 +364,13 @@ namespace Microsoft.ML.TimeSeries
                     Array.Resize<double[]>(ref results, values.Length);
                 }
 
-                Cyclic seasonalDetector = new Cyclic(values);
                 int minPeriodRepeatCount = 4;
-                int rawPeriod = seasonalDetector.DetectCyclic(out double seasonalConfidence);
+                Cyclic seasonalDetector = new Cyclic(values);
+                int rawPeriod1 = seasonalDetector.DetectCyclic(out double seasonalConfidence);
+                int rawPeriod2 = SerialCorrelation.DetectSeasonality(values);
+                //Trace.Assert(rawPeriod == rawPeriod2);
+                int rawPeriod = rawPeriod2;
+                Console.WriteLine("{0}, {1}, {2}", rawPeriod1, rawPeriod2, seasonalConfidence);
 
                 if (rawPeriod != -1 && rawPeriod * minPeriodRepeatCount <= values.Length)
                 {
@@ -374,15 +379,16 @@ namespace Microsoft.ML.TimeSeries
 
                 bool isTemporal = true;
                 double[] seriesToDetect = values.ToArray();
-                double[] trends = new double[values.Length];
-                double[] seasonal = new double[values.Length];
-                double[] loss = new double[values.Length];
+                //double[] trends = new double[values.Length];
+                //double[] seasonal = new double[values.Length];
+                //double[] loss = new double[values.Length];
 
                 if (_period > 0)
                 {
                     StlConfiguration config = new StlConfiguration(_period);
                     InnerStl stl = new InnerStl(values, config, isTemporal);
                     bool success = stl.Decomposition();
+                    //bool success = stl.DecompositionSimple();
 
                     if (success)
                     {
@@ -412,7 +418,14 @@ namespace Microsoft.ML.TimeSeries
                 }
                 else if (_detectMode == SrCnnDetectMode.AnomalyAndExpectedValue)
                 {
-                    GetExpectedValue(values, results);
+                    if (_period > 0)
+                    {
+                        GetExpectedValuePeriod(values, results, seriesToDetect);
+                    }
+                    else
+                    {
+                        GetExpectedValue(values, results);
+                    }
                 }
             }
 
@@ -583,6 +596,15 @@ namespace Microsoft.ML.TimeSeries
                 for (int i = 0; i < results.Length; ++i)
                 {
                     results[i][3] = _ifftRe[i];
+                }
+            }
+
+            private void GetExpectedValuePeriod(double[] values, double[][] results, IReadOnlyList<double> residual)
+            {
+                //Step 8: Calculate Expected Value
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    results[i][3] = values[i] - residual[i];
                 }
             }
 

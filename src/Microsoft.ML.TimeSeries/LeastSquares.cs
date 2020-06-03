@@ -526,6 +526,7 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="x">the specific x value</param>
         public double Y(double x)
         {
+            //return YOld(x);
             return YNew(x);
         }
 

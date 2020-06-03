@@ -29,6 +29,7 @@ namespace Microsoft.ML.TimeSeries
             //}
 
             return MaFast(s, length);
+            //return MaOld(s, length);
         }
 
         public static List<double> MaOld(IReadOnlyList<double> s, int length)

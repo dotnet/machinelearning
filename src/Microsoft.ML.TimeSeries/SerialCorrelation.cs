@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Text;
+using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.TimeSeries
 {
     /// <summary>
     /// this class is used to detect the periodicity automatically
     /// </summary>
-    internal class SerialCorrelation
+    public class SerialCorrelation
     {
+        /// <summary>
+        /// the minimum period allowed.
+        /// </summary>
+        private const int MinPeriod = 4;
+
         /// <summary>
         /// the ratio of all potential lags. this value should not be greater than 0.2, otherwise, over-fit.
         /// </summary>
@@ -68,6 +75,126 @@ namespace Microsoft.ML.TimeSeries
                 energies.Add(corr / var);
             }
             return energies;
+        }
+
+        public static int DetectSeasonality(double[] y)
+        {
+            //Cyclic seasonalDetector = new Cyclic(Y);
+            //var period = seasonalDetector.DetectCyclic(out var seasonalConfidence);
+            // simulate SerialCorrelation.Period
+            //var watch = Stopwatch.StartNew();
+            int length = y.Length;
+
+            double mean = 0;
+            double std = 0;
+            foreach (double value in y)
+                mean += value;
+            mean /= length;
+
+            int newLength = Get2Power(y.Length);
+            double[] fftRe = new double[newLength];
+            double[] fftIm = new double[newLength];
+            double[] inputRe = new double[newLength];
+            for (int i = 0; i < length; ++i)
+            {
+                inputRe[i] = y[i] - mean;
+                std = std + inputRe[i] * inputRe[i];
+            }
+            if (std / length < 1e-8)
+            {
+                return -1;
+            }
+
+            for (int i = length; i < newLength; ++i)
+            {
+                inputRe[i] = 0;
+            }
+
+            FftUtils.ComputeForwardFft(inputRe, Enumerable.Repeat(0.0, newLength).ToArray(), fftRe, fftIm, newLength);
+
+            var z = fftRe.Select((m, i) => new Complex(m, fftIm[i])).ToArray();
+            var w = z.Select((t, i) => t * Complex.Conjugate(t)).ToArray();
+            SerialCorrelation.FindBestTwoFrequencies(w, length, out var bestFreq, out var secondFreq);
+
+            double[] ifftRe = new double[newLength];
+            double[] ifftIm = new double[newLength];
+            FftUtils.ComputeBackwardFft(
+                w.Select(t => (double)t.Real).ToArray(),
+                w.Select(t => (double)t.Imaginary).ToArray(), ifftRe, ifftIm, newLength);
+            var r = ifftRe.Select((t, i) => new Complex(t, ifftIm[i])).ToArray();
+            int period = FindTruePeriod(r, bestFreq, secondFreq, newLength);
+
+            if (period < MinPeriod)
+            {
+                period = -1;
+            }
+            //watch.Stop();
+            //Console.WriteLine(watch.ElapsedMilliseconds);
+            return period;
+        }
+
+        // copy from SerialCorrelation.Period
+        private static int FindTruePeriod(Complex[] r, int bestFreq, int secondFreq, int timeSeriesLength)
+        {
+            int firstPeriod = -1;
+            int secondPeriod = -1;
+            double firstTimeDomainEnergy = -1;
+            double secondTimeDomainEnergy = -1;
+            firstPeriod = SerialCorrelation.FindBestPeriod(r, bestFreq, timeSeriesLength, out firstTimeDomainEnergy);
+            if (secondFreq != -1)
+            {
+                secondPeriod = SerialCorrelation.FindBestPeriod(r, secondFreq, timeSeriesLength, out secondTimeDomainEnergy);
+            }
+            if (firstPeriod == -1 && secondPeriod == -1)
+                return -1;
+            int truePeriod;
+            double trueTimeDomainEnergy;
+            if (firstPeriod == -1)
+            {
+                truePeriod = secondPeriod;
+                trueTimeDomainEnergy = secondTimeDomainEnergy;
+            }
+            else if (secondPeriod == -1)
+            {
+                truePeriod = firstPeriod;
+                trueTimeDomainEnergy = firstTimeDomainEnergy;
+            }
+            else
+            {
+                if (firstPeriod == secondPeriod)
+                {
+                    truePeriod = firstPeriod;
+                    trueTimeDomainEnergy = firstTimeDomainEnergy;
+                }
+                else
+                {
+                    // hueristic: if the second frequency is with somewhat higher energy in time domain, we think it is a better candidate
+                    if (secondTimeDomainEnergy > firstTimeDomainEnergy * 1.05)
+                    {
+                        truePeriod = secondPeriod;
+                        trueTimeDomainEnergy = secondTimeDomainEnergy;
+                    }
+                    else
+                    {
+                        truePeriod = firstPeriod;
+                        trueTimeDomainEnergy = firstTimeDomainEnergy;
+                    }
+                }
+            }
+            trueTimeDomainEnergy /= r[0].Real;
+
+            // this is a key equation, which is named the "testing for randomness with the correlogram". /ref: http://www.ltrr.arizona.edu/~dmeko/notes_3.pdf
+            // actually, 1.96 is for the 2-sigma, which has 95% statistical confidence. 2.58 is for 99% confidence, 2.85 for 99.5% confidence
+            /* increasing the threshold aims to mitigate the fake seasonal component caused by outliers. in practice, if there exist true seasonal component,
+             * such as BirdStrike/Appdownloads, the energy is far larger than threshold, hence change threshold from 2.85 to 4.0 have no impact (tested);
+             */
+
+            double threshold = 4 / Math.Sqrt(timeSeriesLength);
+
+            if (trueTimeDomainEnergy < threshold || r[truePeriod].Real < MinEnergyThreshold)
+                return -1;
+
+            return truePeriod;
         }
 
         /// <summary>
