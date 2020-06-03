@@ -870,6 +870,14 @@ namespace Microsoft.ML.Tests
             dim.Add("DataCenter", _aggSymbol);
 
             return dim;
+                Assert.NotNull(returnedRootCause);
+                Assert.Equal(1, (int)returnedRootCause.RootCause.Items.Count);
+
+                foreach (KeyValuePair<string, object> pair in returnedRootCause.RootCause.Items[0].Dimension)
+                {
+                    Assert.Equal(expectedDim[pair.Key], pair.Value);
+                }
+                DeleteOutputPath(modelPath);
         }
 
         private static DateTime GetCurrentTimestamp()
