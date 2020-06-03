@@ -10,43 +10,41 @@ namespace Microsoft.ML.TimeSeries
 {
     public sealed class RootCause
     {
+        /// <summary>
         /// A List for root cause item. Instance of the item should be <see cref="RootCauseItem"/>
+        /// </summary>
         public List<RootCauseItem> Items { get; set; }
-        public RootCause() { Items = new List<RootCauseItem>(); }
-
+        public RootCause()
+        {
+            Items = new List<RootCauseItem>();
+        }
     }
     public sealed class RootCauseLocalizationInput
     {
+        /// <summary>
         /// When the anomaly incident occurs
+        /// </summary>
         public DateTime AnomalyTimestamp { get; set; }
+
         /// <summary>
         /// Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause
         /// </summary>
         public Dictionary<string, Object> AnomalyDimension { get; set; }
 
+        /// <summary>
         /// A list of points at different timestamp. If the slices don't contain point data corresponding to the anomaly timestamp, the root cause localization alogorithm will not calculate the root cause as no information at the anomaly timestamp is provided.
+        /// </summary>
         public List<MetricSlice> Slices { get; set; }
+
         /// <summary>
         /// The aggregated type, the type should be  <see cref="TimeSeries.AggregateType"/>
         /// </summary>
         public AggregateType AggregateType { get; set; }
+
+        /// <summary>
         /// The string you defined as a aggregated symbol in the AnomalyDimension and point dimension.
+        /// </summary>
         public Object AggregateSymbol { get; set; }
-        /// <summary>
-        /// When the anomaly incident occurs
-        /// </summary>
-        /// <summary>
-        /// Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause
-        /// </summary>
-        /// <summary>
-        /// A list of points at different timestamp. If the slices don't contain point data corresponding to the anomaly timestamp, the root cause localization alogorithm will not calculate the root cause as no information at the anomaly timestamp is provided.
-        /// </summary>
-        /// <summary>
-        /// The aggregated type, the type should be  <see cref="AggregateType"/>
-        /// </summary>
-        /// <summary>
-        /// The string you defined as a aggregated symbol in the AnomalyDimension and point dimension.
-        /// </summary>
 
         public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, AggregateType aggregateType, Object aggregateSymbol)
         {

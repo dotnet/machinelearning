@@ -99,8 +99,6 @@ namespace Microsoft.ML.Tests
 
         private static Object _rootCauseAggSymbol = "##SUM##";
 
-
-
         [Fact]
         public void ChangeDetection()
         {
@@ -577,9 +575,9 @@ namespace Microsoft.ML.Tests
 
         [Theory, CombinatorialData]
         public void TestSrCnnBatchAnomalyDetector(
-               [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)] SrCnnDetectMode mode,
-               [CombinatorialValues(true, false)] bool loadDataFromFile,
-               [CombinatorialValues(-1, 24, 26, 512)] int batchSize)
+             [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)] SrCnnDetectMode mode,
+             [CombinatorialValues(true, false)] bool loadDataFromFile,
+             [CombinatorialValues(-1, 24, 26, 512)] int batchSize)
         {
             var ml = new MLContext(1);
             IDataView dataView;
