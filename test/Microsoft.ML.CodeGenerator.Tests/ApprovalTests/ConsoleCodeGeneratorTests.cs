@@ -228,7 +228,7 @@ namespace mlnet.Tests
         }
 
 
-        // Tevin: added to test OD codeGen
+        // Tevin: added to test OD codeGen working
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
