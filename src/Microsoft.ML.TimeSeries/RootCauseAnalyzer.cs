@@ -415,6 +415,7 @@ namespace Microsoft.ML.TimeSeries
             }
             else
             {
+            {
                 return null;
             }
         }
@@ -571,6 +572,8 @@ namespace Microsoft.ML.TimeSeries
                 a = (1 - Math.Pow(2, -surprise));
                 b = (1 - Math.Pow(2, -ep));
             }
+            return beta * a + (1 - beta) * b;
+            }
 
             return beta * a + (1 - beta) * b;
         }
@@ -668,6 +671,10 @@ namespace Microsoft.ML.TimeSeries
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private double Log2(double val) => Double.IsNaN(val) ? 0 : Math.Log(val) / Math.Log(2);
+            if (Double.IsNaN(val))
+            {
+                return 0;
+            }
 
         private static bool ContainsAll(Dictionary<string, Object> bigDictionary, Dictionary<string, Object> smallDictionary)
         {
