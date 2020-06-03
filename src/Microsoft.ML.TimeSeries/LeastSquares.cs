@@ -41,101 +41,6 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="weights">the weighted least squares. note that the weight should be non-negative, and equal length to data </param>
         public PolynomialModel RegressionDegreeOneWeighted(List<double> weights)
         {
-            return new PolynomialModel(RegressionDegreeOneWeightedFast(weights));
-            //return RegressionDegreeOneWeightedOld(weights);
-        }
-
-        public PolynomialModel RegressionDegreeOneWeightedOld(List<double> weights)
-        {
-            //ExtendedDiagnostics.EnsureArgumentNotNull(weights, nameof(weights));
-
-            if (weights.Count != _length)
-                throw new Exception("the weight vector is not equal length to the data points");
-
-            foreach (double value in weights)
-            {
-                if (value < 0)
-                    throw new Exception("the value in weights should be non-negative!");
-            }
-
-            double[] w = new double[_length];
-            for (int i = 0; i < _length; i++)
-            {
-                w[i] = Math.Sqrt(weights[i]);
-            }
-
-            double[,] kernelMatrix = new double[_length, 2];
-            for (int i = 0; i < _length; i++)
-            {
-                kernelMatrix[i, 0] = 1;
-                kernelMatrix[i, 1] = _x[i];
-            }
-            double[,] kernelMatrix1 = new double[_length, 2];
-            for (int i = 0; i < _length; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    kernelMatrix1[i, j] = w[i] * kernelMatrix[i, j];
-                }
-            }
-            double[] y1 = new double[_length];
-            for (int i = 0; i < _length; i++)
-                y1[i] = w[i] * _y[i];
-
-            double[,] s = new double[2, 2];
-            for (int i = 0; i < 2; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    double sum = 0;
-                    for (int k = 0; k < _length; k++)
-                    {
-                        sum += kernelMatrix1[k, i] * kernelMatrix1[k, j];
-                    }
-                    s[i, j] = sum;
-                }
-            }
-
-            /* calculating the reverse of a 2X2 matrix is simple, because suppose the matrix is [a,b;c,d], then its reverse is
-             * [x1,x2;x3,x4] where x1 = d/K, x2 = -c/K, x3 = -b/K, x4 = a/K, where K = ad-bc.
-             */
-            double a = s[0, 0];
-            double b = s[0, 1];
-            double c = s[1, 0];
-            double d = s[1, 1];
-            double divider = a * d - b * c;
-            double[,] reverseS = new double[2, 2];
-            reverseS[0, 0] = d / divider;
-            reverseS[0, 1] = -c / divider;
-            reverseS[1, 0] = -b / divider;
-            reverseS[1, 1] = a / divider;
-
-            // double[,] reverseS = MatrixEx.ReverseMatrix(S);
-
-            double fy0 = 0;
-            double fy1 = 0;
-            for (int i = 0; i < _length; i++)
-            {
-                fy0 += kernelMatrix1[i, 0] * y1[i];
-                fy1 += kernelMatrix1[i, 1] * y1[i];
-            }
-
-            double b0 = reverseS[0, 0] * fy0 + reverseS[0, 1] * fy1;
-            double b1 = reverseS[1, 0] * fy0 + reverseS[1, 1] * fy1;
-
-            List<double> results = new List<double>();
-            results.Add(b0);
-            results.Add(b1);
-
-            //List<double> results2 = RegressionDegreeOneWeightedFast(weights);
-            //Trace.Assert(results[0] == results2[0]);
-            //Trace.Assert(results[1] == results2[1]);
-
-            return new PolynomialModel(results);
-        }
-
-        public List<double> RegressionDegreeOneWeightedFast(List<double> weights)
-        {
             //ExtendedDiagnostics.EnsureArgumentNotNull(weights, nameof(weights));
 
             if (weights.Count != _length)
@@ -218,7 +123,7 @@ namespace Microsoft.ML.TimeSeries
             results.Add(b0);
             results.Add(b1);
 
-            return results;
+            return new PolynomialModel(results);
         }
 
         // The result is incorrect, as the data can only be partially loaded into the vector
@@ -525,24 +430,6 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         /// <param name="x">the specific x value</param>
         public double Y(double x)
-        {
-            //return YOld(x);
-            return YNew(x);
-        }
-
-        public double YOld(double x)
-        {
-            double result = _coeffs[0];
-            for (int i = 1; i < _coeffs.Count; i++)
-            {
-                result += _coeffs[i] * Math.Pow(x, i);
-            }
-
-            //Trace.Assert(YNew(x) == result);
-            return result;
-        }
-
-        public double YNew(double x)
         {
             double result = _coeffs[0];
             double p = 1.0;

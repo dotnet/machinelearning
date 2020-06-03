@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Microsoft.ML.TimeSeries
@@ -173,9 +174,9 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 // step3: low-pass filtering of smoothed cycle-subseries
-                List<double> c1 = MovingAverage.MA(c, _config.Np);
-                List<double> c2 = MovingAverage.MA(c1, _config.Np);
-                List<double> c3 = MovingAverage.MA(c2, 3);
+                List<double> c1 = MovingAverage(c, _config.Np);
+                List<double> c2 = MovingAverage(c1, _config.Np);
+                List<double> c3 = MovingAverage(c2, 3);
                 List<double> virtualC3XValues = VirtualXValuesProvider.GetXValues(c3.Count);
                 FastLoess lowPass = new FastLoess(virtualC3XValues, c3, _isTemporal, _config.Nl);
                 lowPass.Estimate();
@@ -219,70 +220,6 @@ namespace Microsoft.ML.TimeSeries
                 absResiduals.Add(Math.Abs(_y[i] - _seasonalComponent[i] - _trendComponent[i]));
             }
 
-            // identify the outliers and corresponding mean residual squares (Mrs)
-            //double median = MathUtility.QuickSelect(absResiduals, absResiduals.Count / 2);
-            double median = 0;
-
-            // when median is very close to 0, which means the regularity of the serial is strong, so that no data points is outlier.
-            Mrs = 0;
-            int nonOutlierCount = 0;
-            if (median < 0.0001)
-            {
-                // the curve fitting is perfect, so Mrs remains 0. no update.
-                for (int i = 0; i < _length; i++)
-                {
-                    _outlierIndexes[i] = 0;
-                    _outlierSeverity[i] = 0;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < _length; i++)
-                {
-                    double severity = Math.Abs(_residual[i]) / median;
-
-                    // this is the key criteria
-                    if (severity > 6)
-                    {
-                        _outlierIndexes[i] = 1;
-                        _outlierSeverity[i] = severity;
-                    }
-                    else
-                    {
-                        nonOutlierCount++;
-                        Mrs += _residual[i] * _residual[i];
-                        _outlierIndexes[i] = 0;
-                        _outlierSeverity[i] = 0;
-                    }
-                }
-                Mrs /= nonOutlierCount;
-            }
-            return true;
-        }
-
-        public bool DecompositionSimple()
-        {
-            if (_config.Np <= 0)
-            {
-                for (int i = 0; i < _y.Count; ++i)
-                {
-                    _residual[i] = _y[i];
-                }
-            } else
-            {
-                double[] sum = new double[_config.Np];
-                for (int i = 0; i < _y.Count; i++)
-                {
-                    var indexInPeriod = i % _config.Np;
-                    sum[indexInPeriod] += _y[i];
-                }
-                double[] averages = sum.Select((s, i) => s / (_y.Count / _config.Np)).ToArray();
-                for (int i = 0; i < _y.Count; ++i)
-                {
-                    _residual[i] = _y[i] - averages[i % _config.Np];
-                }
-            }
-
             return true;
         }
 
@@ -320,6 +257,25 @@ namespace Microsoft.ML.TimeSeries
                     return newXValues;
                 }
             }
+        }
+
+        private static List<double> MovingAverage(IReadOnlyList<double> s, int length)
+        {
+            List<double> results = new List<double>(s.Count);
+            double partialSum = 0;
+            for (int i = 0; i < length; ++i)
+            {
+                partialSum += s[i];
+            }
+
+            for (int i = length; i < s.Count; ++i)
+            {
+                results.Add(partialSum / length);
+                partialSum = partialSum - s[i - length] + s[i];
+            }
+            results.Add(partialSum / length);
+
+            return results;
         }
     }
 }
