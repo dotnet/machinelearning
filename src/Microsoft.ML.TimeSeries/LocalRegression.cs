@@ -241,21 +241,8 @@ namespace Microsoft.ML.TimeSeries
 
         private PolynomialModel Regression()
         {
-            PolynomialModel result = null;
             LeastSquares ls = new LeastSquares(NeighborsX, NeighborsY);
-            switch (LoessConfiguration.ModelType)
-            {
-                case RegressionModelType.One:
-                    result = ls.RegressionDegreeOneWeighted(Weights);
-                    break;
-                case RegressionModelType.Two:
-                    result = ls.RegressionDegreeTwoWeighted(Weights);
-                    break;
-                default:
-                    result = ls.RegressionDegreeOneWeighted(Weights);
-                    break;
-            }
-            return result;
+            return ls.RegressionDegreeOneWeighted(Weights);
         }
     }
 }
