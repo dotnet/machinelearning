@@ -234,8 +234,7 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureObjectDetectionCodeGeneratorTest()
         {
-            string onnxPath = @"/path/to/onnxModel";
-            (var pipeline, var columnInference) = GetMockedAzureObjectDetectionPipelineAndInference(onnxPath);
+            (var pipeline, var columnInference) = GetMockedAzureObjectDetectionPipelineAndInference(@"/path/to/onnxModel");
             var setting = new CodeGeneratorSettings()
             {
                 TrainDataset = @"/path/to/dataset",
@@ -247,7 +246,7 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "stableversion",
                 UnstablePackageVersion = "unstableversion",
-                OnnxModelPath = onnxPath,
+                OnnxModelPath = @"/path/to/onnxModel",
                 IsAzureAttach = true,
                 IsImage = false,
                 IsObjectDetection = true,
