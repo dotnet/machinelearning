@@ -1398,7 +1398,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     new TextLoader.Column("id", DataKind.Int32, 0),
                     new TextLoader.Column("description", DataKind.String, 1),
                     new TextLoader.Column("animal", DataKind.String, 2),
-                },
+                    },
                 };
 
                 var data = mlContext.Data.LoadFromTextFile(filePath, options);
