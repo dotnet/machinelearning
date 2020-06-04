@@ -56,7 +56,6 @@ namespace Microsoft.ML.AutoML.Test
         [TensorFlowFact]
         public void AutoFitImageClassificationTrainTest(int iterations)
         {
-            Console.WriteLine(String.Format("AutoFitImageClassificationTrainTest iteration: {0}", iterations));
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
