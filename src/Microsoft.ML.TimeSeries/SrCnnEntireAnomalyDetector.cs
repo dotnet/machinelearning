@@ -429,7 +429,7 @@ namespace Microsoft.ML.TimeSeries
                 // Step 1: Get backadd wave
                 BackAdd(values);
 
-                // Step 2: FftTransform transformation
+                // Step 2: FFT transformation
                 int length = _backAddArray.Length;
                 AllocateDoubleArray(ref _fftRe, length);
                 AllocateDoubleArray(ref _fftIm, length);
@@ -437,7 +437,7 @@ namespace Microsoft.ML.TimeSeries
                 AllocateDoubleArray(ref _zeroArray, length);
                 FftUtils.ComputeForwardFft(_backAddArray, _zeroArray, _fftRe, _fftIm, length);
 
-                // Step 3: Calculate mags of FftTransform
+                // Step 3: Calculate mags of FFT
                 AllocateDoubleArray(ref _magList, length);
                 AllocateDoubleArray(ref _magLogList, length);
                 for (int i = 0; i < length; ++i)

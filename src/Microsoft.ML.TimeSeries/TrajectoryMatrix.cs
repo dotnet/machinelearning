@@ -298,11 +298,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             int i;
 
-            // Computing the FftTransform of the trajectory matrix
+            // Computing the FFT of the trajectory matrix
             if (!_isSeriesFftCached)
                 CacheInputSeriesFft();
 
-            // Computing the FftTransform of the input vector
+            // Computing the FFT of the input vector
             for (i = 0; i < _k; ++i)
                 _inputRe[i] = vector[_k - i - 1 + srcIndex];
 
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _outputIm[i] = _cachedSeriesFftRe[i] * im + _cachedSeriesFftIm[i] * re;
             }
 
-            // Computing the inverse FftTransform of the result
+            // Computing the inverse FFT of the result
             FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm, _inputRe.Length);
 
             // Generating the output
@@ -402,11 +402,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             int i;
 
-            // Computing the FftTransform of the trajectory matrix
+            // Computing the FFT of the trajectory matrix
             if (!_isSeriesFftCached)
                 CacheInputSeriesFft();
 
-            // Computing the FftTransform of the input vector
+            // Computing the FFT of the input vector
             for (i = 0; i < _k - 1; ++i)
                 _inputRe[i] = 0;
 
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _outputIm[i] = _cachedSeriesFftRe[i] * im + _cachedSeriesFftIm[i] * re;
             }
 
-            // Computing the inverse FftTransform of the result
+            // Computing the inverse FFT of the result
             FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm, _inputRe.Length);
 
             // Generating the output
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (!_isSeriesFftCached)
                 CacheInputSeriesFft();
 
-            // Computing the FftTransform of u
+            // Computing the FFT of u
             for (i = us; i <= ue; ++i)
                 _inputRe[i - us] = u[i + uIndex];
 
@@ -587,7 +587,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _outputRe, _outputIm, len);
 
-            // Computing the FftTransform of v
+            // Computing the FFT of v
             for (i = vs; i <= ve; ++i)
                 _inputRe[i - vs] = v[i + vIndex];
 
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             for (i = 0; i < _seriesLength; ++i)
                 _allZerosIm[i] = 0;
 
-            // Computing the inverse FftTransform of the result
+            // Computing the inverse FFT of the result
             FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm, len);
 
             // Generating the output
