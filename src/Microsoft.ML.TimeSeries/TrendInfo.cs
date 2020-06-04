@@ -11,6 +11,7 @@ namespace Microsoft.ML.TimeSeries
     {
         private const double _slopeThreshold = 0.25;
         private const double _msrThreshold = 0.1;
+        private const int _shortTimeseriesLength = 40;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TrendInfo"/> class.
@@ -148,7 +149,7 @@ namespace Microsoft.ML.TimeSeries
             bool isIncrease = slope > 0;
 
             // when the time series is short, we should apply the consistency checking on the original signal, so that the result will be compliant with user perception.
-            if (trend.Count < TuningParams.ShortTimeseriesLength)
+            if (trend.Count < _shortTimeseriesLength)
             {
                 CalculateRatio(rawSignal, out increaseRatio, out decreaseRatio);
             }
@@ -219,7 +220,7 @@ namespace Microsoft.ML.TimeSeries
 
         private static double ConsistencyThreshold(int length)
         {
-            if (length < TuningParams.ShortTimeseriesLength)
+            if (length < _shortTimeseriesLength)
                 return 0.8;
             else
                 return 0.7;
