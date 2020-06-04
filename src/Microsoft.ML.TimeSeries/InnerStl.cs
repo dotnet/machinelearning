@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -31,8 +32,8 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
         public InnerStl(IReadOnlyList<double> yValues, StlConfiguration config, bool isTemporal)
         {
-            //ExtendedDiagnostics.EnsureArgumentNotNull(yValues, nameof(yValues));
-            //ExtendedDiagnostics.EnsureArgumentNotNull(config, nameof(config));
+            Contracts.CheckValue(yValues, nameof(yValues));
+            Contracts.CheckValue(config, nameof(config));
 
             if (yValues.Count == 0)
                 throw new Exception("input data structure cannot be 0-length: innerSTL");

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.ML.Internal.CpuMath.Core;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -31,8 +32,8 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
         internal LocalRegression(IReadOnlyList<double> x, IReadOnlyList<double> y, int selfIndex, int r, bool isTemporal = true)
         {
-            //ExtendedDiagnostics.EnsureArgumentNotNull(x, nameof(x));
-            //ExtendedDiagnostics.EnsureArgumentNotNull(y, nameof(y));
+            Contracts.CheckValue(x, nameof(x));
+            Contracts.CheckValue(y, nameof(y));
 
             if (x.Count <= 1 || x.Count != y.Count)
                 throw new Exception("cannot accomplish neighbors obtaining");

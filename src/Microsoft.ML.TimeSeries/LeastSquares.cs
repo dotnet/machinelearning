@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -23,8 +24,8 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="y">the corresponding y-axis value</param>
         public LeastSquares(List<double> x, List<double> y)
         {
-            //ExtendedDiagnostics.EnsureArgumentNotNull(x, nameof(x));
-            //ExtendedDiagnostics.EnsureArgumentNotNull(y, nameof(y));
+            Contracts.CheckValue(x, nameof(x));
+            Contracts.CheckValue(y, nameof(y));
 
             if (x.Count == 0 || y.Count == 0)
                 throw new Exception("input data structure cannot be 0-length");
@@ -41,7 +42,7 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="weights">the weighted least squares. note that the weight should be non-negative, and equal length to data </param>
         public PolynomialModel RegressionDegreeOneWeighted(List<double> weights)
         {
-            //ExtendedDiagnostics.EnsureArgumentNotNull(weights, nameof(weights));
+            Contracts.CheckValue(weights, nameof(weights));
 
             if (weights.Count != _length)
                 throw new Exception("the weight vector is not equal length to the data points");
@@ -52,44 +53,20 @@ namespace Microsoft.ML.TimeSeries
                     throw new Exception("the value in weights should be non-negative!");
             }
 
-            double[] buffer1 = new double[_length];
-            double[] buffer2 = new double[_length];
-            double[] buffer3 = new double[_length];
-
-            double[] w = buffer1;
-            for (int i = 0; i < _length; i++)
-            {
-                w[i] = Math.Sqrt(weights[i]);
-            }
-
-            double[] kernelMatrixR0 = buffer2;
-            double[] kernelMatrixR1 = buffer3;
-            for (int i = 0; i < _length; i++)
-            {
-                kernelMatrixR0[i] = 1;
-                kernelMatrixR1[i] = _x[i];
-            }
-            double[] kernelMatrix1R0 = buffer2;
-            double[] kernelMatrix1R1 = buffer3;
-            for (int i = 0; i < _length; i++)
-            {
-                kernelMatrix1R0[i] = w[i] * kernelMatrixR0[i];
-                kernelMatrix1R1[i] = w[i] * kernelMatrixR1[i];
-            }
-            double[] y1 = buffer1;
-            for (int i = 0; i < _length; i++)
-                y1[i] = w[i] * _y[i];
-
+            // This part unfold the matrix calculation of [sqrt(W), sqrt(W) .* X]^T * [sqrt(W), sqrt(W) .* X]
             double sum00 = 0;
             double sum01 = 0;
             double sum10 = 0;
             double sum11 = 0;
             for (int k = 0; k < _length; k++)
             {
-                sum00 += kernelMatrix1R0[k] * kernelMatrix1R0[k];
-                sum01 += kernelMatrix1R0[k] * kernelMatrix1R1[k];
-                sum10 += kernelMatrix1R1[k] * kernelMatrix1R0[k];
-                sum11 += kernelMatrix1R1[k] * kernelMatrix1R1[k];
+                double temp = weights[k];
+                sum00 += temp;
+                temp *= _x[k];
+                sum01 += temp;
+                sum10 += temp;
+                temp *= _x[k];
+                sum11 += temp;
             }
 
             /* calculating the reverse of a 2X2 matrix is simple, because suppose the matrix is [a,b;c,d], then its reverse is
@@ -100,28 +77,25 @@ namespace Microsoft.ML.TimeSeries
             double c = sum10;
             double d = sum11;
             double divider = a * d - b * c;
-            double[,] reverseS = new double[2, 2];
-            reverseS[0, 0] = d / divider;
-            reverseS[0, 1] = -c / divider;
-            reverseS[1, 0] = -b / divider;
-            reverseS[1, 1] = a / divider;
+            double reverseS00 = d / divider;
+            double reverseS01 = -c / divider;
+            double reverseS10 = -b / divider;
+            double reverseS11 = a / divider;
 
-            // double[,] reverseS = MatrixEx.ReverseMatrix(S);
-
+            // This part unfold the matrix calculation of [sqrt(W), sqrt(W) .* X]^T * [sqrt(W) .* Y]
             double fy0 = 0;
             double fy1 = 0;
             for (int i = 0; i < _length; i++)
             {
-                fy0 += kernelMatrix1R0[i] * y1[i];
-                fy1 += kernelMatrix1R1[i] * y1[i];
+                double temp = weights[i] * _y[i];
+                fy0 += temp;
+                fy1 += temp * _x[i];
             }
 
-            double b0 = reverseS[0, 0] * fy0 + reverseS[0, 1] * fy1;
-            double b1 = reverseS[1, 0] * fy0 + reverseS[1, 1] * fy1;
+            double b0 = reverseS00 * fy0 + reverseS01 * fy1;
+            double b1 = reverseS10 * fy0 + reverseS11 * fy1;
 
-            List<double> results = new List<double>();
-            results.Add(b0);
-            results.Add(b1);
+            List<double> results = new List<double>(){ b0, b1 };
 
             return new PolynomialModel(results);
         }
@@ -136,7 +110,7 @@ namespace Microsoft.ML.TimeSeries
 
         public PolynomialModel(ICollection<double> coeffs)
         {
-            //ExtendedDiagnostics.EnsureCollectionNotNullOrEmpty(coeffs, nameof(coeffs));
+            Contracts.CheckValue(coeffs, nameof(coeffs));
 
             _coeffs = new List<double>(coeffs);
         }
@@ -151,7 +125,7 @@ namespace Microsoft.ML.TimeSeries
             double p = 1.0;
             for (int i = 1; i < _coeffs.Count; i++)
             {
-                p = p * x;
+                p *= x;
                 result += _coeffs[i] * p;
             }
             return result;

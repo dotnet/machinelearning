@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -32,8 +33,8 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="r">this method will provide default smoothing ratio if user did not specify</param>
         public FastLoess(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, bool isTemporal = true, int r = -1)
         {
-            //ExtendedDiagnostics.EnsureArgumentNotNull(xValues, nameof(xValues));
-            //ExtendedDiagnostics.EnsureArgumentNotNull(yValues, nameof(yValues));
+            Contracts.CheckValue(xValues, nameof(xValues));
+            Contracts.CheckValue(yValues, nameof(yValues));
             Y = new List<double>();
 
             if (yValues.Count < BasicParameters.MinTimeSeriesLength)

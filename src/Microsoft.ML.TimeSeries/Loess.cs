@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Text;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -37,8 +39,8 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
         public Loess(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, bool isTemporal)
         {
-            //ExtendedDiagnostics.EnsureArgumentNotNull(xValues, nameof(xValues));
-            //ExtendedDiagnostics.EnsureArgumentNotNull(yValues, nameof(yValues));
+            Contracts.CheckValue(xValues, nameof(xValues));
+            Contracts.CheckValue(yValues, nameof(yValues));
 
             if (xValues.Count < BasicParameters.MinTimeSeriesLength || yValues.Count < BasicParameters.MinTimeSeriesLength)
                 throw new Exception("input data structure cannot be 0-length: lowess");
@@ -76,8 +78,8 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
         public Loess(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, int r, bool isTemporal)
         {
-            //ExtendedDiagnostics.EnsureArgumentNotNull(xValues, nameof(xValues));
-            //ExtendedDiagnostics.EnsureArgumentNotNull(yValues, nameof(yValues));
+            Contracts.CheckValue(xValues, nameof(xValues));
+            Contracts.CheckValue(yValues, nameof(yValues));
 
             if (xValues.Count < BasicParameters.MinTimeSeriesLength || yValues.Count < BasicParameters.MinTimeSeriesLength)
                 throw new Exception("input data structure cannot be 0-length: lowess");
@@ -169,5 +171,34 @@ namespace Microsoft.ML.TimeSeries
             double temp = 1 - abs * abs * abs;
             return temp * temp * temp;
         }
+    }
+
+    /// <summary>
+    /// this class is used to store the parameters which are needed for lowess algorithm.
+    /// the name of these constansts are compliant with the original terms in paper.
+    /// </summary>
+    public class LoessConfiguration
+    {
+        /// <summary>
+        /// this value is used for performance concern. when the length of the series goes large, a ratio of neighbors will be significant,
+        /// which leads to unsatisfied slow. so this value is used to bound the maximum # of neighbors one epoch can have.
+        /// </summary>
+        public const int MaximumNeighborCount = 100;
+
+        /// <summary>
+        /// minumum number of neighbor counts, to apply underlying regression analysis.
+        /// this number should be even, so that neighbors on left/right side of a given data point is balanced. unbalanced neighbors would make the local-weighted regression biased noticeably at corner cases.
+        /// </summary>
+        public const int MinimumNeighborCount = 4;
+
+        /// <summary>
+        /// (0, 1], a smooth range ratio. let fn be the number of neighbors of a specific point.
+        /// </summary>
+        public static readonly double F = 0.3;
+
+        /// <summary>
+        /// the number of iterations for robust regression.
+        /// </summary>
+        public static readonly int T = 2;
     }
 }
