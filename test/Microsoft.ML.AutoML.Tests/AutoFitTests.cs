@@ -54,7 +54,7 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [TensorFlowFact]
-        public void AutoFitImageClassificationTrainTest(int iterations)
+        public void AutoFitImageClassificationTrainTest()
         {
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
