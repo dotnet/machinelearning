@@ -389,9 +389,8 @@ namespace Microsoft.ML.Transforms
                 if (!_validityCheck(val))
                     return;
 
-                int count = 1;
-                if (_valueCounts.TryGetValue(val, out int curCount))
-                    count = curCount + 1;
+                if (_valueCounts.TryGetValue(val, out int count))
+                    count++;
 
                 _valueCounts[val] = count;
 

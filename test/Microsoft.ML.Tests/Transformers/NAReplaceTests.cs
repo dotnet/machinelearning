@@ -125,7 +125,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TextLoader.Column("ScalarFloat", DataKind.Single, 1),
                 new TextLoader.Column("ScalarDouble", DataKind.Double, 1),
                 new TextLoader.Column("VectorFloat", DataKind.Single, 1, 4),
-                new TextLoader.Column("VectorDoulbe", DataKind.Double, 1, 4)
+                new TextLoader.Column("VectorDouble", DataKind.Double, 1, 4)
             });
 
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
@@ -134,8 +134,8 @@ namespace Microsoft.ML.Tests.Transformers
             var est = ML.Transforms.ReplaceMissingValues("A", "ScalarFloat", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Maximum)
                 .Append(ML.Transforms.ReplaceMissingValues("B", "ScalarDouble", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
                 .Append(ML.Transforms.ReplaceMissingValues("C", "VectorFloat", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mean))
-                .Append(ML.Transforms.ReplaceMissingValues("D", "VectorDoulbe", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Minimum))
-                .Append(ML.Transforms.ReplaceMissingValues("E", "VectorDoulbe", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mode));
+                .Append(ML.Transforms.ReplaceMissingValues("D", "VectorDouble", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Minimum))
+                .Append(ML.Transforms.ReplaceMissingValues("E", "VectorDouble", replacementMode: MissingValueReplacingEstimator.ReplacementMode.Mode));
 
             TestEstimatorCore(est, data, invalidInput: invalidData);
             var outputPath = GetOutputPath("NAReplace", "featurized.tsv");
