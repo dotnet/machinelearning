@@ -53,7 +53,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [Theory, TestCategory("RunSpecificTest"), TestFrameworkCommon.Attributes.IterationData(100)]
+        [TensorFlowFact]
         public void AutoFitImageClassificationTrainTest(int iterations)
         {
             Console.WriteLine(String.Format("AutoFitImageClassificationTrainTest iteration: {0}", iterations));
