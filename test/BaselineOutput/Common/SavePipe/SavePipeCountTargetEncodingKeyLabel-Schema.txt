@@ -1,0 +1,94 @@
+---- BoundLoader ----
+3 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: String
+---- RowToRowMapperTransform ----
+4 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: String
+  Label: Key<UInt32, 0-1>
+    Metadata 'KeyValues': Vector<String, 2>: Length=2, Count=2
+      [0] '0', [1] '1'
+---- RowToRowMapperTransform ----
+7 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: String
+  Label: Key<UInt32, 0-1>
+    Metadata 'KeyValues': Vector<String, 2>: Length=2, Count=2
+      [0] '0', [1] '1'
+  D1: Key<UInt32, 0-16383>
+  D2: Key<UInt32, 0-16383>
+  DT: Key<UInt32, 0-16383>
+---- RowToRowMapperTransform ----
+10 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: String
+  Label: Key<UInt32, 0-1>
+    Metadata 'KeyValues': Vector<String, 2>: Length=2, Count=2
+      [0] '0', [1] '1'
+  D1: Key<UInt32, 0-16383>
+  D1: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'D1_0_Count', [1] 'D1_1_Count', [2] 'D1_0_LogOdds', [3] 'D1_IsBackoff'
+  D2: Key<UInt32, 0-16383>
+  D2: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'D2_0_Count', [1] 'D2_1_Count', [2] 'D2_0_LogOdds', [3] 'D2_IsBackoff'
+  DT: Key<UInt32, 0-16383>
+  DT: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'DT_0_Count', [1] 'DT_1_Count', [2] 'DT_0_LogOdds', [3] 'DT_IsBackoff'
+---- RowToRowMapperTransform ----
+12 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: String
+  Label: Key<UInt32, 0-1>
+    Metadata 'KeyValues': Vector<String, 2>: Length=2, Count=2
+      [0] '0', [1] '1'
+  D1: Key<UInt32, 0-16383>
+  D1: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'D1_0_Count', [1] 'D1_1_Count', [2] 'D1_0_LogOdds', [3] 'D1_IsBackoff'
+  D2: Key<UInt32, 0-16383>
+  D2: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'D2_0_Count', [1] 'D2_1_Count', [2] 'D2_0_LogOdds', [3] 'D2_IsBackoff'
+  DT: Key<UInt32, 0-16383>
+  DT: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'DT_0_Count', [1] 'DT_1_Count', [2] 'DT_0_LogOdds', [3] 'DT_IsBackoff'
+  D1s: Key<UInt32, 0-16383>
+  OneText2: Key<UInt32, 0-16383>
+---- RowToRowMapperTransform ----
+14 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: String
+  Label: Key<UInt32, 0-1>
+    Metadata 'KeyValues': Vector<String, 2>: Length=2, Count=2
+      [0] '0', [1] '1'
+  D1: Key<UInt32, 0-16383>
+  D1: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'D1_0_Count', [1] 'D1_1_Count', [2] 'D1_0_LogOdds', [3] 'D1_IsBackoff'
+  D2: Key<UInt32, 0-16383>
+  D2: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'D2_0_Count', [1] 'D2_1_Count', [2] 'D2_0_LogOdds', [3] 'D2_IsBackoff'
+  DT: Key<UInt32, 0-16383>
+  DT: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'DT_0_Count', [1] 'DT_1_Count', [2] 'DT_0_LogOdds', [3] 'DT_IsBackoff'
+  D1s: Key<UInt32, 0-16383>
+  D1s: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'D1s_0_Count', [1] 'D1s_1_Count', [2] 'D1s_0_LogOdds', [3] 'D1s_IsBackoff'
+  OneText2: Key<UInt32, 0-16383>
+  OneText2: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'OneText2_0_Count', [1] 'OneText2_1_Count', [2] 'OneText2_0_LogOdds', [3] 'OneText2_IsBackoff'

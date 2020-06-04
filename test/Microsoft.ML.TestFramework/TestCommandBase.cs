@@ -1770,7 +1770,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [TestCategory(Cat), TestCategory("Dracula")]
+        [TestCategory(Cat), TestCategory("CountTargetEncoding")]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandDraculaInfer()
         {
