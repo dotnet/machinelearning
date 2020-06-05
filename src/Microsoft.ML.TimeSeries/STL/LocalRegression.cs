@@ -18,7 +18,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// the model is learned by several iterations of local weighted regression.
         /// </summary>
-        private PolynomialModel _model = null;
+        private PolynomialModel _model;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalRegression"/> class.
@@ -37,6 +37,8 @@ namespace Microsoft.ML.TimeSeries
 
             if (x.Count <= 1 || x.Count != y.Count)
                 throw new Exception("cannot accomplish neighbors obtaining");
+
+            _model = null;
 
             _x = x;
             _y = y;

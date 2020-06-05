@@ -24,7 +24,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// key is the index of the given point, value is the corresponding neighbors of the given point.
         /// </summary>
-        private readonly Dictionary<int, LocalRegression> _neighbors = new Dictionary<int, LocalRegression>();
+        private Dictionary<int, LocalRegression> _neighbors;
 
         private IReadOnlyList<double> _x;
         private IReadOnlyList<double> _y;
@@ -47,6 +47,8 @@ namespace Microsoft.ML.TimeSeries
 
             if (xValues.Count != yValues.Count)
                 throw new Exception("the x-axis length should be equal to y-axis length!: lowess");
+
+            _neighbors = new Dictionary<int, LocalRegression>();
 
             _length = xValues.Count;
             _isTemporal = isTemporal;
