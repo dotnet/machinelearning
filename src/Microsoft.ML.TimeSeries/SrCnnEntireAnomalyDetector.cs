@@ -320,6 +320,7 @@ namespace Microsoft.ML.TimeSeries
             private readonly double _threshold;
             private readonly double _sensitivity;
             private readonly SrCnnDetectMode _detectMode;
+            private readonly int _period;
 
             //used in all modes
             private readonly double[] _predictArray;
@@ -337,6 +338,7 @@ namespace Microsoft.ML.TimeSeries
             private double[] _cumSumList;
             private double[] _cumSumShift;
             private double[] _zeroArray;
+            private double[] _seriesToDetect;
             //used in AnomalyAndExpectedValue and AnomalyAndMargin
             private double[] _deAnomalyData;
             //used in AnomalyAndMargin mode
@@ -344,8 +346,6 @@ namespace Microsoft.ML.TimeSeries
             private double[] _val;
             private double[] _trends;
             private double[] _curWindow;
-
-            private int _period;
 
             public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int period)
             {
@@ -372,7 +372,11 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 bool isTemporal = true;
-                double[] seriesToDetect = values.ToArray();
+                AllocateDoubleArray(ref _seriesToDetect, values.Length);
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    _seriesToDetect[i] = values[i];
+                }
 
                 if (_period > 0)
                 {
@@ -382,17 +386,17 @@ namespace Microsoft.ML.TimeSeries
 
                     if (success)
                     {
-                        seriesToDetect = stl.Residual.ToArray();
+                        _seriesToDetect = stl.Residual.ToArray();
                     }
                 }
 
-                SpectralResidual(seriesToDetect, results, _threshold);
+                SpectralResidual(_seriesToDetect, results, _threshold);
                 //Optional Steps
                 if (_detectMode == SrCnnDetectMode.AnomalyAndMargin)
                 {
                     if (_period > 0)
                     {
-                        GetMarginPeriod(values, results, seriesToDetect, _sensitivity);
+                        GetMarginPeriod(values, results, _seriesToDetect, _sensitivity);
                     }
                     else
                     {
@@ -403,7 +407,7 @@ namespace Microsoft.ML.TimeSeries
                 {
                     if (_period > 0)
                     {
-                        GetExpectedValuePeriod(values, results, seriesToDetect);
+                        GetExpectedValuePeriod(values, results, _seriesToDetect);
                     }
                     else
                     {
