@@ -104,9 +104,9 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 {
                     Namespace = _nameSpaceValue,
                     Target = _settings.Target,
-                    MLNetModelName = _settings.ModelPath,
-                    OnnxModelName = _settings.OnnxModelPath,
-                    OnnxLabelName = _settings.OnnxLabelPath,
+                    MLNetModelName = _settings.ModelName,
+                    OnnxModelName = _settings.OnnxModelName,
+                    OnnxLabelName = _settings.OnnxLabelName,
                     IsAzureImage = _settings.IsAzureAttach && _settings.IsImage,
                 }.TransformText(),
                 Name = "ConsumeModel.cs",

@@ -31,7 +31,7 @@ CLI_Annotation();
 MB_Annotation();
  } 
             this.Write("\r\nusing System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Sys" +
-                    "tem.Text;\r\nusing Microsoft.ML;\r\nusing ");
+                    "tem.Text;\r\nusing System.IO;\r\nusing Microsoft.ML;\r\nusing ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model;\r\n");
 if(IsAzureImage){ 

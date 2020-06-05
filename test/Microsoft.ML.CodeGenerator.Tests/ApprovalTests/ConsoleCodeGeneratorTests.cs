@@ -203,7 +203,7 @@ namespace mlnet.Tests
             var setting = new CodeGeneratorSettings()
             {
                 TrainDataset = @"/path/to/dataset",
-                ModelPath = @"/path/to/model",
+                ModelName = @"/path/to/model",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"CodeGenTest",
                 OutputBaseDir = @"/path/to/codegen",
@@ -211,10 +211,10 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "stableversion",
                 UnstablePackageVersion = "unstableversion",
-                OnnxModelPath = @"/path/to/onnxModel",
+                OnnxModelName = @"/path/to/onnxModel",
                 OnnxRuntimePacakgeVersion = "1.2.3",
                 CodeGenHelperPackageVersion = "1.2.3",
-                OnnxLabelPath = "onnx.json",
+                OnnxLabelName = "onnx.json",
                 IsAzureAttach = true,
                 IsImage = true,
             };
@@ -240,7 +240,7 @@ namespace mlnet.Tests
             var setting = new CodeGeneratorSettings()
             {
                 TrainDataset = @"\path\to\file",
-                ModelPath = @"\path\to\model",
+                ModelName = @"\path\to\model",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"test",
                 OutputBaseDir = @"\path\to\test",
@@ -248,10 +248,10 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "StablePackageVersion",
                 UnstablePackageVersion = "UnstablePackageVersion",
-                OnnxModelPath = @"\path\to\onnx",
+                OnnxModelName = @"\path\to\onnx",
                 OnnxRuntimePacakgeVersion = "1.2.3",
                 CodeGenHelperPackageVersion = "1.2.3",
-                OnnxLabelPath = "onnx.json",
+                OnnxLabelName = "onnx.json",
                 IsAzureAttach = true,
                 IsImage = false,
                 OnnxInputMapping = mapping,
@@ -883,7 +883,7 @@ namespace mlnet.Tests
                 TrainDataset = "x:\\dummypath\\dummy_train.csv",
                 TestDataset = "x:\\dummypath\\dummy_test.csv",
                 LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip",
+                ModelName = "x:\\models\\model.zip",
                 StablePackageVersion = StablePackageVersion,
                 UnstablePackageVersion = UnstablePackageVersion,
                 OnnxRuntimePacakgeVersion = "1.2.3",

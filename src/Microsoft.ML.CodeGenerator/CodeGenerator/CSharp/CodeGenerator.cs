@@ -187,7 +187,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             {
                 Namespace = namespaceValue,
                 Target = _settings.Target,
-                MLNetModelName = _settings.ModelPath,
+                MLNetModelName = _settings.ModelName,
             };
             return consumeModel.TransformText();
         }
@@ -449,7 +449,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 CacheBeforeTrainer = cacheBeforeTrainer,
                 Target = _settings.Target,
                 HasOnnxModel = hasOnnxModel,
-                MLNetModelpath = _settings.ModelPath,
+                MLNetModelName = _settings.ModelName,
             };
 
             return modelBuilder.TransformText();

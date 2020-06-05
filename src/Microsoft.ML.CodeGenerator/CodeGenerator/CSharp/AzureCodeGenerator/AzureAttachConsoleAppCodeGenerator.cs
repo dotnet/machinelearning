@@ -54,8 +54,8 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
                     Namespace = _nameSpaceValue,
                     Target = _settings.Target,
-                    OnnxModelPath = _settings.OnnxModelPath,
-                    MLNetModelpath = _settings.ModelPath,
+                    OnnxModelPath = _settings.OnnxModelName,
+                    MLNetModelpath = _settings.ModelName,
                 }.TransformText(),
                 Name = "ModelBuilder.cs",
             };

@@ -20,11 +20,20 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public string LabelName { get; set; }
 
-        public string ModelPath { get; set; }
+        /// <summary>
+        /// mlnet model name
+        /// </summary>
+        public string ModelName { get; set; }
 
-        public string OnnxModelPath { get; set; }
+        /// <summary>
+        /// onnx model name
+        /// </summary>
+        public string OnnxModelName { get; set; }
 
-        public string OnnxLabelPath { get; set; }
+        /// <summary>
+        /// onnx label name
+        /// </summary>
+        public string OnnxLabelName { get; set; }
 
         public string OutputName { get; set; }
 

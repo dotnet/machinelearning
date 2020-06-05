@@ -92,7 +92,7 @@ namespace Microsoft.ML.CodeGenerator.Tests
                 LabelName = "Label",
                 CacheBeforeTrainer = true,
                 PostTrainerTransforms = new string[] { "PostTrainerTransformer1" },
-                MLNetModelpath = "/path/to/model",
+                MLNetModelName = "/path/to/model",
             };
 
             Approvals.Verify(modelBuilder.TransformText());
