@@ -533,10 +533,13 @@ namespace Microsoft.ML.Data
             public char EscapeChar = Defaults.EscapeChar;
 
             /// <summary>
-            /// If true, empty float fields will be loaded as NaN. If false, they'll be loaded as 0. Default is false.
+            /// If true, missing real fields (i.e. double or single fields) will be loaded as NaN.
+            /// If false, they'll be loaded as 0. Default is false.
+            /// A field is considered "missing" if it's empty, if it only has whitespace, or if there are missing columns
+            /// at the end of a given row.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "If true, empty float fields will be loaded as NaN. If false, they'll be loaded as 0. Default is false.", ShortName = "imputefloat")]
-            public bool ImputeEmptyFloats = Defaults.ImputeEmptyFloats;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If true, empty float fields will be loaded as NaN. If false, they'll be loaded as 0. Default is false.", ShortName = "missingrealnan")]
+            public bool MissingRealsAsNaNs = Defaults.MissingRealsAsNaNs;
 
             /// <summary>
             /// Checks that all column specifications are valid (that is, ranges are disjoint and have min&lt;=max).
@@ -557,7 +560,7 @@ namespace Microsoft.ML.Data
             internal const bool TrimWhitespace = false;
             internal const bool ReadMultilines = false;
             internal const char EscapeChar = '"';
-            internal const bool ImputeEmptyFloats = false;
+            internal const bool MissingRealsAsNaNs = false;
         }
 
         /// <summary>
@@ -1085,7 +1088,7 @@ namespace Microsoft.ML.Data
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
                 //verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
                 //verWrittenCur: 0x0001000D, // Added escapeChar and decimalMarker chars
-                verWrittenCur: 0x0001000E, // Added imputeEmptyFloats flag
+                verWrittenCur: 0x0001000E, // Added MissingRealsAsNaNs flag
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1104,8 +1107,8 @@ namespace Microsoft.ML.Data
             AllowQuoting = 0x04,
             AllowSparse = 0x08,
             ReadMultilines = 0x10,
-            ImputeEmptyFloats = 0x20,
-            All = TrimWhitespace | HasHeader | AllowQuoting | AllowSparse | ReadMultilines | ImputeEmptyFloats
+            MissingRealsAsNaNs = 0x20,
+            All = TrimWhitespace | HasHeader | AllowQuoting | AllowSparse | ReadMultilines | MissingRealsAsNaNs
         }
 
         // This is reserved to mean the range extends to the end (the segment is variable).
@@ -1187,8 +1190,8 @@ namespace Microsoft.ML.Data
                 _flags |= OptionFlags.AllowSparse;
             if (options.AllowQuoting && options.ReadMultilines)
                 _flags |= OptionFlags.ReadMultilines;
-            if (options.ImputeEmptyFloats)
-                _flags |= OptionFlags.ImputeEmptyFloats;
+            if (options.MissingRealsAsNaNs)
+                _flags |= OptionFlags.MissingRealsAsNaNs;
 
             // REVIEW: This should be persisted (if it should be maintained).
             _maxRows = options.MaxRows ?? long.MaxValue;
@@ -1431,7 +1434,7 @@ namespace Microsoft.ML.Data
             }
             if(ctx.Header.ModelVerWritten >= 0x0001000E)
             {
-                acceptableFlags |= OptionFlags.ImputeEmptyFloats;
+                acceptableFlags |= OptionFlags.MissingRealsAsNaNs;
             }
 
             host.CheckDecode((_flags & ~acceptableFlags) == 0);

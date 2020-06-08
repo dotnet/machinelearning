@@ -657,7 +657,7 @@ namespace Microsoft.ML.Data
 
             private readonly char[] _separators;
             private readonly OptionFlags _flags;
-            private readonly bool _imputeReals;
+            private readonly bool _missingRealsAsNaNs;
             private readonly char _escapeChar;
             private readonly int _inputSize;
             private readonly ColInfo[] _infos;
@@ -682,7 +682,7 @@ namespace Microsoft.ML.Data
                 var doubleParserOptionFlags = DoubleParser.OptionFlags.Default;
                 if (parent._decimalMarker == ',')
                     doubleParserOptionFlags |= DoubleParser.OptionFlags.UseCommaAsDecimalMarker;
-                if ((parent._flags & OptionFlags.ImputeEmptyFloats) != 0)
+                if ((parent._flags & OptionFlags.MissingRealsAsNaNs) != 0)
                     doubleParserOptionFlags |= DoubleParser.OptionFlags.EmptyAsNaN;
 
                 if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
@@ -726,7 +726,7 @@ namespace Microsoft.ML.Data
                 _flags = parent._flags;
                 _escapeChar = parent._escapeChar;
                 _inputSize = parent._inputSize;
-                _imputeReals = (parent._flags & OptionFlags.ImputeEmptyFloats) != 0;
+                _missingRealsAsNaNs = (parent._flags & OptionFlags.MissingRealsAsNaNs) != 0;
                 _blank = ReadOnlyMemory<char>.Empty;
                 Contracts.Assert(_inputSize >= 0);
             }
@@ -947,10 +947,10 @@ namespace Microsoft.ML.Data
                     _blank = ReadOnlyMemory<char>.Empty;
                     Fields = new FieldSet();
 
-                    // If we want to impute empty float fields, then we must keep
-                    // all empty fields spans, as there's no way for the Parser.HelperImpl
+                    // If we want to impute empty real fields as NaNs, then we must keep
+                    // all empty field spans, as there's no way for the Parser.HelperImpl
                     // to know beforehand which fields belong to a float field
-                    _keepEmpty = (flags & OptionFlags.ImputeEmptyFloats) != 0;
+                    _keepEmpty = (flags & OptionFlags.MissingRealsAsNaNs) != 0;
                 }
 
                 /// <summary>
@@ -1438,9 +1438,9 @@ namespace Microsoft.ML.Data
                         }
                     }
 
-                    if(_imputeReals && isrc >= fields.Count && v.IsReal)
+                    if(_missingRealsAsNaNs && isrc >= fields.Count && v.IsReal)
                     {
-                        // If the user has set the EmptyRealsAsNan option to true,
+                        // If the user has set the MissingRealsAsNaNs option to true,
                         // And there are missing columns on a given row,
                         // then we should load them as if they were empty (i.e. _blank) fields
                         // So that they can be loaded as NaNs if they're single/double columns
@@ -1472,9 +1472,9 @@ namespace Microsoft.ML.Data
                         v.Rows.Stats.LogBadValue(line, info.Name);
                     }
                 }
-                else if(_imputeReals && v.IsReal)
+                else if(_missingRealsAsNaNs && v.IsReal)
                 {
-                    // If the user has set the EmptyRealsAsNan option to true,
+                    // If the user has set the MissingRealsAsNaNs option to true,
                     // And there are missing columns on a given row,
                     // then we should load them as if they were empty (i.e. _blank) fields
                     // So that they can be loaded as NaNs if they're single/double columns
