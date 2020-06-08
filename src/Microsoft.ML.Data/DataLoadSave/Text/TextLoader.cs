@@ -1084,7 +1084,8 @@ namespace Microsoft.ML.Data
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
                 //verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
-                verWrittenCur: 0x0001000D, // Added escapeChar and decimalMarker chars and imputeEmptyFloats flag
+                //verWrittenCur: 0x0001000D, // Added escapeChar and decimalMarker chars
+                verWrittenCur: 0x0001000E, // Added imputeEmptyFloats flag
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1416,7 +1417,25 @@ namespace Microsoft.ML.Data
             _maxRows = ctx.Reader.ReadInt64();
             host.CheckDecode(_maxRows > 0);
             _flags = (OptionFlags)ctx.Reader.ReadUInt32();
-            host.CheckDecode((_flags & ~OptionFlags.All) == 0);
+
+            // Flags introduced with the first ML.NET commit:
+            var acceptableFlags = OptionFlags.TrimWhitespace;
+            acceptableFlags |= OptionFlags.HasHeader;
+            acceptableFlags |= OptionFlags.AllowQuoting;
+            acceptableFlags |= OptionFlags.AllowSparse;
+
+            // Flags added on later versions of TextLoader:
+            if(ctx.Header.ModelVerWritten >= 0x0001000C)
+            {
+                acceptableFlags |= OptionFlags.ReadMultilines;
+            }
+            if(ctx.Header.ModelVerWritten >= 0x0001000E)
+            {
+                acceptableFlags |= OptionFlags.ImputeEmptyFloats;
+            }
+
+            host.CheckDecode((_flags & ~acceptableFlags) == 0);
+
             _inputSize = ctx.Reader.ReadInt32();
             host.CheckDecode(0 <= _inputSize && _inputSize < SrcLim);
 
