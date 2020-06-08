@@ -24,6 +24,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         LabelMapping = 4,
         ObjectDetectionLabelMapping = 5, // Tevin: added for OD mappings
         ReshapeTransformer = 6,
+        ObjectDetectionResizeImage = 7,
+        ObjectDetectionExtractPixel = 8,
+        ApplyObjectDetectionModel = 9,
 
     }
     internal static class TransformGeneratorFactory
@@ -102,6 +105,15 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         break;
                     case SpecialTransformer.ObjectDetectionLabelMapping:
                         result = new CustomObjectDetectionLabelMapping(node);
+                        break;
+                    case SpecialTransformer.ObjectDetectionExtractPixel:
+                        result = new ObjectDetectionPixelExtract(node);
+                        break;
+                    case SpecialTransformer.ObjectDetectionResizeImage:
+                        result = new ObjectDetectionImageResizing(node);
+                        break;
+                    case SpecialTransformer.ApplyObjectDetectionModel:
+                        result = new ApplyObjectDetectionOnnxModel(node);
                         break;
                     case SpecialTransformer.ReshapeTransformer:
                         result = new CustomReshapeTransformer(node);

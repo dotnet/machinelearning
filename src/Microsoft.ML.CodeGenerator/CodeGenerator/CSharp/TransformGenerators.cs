@@ -377,6 +377,17 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
+    internal class ObjectDetectionImageResizing : TransformGeneratorBase
+    {
+        public ObjectDetectionImageResizing(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ResizeImages";
+
+        public override string GenerateTransformer()
+        {
+            return @"ResizeImages(outputColumnName: ""input"", imageWidth: 800, imageHeight: 600, inputColumnName: ""input"")";
+        }
+    }
+
     internal class PixelExtract : TransformGeneratorBase
     {
         public PixelExtract(PipelineNode node) : base(node) { }
@@ -388,7 +399,18 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
-    internal class CustomNormalizeMapping : TransformGeneratorBase
+    internal class ObjectDetectionPixelExtract : TransformGeneratorBase
+    {
+        public ObjectDetectionPixelExtract(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ExtractPixels";
+
+        public override string GenerateTransformer()
+        {
+            return @"ExtractPixels(outputColumnName: ""input"", inputColumnName: ""input"")";
+        }
+    }
+
+internal class CustomNormalizeMapping : TransformGeneratorBase
     {
         public CustomNormalizeMapping(PipelineNode node) : base(node) { }
         internal override string MethodName => "NormalizeMapping";
@@ -422,7 +444,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public override string GenerateTransformer()
         {
-            return @"CustomMapping<ObjectDetectionLabelMappingInput, ModelOutput>( // added this line not sure what to do.
+            return @"CustomMapping<ObjectDetectionLabelMappingInput, ObjectDetectionLabelMappingOutput>( // added this line not sure what to do.
                                           (input, output) => ObjectDetectionLabelMapping.Mapping(input, output),
                                           contractName: nameof(ObjectDetectionLabelMapping))";
         }
@@ -432,13 +454,25 @@ namespace Microsoft.ML.CodeGenerator.CSharp
     internal class CustomReshapeTransformer : TransformGeneratorBase
     {
         public CustomReshapeTransformer(PipelineNode node) : base(node) { }
-        internal override string MethodName => "ObjectDetectionLabelMapping";
+        internal override string MethodName => "ReshapeTransformer";
 
         public override string GenerateTransformer()
         {
             return @"CustomMapping<Input, Output>(
                                           (input, output) => ReshapeTransformer.Mapping(input, output),
                                           contractName: nameof(ReshapeTransformer))";
+        }
+    }
+
+    // Tevin: added to have correct ApplyOnnxModel
+    internal class ApplyObjectDetectionOnnxModel : TransformGeneratorBase
+    {
+        public ApplyObjectDetectionOnnxModel(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ApplyOnnxModel";
+
+        public override string GenerateTransformer()
+        {
+            return @"ApplyOnnxModel(modelFile: modelFile, outputColumnNames: new[] { ""boxes"",""labels"", ""scores"" }, inputColumnNames: new[] { ""input"" })";
         }
     }
 

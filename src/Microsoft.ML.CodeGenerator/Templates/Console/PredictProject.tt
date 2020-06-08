@@ -26,6 +26,7 @@
 <#}#>
 <# if (IncludeOnnxPackage){ #>
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.2.0" />
 <#}#>
 <# if (IncludeResNet18Package){ #>
     <PackageReference Include="Microsoft.ML.DnnImageFeaturizer.ResNet18" Version="0.15.1" />

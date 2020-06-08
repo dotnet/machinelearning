@@ -73,7 +73,7 @@ namespace <#= Namespace #>.Model
     }
 
 
-    public class ModelOutput
+    public class ObjectDetectionLabelMappingOutput
     {
         [ColumnName("boxes")]
         public float[] Boxes;

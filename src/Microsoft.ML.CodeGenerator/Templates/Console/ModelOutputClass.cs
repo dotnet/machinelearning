@@ -46,9 +46,28 @@ if("BinaryClassification".Equals(TaskType)){
  }
 if("ObjectDetection".Equals(TaskType)){ 
             this.Write("        [ColumnName(\"boxes\")]\r\n        public float[] Boxes { get; set; }\r\n\r\n    " +
-                    "    [ColumnName(\"PredictedLabels)]\r\n        public string[] Labels { get; set; }" +
-                    "\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Scores { get; set; }\r" +
-                    "\n");
+                    "    [ColumnName(\"PredictedLabels\")]\r\n        public string[] Labels { get; set; " +
+                    "}\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Scores { get; set; }" +
+                    "\r\n\r\n        private BoundingBox[] BoundingBoxes\r\n        {\r\n            get\r\n   " +
+                    "         {\r\n                var boundingBoxes = new List<BoundingBox>();\r\n\r\n    " +
+                    "            boundingBoxes = Enumerable.Range(0, this.Labels.Length)\r\n           " +
+                    "               .Select((index) =>\r\n                          {\r\n                " +
+                    "              var boxes = this.Boxes;\r\n                              var scores " +
+                    "= this.Scores;\r\n                              var labels = this.Labels;\r\n\r\n     " +
+                    "                         return new BoundingBox()\r\n                             " +
+                    " {\r\n                                  Left = boxes[index * 4],\r\n                " +
+                    "                  Top = boxes[(index * 4) + 1],\r\n                               " +
+                    "   Right = boxes[(index * 4) + 2],\r\n                                  Bottom = b" +
+                    "oxes[(index * 4) + 3],\r\n                                  Score = scores[index]," +
+                    "\r\n                                  Label = labels[index].ToString(),\r\n         " +
+                    "                     };\r\n                          }).ToList();\r\n               " +
+                    " return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n    }\r\n\r\n    public " +
+                    "class BoundingBox\r\n    {\r\n        public float Top;\r\n\r\n        public float Left" +
+                    ";\r\n\r\n        public float Right;\r\n\r\n        public float Bottom;\r\n\r\n        publ" +
+                    "ic string Label;\r\n\r\n        public float Score;\r\n\r\n        public override strin" +
+                    "g ToString()\r\n        {\r\n            return $\"Top: {this.Top}, Left: {this.Left}" +
+                    ", Right: {this.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this." +
+                    "Score}\";\r\n        }\r\n");
 } else if("MulticlassClassification".Equals(TaskType)){ 
             this.Write("        public float[] Score { get; set; }\r\n");
 }else{ 
