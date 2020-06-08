@@ -39,94 +39,62 @@ namespace Samples.Dynamic.ModelOperations
             // Download the raw dataset.
             var originalData = Microsoft.ML.SamplesUtils.DatasetUtils
                 .LoadRawAdultDataset(mlContext);
-            // Download the featurized dataset. 
-            // featurizedData = featurizationPipeline.Transform(originalData)
-            var featurizedData = Microsoft.ML.SamplesUtils.DatasetUtils
-                .LoadFeaturizedAdultDataset(mlContext);
 
             //Dataset partition
             // Partition the original dataset. Leave out 10% of data for testing.
             var trainTestOriginalData = mlContext.Data
                 .TrainTestSplit(originalData, testFraction: 0.3);
-            // Partition the featurized dataset. Leave out 10% of data for testing.
-            var trainTestFeaturizedData = mlContext.Data
-                .TrainTestSplit(featurizedData, testFraction: 0.3);
 
             // Define training pielines(wholePipeline = featurizationPipeline + binaryRegressionpipeline)
-            var featurizationPipeline = mlContext.Transforms.CopyColumns("Label", "IsOver50K")
-                                        // Convert categorical features to one-hot vectors
-                                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("workclass"))
-                                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("education"))
-                                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("marital-status"))
-                                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("occupation"))
-                                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("relationship"))
-                                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("ethnicity"))
-                                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("native-country"))
-                                        // Combine all features into one feature vector
-                                        .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
-                                        "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
-                                        "capital-gain", "capital-loss", "hours-per-week"))
-                                        // Min-max normalize all the features
-                                        .Append(mlContext.Transforms.NormalizeMinMax("Features"));
-            var binaryRegressionpipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron();
-            // Concatenate two pipelines into one
-            var wholePipeline = featurizationPipeline.Append(binaryRegressionpipeline);
+            var wholePipeline = mlContext.Transforms.CopyColumns("Label", "IsOver50K")
+                        // Convert categorical features to one-hot vectors
+                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("workclass"))
+                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("education"))
+                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("marital-status"))
+                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("occupation"))
+                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("relationship"))
+                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("ethnicity"))
+                        .Append(mlContext.Transforms.Categorical.OneHotEncoding("native-country"))
+                        // Combine all features into one feature vector
+                        .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
+                        "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
+                        "capital-gain", "capital-loss", "hours-per-week"))
+                        // Min-max normalize all the features
+                        .Append(mlContext.Transforms.NormalizeMinMax("Features"))
+                        .Append(mlContext.BinaryClassification.Trainers.AveragedPerceptron());
 
-            // Fit the pipeline, and get a transformer that knows how to score new data 
-            // There are two ways to generate the transformer
-            // 1. Fit the whole pipeline with original data
-            var transformer1 = wholePipeline.Fit(trainTestOriginalData.TrainSet);
-            // 2. Fit the partial(second half) pipeline with featurizedData
-            var transformer2 = binaryRegressionpipeline.Fit(trainTestFeaturizedData.TrainSet);
+            // Fit the pipeline, and get a transformer that knows how to score new data
+            var transformer = wholePipeline.Fit(trainTestOriginalData.TrainSet);
 
             //What you need to convert an ML.NET model to an onnx model is a transformer and input data
             //By default, the onnx conversion will generate the onnx file with the latest OpSet version
-            //There are two ways to do the onnx conversion
-            //1. Apply the transformer(Generated by fitting the whole pipeline) and original dataset
             using (var stream = File.Create("sample_onnx_conversion_1.onnx"))
-                mlContext.Model.ConvertToOnnx(transformer1, originalData, stream);
-            //2. Apply the transformer(Generated by fitting the second half pipeline) and featurized dataset
-            using (var stream = File.Create("sample_onnx_conversion_2.onnx"))
-                mlContext.Model.ConvertToOnnx(transformer2, featurizedData, stream);
-            //Please note that the above two methods generate the exact same onnx file.
+                mlContext.Model.ConvertToOnnx(transformer, originalData, stream);
 
             //However, you can also specify a custom OpSet version by using the following code
             //Currently, we support OpSet versions 9 for most transformers, but there are certain transformers that require a higher OpSet version
             //Please refer to the following link for most update information of what OpSet version we support
             //https://github.com/dotnet/machinelearning/blob/master/src/Microsoft.ML.OnnxConverter/OnnxExportExtensions.cs
             int customOpSetVersion = 9;
-            using (var stream = File.Create("sample_onnx_conversion_3.onnx"))
-                mlContext.Model.ConvertToOnnx(transformer1, originalData, customOpSetVersion, stream);
+            using (var stream = File.Create("sample_onnx_conversion_2.onnx"))
+                mlContext.Model.ConvertToOnnx(transformer, originalData, customOpSetVersion, stream);
 
             //Create the pipeline using onnx file.
-            var onnxModelPath1 = "your_path_to_sample_onnx_conversion_1.onnx";
-            var onnxEstimator1 = mlContext.Transforms.ApplyOnnxModel(onnxModelPath1);
-            var onnxTransformer1 = onnxEstimator1.Fit(trainTestOriginalData.TrainSet);
-            //You may want to create the transformer by using onnxTransformer2 = onnxEstimator2.Fit(trainTestFeaturizedData.TrainSet)
-            //It's wrong because you can only apply original data to onnx model. This is a different concept from ML.NET model
-            //Please always use the orignal dataset to fit onnx estimator to get onnx transformer
-            var onnxModelPath2 = "your_path_to_sample_onnx_conversion_2.onnx";
-            var onnxEstimator2 = mlContext.Transforms.ApplyOnnxModel(onnxModelPath2);
-            var onnxTransformer2 = onnxEstimator2.Fit(trainTestOriginalData.TrainSet);
+            var onnxModelPath = "your_path_to_sample_onnx_conversion_1.onnx";
+            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+            var onnxTransformer = onnxEstimator.Fit(trainTestOriginalData.TrainSet);
 
             //Inference the testset
-            var output1 = transformer1.Transform(trainTestOriginalData.TestSet);
-            var output2 = transformer2.Transform(trainTestFeaturizedData.TestSet);
-            //Always use original dataset to inference onnx transformer
-            var onnxOutput1 = onnxTransformer1.Transform(trainTestOriginalData.TestSet);
-            var onnxOutput2 = onnxTransformer2.Transform(trainTestOriginalData.TestSet);
+            var output = transformer.Transform(trainTestOriginalData.TestSet);
+            var onnxOutput = onnxTransformer.Transform(trainTestOriginalData.TestSet);
 
             //Get the outScores
-            var outScores1 = mlContext.Data.CreateEnumerable<ScoreValue>(output1, reuseRowObject: false);
-            var outScores2 = mlContext.Data.CreateEnumerable<ScoreValue>(output2, reuseRowObject: false);
-            var onnxOutScores1 = mlContext.Data.CreateEnumerable<OnnxScoreValue>(onnxOutput1, reuseRowObject: false);
-            var onnxOutScores2 = mlContext.Data.CreateEnumerable<OnnxScoreValue>(onnxOutput2, reuseRowObject: false);
+            var outScores = mlContext.Data.CreateEnumerable<ScoreValue>(output, reuseRowObject: false);
+            var onnxOutScores = mlContext.Data.CreateEnumerable<OnnxScoreValue>(onnxOutput, reuseRowObject: false);
 
             //Print
-            PrintScore(outScores1, 5);
-            PrintScore(outScores2, 5);
-            PrintScore(onnxOutScores1, 5);
-            PrintScore(onnxOutScores2, 5);
+            PrintScore(outScores, 5);
+            PrintScore(onnxOutScores, 5);
             //Expected same results for the above 4 methods
             //Score - 0.09044361
             //Score - 9.105377
