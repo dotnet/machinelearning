@@ -131,7 +131,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     Namespace = _nameSpaceValue,
                     ImportLabels = _settings.ClassificationLabel,
                 }.TransformText(),
-                Name = "LabelMapping.cs",
+                Name = "ObjectDetectionLabelMapping.cs",
             };
 
             ReshapeTransformerMap = new CSharpCodeFile()

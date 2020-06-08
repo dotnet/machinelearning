@@ -8,7 +8,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.ModelBuilder.AutoMLService.RemoteAutoML.ObjectDetectionTransformerHelpers
 {
     [CustomMappingFactoryAttribute(nameof(ReshapeTransformer))]
-    class ReshapeTransformer : CustomMappingFactory<Input, Output>
+    public class ReshapeTransformer : CustomMappingFactory<Input, Output>
     {
         // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
         public static void Mapping(Input input, Output output)

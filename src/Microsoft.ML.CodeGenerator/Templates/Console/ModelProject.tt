@@ -24,6 +24,7 @@
 <#}#>
 <# if (IncludeOnnxModel){ #>
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.2.0" />
 <#}#>
 <# if (IncludeImageClassificationPackage){ #>
     <PackageReference Include="Microsoft.ML.Vision" Version="<#= StablePackageVersion #>" />
