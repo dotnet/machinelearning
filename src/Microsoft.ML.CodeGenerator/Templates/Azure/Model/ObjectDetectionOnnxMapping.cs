@@ -62,18 +62,18 @@ foreach(var label in ImportLabels){
                     "oat Bottom;\r\n\r\n        public string Label;\r\n\r\n        public float Score;\r\n\r\n  " +
                     "      public override string ToString()\r\n        {\r\n            return $\"Top: {t" +
                     "his.Top}, Left: {this.Left}, Right: {this.Right}, Bottom: {this.Bottom}, Label: " +
-                    "{this.Label}, Score: {this.Score}\";\r\n        }\r\n    }\r\n\r\n\r\n    public class Mode" +
-                    "lOutput\r\n    {\r\n        [ColumnName(\"boxes\")]\r\n        public float[] Boxes;\r\n\r\n" +
-                    "        [ColumnName(\"PredictedLabels\")]\r\n        public string[] Labels;\r\n\r\n    " +
-                    "    [ColumnName(\"scores\")]\r\n        public float[] Scores;\r\n\r\n        private Bo" +
-                    "undingBox[] BoundingBoxes\r\n        {\r\n            get\r\n            {\r\n          " +
-                    "      var boundingBoxes = new List<BoundingBox>();\r\n                return bound" +
-                    "ingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n        public BoundingBox[] Ge" +
-                    "tBoundingBoxes()\r\n        {\r\n            return this.BoundingBoxes;\r\n        }\r\n" +
-                    "\r\n        public override string ToString()\r\n        {\r\n            var sb = new" +
-                    " StringBuilder();\r\n\r\n            foreach (var box in this.BoundingBoxes)\r\n      " +
-                    "      {\r\n                sb.AppendLine(box.ToString());\r\n            }\r\n\r\n      " +
-                    "      return sb.ToString();\r\n        }\r\n    }\r\n}\r\n");
+                    "{this.Label}, Score: {this.Score}\";\r\n        }\r\n    }\r\n\r\n\r\n    public class Obje" +
+                    "ctDetectionLabelMappingOutput\r\n    {\r\n        [ColumnName(\"boxes\")]\r\n        pub" +
+                    "lic float[] Boxes;\r\n\r\n        [ColumnName(\"PredictedLabels\")]\r\n        public st" +
+                    "ring[] Labels;\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Scores;" +
+                    "\r\n\r\n        private BoundingBox[] BoundingBoxes\r\n        {\r\n            get\r\n   " +
+                    "         {\r\n                var boundingBoxes = new List<BoundingBox>();\r\n      " +
+                    "          return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n        p" +
+                    "ublic BoundingBox[] GetBoundingBoxes()\r\n        {\r\n            return this.Bound" +
+                    "ingBoxes;\r\n        }\r\n\r\n        public override string ToString()\r\n        {\r\n  " +
+                    "          var sb = new StringBuilder();\r\n\r\n            foreach (var box in this." +
+                    "BoundingBoxes)\r\n            {\r\n                sb.AppendLine(box.ToString());\r\n " +
+                    "           }\r\n\r\n            return sb.ToString();\r\n        }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 

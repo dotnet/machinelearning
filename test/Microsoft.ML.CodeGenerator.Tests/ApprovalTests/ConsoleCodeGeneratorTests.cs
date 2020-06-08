@@ -635,7 +635,7 @@ namespace mlnet.Tests
         private (Pipeline, ColumnInferenceResults) GetMockedAzureObjectDetectionPipelineAndInference(string onnxModelPath)
         {
             var onnxPipeLineNode = new PipelineNode(
-                nameof(SpecialTransformer.ApplyOnnxModel),
+                nameof(SpecialTransformer.ApplyObjectDetectionModel),
                 PipelineNodeType.Transform,
                 new[] { "input" },
                 new[] { "boxes", "labels", "scores" },
@@ -645,9 +645,9 @@ namespace mlnet.Tests
                     { "inputColumnNames", "input" },
                     { "modelFile", "awesomeModel.onnx" },   // it doesn't matter what modelFile is
                 });
-            var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImagePath", onnxModelPath);
+            var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImagePath", "input");
             var resizeImageNode = new PipelineNode(
-                nameof(SpecialTransformer.ResizeImage),
+                nameof(SpecialTransformer.ObjectDetectionResizeImage),
                 PipelineNodeType.Transform,
                 onnxModelPath,
                 onnxModelPath,
@@ -656,7 +656,7 @@ namespace mlnet.Tests
                     { "imageWidth", 800 },
                     { "imageHeight", 600 },
                 });
-            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, onnxModelPath, onnxModelPath);
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ObjectDetectionExtractPixel), PipelineNodeType.Transform, onnxModelPath, onnxModelPath);
             var normalizeMapping = new PipelineNode(nameof(SpecialTransformer.ReshapeTransformer), PipelineNodeType.Transform, string.Empty, string.Empty);
             var labelMapping = new PipelineNode(nameof(SpecialTransformer.ObjectDetectionLabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
             var bestPipeLine = new Pipeline(new PipelineNode[]
