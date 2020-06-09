@@ -24,6 +24,8 @@
 <#}#>
 <# if (IncludeOnnxModel){ #>
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
+<#}#>
+<# if (IncludeOnnxRuntime){ #>
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.2.0" />
 <#}#>
 <# if (IncludeImageClassificationPackage){ #>
@@ -61,6 +63,7 @@ public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
 public bool IncludeOnnxModel {get; set;}
+public bool IncludeOnnxRuntime {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}

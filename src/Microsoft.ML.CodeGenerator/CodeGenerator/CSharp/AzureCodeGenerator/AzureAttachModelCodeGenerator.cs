@@ -90,6 +90,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     IncludeLightGBMPackage = false,
                     IncludeMklComponentsPackage = false,
                     IncludeOnnxModel = true,
+                    IncludeOnnxRuntime = _settings.IsObjectDetection,
                     IncludeRecommenderPackage = false,
                     StablePackageVersion = _settings.StablePackageVersion,
                     UnstablePackageVersion = _settings.UnstablePackageVersion,

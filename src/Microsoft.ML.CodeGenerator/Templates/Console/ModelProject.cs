@@ -53,8 +53,10 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
  if (IncludeOnnxModel){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
-            this.Write("\" />\r\n    <PackageReference Include=\"Microsoft.ML.OnnxRuntime\" Version=\"1.2.0\" />" +
-                    "\r\n");
+            this.Write("\" />\r\n");
+}
+ if (IncludeOnnxRuntime){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxRuntime\" Version=\"1.2.0\" />\r\n");
 }
  if (IncludeImageClassificationPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"");
@@ -89,6 +91,7 @@ public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
 public bool IncludeOnnxModel {get; set;}
+public bool IncludeOnnxRuntime {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}

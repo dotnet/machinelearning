@@ -71,6 +71,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     IncludeImageTransformerPackage = _settings.IsImage,
                     IncludeImageClassificationPackage = false,
                     IncludeOnnxPackage = true,
+                    IncludeOnnxRuntime = _settings.IsObjectDetection,
                     IncludeResNet18Package = false,
                     IncludeRecommenderPackage = false,
                     StablePackageVersion = _settings.StablePackageVersion,
