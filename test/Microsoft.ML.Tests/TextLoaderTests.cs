@@ -1438,7 +1438,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             if(useImputeEmptyFloats)
             {
                 baselineDV = mlContext.Data.LoadFromTextFile(baselineWithImpute, options);
-                options.ImputeEmptyFloats = true;
+                options.MissingRealsAsNaNs = true;
                 testDV = mlContext.Data.LoadFromTextFile(inputPath, options);
             }
             else
