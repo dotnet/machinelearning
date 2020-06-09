@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
+﻿using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TimeSeries

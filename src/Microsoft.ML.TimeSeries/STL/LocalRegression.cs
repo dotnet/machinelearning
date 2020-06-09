@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.ML.Internal.CpuMath.Core;
 
 namespace Microsoft.ML.TimeSeries

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TimeSeries

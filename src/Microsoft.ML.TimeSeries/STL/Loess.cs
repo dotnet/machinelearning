@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Text;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TimeSeries
