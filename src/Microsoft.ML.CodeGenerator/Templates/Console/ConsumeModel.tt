@@ -48,7 +48,7 @@ namespace <#= Namespace #>.Model
 <#} #>
 <#if(HasObjectDetectionLabelMapping){ #> 
 			// Register ObjectDetectionMapping to map predicted labels to correct string.
-            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionOnnxMapping).Assembly);
+            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionLabelMapping).Assembly);
 <#} #>
 
             // Load model & create prediction engine

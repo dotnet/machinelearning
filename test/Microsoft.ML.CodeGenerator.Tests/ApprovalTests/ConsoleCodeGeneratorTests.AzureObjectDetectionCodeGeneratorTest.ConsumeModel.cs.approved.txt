@@ -30,7 +30,7 @@ namespace CodeGenTest.Model
             mlContext.ComponentCatalog.RegisterAssembly(typeof(ReshapeTransformer).Assembly);
 
             // Register ObjectDetectionMapping to map predicted labels to correct string.
-            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionOnnxMapping).Assembly);
+            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionLabelMapping).Assembly);
 
             // Load model & create prediction engine
             string modelPath = @"/path/to/model";

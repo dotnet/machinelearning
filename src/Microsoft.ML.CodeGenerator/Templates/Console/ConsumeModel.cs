@@ -72,7 +72,7 @@ if(HasReshapeTransformer){
 if(HasObjectDetectionLabelMapping){ 
             this.Write(" \r\n\t\t\t// Register ObjectDetectionMapping to map predicted labels to correct strin" +
                     "g.\r\n            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetecti" +
-                    "onOnnxMapping).Assembly);\r\n");
+                    "onLabelMapping).Assembly);\r\n");
 } 
             this.Write("\r\n            // Load model & create prediction engine\r\n            string modelP" +
                     "ath = @\"");
