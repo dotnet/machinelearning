@@ -19,6 +19,7 @@ namespace Microsoft.ML.TimeSeries
             Items = new List<RootCauseItem>();
         }
     }
+
     public sealed class RootCauseLocalizationInput
     {
         /// <summary>
@@ -55,7 +56,7 @@ namespace Microsoft.ML.TimeSeries
             AggregateSymbol = aggregateSymbol;
         }
 
-        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, string aggregateSymbol)
+        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, Object aggregateSymbol)
         {
             AnomalyTimestamp = anomalyTimestamp;
             AnomalyDimension = anomalyDimension;
@@ -63,6 +64,8 @@ namespace Microsoft.ML.TimeSeries
             AggregateType = AggregateType.Unknown;
             AggregateSymbol = aggregateSymbol;
         }
+
+        public RootCauseLocalizationInput() { }
     }
 
     public enum AggregateType
@@ -168,6 +171,8 @@ namespace Microsoft.ML.TimeSeries
             TimeStamp = timeStamp;
             Points = points;
         }
+
+        public MetricSlice() { }
     }
 
     public sealed class TimeSeriesPoint : IEquatable<TimeSeriesPoint>
@@ -197,6 +202,8 @@ namespace Microsoft.ML.TimeSeries
         {
             Dimension = dimension;
         }
+        public TimeSeriesPoint() { }
+
         public TimeSeriesPoint(double value, double expectedValue, bool isAnomaly, Dictionary<string, Object> dimension)
         {
             Value = value;

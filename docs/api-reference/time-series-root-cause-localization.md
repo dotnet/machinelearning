@@ -1,7 +1,7 @@
 At Microsoft, we have developed a decision tree based root cause localization method which helps to find out the root causes for an anomaly incident at a specific timestamp incrementally. 
 
 ## Multi-Dimensional Root Cause Localization
-It's a common case that one measure is collected with many dimensions (*e.g.*, Province, ISP) whose values are categorical(*e.g.*, Beijing or Shanghai for dimension Province). When a measure's value deviates from its expected value, this measure encounters anomalies. In such case, operators would like to localize the root cause dimension combinations rapidly and accurately. Multi-dimensional root cause localization is critical to troubleshoot and mitigate such case.
+It's a common case that one measure is collected with many dimensions (*e.g.*, Province, ISP) whose values are categorical(*e.g.*, Beijing or Shanghai for dimension Province). When a measure's value deviates from its expected value, this measure encounters anomalies. In such case, users would like to localize the root cause dimension combinations rapidly and accurately. Multi-dimensional root cause localization is critical to troubleshoot and mitigate such case.
 
 ## Algorithm
 
