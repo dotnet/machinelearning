@@ -89,6 +89,8 @@ namespace Microsoft.ML.TimeSeries
             if (xValues.Count != yValues.Count)
                 throw new Exception("the x-axis length should be equal to y-axis length!: lowess");
 
+            _neighbors = new Dictionary<int, LocalRegression>();
+
             _length = xValues.Count;
             _isTemporal = isTemporal;
 

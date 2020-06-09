@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
@@ -380,11 +381,17 @@ namespace Microsoft.ML.TimeSeries
                 {
                     StlConfiguration config = new StlConfiguration(_period);
                     InnerStl stl = new InnerStl(values, config, isTemporal);
+                    InnerStlNew stlNew = new InnerStlNew(isTemporal);
                     bool success = stl.Decomposition();
-
+                    stlNew.Decomposition(values, _period);
                     if (success)
                     {
                         _seriesToDetect = stl.Residual.ToArray();
+                        var residual2 = stl.Residual.ToArray();
+                        for (int i = 0; i<_seriesToDetect.Length; ++i)
+                        {
+                            Trace.Assert(_seriesToDetect[i] == residual2[i]);
+                        }
                     }
                 }
 
