@@ -86,26 +86,4 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         public IReadOnlyList<double> Y { get; protected set; }
     }
-
-    /// <summary>
-    /// the characteristic between two time series, such as the lead/lag correlation,
-    /// and the correlation of the outliers.
-    /// </summary>
-    public abstract class TwoSeriesInfo : TimeSeriesInfoBase
-    {
-        /// <summary>
-        /// x-axis values of two time series. they should be aligned.
-        /// </summary>
-        public IReadOnlyList<double> X { get; protected set; }
-
-        /// <summary>
-        /// y-axis values of first series
-        /// </summary>
-        public IReadOnlyList<double> Y1 { get; protected set; }
-
-        /// <summary>
-        /// y-axis values of second series
-        /// </summary>
-        public IReadOnlyList<double> Y2 { get; protected set; }
-    }
 }
