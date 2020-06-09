@@ -28,9 +28,9 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(y, nameof(y));
 
             if (x.Count == 0 || y.Count == 0)
-                throw new Exception("input data structure cannot be 0-length");
+                throw Contracts.Except("input data structure cannot be 0-length");
             if (x.Count != y.Count)
-                throw new Exception("the x-axis length should be equal to y-axis length!");
+                throw Contracts.Except("the x-axis length should be equal to y-axis length!");
             _x = x;
             _y = y;
             _length = _x.Count;
@@ -44,13 +44,14 @@ namespace Microsoft.ML.TimeSeries
         {
             Contracts.CheckValue(weights, nameof(weights));
 
+            Contracts.CheckParam(weights.Count == _length, nameof(weights));
             if (weights.Count != _length)
-                throw new Exception("the weight vector is not equal length to the data points");
+                throw Contracts.Except("the weight vector is not equal length to the data points");
 
             foreach (double value in weights)
             {
                 if (value < 0)
-                    throw new Exception("the value in weights should be non-negative!");
+                    throw Contracts.Except("the value in weights should be non-negative!");
             }
 
             // This part unfold the matrix calculation of [sqrt(W), sqrt(W) .* X]^T * [sqrt(W), sqrt(W) .* X]

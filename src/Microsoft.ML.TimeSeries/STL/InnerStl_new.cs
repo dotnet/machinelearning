@@ -115,7 +115,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckParam(np > 0, nameof(np));
 
             if (yValues.Count == 0)
-                throw new Exception("input data structure cannot be 0-length: innerSTL");
+                throw Contracts.Except("input data structure cannot be 0-length: innerSTL");
 
             _length = yValues.Count;
             AllocateDoubleArray(ref _seasonalComponent, _length);

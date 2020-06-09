@@ -102,7 +102,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(config, nameof(config));
 
             if (yValues.Count == 0)
-                throw new Exception("input data structure cannot be 0-length: innerSTL");
+                throw Contracts.Except("input data structure cannot be 0-length: innerSTL");
 
             _y = yValues;
             _length = _y.Count;

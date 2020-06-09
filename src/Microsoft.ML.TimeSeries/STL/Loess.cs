@@ -43,10 +43,10 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(yValues, nameof(yValues));
 
             if (xValues.Count < BasicParameters.MinTimeSeriesLength || yValues.Count < BasicParameters.MinTimeSeriesLength)
-                throw new Exception("input data structure cannot be 0-length: lowess");
+                throw Contracts.Except("input data structure cannot be 0-length: lowess");
 
             if (xValues.Count != yValues.Count)
-                throw new Exception("the x-axis length should be equal to y-axis length!: lowess");
+                throw Contracts.Except("the x-axis length should be equal to y-axis length!: lowess");
 
             _neighbors = new Dictionary<int, LocalRegression>();
 
@@ -84,10 +84,10 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(yValues, nameof(yValues));
 
             if (xValues.Count < BasicParameters.MinTimeSeriesLength || yValues.Count < BasicParameters.MinTimeSeriesLength)
-                throw new Exception("input data structure cannot be 0-length: lowess");
+                throw Contracts.Except("input data structure cannot be 0-length: lowess");
 
             if (xValues.Count != yValues.Count)
-                throw new Exception("the x-axis length should be equal to y-axis length!: lowess");
+                throw Contracts.Except("the x-axis length should be equal to y-axis length!: lowess");
 
             _neighbors = new Dictionary<int, LocalRegression>();
 

@@ -36,7 +36,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(y, nameof(y));
 
             if (x.Count <= 1 || x.Count != y.Count)
-                throw new Exception("cannot accomplish neighbors obtaining");
+                throw Contracts.Except("cannot accomplish neighbors obtaining");
 
             _model = null;
 

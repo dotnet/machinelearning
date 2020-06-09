@@ -38,7 +38,7 @@ namespace Microsoft.ML.TimeSeries
             Y = new List<double>();
 
             if (yValues.Count < BasicParameters.MinTimeSeriesLength)
-                throw new Exception("input data structure cannot be 0-length: lowess");
+                throw Contracts.Except("input data structure cannot be 0-length: lowess");
 
             _x = xValues;
             _y = yValues;
