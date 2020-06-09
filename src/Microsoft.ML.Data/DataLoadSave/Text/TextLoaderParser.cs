@@ -1401,7 +1401,6 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(sizeVar >= 0);
                 int size = checked(info.SizeBase + sizeVar);
 
-                var xx = fields.Spans[0].ToString();
                 v.Reset(irow, size);
                 int ivDst = 0;
                 for (int i = 0; i < info.Segments.Length; i++)
