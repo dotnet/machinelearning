@@ -345,6 +345,7 @@ namespace Microsoft.ML.TimeSeries
             private double[] _val;
             private double[] _trends;
             private double[] _curWindow;
+            private InnerStl _stl;
 
             public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int period)
             {
@@ -353,6 +354,7 @@ namespace Microsoft.ML.TimeSeries
                 _detectMode = detectMode;
                 _period = period;
                 _predictArray = new double[_lookaheadWindowSize + 1];
+                _stl = new InnerStl(true);
             }
 
             public void Train(double[] values, ref double[][] results)
@@ -370,7 +372,6 @@ namespace Microsoft.ML.TimeSeries
                     Array.Resize<double[]>(ref results, values.Length);
                 }
 
-                bool isTemporal = true;
                 AllocateDoubleArray(ref _seriesToDetect, values.Length);
                 for (int i = 0; i < values.Length; ++i)
                 {
@@ -379,19 +380,10 @@ namespace Microsoft.ML.TimeSeries
 
                 if (_period > 0)
                 {
-                    StlConfiguration config = new StlConfiguration(_period);
-                    InnerStl stl = new InnerStl(values, config, isTemporal);
-                    InnerStlNew stlNew = new InnerStlNew(isTemporal);
-                    bool success = stl.Decomposition();
-                    stlNew.Decomposition(values, _period);
+                    bool success = _stl.Decomposition(values, _period);
                     if (success)
                     {
-                        _seriesToDetect = stl.Residual.ToArray();
-                        var residual2 = stl.Residual.ToArray();
-                        for (int i = 0; i<_seriesToDetect.Length; ++i)
-                        {
-                            Trace.Assert(_seriesToDetect[i] == residual2[i]);
-                        }
+                        _seriesToDetect = _stl.Residual.ToArray();
                     }
                 }
 
