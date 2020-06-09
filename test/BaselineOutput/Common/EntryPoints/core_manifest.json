@@ -319,7 +319,7 @@
               {
                 "Name": "AllowQuoting",
                 "Type": "Bool",
-                "Desc": "Whether the input may include double-quoted values. This parameter is used to distinguish separator characters in an input valuefrom actual separators. When true, separators within double quotes are treated as part of the input value. When false, allseparators, even those within quotes, are treated as delimiting a new column.",
+                "Desc": "Whether the input may include double-quoted values. This parameter is used to distinguish separator characters in an input value from actual separators. When true, separators within double quotes are treated as part of the input value. When false, all separators, even those within quotes, are treated as delimiting a new column.",
                 "Aliases": [
                   "quote"
                 ],
@@ -466,11 +466,11 @@
                 "Default": "\""
               },
               {
-                "Name": "ImputeEmptyFloats",
+                "Name": "MissingRealsAsNaNs",
                 "Type": "Bool",
                 "Desc": "If true, empty float fields will be loaded as NaN. If false, they'll be loaded as 0. Default is false.",
                 "Aliases": [
-                  "imputefloat"
+                  "missingrealnan"
                 ],
                 "Required": false,
                 "SortOrder": 150.0,
