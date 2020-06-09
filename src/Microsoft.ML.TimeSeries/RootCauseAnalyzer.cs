@@ -497,19 +497,6 @@ namespace Microsoft.ML.TimeSeries
                                 }
                             }
                         }
-                        //{
-                        //    if (best.AnomalyDis.Count > 1)
-                        //    {
-                        //        best = dimension.Key;
-                        //    }
-                        //    else
-                        //    {
-                        //        if (!isRatioNan && (isLeavesLevel ? valueRatioMap[best].CompareTo(dimension.Value) <= 0 : valueRatioMap[best].CompareTo(dimension.Value) >= 0))
-                        //        {
-                        //            best = dimension.Key;
-                        //        }
-                        //    }
-                        //}
                     }
                 }
             }

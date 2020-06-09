@@ -99,6 +99,7 @@ namespace Microsoft.ML.Tests
 
         private static Object _rootCauseAggSymbol = "##SUM##";
 
+
         [Fact]
         public void ChangeDetection()
         {
