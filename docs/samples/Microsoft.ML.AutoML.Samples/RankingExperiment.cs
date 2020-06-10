@@ -65,10 +65,10 @@ namespace Microsoft.ML.AutoML.Samples
             var prediction = predictionEngine.Predict(testPage);
             Console.WriteLine($"Predicted rating for: {prediction.Prediction}");
 
-            // Only predict for existing users
+            // New Page
             testPage = new SearchData
             {
-                GroupId = "2", // new Page
+                GroupId = "2",
                 Features = 2, 
                 Label = 9
             };
