@@ -67,19 +67,21 @@ namespace Microsoft.ML.EntryPoints
 
     internal static class SplitUtils
     {
+        // Creates a new Stratification column to be used for splitting.
+        // Notice that the new column might be dropped elsewhere in the code
+        // Returns: the name of the new column.
         public static string CreateStratificationColumn(IHost host, ref IDataView data, string stratificationColumn = null)
         {
             host.CheckValue(data, nameof(data));
             host.CheckValueOrNull(stratificationColumn);
 
-            // Pick a unique name for the stratificationColumn.
+            // Pick a unique name for the new stratificationColumn.
             const string stratColName = "StratificationKey";
             string stratCol = data.Schema.GetTempColumnName(stratColName);
 
-            // Construct the stratification column. If user-provided stratification column exists, use HashJoin
-            // of it to construct the strat column, otherwise generate a random number and use it.
             if (stratificationColumn == null)
             {
+                // If the stratificationColumn wasn't provided by the user, simply create a new Random Number Generator
                 data = new GenerateNumberTransform(host,
                     new GenerateNumberTransform.Options
                     {
@@ -106,11 +108,15 @@ namespace Microsoft.ML.EntryPoints
                 else
                 {
                     if (data.Schema[stratificationColumn].IsNormalized() || (type != NumberDataViewType.Single && type != NumberDataViewType.Double))
-                        return stratificationColumn;
-
-                    data = new NormalizingEstimator(host,
-                        new NormalizingEstimator.MinMaxColumnOptions(stratCol, stratificationColumn, ensureZeroUntouched: true))
-                        .Fit(data).Transform(data);
+                    {
+                        data = new ColumnCopyingEstimator(host,(stratCol,stratificationColumn)).Fit(data).Transform(data);
+                    }
+                    else
+                    {
+                        data = new NormalizingEstimator(host,
+                            new NormalizingEstimator.MinMaxColumnOptions(stratCol, stratificationColumn, ensureZeroUntouched: true))
+                            .Fit(data).Transform(data);
+                    }
                 }
             }
 
