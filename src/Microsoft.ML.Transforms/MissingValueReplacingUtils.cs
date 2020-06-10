@@ -389,8 +389,12 @@ namespace Microsoft.ML.Transforms
                 if (!_validityCheck(val))
                     return;
 
+                // If the key is already in the dictionary, we want to get the current count and increment it.
+                // If the key is not in the dictionary, we want to set count to 1 so the count is correct.
                 if (_valueCounts.TryGetValue(val, out int count))
                     count++;
+                else
+                    count = 1;
 
                 _valueCounts[val] = count;
 

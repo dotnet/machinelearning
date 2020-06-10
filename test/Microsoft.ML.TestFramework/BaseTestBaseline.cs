@@ -670,8 +670,8 @@ namespace Microsoft.ML.RunTests
         /// <param name="left">The left IDataView.</param>
         /// <param name="right">The right IDataView</param>
         /// <param name="precision">How many digits of precision to use for comparison. Defaults to 6 and only applies to floating point numbers.</param>
-        /// <param name="rightColumnFromOnnx">If the right IDataView is from ONNX. ONNX return values as a VBuffer always, so this lets that case be handled.</param>
-        public void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6, bool rightColumnFromOnnx = false)
+        /// <param name="isRightColumnOnnxScalar">If the right IDataView is from ONNX. ONNX return values as a VBuffer always, so this lets that case be handled.</param>
+        public void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6, bool isRightColumnOnnxScalar = false)
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
@@ -679,32 +679,32 @@ namespace Microsoft.ML.RunTests
             var rightType = rightColumn.Type.GetItemType();
 
             if (leftType == NumberDataViewType.SByte)
-                CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.Byte)
-                CompareSelectedColumns<byte>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<byte>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.Int16)
-                CompareSelectedColumns<short>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<short>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.UInt16)
-                CompareSelectedColumns<ushort>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<ushort>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.Int32)
-                CompareSelectedColumns<int>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<int>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.UInt32)
-                CompareSelectedColumns<uint>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<uint>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.Int64)
-                CompareSelectedColumns<long>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<long>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.UInt64)
-                CompareSelectedColumns<ulong>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<ulong>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.Single)
-                CompareSelectedColumns<float>(leftColumnName, rightColumnName, left, right, precision, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<float>(leftColumnName, rightColumnName, left, right, precision, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.Double)
-                CompareSelectedColumns<double>(leftColumnName, rightColumnName, left, right, precision, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<double>(leftColumnName, rightColumnName, left, right, precision, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == BooleanDataViewType.Instance)
-                CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == TextDataViewType.Instance)
-                CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right, rightColumnFromOnnx: rightColumnFromOnnx);
+                CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
         }
 
-        private void CompareSelectedColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6, bool rightColumnFromOnnx = false)
+        private void CompareSelectedColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6, bool isRightColumnOnnxScalar = false)
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
@@ -735,7 +735,7 @@ namespace Microsoft.ML.RunTests
                     expectedScalarGetter = expectedCursor.GetGetter<T>(leftColumn);
 
                     // If the right column is from onxx it will still be a VBuffer, just has a length of 1.
-                    if (rightColumnFromOnnx)
+                    if (isRightColumnOnnxScalar)
                         actualVectorGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
                     else
                         actualScalarGetter = actualCursor.GetGetter<T>(rightColumn);
@@ -758,7 +758,7 @@ namespace Microsoft.ML.RunTests
                         expectedScalarGetter(ref expectedScalar);
 
                         // If the right column is from onxx get a VBuffer instead and just use the first value.
-                        if (rightColumnFromOnnx)
+                        if (isRightColumnOnnxScalar)
                         {
                             actualVectorGetter(ref actualVector);
                             actualScalar = actualVector.GetItemOrDefault(0);

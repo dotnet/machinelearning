@@ -778,9 +778,9 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(data);
                     var onnxResult = onnxTransformer.Transform(data);
-                    CompareResults("Score", "Score", transformedData, onnxResult, rightColumnFromOnnx: true);
-                    CompareResults("Probability", "Probability", transformedData, onnxResult, rightColumnFromOnnx: true);
-                    CompareResults("PredictedLabel", "PredictedLabel", transformedData, onnxResult, rightColumnFromOnnx: true);
+                    CompareResults("Score", "Score", transformedData, onnxResult, isRightColumnOnnxScalar: true);
+                    CompareResults("Probability", "Probability", transformedData, onnxResult, isRightColumnOnnxScalar: true);
+                    CompareResults("PredictedLabel", "PredictedLabel", transformedData, onnxResult, isRightColumnOnnxScalar: true);
                 }
                 CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             }
@@ -1371,7 +1371,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareResults("Label", "Label", outputData, onnxResult, rightColumnFromOnnx: true);
+                CompareResults("Label", "Label", outputData, onnxResult, isRightColumnOnnxScalar: true);
             }
             Done();
         }
