@@ -57,7 +57,6 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write("\" />\r\n");
 }
  if (IncludeOnnxRuntime){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxRuntime\" Version=\"1.3.0\" />\r\n");
 }
  if (IncludeResNet18Package){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.DnnImageFeaturizer.ResNet18\" Version=" +
