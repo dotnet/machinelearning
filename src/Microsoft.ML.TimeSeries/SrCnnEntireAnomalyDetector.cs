@@ -560,6 +560,8 @@ namespace Microsoft.ML.TimeSeries
                     results[i][6] = _ifftRe[i] - margin;
                     //Step 11: Update Anomaly Score
                     results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
+                    //Step 12: Update IsAnomaly
+                    results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || values[i] > results[i][5]) ? 1 : 0;
                 }
             }
 
