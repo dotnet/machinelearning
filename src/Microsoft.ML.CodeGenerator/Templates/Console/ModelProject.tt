@@ -26,7 +26,7 @@
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
 <#}#>
 <# if (IncludeOnnxRuntime){ #>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.2.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.3.0" />
 <#}#>
 <# if (IncludeImageClassificationPackage){ #>
     <PackageReference Include="Microsoft.ML.Vision" Version="<#= StablePackageVersion #>" />
