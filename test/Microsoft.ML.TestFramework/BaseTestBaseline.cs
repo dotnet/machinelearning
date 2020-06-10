@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
@@ -659,6 +660,133 @@ namespace Microsoft.ML.RunTests
 
             double scale = Math.Pow(10, integralDigitCount);
             return scale * Math.Round(value / scale, digitsOfPrecision);
+        }
+
+        /// <summary>
+        /// Takes in 2 IDataViews and compares the specified column. 
+        /// </summary>
+        /// <param name="leftColumnName">The name of the left column to compare.</param>
+        /// <param name="rightColumnName">The name of the right column to compare.</param>
+        /// <param name="left">The left IDataView.</param>
+        /// <param name="right">The right IDataView</param>
+        /// <param name="precision">How many digits of precision to use for comparison. Defaults to 6 and only applies to floating point numbers.</param>
+        /// <param name="isRightColumnOnnxScalar">If the right IDataView is from ONNX. ONNX return values as a VBuffer always, so this lets that case be handled.</param>
+        public void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6, bool isRightColumnOnnxScalar = false)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+            var leftType = leftColumn.Type.GetItemType();
+            var rightType = rightColumn.Type.GetItemType();
+
+            if (leftType == NumberDataViewType.SByte)
+                CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.Byte)
+                CompareSelectedColumns<byte>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.Int16)
+                CompareSelectedColumns<short>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.UInt16)
+                CompareSelectedColumns<ushort>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.Int32)
+                CompareSelectedColumns<int>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.UInt32)
+                CompareSelectedColumns<uint>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.Int64)
+                CompareSelectedColumns<long>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.UInt64)
+                CompareSelectedColumns<ulong>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.Single)
+                CompareSelectedColumns<float>(leftColumnName, rightColumnName, left, right, precision, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == NumberDataViewType.Double)
+                CompareSelectedColumns<double>(leftColumnName, rightColumnName, left, right, precision, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == BooleanDataViewType.Instance)
+                CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+            else if (leftType == TextDataViewType.Instance)
+                CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
+        }
+
+        private void CompareSelectedColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6, bool isRightColumnOnnxScalar = false)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
+            {
+                T expectedScalar = default;
+                VBuffer<T> expectedVector = default;
+
+                ValueGetter<T> expectedScalarGetter = default;
+                ValueGetter<VBuffer<T>> expectedVectorGetter = default;
+
+                ValueGetter<T> actualScalarGetter = default;
+                ValueGetter<VBuffer<T>> actualVectorGetter = default;
+
+                VBuffer<T> actualVector = default;
+                T actualScalar = default;
+
+                // Assuming both columns are of the same type.
+                if (leftColumn.Type is VectorDataViewType)
+                {
+                    expectedVectorGetter = expectedCursor.GetGetter<VBuffer<T>>(leftColumn);
+                    actualVectorGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
+                }
+                else
+                {
+                    expectedScalarGetter = expectedCursor.GetGetter<T>(leftColumn);
+
+                    // If the right column is from onxx it will still be a VBuffer, just has a length of 1.
+                    if (isRightColumnOnnxScalar)
+                        actualVectorGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
+                    else
+                        actualScalarGetter = actualCursor.GetGetter<T>(rightColumn);
+                }
+
+                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
+                {
+
+                    if (leftColumn.Type is VectorDataViewType)
+                    {
+                        expectedVectorGetter(ref expectedVector);
+                        actualVectorGetter(ref actualVector);
+                        Assert.Equal(expectedVector.Length, actualVector.Length);
+
+                        for (int i = 0; i < expectedVector.Length; ++i)
+                            CompareScalarValues<T>(expectedVector.GetItemOrDefault(i), actualVector.GetItemOrDefault(i), precision);
+                    }
+                    else
+                    {
+                        expectedScalarGetter(ref expectedScalar);
+
+                        // If the right column is from onxx get a VBuffer instead and just use the first value.
+                        if (isRightColumnOnnxScalar)
+                        {
+                            actualVectorGetter(ref actualVector);
+                            actualScalar = actualVector.GetItemOrDefault(0);
+                        }
+                        else
+                        {
+                            actualScalarGetter(ref actualScalar);
+                        }
+
+                        CompareScalarValues<T>(expectedScalar, actualScalar, precision);
+                    }
+                }
+            }
+        }
+
+        private void CompareScalarValues<T>(T expected, T actual, int precision)
+        {
+            if (typeof(T) == typeof(ReadOnlyMemory<Char>))
+                Assert.Equal(expected.ToString(), actual.ToString());
+            else if (typeof(T) == typeof(double))
+                Assert.Equal(Convert.ToDouble(expected), Convert.ToDouble(actual), precision);
+            else if (typeof(T) == typeof(float))
+                // We are using float values. But the Assert.Equal function takes doubles.
+                // And sometimes the converted doubles are different in their precision.
+                // So make sure we compare floats
+                CompareNumbersWithTolerance(Convert.ToSingle(expected), Convert.ToSingle(actual), null, precision);
+            else
+                Assert.Equal(expected, actual);
         }
 
 #if TOLERANCE_ENABLED

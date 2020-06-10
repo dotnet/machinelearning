@@ -22162,7 +22162,8 @@
                       "Mean",
                       "Minimum",
                       "Maximum",
-                      "SpecifiedValue"
+                      "SpecifiedValue",
+                      "Mode"
                     ]
                   },
                   "Desc": "The replacement method to utilize",
@@ -22232,7 +22233,8 @@
               "Mean",
               "Minimum",
               "Maximum",
-              "SpecifiedValue"
+              "SpecifiedValue",
+              "Mode"
             ]
           },
           "Desc": "The replacement method to utilize",
@@ -22242,7 +22244,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Def"
         },
         {
           "Name": "ImputeBySlot",

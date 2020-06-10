@@ -778,9 +778,9 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(data);
                     var onnxResult = onnxTransformer.Transform(data);
-                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult);
-                    CompareSelectedColumns<float>("Probability", "Probability", transformedData, onnxResult);
-                    CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+                    CompareResults("Score", "Score", transformedData, onnxResult, isRightColumnOnnxScalar: true);
+                    CompareResults("Probability", "Probability", transformedData, onnxResult, isRightColumnOnnxScalar: true);
+                    CompareResults("PredictedLabel", "PredictedLabel", transformedData, onnxResult, isRightColumnOnnxScalar: true);
                 }
                 CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             }
@@ -939,7 +939,7 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedColumns<float>("pca", "pca", transformedData, onnxResult);
+                    CompareResults("pca", "pca", transformedData, onnxResult);
                 }
             }
             Done();
@@ -1304,7 +1304,7 @@ namespace Microsoft.ML.Tests
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
                     var columnName = i == pipelines.Length - 1 ? "Tokens" : "NGrams";
-                    CompareSelectedColumns<float>(columnName, columnName, transformedData, onnxResult, 3);
+                    CompareResults(columnName, columnName, transformedData, onnxResult, 3);
 
                     VBuffer<ReadOnlyMemory<char>> mlNetSlots = default;
                     VBuffer<ReadOnlyMemory<char>> onnxSlots = default;
@@ -1371,7 +1371,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareResults("Label", "Label", outputData, onnxResult);
+                CompareResults("Label", "Label", outputData, onnxResult, isRightColumnOnnxScalar: true);
             }
             Done();
         }
@@ -1949,103 +1949,9 @@ namespace Microsoft.ML.Tests
                 // Compare all the columns between ML.Net and ONNX.
                 foreach(var column in columnsToCompare)
                 {
-                    CompareResults(column.Name, column.Name, transformedData, onnxResult, column.Precision);
+                    CompareResults(column.Name, column.Name, transformedData, onnxResult, column.Precision, true);
                 }
             }
-        }
-
-        private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
-        {
-            var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
-            var leftType = leftColumn.Type.GetItemType();
-            var rightType = rightColumn.Type.GetItemType();
-
-            if (leftType == NumberDataViewType.SByte)
-                CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Byte)
-                CompareSelectedColumns<byte>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int16)
-                CompareSelectedColumns<short>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt16)
-                CompareSelectedColumns<ushort>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int32)
-                CompareSelectedColumns<int>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt32)
-                CompareSelectedColumns<uint>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Int64)
-                CompareSelectedColumns<long>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.UInt64)
-                CompareSelectedColumns<ulong>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == NumberDataViewType.Single)
-                CompareSelectedColumns<float>(leftColumnName, rightColumnName, left, right, precision);
-            else if (leftType == NumberDataViewType.Double)
-                CompareSelectedColumns<double>(leftColumnName, rightColumnName, left, right, precision);
-            else if (leftType == BooleanDataViewType.Instance)
-                CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right);
-            else if (leftType == TextDataViewType.Instance)
-                CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
-        }
-
-        private void CompareSelectedColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
-        {
-            var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
-
-            using (var expectedCursor = left.GetRowCursor(leftColumn))
-            using (var actualCursor = right.GetRowCursor(rightColumn))
-            {
-                T expectedScalar = default;
-                VBuffer<T> expectedVector = default;
-
-                ValueGetter<T> expectedScalarGetter = default;
-                ValueGetter<VBuffer<T>> expectedVectorGetter = default;
-
-                VBuffer<T> actual = default;
-
-                if (leftColumn.Type is VectorDataViewType)
-                    expectedVectorGetter = expectedCursor.GetGetter<VBuffer<T>>(leftColumn);
-                else
-                    expectedScalarGetter = expectedCursor.GetGetter<T>(leftColumn);
-
-                var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
-                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
-                {
-                    actualGetter(ref actual);
-
-                    if (leftColumn.Type is VectorDataViewType)
-                    {
-                        expectedVectorGetter(ref expectedVector);
-                        Assert.Equal(expectedVector.Length, actual.Length);
-
-                        for (int i = 0; i < expectedVector.Length; ++i)
-                            CompareScalarValues<T>(expectedVector.GetItemOrDefault(i), actual.GetItemOrDefault(i), precision);
-                    }
-                    else
-                    {
-                        expectedScalarGetter(ref expectedScalar);
-                        Assert.Equal(1, actual.Length);
-
-                        var actualVal = actual.GetItemOrDefault(0);
-                        CompareScalarValues<T>(expectedScalar, actualVal, precision);
-                    }
-                }
-            }
-        }
-
-        private void CompareScalarValues<T>(T expected, T actual, int precision)
-        {
-            if (typeof(T) == typeof(ReadOnlyMemory<Char>))
-                Assert.Equal(expected.ToString(), actual.ToString());
-            else if (typeof(T) == typeof(double))
-                Assert.Equal(Convert.ToDouble(expected), Convert.ToDouble(actual), precision);
-            else if (typeof(T) == typeof(float))
-                // We are using float values. But the Assert.Equal function takes doubles.
-                // And sometimes the converted doubles are different in their precision.
-                // So make sure we compare floats
-                CompareNumbersWithTolerance(Convert.ToSingle(expected), Convert.ToSingle(actual), null, precision);
-            else
-                Assert.Equal(expected, actual);
         }
 
         private void SaveOnnxModel(ModelProto model, string binaryFormatPath, string textFormatPath)
