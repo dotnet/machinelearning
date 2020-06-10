@@ -35,7 +35,9 @@ namespace <#= Namespace #>.ConsoleApp
 			// Make a single prediction on the sample data and print results
 			var predictionResult = ConsumeModel.Predict(sampleData);
 
+ <#if(!"ObjectDetection".Equals(TaskType) ){ #>
 			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...\n\n");
+<#} #>
 <# if(SampleData != null) {#>
 <#foreach(var kv in SampleData){#>
 			Console.WriteLine($"<#= kv.Key #>: {sampleData.<#= kv.Key #>}");
@@ -47,6 +49,9 @@ namespace <#= Namespace #>.ConsoleApp
 			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}\n\n");
 <#} else if("MulticlassClassification".Equals(TaskType)){#>
 			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]\n\n");
+<#} else if("ObjectDetection".Equals(TaskType)){#>
+			Console.WriteLine("\n\nPredicted Boxes:\n");
+            Console.WriteLine(predictionResult);
 <#} #>
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();

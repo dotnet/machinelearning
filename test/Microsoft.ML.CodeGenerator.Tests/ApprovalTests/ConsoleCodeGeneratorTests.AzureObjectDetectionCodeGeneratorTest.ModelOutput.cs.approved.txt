@@ -2,6 +2,8 @@
 
 using System;
 using Microsoft.ML.Data;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CodeGenTest.Model
 {

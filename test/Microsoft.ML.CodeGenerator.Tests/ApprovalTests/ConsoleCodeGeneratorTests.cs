@@ -219,7 +219,7 @@ namespace mlnet.Tests
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
             foreach (var project in codeGen.ToSolution())
             {
-                foreach(var projectFile in project)
+                foreach (var projectFile in project)
                 {
                     NamerFactory.AdditionalInformation = projectFile.Name;
                     Approvals.Verify(((ICSharpFile)projectFile).File);
@@ -253,10 +253,12 @@ namespace mlnet.Tests
                 ClassificationLabel = new string[] { "label1", "label2", "label3" },
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
+            //codeGen.GenerateOutput(); // use this to see output in project.
             foreach (var project in codeGen.ToSolution())
             {
                 foreach (var projectFile in project)
                 {
+
                     NamerFactory.AdditionalInformation = projectFile.Name;
                     Approvals.Verify(((ICSharpFile)projectFile).File);
                 }

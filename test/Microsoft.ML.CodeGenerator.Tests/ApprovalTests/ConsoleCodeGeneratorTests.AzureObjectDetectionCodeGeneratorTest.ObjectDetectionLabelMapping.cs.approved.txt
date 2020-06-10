@@ -3,16 +3,18 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace CodeGenTest.Model
 {
     [CustomMappingFactoryAttribute(nameof(ObjectDetectionLabelMapping))]
-    public class ObjectDetectionLabelMapping : CustomMappingFactory<ObjectDetectionLabelMappingInput, ModelOutput>
+    public class ObjectDetectionLabelMapping : CustomMappingFactory<ObjectDetectionLabelMappingInput, ObjectDetectionLabelMappingOutput>
     {
         public static string[] Label = new string[] { "label1", "label2", "label3", };
 
-        public static void Mapping(ObjectDetectionLabelMappingInput input, ModelOutput output)
+        public static void Mapping(ObjectDetectionLabelMappingInput input, ObjectDetectionLabelMappingOutput output)
         {
             long[] oldLabels = input.Labels.GetValues().ToArray();
             output.Labels = new string[oldLabels.Length];
@@ -25,7 +27,7 @@ namespace CodeGenTest.Model
         }
 
         // This factory method will be called when loading the model to get the mapping operation.
-        public override Action<ObjectDetectionLabelMappingInput, ModelOutput> GetMapping()
+        public override Action<ObjectDetectionLabelMappingInput, ObjectDetectionLabelMappingOutput> GetMapping()
         {
             return Mapping;
         }
@@ -43,25 +45,6 @@ namespace CodeGenTest.Model
         public VBuffer<float> Boxes;
     }
 
-    public class BoundingBox
-    {
-        public float Top;
-
-        public float Left;
-
-        public float Right;
-
-        public float Bottom;
-
-        public string Label;
-
-        public float Score;
-
-        public override string ToString()
-        {
-            return $"Top: {this.Top}, Left: {this.Left}, Right: {this.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this.Score}";
-        }
-    }
 
 
     public class ObjectDetectionLabelMappingOutput

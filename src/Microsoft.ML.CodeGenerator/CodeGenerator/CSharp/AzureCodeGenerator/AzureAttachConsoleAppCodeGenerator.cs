@@ -68,7 +68,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     IncludeMklComponentsPackage = false,
                     IncludeLightGBMPackage = false,
                     IncludeFastTreePackage = false,
-                    IncludeImageTransformerPackage = _settings.IsImage,
+                    IncludeImageTransformerPackage = _settings.IsImage || _settings.IsObjectDetection,
                     IncludeImageClassificationPackage = false,
                     IncludeOnnxPackage = true,
                     IncludeOnnxRuntime = _settings.IsObjectDetection,

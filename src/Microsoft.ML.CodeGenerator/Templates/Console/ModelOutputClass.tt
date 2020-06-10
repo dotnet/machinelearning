@@ -11,6 +11,10 @@
 
 using System;
 using Microsoft.ML.Data;
+<#if("ObjectDetection".Equals(TaskType)){ #>
+using System.Collections.Generic;
+using System.Linq;
+<# }#>
 
 namespace  <#= Namespace #>.Model
 {

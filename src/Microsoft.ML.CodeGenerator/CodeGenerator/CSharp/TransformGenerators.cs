@@ -472,7 +472,7 @@ internal class CustomNormalizeMapping : TransformGeneratorBase
 
         public override string GenerateTransformer()
         {
-            return @"ApplyOnnxModel(modelFile: modelFile, outputColumnNames: new[] { ""boxes"",""labels"", ""scores"" }, inputColumnNames: new[] { ""input"" })";
+            return @"ApplyOnnxModel(modelFile: ONNX_MODEL, outputColumnNames: new[] { ""boxes"",""labels"", ""scores"" }, inputColumnNames: new[] { ""input"" })";
         }
     }
 

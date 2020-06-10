@@ -30,13 +30,10 @@ CLI_Annotation();
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
-            this.Write(@"
-using System;
-using System.Linq;
-using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
-
-namespace Microsoft.ML.ModelBuilder.AutoMLService.RemoteAutoML.ObjectDetectionTransformerHelpers
+            this.Write("\r\nusing System;\r\nusing System.Linq;\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.ML" +
+                    ".Transforms;\r\n\r\nnamespace ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write(@".Model
 {
     [CustomMappingFactoryAttribute(nameof(ReshapeTransformer))]
     public class ReshapeTransformer : CustomMappingFactory<Input, Output>

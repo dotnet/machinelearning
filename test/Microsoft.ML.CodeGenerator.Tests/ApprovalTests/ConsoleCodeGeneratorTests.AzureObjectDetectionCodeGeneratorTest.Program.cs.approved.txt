@@ -15,7 +15,8 @@ namespace CodeGenTest.ConsoleApp
             // Make a single prediction on the sample data and print results
             var predictionResult = ConsumeModel.Predict(sampleData);
 
-            Console.WriteLine("Using model to make single prediction -- Comparing actual Label with predicted Label from sample data...\n\n");
+            Console.WriteLine("\n\nPredicted Boxes:\n");
+            Console.WriteLine(predictionResult);
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }

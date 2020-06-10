@@ -30,7 +30,11 @@ CLI_Annotation();
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
-            this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace  ");
+            this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\n");
+if("ObjectDetection".Equals(TaskType)){ 
+            this.Write("using System.Collections.Generic;\r\nusing System.Linq;\r\n");
+ }
+            this.Write("\r\nnamespace  ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
 if("BinaryClassification".Equals(TaskType)){ 

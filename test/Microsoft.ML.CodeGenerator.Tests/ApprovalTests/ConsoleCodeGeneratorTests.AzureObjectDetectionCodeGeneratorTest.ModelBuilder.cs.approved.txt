@@ -51,7 +51,7 @@ namespace CodeGenTest.ConsoleApp
                                       .Append(mlContext.Transforms.CustomMapping<Input, Output>(
                                           (input, output) => ReshapeTransformer.Mapping(input, output),
                                           contractName: nameof(ReshapeTransformer)))
-                                      .Append(mlContext.Transforms.ApplyOnnxModel(modelFile: modelFile, outputColumnNames: new[] { "boxes", "labels", "scores" }, inputColumnNames: new[] { "input" }))
+                                      .Append(mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL, outputColumnNames: new[] { "boxes", "labels", "scores" }, inputColumnNames: new[] { "input" }))
                                       .Append(mlContext.Transforms.CustomMapping<ObjectDetectionLabelMappingInput, ObjectDetectionLabelMappingOutput>( // added this line not sure what to do.
                                           (input, output) => ObjectDetectionLabelMapping.Mapping(input, output),
                                           contractName: nameof(ObjectDetectionLabelMapping)));

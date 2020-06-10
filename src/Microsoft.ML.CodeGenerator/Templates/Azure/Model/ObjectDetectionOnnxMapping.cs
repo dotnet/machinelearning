@@ -31,12 +31,13 @@ CLI_Annotation();
 MB_Annotation();
  } 
             this.Write("\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.ML.Transforms;\r\nusing System;\r\nusing " +
-                    "System.Linq;\r\n\r\nnamespace ");
+                    "System.Collections.Generic;\r\nusing System.Linq;\r\nusing System.Text;\r\n\r\nnamespace" +
+                    " ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(@".Model
 {
     [CustomMappingFactoryAttribute(nameof(ObjectDetectionLabelMapping))]
-    public class ObjectDetectionLabelMapping : CustomMappingFactory<ObjectDetectionLabelMappingInput, ModelOutput>
+    public class ObjectDetectionLabelMapping : CustomMappingFactory<ObjectDetectionLabelMappingInput, ObjectDetectionLabelMappingOutput>
     {
         public static string[] Label = new string[]{");
 foreach(var label in ImportLabels){
@@ -45,35 +46,30 @@ foreach(var label in ImportLabels){
             this.Write("\",");
 }
             this.Write("};\r\n\r\n        public static void Mapping(ObjectDetectionLabelMappingInput input, " +
-                    "ModelOutput output)\r\n        {\r\n            long[] oldLabels = input.Labels.GetV" +
-                    "alues().ToArray();\r\n            output.Labels = new string[oldLabels.Length];\r\n " +
-                    "           output.Scores = input.Scores.GetValues().ToArray();\r\n            outp" +
-                    "ut.Boxes = input.Boxes.GetValues().ToArray();\r\n            for (int i = 0; i < o" +
-                    "ldLabels.Length; i++)\r\n            {\r\n                output.Labels[i] = Label[o" +
-                    "ldLabels[i]];\r\n            }\r\n        }\r\n\r\n        // This factory method will b" +
-                    "e called when loading the model to get the mapping operation.\r\n        public ov" +
-                    "erride Action<ObjectDetectionLabelMappingInput, ModelOutput> GetMapping()\r\n     " +
-                    "   {\r\n            return Mapping;\r\n        }\r\n    }\r\n\r\n    public class ObjectDe" +
-                    "tectionLabelMappingInput\r\n    {\r\n        [ColumnName(\"labels\")]\r\n        public " +
-                    "VBuffer<long> Labels;\r\n\r\n        [ColumnName(\"scores\")]\r\n        public VBuffer<" +
-                    "float> Scores;\r\n\r\n        [ColumnName(\"boxes\")]\r\n        public VBuffer<float> B" +
-                    "oxes;\r\n    }\r\n\r\n    public class BoundingBox\r\n    {\r\n        public float Top;\r\n" +
-                    "\r\n        public float Left;\r\n\r\n        public float Right;\r\n\r\n        public fl" +
-                    "oat Bottom;\r\n\r\n        public string Label;\r\n\r\n        public float Score;\r\n\r\n  " +
-                    "      public override string ToString()\r\n        {\r\n            return $\"Top: {t" +
-                    "his.Top}, Left: {this.Left}, Right: {this.Right}, Bottom: {this.Bottom}, Label: " +
-                    "{this.Label}, Score: {this.Score}\";\r\n        }\r\n    }\r\n\r\n\r\n    public class Obje" +
-                    "ctDetectionLabelMappingOutput\r\n    {\r\n        [ColumnName(\"boxes\")]\r\n        pub" +
-                    "lic float[] Boxes;\r\n\r\n        [ColumnName(\"PredictedLabels\")]\r\n        public st" +
-                    "ring[] Labels;\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Scores;" +
-                    "\r\n\r\n        private BoundingBox[] BoundingBoxes\r\n        {\r\n            get\r\n   " +
-                    "         {\r\n                var boundingBoxes = new List<BoundingBox>();\r\n      " +
-                    "          return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n        p" +
-                    "ublic BoundingBox[] GetBoundingBoxes()\r\n        {\r\n            return this.Bound" +
-                    "ingBoxes;\r\n        }\r\n\r\n        public override string ToString()\r\n        {\r\n  " +
-                    "          var sb = new StringBuilder();\r\n\r\n            foreach (var box in this." +
-                    "BoundingBoxes)\r\n            {\r\n                sb.AppendLine(box.ToString());\r\n " +
-                    "           }\r\n\r\n            return sb.ToString();\r\n        }\r\n    }\r\n}\r\n");
+                    "ObjectDetectionLabelMappingOutput output)\r\n        {\r\n            long[] oldLabe" +
+                    "ls = input.Labels.GetValues().ToArray();\r\n            output.Labels = new string" +
+                    "[oldLabels.Length];\r\n            output.Scores = input.Scores.GetValues().ToArra" +
+                    "y();\r\n            output.Boxes = input.Boxes.GetValues().ToArray();\r\n           " +
+                    " for (int i = 0; i < oldLabels.Length; i++)\r\n            {\r\n                outp" +
+                    "ut.Labels[i] = Label[oldLabels[i]];\r\n            }\r\n        }\r\n\r\n        // This" +
+                    " factory method will be called when loading the model to get the mapping operati" +
+                    "on.\r\n        public override Action<ObjectDetectionLabelMappingInput, ObjectDete" +
+                    "ctionLabelMappingOutput> GetMapping()\r\n        {\r\n            return Mapping;\r\n " +
+                    "       }\r\n    }\r\n\r\n    public class ObjectDetectionLabelMappingInput\r\n    {\r\n   " +
+                    "     [ColumnName(\"labels\")]\r\n        public VBuffer<long> Labels;\r\n\r\n        [Co" +
+                    "lumnName(\"scores\")]\r\n        public VBuffer<float> Scores;\r\n\r\n        [ColumnNam" +
+                    "e(\"boxes\")]\r\n        public VBuffer<float> Boxes;\r\n    }\r\n\r\n\r\n\r\n    public class" +
+                    " ObjectDetectionLabelMappingOutput\r\n    {\r\n        [ColumnName(\"boxes\")]\r\n      " +
+                    "  public float[] Boxes;\r\n\r\n        [ColumnName(\"PredictedLabels\")]\r\n        publ" +
+                    "ic string[] Labels;\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Sc" +
+                    "ores;\r\n\r\n        private BoundingBox[] BoundingBoxes\r\n        {\r\n            get" +
+                    "\r\n            {\r\n                var boundingBoxes = new List<BoundingBox>();\r\n " +
+                    "               return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n    " +
+                    "    public BoundingBox[] GetBoundingBoxes()\r\n        {\r\n            return this." +
+                    "BoundingBoxes;\r\n        }\r\n\r\n        public override string ToString()\r\n        " +
+                    "{\r\n            var sb = new StringBuilder();\r\n\r\n            foreach (var box in " +
+                    "this.BoundingBoxes)\r\n            {\r\n                sb.AppendLine(box.ToString()" +
+                    ");\r\n            }\r\n\r\n            return sb.ToString();\r\n        }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 

@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.ModelBuilder.AutoMLService.RemoteAutoML.ObjectDetectionTransformerHelpers
+namespace CodeGenTest.Model
 {
     [CustomMappingFactoryAttribute(nameof(ReshapeTransformer))]
     public class ReshapeTransformer : CustomMappingFactory<Input, Output>
