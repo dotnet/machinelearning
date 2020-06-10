@@ -344,7 +344,7 @@ namespace Microsoft.ML.TimeSeries
             private double[] _val;
             private double[] _trends;
             private double[] _curWindow;
-            private InnerStl _stl;
+            private readonly InnerStl _stl;
 
             public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int period)
             {
