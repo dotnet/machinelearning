@@ -492,7 +492,6 @@ namespace Microsoft.ML.Transforms
             private Exception _producerTaskException;
 
             private readonly int[] _colToActivesIndex;
-            private bool _disposed;
 
             public override DataViewSchema Schema => _input.Schema;
 
