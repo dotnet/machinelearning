@@ -44,6 +44,11 @@ namespace CodeGenTest.Model
                 return boundingBoxes.ToArray();
             }
         }
+
+        public override string ToString()
+        {
+            return string.Join("\n", BoundingBoxes.Select(x => x.ToString()));
+        }
     }
 
     public class BoundingBox

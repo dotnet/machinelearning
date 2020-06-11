@@ -65,13 +65,15 @@ if(IsObjectDetection){
                     "oxes[(index * 4) + 3],\r\n                                  Score = scores[index]," +
                     "\r\n                                  Label = labels[index].ToString(),\r\n         " +
                     "                     };\r\n                          }).ToList();\r\n               " +
-                    " return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n    }\r\n\r\n    public " +
-                    "class BoundingBox\r\n    {\r\n        public float Top;\r\n\r\n        public float Left" +
-                    ";\r\n\r\n        public float Right;\r\n\r\n        public float Bottom;\r\n\r\n        publ" +
-                    "ic string Label;\r\n\r\n        public float Score;\r\n\r\n        public override strin" +
-                    "g ToString()\r\n        {\r\n            return $\"Top: {this.Top}, Left: {this.Left}" +
-                    ", Right: {this.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this." +
-                    "Score}\";\r\n        }\r\n");
+                    " return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n        public ove" +
+                    "rride string ToString()\r\n        {\r\n            return string.Join(\"\\n\", Boundin" +
+                    "gBoxes.Select(x => x.ToString()));\r\n        }\r\n    }\r\n\r\n    public class Boundin" +
+                    "gBox\r\n    {\r\n        public float Top;\r\n\r\n        public float Left;\r\n\r\n        " +
+                    "public float Right;\r\n\r\n        public float Bottom;\r\n\r\n        public string Lab" +
+                    "el;\r\n\r\n        public float Score;\r\n\r\n        public override string ToString()\r" +
+                    "\n        {\r\n            return $\"Top: {this.Top}, Left: {this.Left}, Right: {thi" +
+                    "s.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this.Score}\";\r\n   " +
+                    "     }\r\n");
 } else if("MulticlassClassification".Equals(TaskType)){ 
             this.Write("        public float[] Score { get; set; }\r\n");
 }else{ 
