@@ -118,7 +118,7 @@ namespace Microsoft.ML
 
         private static string GetShortTempDir()
         {
-            var rnd = RandomUtils.Create();
+            var rnd = RandomUtils.Create(Environment.TickCount);
             string path;
             do
             {
