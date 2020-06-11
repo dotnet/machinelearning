@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TimeSeries.Deseasonality;
 using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.TimeSeries
@@ -31,6 +32,27 @@ namespace Microsoft.ML.TimeSeries
         /// In this mode, output (IsAnomaly, RawScore, Mag, ExpectedValue).
         /// </summary>
         AnomalyAndExpectedValue = 2
+    }
+
+    /// <summary>
+    /// The Deseasonality modes of SrCnn models. The de-seasonality mode is envoked when the period of the series is greater than 0.
+    /// </summary>
+    public enum SrCnnDeseasonalityMode
+    {
+        /// <summary>
+        /// In this mode, the stl decompose algorithm is used to de-seasonality.
+        /// </summary>
+        Stl = 0,
+
+        /// <summary>
+        /// In this mode, the mean value of points in the same position in a period is substracted to de-seasonality.
+        /// </summary>
+        Mean = 1,
+
+        /// <summary>
+        /// In this mode, the median value of points in the same position in a period is substracted to de-seasonality.
+        /// </summary>
+        Median = 2
     }
 
     /// <summary>
@@ -72,7 +94,7 @@ namespace Microsoft.ML.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode, int)"/>
+    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode, int, SrCnnDeseasonalityMode)"/>
     internal sealed class SrCnnEntireAnomalyDetector : BatchDataViewMapperBase<double, SrCnnEntireAnomalyDetector.Batch>
     {
         private const int MinBatchSize = 12;
@@ -86,6 +108,7 @@ namespace Microsoft.ML.TimeSeries
         private readonly double _sensitivity;
         private readonly SrCnnDetectMode _detectMode;
         private readonly int _period;
+        private readonly SrCnnDeseasonalityMode _deseasonalityMode;
 
         private class Bindings : ColumnBindingsBase
         {
@@ -128,7 +151,7 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode, int period)
+        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode, int period, SrCnnDeseasonalityMode deseasonalityMode)
             : base(env, nameof(SrCnnEntireAnomalyDetector), input)
         {
             Host.CheckValue(inputColumnName, nameof(inputColumnName));
@@ -146,12 +169,17 @@ namespace Microsoft.ML.TimeSeries
                 || detectMode == SrCnnDetectMode.AnomalyAndExpectedValue
                 || detectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(detectMode), "Invalid detectMode");
 
+            Host.CheckUserArg(deseasonalityMode == SrCnnDeseasonalityMode.Stl
+                || deseasonalityMode == SrCnnDeseasonalityMode.Mean
+                || deseasonalityMode == SrCnnDeseasonalityMode.Median, nameof(detectMode), "Invalid detectMode");
+
             Host.CheckUserArg(sensitivity >= 0 && sensitivity <= 100, nameof(sensitivity), "Must be in [0,100].");
 
             _outputLength = _outputLengthArray[(int)detectMode];
             _threshold = threshold;
             _sensitivity = sensitivity;
             _detectMode = detectMode;
+            _deseasonalityMode = deseasonalityMode;
 
             _bindings = new Bindings(input.Schema, inputColumnName, outputColumnName, new VectorDataViewType(NumberDataViewType.Double, _outputLength));
         }
@@ -165,7 +193,7 @@ namespace Microsoft.ML.TimeSeries
             return new[] { currentBatch.CreateGetter(input, _inputColumnName) };
         }
 
-        protected override Batch CreateBatch(DataViewRowCursor input) => new Batch(_batchSize, _outputLength, _threshold, _sensitivity, _detectMode, _period);
+        protected override Batch CreateBatch(DataViewRowCursor input) => new Batch(_batchSize, _outputLength, _threshold, _sensitivity, _detectMode, _period, _deseasonalityMode);
 
         protected override Func<bool> GetIsNewBatchDelegate(DataViewRowCursor input)
         {
@@ -208,7 +236,7 @@ namespace Microsoft.ML.TimeSeries
             private double[][] _results;
             private int _bLen;
 
-            public Batch(int batchSize, int outputLength, double threshold, double sensitivity, SrCnnDetectMode detectMode, int period)
+            public Batch(int batchSize, int outputLength, double threshold, double sensitivity, SrCnnDetectMode detectMode, int period, SrCnnDeseasonalityMode deseasonalityMode)
             {
                 _batchSize = batchSize;
                 _outputLength = outputLength;
@@ -222,7 +250,7 @@ namespace Microsoft.ML.TimeSeries
                     _previousBatch = new List<double>(batchSize);
                     _batch = new List<double>(batchSize);
                 }
-                _modeler = new SrCnnEntireModeler(threshold, sensitivity, detectMode, period);
+                _modeler = new SrCnnEntireModeler(threshold, sensitivity, detectMode, period, deseasonalityMode);
             }
 
             public void AddValue(double value)
@@ -319,6 +347,7 @@ namespace Microsoft.ML.TimeSeries
             private readonly double _sensitivity;
             private readonly SrCnnDetectMode _detectMode;
             private readonly int _period;
+            private readonly SrCnnDeseasonalityMode _deseasonalityMode;
 
             //used in all modes
             private readonly double[] _predictArray;
@@ -339,14 +368,16 @@ namespace Microsoft.ML.TimeSeries
             private double[] _seriesToDetect;
             //used in AnomalyAndExpectedValue and AnomalyAndMargin
             private double[] _deAnomalyData;
+            private double[] _circularComponent;
             //used in AnomalyAndMargin mode
             private double[] _units;
             private double[] _val;
             private double[] _trends;
             private double[] _curWindow;
             private readonly InnerStl _stl;
+            private readonly DeseasonalityBase _deseasonalityFunction;
 
-            public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int period)
+            public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int period, SrCnnDeseasonalityMode deseasonalityMode)
             {
                 _threshold = threshold;
                 _sensitivity = sensitivity;
@@ -354,6 +385,19 @@ namespace Microsoft.ML.TimeSeries
                 _period = period;
                 _predictArray = new double[_lookaheadWindowSize + 1];
                 _stl = new InnerStl(true);
+
+                if (deseasonalityMode == SrCnnDeseasonalityMode.Stl)
+                {
+                    _deseasonalityFunction = new StlDeseasonality();
+                }
+                else if (deseasonalityMode == SrCnnDeseasonalityMode.Mean)
+                {
+                    _deseasonalityFunction = new MeanDeseasonality();
+                }
+                else // if (deseasonalityMode == SrCnnDeseasonalityMode.Median)
+                {
+                    _deseasonalityFunction = new MedianDeseasonality();
+                }
             }
 
             public void Train(double[] values, ref double[][] results)
@@ -379,14 +423,11 @@ namespace Microsoft.ML.TimeSeries
 
                 if (_period > 0)
                 {
-                    bool success = _stl.Decomposition(values, _period);
-                    if (success)
-                    {
-                        _seriesToDetect = _stl.Residual.ToArray();
-                    }
+                    _deseasonalityFunction.Deseasonality(ref values, _period, ref _seriesToDetect);
                 }
 
                 SpectralResidual(_seriesToDetect, results, _threshold);
+
                 //Optional Steps
                 if (_detectMode == SrCnnDetectMode.AnomalyAndMargin)
                 {
@@ -522,6 +563,22 @@ namespace Microsoft.ML.TimeSeries
                 for (int i = 0; i < _backAddWindowSize; ++i)
                 {
                     _backAddArray[data.Length + i] = predictedValue;
+                }
+            }
+
+            private void Deseasonality(double[] values)
+            {
+                if (_deseasonalityMode == SrCnnDeseasonalityMode.Stl)
+                {
+
+                }
+                else if (_deseasonalityMode == SrCnnDeseasonalityMode.Mean)
+                {
+
+                }
+                else // _deseasonalityMode == SrCnnDeseasonalityMode.Median
+                {
+
                 }
             }
 
