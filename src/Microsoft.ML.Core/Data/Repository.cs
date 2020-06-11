@@ -118,7 +118,7 @@ namespace Microsoft.ML
 
         private static string GetShortTempDir()
         {
-            var path = Path.Combine(Path.GetFullPath(Path.GetTempPath()), "ml_dotnet");
+            var path = Path.Combine(Path.GetFullPath(Path.GetTempPath()), "ml_dotnet", Path.GetRandomFileName());
             Directory.CreateDirectory(path);
             return path;
         }
