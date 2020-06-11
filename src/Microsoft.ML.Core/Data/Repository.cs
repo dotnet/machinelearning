@@ -118,15 +118,8 @@ namespace Microsoft.ML
 
         private static string GetShortTempDir()
         {
-            var rnd = RandomUtils.Create(Guid.NewGuid().GetHashCode());
-            string path;
-            do
-            {
-                path = Path.Combine(Path.GetTempPath(), "TLC_" + rnd.Next().ToString("X"));
-                path = Path.GetFullPath(path);
-                Directory.CreateDirectory(path);
-            }
-            while (!EnsureDirectory(path));
+            var path = Path.Combine(Path.GetFullPath(Path.GetTempPath()), "ml_dotnet");
+            Directory.CreateDirectory(path);
             return path;
         }
 
