@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TimeSeries;
@@ -527,10 +528,10 @@ namespace Microsoft.ML.Tests
         {
             var ml = new MLContext(1);
             IDataView dataView;
-            if(loadDataFromFile)
+            if (loadDataFromFile)
             {
                 var dataPath = GetDataPath(Path.Combine("Timeseries", "anomaly_detection.csv"));
-                
+
                 // Load data from file into the dataView
                 dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
                     new TextLoader.Column("Value", DataKind.Single, 0),
@@ -596,7 +597,7 @@ namespace Microsoft.ML.Tests
                 var data = new List<TimeSeriesDataDouble>();
                 for (int index = 0; index < 20; index++)
                 {
-                    data.Add(new TimeSeriesDataDouble { Value = 5 } );
+                    data.Add(new TimeSeriesDataDouble { Value = 5 });
                 }
                 data.Add(new TimeSeriesDataDouble { Value = 10 });
                 for (int index = 0; index < 5; index++)
@@ -686,6 +687,27 @@ namespace Microsoft.ML.Tests
             {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
             }
+        }
+
+        [Theory]
+        [InlineData(-1, 3)]
+        [InlineData(40, 3)]
+        [InlineData(20, -1)]
+        public void TestDetectSeasonality(int seasonalityWindowSize, int expectedPeriod)
+        {
+            // Create a detect seasonality input
+            var input = new List<double>() {18.004, 87.401, 87.411, 18.088, 18.017, 87.759, 33.996, 18.043, 87.853, 18.364, 18.004, 86.992, 87.555,
+                18.088, 18.029, 87.906, 87.471, 18.039, 18.099, 87.403, 18.030, 72.991, 87.804, 18.381, 18.016, 87.145, 87.771,
+                18.029, 18.084, 87.976, 34.913, 18.064, 18.302, 87.723, 18.001, 86.401, 87.344, 18.295, 18.002, 87.793,
+                87.531, 18.055, 18.005, 87.947, 18.003, 72.743, 87.722, 18.142 }.Select(t => new TimeSeriesData((float)t));
+
+            var mlContext = new MLContext();
+
+            var dataView = mlContext.Data.LoadFromEnumerable(input);
+            SeasonalityDetector seasonalityDetector = new SeasonalityDetector();
+
+            int period = mlContext.AnomalyDetection.DetectSeasonality(dataView, "Value", seasonalityWindowSize);
+            Assert.Equal(expectedPeriod, period);
         }
 
         private static List<TimeSeriesPoint> GetRootCauseLocalizationPoints()

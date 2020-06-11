@@ -6,82 +6,95 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.TimeSeries
 {
     /// <summary>
-    /// this class is used to detect the periodicity automatically
+    /// This class is used to detect the periodicity.
     /// </summary>
-    public class PeriodDetectUtils
+    public class SeasonalityDetector
     {
         /// <summary>
-        /// the minimum value that is considered as a valid period.
-        /// </summary>
-        private const int MinPeriod = 4;
-
-        /// <summary>
-        /// in practice, the max lag very rarely exceed 365, which lacks of strong interpretation, and which also brings performance overhead.
+        /// In practice, the max lag very rarely exceed 365, which lacks of strong interpretation, and which also brings performance overhead.
         /// </summary>
         private const int MaxLag = 400;
 
         /// <summary>
-        /// suppose the length of time series is 651, now we found an period is 128, then 651/128 = 5, which means there are at most 5 recurrent period. this is too small, the significance build upon this is not trustable.
+        /// Suppose the length of time series is 651, now we found an period is 128, then 651/128 = 5, which means there are at most 5 recurrent period. this is too small, the significance build upon this is not trustable.
         /// </summary>
         private const int MinRecurrentCount = 8;
 
         /// <summary>
-        /// when input time series is with very close values (i.e., different is smaller than E-20), the accuracy of double could distort the
-        /// final trend signal. any seasonal signal under such circumstance becomes unreliable.
-        /// so use this threshold to eliminate such kind of time series. here set to 1e-10 is for conservative consideration.
+        /// When input time series is with very close values (i.e., different is smaller than E-20), the accuracy of double could distort the
+        /// final trend signal. Any seasonal signal under such circumstance becomes unreliable.
+        /// So use this threshold to eliminate such kind of time series. Here set to 1e-10 is for conservative consideration.
         /// </summary>
         private const double MinEnergyThreshold = 1e-10;
 
-        public static int DetectSeasonality(double[] y)
+        /// <summary>
+        /// Obtain the period by adopting techniques of spectral analysis. which is founded by
+        /// the fourier analysis. returns -1 means there's no significant period. otherwise, a period
+        /// is returned.
+        /// </summary>
+        /// <param name="host">The detect seasonality host environment.</param>
+        /// <param name="input">Input DataView.The data is an instance of <see cref="Microsoft.ML.IDataView"/>.</param>
+        /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
+        /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.
+        /// When set to -1, use the whole input to fit model, when set to a positive integer, use this number as batch size.
+        /// Default value is -1.</param>
+        /// <returns>The detected period if seasonality period exists, otherwise return -1.</returns>
+        public int DetectSeasonality(IHostEnvironment host, IDataView input, string inputColumnName, int seasonalityWindowSize)
         {
-            int length = y.Length;
-            int newLength = Get2Power(y.Length);
-            double[] fftRe = new double[newLength];
-            double[] fftIm = new double[newLength];
-            double[] inputRe = new double[newLength];
+            host.CheckValue(input, nameof(input));
+            host.CheckValue(inputColumnName, nameof(inputColumnName));
+            host.CheckUserArg(seasonalityWindowSize == -1 || seasonalityWindowSize >= 0, nameof(seasonalityWindowSize));
 
-            double mean = 0;
-            double std = 0;
+            var column = input.Schema.GetColumnOrNull(inputColumnName);
+            host.CheckUserArg(column.HasValue, nameof(inputColumnName));
 
-            foreach (double value in y)
-                mean += value;
-            mean /= length;
+            var rowCursor = input.GetRowCursor(new List<DataViewSchema.Column>() { column.Value });
+            var valueDelegate = rowCursor.GetGetter<float>(column.Value);
 
-            for (int i = 0; i < length; ++i)
+            int length = 0;
+            float valueRef = 0;
+            List<float> valueCache = new List<float>(seasonalityWindowSize == -1 ? 1024 : seasonalityWindowSize);
+            while (rowCursor.MoveNext())
             {
-                inputRe[i] = y[i] - mean;
-                std += inputRe[i] * inputRe[i];
-            }
-            if (std / length < 1e-8)
-            {
-                return -1;
-            }
-
-            for (int i = length; i < newLength; ++i)
-            {
-                inputRe[i] = 0;
+                valueDelegate.Invoke(ref valueRef);
+                length++;
+                valueCache.Add(valueRef);
+                if (seasonalityWindowSize != -1 && length >= seasonalityWindowSize)
+                    break;
             }
 
-            FftUtils.ComputeForwardFft(inputRe, Enumerable.Repeat(0.0, newLength).ToArray(), fftRe, fftIm, newLength);
+            float[] fftRe = new float[length];
+            float[] fftIm = new float[length];
+            float[] inputRe = valueCache.ToArray();
+
+            FftUtils.ComputeForwardFft(inputRe, Enumerable.Repeat(0f, length).ToArray(), fftRe, fftIm, length);
 
             var z = fftRe.Select((m, i) => new Complex(m, fftIm[i])).ToArray();
+
+            /* Here w is the periodogram, which indicates the square of "energy" on the  frequency domain.
+             * Specifically, w[j] = a[j]^2+b[j]^2, where a and b are Fourier Coefficients for cosine and sine,
+             * x(t) = a0+sum(a[j]cos(2Pi * f[j]t)+b[j]sin(2Pi * f[j]t)
+             */
             var w = z.Select((t, i) => t * Complex.Conjugate(t)).ToArray();
             FindBestTwoFrequencies(w, length, out var bestFreq, out var secondFreq);
 
-            double[] ifftRe = new double[newLength];
-            double[] ifftIm = new double[newLength];
+            double[] ifftRe = new double[length];
+            double[] ifftIm = new double[length];
             FftUtils.ComputeBackwardFft(
                 w.Select(t => (double)t.Real).ToArray(),
-                w.Select(t => (double)t.Imaginary).ToArray(), ifftRe, ifftIm, newLength);
+                w.Select(t => (double)t.Imaginary).ToArray(), ifftRe, ifftIm, length);
             var r = ifftRe.Select((t, i) => new Complex(t, ifftIm[i])).ToArray();
-            int period = FindTruePeriod(r, bestFreq, secondFreq, newLength);
 
-            if (period < MinPeriod)
+            int period = FindActualPeriod(r, bestFreq, secondFreq, length);
+
+            if (period < 0)
             {
                 period = -1;
             }
@@ -89,7 +102,19 @@ namespace Microsoft.ML.TimeSeries
             return period;
         }
 
-        private static int FindTruePeriod(Complex[] r, int bestFreq, int secondFreq, int timeSeriesLength)
+        /// <summary>
+        /// Find the actual period following the steps:
+        /// Pick the best frequency by inspecting the auto-correlation energy (pick the highest) in time-domain.
+        /// In the normal case, usually, when the time series is with period T, then the best frequency is N/T,
+        /// while the second frequency would be N/2T, because period = T implies period = nT, where n is an integer.
+        /// In such a case, smaller period will win out on the autu-correlation energy list, due to the property of auto-correlation.
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="bestFreq"></param>
+        /// <param name="secondFreq"></param>
+        /// <param name="timeSeriesLength"></param>
+        /// <returns></returns>
+        private static int FindActualPeriod(Complex[] r, int bestFreq, int secondFreq, int timeSeriesLength)
         {
             int firstPeriod = -1;
             int secondPeriod = -1;
@@ -138,12 +163,11 @@ namespace Microsoft.ML.TimeSeries
             }
             trueTimeDomainEnergy /= r[0].Real;
 
-            // this is a key equation, which is named the "testing for randomness with the correlogram". /ref: http://www.ltrr.arizona.edu/~dmeko/notes_3.pdf
-            // actually, 1.96 is for the 2-sigma, which has 95% statistical confidence. 2.58 is for 99% confidence, 2.85 for 99.5% confidence
-            /* increasing the threshold aims to mitigate the fake seasonal component caused by outliers. in practice, if there exist true seasonal component,
+            /* This is a key equation, which is named the "testing for randomness with the correlogram". /ref: http://www.ltrr.arizona.edu/~dmeko/notes_3.pdf
+             * 1.96 is for the 2-sigma, which has 95% statistical confidence. 2.58 is for 99% confidence, 2.85 for 99.5% confidence
+             * increasing the threshold aims to mitigate the fake seasonal component caused by outliers. in practice, if there exist true seasonal component,
              * such as BirdStrike/Appdownloads, the energy is far larger than threshold, hence change threshold from 2.85 to 4.0 have no impact (tested);
              */
-
             double threshold = 4 / Math.Sqrt(timeSeriesLength);
 
             if (trueTimeDomainEnergy < threshold || r[truePeriod].Real < MinEnergyThreshold)
@@ -153,7 +177,7 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// in order to pick up a proper frequency robustly (this is useful especially for large frequency, or small period, e.g., period = 2),
+        /// In order to pick up a proper frequency robustly (this is useful especially for large frequency, or small period, e.g., period = 2),
         /// this method aims to pick up the top two frequencies for further evaluation.
         /// of course, the energy of the second frequency (in frequency domain) must be at similar magnitude compared with the energy of the first
         /// frequency.
@@ -174,7 +198,9 @@ namespace Microsoft.ML.TimeSeries
 
             List<double> energies = new List<double>();
 
-            /* length of time series divided by frequency is period. it is obvious that the period should be larger than 1 and smaller than the total length, and is an integer */
+            /* Length of time series divided by frequency is period.
+             * It is obvious that the period should be larger than 1 and smaller than the total length, and is an integer.
+             */
             for (int i = w.Length / timeSeriesLength; i < w.Length / 2 + 1; i++)
             {
                 double nextWeight = w[i].Magnitude;
@@ -187,7 +213,9 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            // once we found a best frequency, the region formed by lower bound to upper bound corresponding to this frequency will not be inspected anymore. because they all share the same period.
+            /* Once we found a best frequency, the region formed by lower bound to upper bound corresponding to this frequency
+             * will not be inspected anymore. because they all share the same period.
+            */
             int period = w.Length / bestFreq;
             double lowerBound = w.Length * 1.0 / (period + 1);
             double upperBound = w.Length * 1.0 / (period - 1);
@@ -214,9 +242,18 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
             }
-            double typycalEnergy = MathUtils.QuickMedian(energies);
 
-            // the second energy must be at least significantly large enough than typical energies, and also similar to best energy at magnitude level.
+            var medianAggregator = new MedianDblAggregator(energies.Count);
+            foreach (var value in energies)
+            {
+                medianAggregator.ProcessValue(value);
+            }
+
+            var typycalEnergy = medianAggregator.Median;
+
+            /* The second energy must be at least significantly large enough than typical energies,
+             * and also similar to best energy at magnitude level.
+            */
             if (typycalEnergy * 6.0 < secondEnergy && secondEnergy * 10.0 > bestEnergy)
                 return;
 
@@ -225,15 +262,15 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// given a frequency F represented by an integer, we aim to find the best period by inspecting the auto-correlation function in time domain.
-        /// since either frequency or the period is an integer, so the possible period located within
-        /// [N/(F+1), N/(F-1)], we need to check this domain, and pick the best one. where N is the length of the augmented time series
+        /// Given a frequency F represented by an integer, we aim to find the best period by inspecting the auto-correlation function in time domain.
+        /// Since either frequency or the period is an integer, the possible period located within
+        /// [N/(F+1), N/(F-1)], we need to check this domain, and pick the best one, where N is the length of the augmented time series
         /// </summary>
-        /// <param name="r">the auto-correlation function of the augmented time series</param>
-        /// <param name="frequency">the input frequency candidate</param>
-        /// <param name="timeSeriesLength">the length of the original time series, this is used for post processing to reduce false positive</param>
-        /// <param name="energy">output the energy on the auto-correlation function</param>
-        /// <returns>return the best period estimated</returns>
+        /// <param name="r">The auto-correlation function of the augmented time series</param>
+        /// <param name="frequency">The input frequency candidate</param>
+        /// <param name="timeSeriesLength">The length of the original time series, this is used for post processing to reduce false positive</param>
+        /// <param name="energy">Output the energy on the auto-correlation function</param>
+        /// <returns>The best period estimated</returns>
         private static int FindBestPeriod(Complex[] r, int frequency, int timeSeriesLength, out double energy)
         {
             energy = -1;
@@ -265,25 +302,6 @@ namespace Microsoft.ML.TimeSeries
                 return -1;
             }
             return bestPeriod;
-        }
-
-        /// <summary>
-        /// get the smallest 2^k which is equal or greater than n
-        /// </summary>
-        private static int Get2Power(int n)
-        {
-            int result = 1;
-            bool meet1 = false; // check is n is just equals to 2^k for some k
-            while (n > 1)
-            {
-                if ((n & 1) != 0)
-                    meet1 = true;
-                result <<= 1;
-                n >>= 1;
-            }
-            if (meet1)
-                result <<= 1;
-            return result;
         }
     }
 }

@@ -210,6 +210,28 @@ namespace Microsoft.ML
             return dst;
         }
 
+        /// <summary>
+        /// Obtain the period by adopting techniques of spectral analysis. which is founded by
+        /// the fourier analysis. returns -1 means there's no significant period. otherwise, a period
+        /// is returned.
+        /// </summary>
+        /// <param name="catalog">The detect seasonality catalog.</param>
+        /// <param name="input">Input DataView.The data is an instance of <see cref="Microsoft.ML.IDataView"/>.</param>
+        /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
+        /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.
+        /// When set to -1, use the whole input to fit model, when set to a positive integer, use this number as batch size.
+        /// Default value is -1.</param>
+        /// <returns>The detected period if seasonality period exists, otherwise return -1.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LocalizeRootCause](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectSeasonality.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static int DetectSeasonality(this AnomalyDetectionCatalog catalog, IDataView input, string inputColumnName, int seasonalityWindowSize = -1)
+        => new SeasonalityDetector().DetectSeasonality(CatalogUtils.GetEnvironment(catalog), input, inputColumnName, seasonalityWindowSize);
+
         private static void CheckRootCauseInput(IHostEnvironment host, RootCauseLocalizationInput src)
         {
             host.CheckUserArg(src.Slices.Count >= 1, nameof(src.Slices), "Must has more than one item");
