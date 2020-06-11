@@ -15,7 +15,7 @@ namespace Microsoft.ML.TimeSeries
     /// <summary>
     /// This class is used to detect the periodicity.
     /// </summary>
-    public class SeasonalityDetector
+    internal class SeasonalityDetector
     {
         /// <summary>
         /// In practice, the max lag very rarely exceed 365, which lacks of strong interpretation, and which also brings performance overhead.
