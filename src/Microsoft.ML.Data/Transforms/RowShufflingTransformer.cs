@@ -552,15 +552,6 @@ namespace Microsoft.ML.Transforms
                 _producerTask = ProduceAsync();
             }
 
-            protected override void Dispose(bool disposing)
-            {
-                if (_disposed)
-                    return;
-
-                _disposed = true;
-                base.Dispose(disposing);
-            }
-
             public static void PostAssert<T>(Channel<T> target, T item)
             {
                 bool retval = target.Writer.TryWrite(item);
