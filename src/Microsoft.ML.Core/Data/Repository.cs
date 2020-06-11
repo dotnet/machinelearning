@@ -123,20 +123,6 @@ namespace Microsoft.ML
             return path;
         }
 
-        private static bool EnsureDirectory(string path)
-        {
-            path = Path.GetFullPath(Path.Combine(path, ".lock"));
-            try
-            {
-                using (var stream = new FileStream(path, FileMode.CreateNew))
-                    return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         ~Repository()
         {
             if (!Disposed)
