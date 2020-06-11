@@ -94,6 +94,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                     Target = _settings.Target,
                     SampleData = sampleResult,
+                    IsObjectDetection = _settings.IsObjectDetection,
                 }.TransformText(),
                 Name = "Program.cs",
             };

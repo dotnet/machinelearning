@@ -66,6 +66,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     Target = _settings.Target,
                     TaskType = _settings.MlTask.ToString(),
                     PredictionLabelType = labelTypeCsharp.Name,
+                    IsObjectDetection = _settings.IsObjectDetection,
                 }.TransformText(),
                 Name = "ModelOutput.cs",
             };

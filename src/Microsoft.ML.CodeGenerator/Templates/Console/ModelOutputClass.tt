@@ -11,7 +11,7 @@
 
 using System;
 using Microsoft.ML.Data;
-<#if("ObjectDetection".Equals(TaskType)){ #>
+<#if(IsObjectDetection){ #>
 using System.Collections.Generic;
 using System.Linq;
 <# }#>
@@ -25,13 +25,13 @@ namespace  <#= Namespace #>.Model
         // its default value, which is the name of the field.
         [ColumnName("PredictedLabel")]
         public bool Prediction { get; set; }
-<# } if("MulticlassClassification".Equals(TaskType)){ #>
+<# } if("MulticlassClassification".Equals(TaskType) && !IsObjectDetection){ #>
         // ColumnName attribute is used to change the column name from
         // its default value, which is the name of the field.
         [ColumnName("PredictedLabel")]
         public <#= PredictionLabelType#> Prediction { get; set; }
 <# }#>
-<#if("ObjectDetection".Equals(TaskType)){ #>
+<#if(IsObjectDetection){ #>
         [ColumnName("boxes")]
         public float[] Boxes { get; set; }
 
@@ -98,5 +98,6 @@ namespace  <#= Namespace #>.Model
 public string TaskType {get;set;}
 public string PredictionLabelType {get;set;}
 public string Namespace {get;set;}
+public bool IsObjectDetection {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 #>

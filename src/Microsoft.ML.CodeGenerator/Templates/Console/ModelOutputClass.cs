@@ -31,7 +31,7 @@ CLI_Annotation();
 MB_Annotation();
  } 
             this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\n");
-if("ObjectDetection".Equals(TaskType)){ 
+if(IsObjectDetection){ 
             this.Write("using System.Collections.Generic;\r\nusing System.Linq;\r\n");
  }
             this.Write("\r\nnamespace  ");
@@ -41,14 +41,14 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
                     "ctedLabel\")]\r\n        public bool Prediction { get; set; }\r\n");
- } if("MulticlassClassification".Equals(TaskType)){ 
+ } if("MulticlassClassification".Equals(TaskType) && !IsObjectDetection){ 
             this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
                     "ctedLabel\")]\r\n        public ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
             this.Write(" Prediction { get; set; }\r\n");
  }
-if("ObjectDetection".Equals(TaskType)){ 
+if(IsObjectDetection){ 
             this.Write("        [ColumnName(\"boxes\")]\r\n        public float[] Boxes { get; set; }\r\n\r\n    " +
                     "    [ColumnName(\"PredictedLabels\")]\r\n        public string[] Labels { get; set; " +
                     "}\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Scores { get; set; }" +
@@ -84,6 +84,7 @@ if("ObjectDetection".Equals(TaskType)){
 public string TaskType {get;set;}
 public string PredictionLabelType {get;set;}
 public string Namespace {get;set;}
+public bool IsObjectDetection {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 
 

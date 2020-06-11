@@ -54,7 +54,7 @@ MB_Annotation();
 }
             this.Write("\r\n\t\t\t// Make a single prediction on the sample data and print results\r\n\t\t\tvar pre" +
                     "dictionResult = ConsumeModel.Predict(sampleData);\r\n\r\n ");
-if(!"ObjectDetection".Equals(TaskType) ){ 
+if(!IsObjectDetection){ 
             this.Write("\t\t\tConsole.WriteLine(\"Using model to make single prediction -- Comparing actual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" with predicted ");
@@ -78,13 +78,13 @@ if("BinaryClassification".Equals(TaskType) ){
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {predictionResult.Score}\\n\\n\");\r\n");
-} else if("MulticlassClassification".Equals(TaskType)){
+} else if("MulticlassClassification".Equals(TaskType) && !IsObjectDetection){
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" value {predictionResult.Prediction} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\\n\\n\");\r\n");
-} else if("ObjectDetection".Equals(TaskType)){
+} else if(IsObjectDetection){
             this.Write("\t\t\tConsole.WriteLine(\"\\n\\nPredicted Boxes:\\n\");\r\n            Console.WriteLine(pr" +
                     "edictionResult);\r\n");
 } 
@@ -100,6 +100,7 @@ public char Separator {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
+public bool IsObjectDetection {get; set;}
 public IList<string> Features {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public IDictionary<string, string> SampleData {get;set;}
