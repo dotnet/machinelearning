@@ -309,6 +309,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             Console.WriteLine($""*------------------------------------------------"");
             Console.WriteLine($""*       LossFn:        {metrics.LossFunction:0.##}"");
             Console.WriteLine($""*       R2 Score:      {metrics.RSquared:0.##}"");
+            Console.WriteLine($""*       Absolute loss: {metrics.MeanAbsoluteError:#.##}"");
+            Console.WriteLine($""*       Squared loss:  {metrics.MeanSquaredError:#.##}"");
+            Console.WriteLine($""*       RMS loss:      {metrics.RootMeanSquaredError:#.##}"");
             Console.WriteLine($""*************************************************"");
         }
 
