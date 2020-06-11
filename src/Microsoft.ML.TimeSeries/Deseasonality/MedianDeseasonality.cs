@@ -30,7 +30,7 @@ namespace Microsoft.ML.TimeSeries
             AllocateDoubleArray(period);
             for (int i = 0; i < period; ++i)
             {
-                _circularComponent[i] = 1;
+                _circularComponent[i] = MathUtility.QuickMedian(_subSeries[i]);
             }
 
             // substract the circular component from the original series.

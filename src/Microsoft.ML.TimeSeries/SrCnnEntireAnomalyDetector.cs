@@ -347,7 +347,7 @@ namespace Microsoft.ML.TimeSeries
             private readonly double _sensitivity;
             private readonly SrCnnDetectMode _detectMode;
             private readonly int _period;
-            private readonly SrCnnDeseasonalityMode _deseasonalityMode;
+            private readonly DeseasonalityBase _deseasonalityFunction;
 
             //used in all modes
             private readonly double[] _predictArray;
@@ -368,14 +368,11 @@ namespace Microsoft.ML.TimeSeries
             private double[] _seriesToDetect;
             //used in AnomalyAndExpectedValue and AnomalyAndMargin
             private double[] _deAnomalyData;
-            private double[] _circularComponent;
             //used in AnomalyAndMargin mode
             private double[] _units;
             private double[] _val;
             private double[] _trends;
             private double[] _curWindow;
-            private readonly InnerStl _stl;
-            private readonly DeseasonalityBase _deseasonalityFunction;
 
             public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int period, SrCnnDeseasonalityMode deseasonalityMode)
             {
@@ -384,7 +381,6 @@ namespace Microsoft.ML.TimeSeries
                 _detectMode = detectMode;
                 _period = period;
                 _predictArray = new double[_lookaheadWindowSize + 1];
-                _stl = new InnerStl(true);
 
                 if (deseasonalityMode == SrCnnDeseasonalityMode.Stl)
                 {
@@ -563,22 +559,6 @@ namespace Microsoft.ML.TimeSeries
                 for (int i = 0; i < _backAddWindowSize; ++i)
                 {
                     _backAddArray[data.Length + i] = predictedValue;
-                }
-            }
-
-            private void Deseasonality(double[] values)
-            {
-                if (_deseasonalityMode == SrCnnDeseasonalityMode.Stl)
-                {
-
-                }
-                else if (_deseasonalityMode == SrCnnDeseasonalityMode.Mean)
-                {
-
-                }
-                else // _deseasonalityMode == SrCnnDeseasonalityMode.Median
-                {
-
                 }
             }
 
