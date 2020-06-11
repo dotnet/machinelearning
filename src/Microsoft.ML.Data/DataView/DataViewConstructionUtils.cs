@@ -71,6 +71,10 @@ namespace Microsoft.ML.Data
                 var schemaDefinitionCol = schemaDefinition.FirstOrDefault(c => c.ColumnName == name);
                 if (schemaDefinitionCol == null)
                     throw env.Except($"Type should contain a member named {name}");
+
+                // always use column type from model as this type can be more specific
+                schemaDefinitionCol.ColumnType = col.Type;
+
                 var annotations = col.Annotations;
                 if (annotations != null)
                 {

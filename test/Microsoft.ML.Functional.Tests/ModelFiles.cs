@@ -217,6 +217,7 @@ namespace Microsoft.ML.Functional.Tests
             public string[] CategoricalFeatures;
             public float[] NumericalFeatures;
 #pragma warning restore SA1401
+            public float Label;
         }
 
         public class ModelOutput
@@ -230,15 +231,17 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LoadModelWithOptionalColumnTransform()
         {
-            SchemaDefinition inputSchemaDefinition = SchemaDefinition.Create(typeof(ModelInput));
-            inputSchemaDefinition[nameof(ModelInput.CategoricalFeatures)].ColumnType = new VectorDataViewType(TextDataViewType.Instance, 5);
-            inputSchemaDefinition[nameof(ModelInput.NumericalFeatures)].ColumnType = new VectorDataViewType(NumberDataViewType.Single, 3);
             var mlContext = new MLContext(1);
             ITransformer trainedModel;
             DataViewSchema dataViewSchema;
             trainedModel = mlContext.Model.Load(TestCommon.GetDataPath(DataDir, "backcompat", "modelwithoptionalcolumntransform.zip"), out dataViewSchema);
-            var model = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(trainedModel, inputSchemaDefinition: inputSchemaDefinition);
-            var prediction = model.Predict(new ModelInput() { CategoricalFeatures = new[] { "ABC", "ABC", "ABC", "ABC", "ABC" }, NumericalFeatures = new float [] { 1, 1, 1 } });
+
+            var model = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(trainedModel, inputSchema: dataViewSchema);
+            var prediction = model.Predict(new ModelInput() { 
+                CategoricalFeatures = new[] { "ABC", "ABC", "ABC", "ABC", "ABC" }, 
+                NumericalFeatures = new float [] { 1, 1, 1 },
+                Label = 1
+            });
 
             Assert.Equal(1, prediction.Score[0]);
         }
