@@ -288,7 +288,7 @@ true/false values. The `BooleanDataViewType` class derives from
 
 The default value of `BL` is `false`, and it has no `NA` value.
 
-There is a standard conversion from `TX` to `BL`. There are standard
+There are standard conversions from `TX` to `BL`, and from `BL` to `TX`. There are standard
 conversions from `BL` to all signed integer and floating point numeric types,
 with `false` mapping to zero and `true` mapping to one.
 
@@ -332,7 +332,8 @@ values being the canonical `NA` values.
 
 There are standard conversions from each floating-point type to the other
 floating-point type. There are also standard conversions from text to each
-floating-point type and from each integer type to each floating-point type.
+floating-point type, from floating-point type to text types, and from each
+integer type to each floating-point type.
 
 ### Signed Integer Types
 
@@ -342,8 +343,8 @@ default value of each of these is zero.
 
 There are standard conversions from each signed integer type to every other
 signed integer type. There are also standard conversions from text to each
-signed integer type and from each signed integer type to each floating-point
-type.
+signed integer type, from each signed integer type to text, and from each
+signed integer type to each floating-point type.
 
 Note that we have not defined standard conversions from floating-point types
 to signed integer types.
@@ -357,8 +358,8 @@ have an `NA` value.
 
 There are standard conversions from each unsigned integer type to every other
 unsigned integer type. There are also standard conversions from text to each
-unsigned integer type and from each unsigned integer type to each floating-
-point type.
+unsigned integer type, each unsigned integer type to text, and from each unsigned
+integer type to each floating-point type.
 
 Note that we have not defined standard conversions from floating-point types
 to unsigned integer types, or between signed integer types and unsigned
@@ -541,6 +542,13 @@ case, it is simple to map implicit items (suppressed due to sparsity) to zero.
 In the former case, these items are first mapped to the empty text value. To
 get the same result, we need empty text to map to zero.
 
+### To Text
+
+There are standard conversions to `TX` from the standard primitive types,
+`R4`, `R8`, `I1`, `I2`, `I4`, `I8`, `U1`, `U2`, `U4`, `U8`, `BL`, `TS`, `DT`, and `DZ`.
+`R4` uses the G7 format and `R8` uses the G17 format. `BL` converts to "True" or "False".
+`TS` uses the format "0:c". `DT` and `DZ` use the "0:o" format.
+  
 ### Floating Point
 
 There are standard conversions from `R4` to `R8` and from `R8` to `R4`. These

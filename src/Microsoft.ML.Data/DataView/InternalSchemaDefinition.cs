@@ -160,19 +160,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        /// <summary>
-        /// Given a type and name for a variable, returns whether this appears to be a vector type,
-        /// and also the associated data type for this type. If a valid data type could not
-        /// be determined, this will throw.
-        /// </summary>
-        /// <param name="name">The name of the variable to inspect.</param>
-        /// <param name="rawType">The type of the variable to inspect.</param>
-        /// <param name="attributes">Attribute of <paramref name="rawType"/>. It can be <see langword="null"/> if attributes don't exist.</param>
-        /// <param name="isVector">Whether this appears to be a vector type.</param>
-        /// <param name="itemType">
-        /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
-        /// </param>
-        public static void GetVectorAndItemType(string name, Type rawType, IEnumerable<Attribute> attributes, out bool isVector, out Type itemType)
+        public static void GetMappedType(Type rawType, out Type itemType, out bool isVector)
         {
             // Determine whether this is a vector, and also determine the raw item type.
             isVector = true;
@@ -189,10 +177,29 @@ namespace Microsoft.ML.Data
             // The internal type of string is ReadOnlyMemory<char>. That is, string will be stored as ReadOnlyMemory<char> in IDataView.
             if (itemType == typeof(string))
                 itemType = typeof(ReadOnlyMemory<char>);
+        }
+
+        /// <summary>
+        /// Given a type and name for a variable, returns whether this appears to be a vector type,
+        /// and also the associated data type for this type. If a valid data type could not
+        /// be determined, this will throw.
+        /// </summary>
+        /// <param name="name">The name of the variable to inspect.</param>
+        /// <param name="rawType">The type of the variable to inspect.</param>
+        /// <param name="attributes">Attribute of <paramref name="rawType"/>. It can be <see langword="null"/> if attributes don't exist.</param>
+        /// <param name="isVector">Whether this appears to be a vector type.</param>
+        /// <param name="itemType">
+        /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
+        /// </param>
+        public static void GetVectorAndItemType(string name, Type rawType, IEnumerable<Attribute> attributes, out bool isVector, out Type itemType)
+        {
+            GetMappedType(rawType, out itemType, out isVector);
             // Check if the itemType extracted from rawType is supported by ML.NET's type system.
             // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
-            else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
-                throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
+            if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
+            {
+                throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type and registered custom types for member {0}", name);
+            }
         }
 
         public static InternalSchemaDefinition Create(Type userType, SchemaDefinition.Direction direction)
