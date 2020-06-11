@@ -921,6 +921,7 @@ namespace Microsoft.ML.Transforms
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowEstimator));
             _options = options;
             _tensorFlowModel = tensorFlowModel;
+            tensorFlowModel.Session.graph.as_default();
             var inputTuple = TensorFlowTransformer.GetInputInfo(_host, tensorFlowModel.Session, options.InputColumns);
             _tfInputTypes = inputTuple.tfInputTypes;
             var outputTuple = TensorFlowTransformer.GetOutputInfo(_host, tensorFlowModel.Session, options.OutputColumns);

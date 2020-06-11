@@ -1,0 +1,35 @@
+---- BoundLoader ----
+3 columns:
+  Text: Vector<String, 2>
+  OneText: String
+  Label: Single
+---- RowToRowMapperTransform ----
+4 columns:
+  Text: Vector<String, 2>
+  OneText: String
+  Label: Single
+  DT: Vector<Key<UInt32, 0-2147483647>, 2>
+---- RowToRowMapperTransform ----
+5 columns:
+  Text: Vector<String, 2>
+  OneText: String
+  Label: Single
+  DT: Vector<Key<UInt32, 0-2147483647>, 2>
+  DT: Vector<Single, 2, 4>
+---- RowToRowMapperTransform ----
+6 columns:
+  Text: Vector<String, 2>
+  OneText: String
+  Label: Single
+  DT: Vector<Key<UInt32, 0-2147483647>, 2>
+  DT: Vector<Single, 2, 4>
+  DT1: Vector<Key<UInt32, 0-2147483647>, 2>
+---- RowToRowMapperTransform ----
+7 columns:
+  Text: Vector<String, 2>
+  OneText: String
+  Label: Single
+  DT: Vector<Key<UInt32, 0-2147483647>, 2>
+  DT: Vector<Single, 2, 4>
+  DT1: Vector<Key<UInt32, 0-2147483647>, 2>
+  DT1: Vector<Single, 2, 4>

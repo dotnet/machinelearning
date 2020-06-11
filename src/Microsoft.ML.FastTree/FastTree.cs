@@ -3032,6 +3032,9 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(Utils.Size(outputNames) >= 1);
 
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "TreeEnsembleModelParameters");
+
             //Nodes.
             var nodesTreeids = new List<long>();
             var nodesIds = new List<long>();

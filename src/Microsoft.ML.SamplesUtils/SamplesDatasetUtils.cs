@@ -83,6 +83,38 @@ namespace Microsoft.ML.SamplesUtils
         /// </remarks>
         public static IDataView LoadFeaturizedAdultDataset(MLContext mlContext)
         {
+            // Create data featurizing pipeline
+            var pipeline = mlContext.Transforms.CopyColumns("Label", "IsOver50K")
+                // Convert categorical features to one-hot vectors
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("workclass"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("education"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("marital-status"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("occupation"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("relationship"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("ethnicity"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("native-country"))
+                // Combine all features into one feature vector
+                .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
+                    "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
+                    "capital-gain", "capital-loss", "hours-per-week"))
+                // Min-max normalize all the features
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"));
+
+            var data = LoadRawAdultDataset(mlContext);
+            var featurizedData = pipeline.Fit(data).Transform(data);
+            return featurizedData;
+        }
+
+        /// <summary>
+        /// Returns the path to the Adult UCI dataset and featurizes it to be suitable for classification tasks.
+        /// </summary>
+        /// <param name="mlContext"><see cref="MLContext"/> used for data loading and processing.</param>
+        /// <returns>Raw dataset.</returns>
+        /// <remarks>
+        /// For more details about this dataset, please see https://archive.ics.uci.edu/ml/datasets/adult.
+        /// </remarks>
+        public static IDataView LoadRawAdultDataset(MLContext mlContext)
+        {
             // Obtains the path to the file
             string dataFile = GetAdultDataset();
 
@@ -103,33 +135,14 @@ namespace Microsoft.ML.SamplesUtils
                         new TextLoader.Column("capital-gain", DataKind.Single, 10),
                         new TextLoader.Column("capital-loss", DataKind.Single, 11),
                         new TextLoader.Column("hours-per-week", DataKind.Single, 12),
-                        new TextLoader.Column("native-country", DataKind.Single, 13),
+                        new TextLoader.Column("native-country", DataKind.String, 13),
                         new TextLoader.Column("IsOver50K", DataKind.Boolean, 14),
                     },
                 separatorChar: ',',
                 hasHeader: true
             );
 
-            // Create data featurizing pipeline
-            var pipeline = mlContext.Transforms.CopyColumns("Label", "IsOver50K")
-                // Convert categorical features to one-hot vectors
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("workclass"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("education"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("marital-status"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("occupation"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("relationship"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("ethnicity"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("native-country"))
-                // Combine all features into one feature vector
-                .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
-                    "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
-                    "capital-gain", "capital-loss", "hours-per-week"))
-                // Min-max normalize all the features
-                .Append(mlContext.Transforms.NormalizeMinMax("Features"));
-
-            var data = loader.Load(dataFile);
-            var featurizedData = pipeline.Fit(data).Transform(data);
-            return featurizedData;
+            return loader.Load(dataFile);
         }
 
         /// <summary>

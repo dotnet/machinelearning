@@ -333,6 +333,60 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
+        public void OnnxModelOutputDifferentOrder()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
+
+            var dataView = ML.Data.LoadFromEnumerable(
+                new TestDataMulti[] {
+                    new TestDataMulti()
+                    {
+                        ina = new float[] {1,2,3,4,5},
+                        inb = new float[] {1,2,3,4,5}
+                    }
+                });
+            // The model returns the output columns in the order outa, outb. We are doing the opposite here, making sure the name mapping is correct.
+            var onnx = ML.Transforms.ApplyOnnxModel(new[] { "outb", "outa" }, new[] { "ina", "inb" }, modelFile).Fit(dataView).Transform(dataView);
+
+            var outaCol = onnx.Schema["outa"];
+            var outbCol = onnx.Schema["outb"];
+            using (var curs = onnx.GetRowCursor(outaCol, onnx.Schema["outb"]))
+            {
+                var getScoresa = curs.GetGetter<VBuffer<float>>(outaCol);
+                var getScoresb = curs.GetGetter<VBuffer<float>>(outbCol);
+                var buffera = default(VBuffer<float>);
+                var bufferb = default(VBuffer<float>);
+
+                while (curs.MoveNext())
+                {
+                    getScoresa(ref buffera);
+                    getScoresb(ref bufferb);
+                    Assert.Equal(5, buffera.Length);
+                    Assert.Equal(5, bufferb.Length);
+                    Assert.Equal(0, buffera.GetValues().ToArray().Sum());
+                    Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
+                }
+            }
+
+            // The model returns the output columns in the order outa, outb. We are doing only a subset, outb, to make sure the mapping works.
+            onnx = ML.Transforms.ApplyOnnxModel(new[] { "outb" }, new[] { "ina", "inb" }, modelFile).Fit(dataView).Transform(dataView);
+
+            outbCol = onnx.Schema["outb"];
+            using (var curs = onnx.GetRowCursor(outbCol))
+            {
+                var getScoresb = curs.GetGetter<VBuffer<float>>(outbCol);
+                var bufferb = default(VBuffer<float>);
+
+                while (curs.MoveNext())
+                {
+                    getScoresb(ref bufferb);
+                    Assert.Equal(5, bufferb.Length);
+                    Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
+                }
+            }
+        }
+
+        [OnnxFact]
         public void TestUnknownDimensions()
         {
             // model contains -1 in input and output shape dimensions

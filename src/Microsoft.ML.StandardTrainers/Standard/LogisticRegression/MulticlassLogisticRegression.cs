@@ -978,6 +978,10 @@ namespace Microsoft.ML.Trainers
         private bool SaveAsOnnxCore(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
+
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "MultiClassLogisticRegression");
+
             Host.Assert(outputs[0] == DefaultColumnNames.PredictedLabel);
             Host.Assert(outputs[1] == DefaultColumnNames.Score);
 

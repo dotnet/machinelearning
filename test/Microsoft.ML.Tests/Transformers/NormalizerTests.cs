@@ -67,7 +67,11 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.LogMeanVarianceColumnOptions("float1lmv", "float1"),
                 new NormalizingEstimator.LogMeanVarianceColumnOptions("float4lmv", "float4"),
                 new NormalizingEstimator.LogMeanVarianceColumnOptions("double1lmv", "double1"),
-                new NormalizingEstimator.LogMeanVarianceColumnOptions("double4lmv", "double4"));
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double4lmv", "double4"),
+                new NormalizingEstimator.RobustScalingColumnOptions("float1rb", "float1"),
+                new NormalizingEstimator.RobustScalingColumnOptions("float4rb", "float4"),
+                new NormalizingEstimator.RobustScalingColumnOptions("double1rb", "double1"),
+                new NormalizingEstimator.RobustScalingColumnOptions("double4rb", "double4"));
 
             var data = loader.Load(dataPath);
 
@@ -383,6 +387,79 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(4, doubleBinModelVector.Density.Length);
             Assert.Empty(doubleBinModelVector.Offset);
 
+            // Robust scaler
+            var robustScalerEstimator = context.Transforms.NormalizeRobustScaling(
+                                new[] {new InputOutputColumnPair("float1rbs", "float1"), new InputOutputColumnPair("float4rbs", "float4"),
+                                    new InputOutputColumnPair("double1rbs", "double1"), new InputOutputColumnPair("double4rbs", "double4")});
+
+            var robustScalerTransformer = robustScalerEstimator.Fit(data);
+
+            floatAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[0].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
+            Assert.Equal(1 / 1.8, floatAffineModel.Scale, 2);
+            Assert.Equal(5.8f, floatAffineModel.Offset, 2);
+
+            floatAffineModelVec = ((NormalizingTransformer)robustScalerTransformer).Columns[1].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.Equal(4, floatAffineModelVec.Scale.Length);
+            Assert.Equal(.5555556, floatAffineModelVec.Scale[0], 2);
+            Assert.Equal(.8333333, floatAffineModelVec.Scale[1], 2);
+            Assert.Equal(.3389830, floatAffineModelVec.Scale[2], 2);
+            Assert.Equal(.8333333, floatAffineModelVec.Scale[3], 2);
+
+            Assert.Equal(5.8, floatAffineModelVec.Offset[0], 2);
+            Assert.Equal(3, floatAffineModelVec.Offset[1], 2);
+            Assert.Equal(4.4, floatAffineModelVec.Offset[2], 2);
+            Assert.Equal(1.3, floatAffineModelVec.Offset[3], 2);
+
+            doubleAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[2].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<double>;
+            Assert.Equal(1 / 1.8, doubleAffineModel.Scale, 2);
+            Assert.Equal(5.8, doubleAffineModel.Offset, 2);
+
+            doubleAffineModelVector = ((NormalizingTransformer)robustScalerTransformer).Columns[3].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<double>>;
+            Assert.Equal(4, doubleAffineModelVector.Scale.Length);
+            Assert.Equal(.5555556, doubleAffineModelVector.Scale[0], 2);
+            Assert.Equal(.8333333, doubleAffineModelVector.Scale[1], 2);
+            Assert.Equal(.3389830, doubleAffineModelVector.Scale[2], 2);
+            Assert.Equal(.8333333, doubleAffineModelVector.Scale[3], 2);
+
+            Assert.Equal(5.8, doubleAffineModelVector.Offset[0], 2);
+            Assert.Equal(3, doubleAffineModelVector.Offset[1], 2);
+            Assert.Equal(4.4, doubleAffineModelVector.Offset[2], 2);
+            Assert.Equal(1.3, doubleAffineModelVector.Offset[3], 2);
+
+            // Robust scaler no offset
+            robustScalerEstimator = context.Transforms.NormalizeRobustScaling(
+                                new[] {new InputOutputColumnPair("float1rbs", "float1"), new InputOutputColumnPair("float4rbs", "float4"),
+                                    new InputOutputColumnPair("double1rbs", "double1"), new InputOutputColumnPair("double4rbs", "double4")}
+                                ,centerData: false);
+
+            robustScalerTransformer = robustScalerEstimator.Fit(data);
+
+            floatAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[0].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
+            Assert.Equal(1 / 1.8, floatAffineModel.Scale, 2);
+            Assert.Equal(0, floatAffineModel.Offset, 2);
+
+            floatAffineModelVec = ((NormalizingTransformer)robustScalerTransformer).Columns[1].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.Equal(4, floatAffineModelVec.Scale.Length);
+            Assert.Equal(.5555556, floatAffineModelVec.Scale[0], 2);
+            Assert.Equal(.8333333, floatAffineModelVec.Scale[1], 2);
+            Assert.Equal(.3389830, floatAffineModelVec.Scale[2], 2);
+            Assert.Equal(.8333333, floatAffineModelVec.Scale[3], 2);
+
+            Assert.Empty(floatAffineModelVec.Offset);
+
+            doubleAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[2].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<double>;
+            Assert.Equal(1 / 1.8, doubleAffineModel.Scale, 2);
+            Assert.Equal(0, doubleAffineModel.Offset, 2);
+
+            doubleAffineModelVector = ((NormalizingTransformer)robustScalerTransformer).Columns[3].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<double>>;
+            Assert.Equal(4, doubleAffineModelVector.Scale.Length);
+            Assert.Equal(.5555556, doubleAffineModelVector.Scale[0], 2);
+            Assert.Equal(.8333333, doubleAffineModelVector.Scale[1], 2);
+            Assert.Equal(.3389830, doubleAffineModelVector.Scale[2], 2);
+            Assert.Equal(.8333333, doubleAffineModelVector.Scale[3], 2);
+
+            Assert.Empty(doubleAffineModelVector.Offset);
+
             Done();
         }
 
@@ -473,6 +550,19 @@ namespace Microsoft.ML.Tests.Transformers
             TestCommon.CheckSameSchemas(data15.Schema, data17.Schema);
             CheckSameValues(data15, data16);
             CheckSameValues(data15, data17);
+
+            // Tests for RobustScaler
+            var est18 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.RobustScaling, ("float4", "float4"));
+            var est19 = new NormalizingEstimator(Env, new NormalizingEstimator.RobustScalingColumnOptions("float4"));
+            var est20 = ML.Transforms.NormalizeRobustScaling("float4", "float4");
+
+            var data18 = est18.Fit(data).Transform(data);
+            var data19 = est19.Fit(data).Transform(data);
+            var data20 = est20.Fit(data).Transform(data);
+            TestCommon.CheckSameSchemas(data18.Schema, data19.Schema);
+            TestCommon.CheckSameSchemas(data18.Schema, data20.Schema);
+            CheckSameValues(data18, data19);
+            CheckSameValues(data18, data20);
 
             Done();
         }
@@ -926,7 +1016,7 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             }
 
-            CheckEquality("NormalizerEstimator", "normalized2.tsv", "normalized.tsv");
+            CheckEquality("NormalizerEstimator", "normalized2.tsv", "normalizedBackwardsCompat.tsv");
 
             Done();
         }
@@ -974,6 +1064,207 @@ namespace Microsoft.ML.Tests.Transformers
             var dimensions2 = (transformedData2.Schema["output"].Type as VectorDataViewType).Dimensions;
 
             Assert.True(dimensions1.SequenceEqual(dimensions2));
+        }
+
+        [Fact]
+        public void TestHeapMedianAlgorithm()
+        {
+            // Generate 100,000 random numbers
+            var numberOfItems = 100000;
+            var numbers = GenerateRandomFloats(numberOfItems);
+
+            // Allocate memory for median ahead of time. 
+            float linqMedian = default;
+            float heapMedian = default;
+
+            // Find the median using LINQ so we can compare it to the heap approach.
+            int numberCount = numbers.Count();
+            int halfIndex = numbers.Count() / 2;
+            var sortedNumbers = numbers.OrderBy(n => n);
+
+            if ((numberCount % 2) == 0)
+            {
+                linqMedian = ((sortedNumbers.ElementAt(halfIndex) +
+                    sortedNumbers.ElementAt((halfIndex - 1))) / 2);
+            }
+            else
+            {
+                linqMedian = sortedNumbers.ElementAt(halfIndex);
+            }
+
+            // Find the median using the heap approach.
+            // Create the heaps
+            var minHeap = new MedianAggregatorUtils.MinHeap<float>((numberOfItems / 2) + 1);
+            var maxHeap = new MedianAggregatorUtils.MaxHeap<float>((numberOfItems / 2) + 1);
+
+            foreach (var num in numbers)
+            {
+                MedianAggregatorUtils.GetMedianSoFar(num, ref heapMedian, ref maxHeap, ref minHeap);
+            }
+
+            // Compare the medians, they should be equal.
+            Assert.Equal(linqMedian, heapMedian);
+        }
+
+        static List<float> GenerateRandomFloats(int num, int min = int.MinValue, int max = int.MaxValue, int seed = 0)
+        {
+            var rand = new Random(seed);
+
+            var list = new List<float>(num);
+
+            for (int i = 0; i < num; i++)
+            {
+                list.Add(rand.Next(min, max));
+            }
+
+            return list;
+        }
+
+        [Fact]
+        public void TestMinHeapForMedianNormalizer()
+        {
+            // Simple test with all values in order.
+            MedianAggregatorUtils.MinHeap<float> heap = new MedianAggregatorUtils.MinHeap<float>(10);
+            heap.Add(-1);
+            heap.Add(-2);
+            heap.Add(-3);
+            heap.Add(-4);
+            heap.Add(-5);
+
+            var min = heap.Peek();
+            Assert.Equal(-5, min);
+
+            // Test with duplicate values.
+            heap = new MedianAggregatorUtils.MinHeap<float>(10);
+            heap.Add(-5);
+            heap.Add(-2);
+            heap.Add(-3);
+            heap.Add(-4);
+            heap.Add(-5);
+
+            min = heap.Peek();
+            Assert.Equal(-5, min);
+
+            // Test with values in reverse order.
+            heap = new MedianAggregatorUtils.MinHeap<float>(10);
+            heap.Add(-5);
+            heap.Add(-4);
+            heap.Add(-3);
+            heap.Add(-2);
+            heap.Add(-1);
+
+            min = heap.Peek();
+            Assert.Equal(-5, min);
+
+            // Test with repeated duplicated values.
+            heap = new MedianAggregatorUtils.MinHeap<float>(10);
+            heap.Add(-5);
+            heap.Add(-5);
+            heap.Add(-5);
+            heap.Add(-5);
+            heap.Add(-5);
+            min = heap.Peek();
+            Assert.Equal(-5, min);
+
+            // Test with positive and negative numbers.
+            heap = new MedianAggregatorUtils.MinHeap<float>(10);
+            heap.Add(1);
+            heap.Add(-2);
+            heap.Add(-10);
+            heap.Add(-4);
+            heap.Add(10);
+
+            min = heap.Peek();
+            Assert.Equal(-10, min);
+
+            // Large heap test to make sure correct min is chosen.
+            heap = new MedianAggregatorUtils.MinHeap<float>(10000);
+            Random rand = new Random(0);
+            min = float.MaxValue;
+            float temp = default;
+
+            for (int i = 0; i < 10000; i++)
+            {
+                temp = rand.Next(int.MinValue, int.MaxValue);
+                min = temp < min ? temp : min;
+                heap.Add(temp);
+            }
+
+            Assert.Equal(min, heap.Peek());
+        }
+
+        [Fact]
+        public void TestMaxHeapForMedianNormalizer()
+        {
+            // Simple test with all values in order.
+            MedianAggregatorUtils.MaxHeap<float> heap = new MedianAggregatorUtils.MaxHeap<float>(10);
+            heap.Add(1);
+            heap.Add(2);
+            heap.Add(3);
+            heap.Add(4);
+            heap.Add(5);
+
+            var max = heap.Peek();
+            Assert.Equal(5, max);
+
+            // Test with duplicate values.
+            heap = new MedianAggregatorUtils.MaxHeap<float>(10);
+            heap.Add(5);
+            heap.Add(2);
+            heap.Add(3);
+            heap.Add(4);
+            heap.Add(5);
+
+            max = heap.Peek();
+            Assert.Equal(5, max);
+
+            // Test with values in reverse order.
+            heap = new MedianAggregatorUtils.MaxHeap<float>(10);
+            heap.Add(5);
+            heap.Add(4);
+            heap.Add(3);
+            heap.Add(2);
+            heap.Add(1);
+
+            max = heap.Peek();
+            Assert.Equal(5, max);
+
+            // Test with repeated duplicated values.
+            heap = new MedianAggregatorUtils.MaxHeap<float>(10);
+            heap.Add(5);
+            heap.Add(5);
+            heap.Add(5);
+            heap.Add(5);
+            heap.Add(5);
+
+            max = heap.Peek();
+            Assert.Equal(5, max);
+
+            // Test with positive and negative numbers.
+            heap = new MedianAggregatorUtils.MaxHeap<float>(10);
+            heap.Add(-1);
+            heap.Add(2);
+            heap.Add(10);
+            heap.Add(4);
+            heap.Add(-10);
+
+            max = heap.Peek();
+            Assert.Equal(10, max);
+
+            // Large heap test to make sure correct min is chosen.
+            heap = new MedianAggregatorUtils.MaxHeap<float>(10000);
+            Random rand = new Random(0);
+            max = float.MinValue;
+            float temp = default;
+
+            for (int i = 0; i < 10000; i++)
+            {
+                temp = rand.Next(int.MinValue, int.MaxValue);
+                max = temp > max ? temp : max;
+                heap.Add(temp);
+            }
+
+            Assert.Equal(max, heap.Peek());
         }
     }
 }

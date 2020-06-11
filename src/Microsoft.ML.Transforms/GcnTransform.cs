@@ -627,6 +627,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 string opType;
 
                 if ((_norms[iinfo] != LpNormNormalizingEstimatorBase.NormFunction.StandardDeviation) && (_ensureZeroMeans[iinfo] == false))
@@ -898,7 +901,7 @@ namespace Microsoft.ML.Transforms
             return col.ItemType == NumberDataViewType.Single;
         }
 
-        internal const string ExpectedColumnType = "Expected Single or known-size vector of Single";
+        internal const string ExpectedColumnType = "Expected known-size vector of Single";
 
         /// <summary>
         /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.

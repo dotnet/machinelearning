@@ -317,7 +317,8 @@ namespace Microsoft.ML.Data
                     _getter = GetGetterCore();
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                        $"expected type: '{_getter.GetType().GetGenericArguments().First().GetGenericArguments().First()}'.");
                 return getter;
             }
 
@@ -1167,9 +1168,11 @@ namespace Microsoft.ML.Data
                         {
                             Contracts.Check(IsColumnActive(column) && column.Index < _getters.Length);
                             Contracts.AssertValue(_getters[column.Index]);
-                            var fn = _getters[column.Index] as ValueGetter<TValue>;
+                            var originFn = _getters[column.Index];
+                            var fn = originFn as ValueGetter<TValue>;
                             if (fn == null)
-                                throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                                throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                                    $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                             return fn;
                         }
 
@@ -1501,7 +1504,8 @@ namespace Microsoft.ML.Data
 
                     var getter = _getter as ValueGetter<TValue>;
                     if (getter == null)
-                        throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                            $"expected type: '{_getter.GetType().GetGenericArguments().First()}'.");
                     return getter;
                 }
 

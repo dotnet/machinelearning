@@ -439,10 +439,12 @@ namespace Microsoft.ML.Transforms
                 if (isSrc)
                     return Input.GetGetter<TValue>(Input.Schema[index]);
 
-                Ch.Assert(_getters[index] != null);
-                var fn = _getters[index] as ValueGetter<TValue>;
+                var originFn = _getters[index];
+                Ch.Assert(originFn != null);
+                var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
 
