@@ -162,6 +162,7 @@ namespace Microsoft.ML.TimeSeries
             {
                 _seasonalComponent[i] = _s[i];
                 _trendComponent[i] = _t[i];
+                _residual[i] = yValues[i] - _s[i] - _t[i];
             }
 
             return true;
