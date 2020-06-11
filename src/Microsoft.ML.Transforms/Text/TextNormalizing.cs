@@ -233,6 +233,9 @@ namespace Microsoft.ML.Transforms.Text
 
             private void SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 10;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 // StringNormalizer only takes input of shapes [C] or [1,C],
                 // so the input is squeezed to support inferred shapes ( e.g. [-1,C] ).
                 var opType = "Squeeze";

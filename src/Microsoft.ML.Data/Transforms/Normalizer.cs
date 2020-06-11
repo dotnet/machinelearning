@@ -822,6 +822,9 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(_parent.Columns[iinfo] == info);
                 Contracts.Assert(CanSaveOnnx(ctx));
 
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 int valueCount = info.InputType.GetValueCount();
                 if (valueCount == 0)
                     return false;

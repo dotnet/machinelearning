@@ -702,8 +702,8 @@ namespace Microsoft.ML.TimeSeries
                     //Step 11: Update Anomaly Score
                     results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
 
-                    // update anomaly result according to the boundary
-                    results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || results[i][5] < values[i]) ? 1 : 0;
+                    //Step 12: Update IsAnomaly
+                    results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || values[i] > results[i][5]) ? 1 : 0;
                 }
             }
 
