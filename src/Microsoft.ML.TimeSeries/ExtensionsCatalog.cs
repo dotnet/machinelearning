@@ -187,7 +187,7 @@ namespace Microsoft.ML
         /// It is used when score is calculated for each root cause item. The range of beta should be in [0,1].
         /// For a larger beta, root cause items which have a large difference between value and expected value will get a high score.
         /// For a small beta, root cause items which have a high relative change will get a low score.</param>
-        /// <param name="rootCauseThreshold">A threshold to determine whether the point should be root cause. If the point's delta is equal to or larger than anomalyDeltaThreshold multiplies anomaly dimension point's delta, this point is treated as a root cause. Different threshold will turn out different result. Users can choose the delta according to their data and requirment. </param>
+        /// <param name="rootCauseThreshold">A threshold to determine whether the point should be root cause. If the point's delta is equal to or larger than anomalyDeltaThreshold multiplied by anomaly dimension point's delta, this point is treated as a root cause. Different threshold will turn out different results. Users can choose the delta according to their data and requirements. </param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
