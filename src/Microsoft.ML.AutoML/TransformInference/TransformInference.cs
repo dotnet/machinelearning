@@ -406,7 +406,7 @@ namespace Microsoft.ML.AutoML
                 suggestedTransforms.AddRange(suggestions);
             }
 
-            if (task != TaskKind.Recommendation && task != TaskKind.Ranking)
+            if (task != TaskKind.Recommendation)
             {
                 var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms, intermediateCols);
                 if (finalFeaturesConcatTransform != null)
@@ -445,6 +445,10 @@ namespace Microsoft.ML.AutoML
             // remove column with 'Label' purpose
             var labelColumnName = intermediateCols.FirstOrDefault(c => c.Purpose == ColumnPurpose.Label)?.ColumnName;
             concatColNames.Remove(labelColumnName);
+
+            // remove column with 'GroupId' purpose
+            var groupColumnName = intermediateCols.FirstOrDefault(c => c.Purpose == ColumnPurpose.GroupId)?.ColumnName;
+            concatColNames.RemoveAll(s => s == groupColumnName);
 
             intermediateCols = intermediateCols.Where(c => c.Purpose == ColumnPurpose.NumericFeature ||
                 c.Purpose == ColumnPurpose.CategoricalFeature || c.Purpose == ColumnPurpose.TextFeature ||

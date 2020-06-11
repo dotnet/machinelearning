@@ -83,7 +83,6 @@ namespace mlnet.Tests
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
                 false, false, false, false);
 
-
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
@@ -540,7 +539,6 @@ namespace mlnet.Tests
         {
             if (_mockedPipeline == null)
             {
-
                 MLContext context = new MLContext();
                 // same learners with different hyperparams
                 var hyperparams1 = new Microsoft.ML.AutoML.ParameterSet(new List<Microsoft.ML.AutoML.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
