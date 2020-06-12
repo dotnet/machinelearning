@@ -64,10 +64,10 @@ namespace Microsoft.ML.TimeSeries
             host.CheckUserArg(column.HasValue, nameof(inputColumnName));
 
             var rowCursor = input.GetRowCursor(new List<DataViewSchema.Column>() { column.Value });
-            var valueDelegate = rowCursor.GetGetter<float>(column.Value);
+            var valueDelegate = rowCursor.GetGetter<double>(column.Value);
 
             int length = 0;
-            float valueRef = 0;
+            double valueRef = 0;
             var valueCache = seasonalityWindowSize == -1 ? new List<double>() : new List<double>(seasonalityWindowSize);
             while (rowCursor.MoveNext())
             {
