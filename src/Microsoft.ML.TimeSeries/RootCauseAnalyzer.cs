@@ -40,10 +40,10 @@ namespace Microsoft.ML.TimeSeries
             dst.Items = new List<RootCauseItem>();
 
             DimensionInfo dimensionInfo = SeparateDimension(src.AnomalyDimension, src.AggregateSymbol);
-            Tuple<PointTree, PointTree, Dictionary<string, TimeSeriesPoint>> pointInfo = GetPointsInfo(src, dimensionInfo);
+            Tuple<PointTree, PointTree, Dictionary<Dictionary<string, object>, TimeSeriesPoint>> pointInfo = GetPointsInfo(src, dimensionInfo);
             PointTree pointTree = pointInfo.Item1;
             PointTree anomalyTree = pointInfo.Item2;
-            Dictionary<string, TimeSeriesPoint> dimPointMapping = pointInfo.Item3;
+            Dictionary<Dictionary<string, Object>, TimeSeriesPoint> dimPointMapping = pointInfo.Item3;
 
             //which means there is no anomaly point with the anomaly dimension or no point under anomaly dimension
             if (anomalyTree.ParentNode == null || dimPointMapping.Count == 0)
@@ -82,11 +82,12 @@ namespace Microsoft.ML.TimeSeries
             return info;
         }
 
-        private Tuple<PointTree, PointTree, Dictionary<string, TimeSeriesPoint>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo)
+        private Tuple<PointTree, PointTree, Dictionary<Dictionary<string, object>, TimeSeriesPoint>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo)
         {
             PointTree pointTree = new PointTree();
             PointTree anomalyTree = new PointTree();
-            Dictionary<string, TimeSeriesPoint> dimPointMapping = new Dictionary<string, TimeSeriesPoint>();
+            DimensionComparer dc = new DimensionComparer();
+            Dictionary<Dictionary<string, object>, TimeSeriesPoint> dimPointMapping = new Dictionary<Dictionary<string, object>, TimeSeriesPoint>(dc);
 
             List<TimeSeriesPoint> totalPoints = GetTotalPointsForAnomalyTimestamp(src);
             Dictionary<string, Object> subDim = GetSubDim(src.AnomalyDimension, dimensionInfo.DetailDims);
@@ -95,9 +96,9 @@ namespace Microsoft.ML.TimeSeries
             {
                 if (ContainsAll(point.Dimension, subDim))
                 {
-                    if (!dimPointMapping.ContainsKey(GetDicCode(point.Dimension)))
+                    if (!dimPointMapping.ContainsKey(point.Dimension))
                     {
-                        dimPointMapping.Add(GetDicCode(point.Dimension), point);
+                        dimPointMapping.Add(point.Dimension, point);
                         bool isValidPoint = point.IsAnomaly == true;
                         if (ContainsAll(point.Dimension, subDim))
                         {
@@ -112,7 +113,7 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            return new Tuple<PointTree, PointTree, Dictionary<string, TimeSeriesPoint>>(pointTree, anomalyTree, dimPointMapping);
+            return new Tuple<PointTree, PointTree, Dictionary<Dictionary<string, Object>, TimeSeriesPoint>>(pointTree, anomalyTree, dimPointMapping);
         }
 
         protected Dictionary<string, Object> GetSubDim(Dictionary<string, Object> dimension, List<string> keyList)
@@ -328,7 +329,7 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        private void GetRootCauseDirectionAndScore(Dictionary<string, TimeSeriesPoint> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta, PointTree pointTree, AggregateType aggType, Object aggSymbol)
+        private void GetRootCauseDirectionAndScore(Dictionary<Dictionary<string, Object>, TimeSeriesPoint> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta, PointTree pointTree, AggregateType aggType, Object aggSymbol)
         {
             TimeSeriesPoint anomalyPoint = GetPointByDimension(dimPointMapping, anomalyRoot, pointTree, aggType, aggSymbol);
             if (dst.Items.Count > 1)
@@ -379,11 +380,11 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        private TimeSeriesPoint GetPointByDimension(Dictionary<string, TimeSeriesPoint> dimPointMapping, Dictionary<string, Object> dimension, PointTree pointTree, AggregateType aggType, Object aggSymbol)
+        private TimeSeriesPoint GetPointByDimension(Dictionary<Dictionary<string, Object>, TimeSeriesPoint> dimPointMapping, Dictionary<string, Object> dimension, PointTree pointTree, AggregateType aggType, Object aggSymbol)
         {
-            if (dimPointMapping.ContainsKey(GetDicCode(dimension)))
+            if (dimPointMapping.ContainsKey(dimension))
             {
-                return dimPointMapping[GetDicCode(dimension)];
+                return dimPointMapping[dimension];
             }
 
             int count = 0;
@@ -418,11 +419,6 @@ namespace Microsoft.ML.TimeSeries
             {
                 return null;
             }
-        }
-
-        private static string GetDicCode(Dictionary<string, Object> dic)
-        {
-            return string.Join(";", dic.Select(x => x.Key + "=" + Convert.ToString(x.Value)).ToArray());
         }
 
         private void BuildTree(PointTree tree, List<string> aggDims, TimeSeriesPoint point, Object aggSymbol)
@@ -768,6 +764,49 @@ namespace Microsoft.ML.TimeSeries
         {
             Surprise = surprise;
             ExplanatoryScore = explanatoryScore;
+        }
+    }
+
+    internal class DimensionComparer : EqualityComparer<Dictionary<string, object>>
+    {
+        public override bool Equals(Dictionary<string, object> x, Dictionary<string, object> y)
+        {
+            if (x == null && y == null)
+            {
+                return true;
+            }
+            if ((x == null && y != null) || (x != null && y == null))
+            {
+                return false;
+            }
+            if (x.Count != y.Count)
+            {
+                return false;
+            }
+            if (x.Keys.Except(y.Keys).Any())
+            {
+                return false;
+            }
+            if (y.Keys.Except(x.Keys).Any())
+            {
+                return false;
+            }
+            foreach (var pair in x)
+            {
+                if (!pair.Value.Equals(y[pair.Key]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public override int GetHashCode(Dictionary<string, object> obj)
+        {
+            int code = 0;
+            foreach (KeyValuePair<string, object> pair in obj)
+                code = code ^ pair.GetHashCode();
+            return code;
         }
     }
 }
