@@ -1770,7 +1770,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [TestCategory(Cat), TestCategory("Dracula")]
+        [TestCategory(Cat), TestCategory("CountTargetEncoding")]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandDraculaInfer()
         {
@@ -2154,8 +2154,28 @@ namespace Microsoft.ML.RunTests
         [Fact()]
         public void SavePipeTextLoaderWithMultilines()
         {
-            string dataPath = GetDataPath("multiline.csv");
-            const string loaderArgs = "loader=text{sep=, quote+ multilines+ header+ col=id:Num:0 col=description:TX:1 col=animal:TX:2}";
+            string dataPath = GetDataPath("multiline-escapechar.csv");
+            const string loaderArgs = "loader=text{sep=, quote+ multilines+ header+ escapechar=\\ col=id:Num:0 col=description:TX:1 col=animal:TX:2}";
+
+            OutputPath modelPath = ModelPath();
+            string extraArgs = null;
+            TestCore("showdata", dataPath, loaderArgs, extraArgs);
+
+            _step++;
+
+            TestCore("showdata", dataPath, string.Format("in={{{0}}}", modelPath.Path), "");
+            Done();
+        }
+
+        [TestCategory("DataPipeSerialization")]
+        [Fact()]
+        public void SavePipeTextLoaderWithMissingRealsAsNaNs()
+        {
+            string dataPath = GetDataPath("missing_fields.csv");
+            const string loaderArgs = "loader=text{sep=, quote+ multilines+ header+ escapechar=\\ missingrealnan+ " +
+                "col=id:Num:0 col=description:TX:1 col=date:DT:4 " +
+                "col=sing1:R4:2 col=sing2:R4:3 col=singFt1:R4:2-3 " +
+                "col=doubFt:R8:2-3,5-6}";
 
             OutputPath modelPath = ModelPath();
             string extraArgs = null;

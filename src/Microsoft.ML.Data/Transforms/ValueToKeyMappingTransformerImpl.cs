@@ -67,7 +67,7 @@ namespace Microsoft.ML.Transforms
                 // of building our term dictionary. For the other types (practically, only the UX types),
                 // we should ignore nothing.
                 InPredicate<T> mapsToMissing;
-                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type, out mapsToMissing))
+                if (!Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate(type, out mapsToMissing))
                     mapsToMissing = (in T val) => false;
                 return new Impl<T>(type, mapsToMissing, sorted);
             }
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms
             public override void ParseAddTermArg(ref ReadOnlyMemory<char> terms, IChannel ch)
             {
                 T val;
-                var tryParse = Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
+                var tryParse = Data.Conversion.Conversions.DefaultInstance.GetTryParseConversion<T>(ItemType);
                 for (bool more = true; more;)
                 {
                     ReadOnlyMemory<char> term;
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Transforms
             public override void ParseAddTermArg(string[] terms, IChannel ch)
             {
                 T val;
-                var tryParse = Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
+                var tryParse = Data.Conversion.Conversions.DefaultInstance.GetTryParseConversion<T>(ItemType);
                 foreach (var sterm in terms)
                 {
                     ReadOnlyMemory<char> term = sterm.AsMemory();
@@ -748,7 +748,7 @@ namespace Microsoft.ML.Transforms
                 {
                     writer.WriteLine("# Number of terms of type '{0}' = {1}", ItemType, Count);
                     StringBuilder sb = null;
-                    var stringMapper = Data.Conversion.Conversions.Instance.GetStringConversion<T>(ItemType);
+                    var stringMapper = Data.Conversion.Conversions.DefaultInstance.GetStringConversion<T>(ItemType);
                     for (int i = 0; i < _values.Count; ++i)
                     {
                         T val = _values.GetItem(i);
@@ -1046,7 +1046,7 @@ namespace Microsoft.ML.Transforms
                         return;
                     if (IsTextMetadata && !(TypedMap.ItemType is TextDataViewType))
                     {
-                        var conv = Data.Conversion.Conversions.Instance;
+                        var conv = Data.Conversion.Conversions.DefaultInstance;
                         var stringMapper = conv.GetStringConversion<T>(TypedMap.ItemType);
 
                         ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
@@ -1112,7 +1112,7 @@ namespace Microsoft.ML.Transforms
                     var srcType = TypedMap.ItemType as KeyDataViewType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyDataViewType(typeof(uint), srcType.Count);
-                    var convInst = Data.Conversion.Conversions.Instance;
+                    var convInst = Data.Conversion.Conversions.DefaultInstance;
                     ValueMapper<T, uint> conv;
                     bool identity;
                     // If we can't convert this type to U4, don't try to pass along the metadata.
@@ -1192,7 +1192,7 @@ namespace Microsoft.ML.Transforms
                     var srcType = TypedMap.ItemType as KeyDataViewType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyDataViewType(typeof(uint), srcType.Count);
-                    var convInst = Data.Conversion.Conversions.Instance;
+                    var convInst = Data.Conversion.Conversions.DefaultInstance;
                     ValueMapper<T, uint> conv;
                     bool identity;
                     // If we can't convert this type to U4, don't try.

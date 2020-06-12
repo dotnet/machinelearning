@@ -633,7 +633,7 @@ namespace Microsoft.ML.Transforms
                 // cachedIndex == row.Count || _pivotColPosition <= row.Indices[cachedIndex].
                 int cachedIndex = 0;
                 VBuffer<T> row = default(VBuffer<T>);
-                T naValue = Data.Conversion.Conversions.Instance.GetNAOrDefault<T>(itemType);
+                T naValue = Data.Conversion.Conversions.DefaultInstance.GetNAOrDefault<T>(itemType);
                 return
                     (ref T value) =>
                     {

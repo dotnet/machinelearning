@@ -619,7 +619,7 @@ namespace Microsoft.ML.Transforms
 
             // Default case: convert to text and hash as a string.
             var sb = default(StringBuilder);
-            var conv = Data.Conversion.Conversions.Instance.GetStringConversion<TSrc>();
+            var conv = Data.Conversion.Conversions.DefaultInstance.GetStringConversion<TSrc>();
             return
                 (in TSrc value, uint seed) =>
                 {

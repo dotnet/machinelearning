@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -717,7 +719,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             irisFirstRow["SepalWidth"] = 3.5f;
             irisFirstRow["PetalLength"] = 1.4f;
             irisFirstRow["PetalWidth"] = 0.2f;
-
+            
             var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
@@ -800,6 +802,306 @@ namespace Microsoft.ML.EntryPoints.Tests
                 var result = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(breastCancerPath), false);
                 Assert.True(result.Schema.TryGetColumnIndex("key", out int featureIdx));
                 Assert.True(result.Schema[featureIdx].Type is KeyDataViewType keyType && keyType.Count == typeof(uint).ToMaxInt());
+            }
+        }
+
+        [Fact]
+        public void TestTextLoaderBackCompat_VerWritt_0x0001000C()
+        {
+            // Checks backward compatibility with a text loader created with "verWrittenCur: 0x0001000C"
+            // Model generated with:
+            // loader=text{header+ col=SepalLength:Num:0 col=SepalWidth:Num:1 col=PetalLength:Num:2 col=PetalWidth:Num:2 col=Cat:TX:1-8 col=Num:9-14 col=Type:TX:4}
+            var mlContext = new MLContext(1);
+            string textLoaderModelPath = GetDataPath("backcompat/textloader_VerWritt_0x0001000C.zip");
+            string irisPath = GetDataPath(TestDatasets.irisData.trainFilename);
+
+            IDataView iris;
+            using (FileStream modelfs = File.OpenRead(textLoaderModelPath))
+            using (var rep = RepositoryReader.Open(modelfs, mlContext))
+            {
+                iris = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(irisPath), false);
+            }
+
+            var previewIris = iris.Preview(1);
+            var irisFirstRow = new Dictionary<string, float>();
+            irisFirstRow["SepalLength"] = 5.1f;
+            irisFirstRow["SepalWidth"] = 3.5f;
+            irisFirstRow["PetalLength"] = 1.4f;
+            irisFirstRow["PetalWidth"] = 0.2f;
+
+            Assert.Equal(5, previewIris.ColumnView.Length);
+            Assert.Equal("SepalLength", previewIris.Schema[0].Name);
+            Assert.Equal(NumberDataViewType.Single, previewIris.Schema[0].Type);
+            int index = 0;
+            foreach (var entry in irisFirstRow)
+            {
+                Assert.Equal(entry.Key, previewIris.RowView[0].Values[index].Key);
+                Assert.Equal(entry.Value, previewIris.RowView[0].Values[index++].Value);
+            }
+            Assert.Equal("Type", previewIris.RowView[0].Values[index].Key);
+            Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestCommaAsDecimalMarker(bool useCsvVersion)
+        {
+            // When userCsvVersion == false:
+            // Datasets iris.txt and iris-decimal-marker-as-comma.txt are the exact same, except for their
+            // decimal markers. Decimal marker in iris.txt is '.', and ',' in iris-decimal-marker-as-comma.txt.
+
+            // When userCsvVersion == true:
+            // Check to confirm TextLoader can read data from a CSV file where the separator is ',', decimals
+            // are enclosed with quotes, and with the decimal marker being ','.
+
+            // Do these checks with both float and double as types of features being read, to test decimal marker
+            // recognition with both doubles and floats.
+            TestCommaAsDecimalMarkerHelper<float>(useCsvVersion);
+            TestCommaAsDecimalMarkerHelper<double>(useCsvVersion);
+        }
+        
+        private void TestCommaAsDecimalMarkerHelper<T>(bool useCsvVersion)
+        {
+            // Datasets iris.txt and iris-decimal-marker-as-comma.txt are the exact same, except for their
+            // decimal markers. Decimal marker in iris.txt is '.', and ',' in iris-decimal-marker-as-comma.txt.
+            // Datasets iris.txt and iris-decimal-marker-as-comma.csv have the exact same data, however the .csv
+            // version has ',' as decimal marker and separator, and feature values are enclosed with quotes.
+            // T varies as either float or double, so that decimal markers can be tested for both floating
+            // point value types.
+            var mlContext = new MLContext(seed: 1);
+
+            // Read dataset with period as decimal marker.
+            string dataPathDecimalMarkerPeriod = GetDataPath("iris.txt");
+            var readerDecimalMarkerPeriod = new TextLoader(mlContext, new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.UInt32, 0),
+                            new TextLoader.Column("Features", typeof(T) == typeof(double) ? DataKind.Double : DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
+                        },
+                DecimalMarker = '.'
+            });
+            var textDataDecimalMarkerPeriod = readerDecimalMarkerPeriod.Load(GetDataPath(dataPathDecimalMarkerPeriod));
+
+            // Load values from iris.txt
+            DataViewSchema columnsPeriod = textDataDecimalMarkerPeriod.Schema;
+            using DataViewRowCursor cursorPeriod = textDataDecimalMarkerPeriod.GetRowCursor(columnsPeriod);
+            UInt32 labelPeriod = default;
+            ValueGetter<UInt32> labelDelegatePeriod = cursorPeriod.GetGetter<UInt32>(columnsPeriod[0]);
+            VBuffer<T> featuresPeriod = default;
+            ValueGetter<VBuffer<T>> featuresDelegatePeriod = cursorPeriod.GetGetter<VBuffer<T>>(columnsPeriod[1]);
+
+            // Iterate over each row and save labels and features to array for future comparison
+            int count = 0;
+            UInt32[] labels = new uint[150];
+            T[][] features = new T[150][];
+            while (cursorPeriod.MoveNext())
+            {
+                //Get values from respective columns
+                labelDelegatePeriod(ref labelPeriod);
+                featuresDelegatePeriod(ref featuresPeriod);
+                labels[count] = labelPeriod;
+                features[count] = featuresPeriod.GetValues().ToArray();
+                count++;
+            }
+
+            // Read dataset with comma as decimal marker.
+            // Dataset is either the .csv version or the .txt version.
+            string dataPathDecimalMarkerComma;
+            TextLoader.Options options = new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.UInt32, 0),
+                            new TextLoader.Column("Features", typeof(T) == typeof(double) ? DataKind.Double : DataKind.Single, new [] { new TextLoader.Range(1, 4) })
+                        },
+            };
+            // Set TextLoader.Options for the .csv or .txt cases.
+            if (useCsvVersion)
+            {
+                dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.csv");
+                options.DecimalMarker = ',';
+                options.Separator = ",";
+                options.AllowQuoting = true;
+                options.HasHeader = true;
+            }
+            else
+            {
+                dataPathDecimalMarkerComma = GetDataPath("iris-decimal-marker-as-comma.txt");
+                options.DecimalMarker = ',';
+            }
+            var readerDecimalMarkerComma = new TextLoader(mlContext, options);
+            var textDataDecimalMarkerComma = readerDecimalMarkerComma.Load(GetDataPath(dataPathDecimalMarkerComma));
+
+            // Load values from dataset with comma as decimal marker
+            DataViewSchema columnsComma = textDataDecimalMarkerComma.Schema;
+            using DataViewRowCursor cursorComma = textDataDecimalMarkerComma.GetRowCursor(columnsComma);
+            UInt32 labelComma = default;
+            ValueGetter<UInt32> labelDelegateComma = cursorComma.GetGetter<UInt32>(columnsComma[0]);
+            VBuffer<T> featuresComma = default;
+            ValueGetter<VBuffer<T>> featuresDelegateComma = cursorComma.GetGetter<VBuffer<T>>(columnsComma[1]);
+
+            // Check values from dataset with comma as decimal marker match those in iris.txt (period decimal marker)
+            count = 0;
+            while (cursorComma.MoveNext())
+            {
+                //Get values from respective columns
+                labelDelegateComma(ref labelComma);
+                featuresDelegateComma(ref featuresComma);
+                Assert.Equal(labels[count], labelComma);
+                Assert.Equal(features[count], featuresComma.GetValues().ToArray());
+                count++;
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestWrongDecimalMarkerInputs(bool useCommaAsDecimalMarker)
+        {
+            // When DecimalMarker does not match the actual decimal marker used in the dataset,
+            // we obtain values of NaN. Check that the values are indeed NaN in this case.
+            // Do this check for both cases where decimal markers in the dataset are '.' and ','.
+            var mlContext = new MLContext(seed: 1);
+
+            // Try reading a dataset where '.' is the actual decimal marker, but DecimalMarker = ',',
+            // and vice versa.
+            string dataPath;
+            TextLoader.Options options = new TextLoader.Options()
+            {
+                Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.UInt32, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) })
+                        },
+            };
+            if (useCommaAsDecimalMarker)
+            {
+                dataPath = GetDataPath("iris.txt"); //  Has '.' as decimal marker inside dataset
+                options.DecimalMarker = ','; // Choose wrong decimal marker on purpose
+            }
+            else
+            {
+                dataPath = GetDataPath("iris-decimal-marker-as-comma.txt"); // Has ',' as decimal marker inside dataset
+                options.DecimalMarker = '.'; // Choose wrong decimal marker on purpose
+            }
+            var reader = new TextLoader(mlContext, options);
+            var textData = reader.Load(GetDataPath(dataPath));
+
+            // Check that the features being loaded are NaN.
+            DataViewSchema columns = textData.Schema;
+            using DataViewRowCursor cursor = textData.GetRowCursor(columns);
+            VBuffer<Single> featuresPeriod = default;
+            ValueGetter<VBuffer<Single>> featuresDelegatePeriod = cursor.GetGetter<VBuffer<Single>>(columns[1]);
+            
+            // Iterate over each row and check that feature values are NaN.
+            while (cursor.MoveNext())
+            {
+                featuresDelegatePeriod.Invoke(ref featuresPeriod);
+                foreach(float feature in featuresPeriod.GetValues().ToArray())
+                    Assert.Equal(feature, Single.NaN);
+            }
+        }
+
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        public void TestDifferentDecimalMarkersAtTheSameTime(bool useCorrectPeriod, bool useCorrectComma)
+        {
+            // Using 2 different textloaders, with different decimal markers
+            // should yield the expected results even when using their cursors at the same time
+            // in all of the scenarios tested here
+
+            var mlContext = new MLContext(seed: 1);
+
+            var periodPath = GetDataPath("iris.txt");
+            var commaPath = GetDataPath("iris-decimal-marker-as-comma.txt");
+
+            var optionsPeriod = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("Label", DataKind.UInt32, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
+                },
+                DecimalMarker = '.'
+            };
+
+            var optionsComma = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("Label", DataKind.UInt32, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 4) })
+                },
+                DecimalMarker = ','
+            };
+
+
+            IDataView dataViewPeriod;
+            IDataView dataViewComma;
+
+            if (useCorrectPeriod)
+                dataViewPeriod = mlContext.Data.LoadFromTextFile(periodPath, optionsPeriod);
+            else
+                dataViewPeriod = mlContext.Data.LoadFromTextFile(commaPath, optionsPeriod);
+
+            if (useCorrectComma)
+                dataViewComma = mlContext.Data.LoadFromTextFile(commaPath, optionsComma);
+            else
+                dataViewComma = mlContext.Data.LoadFromTextFile(periodPath, optionsComma);
+
+            VBuffer<Single> featuresPeriod = default;
+            VBuffer<Single> featuresComma = default;
+
+
+            using (var cursorPeriod = dataViewPeriod.GetRowCursor(dataViewPeriod.Schema))
+            using (var cursorComma = dataViewComma.GetRowCursor(dataViewComma.Schema))
+            {
+                var delegatePeriod = cursorPeriod.GetGetter<VBuffer<Single>>(dataViewPeriod.Schema["Features"]);
+                var delegateComma = cursorComma.GetGetter<VBuffer<Single>>(dataViewPeriod.Schema["Features"]);
+                while (cursorPeriod.MoveNext() && cursorComma.MoveNext())
+                {
+                    delegatePeriod(ref featuresPeriod);
+                    delegateComma(ref featuresComma);
+
+                    var featuresPeriodArray = featuresPeriod.GetValues().ToArray();
+                    var featuresCommaArray = featuresComma.GetValues().ToArray();
+                    Assert.Equal(featuresPeriodArray.Length, featuresCommaArray.Length);
+
+                    for (int i = 0; i < featuresPeriodArray.Length; i++)
+                    {
+                        if (useCorrectPeriod && useCorrectComma)
+                        {
+                            // Check that none of the two files loadad NaNs
+                            // As both of them should have been loaded correctly
+                            Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
+                            Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
+                        }
+                        else if (!useCorrectPeriod && !useCorrectComma)
+                        {
+                            // Check that everything was loaded as NaN
+                            // Because the wrong decimal marker was used for both loaders
+                            Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
+                            Assert.Equal(Single.NaN, featuresPeriodArray[i]);
+                        }
+                        else if (!useCorrectPeriod && useCorrectComma)
+                        {
+                            // Check that only the file with commas was loaded correctly
+                            Assert.Equal(Single.NaN, featuresPeriodArray[i]);
+                            Assert.NotEqual(Single.NaN, featuresCommaArray[i]);
+                        }
+                        else
+                        {
+                            // Check that only the file with periods was loaded correctly
+                            Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
+                            Assert.Equal(Single.NaN, featuresCommaArray[i]);
+                        }
+                    }
+                }
             }
         }
 
@@ -939,12 +1241,20 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void TestLoadTextWithEscapedNewLines(bool useSaved)
+        [InlineData(true, false)]
+        [InlineData(false, false)]
+        [InlineData(true, true)]
+        [InlineData(false, true)]
+        public void TestLoadTextWithEscapedNewLinesAndEscapeChar(bool useSaved, bool useCustomEscapeChar)
         {
             var mlContext = new MLContext(seed: 1);
-            var dataPath = GetDataPath("multiline.csv");
+            string dataPath;
+
+            if (!useCustomEscapeChar)
+                dataPath = GetDataPath("multiline.csv");
+            else
+                dataPath = GetDataPath("multiline-escapechar.csv");
+
             var baselinePath = GetBaselinePath("TextLoader", "multiline.csv");
             var options = new TextLoader.Options()
             {
@@ -952,6 +1262,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Separator = ",",
                 AllowQuoting = true,
                 ReadMultilines = true,
+                EscapeChar = useCustomEscapeChar ? '\\' : TextLoader.Defaults.EscapeChar,
                 Columns = new[]
                 {
                     new TextLoader.Column("id", DataKind.Int32, 0),
@@ -962,16 +1273,23 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             var data = mlContext.Data.LoadFromTextFile(dataPath, options);
             if (useSaved)
-            { 
+            {
                 // Check that loading the data view from a text file,
                 // and then saving that data view to another text file, then loading it again
                 // also matches the baseline.
 
-                var savedPath = DeleteOutputPath("saved-multiline.tsv");
+                string savedPath;
+
+                if (!useCustomEscapeChar)
+                    savedPath = DeleteOutputPath("multiline-saved.tsv");
+                else
+                    savedPath = DeleteOutputPath("multiline-escapechar-saved.tsv");
+
                 using (var fs = File.Create(savedPath))
                     mlContext.Data.SaveAsText(data, fs, separatorChar: '\t');
 
                 options.Separator = "\t";
+                options.EscapeChar = '"'; // TextSaver always uses " as escape char
                 data = mlContext.Data.LoadFromTextFile(savedPath, options);
             }
 
@@ -1061,7 +1379,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     new TextLoader.Column("id", DataKind.Int32, 0),
                     new TextLoader.Column("description", DataKind.String, 1),
                     new TextLoader.Column("animal", DataKind.String, 2),
-                },
+                    },
                 };
 
                 var data = mlContext.Data.LoadFromTextFile(filePath, options);
@@ -1078,6 +1396,178 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             Assert.True(threwException, "Invalid file should have thrown an exception");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestLoadTextWithEmptyFloat(bool useImputeEmptyFloats)
+        {
+            var mlContext = new MLContext(seed: 1);
+            var inputPath = GetDataPath("missing_fields.csv");
+            var baselineWithImpute = GetBaselinePath("TextLoader", "missing_fields-with-impute.csv");
+            var baselineWithoutImpute = GetBaselinePath("TextLoader", "missing_fields-without-impute.csv");
+
+            var options = new TextLoader.Options()
+            {
+                HasHeader = true,
+                Separator = ",",
+                AllowQuoting = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column("id", DataKind.Int32, 0),
+                    new TextLoader.Column("description", DataKind.String, 1),
+                    new TextLoader.Column("date", DataKind.DateTime, 4),
+                    new TextLoader.Column("sing1", DataKind.Single, 2),
+                    new TextLoader.Column("sing2", DataKind.Single, 3),
+                    new TextLoader.Column("singFt1", DataKind.Single, new [] { new TextLoader.Range(2,3) } ),
+                    new TextLoader.Column("sing3", DataKind.Single, 5),
+                    new TextLoader.Column("sing4", DataKind.Single, 6),
+                    new TextLoader.Column("singFt2", DataKind.Single, new [] { new TextLoader.Range(2,3), new TextLoader.Range(5,6) } ),
+                    new TextLoader.Column("doub1", DataKind.Double, 2),
+                    new TextLoader.Column("doub2", DataKind.Double, 3),
+                    new TextLoader.Column("doubFt1", DataKind.Double, new [] { new TextLoader.Range(2,3) } ),
+                    new TextLoader.Column("doub3", DataKind.Double, 5),
+                    new TextLoader.Column("doub4", DataKind.Double, 6),
+                    new TextLoader.Column("doubFt2", DataKind.Double, new [] { new TextLoader.Range(2,3), new TextLoader.Range(5,6) } )
+                },
+            };
+
+            IDataView baselineDV;
+            IDataView testDV ;
+            if(useImputeEmptyFloats)
+            {
+                baselineDV = mlContext.Data.LoadFromTextFile(baselineWithImpute, options);
+                options.MissingRealsAsNaNs = true;
+                testDV = mlContext.Data.LoadFromTextFile(inputPath, options);
+            }
+            else
+            {
+                baselineDV = mlContext.Data.LoadFromTextFile(baselineWithoutImpute, options);
+                testDV = mlContext.Data.LoadFromTextFile(inputPath, options);
+            }
+
+            Int32 baselineId = default;
+            ReadOnlyMemory<char> baselineDescription = default;
+            DateTime baselineDate = default;
+            Single baselineSing1 = default;
+            Single baselineSing2 = default;
+            Single baselineSing3 = default;
+            Single baselineSing4 = default;
+            Double baselineDoub1 = default;
+            Double baselineDoub2 = default;
+            Double baselineDoub3 = default;
+            Double baselineDoub4 = default;
+
+            Int32 testId = default;
+            ReadOnlyMemory<char> testDescription = default;
+            DateTime testDate = default;
+            Single testSing1 = default;
+            Single testSing2 = default;
+            Single testSing3 = default;
+            Single testSing4 = default;
+            VBuffer<Single> testSingFt1 = default;
+            VBuffer<Single> testSingFt2 = default;
+            Double testDoub1 = default;
+            Double testDoub2 = default;
+            Double testDoub3 = default;
+            Double testDoub4 = default;
+            VBuffer<Double> testDoubFt1 = default;
+            VBuffer<Double> testDoubFt2 = default;
+
+            using (var cursorBaseline = baselineDV.GetRowCursor(baselineDV.Schema))
+            using (var cursorTest = testDV.GetRowCursor(testDV.Schema))
+            {
+                var delegateBaselineId = cursorBaseline.GetGetter<Int32>(baselineDV.Schema["id"]);
+                var delegateBaselineDescription = cursorBaseline.GetGetter<ReadOnlyMemory<char>>(baselineDV.Schema["description"]);
+                var delegateBaselineDate = cursorBaseline.GetGetter<DateTime>(baselineDV.Schema["date"]);
+                var delegateBaselineSing1 = cursorBaseline.GetGetter<Single>(baselineDV.Schema["sing1"]);
+                var delegateBaselineSing2 = cursorBaseline.GetGetter<Single>(baselineDV.Schema["sing2"]);
+                var delegateBaselineSing3 = cursorBaseline.GetGetter<Single>(baselineDV.Schema["sing3"]);
+                var delegateBaselineSing4 = cursorBaseline.GetGetter<Single>(baselineDV.Schema["sing4"]);
+                var delegateBaselineDoub1 = cursorBaseline.GetGetter<Double>(baselineDV.Schema["doub1"]);
+                var delegateBaselineDoub2 = cursorBaseline.GetGetter<Double>(baselineDV.Schema["doub2"]);
+                var delegateBaselineDoub3 = cursorBaseline.GetGetter<Double>(baselineDV.Schema["doub3"]);
+                var delegateBaselineDoub4 = cursorBaseline.GetGetter<Double>(baselineDV.Schema["doub4"]);
+
+                var delegateTestId = cursorTest.GetGetter<Int32>(testDV.Schema["id"]);
+                var delegateTestDescription = cursorTest.GetGetter<ReadOnlyMemory<char>>(testDV.Schema["description"]);
+                var delegateTestDate = cursorTest.GetGetter<DateTime>(testDV.Schema["date"]);
+                var delegateTestSing1 = cursorTest.GetGetter<Single>(testDV.Schema["sing1"]);
+                var delegateTestSing2 = cursorTest.GetGetter<Single>(testDV.Schema["sing2"]);
+                var delegateTestSing3 = cursorTest.GetGetter<Single>(testDV.Schema["sing3"]);
+                var delegateTestSing4 = cursorTest.GetGetter<Single>(testDV.Schema["sing4"]);
+                var delegateTestSingFt1 = cursorTest.GetGetter<VBuffer<Single>>(testDV.Schema["singFt1"]);
+                var delegateTestSingFt2 = cursorTest.GetGetter<VBuffer<Single>>(testDV.Schema["singFt2"]);
+                var delegateTestDoub1 = cursorTest.GetGetter<Double>(testDV.Schema["doub1"]);
+                var delegateTestDoub2 = cursorTest.GetGetter<Double>(testDV.Schema["doub2"]);
+                var delegateTestDoub3 = cursorTest.GetGetter<Double>(testDV.Schema["doub3"]);
+                var delegateTestDoub4 = cursorTest.GetGetter<Double>(testDV.Schema["doub4"]);
+                var delegateTestDoubFt1 = cursorTest.GetGetter<VBuffer<Double>>(testDV.Schema["doubFt1"]);
+                var delegateTestDoubFt2 = cursorTest.GetGetter<VBuffer<Double>>(testDV.Schema["doubFt2"]);
+
+
+                while (cursorBaseline.MoveNext() && cursorTest.MoveNext())
+                {
+                    delegateBaselineId(ref baselineId);
+                    delegateBaselineDescription(ref baselineDescription);
+                    delegateBaselineDate(ref baselineDate);
+                    delegateBaselineSing1(ref baselineSing1);
+                    delegateBaselineSing2(ref baselineSing2);
+                    delegateBaselineSing3(ref baselineSing3);
+                    delegateBaselineSing4(ref baselineSing4);
+                    delegateBaselineDoub1(ref baselineDoub1);
+                    delegateBaselineDoub2(ref baselineDoub2);
+                    delegateBaselineDoub3(ref baselineDoub3);
+                    delegateBaselineDoub4(ref baselineDoub4);
+
+                    delegateTestId(ref testId);
+                    delegateTestDescription(ref testDescription);
+                    delegateTestDate(ref testDate);
+                    delegateTestSing1(ref testSing1);
+                    delegateTestSing2(ref testSing2);
+                    delegateTestSing3(ref testSing3);
+                    delegateTestSing4(ref testSing4);
+                    delegateTestSingFt1(ref testSingFt1);
+                    delegateTestSingFt2(ref testSingFt2);
+                    delegateTestDoub1(ref testDoub1);
+                    delegateTestDoub2(ref testDoub2);
+                    delegateTestDoub3(ref testDoub3);
+                    delegateTestDoub4(ref testDoub4);
+                    delegateTestDoubFt1(ref testDoubFt1);
+                    delegateTestDoubFt2(ref testDoubFt2);
+
+                    Assert.Equal(baselineId, testId);
+                    Assert.Equal(baselineDescription.ToString(), testDescription.ToString());
+                    Assert.Equal(baselineDate, testDate);
+                    Assert.Equal(baselineSing1, testSing1);
+                    Assert.Equal(baselineSing2, testSing2);
+                    Assert.Equal(baselineSing3, testSing3);
+                    Assert.Equal(baselineSing4, testSing4);
+                    Assert.Equal(baselineDoub1, testDoub1);
+                    Assert.Equal(baselineDoub2, testDoub2);
+                    Assert.Equal(baselineDoub3, testDoub3);
+                    Assert.Equal(baselineDoub4, testDoub4);
+
+                    var testSingFt1Arr = testSingFt1.DenseValues().ToArray();
+                    var testSingFt2Arr = testSingFt2.DenseValues().ToArray();
+                    Assert.Equal(baselineSing1, testSingFt1Arr[0]);
+                    Assert.Equal(baselineSing2, testSingFt1Arr[1]);
+                    Assert.Equal(baselineSing1, testSingFt2Arr[0]);
+                    Assert.Equal(baselineSing2, testSingFt2Arr[1]);
+                    Assert.Equal(baselineSing3, testSingFt2Arr[2]);
+                    Assert.Equal(baselineSing4, testSingFt2Arr[3]);
+
+                    var testDoubFt1Arr = testDoubFt1.DenseValues().ToArray();
+                    var testDoubFt2Arr = testDoubFt2.DenseValues().ToArray();
+                    Assert.Equal(baselineDoub1, testDoubFt1Arr[0]);
+                    Assert.Equal(baselineDoub2, testDoubFt1Arr[1]);
+                    Assert.Equal(baselineDoub1, testDoubFt2Arr[0]);
+                    Assert.Equal(baselineDoub2, testDoubFt2Arr[1]);
+                    Assert.Equal(baselineDoub3, testDoubFt2Arr[2]);
+                    Assert.Equal(baselineDoub4, testDoubFt2Arr[3]);
+                }
+            }
         }
     }
 }

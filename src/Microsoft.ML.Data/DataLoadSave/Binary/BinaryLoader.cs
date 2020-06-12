@@ -2035,9 +2035,11 @@ namespace Microsoft.ML.Data.IO
             {
                 Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column), "requested column not active.");
 
-                var getter = _pipeGetters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
+                var originGetter = _pipeGetters[_colToActivesIndex[column.Index]];
+                var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
                 return getter;
             }
 

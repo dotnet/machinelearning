@@ -8,7 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
 
-    <PackageReference Include="Microsoft.MLFeaturizers" Version="0.3.5" />
+    <PackageReference Include="Microsoft.MLFeaturizers" Version="0.4.1" />
   </ItemGroup>
   
 </Project>

@@ -72,7 +72,7 @@ namespace Microsoft.Extensions.ML
 
             File.WriteAllText("testdata.txt", "test");
 
-            Assert.True(changed.WaitOne(1000), "FileLoader ChangeToken didn't fire before the allotted time.");
+            Assert.True(changed.WaitOne(2000), "FileLoader ChangeToken didn't fire before the allotted time.");
         }
 
 

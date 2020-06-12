@@ -766,7 +766,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private static ValueMapper<VBuffer<T>, VBuffer<int>> BinKeys<T>(DataViewType colType)
             {
-                var conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberDataViewType.UInt32, out bool identity);
+                var conv = Data.Conversion.Conversions.DefaultInstance.GetStandardConversion<T, uint>(colType, NumberDataViewType.UInt32, out bool identity);
                 ValueMapper<T, int> mapper;
                 if (identity)
                 {

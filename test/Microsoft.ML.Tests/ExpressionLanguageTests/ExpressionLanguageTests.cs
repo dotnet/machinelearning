@@ -291,7 +291,7 @@ namespace Microsoft.ML.Tests
                         src =>
                         {
                             bool v;
-                            bool tmp = Conversions.Instance.TryParse(in src, out v);
+                            bool tmp = Conversions.DefaultInstance.TryParse(in src, out v);
                             args[i] = v;
                             return tmp;
                         };
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Tests
                         src =>
                         {
                             int v;
-                            bool tmp = Conversions.Instance.TryParse(in src, out v);
+                            bool tmp = Conversions.DefaultInstance.TryParse(in src, out v);
                             args[i] = v;
                             return tmp;
                         };
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Tests
                         src =>
                         {
                             long v;
-                            bool tmp = Conversions.Instance.TryParse(in src, out v);
+                            bool tmp = Conversions.DefaultInstance.TryParse(in src, out v);
                             args[i] = v;
                             return tmp;
                         };
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Tests
                         src =>
                         {
                             float v;
-                            bool tmp = Conversions.Instance.TryParse(in src, out v);
+                            bool tmp = Conversions.DefaultInstance.TryParse(in src, out v);
                             args[i] = v;
                             return tmp;
                         };
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Tests
                         src =>
                         {
                             double v;
-                            bool tmp = Conversions.Instance.TryParse(in src, out v);
+                            bool tmp = Conversions.DefaultInstance.TryParse(in src, out v);
                             args[i] = v;
                             return tmp;
                         };
@@ -353,35 +353,35 @@ namespace Microsoft.ML.Tests
                         src =>
                         {
                             var v = (bool)src;
-                            Conversions.Instance.Convert(in v, ref sb);
+                            Conversions.DefaultInstance.Convert(in v, ref sb);
                         };
                 case InternalDataKind.I4:
                     return
                         src =>
                         {
                             var v = (int)src;
-                            Conversions.Instance.Convert(in v, ref sb);
+                            Conversions.DefaultInstance.Convert(in v, ref sb);
                         };
                 case InternalDataKind.I8:
                     return
                         src =>
                         {
                             var v = (long)src;
-                            Conversions.Instance.Convert(in v, ref sb);
+                            Conversions.DefaultInstance.Convert(in v, ref sb);
                         };
                 case InternalDataKind.R4:
                     return
                         src =>
                         {
                             var v = (Single)src;
-                            Conversions.Instance.Convert(in v, ref sb);
+                            Conversions.DefaultInstance.Convert(in v, ref sb);
                         };
                 case InternalDataKind.R8:
                     return
                         src =>
                         {
                             var v = (Double)src;
-                            Conversions.Instance.Convert(in v, ref sb);
+                            Conversions.DefaultInstance.Convert(in v, ref sb);
                         };
                 case InternalDataKind.TX:
                     return

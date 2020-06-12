@@ -895,6 +895,9 @@ namespace Microsoft.ML.Transforms
 
             public bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 string opType;
                 var slots = _slotDropper[iinfo].GetPreservedSlots();
                 // vector column is not suppressed

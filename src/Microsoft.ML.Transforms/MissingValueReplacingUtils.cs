@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
@@ -26,12 +27,19 @@ namespace Microsoft.ML.Transforms
                     else if (type.RawType == typeof(double))
                         return new R8.MeanAggregatorOne(ch, cursor, col);
                 }
-                if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
+                else if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
                 {
                     if (type.RawType == typeof(float))
                         return new R4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
                     else if (type.RawType == typeof(double))
                         return new R8.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
+                }
+                else if (kind == ReplacementKind.Mode)
+                {
+                    if (type.RawType == typeof(float))
+                        return new R4.ModeAggregatorOne(ch, cursor, col);
+                    else if (type.RawType == typeof(double))
+                        return new R8.ModeAggregatorOne(ch, cursor, col);
                 }
             }
             else if (bySlot)
@@ -55,6 +63,13 @@ namespace Microsoft.ML.Transforms
                     else if (vectorType.ItemType.RawType == typeof(double))
                         return new R8.MinMaxAggregatorBySlot(ch, vectorType, cursor, col, kind == ReplacementKind.Max);
                 }
+                else if (kind == ReplacementKind.Mode)
+                {
+                    if (vectorType.ItemType.RawType == typeof(float))
+                        return new R4.ModeAggregatorBySlot(ch, vectorType, cursor, col);
+                    else if (vectorType.ItemType.RawType == typeof(double))
+                        return new R8.ModeAggregatorBySlot(ch, vectorType, cursor, col);
+                }
             }
             else
             {
@@ -72,6 +87,13 @@ namespace Microsoft.ML.Transforms
                         return new R4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
                     else if (vectorType.ItemType.RawType == typeof(double))
                         return new R8.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
+                }
+                else if (kind == ReplacementKind.Mode)
+                {
+                    if (vectorType.ItemType.RawType == typeof(float))
+                        return new R4.ModeAggregatorAcrossSlots(ch, cursor, col);
+                    else if (vectorType.ItemType.RawType == typeof(double))
+                        return new R8.ModeAggregatorAcrossSlots(ch, cursor, col);
                 }
             }
             ch.Assert(false);
@@ -341,6 +363,55 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
+        /// A mutable struct for keeping the appropriate statistics for mode calculations, whose scope is restricted
+        /// and only exists as an instance in a field or an array, utilizing the mutation of the struct correctly.
+        /// </summary>
+        private class ModeStat<TType>
+        {
+            // Delegate used to check if the value is valid. We use a delegate so that this class can support modes of all types.
+            public delegate bool IsValid(in TType val);
+
+            private TType _modeSoFar;
+            private int _maxCount;
+            private Dictionary<TType, int> _valueCounts;
+            private IsValid _validityCheck;
+            public ModeStat(IsValid valid)
+            {
+                _modeSoFar = default;
+                _maxCount = 0;
+                _valueCounts = new Dictionary<TType, int>();
+                _validityCheck = valid;
+            }
+
+            public void Update(TType val)
+            {
+                // We don't include non finite values in the mode, so if its not finite then just return.
+                if (!_validityCheck(val))
+                    return;
+
+                // If the key is already in the dictionary, we want to get the current count and increment it.
+                // If the key is not in the dictionary, we want to set count to 1 so the count is correct.
+                if (_valueCounts.TryGetValue(val, out int count))
+                    count++;
+                else
+                    count = 1;
+
+                _valueCounts[val] = count;
+
+                if (count > _maxCount)
+                {
+                    _modeSoFar = val;
+                    _maxCount = count;
+                }
+            }
+
+            public TType GetCurrentValue()
+            {
+                return _modeSoFar;
+            }
+        }
+
+        /// <summary>
         /// This is a mutable struct (so is evil). However, its scope is restricted
         /// and the only instances are in a field or an array, so the mutation does
         /// the right thing.
@@ -453,93 +524,6 @@ namespace Microsoft.ML.Transforms
                     IntUtils.Sub(ref _sumHi, ref _sumLo, (ulong)(-val));
 
                 AssertValid(valMax);
-            }
-
-            public long GetCurrentValue(IChannel ch, long count, long valMax)
-            {
-                // Note: This method should not modify any fields.
-                AssertValid(valMax);
-                Contracts.Assert(count >= _cna);
-
-                // If the sum is zero, return zero.
-                if ((_sumHi | _sumLo) == 0)
-                {
-                    // If all values in a given column are NAs issue a warning.
-                    if (count == _cna)
-                        ch.Warning("All values in this column are NAs, using default value for imputation");
-                    return 0;
-                }
-
-                Contracts.Assert(count > _cna);
-                count -= _cna;
-                Contracts.Assert(count > 0);
-
-                ulong sumHi = _sumHi;
-                ulong sumLo = _sumLo;
-
-                bool neg = (long)sumHi < 0;
-
-                if (neg)
-                {
-                    // Negative value. Work with the absolute value.
-                    sumHi = ~sumHi;
-                    sumLo = ~sumLo;
-                    IntUtils.Add(ref sumHi, ref sumLo, 1);
-                }
-
-                // If this assert triggers, the caller did something wrong. Update should have been
-                // called at most count times and each value should have been within the range of
-                // a ulong, so the absolute value of the sum can't possibly be so large that sumHi
-                // reaches or exceeds count. This assert implies that the Div part of the DivRound
-                // call won't throw.
-                Contracts.Assert(sumHi < (ulong)count);
-
-                ulong res = IntUtils.DivRound(sumLo, sumHi, (ulong)count);
-                Contracts.Assert(0 <= res && res <= (ulong)valMax);
-                return neg ? -(long)res : (long)res;
-            }
-
-            public long GetCurrentValue(IChannel ch, DataViewRowId count, long valMax)
-            {
-                AssertValid(valMax);
-                Contracts.Assert(GreaterThanOrEqual(count, (ulong)_cna));
-
-                // If the sum is zero, return zero.
-                if ((_sumHi | _sumLo) == 0)
-                {
-                    // If all values in a given column are NAs issue a warning.
-                    if (Equals(count, (ulong)_cna))
-                        ch.Warning("All values in this column are NAs, using default value for imputation");
-                    return 0;
-                }
-
-                Contracts.Assert(GreaterThan(count, (ulong)_cna));
-                count = Subtract(count, (ulong)_cna);
-                Contracts.Assert(GreaterThan(count, 0));
-
-                ulong sumHi = _sumHi;
-                ulong sumLo = _sumLo;
-
-                bool neg = (long)sumHi < 0;
-
-                if (neg)
-                {
-                    // Negative value. Work with the absolute value.
-                    sumHi = ~sumHi;
-                    sumLo = ~sumLo;
-                    IntUtils.Add(ref sumHi, ref sumLo, 1);
-                }
-
-                // If this assert triggers, the caller did something wrong. Update should have been
-                // called at most count times and each value should have been within the range of
-                // a ulong, so the absolute value of the sum can't possibly be so large that sumHi
-                // reaches or exceeds count. This assert implies that the Div part of the DivRound
-                // call won't throw.
-                Contracts.Assert(GreaterThan(count, sumHi));
-
-                ulong res = IntUtils.DivRound(sumLo, sumHi, count.Low, count.High);
-                Contracts.Assert(0 <= res && res <= (ulong)valMax);
-                return neg ? -(long)res : (long)res;
             }
         }
 
@@ -705,6 +689,71 @@ namespace Microsoft.ML.Transforms
                     return Stat;
                 }
             }
+
+            public sealed class ModeAggregatorOne : StatAggregator<float, ModeStat<float>>
+            {
+                public ModeAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col)
+                    :base(ch, cursor, col)
+                {
+                    Stat = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
+                }
+
+                public override object GetStat()
+                {
+                    return Stat.GetCurrentValue();
+                }
+
+                protected override void ProcessRow(in float val)
+                {
+                    Stat.Update(val);
+                }
+            }
+
+            public sealed class ModeAggregatorAcrossSlots : StatAggregatorAcrossSlots<float, ModeStat<float>>
+            {
+                public ModeAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col)
+                    :base(ch, cursor, col)
+                {
+                    Stat = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
+                }
+
+                public override object GetStat()
+                {
+                    return Stat.GetCurrentValue();
+                }
+
+                protected override void ProcessValue(in float val)
+                {
+                    Stat.Update(val);
+                }
+            }
+
+            public sealed class ModeAggregatorBySlot : StatAggregatorBySlot<float, ModeStat<float>>
+            {
+                public ModeAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col)
+                    :base(ch, type, cursor, col)
+                {
+                    for(int i = 0; i < Stat.Length; i++)
+                    {
+                        Stat[i] = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
+                    }
+                }
+
+                public override object GetStat()
+                {
+                    float[] stat = new float[Stat.Length];
+                    for (int slot = 0; slot < stat.Length; slot++)
+                    {
+                        stat[slot] = Stat[slot].GetCurrentValue();
+                    }
+                    return stat;
+                }
+
+                protected override void ProcessValue(in float val, int slot)
+                {
+                    Stat[slot].Update(val);
+                }
+            }
         }
 
         private static class R8
@@ -862,6 +911,71 @@ namespace Microsoft.ML.Transforms
                         }
                     }
                     return Stat;
+                }
+            }
+
+            public sealed class ModeAggregatorOne : StatAggregator<double, ModeStat<double>>
+            {
+                public ModeAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col)
+                    : base(ch, cursor, col)
+                {
+                    Stat = new ModeStat<double>((in double val) => FloatUtils.IsFinite(val));
+                }
+
+                public override object GetStat()
+                {
+                    return Stat.GetCurrentValue();
+                }
+
+                protected override void ProcessRow(in double val)
+                {
+                    Stat.Update(val);
+                }
+            }
+
+            public sealed class ModeAggregatorAcrossSlots : StatAggregatorAcrossSlots<double, ModeStat<double>>
+            {
+                public ModeAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col)
+                    : base(ch, cursor, col)
+                {
+                    Stat = new ModeStat<double>((in double val) => FloatUtils.IsFinite(val));
+                }
+
+                public override object GetStat()
+                {
+                    return Stat.GetCurrentValue();
+                }
+
+                protected override void ProcessValue(in double val)
+                {
+                    Stat.Update(val);
+                }
+            }
+
+            public sealed class ModeAggregatorBySlot : StatAggregatorBySlot<double, ModeStat<double>>
+            {
+                public ModeAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col)
+                    : base(ch, type, cursor, col)
+                {
+                    for (int i = 0; i < Stat.Length; i++)
+                    {
+                        Stat[i] = new ModeStat<double>((in double val) => FloatUtils.IsFinite(val));
+                    }
+                }
+
+                public override object GetStat()
+                {
+                    double[] stat = new double[Stat.Length];
+                    for (int slot = 0; slot < stat.Length; slot++)
+                    {
+                        stat[slot] = Stat[slot].GetCurrentValue();
+                    }
+                    return stat;
+                }
+
+                protected override void ProcessValue(in double val, int slot)
+                {
+                    Stat[slot].Update(val);
                 }
             }
         }

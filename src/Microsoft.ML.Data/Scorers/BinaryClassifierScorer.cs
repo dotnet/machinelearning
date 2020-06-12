@@ -187,9 +187,6 @@ namespace Microsoft.ML.Data
             Host.Assert(Bindable is IBindableCanSaveOnnx);
             Host.Assert(Bindings.InfoCount >= 2);
 
-            if (!ctx.ContainsColumn(DefaultColumnNames.Features))
-                return;
-
             base.SaveAsOnnxCore(ctx);
             int delta = Bindings.DerivedColumnCount;
 

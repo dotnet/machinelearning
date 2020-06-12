@@ -66,7 +66,7 @@ namespace Microsoft.ML.Functional.Tests
                 var originalPrediction = originalPredictionEngine.Predict(row);
                 var onnxPrediction = onnxPredictionEngine.Predict(row);
                 // Check that the predictions are identical.
-                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); // Note the low-precision equality!
+                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4);
             }
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Functional.Tests
                 var originalPrediction = originalPredictionEngine.Predict(row);
                 var onnxPrediction = onnxPredictionEngine.Predict(row);
                 // Check that the predictions are identical.
-                Common.AssertEqual(originalPrediction.Score, onnxPrediction.Score, precision: 4); // Note the low precision!
+                Common.AssertEqual(originalPrediction.Score, onnxPrediction.Score, precision: 4);
             }
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Functional.Tests
                 var originalPrediction = originalPredictionEngine.Predict(row);
                 var onnxPrediction = onnxPredictionEngine.Predict(row);
                 // Check that the predictions are identical.
-                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); // Note the low-precision equality!
+                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); 
             }
         }
     }
