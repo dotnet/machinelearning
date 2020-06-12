@@ -246,6 +246,10 @@ namespace Microsoft.ML.Transforms
                 _parent = parent;
                 _infos = CreateInfos(inputSchema);
                 _types = new VectorDataViewType[_parent.ColumnPairs.Length];
+
+                // The following try catch block is designed to provide user a better exception message
+                // by providing related column name when some exceptions occur in VectorDataViewType()(e.g overflow)
+                // This change is related with https://github.com/dotnet/machinelearning/issues/5211
                 try
                 {
                     for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -260,7 +264,7 @@ namespace Microsoft.ML.Transforms
                 }
                 catch (Exception e)
                 {
-                    var errorMsg = e.Message + " with column: ";
+                    var errorMsg = e.Message + " Related column: ";
                     foreach (var info in _infos)
                         errorMsg += info.Name + " ";
                     throw Host.Except(errorMsg);
