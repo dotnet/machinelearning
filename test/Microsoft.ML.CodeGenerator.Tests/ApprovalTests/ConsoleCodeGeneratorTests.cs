@@ -237,21 +237,15 @@ namespace mlnet.Tests
             (var pipeline, var columnInference) = GetMockedAzureObjectDetectionPipelineAndInference(@"/path/to/onnxModel");
             var setting = new CodeGeneratorSettings()
             {
-                //TrainDataset = @"C:\Users\Tevin\AppData\Local\Temp\2a11921f-1201-4a85-ae31-f69b7e58ebd7.csv",
-                //ModelPath = @"C:\Users\Tevin\source\repos\ConsoleApp2\ConsoleApp2ML.Model\MLModel.zip",
                 TrainDataset = @"/path/to/dataset",
                 ModelPath = @"/path/to/model",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"CodeGenTest",
                 OutputBaseDir = @"/path/to/codegen",
-                 //OutputBaseDir = @"C:\Users\Tevin\Desktop\Model",
                 LabelName = "Label",
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "stableversion",
-                //StablePackageVersion = "1.5.0-preview",
                 UnstablePackageVersion = "unstableversion",
-                //UnstablePackageVersion = "0.17.0-preview",
-                //OnnxModelPath = @"C:\Users\Tevin\Desktop\bestModel.onnx",
                 OnnxModelPath = @"/path/to/onnxModel",
                 IsAzureAttach = true,
                 IsImage = false,
