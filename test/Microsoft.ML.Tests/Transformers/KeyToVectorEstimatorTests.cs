@@ -252,8 +252,7 @@ namespace Microsoft.ML.Tests.Transformers
             IDataView dataview = mlContext.Data.LoadFromEnumerable(GetData());
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
-                   .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("ProblematicColumn"))
-                   .Append(mlContext.Transforms.CopyColumns("Features", "ProblematicColumn"));
+                   .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("ProblematicColumn"));
 
             var featurizedData = pipeline.Fit(dataview).Transform(dataview);
 
