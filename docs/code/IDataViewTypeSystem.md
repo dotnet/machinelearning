@@ -540,7 +540,10 @@ is first processed entirely as `TX` values, then parsed, or processed directly
 into numeric values, that is, parsing as the row is processed. In the latter
 case, it is simple to map implicit items (suppressed due to sparsity) to zero.
 In the former case, these items are first mapped to the empty text value. To
-get the same result, we need empty text to map to zero.
+get the same result, we need empty text to map to zero. An exception to this
+rule has been permitted in the TextLoader, where there's an option to load
+empty `TX` fields as `NaN` for `R4` and `R8` fields, instead of using the default
+conversion of empty `TX` to the numeric default `0`.
 
 ### To Text
 

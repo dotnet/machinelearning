@@ -319,7 +319,7 @@
               {
                 "Name": "AllowQuoting",
                 "Type": "Bool",
-                "Desc": "Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by \"\". When false, consecutive separators denote an empty value.",
+                "Desc": "Whether the input may include double-quoted values. This parameter is used to distinguish separator characters in an input value from actual separators. When true, separators within double quotes are treated as part of the input value. When false, all separators, even those within quotes, are treated as delimiting a new column.",
                 "Aliases": [
                   "quote"
                 ],
@@ -464,6 +464,18 @@
                 "SortOrder": 150.0,
                 "IsNullable": false,
                 "Default": "\""
+              },
+              {
+                "Name": "MissingRealsAsNaNs",
+                "Type": "Bool",
+                "Desc": "If true, empty float fields will be loaded as NaN. If false, they'll be loaded as 0. Default is false.",
+                "Aliases": [
+                  "missingrealnan"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": false
               }
             ]
           },
@@ -17708,82 +17720,6 @@
       ]
     },
     {
-      "Name": "Transforms.CategoryImputer",
-      "Desc": "Fills in missing values in a column based on the most frequent value",
-      "FriendlyName": "CategoryImputer",
-      "ShortName": "CategoryImputer",
-      "Inputs": [
-        {
-          "Name": "Column",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": {
-              "Kind": "Struct",
-              "Fields": [
-                {
-                  "Name": "Name",
-                  "Type": "String",
-                  "Desc": "Name of the new column",
-                  "Aliases": [
-                    "name"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                },
-                {
-                  "Name": "Source",
-                  "Type": "String",
-                  "Desc": "Name of the source column",
-                  "Aliases": [
-                    "src"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                }
-              ]
-            }
-          },
-          "Desc": "New column definition (optional form: name:src)",
-          "Aliases": [
-            "col"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Transformed dataset"
-        },
-        {
-          "Name": "Model",
-          "Type": "TransformModel",
-          "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ],
-      "OutputKind": [
-        "ITransformOutput"
-      ]
-    },
-    {
       "Name": "Transforms.CharacterTokenizer",
       "Desc": "Character-oriented tokenizer where text is considered a sequence of characters.",
       "FriendlyName": "Character Tokenizer Transform",
@@ -22150,7 +22086,8 @@
                       "Mean",
                       "Minimum",
                       "Maximum",
-                      "SpecifiedValue"
+                      "SpecifiedValue",
+                      "Mode"
                     ]
                   },
                   "Desc": "The replacement method to utilize",
@@ -22220,7 +22157,8 @@
               "Mean",
               "Minimum",
               "Maximum",
-              "SpecifiedValue"
+              "SpecifiedValue",
+              "Mode"
             ]
           },
           "Desc": "The replacement method to utilize",
@@ -22230,7 +22168,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Def"
         },
         {
           "Name": "ImputeBySlot",
@@ -22976,130 +22914,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 42
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Transformed dataset"
-        },
-        {
-          "Name": "Model",
-          "Type": "TransformModel",
-          "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ],
-      "OutputKind": [
-        "ITransformOutput"
-      ]
-    },
-    {
-      "Name": "Transforms.RobustScaler",
-      "Desc": "Removes the median and scales the data according to the quantile range.",
-      "FriendlyName": "RobustScalerTransformer",
-      "ShortName": "RobScalT",
-      "Inputs": [
-        {
-          "Name": "Column",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": {
-              "Kind": "Struct",
-              "Fields": [
-                {
-                  "Name": "Name",
-                  "Type": "String",
-                  "Desc": "Name of the new column",
-                  "Aliases": [
-                    "name"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                },
-                {
-                  "Name": "Source",
-                  "Type": "String",
-                  "Desc": "Name of the source column",
-                  "Aliases": [
-                    "src"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                }
-              ]
-            }
-          },
-          "Desc": "New column definition (optional form: name:src)",
-          "Aliases": [
-            "col"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Center",
-          "Type": "Bool",
-          "Desc": "If True, center the data before scaling.",
-          "Aliases": [
-            "ctr"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
-          "Name": "Scale",
-          "Type": "Bool",
-          "Desc": "If True, scale the data to interquartile range.",
-          "Aliases": [
-            "sc"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
-          "Name": "QuantileMin",
-          "Type": "Float",
-          "Desc": "Min for the quantile range used to calculate scale.",
-          "Aliases": [
-            "min"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": 25.0
-        },
-        {
-          "Name": "QuantileMax",
-          "Type": "Float",
-          "Desc": "Max for the quantile range used to calculate scale.",
-          "Aliases": [
-            "max"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": 75.0
         }
       ],
       "Outputs": [
@@ -24234,82 +24048,6 @@
           "SortOrder": 3.0,
           "IsNullable": false,
           "Default": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Transformed dataset"
-        },
-        {
-          "Name": "Model",
-          "Type": "TransformModel",
-          "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ],
-      "OutputKind": [
-        "ITransformOutput"
-      ]
-    },
-    {
-      "Name": "Transforms.ToString",
-      "Desc": "Turns the given column into a column of its string representation",
-      "FriendlyName": "ToString Transform",
-      "ShortName": "tostr",
-      "Inputs": [
-        {
-          "Name": "Column",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": {
-              "Kind": "Struct",
-              "Fields": [
-                {
-                  "Name": "Name",
-                  "Type": "String",
-                  "Desc": "Name of the new column",
-                  "Aliases": [
-                    "name"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                },
-                {
-                  "Name": "Source",
-                  "Type": "String",
-                  "Desc": "Name of the source column",
-                  "Aliases": [
-                    "src"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                }
-              ]
-            }
-          },
-          "Desc": "New column definition (optional form: name:src)",
-          "Aliases": [
-            "col"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
         }
       ],
       "Outputs": [

@@ -228,6 +228,8 @@ namespace Microsoft.ML.Data
 
             public abstract bool HasNA { get; }
 
+            public abstract bool IsReal { get; } // If the type of the ColumnPipe is either Single or Double
+
             protected ColumnPipe(RowSet rows)
             {
                 Contracts.AssertValue(rows);
@@ -251,6 +253,8 @@ namespace Microsoft.ML.Data
 
             public override bool HasNA { get; }
 
+            public override bool IsReal { get;  }
+
             public PrimitivePipe(RowSet rows, PrimitiveDataViewType type, TryParseMapper<TResult> conv)
                 : base(rows)
             {
@@ -259,6 +263,7 @@ namespace Microsoft.ML.Data
                 _conv = conv;
                 _values = new TResult[Rows.Count];
                 HasNA = Conversions.DefaultInstance.TryGetIsNAPredicate(type, out var del);
+                IsReal = typeof(TResult) == typeof(Single) || typeof(TResult) == typeof(Double);
             }
 
             public override void Reset(int irow, int size)
@@ -294,6 +299,8 @@ namespace Microsoft.ML.Data
             private readonly TryParseMapper<TItem> _conv;
 
             public override bool HasNA { get; }
+
+            public override bool IsReal { get; }
 
             private class VectorValue
             {
@@ -441,6 +448,7 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < _values.Length; i++)
                     _values[i] = new VectorValue(this);
                 HasNA = Conversions.DefaultInstance.TryGetIsNAPredicate(type, out var del);
+                IsReal = typeof(TItem) == typeof(Single) || typeof(TItem) == typeof(Double);
             }
 
             public override void Reset(int irow, int size)
@@ -649,6 +657,7 @@ namespace Microsoft.ML.Data
 
             private readonly char[] _separators;
             private readonly OptionFlags _flags;
+            private readonly bool _missingRealsAsNaNs;
             private readonly char _escapeChar;
             private readonly int _inputSize;
             private readonly ColInfo[] _infos;
@@ -658,6 +667,8 @@ namespace Microsoft.ML.Data
 
             private volatile int _csrc;
             private volatile int _mismatchCount;
+
+            private ReadOnlyMemory<char> _blank;
 
             public Parser(TextLoader parent)
             {
@@ -671,6 +682,8 @@ namespace Microsoft.ML.Data
                 var doubleParserOptionFlags = DoubleParser.OptionFlags.Default;
                 if (parent._decimalMarker == ',')
                     doubleParserOptionFlags |= DoubleParser.OptionFlags.UseCommaAsDecimalMarker;
+                if ((parent._flags & OptionFlags.MissingRealsAsNaNs) != 0)
+                    doubleParserOptionFlags |= DoubleParser.OptionFlags.EmptyAsNaN;
 
                 if (doubleParserOptionFlags == DoubleParser.OptionFlags.Default)
                     cache = ValueCreatorCache.DefaultInstance;
@@ -713,6 +726,8 @@ namespace Microsoft.ML.Data
                 _flags = parent._flags;
                 _escapeChar = parent._escapeChar;
                 _inputSize = parent._inputSize;
+                _missingRealsAsNaNs = (parent._flags & OptionFlags.MissingRealsAsNaNs) != 0;
+                _blank = ReadOnlyMemory<char>.Empty;
                 Contracts.Assert(_inputSize >= 0);
             }
 
@@ -900,6 +915,7 @@ namespace Microsoft.ML.Data
                 private readonly int _srcNeeded;
                 private readonly bool _quoting;
                 private readonly bool _sparse;
+                private readonly bool _keepEmpty;
                 // This is a working buffer.
                 private readonly StringBuilder _sb;
 
@@ -930,6 +946,11 @@ namespace Microsoft.ML.Data
                     _sb = new StringBuilder();
                     _blank = ReadOnlyMemory<char>.Empty;
                     Fields = new FieldSet();
+
+                    // If we want to impute empty real fields as NaNs, then we must keep
+                    // all empty field spans, as there's no way for the Parser.HelperImpl
+                    // to know beforehand which fields belong to a float field
+                    _keepEmpty = (flags & OptionFlags.MissingRealsAsNaNs) != 0;
                 }
 
                 /// <summary>
@@ -978,6 +999,13 @@ namespace Microsoft.ML.Data
                                 Fields.Spans[Fields.Count] = scan.Span;
                                 Fields.Indices[Fields.Count++] = src;
                             }
+                            else if(_keepEmpty)
+                            {
+                                Fields.EnsureSpace();
+                                Fields.Spans[Fields.Count] = _blank;
+                                Fields.Indices[Fields.Count++] = src;
+                            }
+
                             if (++src > _srcNeeded || !more)
                                 break;
                         }
@@ -1390,10 +1418,10 @@ namespace Microsoft.ML.Data
                     int sizeSeg = lim - min;
                     Contracts.Assert(ivDst <= size - sizeSeg);
 
+                    int indexBase = ivDst - min;
                     int isrc = fields.Indices.FindIndexSorted(0, fields.Count, min);
                     if (isrc < fields.Count && fields.Indices[isrc] < lim)
                     {
-                        int indexBase = ivDst - min;
                         int isrcLim = fields.Indices.FindIndexSorted(isrc, fields.Count, lim);
                         Contracts.Assert(isrc < isrcLim);
                         for (; isrc < isrcLim; isrc++)
@@ -1406,6 +1434,19 @@ namespace Microsoft.ML.Data
                                     throw Contracts.Except($"Could not parse value {fields.Spans[isrc]} in slot {indexBase + srcCur} of column {info.Name} in line {line}");
                                 v.Rows.Stats.LogBadValue(line, info.Name, indexBase + srcCur);
                             }
+                        }
+                    }
+
+                    if(_missingRealsAsNaNs && isrc >= fields.Count && v.IsReal)
+                    {
+                        // If the user has set the MissingRealsAsNaNs option to true,
+                        // And there are missing columns on a given row,
+                        // then we should load them as if they were empty (i.e. _blank) fields
+                        // So that they can be loaded as NaNs if they're single/double columns
+                        // Or as default if they aren't.
+                        for (int srcCur = Math.Max(min, fields.Count); srcCur < lim; srcCur++)
+                        {
+                            v.Consume(irow, indexBase + srcCur, ref _blank);
                         }
                     }
                     ivDst += sizeSeg;
@@ -1429,6 +1470,15 @@ namespace Microsoft.ML.Data
                             throw Contracts.Except($"Could not parse value {vs.Spans[isrc]} in line {line}, column {info.Name}");
                         v.Rows.Stats.LogBadValue(line, info.Name);
                     }
+                }
+                else if(_missingRealsAsNaNs && v.IsReal)
+                {
+                    // If the user has set the MissingRealsAsNaNs option to true,
+                    // And there are missing columns on a given row,
+                    // then we should load them as if they were empty (i.e. _blank) fields
+                    // So that they can be loaded as NaNs if they're single/double columns
+                    // Or as default if they aren't.
+                    v.Consume(irow, 0, ref _blank);
                 }
                 else
                     v.Reset(irow, 0);

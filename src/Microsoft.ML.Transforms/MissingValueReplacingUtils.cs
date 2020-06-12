@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
@@ -26,12 +27,19 @@ namespace Microsoft.ML.Transforms
                     else if (type.RawType == typeof(double))
                         return new R8.MeanAggregatorOne(ch, cursor, col);
                 }
-                if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
+                else if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
                 {
                     if (type.RawType == typeof(float))
                         return new R4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
                     else if (type.RawType == typeof(double))
                         return new R8.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
+                }
+                else if (kind == ReplacementKind.Mode)
+                {
+                    if (type.RawType == typeof(float))
+                        return new R4.ModeAggregatorOne(ch, cursor, col);
+                    else if (type.RawType == typeof(double))
+                        return new R8.ModeAggregatorOne(ch, cursor, col);
                 }
             }
             else if (bySlot)
@@ -55,6 +63,13 @@ namespace Microsoft.ML.Transforms
                     else if (vectorType.ItemType.RawType == typeof(double))
                         return new R8.MinMaxAggregatorBySlot(ch, vectorType, cursor, col, kind == ReplacementKind.Max);
                 }
+                else if (kind == ReplacementKind.Mode)
+                {
+                    if (vectorType.ItemType.RawType == typeof(float))
+                        return new R4.ModeAggregatorBySlot(ch, vectorType, cursor, col);
+                    else if (vectorType.ItemType.RawType == typeof(double))
+                        return new R8.ModeAggregatorBySlot(ch, vectorType, cursor, col);
+                }
             }
             else
             {
@@ -72,6 +87,13 @@ namespace Microsoft.ML.Transforms
                         return new R4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
                     else if (vectorType.ItemType.RawType == typeof(double))
                         return new R8.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
+                }
+                else if (kind == ReplacementKind.Mode)
+                {
+                    if (vectorType.ItemType.RawType == typeof(float))
+                        return new R4.ModeAggregatorAcrossSlots(ch, cursor, col);
+                    else if (vectorType.ItemType.RawType == typeof(double))
+                        return new R8.ModeAggregatorAcrossSlots(ch, cursor, col);
                 }
             }
             ch.Assert(false);
@@ -338,6 +360,55 @@ namespace Microsoft.ML.Transforms
 
             protected abstract void ProcessValueMin(in TItem val, int slot);
             protected abstract void ProcessValueMax(in TItem val, int slot);
+        }
+
+        /// <summary>
+        /// A mutable struct for keeping the appropriate statistics for mode calculations, whose scope is restricted
+        /// and only exists as an instance in a field or an array, utilizing the mutation of the struct correctly.
+        /// </summary>
+        private class ModeStat<TType>
+        {
+            // Delegate used to check if the value is valid. We use a delegate so that this class can support modes of all types.
+            public delegate bool IsValid(in TType val);
+
+            private TType _modeSoFar;
+            private int _maxCount;
+            private Dictionary<TType, int> _valueCounts;
+            private IsValid _validityCheck;
+            public ModeStat(IsValid valid)
+            {
+                _modeSoFar = default;
+                _maxCount = 0;
+                _valueCounts = new Dictionary<TType, int>();
+                _validityCheck = valid;
+            }
+
+            public void Update(TType val)
+            {
+                // We don't include non finite values in the mode, so if its not finite then just return.
+                if (!_validityCheck(val))
+                    return;
+
+                // If the key is already in the dictionary, we want to get the current count and increment it.
+                // If the key is not in the dictionary, we want to set count to 1 so the count is correct.
+                if (_valueCounts.TryGetValue(val, out int count))
+                    count++;
+                else
+                    count = 1;
+
+                _valueCounts[val] = count;
+
+                if (count > _maxCount)
+                {
+                    _modeSoFar = val;
+                    _maxCount = count;
+                }
+            }
+
+            public TType GetCurrentValue()
+            {
+                return _modeSoFar;
+            }
         }
 
         /// <summary>
@@ -618,6 +689,71 @@ namespace Microsoft.ML.Transforms
                     return Stat;
                 }
             }
+
+            public sealed class ModeAggregatorOne : StatAggregator<float, ModeStat<float>>
+            {
+                public ModeAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col)
+                    :base(ch, cursor, col)
+                {
+                    Stat = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
+                }
+
+                public override object GetStat()
+                {
+                    return Stat.GetCurrentValue();
+                }
+
+                protected override void ProcessRow(in float val)
+                {
+                    Stat.Update(val);
+                }
+            }
+
+            public sealed class ModeAggregatorAcrossSlots : StatAggregatorAcrossSlots<float, ModeStat<float>>
+            {
+                public ModeAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col)
+                    :base(ch, cursor, col)
+                {
+                    Stat = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
+                }
+
+                public override object GetStat()
+                {
+                    return Stat.GetCurrentValue();
+                }
+
+                protected override void ProcessValue(in float val)
+                {
+                    Stat.Update(val);
+                }
+            }
+
+            public sealed class ModeAggregatorBySlot : StatAggregatorBySlot<float, ModeStat<float>>
+            {
+                public ModeAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col)
+                    :base(ch, type, cursor, col)
+                {
+                    for(int i = 0; i < Stat.Length; i++)
+                    {
+                        Stat[i] = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
+                    }
+                }
+
+                public override object GetStat()
+                {
+                    float[] stat = new float[Stat.Length];
+                    for (int slot = 0; slot < stat.Length; slot++)
+                    {
+                        stat[slot] = Stat[slot].GetCurrentValue();
+                    }
+                    return stat;
+                }
+
+                protected override void ProcessValue(in float val, int slot)
+                {
+                    Stat[slot].Update(val);
+                }
+            }
         }
 
         private static class R8
@@ -775,6 +911,71 @@ namespace Microsoft.ML.Transforms
                         }
                     }
                     return Stat;
+                }
+            }
+
+            public sealed class ModeAggregatorOne : StatAggregator<double, ModeStat<double>>
+            {
+                public ModeAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col)
+                    : base(ch, cursor, col)
+                {
+                    Stat = new ModeStat<double>((in double val) => FloatUtils.IsFinite(val));
+                }
+
+                public override object GetStat()
+                {
+                    return Stat.GetCurrentValue();
+                }
+
+                protected override void ProcessRow(in double val)
+                {
+                    Stat.Update(val);
+                }
+            }
+
+            public sealed class ModeAggregatorAcrossSlots : StatAggregatorAcrossSlots<double, ModeStat<double>>
+            {
+                public ModeAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col)
+                    : base(ch, cursor, col)
+                {
+                    Stat = new ModeStat<double>((in double val) => FloatUtils.IsFinite(val));
+                }
+
+                public override object GetStat()
+                {
+                    return Stat.GetCurrentValue();
+                }
+
+                protected override void ProcessValue(in double val)
+                {
+                    Stat.Update(val);
+                }
+            }
+
+            public sealed class ModeAggregatorBySlot : StatAggregatorBySlot<double, ModeStat<double>>
+            {
+                public ModeAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col)
+                    : base(ch, type, cursor, col)
+                {
+                    for (int i = 0; i < Stat.Length; i++)
+                    {
+                        Stat[i] = new ModeStat<double>((in double val) => FloatUtils.IsFinite(val));
+                    }
+                }
+
+                public override object GetStat()
+                {
+                    double[] stat = new double[Stat.Length];
+                    for (int slot = 0; slot < stat.Length; slot++)
+                    {
+                        stat[slot] = Stat[slot].GetCurrentValue();
+                    }
+                    return stat;
+                }
+
+                protected override void ProcessValue(in double val, int slot)
+                {
+                    Stat[slot].Update(val);
                 }
             }
         }

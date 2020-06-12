@@ -2169,6 +2169,26 @@ namespace Microsoft.ML.RunTests
 
         [TestCategory("DataPipeSerialization")]
         [Fact()]
+        public void SavePipeTextLoaderWithMissingRealsAsNaNs()
+        {
+            string dataPath = GetDataPath("missing_fields.csv");
+            const string loaderArgs = "loader=text{sep=, quote+ multilines+ header+ escapechar=\\ missingrealnan+ " +
+                "col=id:Num:0 col=description:TX:1 col=date:DT:4 " +
+                "col=sing1:R4:2 col=sing2:R4:3 col=singFt1:R4:2-3 " +
+                "col=doubFt:R8:2-3,5-6}";
+
+            OutputPath modelPath = ModelPath();
+            string extraArgs = null;
+            TestCore("showdata", dataPath, loaderArgs, extraArgs);
+
+            _step++;
+
+            TestCore("showdata", dataPath, string.Format("in={{{0}}}", modelPath.Path), "");
+            Done();
+        }
+
+        [TestCategory("DataPipeSerialization")]
+        [Fact()]
         public void SavePipeChooseColumnsByIndexDrop()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
