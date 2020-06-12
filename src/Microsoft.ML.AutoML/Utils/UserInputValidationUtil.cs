@@ -20,6 +20,8 @@ namespace Microsoft.ML.AutoML
         private const string TextColumnPurposeName = "text";
         private const string IgnoredColumnPurposeName = "ignored";
         private const string SamplingKeyColumnPurposeName = "sampling key";
+        private const string UserIdColumnPurposeName = "user ID";
+        private const string ItemIdColumnPurposeName = "item ID";
 
         public static void ValidateExperimentExecuteArgs(IDataView trainData, ColumnInformation columnInformation,
             IDataView validationData, TaskKind task)
@@ -73,7 +75,10 @@ namespace Microsoft.ML.AutoML
                     throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type {NumberDataViewType.Single}", nameof(trainData));
                 }
 
-                if (column.Name != columnInformation.LabelColumnName &&
+                if ((column.Name != columnInformation.LabelColumnName &&
+                    column.Name != columnInformation.UserIdColumnName &&
+                    column.Name != columnInformation.ItemIdColumnName)
+                    &&
                         column.Type.GetItemType() != BooleanDataViewType.Instance &&
                         column.Type.GetItemType() != NumberDataViewType.Single &&
                         column.Type.GetItemType() != TextDataViewType.Instance)
@@ -92,6 +97,8 @@ namespace Microsoft.ML.AutoML
             ValidateTrainDataColumn(trainData, columnInformation.LabelColumnName, LabelColumnPurposeName, GetAllowedLabelTypes(task));
             ValidateTrainDataColumn(trainData, columnInformation.ExampleWeightColumnName, WeightColumnPurposeName);
             ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumnName, SamplingKeyColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.UserIdColumnName, UserIdColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.ItemIdColumnName, ItemIdColumnPurposeName);
             ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumnNames, CategoricalColumnPurposeName,
                 new DataViewType[] { NumberDataViewType.Single, TextDataViewType.Instance });
             ValidateTrainDataColumns(trainData, columnInformation.NumericColumnNames, NumericColumnPurposeName,
@@ -176,18 +183,26 @@ namespace Microsoft.ML.AutoML
 
             const string schemaMismatchError = "Training data and validation data schemas do not match.";
 
-            if (trainData.Schema.Count != validationData.Schema.Count)
+            if (trainData.Schema.Count(c => !c.IsHidden) != validationData.Schema.Count(c => !c.IsHidden))
             {
                 throw new ArgumentException($"{schemaMismatchError} Train data has '{trainData.Schema.Count}' columns," +
                     $"and validation data has '{validationData.Schema.Count}' columns.", nameof(validationData));
             }
 
+            // Validate that every active column in the train data corresponds to an active column in the validation data.
+            // (Indirectly, since we asserted above that the train and validation data have the same number of active columns, this also
+            // ensures the reverse -- that every active column in the validation data corresponds to an active column in the train data.)
             foreach (var trainCol in trainData.Schema)
             {
+                if (trainCol.IsHidden)
+                {
+                    continue;
+                }
+
                 var validCol = validationData.Schema.GetColumnOrNull(trainCol.Name);
                 if (validCol == null)
                 {
-                    throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' exsits in train data, but not in validation data.", nameof(validationData));
+                    throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' exists in train data, but not in validation data.", nameof(validationData));
                 }
 
                 if (trainCol.Type != validCol.Value.Type)
@@ -263,6 +278,7 @@ namespace Microsoft.ML.AutoML
                 case TaskKind.MulticlassClassification:
                     return null;
                 case TaskKind.Regression:
+                case TaskKind.Recommendation:
                     return new DataViewType[] { NumberDataViewType.Single };
                 default:
                     throw new NotSupportedException($"Unsupported task type: {task}");

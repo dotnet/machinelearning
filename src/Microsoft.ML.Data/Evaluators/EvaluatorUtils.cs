@@ -156,7 +156,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Find the optional auxilliary score column to use. If <paramref name="name"/> is specified, that is used.
+        /// Find the optional auxiliary score column to use. If <paramref name="name"/> is specified, that is used.
         /// Otherwise, if <paramref name="colScore"/> is part of a score set, this looks in the score set for a column
         /// with the given <paramref name="valueKind"/>. If none is found, it returns <see langword="null"/>.
         /// </summary>

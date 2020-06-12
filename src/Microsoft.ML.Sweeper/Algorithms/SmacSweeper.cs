@@ -31,31 +31,31 @@ namespace Microsoft.ML.Sweeper
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If iteration point is outside parameter definitions, should it be projected?", ShortName = "project")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If iteration point is outside parameter definitions, should it be projected?", ShortName = "project")]
             public bool ProjectInBounds = true;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of regression trees in forest", ShortName = "numtrees")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of regression trees in forest", ShortName = "numtrees")]
             public int NumOfTrees = 10;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum number of data points required to be in a node if it is to be split further", ShortName = "nmin")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum number of data points required to be in a node if it is to be split further", ShortName = "nmin")]
             public int NMinForSplit = 2;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of points to use for random initialization", ShortName = "nip")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of points to use for random initialization", ShortName = "nip")]
             public int NumberInitialPopulation = 20;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of search parents to use for local search in maximizing EI acquisition function", ShortName = "lsp")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of search parents to use for local search in maximizing EI acquisition function", ShortName = "lsp")]
             public int LocalSearchParentCount = 10;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of random configurations when maximizing EI acquisition function", ShortName = "nrcan")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of random configurations when maximizing EI acquisition function", ShortName = "nrcan")]
             public int NumRandomEISearchConfigurations = 10000;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Fraction of eligible dimensions to split on (i.e., split ratio)", ShortName = "sr")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Fraction of eligible dimensions to split on (i.e., split ratio)", ShortName = "sr")]
             public float SplitRatio = (float)0.8;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Epsilon threshold for ending local searches", ShortName = "eps")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Epsilon threshold for ending local searches", ShortName = "eps")]
             public float Epsilon = (float)0.00001;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of neighbors to sample for locally searching each numerical parameter", ShortName = "nnnp")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of neighbors to sample for locally searching each numerical parameter", ShortName = "nnnp")]
             public int NumNeighborsForNumericalParams = 4;
         }
 

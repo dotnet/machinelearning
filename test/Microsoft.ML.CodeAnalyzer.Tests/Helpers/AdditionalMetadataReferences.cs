@@ -2,23 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Reflection;
+#nullable enable
+
+using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
 {
     internal static class AdditionalMetadataReferences
     {
-        internal static readonly MetadataReference StandardReference = MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0").Location);
-        internal static readonly MetadataReference RuntimeReference = MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=0.0.0.0").Location);
-        internal static readonly MetadataReference CSharpSymbolsReference = RefFromType<CSharpCompilation>();
+#if NETCOREAPP
+        internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = ReferenceAssemblies.Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.5.1")));
+#else
+        internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.5.1")));
+#endif
+
         internal static readonly MetadataReference MSDataDataViewReference = RefFromType<IDataView>();
         internal static readonly MetadataReference MLNetCoreReference = RefFromType<IHostEnvironment>();
         internal static readonly MetadataReference MLNetDataReference = RefFromType<MLContext>();
 
         internal static MetadataReference RefFromType<TType>()
-            => MetadataReference.CreateFromFile(typeof(TType).Assembly.Location);
+        {
+            var location = typeof(TType).Assembly.Location;
+            var documentationProvider = XmlDocumentationProvider.CreateFromFile(Path.ChangeExtension(location, ".pdb"));
+            return MetadataReference.CreateFromFile(location, documentation: documentationProvider);
+        }
     }
 }

@@ -4,7 +4,7 @@
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Toolchains.InProcess;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
 
 namespace Microsoft.ML.CpuMath.PerformanceTests
 {
@@ -18,6 +18,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private static IConfig CreateCustomConfig()
             => DefaultConfig.Instance
                 .With(Job.Default
-                    .With(InProcessToolchain.Instance));
+                    .With(InProcessEmitToolchain.Instance));
     }
 }

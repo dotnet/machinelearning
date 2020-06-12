@@ -14,7 +14,7 @@ namespace Microsoft.ML.Data
     /// A row-to-row mapper that is the result of a chained application of multiple mappers.
     /// </summary>
     [BestFriend]
-    internal sealed class CompositeRowToRowMapper : IRowToRowMapper
+    internal sealed class CompositeRowToRowMapper : IRowToRowMapper, IDisposable
     {
         [BestFriend]
         internal IRowToRowMapper[] InnerMappers { get; }
@@ -118,5 +118,20 @@ namespace Microsoft.ML.Data
             /// </summary>
             public override bool IsColumnActive(DataViewSchema.Column column) => _pred(column.Index);
         }
+
+        #region IDisposable Support
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            foreach (var mapper in InnerMappers)
+                (mapper as IDisposable)?.Dispose();
+
+            _disposed = true;
+        }
+        #endregion
     }
 }

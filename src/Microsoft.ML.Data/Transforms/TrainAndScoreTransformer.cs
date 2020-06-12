@@ -24,7 +24,7 @@ namespace Microsoft.ML.Transforms
     {
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for features when scorer is not defined",
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for features when scorer is not defined",
                 ShortName = "feat", SortOrder = 1,
                 Purpose = SpecialPurpose.ColumnName)]
             public string FeatureColumn = DefaultColumnNames.Features;
@@ -108,19 +108,19 @@ namespace Microsoft.ML.Transforms
     {
         public abstract class ArgumentsBase : TransformInputBase
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for features when scorer is not defined",
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for features when scorer is not defined",
                 ShortName = "feat", SortOrder = 102, Purpose = SpecialPurpose.ColumnName)]
             public string FeatureColumn = DefaultColumnNames.Features;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 103,
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 103,
                 Purpose = SpecialPurpose.ColumnName)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group",
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for grouping", ShortName = "group",
                 SortOrder = 105, Purpose = SpecialPurpose.ColumnName)]
             public string GroupColumn = DefaultColumnNames.GroupId;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight",
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for example weight", ShortName = "weight",
                 SortOrder = 104, Purpose = SpecialPurpose.ColumnName)]
             public string WeightColumn = DefaultColumnNames.Weight;
 
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
             public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
             public int MaxCalibrationExamples = 1000000000;
 
             [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SignatureType = typeof(SignatureDataScorer))]

@@ -21,7 +21,7 @@ namespace Samples.Dynamic
             // folder will be created, containing 4 images, and a .tsv file
             // enumerating the images. 
             var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils
-                .DownloadImages();
+                .GetSampleImages();
 
             // Preview of the content of the images.tsv file
             //
@@ -66,7 +66,7 @@ namespace Samples.Dynamic
                 .Schema))
             {
                 // Note that it is best to get the getters and values *before*
-                // iteration, so as to faciliate buffer sharing (if applicable),
+                // iteration, so as to facilitate buffer sharing (if applicable),
                 // and column-type validation once, rather than many times.
                 ReadOnlyMemory<char> imagePath = default;
                 ReadOnlyMemory<char> name = default;

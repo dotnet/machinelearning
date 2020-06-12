@@ -59,20 +59,35 @@ if exist "%DOTNET_CMD%" goto :afterdotnetrestore
 
 if NOT exist "%DOTNET_PATH%" mkdir "%DOTNET_PATH%"
 
+:: set registry to take dump automatically when test process crashes
+if NOT [%AGENT_ID%] == [] (
+  reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f
+  reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpType /t REG_DWORD /d 2
+  reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpCount /t REG_DWORD /d 2
+  reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpFolder /t REG_SZ /d "%~dp0CrashDumps"
+)
+
+:: install procdump.exe to take process dump when test crashes, hangs or fails
+echo Installing procdump.exe
+powershell -Command "Invoke-WebRequest https://download.sysinternals.com/files/Procdump.zip -UseBasicParsing -outfile procdump.zip | Out-Null"
+powershell -Command "Expand-Archive -Force procdump.zip Tools\ProcDump"
+del /f procdump.zip
+echo Finish install procdump.exe
+
 :: install the extra runtime first, so the SDK install will overwrite the root dotnet executable
 echo Installing dotnet runtime %DOTNET_EXTRA_RUNTIME_VERSION%...
 set DOTNET_EXTRA_RUNTIME_ZIP_NAME=dotnet-runtime-%DOTNET_EXTRA_RUNTIME_VERSION%-win-%ARCH%.zip
 set DOTNET_EXTRA_RUNTIME_REMOTE_PATH=https://dotnetcli.azureedge.net/dotnet/Runtime/%DOTNET_EXTRA_RUNTIME_VERSION%/%DOTNET_EXTRA_RUNTIME_ZIP_NAME%
 set DOTNET_EXTRA_RUNTIME_LOCAL_PATH=%DOTNET_PATH%%DOTNET_EXTRA_RUNTIME_ZIP_NAME%
 echo Installing '%DOTNET_EXTRA_RUNTIME_REMOTE_PATH%' to '%DOTNET_EXTRA_RUNTIME_LOCAL_PATH%' >> "%INIT_TOOLS_LOG%"
-powershell -NoProfile -ExecutionPolicy unrestricted -Command "$retryCount = 0; $success = $false; $proxyCredentialsRequired = $false; do { try { $wc = New-Object Net.WebClient; if ($proxyCredentialsRequired) { [Net.WebRequest]::DefaultWebProxy.Credentials = [Net.CredentialCache]::DefaultNetworkCredentials; } $wc.DownloadFile('%DOTNET_EXTRA_RUNTIME_REMOTE_PATH%', '%DOTNET_EXTRA_RUNTIME_LOCAL_PATH%'); $success = $true; } catch { if ($retryCount -ge 6) { throw; } else { $we = $_.Exception.InnerException -as [Net.WebException]; $proxyCredentialsRequired = ($we -ne $null -and ([Net.HttpWebResponse]$we.Response).StatusCode -eq [Net.HttpStatusCode]::ProxyAuthenticationRequired); Start-Sleep -Seconds (5 * $retryCount); $retryCount++; } } } while ($success -eq $false); Expand-Archive '%DOTNET_EXTRA_RUNTIME_LOCAL_PATH%' '%DOTNET_PATH%';" >> "%INIT_TOOLS_LOG%"
+powershell -NoProfile -ExecutionPolicy unrestricted -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;$retryCount = 0; $success = $false; $proxyCredentialsRequired = $false; do { try { $wc = New-Object Net.WebClient; if ($proxyCredentialsRequired) { [Net.WebRequest]::DefaultWebProxy.Credentials = [Net.CredentialCache]::DefaultNetworkCredentials; } $wc.DownloadFile('%DOTNET_EXTRA_RUNTIME_REMOTE_PATH%', '%DOTNET_EXTRA_RUNTIME_LOCAL_PATH%'); $success = $true; } catch { if ($retryCount -ge 6) { throw; } else { $we = $_.Exception.InnerException -as [Net.WebException]; $proxyCredentialsRequired = ($we -ne $null -and ([Net.HttpWebResponse]$we.Response).StatusCode -eq [Net.HttpStatusCode]::ProxyAuthenticationRequired); Start-Sleep -Seconds (5 * $retryCount); $retryCount++; } } } while ($success -eq $false); Expand-Archive '%DOTNET_EXTRA_RUNTIME_LOCAL_PATH%' '%DOTNET_PATH%';" >> "%INIT_TOOLS_LOG%"
 
 echo Installing dotnet cli %DOTNET_VERSION%...
 set DOTNET_ZIP_NAME=dotnet-sdk-%DOTNET_VERSION%-win-%ARCH%.zip
 set DOTNET_REMOTE_PATH=https://dotnetcli.azureedge.net/dotnet/Sdk/%DOTNET_VERSION%/%DOTNET_ZIP_NAME%
 set DOTNET_LOCAL_PATH=%DOTNET_PATH%%DOTNET_ZIP_NAME%
 echo Installing '%DOTNET_REMOTE_PATH%' to '%DOTNET_LOCAL_PATH%' >> "%INIT_TOOLS_LOG%"
-powershell -NoProfile -ExecutionPolicy unrestricted -Command "$retryCount = 0; $success = $false; $proxyCredentialsRequired = $false; do { try { $wc = New-Object Net.WebClient; if ($proxyCredentialsRequired) { [Net.WebRequest]::DefaultWebProxy.Credentials = [Net.CredentialCache]::DefaultNetworkCredentials; } $wc.DownloadFile('%DOTNET_REMOTE_PATH%', '%DOTNET_LOCAL_PATH%'); $success = $true; } catch { if ($retryCount -ge 6) { throw; } else { $we = $_.Exception.InnerException -as [Net.WebException]; $proxyCredentialsRequired = ($we -ne $null -and ([Net.HttpWebResponse]$we.Response).StatusCode -eq [Net.HttpStatusCode]::ProxyAuthenticationRequired); Start-Sleep -Seconds (5 * $retryCount); $retryCount++; } } } while ($success -eq $false); Expand-Archive '%DOTNET_LOCAL_PATH%' '%DOTNET_PATH%' -Force; " >> "%INIT_TOOLS_LOG%"
+powershell -NoProfile -ExecutionPolicy unrestricted -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;$retryCount = 0; $success = $false; $proxyCredentialsRequired = $false; do { try { $wc = New-Object Net.WebClient; if ($proxyCredentialsRequired) { [Net.WebRequest]::DefaultWebProxy.Credentials = [Net.CredentialCache]::DefaultNetworkCredentials; } $wc.DownloadFile('%DOTNET_REMOTE_PATH%', '%DOTNET_LOCAL_PATH%'); $success = $true; } catch { if ($retryCount -ge 6) { throw; } else { $we = $_.Exception.InnerException -as [Net.WebException]; $proxyCredentialsRequired = ($we -ne $null -and ([Net.HttpWebResponse]$we.Response).StatusCode -eq [Net.HttpStatusCode]::ProxyAuthenticationRequired); Start-Sleep -Seconds (5 * $retryCount); $retryCount++; } } } while ($success -eq $false); Expand-Archive '%DOTNET_LOCAL_PATH%' '%DOTNET_PATH%' -Force; " >> "%INIT_TOOLS_LOG%"
 
 if NOT exist "%DOTNET_LOCAL_PATH%" (
   echo ERROR: Could not install dotnet cli correctly. 1>&2

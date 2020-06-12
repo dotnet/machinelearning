@@ -34,7 +34,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             SortOrder = 2)]
         public string ConfidenceUpperBoundColumn;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "The length of series from the begining used for training.", ShortName = "wnd",
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The length of series from the beginning used for training.", ShortName = "wnd",
             SortOrder = 3)]
         public int TrainSize = 1;
 

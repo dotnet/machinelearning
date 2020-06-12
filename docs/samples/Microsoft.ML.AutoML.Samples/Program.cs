@@ -8,6 +8,9 @@ namespace Microsoft.ML.AutoML.Samples
         {
             try
             {
+                RecommendationExperiment.Run();
+                Console.Clear();
+
                 RegressionExperiment.Run();
                 Console.Clear();
 

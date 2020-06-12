@@ -248,6 +248,26 @@ namespace Microsoft.ML.Tests.Transformers
             var expectedConvertedValues = ML.Data.LoadFromEnumerable(allTypesDataConverted);
 
             CheckSameValues(expectedConvertedValues, actualConvertedValues);
+
+            var allInputTypesData = new[] { new { A = (sbyte)sbyte.MinValue, B = (byte)byte.MinValue, C = double.MaxValue, D = float.MinValue, E = "already a string", F = false } };
+            var allInputTypesDataView = ML.Data.LoadFromEnumerable(allInputTypesData);
+            var allInputTypesDataPipe = ML.Transforms.Conversion.ConvertType(columns: new[] {new TypeConvertingEstimator.ColumnOptions("A1", DataKind.String, "A"),
+                new TypeConvertingEstimator.ColumnOptions("B1", DataKind.String, "B"),
+                new TypeConvertingEstimator.ColumnOptions("C1", DataKind.String, "C"),
+                new TypeConvertingEstimator.ColumnOptions("D1", DataKind.String, "D"),
+                new TypeConvertingEstimator.ColumnOptions("E1", DataKind.String, "E"),
+                new TypeConvertingEstimator.ColumnOptions("F1", DataKind.String, "F"),
+            });
+
+            var convertedValues = allInputTypesDataPipe.Fit(allInputTypesDataView).Transform(allInputTypesDataView);
+
+            var expectedValuesData = new[] { new { A = (sbyte)sbyte.MinValue, B = (byte)byte.MinValue, C = double.MaxValue, D = float.MinValue, E = "already a string", F = false,
+                A1 = "-128", B1 = "0", C1 = "1.7976931348623157E+308", D1 = "-3.402823E+38", E1 = "already a string", F1 = "False" } };
+            var expectedValuesDataView = ML.Data.LoadFromEnumerable(expectedValuesData);
+
+            CheckSameValues(expectedValuesDataView, convertedValues);
+            TestEstimatorCore(allInputTypesDataPipe, allInputTypesDataView);
+
             Done();
         }
 
@@ -260,7 +280,7 @@ namespace Microsoft.ML.Tests.Transformers
             // In this case, whatever the value of the input, the term mapping should come from the optional side data if specified.
             var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var sideDataBuilder = new ArrayDataViewBuilder(mlContext);

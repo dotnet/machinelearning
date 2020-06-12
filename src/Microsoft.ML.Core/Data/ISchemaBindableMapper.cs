@@ -9,11 +9,11 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// A mapper that can be bound to a <see cref="RoleMappedSchema"/> (which is an ISchema, with mappings from column kinds
-    /// to columns). Binding an <see cref="ISchemaBindableMapper"/> to a <see cref="RoleMappedSchema"/> produces an
+    /// A mapper that can be bound to a <see cref="RoleMappedSchema"/> (which encapsulates a <see cref="DataViewSchema"/> and has mappings from column kinds
+    /// to columns of that schema). Binding an <see cref="ISchemaBindableMapper"/> to a <see cref="RoleMappedSchema"/> produces an
     /// <see cref="ISchemaBoundMapper"/>, which is an interface that has methods to return the names and indices of the input columns
     /// needed by the mapper to compute its output. The <see cref="ISchemaBoundRowMapper"/> is an extention to this interface, that
-    /// can also produce an output IRow given an input IRow. The IRow produced generally contains only the output columns of the mapper, and not
+    /// can also produce an output <see cref="DataViewRow"/> given an input <see cref="DataViewRow"/>. The <see cref="DataViewRow"/> produced generally contains only the output columns of the mapper, and not
     /// the input columns (but there is nothing preventing an <see cref="ISchemaBoundRowMapper"/> from mapping input columns directly to outputs).
     /// This interface is implemented by wrappers of IValueMapper based predictors, which are predictors that take a single
     /// features column. New predictors can implement <see cref="ISchemaBindableMapper"/> directly. Implementing <see cref="ISchemaBindableMapper"/>

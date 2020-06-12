@@ -11,7 +11,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.TensorFlow;
+using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestSimpleCase()
+        public void TestSimpleCase()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
@@ -78,7 +78,8 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[4], B = new float[4] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { a = new string[4], b = new string[4] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
-            var pipe = ML.Model.LoadTensorFlowModel(modelFile).ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
+            using var model = ML.Model.LoadTensorFlowModel(modelFile);
+            var pipe = model.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable( stringData);
@@ -97,7 +98,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestOldSavingAndLoading()
+        public void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
@@ -119,7 +120,8 @@ namespace Microsoft.ML.Tests
                         b = new[] { 10.0f, 8.0f, 6.0f, 6.0f }
                     }
                 }));
-            var est = ML.Model.LoadTensorFlowModel(modelFile).ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
+            using var model = ML.Model.LoadTensorFlowModel(modelFile);
+            var est = model.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -133,7 +135,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             // typeof helps to load the TensorFlowTransformer type.
             Type type = typeof(TensorFlowTransformer);
@@ -164,7 +166,8 @@ namespace Microsoft.ML.Tests
 
             TestEstimatorCore(pipe, data);
 
-            var result = pipe.Fit(data).Transform(data);
+            using var model = pipe.Fit(data);
+            var result = model.Transform(data);
             result.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
@@ -187,7 +190,7 @@ namespace Microsoft.ML.Tests
             const string modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1);
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
+            using var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorDataViewType)schema[column].Type;
@@ -210,7 +213,8 @@ namespace Microsoft.ML.Tests
 
             TestEstimatorCore(pipe, data);
 
-            var result = pipe.Fit(data).Transform(data);
+            using var model = pipe.Fit(data);
+            var result = model.Transform(data);
             result.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
@@ -225,6 +229,21 @@ namespace Microsoft.ML.Tests
                 }
                 Assert.Equal(4, numRows);
             }
+        }
+
+        [TensorFlowFact]
+        public void TestLoadMultipleModel()
+        {
+            var modelFile1 = "model_matmul/frozen_saved_model.pb";
+            var modelFile2 = "cifar_model/frozen_model.pb";
+
+            MLContext context = new MLContext(seed: 1);
+
+            TensorFlowModel model1 = context.Model.LoadTensorFlowModel(modelFile1);
+            TensorFlowModel model2 = context.Model.LoadTensorFlowModel(modelFile2);
+
+            model1.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
+            model2.ScoreTensorFlowModel("Output", "Input");
         }
 
         private void ValidateTensorFlowTransformer(IDataView result)

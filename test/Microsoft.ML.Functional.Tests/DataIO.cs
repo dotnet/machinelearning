@@ -4,7 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.Functional.Tests.Datasets;
-using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -13,7 +13,7 @@ namespace Microsoft.ML.Functional.Tests
     /// <summary>
     /// Test data input and output formats.
     /// </summary>
-    public class DataIO : BaseTestClass
+    public class DataIO : FunctionalTestBaseClass
     {
         // Separators to test
         private readonly char[] _separators;
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Functional.Tests
 
         private string SerializeDatasetToFile(MLContext mlContext, IDataView data, char separator)
         {
-            var filePath = GetOutputPath(Path.GetRandomFileName());
+            var filePath = TestCommon.GetOutputPath(OutDir, Path.GetRandomFileName());
             using (var file = File.Create(filePath))
                 mlContext.Data.SaveAsText(data, file, separatorChar: separator, headerRow: true);
 
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Functional.Tests
 
         private string SerializeDatasetToBinaryFile(MLContext mlContext, IDataView data)
         {
-            var filePath = GetOutputPath(Path.GetRandomFileName());
+            var filePath = TestCommon.GetOutputPath(OutDir, Path.GetRandomFileName());
             using (var file = File.Create(filePath))
                 mlContext.Data.SaveAsBinary(data, file);
 

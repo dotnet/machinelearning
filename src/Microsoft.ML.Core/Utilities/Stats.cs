@@ -320,7 +320,7 @@ namespace Microsoft.ML.Internal.Utilities
                 double a2 = 2.0 * a;
                 double c = np + 0.5;
 
-                // don't initialize these yet, becuase we may not need them
+                // don't initialize these yet, because we may not need them
                 double alpha = double.NaN;
                 double r = double.NaN;
                 double nr = double.NaN;

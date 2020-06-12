@@ -2,12 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Sweeper.Tests
 {
-    public class SweeperTest
+    public class SweeperTest : BaseTestClass
     {
+        public SweeperTest(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void UniformRandomSweeperReturnsDistinctValuesWhenProposeSweep()
         {

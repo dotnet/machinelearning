@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Get the count for the number of samples used. Useful for interpreting
-        /// the standard deviation and the stardard error and building confidence intervals.
+        /// the standard deviation and the standard error and building confidence intervals.
         /// </summary>
         public int Count => (int)_statistic.RawCount;
 

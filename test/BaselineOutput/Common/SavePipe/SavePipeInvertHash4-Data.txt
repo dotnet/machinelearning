@@ -7,7 +7,7 @@
 #@   col=N3:R4:5-12
 #@   col=N10:R4:13-1036
 #@ }
-A	""	""	""	""	""	"KH:{5,3,10}"	"{AH:{an,angry}|{annie,ant},KH:{5,3,10}|,KH:}"	"AH:ate|{an,angry}"	"{KH:4,AH:{an,angry}|{an,angry}}"	"AH:{annie,ant}"	"{AH:ate,KH:{5,3,10}|{5,3,10}}"	"{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,3,10}|4}"	1024	116:"KH:4"	134:"KH:{5,3,10}|{5,3,10}"	138:"KH:"	183:"AH:{an,angry}"	210:"AH:{an,angry}|{annie,ant}"	284:"AH:{an,angry}|{an,angry}"	569:"KH:{5,3,10}"	575:"AH:{annie,ant}|ate"	645:"AH:{annie,ant}"	727:"KH:{5,3,10}|4"	774:"AH:ate"	819:"AH:ate|{an,angry}"	858:"KH:{5,3,10}|"
-annie ate an ant	5	4	0	3	0	1	1	1	1	2	1	3	1024	116:1	183:1	210:1	569:1	575:1	645:2	727:1	774:1	819:1
-an angry ant	3	3	0	0	0	2	1	0	1	1	1	2	1024	134:1	183:2	210:1	284:1	569:2	645:1
-1037	1:10	3:0	6:1	7:2	151:1	582:1	871:1
+A	""	""	""	""	"AH:{an,ant}|{an,ant}"	""	"{AH:annie|ate,AH:ate|{an,ant},KH:}"	""	"{KH:{5,4,3,10},AH:{an,ant}|angry}"	"{AH:annie,KH:{5,4,3,10}|{5,4,3,10},KH:{5,4,3,10}|}"	"{AH:{an,ant},AH:angry|{an,ant}}"	"{AH:ate,AH:angry}"	1024	39:"AH:angry"	116:"KH:{5,4,3,10}"	138:"KH:"	183:"AH:ate"	192:"AH:{an,ant}|{an,ant}"	258:"AH:ate|{an,ant}"	540:"AH:{an,ant}|angry"	589:"KH:{5,4,3,10}|"	645:"AH:annie"	774:"AH:{an,ant}"	837:"KH:{5,4,3,10}|{5,4,3,10}"	994:"AH:annie|ate"	1014:"AH:angry|{an,ant}"
+annie ate an ant	5	4	3	3	1	0	2	0	2	2	2	1	1024	116:2	183:1	192:1	258:1	645:1	774:2	837:1	994:1
+an angry ant	3	3	3	3	0	0	0	0	3	1	3	1	1024	39:1	116:2	540:1	774:2	837:1	1014:1
+1037	1:10	3:3	7:1	9:1	10:1	129:1	151:1	602:1

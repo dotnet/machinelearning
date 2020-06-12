@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool UseSin = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases;
 
-            [Argument(ArgumentType.LastOccurenceWins,
+            [Argument(ArgumentType.LastOccurrenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
                 "the global random is used)")]
             public int? Seed;
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool? UseSin;
 
-            [Argument(ArgumentType.LastOccurenceWins,
+            [Argument(ArgumentType.LastOccurrenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
                            "the global random is used)")]
             public int? Seed;
@@ -610,6 +610,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Known-sized vector of <xref:System.Single> |
     /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.ApproximatedKernelTransformer> creates a new column, named as specified in
     /// the output column name parameters, where each input vector is mapped to a feature space where inner products

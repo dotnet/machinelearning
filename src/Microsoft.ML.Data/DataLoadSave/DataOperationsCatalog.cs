@@ -495,13 +495,13 @@ namespace Microsoft.ML
         /// </summary>
         internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
         {
+            Contracts.CheckValue(env, nameof(env));
             // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
-
             if (samplingKeyColumn == null)
             {
                 samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
-                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)seed);
+                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)(seed ?? ((ISeededEnvironment)env).Seed));
             }
             else
             {
@@ -511,17 +511,18 @@ namespace Microsoft.ML
                 var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(env, type))
                 {
-                    // Hash the samplingKeyColumn.
-                    // REVIEW: this could currently crash, since Hash only accepts a limited set
-                    // of column types. It used to be HashJoin, but we should probably extend Hash
-                    // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
                     samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
-                    HashingEstimator.ColumnOptions columnOptions;
-                    if (seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)seed.Value);
-                    else
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30);
+                    // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
+                    var itemType = type.GetItemType();
+                    if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
+                        data = new TypeConvertingTransformer(env, origStratCol, DataKind.Int64, origStratCol).Transform(data);
+
+                    var localSeed = seed.HasValue ? seed : ((ISeededEnvironment)env).Seed.HasValue ? ((ISeededEnvironment)env).Seed : null;
+                    var columnOptions =
+                        localSeed.HasValue ?
+                        new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)localSeed.Value, combine: true) :
+                        new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, combine: true);
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
                 else
@@ -533,7 +534,6 @@ namespace Microsoft.ML
                         data = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(samplingKeyColumn, origStratCol, ensureZeroUntouched: true)).Fit(data).Transform(data);
                     }
                 }
-
             }
         }
     }

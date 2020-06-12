@@ -21,11 +21,33 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
-        /// <param name="allowQuoting">Whether the file can contain columns defined by a quoted string.</param>
-        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
+        /// <param name="hasHeader">Whether the file has a header with feature names. When a <see paramref="dataSample"/> is provided, <see langword="true"/>
+        /// indicates that the first line in the <see paramref="dataSample"/> will be used for feature names, and that when <see cref="TextLoader.Load(IMultiStreamSource)"/>
+        /// is called, the first line will be skipped. When there is no <see paramref="dataSample"/> provided, <see langword="true"/> just indicates that the loader should
+        /// skip the first line when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called, but columns will not have slot names annotations. This is
+        /// because the output schema is made when the loader is created, and not when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer slot name annotations if present, and also the number
+        /// of slots in a column defined with <see cref="TextLoader.Range"/> with <see langword="null"/> maximum index.
+        /// If the sample has been saved with ML.NET's <see cref="SaveAsText(DataOperationsCatalog, IDataView, Stream, char, bool, bool, bool, bool)"/>,
+        /// it will also contain the schema information in the header that the loader can read even if <paramref name="columns"/> is <see langword="null"/>.
+        /// In order to use the schema defined in the file, all other arguments sould be left with their default values.</param>
+        /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+        /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
+        /// input value. When <see langword="false"/>, all separators, even those within quotes, are treated as delimiting a new column.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
+        /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+        /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+        /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CreateTextLoader](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Column[] columns,
             char separatorChar = TextLoader.Defaults.Separator,
@@ -42,7 +64,7 @@ namespace Microsoft.ML
                 HasHeader = hasHeader,
                 AllowQuoting = allowQuoting,
                 TrimWhitespace = trimWhitespace,
-                AllowSparse = allowSparse
+                AllowSparse = allowSparse,
             };
 
             return new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options, dataSample: dataSample);
@@ -53,7 +75,11 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer slot name annotations if present, and also the number
+        /// of slots in <see cref="TextLoader.Options.Columns"/> defined with <see cref="TextLoader.Range"/> with <see langword="null"/> maximum index.
+        /// If the sample has been saved with ML.NET's <see cref="SaveAsText(DataOperationsCatalog, IDataView, Stream, char, bool, bool, bool, bool)"/>,
+        /// it will also contain the schema information in the header that the loader can read even if <see cref="TextLoader.Options.Columns"/> are not specified.
+        /// In order to use the schema defined in the file, all other <see cref="TextLoader.Options"/> sould be left with their default values.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Options options,
             IMultiStreamSource dataSample = null)
@@ -67,18 +93,22 @@ namespace Microsoft.ML
         /// names and their data types in the schema of the loaded data.</typeparam>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer information
-        /// about the columns, such as slot names.</param>
-        /// <param name="allowQuoting">Whether the input may include quoted values,
-        /// which can contain separator characters, colons,
-        /// and distinguish empty values from missing values. When true, consecutive separators
-        /// denote a missing value and an empty value is denoted by \"\".
-        /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        /// <param name="allowSparse">Whether the input may include sparse representations for example,
-        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
-        /// except for 3rd and 5th columns which have values 6 and 3</param>
+        /// <param name="hasHeader">Whether the file has a header with feature names. When a <see paramref="dataSample"/> is provided, <see langword="true"/>
+        /// indicates that the first line in the <see paramref="dataSample"/> will be used for feature names, and that when <see cref="TextLoader.Load(IMultiStreamSource)"/>
+        /// is called, the first line will be skipped. When there is no <see paramref="dataSample"/> provided, <see langword="true"/> just indicates that the loader should
+        /// skip the first line when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called, but columns will not have slot names annotations. This is
+        /// because the output schema is made when the loader is created, and not when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer slot name annotations if present.</param>
+        /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+        /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
+        /// input value. When <see langword="false"/>, all separators, even those whitin quotes, are treated as delimiting a new column.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
+        /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+        /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+        /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
@@ -90,6 +120,19 @@ namespace Microsoft.ML
                 allowSparse, trimWhitespace, dataSample: dataSample);
 
         /// <summary>
+        /// Create a text loader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
+        /// </summary>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
+        /// <param name="options">Defines the settings of the load operation. Defines the settings of the load operation. No need to specify a Columns field,
+        /// as columns will be infered by this method.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer information
+        /// about the columns, such as slot names.</param>
+        public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
+            TextLoader.Options options,
+            IMultiStreamSource dataSample = null)
+            => TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), options, dataSample);
+
+        /// <summary>
         /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
         /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
@@ -97,10 +140,21 @@ namespace Microsoft.ML
         /// <param name="path">The path to the file.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="allowQuoting">Whether the file can contain columns defined by a quoted string.</param>
-        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
+        /// <param name="hasHeader">Whether the file has a header. When <see langword="true"/>, the loader will skip the first line when
+        /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
+        /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+        /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
+        /// input value. When <see langword="false"/>, all separators, even those whitin quotes, are treated as delimiting a new column.
+        /// It is also used to distinguish empty values from missing values. When <see langword="true"/>, missing value are denoted by consecutive
+        /// separators and empty values by \"\". When <see langword="false"/>, empty values are denoted by consecutive separators and missing
+        /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
+        /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+        /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+        /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
         /// <returns>The data view.</returns>
         public static IDataView LoadFromTextFile(this DataOperationsCatalog catalog,
             string path,
@@ -112,6 +166,10 @@ namespace Microsoft.ML
             bool allowSparse = TextLoader.Defaults.AllowSparse)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
 
             var options = new TextLoader.Options
             {
@@ -132,40 +190,6 @@ namespace Microsoft.ML
         /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
-        /// <param name="path">The path to the file.</param>
-        /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="allowQuoting">Whether the input may include quoted values,
-        /// which can contain separator characters, colons,
-        /// and distinguish empty values from missing values. When true, consecutive separators
-        /// denote a missing value and an empty value is denoted by \"\".
-        /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        /// <param name="allowSparse">Whether the input may include sparse representations for example,
-        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
-        /// except for 3rd and 5th columns which have values 6 and 3</param>
-        /// <returns>The data view.</returns>
-        public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog,
-            string path,
-            char separatorChar = TextLoader.Defaults.Separator,
-            bool hasHeader = TextLoader.Defaults.HasHeader,
-            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
-            bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
-            bool allowSparse = TextLoader.Defaults.AllowSparse)
-        {
-            Contracts.CheckNonEmpty(path, nameof(path));
-
-            // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
-            // Therefore, we are going to disallow data sample.
-            return TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar,
-                allowQuoting, allowSparse, trimWhitespace).Load(new MultiFileSource(path));
-        }
-
-        /// <summary>
-        /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
-        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
-        /// </summary>
-        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">Specifies a file from which to load.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
         /// <example>
@@ -179,11 +203,80 @@ namespace Microsoft.ML
             TextLoader.Options options = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
 
             var env = catalog.GetEnvironment();
             var source = new MultiFileSource(path);
 
             return new TextLoader(env, options, dataSample: source).Load(source);
+        }
+
+        /// <summary>
+        /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
+        /// </summary>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
+        /// <param name="path">The path to the file.</param>
+        /// <param name="separatorChar">Column separator character. Default is '\t'</param>
+        /// <param name="hasHeader">Whether the file has a header. When <see langword="true"/>, the loader will skip the first line when
+        /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
+        /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+        /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
+        /// input value. When <see langword="false"/>, all separators, even those whitin quotes, are treated as delimiting a new column.
+        /// It is also used to distinguish empty values from missing values. When <see langword="true"/>, missing value are denoted by consecutive
+        /// separators and empty values by \"\". When <see langword="false"/>, empty values are denoted by consecutive separators and missing
+        /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
+        /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+        /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+        /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
+        /// <returns>The data view.</returns>
+        public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog,
+            string path,
+            char separatorChar = TextLoader.Defaults.Separator,
+            bool hasHeader = TextLoader.Defaults.HasHeader,
+            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
+            bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
+            bool allowSparse = TextLoader.Defaults.AllowSparse)
+        {
+            Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
+
+            // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
+            // Therefore, we are going to disallow data sample.
+            return TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar,
+                allowQuoting, allowSparse, trimWhitespace).Load(new MultiFileSource(path));
+        }
+
+        /// <summary>
+        /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
+        /// </summary>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
+        /// <param name="path">Specifies a file from which to load.</param>
+        /// <param name="options">Defines the settings of the load operation. No need to specify a Columns field,
+        /// as columns will be infered by this method.</param>
+        /// <returns>The data view.</returns>
+        public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog, string path,
+            TextLoader.Options options)
+        {
+            Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
+
+            return TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), options)
+                .Load(new MultiFileSource(path));
         }
 
         /// <summary>

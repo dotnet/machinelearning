@@ -46,7 +46,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// bytes in the stream exceeds <paramref name="maxLen"/>,
         /// then we back off to disk.
         /// </summary>
-        /// <param name="maxLen">The maximum length we will accomodate in memory</param>
+        /// <param name="maxLen">The maximum length we will accommodate in memory</param>
         public HybridMemoryStream(int maxLen = _defaultMaxLen)
         {
             if (!(0 <= maxLen && maxLen <= Utils.ArrayMaxSize))
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// somewhat easier.
         /// </summary>
         /// <param name="stream">A stream that can be opened</param>
-        /// <param name="maxLen">The maximum length we will accomodate in memory</param>
+        /// <param name="maxLen">The maximum length we will accommodate in memory</param>
         /// <returns>A readable copy of the data stream</returns>
         public static Stream CreateCache(Stream stream, int maxLen = _defaultMaxLen)
         {

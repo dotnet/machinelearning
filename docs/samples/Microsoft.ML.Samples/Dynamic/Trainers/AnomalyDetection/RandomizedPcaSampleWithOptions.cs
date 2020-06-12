@@ -29,7 +29,7 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
                 new DataPoint(){ Features = new float[3] {1, 0, 0} }
             };
 
-            // Convert the List<DataPoint> to IDataView, a consumble format to
+            // Convert the List<DataPoint> to IDataView, a consumable format to
             // ML.NET functions.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
@@ -76,14 +76,14 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
                         i, featuresInText, result.Score);
             }
             // Lines printed out should be
-            // The 0 - th example with features[0, 2, 1] isan inlier with a score of being outlier 0.2264826
-            // The 1 - th example with features[0, 2, 3] isan inlier with a score of being outlier 0.1739471
-            // The 2 - th example with features[0, 2, 4] isan inlier with a score of being outlier 0.05711612
-            // The 3 - th example with features[0, 2, 1] isan inlier with a score of being outlier 0.2264826
-            // The 4 - th example with features[0, 2, 2] isan inlier with a score of being outlier 0.3868995
-            // The 5 - th example with features[0, 2, 3] isan inlier with a score of being outlier 0.1739471
-            // The 6 - th example with features[0, 2, 4] isan inlier with a score of being outlier 0.05711612
-            // The 7 - th example with features[1, 0, 0] isan outlier with a score of being outlier 0.6260795
+            // The 0 - th example with features[0, 2, 1] is an inlier with a score of being outlier 0.2264826
+            // The 1 - th example with features[0, 2, 3] is an inlier with a score of being outlier 0.1739471
+            // The 2 - th example with features[0, 2, 4] is an inlier with a score of being outlier 0.05711612
+            // The 3 - th example with features[0, 2, 1] is an inlier with a score of being outlier 0.2264826
+            // The 4 - th example with features[0, 2, 2] is an inlier with a score of being outlier 0.3868995
+            // The 5 - th example with features[0, 2, 3] is an inlier with a score of being outlier 0.1739471
+            // The 6 - th example with features[0, 2, 4] is an inlier with a score of being outlier 0.05711612
+            // The 7 - th example with features[1, 0, 0] is an outlier with a score of being outlier 0.6260795
         }
 
         // Example with 3 feature values. A training data set is a collection of

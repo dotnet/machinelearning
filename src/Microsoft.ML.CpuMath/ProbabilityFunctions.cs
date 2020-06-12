@@ -116,7 +116,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// p value. It is used in establishing confidence intervals.
         /// </summary>
         /// <param name="p">The input p value, so in the range 0 to 1.</param>
-        /// <returns>One intepretation is, the value at which the standard normal CDF evaluates to p.</returns>
+        /// <returns>One interpretation is, the value at which the standard normal CDF evaluates to p.</returns>
         public static double Probit(double p)
         {
             Contracts.CheckParam(0 <= p && p <= 1, nameof(p), "Input probability should be in range 0 to 1.");

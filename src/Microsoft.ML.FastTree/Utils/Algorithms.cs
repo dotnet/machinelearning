@@ -123,7 +123,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Fidns the minimum and the argmin in an array of values
+        /// Finds the minimum and the argmin in an array of values
         /// </summary>
         public static T Min<T>(T[] array, out int argmin) where T : IComparable
         {

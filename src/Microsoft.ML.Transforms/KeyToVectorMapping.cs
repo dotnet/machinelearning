@@ -437,6 +437,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | [key](xref:Microsoft.Ml.Data.KeyDataViewType) or a known-size vector of keys. |
     /// | Output column data type | A known-size vector of [System.Single](xref:System.Single). |
+    /// | Exportable to ONNX | No |
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]></format>

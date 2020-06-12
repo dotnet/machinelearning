@@ -3,3 +3,26 @@ root = true
 [*.cs]
 # Sort using directives with System.* appearing first
 dotnet_sort_system_directives_first = true
+
+# VSTHRD002: Avoid problematic synchronous waits
+dotnet_diagnostic.VSTHRD002.severity = none
+
+[test/**/*.cs]
+
+# MSML_GeneralName: This name should be PascalCased
+dotnet_diagnostic.MSML_GeneralName.severity = none
+
+# MSML_NoBestFriendInternal: Cross-assembly internal access requires referenced item to have Microsoft.ML.BestFriendAttribute attribute.
+dotnet_diagnostic.MSML_NoBestFriendInternal.severity = none
+
+# MSML_NoInstanceInitializers: No initializers on instance fields or properties
+dotnet_diagnostic.MSML_NoInstanceInitializers.severity = none
+
+[test/Microsoft.ML.CodeAnalyzer.Tests/**.cs]
+# BaseTestClass does not apply for analyzer testing.
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+# The MSML_RelaxTestNaming suppressor for VSTHRD200 is not active for CodeAnalyzer.Tests, so we disable it altogether.
+# VSTHRD200: Use "Async" suffix for async methods
+dotnet_diagnostic.VSTHRD200.severity = none

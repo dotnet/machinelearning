@@ -180,7 +180,7 @@ namespace Microsoft.ML.RunTests
             [Argument(ArgumentType.AtMostOnce)]
             public int once = 1;
 
-            [Argument(ArgumentType.LastOccurenceWins)]
+            [Argument(ArgumentType.LastOccurrenceWins)]
             public int last = 2;
 
             [Argument(ArgumentType.Multiple)]

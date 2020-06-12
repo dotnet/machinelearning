@@ -12,7 +12,7 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.AutoML
 {
-    using ITrainerEstimator = ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object>;
+    using ITrainerEstimator = ITrainerEstimator<IPredictionTransformer<object>, object>;
 
     internal class AveragedPerceptronBinaryExtension : ITrainerExtension
     {
@@ -24,7 +24,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             AveragedPerceptronTrainer.Options options = null;
             if (sweepParams == null || !sweepParams.Any())
@@ -69,7 +69,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<FastForestBinaryTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -91,7 +91,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<FastTreeBinaryTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -113,7 +113,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             LightGbmBinaryTrainer.Options options = TrainerExtensionUtil.CreateLightGbmOptions<LightGbmBinaryTrainer.Options, float, BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>, CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>(sweepParams, columnInfo);
             return mlContext.BinaryClassification.Trainers.LightGbm(options);
@@ -134,7 +134,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<LinearSvmTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             return mlContext.BinaryClassification.Trainers.LinearSvm(options);
@@ -155,7 +155,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<SdcaLogisticRegressionBinaryTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             return mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(options);
@@ -176,7 +176,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<LbfgsLogisticRegressionBinaryTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -198,7 +198,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<SgdCalibratedTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -220,7 +220,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<SymbolicSgdLogisticRegressionBinaryTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             return mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(options);

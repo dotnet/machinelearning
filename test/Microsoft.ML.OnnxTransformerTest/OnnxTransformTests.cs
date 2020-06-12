@@ -17,16 +17,17 @@ using Microsoft.ML.Transforms.Image;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Transforms.Onnx;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests
 {
     public class OnnxTransformTests : TestDataPipeBase
     {
-        private const int inputSize = 150528;
+        private const int InputSize = 150528;
 
         private class TestData
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public float[] data_0;
         }
 
@@ -56,14 +57,25 @@ namespace Microsoft.ML.Tests
 
         private class TestDataXY
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public float[] A;
         }
 
         private class TestDataDifferntType
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public string[] data_0;
+        }
+        private class TestDataNoneDimension
+        {
+            [VectorType(4)]
+            public float[] features;
+        }
+
+        class PredictionNoneDimension
+        {
+            [VectorType(1)]
+            public float[] variable { get; set; }
         }
 
         private class TestDataUnknownDimensions
@@ -92,9 +104,9 @@ namespace Microsoft.ML.Tests
 
         private float[] GetSampleArrayData()
         {
-            var samplevector = new float[inputSize];
-            for (int i = 0; i < inputSize; i++)
-                samplevector[i] = (i / (inputSize * 1.01f));
+            var samplevector = new float[InputSize];
+            for (int i = 0; i < InputSize; i++)
+                samplevector[i] = (i / (InputSize * 1.01f));
             return samplevector;
         }
 
@@ -103,7 +115,7 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        void TestSimpleCase()
+        public void TestSimpleCase()
         {
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
@@ -119,8 +131,8 @@ namespace Microsoft.ML.Tests
                      }
                 });
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = ML.Transforms.ApplyOnnxModel(new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile);
 
@@ -143,7 +155,7 @@ namespace Microsoft.ML.Tests
         [OnnxTheory]
         [InlineData(null, false)]
         [InlineData(null, true)]
-        void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
+        public void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
         {
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
@@ -192,7 +204,7 @@ namespace Microsoft.ML.Tests
                             i++;
                         }
                     }
-                    Assert.InRange(sum, 1.0, 1.00001);
+                    Assert.InRange(sum, 0.99999, 1.00001);
                 }
             }
         }
@@ -202,7 +214,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var imageHeight = 224;
             var imageWidth = 224;
             var dataFile = GetDataPath("images/images.tsv");
@@ -239,14 +251,14 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
             Assert.Equal(0, x);
         }
 
         [OnnxFact]
-        void TestCommandLineWithCustomShape()
+        public void TestCommandLineWithCustomShape()
         {
             var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{customShapeInfos={Name=data_0 Shape=1 Shape=3 Shape=224 Shape=224} InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
             Assert.Equal(0, x);
@@ -321,12 +333,66 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
+        public void OnnxModelOutputDifferentOrder()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
+
+            var dataView = ML.Data.LoadFromEnumerable(
+                new TestDataMulti[] {
+                    new TestDataMulti()
+                    {
+                        ina = new float[] {1,2,3,4,5},
+                        inb = new float[] {1,2,3,4,5}
+                    }
+                });
+            // The model returns the output columns in the order outa, outb. We are doing the opposite here, making sure the name mapping is correct.
+            var onnx = ML.Transforms.ApplyOnnxModel(new[] { "outb", "outa" }, new[] { "ina", "inb" }, modelFile).Fit(dataView).Transform(dataView);
+
+            var outaCol = onnx.Schema["outa"];
+            var outbCol = onnx.Schema["outb"];
+            using (var curs = onnx.GetRowCursor(outaCol, onnx.Schema["outb"]))
+            {
+                var getScoresa = curs.GetGetter<VBuffer<float>>(outaCol);
+                var getScoresb = curs.GetGetter<VBuffer<float>>(outbCol);
+                var buffera = default(VBuffer<float>);
+                var bufferb = default(VBuffer<float>);
+
+                while (curs.MoveNext())
+                {
+                    getScoresa(ref buffera);
+                    getScoresb(ref bufferb);
+                    Assert.Equal(5, buffera.Length);
+                    Assert.Equal(5, bufferb.Length);
+                    Assert.Equal(0, buffera.GetValues().ToArray().Sum());
+                    Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
+                }
+            }
+
+            // The model returns the output columns in the order outa, outb. We are doing only a subset, outb, to make sure the mapping works.
+            onnx = ML.Transforms.ApplyOnnxModel(new[] { "outb" }, new[] { "ina", "inb" }, modelFile).Fit(dataView).Transform(dataView);
+
+            outbCol = onnx.Schema["outb"];
+            using (var curs = onnx.GetRowCursor(outbCol))
+            {
+                var getScoresb = curs.GetGetter<VBuffer<float>>(outbCol);
+                var bufferb = default(VBuffer<float>);
+
+                while (curs.MoveNext())
+                {
+                    getScoresb(ref bufferb);
+                    Assert.Equal(5, bufferb.Length);
+                    Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
+                }
+            }
+        }
+
+        [OnnxFact]
         public void TestUnknownDimensions()
         {
             // model contains -1 in input and output shape dimensions
             // model: input dims = [-1, 3], output argmax dims = [-1]
             var modelFile = @"unknowndimensions/test_unknowndimensions_float.onnx";
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var data = new TestDataUnknownDimensions[]
                 {
                     new TestDataUnknownDimensions(){input = new float[] {1.1f, 1.3f, 1.2f }},
@@ -343,6 +409,29 @@ namespace Microsoft.ML.Tests
             Assert.Equal(2, predictions[2].argmax[0]);
         }
 
+        [OnnxFact]
+        public void TestOnnxNoneDimValue()
+        {
+            // Model contains None in input shape dimension
+            // Model input dims: [None, 4]
+            var modelFile = Path.Combine(@"unknowndimensions/linear_regression.onnx");
+            var mlContext = new MLContext(seed: 1);
+            var data = new TestDataNoneDimension[]
+            {
+                    new TestDataNoneDimension(){features = new float[] { 5.1f, 3.5f, 1.4f, 0.2f}},
+                    new TestDataNoneDimension(){features = new float[] { 7.0f, 3.2f, 4.7f, 1.4f }},
+                    new TestDataNoneDimension(){features = new float[] { 6.3f, 3.3f, 6.0f, 2.5f }},
+            };
+            var idv = mlContext.Data.LoadFromEnumerable(data);
+            var pipeline = ML.Transforms.ApplyOnnxModel(modelFile);
+            var transformedValues = pipeline.Fit(idv).Transform(idv);
+            var predictions = mlContext.Data.CreateEnumerable<PredictionNoneDimension>(transformedValues, reuseRowObject: false).ToArray();
+
+            Assert.Equal(-0.080, Math.Round(predictions[0].variable[0], 3));
+            Assert.Equal(1.204, Math.Round(predictions[1].variable[0], 3));
+            Assert.Equal(2.27, Math.Round(predictions[2].variable[0], 3));
+        }
+
         /// <summary>
         /// This class is used in <see cref="OnnxModelInMemoryImage"/> to describe data points which will be consumed by ML.NET pipeline.
         /// </summary>
@@ -351,17 +440,17 @@ namespace Microsoft.ML.Tests
             /// <summary>
             /// Height of <see cref="Image"/>.
             /// </summary>
-            private const int height = 224;
+            private const int Height = 224;
 
             /// <summary>
             /// Width of <see cref="Image"/>.
             /// </summary>
-            private const int width = 224;
+            private const int Width = 224;
 
             /// <summary>
             /// Image will be consumed by ONNX image multiclass classification model.
             /// </summary>
-            [ImageType(height, width)]
+            [ImageType(Height, Width)]
             public Bitmap Image { get; set; }
 
             /// <summary>
@@ -377,9 +466,9 @@ namespace Microsoft.ML.Tests
 
             public ImageDataPoint(Color color)
             {
-                Image = new Bitmap(width, height);
-                for (int i = 0; i < width; ++i)
-                    for (int j = 0; j < height; ++j)
+                Image = new Bitmap(Width, Height);
+                for (int i = 0; i < Width; ++i)
+                    for (int j = 0; j < Height; ++j)
                         Image.SetPixel(i, j, color);
             }
         }

@@ -141,7 +141,7 @@ namespace Microsoft.ML.Data
         /// <param name="type">Native type in C#.</param>
         /// <param name="dataViewType">The corresponding type of <paramref name="type"/> in ML.NET's type system.</param>
         /// <param name="typeAttributes">The <see cref="Attribute"/>s attached to <paramref name="type"/>.</param>
-        [Obsolete("This API is depricated, please use the new form of Register which takes in a single DataViewTypeAttribute instead.", false)]
+        [Obsolete("This API is deprecated, please use the new form of Register which takes in a single DataViewTypeAttribute instead.", false)]
         public static void Register(DataViewType dataViewType, Type type, IEnumerable<Attribute> typeAttributes)
         {
             DataViewTypeAttribute typeAttr = null;

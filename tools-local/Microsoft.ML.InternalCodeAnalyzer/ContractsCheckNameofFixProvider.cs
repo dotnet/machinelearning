@@ -62,7 +62,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 argList.Arguments[1] == nameArg && argList.Arguments[0].Expression.ToString() == nameArgValue)
             {
                 context.RegisterCodeFix(CodeAction.Create(Title,
-                    c => StringReplace(context.Document, nameArgValue, nameArg, c), Id), diagnostic);
+                    c => StringReplaceAsync(context.Document, nameArgValue, nameArg, c), Id), diagnostic);
                 return;
             }
             // Check all symbols used in the Check/Except argument. Let's see if there's a match.
@@ -99,7 +99,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             if (bestSymbol != null)
             {
                 context.RegisterCodeFix(CodeAction.Create(Title,
-                    c => ExpressionReplace(context.Document, bestSymbol, nameArg, c), Id), diagnostic);
+                    c => ExpressionReplaceAsync(context.Document, bestSymbol, nameArg, c), Id), diagnostic);
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                     if (param.Identifier.ToString() == nameArgValue)
                     {
                         context.RegisterCodeFix(CodeAction.Create(Title,
-                            c => StringReplace(context.Document, nameArgValue, nameArg, c), Id), diagnostic);
+                            c => StringReplaceAsync(context.Document, nameArgValue, nameArg, c), Id), diagnostic);
                         return;
                     }
                     // A hack, but whatever works.
@@ -146,7 +146,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                         if (s.Name == nameArgValue)
                         {
                             context.RegisterCodeFix(CodeAction.Create(Title,
-                                c => StringReplace(context.Document, argName + "." + s.Name, nameArg, c), Id), diagnostic);
+                                c => StringReplaceAsync(context.Document, argName + "." + s.Name, nameArg, c), Id), diagnostic);
                             return;
                         }
                         var shortPair = attr.NamedArguments.FirstOrDefault(p => p.Key == "ShortName");
@@ -156,7 +156,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                         if (shortName.Split(',').Contains(nameArgValue))
                         {
                             context.RegisterCodeFix(CodeAction.Create(Title,
-                                c => StringReplace(context.Document, argName + "." + s.Name, nameArg, c), Id), diagnostic);
+                                c => StringReplaceAsync(context.Document, argName + "." + s.Name, nameArg, c), Id), diagnostic);
                             return;
                         }
                     }
@@ -164,7 +164,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             }
         }
 
-        private async Task<Document> StringReplace(Document document, string name, ArgumentSyntax nameArg, CancellationToken cancellationToken)
+        private async Task<Document> StringReplaceAsync(Document document, string name, ArgumentSyntax nameArg, CancellationToken cancellationToken)
         {
             var nameofExp = SyntaxFactory.ParseExpression($"nameof({name})").WithTriviaFrom(nameArg);
             var tree = await document.GetSyntaxTreeAsync(cancellationToken);
@@ -173,7 +173,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private async Task<Document> ExpressionReplace(Document document, SyntaxNode exp, ArgumentSyntax nameArg, CancellationToken cancellationToken)
+        private async Task<Document> ExpressionReplaceAsync(Document document, SyntaxNode exp, ArgumentSyntax nameArg, CancellationToken cancellationToken)
         {
             var nameofExp = (InvocationExpressionSyntax)SyntaxFactory.ParseExpression($"nameof(a)").WithTriviaFrom(nameArg);
             var newNameofExp = nameofExp.ReplaceNode(nameofExp.ArgumentList.Arguments[0].Expression, exp.WithoutTrivia());

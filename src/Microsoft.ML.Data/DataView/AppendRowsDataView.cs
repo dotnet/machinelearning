@@ -158,6 +158,9 @@ namespace Microsoft.ML.Data
 
         private abstract class CursorBase : RootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<CursorBase, int, Delegate> _createTypedGetterMethodInfo
+                = FuncInstanceMethodInfo1<CursorBase, int, Delegate>.Create(target => target.CreateTypedGetter<int>);
+
             protected readonly IDataView[] Sources;
             protected readonly Delegate[] Getters;
 
@@ -178,9 +181,7 @@ namespace Microsoft.ML.Data
             {
                 DataViewType colType = Schema[col].Type;
                 Ch.AssertValue(colType);
-                Func<int, Delegate> creator = CreateTypedGetter<int>;
-                var typedCreator = creator.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
-                return (Delegate)typedCreator.Invoke(this, new object[] { col });
+                return Utils.MarshalInvoke(_createTypedGetterMethodInfo, this, colType.RawType, col);
             }
 
             protected abstract ValueGetter<TValue> CreateTypedGetter<TValue>(int col);
@@ -189,9 +190,12 @@ namespace Microsoft.ML.Data
             {
                 Ch.CheckParam(column.Index <= Getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
 
-                if (!(Getters[column.Index] is ValueGetter<TValue>))
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}'");
-                return Getters[column.Index] as ValueGetter<TValue>;
+                var originGetter = Getters[column.Index];
+                var getter = originGetter as ValueGetter<TValue>;
+                if (getter == null)
+                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                return getter;
             }
 
             /// <summary>

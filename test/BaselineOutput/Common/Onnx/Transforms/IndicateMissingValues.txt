@@ -1,5 +1,5 @@
 {
-  "irVersion": "3",
+  "irVersion": "6",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
   "domain": "machinelearning.dotnet",
@@ -37,7 +37,7 @@
           "Features"
         ],
         "output": [
-          "Features0"
+          "Features.output"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -47,7 +47,7 @@
           "MissingIndicator0"
         ],
         "output": [
-          "MissingIndicator1"
+          "MissingIndicator.output"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -59,11 +59,11 @@
         "name": "Features",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -76,14 +76,14 @@
     ],
     "output": [
       {
-        "name": "Features0",
+        "name": "Features.output",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -94,14 +94,14 @@
         }
       },
       {
-        "name": "MissingIndicator1",
+        "name": "MissingIndicator.output",
         "type": {
           "tensorType": {
-            "elemType": "INT32",
+            "elemType": 6,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -117,11 +117,11 @@
         "name": "MissingIndicator",
         "type": {
           "tensorType": {
-            "elemType": "BOOL",
+            "elemType": 9,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -135,11 +135,47 @@
         "name": "MissingIndicator0",
         "type": {
           "tensorType": {
-            "elemType": "INT32",
+            "elemType": 6,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Features.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "MissingIndicator.output",
+        "type": {
+          "tensorType": {
+            "elemType": 6,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -154,10 +190,10 @@
   "opsetImport": [
     {
       "domain": "ai.onnx.ml",
-      "version": "1"
+      "version": "2"
     },
     {
-      "version": "9"
+      "version": "12"
     }
   ]
 }

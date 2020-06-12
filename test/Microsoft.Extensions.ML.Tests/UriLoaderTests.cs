@@ -10,12 +10,19 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.ML;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Extensions.ML
 {
-    public class UriLoaderTests
+    public class UriLoaderTests : BaseTestClass
     {
+        public UriLoaderTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void throw_until_started()
         {
@@ -40,12 +47,12 @@ namespace Microsoft.Extensions.ML
             var loaderUnderTest = ActivatorUtilities.CreateInstance<UriLoaderMock>(sp);
             loaderUnderTest.Start(new Uri("http://microsoft.com"), TimeSpan.FromMilliseconds(1));
 
-            var changed = false;
-            var changeTokenRegistration = ChangeToken.OnChange(
+            using AutoResetEvent changed = new AutoResetEvent(false);
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
                         () => loaderUnderTest.GetReloadToken(),
-                        () => changed = true);
-            Thread.Sleep(30);
-            Assert.True(changed);
+                        () => changed.Set());
+            
+            Assert.True(changed.WaitOne(AsyncTestHelper.UnexpectedTimeout), "UriLoader ChangeToken didn't fire before the allotted time.");
         }
 
         [Fact]
@@ -62,18 +69,18 @@ namespace Microsoft.Extensions.ML
 
             loaderUnderTest.Start(new Uri("http://microsoft.com"), TimeSpan.FromMilliseconds(1));
 
-            var changed = false;
-            var changeTokenRegistration = ChangeToken.OnChange(
+            using AutoResetEvent changed = new AutoResetEvent(false);
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
                         () => loaderUnderTest.GetReloadToken(),
-                        () => changed = true);
-            Thread.Sleep(30);
-            Assert.False(changed);
+                        () => changed.Set());
+
+            Assert.False(changed.WaitOne(100), "UriLoader ChangeToken fired but shouldn't have.");
         }
     }
 
     class UriLoaderMock : UriModelLoader
     {
-        public Func<Uri, string, bool> ETagMatches { get; set; } = (_, __) => false;
+        public Func<Uri, string, bool> ETagMatches { get; set; } = delegate { return false; };
 
         public UriLoaderMock(IOptions<MLOptions> contextOptions,
                          ILogger<UriModelLoader> logger) : base(contextOptions, logger)
@@ -85,12 +92,12 @@ namespace Microsoft.Extensions.ML
             return null;
         }
 
-        internal override Task<bool> LoadModel()
+        internal override Task<bool> LoadModelAsync()
         {
             return Task.FromResult(true);
         }
 
-        internal override Task<bool> MatchEtag(Uri uri, string eTag)
+        internal override Task<bool> MatchEtagAsync(Uri uri, string eTag)
         {
             return Task.FromResult(ETagMatches(uri, eTag));
         }

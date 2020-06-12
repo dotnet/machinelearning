@@ -235,7 +235,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Writes a binary representation of this class to a byte buffer, at a given position.
         /// The position is incremented to the end of the representation
         /// </summary>
-        /// <param name="buffer">a byte array where the binary represenaion is written</param>
+        /// <param name="buffer">a byte array where the binary representation is written</param>
         /// <param name="position">the position in the byte array</param>
         public override void ToByteArray(byte[] buffer, ref int position)
         {

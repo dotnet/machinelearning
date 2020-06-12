@@ -26,7 +26,7 @@ namespace Microsoft.ML
         public readonly RepositoryReader Repository;
 
         /// <summary>
-        /// When in repository mode, this is the direcory we're reading from. Null means the root
+        /// When in repository mode, this is the directory we're reading from. Null means the root
         /// of the repository. It is always null in single-stream mode.
         /// </summary>
         public readonly string Directory;

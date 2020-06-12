@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // This is actually an advisory value. The implementations themselves are responsible for
             // determining what they consider appropriate, and the actual heuristics is a bit more
             // complex than just this.
-            [Argument(ArgumentType.LastOccurenceWins,
+            [Argument(ArgumentType.LastOccurrenceWins,
                 HelpText = "Desired degree of parallelism in the data pipeline", ShortName = "n", SortOrder = 6)]
             public int? Parallel;
         }
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private IEnumerable<int> CreateSparse(IChannel ch, Random rgen)
         {
-            ch.CheckUserArg(0 <= _param && _param < 1, nameof(Arguments.Parameter), "For sparse ararys");
+            ch.CheckUserArg(0 <= _param && _param < 1, nameof(Arguments.Parameter), "For sparse arrays");
             // The parameter is the level of sparsity. Use the geometric distribution to determine the number of
             // Geometric distribution (with 0 support) would be Math.
             double denom = Math.Log(1 - _param);

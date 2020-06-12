@@ -19,7 +19,9 @@ namespace Microsoft.ML.AutoML
         OneHotHashEncoding,
         TextFeaturizing,
         TypeConverting,
-        ValueToKeyMapping
+        ValueToKeyMapping,
+        RawByteImageLoading,
+        ImageLoading
     }
 
     internal class EstimatorExtensionCatalog
@@ -38,6 +40,8 @@ namespace Microsoft.ML.AutoML
             { EstimatorName.TextFeaturizing, typeof(TextFeaturizingExtension) },
             { EstimatorName.TypeConverting, typeof(TypeConvertingExtension) },
             { EstimatorName.ValueToKeyMapping, typeof(ValueToKeyMappingExtension) },
+            { EstimatorName.RawByteImageLoading, typeof(RawByteImageLoading) },
+            { EstimatorName.ImageLoading, typeof(ImageLoading) }
         };
 
         public static IEstimatorExtension GetExtension(EstimatorName estimatorName)

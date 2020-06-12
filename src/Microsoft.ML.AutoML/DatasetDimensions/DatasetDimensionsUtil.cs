@@ -66,16 +66,18 @@ namespace Microsoft.ML.AutoML
 
         public static ulong CountRows(IDataView data, ulong maxRows)
         {
-            var cursor = data.GetRowCursor(new[] { data.Schema[0] });
-            ulong rowCount = 0;
-            while (cursor.MoveNext())
+            using (var cursor = data.GetRowCursor(new[] { data.Schema[0] }))
             {
-                if (++rowCount == maxRows)
+                ulong rowCount = 0;
+                while (cursor.MoveNext())
                 {
-                    break;
+                    if (++rowCount == maxRows)
+                    {
+                        break;
+                    }
                 }
+                return rowCount;
             }
-            return rowCount;
         }
 
         public static bool IsDataViewEmpty(IDataView data)

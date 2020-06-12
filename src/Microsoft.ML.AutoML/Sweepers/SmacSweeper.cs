@@ -13,7 +13,7 @@ using Float = System.Single;
 namespace Microsoft.ML.AutoML
 {
     //REVIEW: Figure out better way to do this. could introduce a base class for all smart sweepers,
-    //encapsulating common functionality. This seems like a good plan to persue.
+    //encapsulating common functionality. This seems like a good plan to pursue.
     internal sealed class SmacSweeper : ISweeper
     {
         public sealed class Arguments
@@ -140,12 +140,12 @@ namespace Microsoft.ML.AutoML
 
         /// <summary>
         /// Generates a set of candidate configurations to sweep through, based on a combination of random and local
-        /// search, as outlined in Hutter et al - Sequential Model-Based Optimization for General Algorithm Conﬁguration.
+        /// search, as outlined in Hutter et al. - Sequential Model-Based Optimization for General Algorithm Conﬁguration.
         /// Makes use of class private members which determine how many candidates are returned. This number will include
         /// random configurations interleaved (per the paper), and thus will be double the specified value.
         /// </summary>
         /// <param name="numOfCandidates">Number of candidate solutions to return.</param>
-        /// <param name="previousRuns">History of previously evaluated points, with their emprical performance values.</param>
+        /// <param name="previousRuns">History of previously evaluated points, with their empirical performance values.</param>
         /// <param name="forest">Trained random forest ensemble. Used in evaluating the candidates.</param>
         /// <returns>An array of ParamaterSets which are the candidate configurations to sweep.</returns>
         private ParameterSet[] GenerateCandidateConfigurations(int numOfCandidates, IEnumerable<IRunResult> previousRuns, FastForestRegressionModelParameters forest)
@@ -251,8 +251,8 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// Computes a single-mutation neighborhood (one param at a time) for a given configuration. For
-        /// numeric parameters, samples K mutations (i.e., creates K neighbors based on that paramater).
+        /// Computes a single-mutation neighborhood (one parameter at a time) for a given configuration. For
+        /// numeric parameters, samples K mutations (i.e., creates K neighbors based on that parameter).
         /// </summary>
         /// <param name="parent">Starting configuration.</param>
         /// <returns>A set of configurations that each differ from parent in exactly one parameter.</returns>

@@ -71,7 +71,7 @@ namespace Samples.Dynamic.Trainers.Recommendation
             //   Mean Absolute Error: 0.67:
             //   Mean Squared Error: 0.79
             //   Root Mean Squared Error: 0.89
-            //   RSquared: 0.61 (closer to 1 is better. The worest case is 0)
+            //   RSquared: 0.61 (closer to 1 is better. The worst case is 0)
         }
 
         // The following variables are used to define the shape of the example

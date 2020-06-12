@@ -44,7 +44,7 @@ namespace Samples.Dynamic
 
             {
                 // Note that it is best to get the getters and values *before*
-                // iteration, so as to faciliate buffer sharing (if applicable),
+                // iteration, so as to facilitate buffer sharing (if applicable),
                 // and column-type validation once, rather than many times.
                 ReadOnlyMemory<char> textValue = default;
                 VBuffer<ReadOnlyMemory<char>> tokensValue = default;

@@ -5,34 +5,95 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class TrainerExtensionsTests
+    public class TrainerExtensionsTests : BaseTestClass
     {
+        public TrainerExtensionsTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TrainerExtensionInstanceTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var columnInfo = new ColumnInformation();
             var trainerNames = Enum.GetValues(typeof(TrainerName)).Cast<TrainerName>()
                 .Except(new[] { TrainerName.Ova });
             foreach (var trainerName in trainerNames)
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
-                var sweepParams = extension.GetHyperparamSweepRanges();
-                Assert.NotNull(sweepParams);
-                foreach (var sweepParam in sweepParams)
+
+                IEnumerable<SweepableParam> sweepParams = null;
+                if (trainerName != TrainerName.ImageClassification)
                 {
-                    sweepParam.RawValue = 1;
+                    sweepParams = extension.GetHyperparamSweepRanges();
+                    Assert.NotNull(sweepParams);
+                    foreach (var sweepParam in sweepParams)
+                    {
+                        sweepParam.RawValue = 1;
+                    }
+
+                    var instance = extension.CreateInstance(context, sweepParams, columnInfo);
+                    Assert.NotNull(instance);
+                    var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+                    Assert.NotNull(pipelineNode);
                 }
-                var instance = extension.CreateInstance(context, sweepParams, columnInfo);
-                Assert.NotNull(instance);
-                var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
-                Assert.NotNull(pipelineNode);
             }
+        }
+
+        [TensorFlowFact]
+        public void TrainerExtensionTensorFlowInstanceTests()
+        {
+            var context = new MLContext(1);
+            var columnInfo = new ColumnInformation();
+            var extension = TrainerExtensionCatalog.GetTrainerExtension(TrainerName.ImageClassification);
+            var instance = extension.CreateInstance(context, null, columnInfo);
+            Assert.NotNull(instance);
+            var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+            Assert.NotNull(pipelineNode);
+        }
+
+        [Fact]
+        public void BuildMatrixFactorizationPipelineNode()
+        {
+            var sweepParams = SweepableParams.BuildMatrixFactorizationParams();
+            foreach (var sweepParam in sweepParams)
+            {
+                sweepParam.RawValue = 1;
+            }
+
+            var pipelineNode = new MatrixFactorizationExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
+
+            var expectedJson = @"{
+  ""Name"": ""MatrixFactorization"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""NumberOfIterations"": 20,
+    ""LearningRate"": 0.01,
+    ""ApproximationRank"": 16,
+    ""Lambda"": 0.05,
+    ""LossFunction"": ""SquareLossOneClass"",
+    ""Alpha"": 0.01,
+    ""C"": 0.0001,
+    ""LabelColumnName"": ""Label"",
+    ""MatrixColumnIndexColumnName"": null,
+    ""MatrixRowIndexColumnName"": null
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
         [Fact]
@@ -62,6 +123,7 @@ namespace Microsoft.ML.AutoML.Test
     ""MinimumExampleCountPerLeaf"": 10,
     ""UseCategoricalSplit"": false,
     ""HandleMissingValue"": false,
+    ""UseZeroAsMissingValue"": false,
     ""MinimumExampleCountPerGroup"": 50,
     ""MaximumCategoricalSplitPointCount"": 16,
     ""CategoricalSmoothing"": 10,
@@ -287,6 +349,14 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void PublicToPrivateTrainerNamesRecommendationTest()
+        {
+            var publicNames = Enum.GetValues(typeof(RecommendationTrainer)).Cast<RecommendationTrainer>();
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
+            Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+        }
+
+       [Fact]
         public void PublicToPrivateTrainerNamesNullTest()
         {
             var internalNames = TrainerExtensionUtil.GetTrainerNames(null as IEnumerable<BinaryClassificationTrainer>);
@@ -296,7 +366,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AllowedTrainersWhitelistNullTest()
         {
-            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), null);
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(1), TaskKind.BinaryClassification, new ColumnInformation(), null);
             Assert.True(trainers.Any());
         }
 
@@ -304,7 +374,7 @@ namespace Microsoft.ML.AutoML.Test
         public void AllowedTrainersWhitelistTest()
         {
             var whitelist = new[] { TrainerName.AveragedPerceptronBinary, TrainerName.FastForestBinary };
-            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), whitelist);
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(1), TaskKind.BinaryClassification, new ColumnInformation(), whitelist);
             Assert.Equal(whitelist.Count(), trainers.Count());
         }
     }

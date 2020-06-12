@@ -213,7 +213,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
         /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
-        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
+        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return a <see cref="BinaryClassificationMetrics"/> object, which
+        /// do not include probability-based metrics, for each sub-model. Each sub-model is evaluated on the cross-validation fold that it did not see during training.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
@@ -237,7 +238,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
         /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
-        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
+        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return a <see cref="CalibratedBinaryClassificationMetrics"/> object, which
+        /// includes probability-based metrics, for each sub-model. Each sub-model is evaluated on the cross-validation fold that it did not see during training.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
@@ -258,6 +260,13 @@ namespace Microsoft.ML
                 Evaluate(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }
 
+        /// <summary>
+        /// Method to modify the threshold to existing model and return modified model.
+        /// </summary>
+        /// <typeparam name="TModel">The type of the model parameters.</typeparam>
+        /// <param name="model">Existing model to modify threshold.</param>
+        /// <param name="threshold">New threshold.</param>
+        /// <returns>New model with modified threshold.</returns>
         public BinaryPredictionTransformer<TModel> ChangeModelThreshold<TModel>(BinaryPredictionTransformer<TModel> model, float threshold)
              where TModel : class
         {
@@ -640,6 +649,21 @@ namespace Microsoft.ML
         public RankingMetrics Evaluate(IDataView data,
             string labelColumnName = DefaultColumnNames.Label,
             string rowGroupColumnName = DefaultColumnNames.GroupId,
+            string scoreColumnName = DefaultColumnNames.Score) => Evaluate(data, null, labelColumnName, rowGroupColumnName, scoreColumnName);
+
+        /// <summary>
+        /// Evaluates scored ranking data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="options">Options to control the evaluation result.</param>
+        /// <param name="labelColumnName">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="rowGroupColumnName">The name of the groupId column in <paramref name="data"/>.</param>
+        /// <param name="scoreColumnName">The name of the score column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public RankingMetrics Evaluate(IDataView data,
+            RankingEvaluatorOptions options,
+            string labelColumnName = DefaultColumnNames.Label,
+            string rowGroupColumnName = DefaultColumnNames.GroupId,
             string scoreColumnName = DefaultColumnNames.Score)
         {
             Environment.CheckValue(data, nameof(data));
@@ -647,7 +671,7 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(scoreColumnName, nameof(scoreColumnName));
             Environment.CheckNonEmpty(rowGroupColumnName, nameof(rowGroupColumnName));
 
-            var eval = new RankingEvaluator(Environment, new RankingEvaluator.Arguments() { });
+            var eval = new RankingEvaluator(Environment, options ?? new RankingEvaluatorOptions() { });
             return eval.Evaluate(data, labelColumnName, rowGroupColumnName, scoreColumnName);
         }
     }

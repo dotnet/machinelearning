@@ -3,19 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
     /// <summary>
     /// These are tests of the loss functions in the Learners assembly.
     /// </summary>
-    public class TestLoss
+    public class TestLoss : BaseTestClass
     {
         private const string _category = "Loss";
 
         private const float _epsilon = 1e-4f;
+
+        public TestLoss(ITestOutputHelper output) : base(output)
+        {
+        }
 
         /// <summary>
         /// A small helper for comparing a loss's computations to expected values.

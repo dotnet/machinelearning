@@ -49,6 +49,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Mkl.Components |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// [Ordinary least squares (OLS)](https://en.wikipedia.org/wiki/Ordinary_least_squares) is a parameterized regression method.
@@ -85,7 +86,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Whether to calculate per parameter (e.g., the coefficient of the i-th input feature) significance statistics.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
             public bool CalculateStatistics = true;
         }
 
@@ -741,7 +742,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckDecode(0 <= p && p <= 1);
         }
 
-        private static OlsModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static OlsModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

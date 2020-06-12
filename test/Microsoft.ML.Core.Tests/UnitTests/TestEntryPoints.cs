@@ -12,11 +12,14 @@ using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Featurizers;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
@@ -329,6 +332,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(DateTimeTransformer).Assembly);
 
             var catalog = Env.ComponentCatalog;
 
@@ -739,7 +743,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("AreaUnderRocCurve"));
@@ -887,7 +891,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
@@ -1048,7 +1052,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
@@ -1191,7 +1195,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
                         
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MeanAbsoluteError"));
@@ -1338,7 +1342,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("DiscountedCumulativeGains"));
@@ -1354,7 +1358,7 @@ namespace Microsoft.ML.RunTests
             var modelPath = DeleteOutputPath("score_model.zip");
             var outputDataPath = DeleteOutputPath("scored.idv");
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var data = new TextLoader(mlContext,
                     new TextLoader.Options()
@@ -1532,6 +1536,7 @@ namespace Microsoft.ML.RunTests
             var twiceCalibratedFfModel = Calibrate.Platt(Env,
                 new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = calibratedFfModel }).PredictorModel;
             var scoredFf = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = twiceCalibratedFfModel }).ScoredData;
+            Done();
         }
 
         [Fact]
@@ -2118,7 +2123,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [Fact]
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -2755,7 +2760,7 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
 
-        [Fact()]
+        [Fact]
         public void EntryPointSDCARegression()
         {
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
@@ -4654,25 +4659,77 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointHashJoinCountTable()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:Text:1-9 col=Label:0",
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var countsModel = DeleteOutputPath("CountTable-trained-counts.zip");
+
+            var data = ML.Data.LoadFromTextFile(dataPath, new[]
+                {
+                    new TextLoader.Column("Text", DataKind.String, 1, 2),
+                    new TextLoader.Column("Label", DataKind.Single, 0)
+                });
+            var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(), combine: false);
+            var transformer = estimator.Fit(data);
+            ML.Model.Save(transformer, data.Schema, countsModel);
+
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
                 new[]
                 {
                     "Transforms.HashConverter",
+                    "Transforms.CountTableBuilder"
                 },
                 new[]
                 {
                     @"'Column': [
                       {
                         'Name': 'Temp',
-                        'Src': 'Text'
-                      },
-                      {
-                        'Name': 'Temp2',
                         'Src': 'Text',
                         'CustomSlotMap': '0,1;2,3,4,5'
                       }
+                      ]",
+                    $@"'Columns': [
+                      {{
+                        'Name': 'DT',
+                        'Src': 'Temp'
+                      }}
+                      ],
+                     'Lab': 'Label',
+                     'Table': {{ 'Name': 'Dict' }},
+                     'InitialCountsModel': '{EscapePath(countsModel)}'"
+                });
+        }
 
-                      ]"
+        [Fact]
+        public void EntryPointCountTargetEncoding()
+        {
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var countsModel = DeleteOutputPath("cte-trained-counts.zip");
+
+            var data = ML.Data.LoadFromTextFile(dataPath, new[]
+                {
+                    new TextLoader.Column("Text", DataKind.String, 1, 2),
+                    new TextLoader.Column("Label", DataKind.Single, 0)
+                });
+            var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(), combine: false);
+            var transformer = estimator.Fit(data);
+            ML.Model.Save(transformer, data.Schema, countsModel);
+
+            TestEntryPointPipelineRoutine(dataPath, "col=Text:TX:1-2 col=Label:0",
+                new[]
+                {
+                    "Transforms.CountTargetEncoder",
+                },
+                new[]
+                {
+                    $@"'Columns': [
+                      {{
+                        'Name': 'DT',
+                        'Src': 'Text',
+                        'Combine': 'False'
+                      }}
+                      ],
+                     'Lab': 'Label',
+                     'Table': {{ 'Name': 'Dict' }},
+                     'InitialCountsModel': '{EscapePath(countsModel)}'"
                 });
         }
 
@@ -4900,7 +4957,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [Fact]
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
@@ -5677,7 +5734,7 @@ namespace Microsoft.ML.RunTests
                 getter(ref stdev);
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
-                Assert.Equal(0.00481, stdev, 5);
+                Assert.Equal(0.0087, stdev, 5);
 
                 double sum = 0;
                 double val = 0;
@@ -6187,6 +6244,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");
@@ -6467,7 +6525,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void LoadEntryPointModel()
         {
-            var ml = new MLContext();
+            var ml = new MLContext(1);
             for (int i = 0; i < 5; i++)
             {
                 var modelPath = GetDataPath($"backcompat/ep_model{i}.zip");

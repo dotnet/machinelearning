@@ -9,7 +9,7 @@ namespace Microsoft.ML.AutoML
     internal class SuggestedPipelineRunDetail
     {
         public readonly SuggestedPipeline Pipeline;
-        public readonly bool RunSucceded;
+        public readonly bool RunSucceeded;
         public readonly double Score;
 
         public Exception Exception { get; set; }
@@ -18,12 +18,12 @@ namespace Microsoft.ML.AutoML
         {
             Pipeline = pipeline;
             Score = score;
-            RunSucceded = runSucceeded;
+            RunSucceeded = runSucceeded;
         }
 
         public static SuggestedPipelineRunDetail FromPipelineRunResult(MLContext context, PipelineScore pipelineRunResult)
         {
-            return new SuggestedPipelineRunDetail(SuggestedPipeline.FromPipeline(context, pipelineRunResult.Pipeline), pipelineRunResult.Score, pipelineRunResult.RunSucceded);
+            return new SuggestedPipelineRunDetail(SuggestedPipeline.FromPipeline(context, pipelineRunResult.Pipeline), pipelineRunResult.Score, pipelineRunResult.RunSucceeded);
         }
 
         public IRunResult ToRunResult(bool isMetricMaximizing)

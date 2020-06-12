@@ -31,7 +31,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Larger values leads to smaller (closer to zero) model parameters.
                 L2Regularization = 0.1f,
-                // Whether to computate standard error and other statistics of model
+                // Whether to compute standard error and other statistics of model
                 // parameters.
                 CalculateStatistics = false
             };
@@ -75,7 +75,7 @@ namespace Samples.Dynamic.Trainers.Regression
             //   Mean Absolute Error: 0.05
             //   Mean Squared Error: 0.00
             //   Root Mean Squared Error: 0.06
-            //   RSquared: 0.97 (closer to 1 is better. The worest case is 0)
+            //   RSquared: 0.97 (closer to 1 is better. The worst case is 0)
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,

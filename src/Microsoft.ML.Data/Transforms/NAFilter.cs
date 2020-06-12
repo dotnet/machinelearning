@@ -250,6 +250,12 @@ namespace Microsoft.ML.Transforms
         {
             private abstract class Value
             {
+                private static readonly FuncStaticMethodInfo1<Cursor, ColInfo, Value> _createOneMethodInfo
+                    = new FuncStaticMethodInfo1<Cursor, ColInfo, Value>(CreateOne<int>);
+
+                private static readonly FuncStaticMethodInfo1<Cursor, ColInfo, Value> _createVecMethodInfo
+                    = new FuncStaticMethodInfo1<Cursor, ColInfo, Value>(CreateVec<int>);
+
                 protected readonly Cursor Cursor;
 
                 protected Value(Cursor cursor)
@@ -267,18 +273,20 @@ namespace Microsoft.ML.Transforms
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
 
-                    MethodInfo meth;
+                    FuncStaticMethodInfo1<Cursor, ColInfo, Value> method;
+                    Type genericArgument;
                     if (info.Type is VectorDataViewType vecType)
                     {
-                        Func<Cursor, ColInfo, ValueVec<int>> d = CreateVec<int>;
-                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vecType.ItemType.RawType);
+                        method = _createVecMethodInfo;
+                        genericArgument = vecType.ItemType.RawType;
                     }
                     else
                     {
-                        Func<Cursor, ColInfo, ValueOne<int>> d = CreateOne<int>;
-                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Type.RawType);
+                        method = _createOneMethodInfo;
+                        genericArgument = info.Type.RawType;
                     }
-                    return (Value)meth.Invoke(null, new object[] { cursor, info });
+
+                    return Utils.MarshalInvoke(method, genericArgument, cursor, info);
                 }
 
                 private static ValueOne<T> CreateOne<T>(Cursor cursor, ColInfo info)
@@ -289,7 +297,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<T>(cursor.Input.Schema[info.Index]);
-                    var hasBad = Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(info.Type);
+                    var hasBad = Data.Conversion.Conversions.DefaultInstance.GetIsNAPredicate<T>(info.Type);
                     return new ValueOne<T>(cursor, getSrc, hasBad);
                 }
 
@@ -301,7 +309,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type.RawType == typeof(VBuffer<T>));
 
                     var getSrc = cursor.Input.GetGetter<VBuffer<T>>(cursor.Input.Schema[info.Index]);
-                    var hasBad = Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorDataViewType)info.Type);
+                    var hasBad = Data.Conversion.Conversions.DefaultInstance.GetHasMissingPredicate<T>((VectorDataViewType)info.Type);
                     return new ValueVec<T>(cursor, getSrc, hasBad);
                 }
 
@@ -418,9 +426,11 @@ namespace Microsoft.ML.Transforms
                     return false;
                 }
 
-                fn = _values[index].GetGetter() as ValueGetter<TValue>;
+                var originFn = _values[index].GetGetter();
+                fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                            $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return true;
             }
 

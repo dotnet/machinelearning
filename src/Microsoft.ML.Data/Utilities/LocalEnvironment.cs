@@ -47,7 +47,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
         public LocalEnvironment(int? seed = null)
-            : base(RandomUtils.Create(seed), verbose: false)
+            : base(seed, verbose: false)
         {
         }
 

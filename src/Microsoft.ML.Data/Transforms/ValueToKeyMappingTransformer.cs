@@ -34,13 +34,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms
 {
-    // TermTransform builds up term vocabularies (dictionaries).
-    // Notes:
-    // * Each column builds/uses exactly one "vocabulary" (dictionary).
-    // * Output columns are KeyType-valued.
-    // * The Key value is the one-based index of the item in the dictionary.
-    // * Not found is assigned the value zero.
-    /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting a <see cref="ValueToKeyMappingEstimator"/>.
     /// </summary>
@@ -708,6 +701,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _makeGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeGetter<int>);
+
             private readonly DataViewType[] _types;
             private readonly ValueToKeyMappingTransformer _parent;
             private readonly ColInfo[] _infos;
@@ -763,27 +759,143 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
                 var type = _termMap[iinfo].Map.OutputType;
-                return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, iinfo);
+                return Utils.MarshalInvoke(_makeGetterMethodInfo, this, type.RawType, input, iinfo);
             }
 
             private Delegate MakeGetter<T>(DataViewRow row, int src) => _termMap[src].GetMappingGetter(row);
 
+            private IEnumerable<T> GetTermsAndIds<T>(int iinfo, out long[] termIds)
+            {
+                var terms = default(VBuffer<T>);
+                var map = (TermMap<T>)_termMap[iinfo].Map;
+                map.GetTerms(ref terms);
+
+                var termValues = terms.DenseValues();
+                var keyMapper = map.GetKeyMapper();
+
+                int i = 0;
+                termIds = new long[map.Count];
+                foreach (var term in termValues)
+                {
+                    uint id = 0;
+                    keyMapper(term, ref id);
+                    termIds[i++] = id;
+                }
+                return termValues;
+            }
+
+            private void CastInputToString<T>(OnnxContext ctx, out OnnxNode node, out long[] termIds, string srcVariableName, int iinfo,
+                string opType, string labelEncoderOutput)
+            {
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(TextDataViewType.Instance, (int)srcShape[1]), "castOutput");
+                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
+                castNode.AddAttribute("to", t);
+                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                var terms = GetTermsAndIds<T>(iinfo, out termIds);
+                node.AddAttribute("keys_strings", terms.Select(item => item.ToString()));
+            }
+
+            private void CastInputToFloat<T>(OnnxContext ctx, out OnnxNode node, out long[] termIds, string srcVariableName, int iinfo,
+                string opType, string labelEncoderOutput)
+            {
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, (int)srcShape[1]), "castOutput");
+                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+                castNode.AddAttribute("to", t);
+                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                var terms = GetTermsAndIds<T>(iinfo, out termIds);
+                node.AddAttribute("keys_floats", terms.Select(item => Convert.ToSingle(item)));
+            }
+
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!(info.TypeSrc.GetItemType() is TextDataViewType))
-                    return false;
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
-                var terms = default(VBuffer<ReadOnlyMemory<char>>);
-                TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
-                map.GetTerms(ref terms);
+                OnnxNode node;
+                long[] termIds;
                 string opType = "LabelEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("classes_strings", terms.DenseValues());
-                node.AddAttribute("default_int64", -1);
-                //default_string needs to be an empty string but there is a BUG in Lotus that
-                //throws a validation error when default_string is empty. As a work around, set
-                //default_string to a space.
-                node.AddAttribute("default_string", " ");
+                OnnxNode castNode;
+                var labelEncoderOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, _types[iinfo].GetValueCount()), "LabelEncoderOutput");
+
+                var type = info.TypeSrc.GetItemType();
+                if (type.Equals(TextDataViewType.Instance))
+                {
+                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<ReadOnlyMemory<char>>(iinfo, out termIds);
+                    node.AddAttribute("keys_strings", terms);
+                }
+                else if (type.Equals(BooleanDataViewType.Instance))
+                {
+                    // LabelEncoder doesn't support boolean tensors, so values are cast to floats
+                    CastInputToFloat<Boolean>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.Single))
+                {
+                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<float>(iinfo, out termIds);
+                    node.AddAttribute("keys_floats", terms);
+                }
+                else if (type.Equals(NumberDataViewType.Double))
+                {
+                    // LabelEncoder doesn't support double tensors, so values are cast to floats
+                    CastInputToFloat<Double>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.Int64))
+                {
+                    CastInputToString<Int64>(ctx, out node, out termIds ,srcVariableName, iinfo, opType, labelEncoderOutput );
+                }
+                else if (type.Equals(NumberDataViewType.Int32))
+                {
+                    CastInputToString<Int32>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.Int16))
+                {
+                    CastInputToString<Int16>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.UInt64))
+                {
+                    CastInputToString<UInt64>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.UInt32))
+                {
+                    CastInputToString<UInt32>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.UInt16))
+                {
+                    CastInputToString<UInt16>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else
+                {
+                    // LabelEncoder-2 in ORT v1 only supports the following mappings
+                    // int64-> float
+                    // int64-> string
+                    // float -> int64
+                    // float -> string
+                    // string -> int64
+                    // string -> float
+                    // In ML.NET the output of ValueToKeyMappingTransformer is always an integer type.
+                    // Therefore the only input types we can accept for Onnx conversion are strings and floats handled above.
+                    return false;
+                }
+
+                //Unknown keys should map to 0
+                node.AddAttribute("default_int64", 0);
+                node.AddAttribute("default_string", "0");
+                node.AddAttribute("default_float", 0f);
+                node.AddAttribute("values_int64s", termIds);
+
+                // Onnx outputs an Int64, but ML.NET outputs a keytype. So cast it here
+                InternalDataKind dataKind;
+                InternalDataKindExtensions.TryGetDataKind(_parent._unboundMaps[iinfo].OutputType.RawType, out dataKind);
+
+                opType = "Cast";
+                castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                castNode.AddAttribute("to", dataKind.ToType());
+
                 return true;
             }
 

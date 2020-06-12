@@ -12,6 +12,11 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         public float[] Features { get; set; }
     }
 
+    internal sealed class HashedFeatureColumn
+    {
+        public uint[] Features { get; set; }
+    }
+
     /// <summary>
     /// A class to hold the output of FeatureContributionCalculator
     /// </summary>

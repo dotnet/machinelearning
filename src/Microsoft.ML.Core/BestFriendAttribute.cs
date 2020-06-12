@@ -16,7 +16,7 @@ namespace Microsoft.ML
     /// Intended to be applied to types and members with internal scope to indicate that friend access of this
     /// internal item is OK from another assembly. This restriction applies only to assemblies that declare the
     /// <see cref="WantsToBeBestFriendsAttribute"/> assembly level attribute. Note that this attribute is not
-    /// transferrable: an internal member with this attribute does not somehow make a containing internal type
+    /// transferable: an internal member with this attribute does not somehow make a containing internal type
     /// accessible. Conversely, neither does marking an internal type make any unmarked internal members accessible.
     /// </summary>
     [BestFriend]

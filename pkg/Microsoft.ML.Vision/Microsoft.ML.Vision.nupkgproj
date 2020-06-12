@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>Microsoft.ML.Vision contains high level APIs for vision tasks like image classification.</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Microsoft.ML.TensorFlow/Microsoft.ML.TensorFlow.nupkgproj" />
+  </ItemGroup>
+
+</Project>

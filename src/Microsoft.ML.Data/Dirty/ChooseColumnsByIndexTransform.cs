@@ -27,7 +27,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column indices to select", Name = "Index", ShortName = "ind")]
             public int[] Indices;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, selected columns are dropped instead of kept, with the order of kept columns being the same as the original", ShortName = "d")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, selected columns are dropped instead of kept, with the order of kept columns being the same as the original", ShortName = "d")]
             public bool Drop;
         }
 

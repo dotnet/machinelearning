@@ -16,7 +16,7 @@ namespace Microsoft.ML.Data
     ///
     /// | Type | Default Value | IsDefault Indicator |
     /// | -- | -- | -- |
-    /// | <xref:Microsoft.ML.Data.DataKind.String> or [text](xref:Microsoft.ML.Data.TextDataViewType) | Empty or `null` string (both result in empty `System.ReadOnlyMemory<char>` | <xref:"System.ReadOnlyMemory`1.IsEmpty*> |
+    /// | <xref:Microsoft.ML.Data.DataKind.String> or [text](xref:Microsoft.ML.Data.TextDataViewType) | Empty or `null` string (both result in empty `System.ReadOnlyMemory<char>` | <xref:System.ReadOnlyMemory`1.IsEmpty*> |
     /// | [Key](xref:Microsoft.ML.Data.KeyDataViewType) type (supported by the unsigned integer types in `DataKind`) | Not defined | Always `false` |
     /// | All other types | Default value of the corresponding system type as defined by .NET standard. In C#, default value expression `default(T)` provides that value. | Equality test with the default value |
     ///

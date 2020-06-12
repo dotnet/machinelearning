@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Trainers;
@@ -41,14 +42,14 @@ namespace Microsoft.ML.AutoML
             return new SuggestedTrainer(_mlContext, _trainerExtension, _columnInfo, HyperParamSet?.Clone());
         }
 
-        public ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object> BuildTrainer()
+        public ITrainerEstimator<IPredictionTransformer<object>, object> BuildTrainer(IDataView validationSet = null)
         {
             IEnumerable<SweepableParam> sweepParams = null;
             if (HyperParamSet != null)
             {
                 sweepParams = SweepParams;
             }
-            return _trainerExtension.CreateInstance(_mlContext, sweepParams, _columnInfo);
+            return _trainerExtension.CreateInstance(_mlContext, sweepParams, _columnInfo, validationSet);
         }
 
         public override string ToString()
@@ -63,7 +64,7 @@ namespace Microsoft.ML.AutoML
 
         public PipelineNode ToPipelineNode()
         {
-            var sweepParams = SweepParams.Where(p => p.RawValue != null);
+            var sweepParams = SweepParams?.Where(p => p.RawValue != null);
             return _trainerExtension.CreatePipelineNode(sweepParams, _columnInfo);
         }
 

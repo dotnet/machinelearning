@@ -8,10 +8,11 @@ using System.Globalization;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.CpuMath.UnitTests
 {
-    public class CpuMathUtilsUnitTests
+    public class CpuMathUtilsUnitTests : BaseTestClass
     {
         private static readonly float[][] _testArrays;
         private static readonly int[] _testIndexArray;
@@ -21,13 +22,13 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private static readonly int _vectorAlignment = CpuMathUtils.GetVectorAlignment();
         private static readonly FloatEqualityComparer _comparer;
         private static readonly FloatEqualityComparerForMatMul _matMulComparer;
-        private static readonly string defaultMode = "defaultMode";
-#if NETCOREAPP3_0
-        private static Dictionary<string, string> DisableAvxEnvironmentVariables;
-        private static Dictionary<string, string> DisableAvxAndSseEnvironmentVariables;
-        private static readonly string disableAvx = "COMPlus_EnableAVX";
-        private static readonly string disableSse = "COMPlus_EnableSSE";
-        private static readonly string disableAvxAndSse = "COMPlus_EnableHWIntrinsic";
+        private static readonly string _defaultMode = "defaultMode";
+#if NETCOREAPP3_1
+        private static Dictionary<string, string> _disableAvxEnvironmentVariables;
+        private static Dictionary<string, string> _disableAvxAndSseEnvironmentVariables;
+        private static readonly string _disableAvx = "COMPlus_EnableAVX";
+        private static readonly string _disableSse = "COMPlus_EnableSSE";
+        private static readonly string _disableAvxAndSse = "COMPlus_EnableHWIntrinsic";
 #endif
 
         static CpuMathUtilsUnitTests()
@@ -88,34 +89,38 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             _testDstVectors = new AlignedArray[] { testDstVectorAligned1, testDstVectorAligned2 };
 
-#if NETCOREAPP3_0
-            DisableAvxEnvironmentVariables = new Dictionary<string, string>()
+#if NETCOREAPP3_1
+            _disableAvxEnvironmentVariables = new Dictionary<string, string>()
             {
-                { disableAvx , "0" }
+                { _disableAvx , "0" }
             };
 
-            DisableAvxAndSseEnvironmentVariables = new Dictionary<string, string>()
+            _disableAvxAndSseEnvironmentVariables = new Dictionary<string, string>()
             {
-                { disableAvx , "0" },
-                { disableSse , "0" }
+                { _disableAvx , "0" },
+                { _disableSse , "0" }
             };
 #endif
         }
 
+        public CpuMathUtilsUnitTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         private static void CheckProperFlag(string mode)
         {
-#if NETCOREAPP3_0
-            if (mode == defaultMode)
+#if NETCOREAPP3_1
+            if (mode == _defaultMode)
             {
                 Assert.True(System.Runtime.Intrinsics.X86.Avx.IsSupported);
                 Assert.True(System.Runtime.Intrinsics.X86.Sse.IsSupported);
             }
-            else if (mode == disableAvx)
+            else if (mode == _disableAvx)
             {
                 Assert.False(System.Runtime.Intrinsics.X86.Avx.IsSupported);
                 Assert.True(System.Runtime.Intrinsics.X86.Sse.IsSupported);
             }
-            else if (mode == disableAvxAndSse)
+            else if (mode == _disableAvxAndSse)
             {
                 Assert.False(System.Runtime.Intrinsics.X86.Avx.IsSupported);
                 Assert.False(System.Runtime.Intrinsics.X86.Sse.IsSupported);
@@ -125,52 +130,52 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         public static TheoryData<string, string, Dictionary<string, string>> AddData() => new TheoryData<string, string, Dictionary<string, string>>()
         {
-            {  defaultMode, "0", null },
-            {  defaultMode, "1", null },
-            {  defaultMode, "2", null },
-#if NETCOREAPP3_0
-            { disableAvx, "0", DisableAvxEnvironmentVariables },
-            { disableAvx, "1", DisableAvxEnvironmentVariables },
+            {  _defaultMode, "0", null },
+            {  _defaultMode, "1", null },
+            {  _defaultMode, "2", null },
+#if NETCOREAPP3_1
+            { _disableAvx, "0", _disableAvxEnvironmentVariables },
+            { _disableAvx, "1", _disableAvxEnvironmentVariables },
 
-            { disableAvxAndSse, "0", DisableAvxAndSseEnvironmentVariables },
-            { disableAvxAndSse, "1", DisableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse, "0", _disableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse, "1", _disableAvxAndSseEnvironmentVariables },
 #endif
         };
 
         public static TheoryData<string, string, string, Dictionary<string, string>> AddScaleData() => new TheoryData<string, string, string, Dictionary<string, string>>()
         {
-            {  defaultMode, "0", "1.7", null },
-            {  defaultMode, "1", "1.7", null },
-            {  defaultMode, "2", "1.7", null },
-            {  defaultMode, "0", "-1.7", null },
-            {  defaultMode, "1", "-1.7", null },
-            {  defaultMode, "2", "-1.7", null },
-#if NETCOREAPP3_0
-            {  disableAvx, "0", "1.7", DisableAvxEnvironmentVariables },
-            {  disableAvx, "1", "1.7", DisableAvxEnvironmentVariables },
-            {  disableAvx, "0", "-1.7", DisableAvxEnvironmentVariables },
-            {  disableAvx, "1", "-1.7", DisableAvxEnvironmentVariables },
+            {  _defaultMode, "0", "1.7", null },
+            {  _defaultMode, "1", "1.7", null },
+            {  _defaultMode, "2", "1.7", null },
+            {  _defaultMode, "0", "-1.7", null },
+            {  _defaultMode, "1", "-1.7", null },
+            {  _defaultMode, "2", "-1.7", null },
+#if NETCOREAPP3_1
+            {  _disableAvx, "0", "1.7", _disableAvxEnvironmentVariables },
+            {  _disableAvx, "1", "1.7", _disableAvxEnvironmentVariables },
+            {  _disableAvx, "0", "-1.7", _disableAvxEnvironmentVariables },
+            {  _disableAvx, "1", "-1.7", _disableAvxEnvironmentVariables },
 
-            { disableAvxAndSse, "0", "1.7", DisableAvxAndSseEnvironmentVariables },
-            { disableAvxAndSse, "1", "1.7", DisableAvxAndSseEnvironmentVariables },
-            { disableAvxAndSse, "0", "-1.7", DisableAvxAndSseEnvironmentVariables },
-            { disableAvxAndSse, "1", "-1.7", DisableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse, "0", "1.7", _disableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse, "1", "1.7", _disableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse, "0", "-1.7", _disableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse, "1", "-1.7", _disableAvxAndSseEnvironmentVariables },
 #endif
         };
 
         public static TheoryData<string, string, string, string, Dictionary<string, string>> MatMulData => new TheoryData<string, string, string, string, Dictionary<string, string>>()
         {
-            { defaultMode, "0", "0", "0", null },
-            { defaultMode, "1", "1", "0", null },
-            { defaultMode, "1", "0", "1", null },
-#if NETCOREAPP3_0
-            { disableAvx, "0", "0", "0", DisableAvxEnvironmentVariables },
-            { disableAvx, "1", "1", "0", DisableAvxEnvironmentVariables },
-            { disableAvx, "1", "0", "1", DisableAvxEnvironmentVariables },
+            { _defaultMode, "0", "0", "0", null },
+            { _defaultMode, "1", "1", "0", null },
+            { _defaultMode, "1", "0", "1", null },
+#if NETCOREAPP3_1
+            { _disableAvx, "0", "0", "0", _disableAvxEnvironmentVariables },
+            { _disableAvx, "1", "1", "0", _disableAvxEnvironmentVariables },
+            { _disableAvx, "1", "0", "1", _disableAvxEnvironmentVariables },
 
-            { disableAvxAndSse , "0", "0", "0", DisableAvxAndSseEnvironmentVariables },
-            { disableAvxAndSse , "1", "1", "0", DisableAvxAndSseEnvironmentVariables },
-            { disableAvxAndSse , "1", "0", "1", DisableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse , "0", "0", "0", _disableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse , "1", "1", "0", _disableAvxAndSseEnvironmentVariables },
+            { _disableAvxAndSse , "1", "0", "1", _disableAvxAndSseEnvironmentVariables },
 #endif
         };
 

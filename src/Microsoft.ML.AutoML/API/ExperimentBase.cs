@@ -102,7 +102,6 @@ namespace Microsoft.ML.AutoML
             const int crossValRowCountThreshold = 15000;
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
-
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
@@ -160,7 +159,9 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
+        public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData,
+            ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null,
+            IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             if (validationData == null)
             {
@@ -188,7 +189,9 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
+        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, uint numberOfCVFolds,
+            ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null,
+            IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
             var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumnName);

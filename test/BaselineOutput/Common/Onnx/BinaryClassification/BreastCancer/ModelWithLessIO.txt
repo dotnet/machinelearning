@@ -1,5 +1,5 @@
 {
-  "irVersion": "3",
+  "irVersion": "6",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
   "domain": "machinelearning.dotnet",
@@ -10,13 +10,13 @@
           "F2"
         ],
         "output": [
-          "F20"
+          "LabelEncoderOutput"
         ],
         "name": "LabelEncoder",
         "opType": "LabelEncoder",
         "attribute": [
           {
-            "name": "classes_strings",
+            "name": "keys_strings",
             "strings": [
               "MQ==",
               "NQ==",
@@ -32,20 +32,72 @@
           },
           {
             "name": "default_int64",
-            "i": "-1",
             "type": "INT"
           },
           {
             "name": "default_string",
-            "s": "IA==",
+            "s": "MA==",
             "type": "STRING"
+          },
+          {
+            "name": "default_float",
+            "type": "FLOAT"
+          },
+          {
+            "name": "values_int64s",
+            "ints": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9"
+            ],
+            "type": "INTS"
           }
         ],
         "domain": "ai.onnx.ml"
       },
       {
         "input": [
+          "LabelEncoderOutput"
+        ],
+        "output": [
           "F20"
+        ],
+        "name": "Cast",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "12",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "F20"
+        ],
+        "output": [
+          "Cast"
+        ],
+        "name": "Cast0",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "7",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "Cast"
         ],
         "output": [
           "F21"
@@ -56,7 +108,6 @@
           {
             "name": "cats_int64s",
             "ints": [
-              "0",
               "1",
               "2",
               "3",
@@ -64,7 +115,8 @@
               "5",
               "6",
               "7",
-              "8"
+              "8",
+              "9"
             ],
             "type": "INTS"
           },
@@ -82,7 +134,7 @@
           "F21"
         ],
         "output": [
-          "Features"
+          "VectorFeaturizerOutput"
         ],
         "name": "FeatureVectorizer",
         "opType": "FeatureVectorizer",
@@ -97,6 +149,23 @@
           }
         ],
         "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "VectorFeaturizerOutput"
+        ],
+        "output": [
+          "Features"
+        ],
+        "name": "Cast1",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "1",
+            "type": "INT"
+          }
+        ]
       },
       {
         "input": [
@@ -663,25 +732,25 @@
       },
       {
         "input": [
-          "Score"
+          "Score",
+          "Slope"
+        ],
+        "output": [
+          "MulNodeOutput"
+        ],
+        "name": "Mul",
+        "opType": "Mul"
+      },
+      {
+        "input": [
+          "MulNodeOutput",
+          "Offset"
         ],
         "output": [
           "linearOutput"
         ],
-        "name": "Affine",
-        "opType": "Affine",
-        "attribute": [
-          {
-            "name": "alpha",
-            "f": 0.4,
-            "type": "FLOAT"
-          },
-          {
-            "name": "beta",
-            "f": -1E-07,
-            "type": "FLOAT"
-          }
-        ]
+        "name": "Add",
+        "opType": "Add"
       },
       {
         "input": [
@@ -695,17 +764,16 @@
       },
       {
         "input": [
-          "Probability"
+          "Score"
         ],
         "output": [
-          "PredictedLabel"
+          "BinarizerOutput"
         ],
         "name": "Binarizer",
         "opType": "Binarizer",
         "attribute": [
           {
             "name": "threshold",
-            "f": 0.5,
             "type": "FLOAT"
           }
         ],
@@ -713,10 +781,27 @@
       },
       {
         "input": [
+          "BinarizerOutput"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "Cast2",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "9",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
           "PredictedLabel"
         ],
         "output": [
-          "PredictedLabel0"
+          "PredictedLabel.output"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -726,7 +811,7 @@
           "Score"
         ],
         "output": [
-          "Score0"
+          "Score.output"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -736,23 +821,39 @@
           "Probability"
         ],
         "output": [
-          "Probability0"
+          "Probability.output"
         ],
         "name": "Identity1",
         "opType": "Identity"
       }
     ],
     "name": "modelWithLessIO",
+    "initializer": [
+      {
+        "dataType": 1,
+        "floatData": [
+          0.4
+        ],
+        "name": "Slope"
+      },
+      {
+        "dataType": 1,
+        "floatData": [
+          0
+        ],
+        "name": "Offset"
+      }
+    ],
     "input": [
       {
         "name": "F1",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "8"
@@ -766,11 +867,11 @@
         "name": "F2",
         "type": {
           "tensorType": {
-            "elemType": "STRING",
+            "elemType": 8,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -783,14 +884,14 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel0",
+        "name": "PredictedLabel.output",
         "type": {
           "tensorType": {
-            "elemType": "BOOL",
+            "elemType": 9,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -801,14 +902,14 @@
         }
       },
       {
-        "name": "Score0",
+        "name": "Score.output",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -819,14 +920,14 @@
         }
       },
       {
-        "name": "Probability0",
+        "name": "Probability.output",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -842,11 +943,29 @@
         "name": "F20",
         "type": {
           "tensorType": {
-            "elemType": "UINT32",
+            "elemType": 12,
             "shape": {
               "dim": [
                 {
+                  "dimValue": "-1"
+                },
+                {
                   "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "LabelEncoderOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 7,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -860,11 +979,11 @@
         "name": "F21",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "9"
@@ -875,17 +994,179 @@
         }
       },
       {
-        "name": "Features",
+        "name": "Cast",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 7,
             "shape": {
               "dim": [
                 {
+                  "dimValue": "-1"
+                },
+                {
                   "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "VectorFeaturizerOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "17"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "17"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "PredictedLabel",
+        "type": {
+          "tensorType": {
+            "elemType": 9,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Probability",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "BinarizerOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "PredictedLabel.output",
+        "type": {
+          "tensorType": {
+            "elemType": 9,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Probability.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
                 }
               ]
             }
@@ -897,10 +1178,10 @@
   "opsetImport": [
     {
       "domain": "ai.onnx.ml",
-      "version": "1"
+      "version": "2"
     },
     {
-      "version": "9"
+      "version": "12"
     }
   ]
 }

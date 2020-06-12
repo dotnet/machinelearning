@@ -152,7 +152,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <summary>
         /// Load model from the given context
         /// </summary>
-        private static MatrixFactorizationModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static MatrixFactorizationModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Trainers.Recommender
             }
 
             // The index system in the LIBMF (the library trains the model) is 0-based, so we need to deduct one
-            // from 1-based indexes returned by ML.NET's key-valued getters. We also throw when seeing 0 becuase
+            // from 1-based indexes returned by ML.NET's key-valued getters. We also throw when seeing 0 because
             // missing index is not meaningful to the trained model.
             dst = Score((int)(srcCol - 1), (int)(srcRow - 1));
         }
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(MatrixFactorizationPredictionTransformer).Assembly.FullName);
         }
-        private static MatrixFactorizationPredictionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static MatrixFactorizationPredictionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
             => new MatrixFactorizationPredictionTransformer(env, ctx);
 
     }

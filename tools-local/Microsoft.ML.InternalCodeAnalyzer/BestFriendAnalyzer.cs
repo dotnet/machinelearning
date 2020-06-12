@@ -38,6 +38,10 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 
         public override void Initialize(AnalysisContext context)
         {
+            // This analyzer reports violations in all code (including generated code)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            context.EnableConcurrentExecution();
+
             context.RegisterSemanticModelAction(Analyze);
         }
 
@@ -74,7 +78,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 if (symbol == null)
                     continue;
                 var symbolAssembly = symbol.ContainingAssembly;
-                if (symbolAssembly == myAssembly)
+                if (Equals(symbolAssembly, myAssembly))
                     continue;
                 switch (symbol.DeclaredAccessibility)
                 {
@@ -92,12 +96,12 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                     // It's the first of seeing the assembly containing symbol. A key-value pair is added into assemblyHasAttrMap to
                     // indicate if that assembly includes an attribute WantsToBeBestFriends. If an assembly has WantsToBeBestFriends then
                     // its associated value would be true.
-                    assemblyWantsBestFriends = symbolAssembly.GetAttributes().Any(a => a.AttributeClass == wantsToBeBestFriendsAttributeType);
+                    assemblyWantsBestFriends = symbolAssembly.GetAttributes().Any(a => Equals(a.AttributeClass, wantsToBeBestFriendsAttributeType));
                     assemblyHasAttrMap[symbolAssembly] = assemblyWantsBestFriends;
                 }
                 if (!assemblyWantsBestFriends)
                     continue;
-                if (symbol.GetAttributes().Any(a => a.AttributeClass == bestFriendAttributeType))
+                if (symbol.GetAttributes().Any(a => Equals(a.AttributeClass, bestFriendAttributeType)))
                 {
                     // You're not just a friend, you're my best friend!
                     continue;

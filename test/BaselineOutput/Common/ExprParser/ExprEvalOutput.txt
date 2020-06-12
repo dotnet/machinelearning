@@ -1,0 +1,197 @@
+===== Start Script 1, lines 1 to 13 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+0
+1
+1
+1
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 1
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 1
+*** Parsing ? Failed *** *** Parsing ? Failed *** 0
+===== End Script 1, lines 1 to 13 =====
+===== Start Script 2, lines 14 to 28 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9011101010
+===== End Script 2, lines 14 to 28 =====
+===== Start Script 3, lines 29 to 41 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+0
+0
+0
+1
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** *** Parsing ? Failed *** 0
+===== End Script 3, lines 29 to 41 =====
+===== Start Script 4, lines 42 to 56 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9000100000
+===== End Script 4, lines 42 to 56 =====
+===== Start Script 5, lines 57 to 69 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+0
+0
+1
+*** Parsing ? Failed *** 1
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 1
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** *** Parsing ? Failed *** 1
+===== End Script 5, lines 57 to 69 =====
+===== Start Script 6, lines 70 to 84 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9100110101
+===== End Script 6, lines 70 to 84 =====
+===== Start Script 7, lines 85 to 97 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+0
+1
+1
+0
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 1
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 1
+*** Parsing ? Failed *** *** Parsing ? Failed *** 0
+===== End Script 7, lines 85 to 97 =====
+===== Start Script 8, lines 98 to 112 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9011001010
+===== End Script 8, lines 98 to 112 =====
+===== Start Script 9, lines 114 to 128 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9100100000
+===== End Script 9, lines 114 to 128 =====
+===== Start Script 10, lines 129 to 143 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9011011111
+===== End Script 10, lines 129 to 143 =====
+===== Start Script 11, lines 144 to 158 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9010000000
+===== End Script 11, lines 144 to 158 =====
+===== Start Script 12, lines 159 to 173 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9110100000
+===== End Script 12, lines 159 to 173 =====
+===== Start Script 13, lines 174 to 188 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9101100000
+===== End Script 13, lines 174 to 188 =====
+===== Start Script 14, lines 189 to 203 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9001000000
+===== End Script 14, lines 189 to 203 =====
+===== Start Script 15, lines 205 to 219 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9100100000
+===== End Script 15, lines 205 to 219 =====
+===== Start Script 16, lines 220 to 234 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9011011111
+===== End Script 16, lines 220 to 234 =====
+===== Start Script 17, lines 235 to 249 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9010000000
+===== End Script 17, lines 235 to 249 =====
+===== Start Script 18, lines 250 to 264 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9110100000
+===== End Script 18, lines 250 to 264 =====
+===== Start Script 19, lines 265 to 279 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9101100000
+===== End Script 19, lines 265 to 279 =====
+===== Start Script 20, lines 280 to 294 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9001000000
+===== End Script 20, lines 280 to 294 =====
+===== Start Script 21, lines 296 to 310 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9100100000
+===== End Script 21, lines 296 to 310 =====
+===== Start Script 22, lines 311 to 325 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9011011111
+===== End Script 22, lines 311 to 325 =====
+===== Start Script 23, lines 326 to 340 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9010000000
+===== End Script 23, lines 326 to 340 =====
+===== Start Script 24, lines 341 to 355 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9110100000
+===== End Script 24, lines 341 to 355 =====
+===== Start Script 25, lines 356 to 370 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9101100000
+===== End Script 25, lines 356 to 370 =====
+===== Start Script 26, lines 371 to 385 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9001000000
+===== End Script 26, lines 371 to 385 =====
+===== Start Script 27, lines 387 to 401 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9100100000
+===== End Script 27, lines 387 to 401 =====
+===== Start Script 28, lines 402 to 416 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9011011111
+===== End Script 28, lines 402 to 416 =====
+===== Start Script 29, lines 417 to 431 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9010000000
+===== End Script 29, lines 417 to 431 =====
+===== Start Script 30, lines 432 to 446 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9110100000
+===== End Script 30, lines 432 to 446 =====
+===== Start Script 31, lines 447 to 461 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9101100000
+===== End Script 31, lines 447 to 461 =====
+===== Start Script 32, lines 462 to 476 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+9001000000
+===== End Script 32, lines 462 to 476 =====
+===== Start Script 33, lines 477 to 485 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+9101
+===== End Script 33, lines 477 to 485 =====

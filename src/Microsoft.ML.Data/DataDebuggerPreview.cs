@@ -16,6 +16,9 @@ namespace Microsoft.ML.Data
     /// </summary>
     public sealed class DataDebuggerPreview
     {
+        private static readonly FuncInstanceMethodInfo1<DataDebuggerPreview, DataViewRow, int, Action<RowInfo, List<object>>> _makeSetterMethodInfo
+            = FuncInstanceMethodInfo1<DataDebuggerPreview, DataViewRow, int, Action<RowInfo, List<object>>>.Create(target => target.MakeSetter<int>);
+
         internal static class Defaults
         {
             public const int MaxRows = 100;
@@ -42,7 +45,7 @@ namespace Microsoft.ML.Data
             {
                 var setters = new Action<RowInfo, List<object>>[n];
                 for (int i = 0; i < n; i++)
-                    setters[i] = Utils.MarshalInvoke(MakeSetter<int>, data.Schema[i].Type.RawType, cursor, i);
+                    setters[i] = Utils.MarshalInvoke(_makeSetterMethodInfo, this, data.Schema[i].Type.RawType, cursor, i);
 
                 int count = 0;
                 while (count < maxRows && cursor.MoveNext())

@@ -13,6 +13,8 @@ namespace Samples.Dynamic
         /// </summary>
         public static void Example()
         {
+            // Download an unfrozen (SavedModel format) pre-trained sentiment
+            // model and return the path to the model directory.
             string modelLocation = Microsoft.ML.SamplesUtils.DatasetUtils
                 .DownloadTensorFlowSentimentModel();
 
@@ -52,10 +54,13 @@ namespace Samples.Dynamic
                );
 
             // Load the TensorFlow model once.
-            //      - Use it for quering the schema for input and output in the
+            //      - Use it for querying the schema for input and output in the
             //            model
             //      - Use it for prediction in the pipeline.
-            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(
+            // Unfrozen (SavedModel format) models are loaded by providing the
+            // path to the directory containing the model file and other model
+            // artifacts like pre-trained weights.
+            using var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(
                 modelLocation);
             var schema = tensorFlowModel.GetModelSchema();
             var featuresType = (VectorDataViewType)schema["Features"].Type;
@@ -73,7 +78,7 @@ namespace Samples.Dynamic
             // In this sample, CustomMappingEstimator is used to resize variable
             // length vector to fixed length vector.
             // The following ML.NET pipeline
-            //      1. tokenzies the string into words, 
+            //      1. tokenizes the string into words, 
             //      2. maps each word to an integer which is an index in the
             //         dictionary ('lookupMap'),
             //      3. Resizes the integer vector to a fixed length vector using

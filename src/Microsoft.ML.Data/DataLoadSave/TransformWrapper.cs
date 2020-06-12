@@ -9,7 +9,7 @@ namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This is a shim class to present the legacy <see cref="IDataTransform"/> interface as an <see cref="ITransformer"/>.
-    /// Note that there are some important differences in usages that make this shimming somewhat non-seemless, so the goal
+    /// Note that there are some important differences in usages that make this shimming somewhat non-seamless, so the goal
     /// would be gradual removal of this as we do away with <see cref="IDataTransform"/> based code.
     /// </summary>
     [BestFriend]

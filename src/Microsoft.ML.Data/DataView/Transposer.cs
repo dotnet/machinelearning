@@ -23,6 +23,9 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal sealed class Transposer : ITransposeDataView, IDisposable
     {
+        private static readonly FuncInstanceMethodInfo1<Transposer, int, SlotCursor> _getSlotCursorCoreMethodInfo
+            = FuncInstanceMethodInfo1<Transposer, int, SlotCursor>.Create(target => target.GetSlotCursorCore<int>);
+
         private readonly IHost _host;
         // The input view.
         private readonly IDataView _view;
@@ -244,7 +247,7 @@ namespace Microsoft.ML.Data
             _host.Assert(0 <= tcol && tcol < _cols.Length);
             _host.Assert(_cols[tcol].Index == col);
 
-            return Utils.MarshalInvoke(GetSlotCursorCore<int>, type, col);
+            return Utils.MarshalInvoke(_getSlotCursorCoreMethodInfo, this, type, col);
         }
 
         private SlotCursor GetSlotCursorCore<T>(int col)
@@ -314,7 +317,8 @@ namespace Microsoft.ML.Data
                     _getter = GetGetterCore();
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                        $"expected type: '{_getter.GetType().GetGenericArguments().First().GetGenericArguments().First()}'.");
                 return getter;
             }
 
@@ -367,7 +371,7 @@ namespace Microsoft.ML.Data
 
             protected override ValueGetter<VBuffer<T>> GetGetterCore()
             {
-                var isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_view.Schema[_col].Type);
+                var isDefault = Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(_view.Schema[_col].Type);
                 bool valid = false;
                 VBuffer<T> cached = default(VBuffer<T>);
                 return
@@ -515,7 +519,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(itemType.RawType == typeof(T));
                 int vecLen = type.GetValueCount();
                 Ch.Assert(vecLen > 0);
-                InPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(itemType);
+                InPredicate<T> isDefault = Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(itemType);
                 int maxPossibleSize = _rbuff.Length * vecLen;
                 const int sparseThresholdRatio = 5;
                 int sparseThreshold = (maxPossibleSize + sparseThresholdRatio - 1) / sparseThresholdRatio;
@@ -889,6 +893,9 @@ namespace Microsoft.ML.Data
             /// </summary>
             private abstract class Splitter
             {
+                private static readonly FuncStaticMethodInfo1<IDataView, int, Splitter> _createCoreMethodInfo
+                    = new FuncStaticMethodInfo1<IDataView, int, Splitter>(CreateCore<int>);
+
                 private readonly IDataView _view;
                 private readonly int _col;
                 public abstract int ColumnCount { get; }
@@ -919,7 +926,7 @@ namespace Microsoft.ML.Data
                     Contracts.Assert(type is PrimitiveDataViewType || vectorSize > 0);
                     const int defaultSplitThreshold = 16;
                     if (vectorSize <= defaultSplitThreshold)
-                        return Utils.MarshalInvoke(CreateCore<int>, type.RawType, view, col);
+                        return Utils.MarshalInvoke(_createCoreMethodInfo, type.RawType, view, col);
                     else
                     {
                         // There are serious practical problems with trying to save many thousands of columns.
@@ -1161,9 +1168,11 @@ namespace Microsoft.ML.Data
                         {
                             Contracts.Check(IsColumnActive(column) && column.Index < _getters.Length);
                             Contracts.AssertValue(_getters[column.Index]);
-                            var fn = _getters[column.Index] as ValueGetter<TValue>;
+                            var originFn = _getters[column.Index];
+                            var fn = originFn as ValueGetter<TValue>;
                             if (fn == null)
-                                throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                                throw Contracts.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                                    $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                             return fn;
                         }
 
@@ -1318,6 +1327,12 @@ namespace Microsoft.ML.Data
 
     internal static class TransposerUtils
     {
+        private static readonly FuncStaticMethodInfo1<IChannelProvider, SlotCursor, DataViewRowCursor> _getRowCursorShimCoreMethodInfo
+            = new FuncStaticMethodInfo1<IChannelProvider, SlotCursor, DataViewRowCursor>(GetRowCursorShimCore<int>);
+
+        private static readonly FuncInstanceMethodInfo1<SlotCursor, Delegate> _slotCursorGetGetterMethodInfo
+            = FuncInstanceMethodInfo1<SlotCursor, Delegate>.Create(target => target.GetGetter<int>);
+
         /// <summary>
         /// This is a convenience method that extracts a single slot value's vector,
         /// while simultaneously verifying that there is exactly one value.
@@ -1359,9 +1374,7 @@ namespace Microsoft.ML.Data
             var genTypeArgs = type.GetGenericArguments();
             ctx.Assert(genTypeArgs.Length == 1);
 
-            Func<ValueGetter<VBuffer<int>>> del = cursor.GetGetter<int>;
-            var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(genTypeArgs[0]);
-            var getter = methodInfo.Invoke(cursor, null) as ValueGetter<TValue>;
+            var getter = Utils.MarshalInvoke(_slotCursorGetGetterMethodInfo, cursor, genTypeArgs[0]) as ValueGetter<TValue>;
             if (getter == null)
                 throw ctx.Except("Invalid TValue: '{0}'", typeof(TValue));
             return getter;
@@ -1383,7 +1396,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(cursor, nameof(cursor));
 
-            return Utils.MarshalInvoke(GetRowCursorShimCore<int>, cursor.GetSlotType().ItemType.RawType, provider, cursor);
+            return Utils.MarshalInvoke(_getRowCursorShimCoreMethodInfo, cursor.GetSlotType().ItemType.RawType, provider, cursor);
         }
 
         private static DataViewRowCursor GetRowCursorShimCore<T>(IChannelProvider provider, SlotCursor cursor)
@@ -1396,6 +1409,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         public sealed class SlotDataView : IDataView
         {
+            private static readonly FuncInstanceMethodInfo1<SlotDataView, bool, DataViewRowCursor> _getRowCursorMethodInfo
+                = FuncInstanceMethodInfo1<SlotDataView, bool, DataViewRowCursor>.Create(target => target.GetRowCursor<int>);
+
             private readonly IHost _host;
             private readonly ITransposeDataView _data;
             private readonly int _col;
@@ -1433,7 +1449,7 @@ namespace Microsoft.ML.Data
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 bool hasZero = columnsNeeded != null && columnsNeeded.Any(x => x.Index == 0);
-                return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, hasZero);
+                return Utils.MarshalInvoke(_getRowCursorMethodInfo, this, _type.GetItemType().RawType, hasZero);
             }
 
             private DataViewRowCursor GetRowCursor<T>(bool active)
@@ -1488,7 +1504,8 @@ namespace Microsoft.ML.Data
 
                     var getter = _getter as ValueGetter<TValue>;
                     if (getter == null)
-                        throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                        throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                            $"expected type: '{_getter.GetType().GetGenericArguments().First()}'.");
                     return getter;
                 }
 

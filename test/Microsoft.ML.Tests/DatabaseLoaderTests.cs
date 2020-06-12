@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Data.SQLite;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,16 +28,7 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisLightGbm()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://github.com/dotnet/machinelearning/issues/4156
-                return;
-            }
-
             var mlContext = new MLContext(seed: 1);
-
-            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
 
             var loaderColumns = new DatabaseLoader.Column[]
             {
@@ -47,12 +41,47 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
-            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
-
-            var trainingData = loader.Load(databaseSource);
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+            var model = pipeline.Fit(trainingData);
+
+            var engine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
+
+            Assert.Equal(0, engine.Predict(new IrisData()
+            {
+                SepalLength = 4.5f,
+                SepalWidth = 5.6f,
+                PetalLength = 0.5f,
+                PetalWidth = 0.5f,
+            }).PredictedLabel);
+
+            Assert.Equal(1, engine.Predict(new IrisData()
+            {
+                SepalLength = 4.9f,
+                SepalWidth = 2.4f,
+                PetalLength = 3.3f,
+                PetalWidth = 1.0f,
+            }).PredictedLabel);
+        }
+
+        [LightGBMFact]
+        public void IrisLightGbmWithLoadColumnName()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var loader = mlContext.Data.CreateDatabaseLoader<IrisDataWithLoadColumnName>();
+
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM {0}"));
+
+            IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -80,25 +109,47 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisVectorLightGbm()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://github.com/dotnet/machinelearning/issues/4156
-                return;
-            }
-
             var mlContext = new MLContext(seed: 1);
-
-            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorData>();
 
-            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
-
-            var trainingData = loader.Load(databaseSource);
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+            var model = pipeline.Fit(trainingData);
+
+            var engine = mlContext.Model.CreatePredictionEngine<IrisVectorData, IrisPrediction>(model);
+
+            Assert.Equal(0, engine.Predict(new IrisVectorData()
+            {
+                SepalInfo = new float[] { 4.5f, 5.6f },
+                PetalInfo = new float[] { 0.5f, 0.5f },
+            }).PredictedLabel);
+
+            Assert.Equal(1, engine.Predict(new IrisVectorData()
+            {
+                SepalInfo = new float[] { 4.9f, 2.4f },
+                PetalInfo = new float[] { 3.3f, 1.0f },
+            }).PredictedLabel);
+        }
+
+        [LightGBMFact]
+        public void IrisVectorLightGbmWithLoadColumnName()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorDataWithLoadColumnName>();
+
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
+
+            IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -122,25 +173,15 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void IrisSdcaMaximumEntropy()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://github.com/dotnet/machinelearning/issues/4156
-                return;
-            }
-
             var mlContext = new MLContext(seed: 1);
-
-            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisData>();
 
-            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
-
-            var trainingData = loader.Load(databaseSource);
+            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -165,15 +206,35 @@ namespace Microsoft.ML.Tests
             }).PredictedLabel);
         }
 
-        private string GetTestDatabasePath(string databaseName)
+        /// <summary>
+        /// Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
+        /// SQLite database is used on Linux and MacOS builds.
+        /// </summary>
+        /// <returns>Return the appropiate Iris DatabaseSource according to build OS.</returns>
+        private DatabaseSource GetIrisDatabaseSource(string command)
         {
-            return Path.GetFullPath(Path.Combine("TestDatabases", $"{databaseName}.mdf"));
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return new DatabaseSource(
+                    SqlClientFactory.Instance,
+                    GetMSSQLConnectionString(TestDatasets.irisDb.name),
+                    String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""));
+            else
+                return new DatabaseSource(
+                    SQLiteFactory.Instance,
+                    GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
+                    String.Format(command, TestDatasets.irisDbSQLite.trainFilename));
         }
 
-        private string GetConnectionString(string databaseName)
+        private string GetMSSQLConnectionString(string databaseName)
         {
-            var databaseFile = GetTestDatabasePath(databaseName);
+            var databaseFile = Path.GetFullPath(Path.Combine("TestDatabases", $"{databaseName}.mdf"));
             return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True;Connect Timeout=120";
+        }
+
+        private string GetSQLiteConnectionString(string databaseName)
+        {
+            var databaseFile = Path.GetFullPath(Path.Combine("TestDatabases", $"{databaseName}.sqlite"));
+            return $@"Data Source={databaseFile};Version=3;Read Only=True;Timeout=120;";
         }
 
         public class IrisData
@@ -189,8 +250,24 @@ namespace Microsoft.ML.Tests
             public float PetalWidth;
         }
 
+        public class IrisDataWithLoadColumnName
+        {
+            [LoadColumnName("My Label")]
+            [ColumnName("Label")]
+            public int Kind;
+
+            public float SepalLength;
+
+            public float SepalWidth;
+
+            public float PetalLength;
+
+            public float PetalWidth;
+        }
+
         public class IrisVectorData
         {
+            [LoadColumn(0)]
             public int Label;
 
             [LoadColumn(1, 2)]
@@ -198,6 +275,20 @@ namespace Microsoft.ML.Tests
             public float[] SepalInfo;
 
             [LoadColumn(3, 4)]
+            [VectorType(2)]
+            public float[] PetalInfo;
+        }
+
+        public class IrisVectorDataWithLoadColumnName
+        {
+            [LoadColumnName("Label")]
+            public int Label;
+
+            [LoadColumnName("SepalLength", "SepalWidth")]
+            [VectorType(2)]
+            public float[] SepalInfo;
+
+            [LoadColumnName("PetalLength", "PetalWidth")]
             [VectorType(2)]
             public float[] PetalInfo;
         }

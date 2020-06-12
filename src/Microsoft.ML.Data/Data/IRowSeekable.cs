@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.Data
 {
-    // REVIEW: Would it be a better apporach to add something akin to CanSeek,
+    // REVIEW: Would it be a better approach to add something akin to CanSeek,
     // as we have a CanShuffle? The idea is trying to make IRowSeekable propagate along certain transforms.
     /// <summary>
     /// Represents a data view that supports random access to a specific row.

@@ -5,13 +5,19 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class SplitUtilTests
+    public class SplitUtilTests : BaseTestClass
     {
+        public SplitUtilTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         /// <summary>
         /// When there's only one row of data, assert that
         /// attempted cross validation throws (all splits should have empty
@@ -20,7 +26,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void CrossValSplitThrowsWhenNotEnoughData()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var dataViewBuilder = new ArrayDataViewBuilder(mlContext);
             dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
             dataViewBuilder.AddColumn("Label", NumberDataViewType.Single, 0f);

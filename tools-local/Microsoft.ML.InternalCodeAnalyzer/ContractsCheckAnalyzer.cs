@@ -88,6 +88,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
             context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
         }
 
@@ -189,7 +191,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             if ((!(isCheck = name.StartsWith("Check")) && !(isExcept = name.StartsWith("Except"))) || !_targetSet.Contains(name))
                 return;
             // Now that we've verified we're approximately in the right neighborhood, do a more
-            // in depth semantic analysis to verify we're targetting the right sort of object.
+            // in depth semantic analysis to verify we're targeting the right sort of object.
             var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation);
             if (!(symbolInfo.Symbol is IMethodSymbol methodSymbol))
                 return;

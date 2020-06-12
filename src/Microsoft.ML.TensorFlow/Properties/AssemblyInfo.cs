@@ -6,3 +6,4 @@ using System.Runtime.CompilerServices;
 using Microsoft.ML;
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Tests" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Vision" + PublicKey.Value)]

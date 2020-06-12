@@ -1,0 +1,67 @@
+﻿<#@ template language="C#" linePragmas="false" visibility="internal" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.ML.CodeGenerator.Utilities" #>
+<#@ include file="Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
+
+using System;
+using <#= Namespace #>.Model;
+
+namespace <#= Namespace #>.ConsoleApp
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // Create single instance of sample data from first line of dataset for model input
+<# if(SampleData != null) {#>
+            ModelInput sampleData = new ModelInput()
+            {
+<# foreach(var kv in SampleData){ #>
+                <#= kv.Key #>=<#= kv.Value #>,
+<#}#>
+            };
+<#}else{#>
+            ModelInput sampleData = new ModelInput();
+<#}#>
+
+			// Make a single prediction on the sample data and print results
+			var predictionResult = ConsumeModel.Predict(sampleData);
+
+			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...\n\n");
+<# if(SampleData != null) {#>
+<#foreach(var kv in SampleData){#>
+			Console.WriteLine($"<#= kv.Key #>: {sampleData.<#= kv.Key #>}");
+<#}#>
+<#}#>
+<#if("BinaryClassification".Equals(TaskType) ){ #>
+			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}\n\n");
+<#} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){#>
+			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}\n\n");
+<#} else if("MulticlassClassification".Equals(TaskType)){#>
+			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]\n\n");
+<#} #>
+            Console.WriteLine("=============== End of process, hit any key to finish ===============");
+            Console.ReadKey();
+        }
+    }
+}
+<#+
+public string TaskType {get;set;}
+public string Namespace {get;set;}
+public string LabelName {get;set;}
+public char Separator {get;set;}
+public bool AllowQuoting {get;set;}
+public bool AllowSparse {get;set;}
+public bool HasHeader {get;set;}
+public IList<string> Features {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
+public IDictionary<string, string> SampleData {get;set;}
+#>

@@ -16,6 +16,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
@@ -53,6 +54,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Depends on the underlying binary classifier |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// In one-versus-all (OVA) strategy, a binary classification algorithm is used to train one classifier for each class,
@@ -244,7 +246,8 @@ namespace Microsoft.ML.Trainers
         IValueMapper,
         ICanSaveInSourceCode,
         ICanSaveInTextFormat,
-        ISingleCanSavePfa
+        ISingleCanSavePfa,
+        ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "OVAExec";
         internal const string RegistrationName = "OVAPredictor";
@@ -364,29 +367,35 @@ namespace Microsoft.ML.Trainers
                 : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
-            // bool: useDist
+            // byte: OutputFormula as byte
             // int: predictor count
-            bool useDist = ctx.Reader.ReadBoolByte();
+            OutputFormula outputFormula = (OutputFormula)ctx.Reader.ReadByte();
             int len = ctx.Reader.ReadInt32();
             Host.CheckDecode(len > 0);
 
-            if (useDist)
-            {
-                var predictors = new IValueMapperDist[len];
-                LoadPredictors(Host, predictors, ctx);
-                _impl = new ImplDist(predictors);
-            }
-            else
+            if (outputFormula == OutputFormula.Raw)
             {
                 var predictors = new TScalarPredictor[len];
                 LoadPredictors(Host, predictors, ctx);
                 _impl = new ImplRaw(predictors);
             }
+            else if (outputFormula == OutputFormula.ProbabilityNormalization)
+            {
+                var predictors = new IValueMapperDist[len];
+                LoadPredictors(Host, predictors, ctx);
+                _impl = new ImplDist(predictors);
+            }
+            else if (outputFormula == OutputFormula.Softmax)
+            {
+                var predictors = new TScalarPredictor[len];
+                LoadPredictors(Host, predictors, ctx);
+                _impl = new ImplSoftmax(predictors);
+            }
 
             DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
-        private static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -409,9 +418,10 @@ namespace Microsoft.ML.Trainers
             var preds = _impl.Predictors;
 
             // *** Binary format ***
-            // bool: useDist
+            // byte: _impl.OutputFormula as byte
             // int: predictor count
-            ctx.Writer.WriteBoolByte(_impl is ImplDist);
+            byte[] outputFormula = { (byte)_impl.OutputFormula };
+            ctx.Writer.WriteBytesNoCount(outputFormula, 1);
             ctx.Writer.Write(preds.Length);
 
             // Save other streams.
@@ -483,13 +493,22 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private abstract class ImplBase : ISingleCanSavePfa
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _impl.CanSaveOnnx(ctx);
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn) => _impl.SaveAsOnnx(ctx, outputNames, featureColumn);
+
+        private abstract class ImplBase : ISingleCanSavePfa, ISingleCanSaveOnnx
         {
+            public OutputFormula OutputFormula;
             public abstract DataViewType InputType { get; }
             public abstract IValueMapper[] Predictors { get; }
             public abstract bool CanSavePfa { get; }
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
+
+            public bool CanSaveOnnx(OnnxContext ctx) => Predictors.All(pred => (pred as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true);
+
+            public abstract bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn);
 
             protected bool IsValid(IValueMapper mapper, ref VectorDataViewType inputType)
             {
@@ -512,6 +531,66 @@ namespace Microsoft.ML.Trainers
                         return false;
                 }
                 return true;
+            }
+
+            public string[] SaveAsOnnxPreProcess(OnnxContext ctx, string featureColumn, bool clipToZero)
+            {
+                string[] outputs = new string[Predictors.Length];
+
+                string[] localOutputNames = { DefaultColumnNames.PredictedLabel, DefaultColumnNames.Score, DefaultColumnNames.Probability };
+
+                for (int i = 0; i < Predictors.Length; i++)
+                {
+                    var predictorOutputNames = new string[localOutputNames.Length];
+
+                    predictorOutputNames[0] = ctx.AddIntermediateVariable(NumberDataViewType.UInt32, $"{DefaultColumnNames.PredictedLabel}_{i}", true);
+                    predictorOutputNames[1] = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"{DefaultColumnNames.Score}_{i}", true);
+                    predictorOutputNames[2] = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"{DefaultColumnNames.Probability}_{i}", true);
+
+                    string clipInput = predictorOutputNames[2];
+
+                    var pred = Predictors[i] as ISingleCanSaveOnnx;
+                    Contracts.AssertValue(pred);
+                    pred.SaveAsOnnx(ctx, predictorOutputNames, featureColumn);
+
+                    if (clipToZero)
+                    {
+                        var clipOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"ClipOutput_{i}", true);
+                        outputs[i] = clipOutput;
+
+                        string opType = "Clip";
+                        var zeroVar = ctx.AddInitializer(0.0f, "Zero");
+                        var clipNode = ctx.CreateNode(opType, new[] { clipInput, zeroVar }, new[] { outputs[i] }, ctx.GetNodeName(opType), "");
+                    }
+                    else
+                        outputs[i] = predictorOutputNames[1];
+                }
+                return outputs;
+            }
+
+            public void SaveAsOnnxPostProcess(OnnxContext ctx, string inputName, string[] outputNames)
+            {
+                Contracts.Assert(outputNames.Length >= 2);
+
+                string opType;
+                opType = "ArgMax";
+                var argMaxOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "ArgMaxOutput");
+                var argMaxNode = ctx.CreateNode(opType, inputName, argMaxOutput, ctx.GetNodeName(opType), "");
+                argMaxNode.AddAttribute("keepdims", 1);
+                argMaxNode.AddAttribute("axis", 1);
+
+                opType = "Add";
+                var one = ctx.AddInitializer(1);
+                var addOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "AddOutput");
+                var addNode = ctx.CreateNode(opType, new[] { argMaxOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
+
+                opType = "Cast";
+                var castToUint32Node = ctx.CreateNode(opType, addOutput, outputNames[0], ctx.GetNodeName(opType), "");
+                var t2 = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
+                castToUint32Node.AddAttribute("to", t2);
+
+                opType = "Max";
+                ctx.CreateNode(opType, inputName, outputNames[1], ctx.GetNodeName(opType), "");
             }
         }
 
@@ -536,6 +615,7 @@ namespace Microsoft.ML.Trainers
                 CanSavePfa = Predictors.All(m => (m as ISingleCanSavePfa)?.CanSavePfa == true);
                 Contracts.AssertValue(inputType);
                 InputType = inputType;
+                OutputFormula = OutputFormula.Raw;
             }
 
             public override ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper()
@@ -577,6 +657,24 @@ namespace Microsoft.ML.Trainers
                 JObject jobj = null;
                 return jobj.AddReturn("type", PfaUtils.Type.Array(PfaUtils.Type.Double)).AddReturn("new", rootObjects);
             }
+
+            public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+            {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
+
+                string opType = "Concat";
+                var type = new VectorDataViewType(NumberDataViewType.Single, probabilityOutputs.Length);
+                var concatOutput = ctx.AddIntermediateVariable(type, "ConcatOutputRaw");
+                var concatNode = ctx.CreateNode(opType, probabilityOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
+                concatNode.AddAttribute("axis", 1);
+
+                base.SaveAsOnnxPostProcess(ctx, concatOutput, outputNames);
+
+                return true;
+
+            }
         }
 
         private sealed class ImplDist : ImplBase
@@ -601,6 +699,7 @@ namespace Microsoft.ML.Trainers
                 CanSavePfa = Predictors.All(m => (m as IDistCanSavePfa)?.CanSavePfa == true);
                 Contracts.AssertValue(inputType);
                 InputType = inputType;
+                OutputFormula = OutputFormula.ProbabilityNormalization;
             }
 
             private bool IsValid(IValueMapperDist mapper, ref VectorDataViewType inputType)
@@ -689,6 +788,59 @@ namespace Microsoft.ML.Trainers
                 var factorVar = ctx.DeclareVar(null, PfaUtils.Call("/", 1.0, PfaUtils.Call("a.sum", resultVar)));
                 return PfaUtils.Call("la.scale", resultVar, factorVar);
             }
+
+            public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+            {
+                Contracts.Assert(outputNames.Length >= 2);
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
+                string opType;
+                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
+
+                opType = "Sum";
+                var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScores");
+                ctx.CreateNode(opType, probabilityOutputs, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+
+                opType = "Cast";
+                var castOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "CastOutput");
+                var castNode = ctx.CreateNode(opType, sumOutput, castOutput, ctx.GetNodeName(opType), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
+                castNode.AddAttribute("to", t);
+
+                opType = "Not";
+                var notOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsSumZero");
+                ctx.CreateNode(opType, castOutput, notOutput, ctx.GetNodeName(opType), "");
+
+                opType = "Cast";
+                var castIsZeroSumToFloat = ctx.AddIntermediateVariable(NumberDataViewType.Single, "IsSumZeroAsFloat");
+                var castIsZeroSumToFloatNode = ctx.CreateNode(opType, notOutput, castIsZeroSumToFloat, ctx.GetNodeName(opType), "");
+                var t1 = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+                castIsZeroSumToFloatNode.AddAttribute("to", t1);
+
+                opType = "Sum";
+                var sumOutputNonZero = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScoresNonZero");
+                ctx.CreateNode(opType, new[] { sumOutput, castIsZeroSumToFloat },
+                    new[] { sumOutputNonZero }, ctx.GetNodeName(opType), "");
+
+                string[] divOutputs = new string[Predictors.Length];
+                for (int i = 0; i < Predictors.Length; i++)
+                {
+                    opType = "Div";
+                    divOutputs[i] = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"DivOutput_{i}");
+                    ctx.CreateNode(opType, new[] { probabilityOutputs[i], sumOutputNonZero }, new[] { divOutputs[i] }, ctx.GetNodeName(opType), "");
+                }
+
+                opType = "Concat";
+                var type = new VectorDataViewType(NumberDataViewType.Single, divOutputs.Length);
+                var concatOutput = ctx.AddIntermediateVariable(type, "ConcatOutputDist");
+                var concatNode = ctx.CreateNode(opType, divOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
+                concatNode.AddAttribute("axis", 1);
+
+                base.SaveAsOnnxPostProcess(ctx, concatOutput, outputNames);
+
+                return true;
+            }
         }
 
         private sealed class ImplSoftmax : ImplBase
@@ -712,6 +864,7 @@ namespace Microsoft.ML.Trainers
                 CanSavePfa = false;
                 Contracts.AssertValue(inputType);
                 InputType = inputType;
+                OutputFormula = OutputFormula.Softmax;
             }
 
             public override ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper()
@@ -756,6 +909,41 @@ namespace Microsoft.ML.Trainers
             public override JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
             {
                 throw new NotImplementedException("Softmax's PFA exporter is not implemented yet.");
+            }
+
+            public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+            {
+                Contracts.Assert(outputNames.Length >= 2);
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
+                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
+
+                string opType;
+                opType = "Concat";
+                var type = new VectorDataViewType(NumberDataViewType.Single, probabilityOutputs.Length);
+                var concatOutput = ctx.AddIntermediateVariable(type, "ConcatOutputSoftMax");
+                var concatNode = ctx.CreateNode(opType, probabilityOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
+                concatNode.AddAttribute("axis", 1);
+
+                opType = "Exp";
+                var expOutput = ctx.AddIntermediateVariable(type, "ExpOutput");
+                var expNode = ctx.CreateNode(opType, concatOutput, expOutput, ctx.GetNodeName(opType), "");
+
+                opType = "ReduceSum";
+                var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOutput");
+                var sumNode = ctx.CreateNode(opType, expOutput, sumOutput, ctx.GetNodeName(opType), "");
+                sumNode.AddAttribute("keepdims", 1);
+                long[] list = { 1 };
+                sumNode.AddAttribute("axes", list);
+
+                opType = "Div";
+                var divOutput = ctx.AddIntermediateVariable(type, "DivOutput");
+                var divNode = ctx.CreateNode(opType, new[] { expOutput, sumOutput }, new[] { divOutput }, ctx.GetNodeName(opType), "");
+
+                base.SaveAsOnnxPostProcess(ctx, divOutput, outputNames);
+
+                return true;
             }
         }
     }

@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
                 {
-                    // This transform treats the input sequenence as the raw anomaly score.
+                    // This transform treats the input sequence as the raw anomaly score.
                     return (double)input;
                 }
 

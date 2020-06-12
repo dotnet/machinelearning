@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios
         public void TestGetColumn()
         {
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var data = mlContext.Data.LoadFromTextFile(path, new[] {
                 new TextLoader.Column("floatScalar", DataKind.Single, 1),
                 new TextLoader.Column("floatVector", DataKind.Single, 2, 6),
@@ -66,7 +67,7 @@ namespace Microsoft.ML.Tests.Scenarios
         public void TestGetColumnSelectedByString()
         {
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var data = mlContext.Data.LoadFromTextFile(path, new[] {
                 new TextLoader.Column("floatScalar", DataKind.Single, 1),
                 new TextLoader.Column("floatVector", DataKind.Single, 2, 6),

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -44,7 +45,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         public class OptionsBase : TrainerInputBaseWithGroupId
         {
             // Static override name map that maps friendly names to lightGBM arguments.
-            // If an argument is not here, then its name is identicaltto a lightGBM argument
+            // If an argument is not here, then its name is identical to a lightGBM argument
             // and does not require a mapping, for example, Subsample.
             private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
             {
@@ -55,7 +56,8 @@ namespace Microsoft.ML.Trainers.LightGbm
                {nameof(MaximumCategoricalSplitPointCount),    "max_cat_threshold" },
                {nameof(CategoricalSmoothing),                 "cat_smooth" },
                {nameof(L2CategoricalRegularization),          "cat_l2" },
-               {nameof(HandleMissingValue),                   "use_missing" }
+               {nameof(HandleMissingValue),                   "use_missing" },
+               {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
             };
 
             private protected string GetOptionName(string name)
@@ -123,7 +125,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// </value>
             [Argument(ArgumentType.Multiple,
                         HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.",
-                        Name="Booster",
+                        Name = "Booster",
                         SortOrder = 3)]
             internal IBoosterParameterFactory BoosterFactory = new GradientBooster.Options();
 
@@ -174,9 +176,16 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Whether to enable special handling of missing value or not.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.", ShortName = "hmv")]
             [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
             public bool HandleMissingValue = true;
+
+            /// <summary>
+            /// Whether to enable the usage of zero (0) as missing value.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.", ShortName = "uzam")]
+            [TlcModule.SweepableDiscreteParam("UseZeroAsMissing", new object[] { true, false })]
+            public bool UseZeroAsMissingValue = false;
 
             /// <summary>
             /// The minimum number of data points per categorical group.
@@ -259,6 +268,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
                 res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
+                res[GetOptionName(nameof(UseZeroAsMissingValue))] = UseZeroAsMissingValue;
                 res[GetOptionName(nameof(MinimumExampleCountPerGroup))] = MinimumExampleCountPerGroup;
                 res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
@@ -276,19 +286,20 @@ namespace Microsoft.ML.Trainers.LightGbm
             public int[] OnehotIndices;
             public int[] OnehotBias;
             public bool[] IsCategoricalFeature;
+            public int[] CatIndices;
         }
 
         // Contains the passed in options when the API is called
         private protected readonly TOptions LightGbmTrainerOptions;
 
         /// <summary>
-        /// Stores argumments as objects to convert them to invariant string type in the end so that
+        /// Stores arguments as objects to convert them to invariant string type in the end so that
         /// the code is culture agnostic. When retrieving key value from this dictionary as string
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>
-        private protected Dictionary<string, object> GbmOptions;
+        private protected readonly Dictionary<string, object> GbmOptions;
 
-        private protected IParallel ParallelTraining;
+        private protected readonly IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
         private protected int FeatureCount;
@@ -308,16 +319,16 @@ namespace Microsoft.ML.Trainers.LightGbm
             double? learningRate,
             int numberOfIterations)
             : this(env, name, new TOptions()
-                  {
-                    NumberOfLeaves = numberOfLeaves,
-                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
-                    LearningRate = learningRate,
-                    NumberOfIterations = numberOfIterations,
-                    LabelColumnName = labelColumn.Name,
-                    FeatureColumnName = featureColumnName,
-                    ExampleWeightColumnName = exampleWeightColumnName,
-                    RowGroupColumnName = rowGroupColumnName
-                  },
+            {
+                NumberOfLeaves = numberOfLeaves,
+                MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                LearningRate = learningRate,
+                NumberOfIterations = numberOfIterations,
+                LabelColumnName = labelColumn.Name,
+                FeatureColumnName = featureColumnName,
+                ExampleWeightColumnName = exampleWeightColumnName,
+                RowGroupColumnName = rowGroupColumnName
+            },
                   labelColumn)
         {
         }
@@ -335,11 +346,15 @@ namespace Microsoft.ML.Trainers.LightGbm
             Contracts.CheckUserArg(options.L2CategoricalRegularization >= 0.0, nameof(options.L2CategoricalRegularization), "must be >= 0.");
 
             LightGbmTrainerOptions = options;
+            ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
+            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
             InitParallelTraining();
         }
 
         private protected override TModel TrainModelCore(TrainContext context)
         {
+            InitializeBeforeTraining();
+
             Host.CheckValue(context, nameof(context));
 
             Dataset dtrain = null;
@@ -371,11 +386,10 @@ namespace Microsoft.ML.Trainers.LightGbm
             return CreatePredictor();
         }
 
+        private protected virtual void InitializeBeforeTraining() { }
+
         private void InitParallelTraining()
         {
-            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
-            ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
-
             if (ParallelTraining.ParallelType() != "serial" && ParallelTraining.NumMachines() > 1)
             {
                 GbmOptions["tree_learner"] = ParallelTraining.ParallelType();
@@ -433,7 +447,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
-            var loadFlags = CursOpt.AllLabels | CursOpt.Features;
+            var loadFlags = CursOpt.AllLabels | CursOpt.AllFeatures;
             if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
 
@@ -510,6 +524,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                     ++j;
                 }
             }
+            catMetaData.CatIndices = catIndices.Select(int.Parse).ToArray();
             return catIndices;
         }
 
@@ -749,7 +764,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                             }
                         }
                         // All-Zero is category 0.
-                        fv = hotIdx - catMetaData.CategoricalBoudaries[i] + 1;
+                        fv = hotIdx - catMetaData.CategoricalBoudaries[i];
                     }
                     featureValuesTemp[i] = fv;
                 }
@@ -769,8 +784,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             var cursorFeaturesIndices = cursor.Features.GetIndices();
             if (catMetaData.CategoricalBoudaries != null)
             {
-                List<int> featureIndices = new List<int>();
-                List<float> values = new List<float>();
+                Dictionary<int, float> ivPair = new Dictionary<int, float>();
+                foreach (var idx in catMetaData.CatIndices)
+                    ivPair[idx] = -1;
                 int lastIdx = -1;
                 int nhot = 0;
                 for (int i = 0; i < cursorFeaturesValues.Length; ++i)
@@ -779,11 +795,10 @@ namespace Microsoft.ML.Trainers.LightGbm
                     int colIdx = cursorFeaturesIndices[i];
                     int newColIdx = catMetaData.OnehotIndices[colIdx];
                     if (catMetaData.IsCategoricalFeature[newColIdx])
-                        fv = catMetaData.OnehotBias[colIdx] + 1;
+                        fv = catMetaData.OnehotBias[colIdx];
                     if (newColIdx != lastIdx)
                     {
-                        featureIndices.Add(newColIdx);
-                        values.Add(fv);
+                        ivPair[newColIdx] = fv;
                         nhot = 1;
                     }
                     else
@@ -792,13 +807,14 @@ namespace Microsoft.ML.Trainers.LightGbm
                         ++nhot;
                         var prob = rand.NextSingle();
                         if (prob < 1.0f / nhot)
-                            values[values.Count - 1] = fv;
+                            ivPair[newColIdx] = fv;
                     }
                     lastIdx = newColIdx;
                 }
-                indices = featureIndices.ToArray();
-                featureValues = values.ToArray();
-                cnt = featureIndices.Count;
+                var sortedIVPair = new SortedDictionary<int, float>(ivPair);
+                indices = sortedIVPair.Keys.ToArray();
+                featureValues = sortedIVPair.Values.ToArray();
+                cnt = ivPair.Count;
             }
             else
             {

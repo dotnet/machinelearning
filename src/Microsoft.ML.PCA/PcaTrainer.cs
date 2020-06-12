@@ -49,6 +49,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Training Algorithm Details
     /// This trainer uses the top eigenvectors to approximate the subspace containing the normal class.
@@ -540,7 +541,7 @@ namespace Microsoft.ML.Trainers
                 writer.WriteSinglesNoCount(_eigenVectors[i].GetValues().Slice(0, _dimension));
         }
 
-        private static PcaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PcaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -652,7 +653,7 @@ namespace Microsoft.ML.Trainers
         /// into a set of buffers.
         /// </summary>
         /// <param name="vectors">A possibly reusable set of vectors, which will
-        /// be expanded as necessary to accomodate the data.</param>
+        /// be expanded as necessary to accommodate the data.</param>
         /// <param name="rank">Set to the rank, which is also the logical length
         /// of <paramref name="vectors"/>.</param>
         public void GetEigenVectors(ref VBuffer<float>[] vectors, out int rank)

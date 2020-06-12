@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         // Factory method for SignatureLoadModel.
-        private static SsaChangePointDetector Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static SsaChangePointDetector Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return new SsaChangePointDetector(env, ctx);
         }
 
-        internal SsaChangePointDetector(IHostEnvironment env, ModelLoadContext ctx)
+        private SsaChangePointDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***
@@ -214,6 +214,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | <xref:System.Single> |
     /// | Output column data type | 4-element vector of<xref:System.Double> |
+    /// | Exportable to ONNX | No |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
     ///

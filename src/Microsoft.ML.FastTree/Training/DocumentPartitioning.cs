@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     ++numChunks;
                 var perChunkDocumentLists = new List<int>[numChunks][];
                 // REVIEW: This partitioning doesn't look optimal.
-                // Probably make sence to investigate better ways of splitting data?
+                // Probably make sense to investigate better ways of splitting data?
                 var actions = new Action[(int)Math.Ceiling(1.0 * dataset.NumDocs / innerLoopSize)];
                 var actionIndex = 0;
                 for (int docStart = 0; docStart < dataset.NumDocs; docStart += innerLoopSize)
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="leaf">the leaf being split</param>
         /// <param name="bins">Split feature flock's bin</param>
-        /// <param name="categoricalIndices">Catgeorical feature indices</param>
+        /// <param name="categoricalIndices">Categorical feature indices</param>
         /// <param name="gtChildIndex">Index of child node that contains documents whose split
         /// feature value is greater than the split threshold</param>
         public unsafe void Split(int leaf, IntArray bins, HashSet<int> categoricalIndices, int gtChildIndex)

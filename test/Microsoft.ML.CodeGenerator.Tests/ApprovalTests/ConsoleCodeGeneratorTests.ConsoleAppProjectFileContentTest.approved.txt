@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="1.4.0-preview3-28229-2" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.4.0-preview3-28229-2" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.4.0-preview3-28229-2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MyNamespace.Model\MyNamespace.Model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectCapability Include="MLNETCLIGenerated" />
+  </ItemGroup>
+</Project>

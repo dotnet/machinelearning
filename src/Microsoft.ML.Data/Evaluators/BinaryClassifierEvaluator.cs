@@ -480,7 +480,16 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public Double F1 { get { return 2 * PrecisionPos * RecallPos / (PrecisionPos + RecallPos); } }
+                public Double F1
+                {
+                    get
+                    {
+                        var precisionPlusRecall = PrecisionPos + RecallPos;
+                        if (precisionPlusRecall == 0)
+                            return 0;
+                        return 2 * PrecisionPos * RecallPos / precisionPlusRecall;
+                    }
+                }
 
                 public Counters(bool useRaw, Single threshold)
                 {
@@ -1457,184 +1466,9 @@ namespace Microsoft.ML.Data
             if (metrics.Length != 1)
                 pr = AppendRowsDataView.Create(Host, prList[0].Schema, prList.ToArray());
 
-#if !CORECLR
-            SavePrPlots(prList);
-#endif
             return true;
         }
 
-#if !CORECLR
-        // Vertical averaging.
-        private void SavePrPlots(List<IDataView> prList)
-        {
-            Host.AssertNonEmpty(prList);
-
-            //PR curve
-            var prPlot = new XYPlot();
-            prPlot.LegendX = "Recall";
-            prPlot.LegendY = "Precision";
-            prPlot.MinX = 0;
-            prPlot.MaxX = 1;
-            prPlot.MinY = 0;
-            prPlot.MaxY = 1;
-            prPlot.InitializeChart(addLegend: false);
-
-            var avgPoints = GetCurve(prList, BinaryClassifierEvaluator.Recall, BinaryClassifierEvaluator.Precision, 1);
-
-            prPlot.AddCurveXY(avgPoints, "");
-            if (prList.Count > 1)
-            {
-                var decimated = new List<XYPlot.XYPoint>();
-                double currentX = 0.0;
-                const double increment = 0.1;
-                foreach (var t in avgPoints.OrderBy(q => q.X))
-                {
-                    if (t.X >= currentX)
-                    {
-                        decimated.Add(t);
-                        currentX += increment;
-                    }
-                }
-                prPlot.AddMarkerXYErr(decimated, "");
-            }
-
-            string basename = _prFileName;
-            if (basename.Length > 4 && basename[basename.Length - 4] == '.')
-                basename = basename.Substring(0, basename.Length - 4);
-
-            prPlot.Save(basename + ".pr.jpg");
-
-            avgPoints = GetCurve(prList, BinaryClassifierEvaluator.FalsePositiveRate, BinaryClassifierEvaluator.Recall);
-
-            //ROC curve
-            var rocPlot = new XYPlot();
-            rocPlot.LegendX = "FPR";
-            rocPlot.LegendY = "Recall=TPR";
-            rocPlot.MinX = 0;
-            rocPlot.MaxX = 1;
-            rocPlot.MinY = 0;
-            rocPlot.MaxY = 1;
-            rocPlot.InitializeChart(addLegend: false);
-
-            rocPlot.AddCurveXY(avgPoints, "");
-            if (prList.Count > 1)
-            {
-                var decimated = new List<XYPlot.XYPoint>();
-                double currentX = 0.0;
-                double increment = 0.1;
-                foreach (var t in avgPoints.OrderBy(q => q.X))
-                {
-                    if (t.X >= currentX)
-                    {
-                        decimated.Add(t);
-                        currentX += increment;
-                    }
-                }
-                rocPlot.AddMarkerXYErr(decimated, "");
-            }
-            rocPlot.Save(basename + ".roc.jpg");
-        }
-
-        private List<XYPlot.XYPoint> GetCurve(List<IDataView> prList, string xAxisName, string yAxisName, Double yInit = 0)
-        {
-            var cursors = new IRowCursor[prList.Count];
-            var xGetters = new ValueGetter<Double>[prList.Count];
-            var yGetters = new ValueGetter<Double>[prList.Count];
-            for (int i = 0; i < prList.Count; i++)
-            {
-                int xIndex;
-                if (!prList[i].Schema.TryGetColumnIndex(xAxisName, out xIndex))
-                    throw Host.Except("Data view does not contain column '{0}'", xAxisName);
-                int yIndex;
-                if (!prList[i].Schema.TryGetColumnIndex(yAxisName, out yIndex))
-                    throw Host.Except("Data view does not contain column '{0}'", yAxisName);
-
-                cursors[i] = prList[i].GetRowCursor(col => col == xIndex || col == yIndex);
-                xGetters[i] = cursors[i].GetGetter<Double>(xIndex);
-                yGetters[i] = cursors[i].GetGetter<Double>(yIndex);
-            }
-
-            var avgPoints = new List<XYPlot.XYPoint>();
-
-            var xPrev = new Double[prList.Count];
-            var xCur = new Double[prList.Count];
-            var yPrev = new Double[prList.Count];
-            var yCur = new Double[prList.Count];
-            if (yInit != 0)
-            {
-                for (int i = 0; i < yPrev.Length; i++)
-                    yPrev[i] = yInit;
-            }
-
-            // Get the first points in all the curves.
-            for (int i = 0; i < cursors.Length; i++)
-            {
-                if (cursors[i].MoveNext())
-                {
-                    xGetters[i](ref xCur[i]);
-                    yGetters[i](ref yCur[i]);
-                }
-            }
-
-            while (true)
-            {
-                // Find the next point as the point with the smallest x value, among the cursors that are not done.
-                int argMin = -1;
-                Double min = 2;
-                for (int i = 0; i < cursors.Length; i++)
-                {
-                    if (cursors[i].State == CursorState.Done)
-                        continue;
-
-                    if (xCur[i] < min)
-                    {
-                        min = xCur[i];
-                        argMin = i;
-                    }
-                }
-
-                // We stop when all the cursors are done.
-                if (argMin < 0)
-                    break;
-
-                // Calculate the average and std deviation of y value at x=min.
-                // Use StdDev = Sqrt(Avg(y^2)-Avg(y)^2), then stdErr = stdDev/Sqrt(sample size)
-                var yAvg = yCur[argMin];
-                var yVar = yCur[argMin] * yCur[argMin];
-                for (int i = 0; i < yCur.Length; i++)
-                {
-                    if (i == argMin)
-                        continue;
-
-                    var deltaPos = xCur[i] - xCur[argMin];
-                    var deltaNeg = xCur[argMin] - xPrev[i];
-                    var currentY = (deltaPos * yPrev[i] + deltaNeg * yCur[i]) / (deltaPos + deltaNeg);
-                    yAvg += currentY;
-                    yVar += currentY * currentY;
-                }
-                yAvg /= prList.Count;
-                yVar = yVar / prList.Count - yAvg * yAvg;
-                var yStdErr = Math.Sqrt(Math.Max(0.0, yVar)) / Math.Sqrt(prList.Count);
-                avgPoints.Add(new XYPlot.XYPoint(min, yAvg, yStdErr));
-
-                // Advanced the cursor whose x value was used for the current point.
-                xPrev[argMin] = xCur[argMin];
-                yPrev[argMin] = yCur[argMin];
-                if (cursors[argMin].MoveNext())
-                {
-                    xGetters[argMin](ref xCur[argMin]);
-                    yGetters[argMin](ref yCur[argMin]);
-                }
-
-                cursors[argMin].MoveNext();
-            }
-
-            foreach (var curs in cursors)
-                curs.Dispose();
-
-            return avgPoints;
-        }
-#endif
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));

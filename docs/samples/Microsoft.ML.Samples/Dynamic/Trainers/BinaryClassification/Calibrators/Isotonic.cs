@@ -55,7 +55,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
 
             var calibratorTransformer = calibratorEstimator.Fit(scoredData);
 
-            // Transform the scored data with a calibrator transfomer by adding a
+            // Transform the scored data with a calibrator transformer by adding a
             // new column names "Probability". This column is a calibrated version
             // of the "Score" column, meaning its values are a valid probability
             // value in the [0, 1] interval representing the chance that the

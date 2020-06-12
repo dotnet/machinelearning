@@ -178,7 +178,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(TreeEnsembleFeaturizationTransformer).Assembly.FullName);
         }
 
-        private static TreeEnsembleFeaturizationTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static TreeEnsembleFeaturizationTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
             => new TreeEnsembleFeaturizationTransformer(env, ctx);
     }
 }

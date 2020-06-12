@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Benchmarks
 {
     [CIBenchmark]
-    public class CacheDataViewBench
+    public class CacheDataViewBench : BenchmarkBase
     {
         private const int Length = 100000;
 
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Targets = new[] { nameof(CacheWithCursor), nameof(CacheWithSeeker) })]
         public void Setup()
         {
-            var ctx = new MLContext();
+            var ctx = new MLContext(1);
             var builder = new ArrayDataViewBuilder(ctx);
             int[] values = new int[Length];
             for (int i = 0; i < values.Length; ++i)

@@ -15,7 +15,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
-[assembly: LoadableClass(typeof(RankingEvaluator), typeof(RankingEvaluator), typeof(RankingEvaluator.Arguments), typeof(SignatureEvaluator),
+[assembly: LoadableClass(typeof(RankingEvaluator), typeof(RankingEvaluator), typeof(RankingEvaluatorOptions), typeof(SignatureEvaluator),
     "Ranking Evaluator", RankingEvaluator.LoadName, "Ranking", "rank")]
 
 [assembly: LoadableClass(typeof(RankingMamlEvaluator), typeof(RankingMamlEvaluator), typeof(RankingMamlEvaluator.Arguments), typeof(SignatureMamlEvaluator),
@@ -26,21 +26,30 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
+    /// <summary>
+    ///  Options to control the output of the RankingEvaluator
+    /// </summary>
+    public sealed class RankingEvaluatorOptions
+    {
+        /// <value>
+        /// Maximum truncation level for computing (N)DCG
+        /// </value>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum truncation level for computing (N)DCG", ShortName = "t")]
+        public int DcgTruncationLevel = 3;
+
+        /// <value>
+        /// Label relevance gains
+        /// </value>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Label relevance gains", ShortName = "gains")]
+        public string LabelGains = "0,3,7,15,31";
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Generate per-group (N)DCG", ShortName = "ogs")]
+        internal bool OutputGroupSummary;
+    }
+
     [BestFriend]
     internal sealed class RankingEvaluator : EvaluatorBase<RankingEvaluator.Aggregator>
     {
-        public sealed class Arguments
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum truncation level for computing (N)DCG", ShortName = "t")]
-            public int DcgTruncationLevel = 3;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Label relevance gains", ShortName = "gains")]
-            public string LabelGains = "0,3,7,15,31";
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Generate per-group (N)DCG", ShortName = "ogs")]
-            public bool OutputGroupSummary;
-        }
-
         internal const string LoadName = "RankingEvaluator";
 
         public const string Ndcg = "NDCG";
@@ -60,24 +69,25 @@ namespace Microsoft.ML.Data
         private readonly bool _groupSummary;
         private readonly Double[] _labelGains;
 
-        public RankingEvaluator(IHostEnvironment env, Arguments args)
+        public RankingEvaluator(IHostEnvironment env, RankingEvaluatorOptions options)
             : base(env, LoadName)
         {
             // REVIEW: What kind of checking should be applied to labelGains?
-            if (args.DcgTruncationLevel <= 0 || args.DcgTruncationLevel > Aggregator.Counters.MaxTruncationLevel)
-                throw Host.ExceptUserArg(nameof(args.DcgTruncationLevel), "DCG Truncation Level must be between 1 and {0}", Aggregator.Counters.MaxTruncationLevel);
-            Host.CheckUserArg(args.LabelGains != null, nameof(args.LabelGains), "Label gains cannot be null");
+            // add the setter to utils here
+            if (options.DcgTruncationLevel <= 0)
+                throw Host.ExceptUserArg(nameof(options.DcgTruncationLevel), "DCG Truncation Level must be greater than 0");
+            Host.CheckUserArg(options.LabelGains != null, nameof(options.LabelGains), "Label gains cannot be null");
 
-            _truncationLevel = args.DcgTruncationLevel;
-            _groupSummary = args.OutputGroupSummary;
+            _truncationLevel = options.DcgTruncationLevel;
+            _groupSummary = options.OutputGroupSummary;
 
             var labelGains = new List<Double>();
-            string[] gains = args.LabelGains.Split(',');
+            string[] gains = options.LabelGains.Split(',');
             for (int i = 0; i < gains.Length; i++)
             {
                 Double gain;
                 if (!Double.TryParse(gains[i], out gain))
-                    throw Host.ExceptUserArg(nameof(args.LabelGains), "Label Gains must be of floating or integral type", Aggregator.Counters.MaxTruncationLevel);
+                    throw Host.ExceptUserArg(nameof(options.LabelGains), "Label Gains must be of floating or integral type");
                 labelGains.Add(gain);
             }
             _labelGains = labelGains.ToArray();
@@ -271,8 +281,6 @@ namespace Microsoft.ML.Data
         {
             public sealed class Counters
             {
-                public const int MaxTruncationLevel = 10;
-
                 public readonly int TruncationLevel;
                 private readonly List<Double[]> _groupNdcg;
                 private readonly List<Double[]> _groupDcg;
@@ -287,6 +295,7 @@ namespace Microsoft.ML.Data
                 private readonly List<short> _queryLabels;
                 private readonly List<Single> _queryOutputs;
                 private readonly Double[] _labelGains;
+                private readonly Double[] _discountMap;
 
                 public bool GroupSummary { get { return _groupNdcg != null; } }
 
@@ -348,6 +357,8 @@ namespace Microsoft.ML.Data
                     Contracts.AssertValue(labelGains);
 
                     TruncationLevel = truncationLevel;
+                    _discountMap = RankingUtils.GetDiscountMap(truncationLevel);
+
                     _sumDcgAtN = new Double[TruncationLevel];
                     _sumNdcgAtN = new Double[TruncationLevel];
 
@@ -373,7 +384,7 @@ namespace Microsoft.ML.Data
 
                 public void UpdateGroup(Single weight)
                 {
-                    RankingUtils.QueryMaxDcg(_labelGains, TruncationLevel, _queryLabels, _queryOutputs, _groupMaxDcgCur);
+                    RankingUtils.QueryMaxDcg(_labelGains, TruncationLevel, _discountMap, _queryLabels, _queryOutputs, _groupMaxDcgCur);
                     if (_groupMaxDcg != null)
                     {
                         var maxDcg = new Double[TruncationLevel];
@@ -381,7 +392,7 @@ namespace Microsoft.ML.Data
                         _groupMaxDcg.Add(maxDcg);
                     }
 
-                    RankingUtils.QueryDcg(_labelGains, TruncationLevel, _queryLabels, _queryOutputs, _groupDcgCur);
+                    RankingUtils.QueryDcg(_labelGains, TruncationLevel, _discountMap, _queryLabels, _queryOutputs, _groupDcgCur);
                     if (_groupDcg != null)
                     {
                         var groupDcg = new Double[TruncationLevel];
@@ -684,17 +695,19 @@ namespace Microsoft.ML.Data
 
             private readonly Bindings _bindings;
             private readonly int _truncationLevel;
+            private readonly Double[] _discountMap;
             private readonly Double[] _labelGains;
 
             public Transform(IHostEnvironment env, IDataView input, string labelCol, string scoreCol, string groupCol,
                 int truncationLevel, Double[] labelGains)
                 : base(env, input, labelCol, scoreCol, groupCol, RegistrationName)
             {
-                Host.CheckParam(0 < truncationLevel && truncationLevel < 100, nameof(truncationLevel),
-                    "Truncation level must be between 1 and 99");
+                Host.CheckParam(0 < truncationLevel , nameof(truncationLevel),
+                    "Truncation level must be greater than 0");
                 Host.CheckValue(labelGains, nameof(labelGains));
 
                 _truncationLevel = truncationLevel;
+                _discountMap = RankingUtils.GetDiscountMap(_truncationLevel);
                 _labelGains = labelGains;
                 _bindings = new Bindings(Host, Source.Schema, true, LabelCol, ScoreCol, GroupCol, _truncationLevel);
             }
@@ -709,7 +722,7 @@ namespace Microsoft.ML.Data
                 // double[]: _labelGains
 
                 _truncationLevel = ctx.Reader.ReadInt32();
-                Host.CheckDecode(0 < _truncationLevel && _truncationLevel < 100);
+                Host.CheckDecode(0 < _truncationLevel);
                 _labelGains = ctx.Reader.ReadDoubleArray();
                 _bindings = new Bindings(Host, input.Schema, false, LabelCol, ScoreCol, GroupCol, _truncationLevel);
             }
@@ -725,7 +738,7 @@ namespace Microsoft.ML.Data
                 // double[]: _labelGains
 
                 base.SaveModel(ctx);
-                Host.Assert(0 < _truncationLevel && _truncationLevel < 100);
+                Host.Assert(0 < _truncationLevel);
                 ctx.Writer.Write(_truncationLevel);
                 ctx.Writer.WriteDoubleArray(_labelGains);
             }
@@ -800,9 +813,9 @@ namespace Microsoft.ML.Data
             protected override void UpdateState(RowCursorState state)
             {
                 // Calculate the current group DCG, NDCG and MaxDcg.
-                RankingUtils.QueryMaxDcg(_labelGains, _truncationLevel, state.QueryLabels, state.QueryOutputs,
+                RankingUtils.QueryMaxDcg(_labelGains, _truncationLevel, _discountMap, state.QueryLabels, state.QueryOutputs,
                     state.MaxDcgCur);
-                RankingUtils.QueryDcg(_labelGains, _truncationLevel, state.QueryLabels, state.QueryOutputs, state.DcgCur);
+                RankingUtils.QueryDcg(_labelGains, _truncationLevel, _discountMap, state.QueryLabels, state.QueryOutputs, state.DcgCur);
                 for (int t = 0; t < _truncationLevel; t++)
                 {
                     Double ndcg = state.MaxDcgCur[t] > 0 ? state.DcgCur[t] / state.MaxDcgCur[t] : 0;
@@ -823,7 +836,7 @@ namespace Microsoft.ML.Data
 
                 public RowCursorState(int truncationLevel)
                 {
-                    Contracts.Assert(0 < truncationLevel && truncationLevel < 100);
+                    Contracts.Assert(0 < truncationLevel);
 
                     QueryLabels = new List<short>();
                     QueryOutputs = new List<Single>();
@@ -867,12 +880,12 @@ namespace Microsoft.ML.Data
             Host.CheckValue(args, nameof(args));
             Utils.CheckOptionalUserDirectory(args.GroupSummaryFilename, nameof(args.GroupSummaryFilename));
 
-            var evalArgs = new RankingEvaluator.Arguments();
-            evalArgs.DcgTruncationLevel = args.DcgTruncationLevel;
-            evalArgs.LabelGains = args.LabelGains;
-            evalArgs.OutputGroupSummary = !string.IsNullOrEmpty(args.GroupSummaryFilename);
+            var evalOpts = new RankingEvaluatorOptions();
+            evalOpts.DcgTruncationLevel = args.DcgTruncationLevel;
+            evalOpts.LabelGains = args.LabelGains;
+            evalOpts.OutputGroupSummary = !string.IsNullOrEmpty(args.GroupSummaryFilename);
 
-            _evaluator = new RankingEvaluator(Host, evalArgs);
+            _evaluator = new RankingEvaluator(Host, evalOpts);
             _groupSummaryFilename = args.GroupSummaryFilename;
             _groupIdCol = args.GroupIdColumn;
         }
@@ -946,30 +959,41 @@ namespace Microsoft.ML.Data
 
     internal static class RankingUtils
     {
-        private static volatile Double[] _discountMap;
-        public static Double[] DiscountMap
+        // Truncation levels are typically less than 100. So we maintain a fixed discount map of size 100
+        // If truncation level greater than 100 is required, we build a new one and return that.
+        private const int FixedDiscountMapSize = 100;
+        private static Double[] _discountMapFixed;
+
+        private static Double[] GetDiscountMapCore(int truncationLevel)
         {
-            get
+            var discountMap = new Double[truncationLevel];
+
+            for (int i = 0; i < discountMap.Length; i++)
+                discountMap[i] = 1 / Math.Log(2 + i);
+
+            return discountMap;
+        }
+
+        public static Double[] GetDiscountMap(int truncationLevel)
+        {
+            var discountMap = _discountMapFixed;
+            if (discountMap == null)
             {
-                double[] result = _discountMap;
-                if (result == null)
-                {
-                    var discountMap = new Double[100]; //Hard to believe anyone would set truncation Level higher than 100
-                    for (int i = 0; i < discountMap.Length; i++)
-                    {
-                        discountMap[i] = 1 / Math.Log(2 + i);
-                    }
-                    Interlocked.CompareExchange(ref _discountMap, discountMap, null);
-                    result = _discountMap;
-                }
-                return result;
+                discountMap = GetDiscountMapCore(FixedDiscountMapSize);
+                Interlocked.CompareExchange(ref _discountMapFixed, discountMap, null);
+                discountMap = _discountMapFixed;
             }
+
+            if (truncationLevel <= discountMap.Length)
+                return discountMap;
+
+            return GetDiscountMapCore(truncationLevel);
         }
 
         /// <summary>
         /// Calculates natural-based max DCG at all truncations from 1 to truncationLevel.
         /// </summary>
-        public static void QueryMaxDcg(Double[] labelGains, int truncationLevel,
+        public static void QueryMaxDcg(Double[] labelGains, int truncationLevel, Double[] discountMap,
             List<short> queryLabels, List<Single> queryOutputs, Double[] groupMaxDcgCur)
         {
             Contracts.Assert(Utils.Size(groupMaxDcgCur) == truncationLevel);
@@ -994,13 +1018,13 @@ namespace Microsoft.ML.Data
                 while (labelCounts[topLabel] == 0)
                     topLabel--;
 
-                groupMaxDcgCur[0] = labelGains[topLabel] * DiscountMap[0];
+                groupMaxDcgCur[0] = labelGains[topLabel] * discountMap[0];
                 labelCounts[topLabel]--;
                 for (int t = 1; t < maxTrunc; t++)
                 {
                     while (labelCounts[topLabel] == 0)
                         topLabel--;
-                    groupMaxDcgCur[t] = groupMaxDcgCur[t - 1] + labelGains[topLabel] * DiscountMap[t];
+                    groupMaxDcgCur[t] = groupMaxDcgCur[t - 1] + labelGains[topLabel] * discountMap[t];
                     labelCounts[topLabel]--;
                 }
                 for (int t = maxTrunc; t < truncationLevel; t++)
@@ -1008,7 +1032,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public static void QueryDcg(Double[] labelGains, int truncationLevel,
+        public static void QueryDcg(Double[] labelGains, int truncationLevel, Double[] discountMap,
             List<short> queryLabels, List<Single> queryOutputs, Double[] groupDcgCur)
         {
             // calculate the permutation
@@ -1021,7 +1045,7 @@ namespace Microsoft.ML.Data
             Double dcg = 0;
             for (int t = 0; t < count; ++t)
             {
-                dcg = dcg + labelGains[queryLabels[permutation[t]]] * DiscountMap[t];
+                dcg = dcg + labelGains[queryLabels[permutation[t]]] * discountMap[t];
                 groupDcgCur[t] = dcg;
             }
             for (int t = count; t < truncationLevel; ++t)

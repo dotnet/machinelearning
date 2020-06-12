@@ -465,7 +465,7 @@ namespace Microsoft.ML.ResultProcessor
                 {
                     Contracts.AssertNonEmpty(testArgs.InputModelFile);
                     string savedTrainCmd;
-                    using (Stream strm = new FileStream(testArgs.InputModelFile, FileMode.Open, FileAccess.Read))
+                    using (Stream strm = new FileStream(testArgs.InputModelFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                     using (var rep = RepositoryReader.Open(strm))
                     {
                         var ent = rep.OpenEntryOrNull(ModelFileUtils.DirTrainingInfo, "Command.txt");

@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML.Test
         internal Pipeline Pipeline;
         internal int PipelineInferenceTimeInSeconds;
 
-        private string primaryMetricName;
+        private string _primaryMetricName;
 
         private TaskAgnosticIterationResult(RunDetail baseRunDetail, object validationMetrics, string primaryMetricName)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML.Test
             this.PipelineInferenceTimeInSeconds = (int)baseRunDetail.PipelineInferenceTimeInSeconds;
             this.RuntimeInSeconds = (int)baseRunDetail.RuntimeInSeconds;
 
-            this.primaryMetricName = primaryMetricName;
+            this._primaryMetricName = primaryMetricName;
             this.PrimaryMetricValue = -1; // default value in case of exception.  TODO: won't work for minimizing metrics, use nullable?
 
             if (validationMetrics == null)
@@ -44,7 +44,7 @@ namespace Microsoft.ML.AutoML.Test
 
             this.MetricValues = MetricValuesToDictionary(validationMetrics);
 
-            this.PrimaryMetricValue = this.MetricValues[this.primaryMetricName];
+            this.PrimaryMetricValue = this.MetricValues[this._primaryMetricName];
         }
 
         public TaskAgnosticIterationResult(RunDetail<RegressionMetrics> runDetail, string primaryMetricName = "RSquared")

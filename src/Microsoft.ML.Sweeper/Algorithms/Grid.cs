@@ -32,7 +32,7 @@ namespace Microsoft.ML.Sweeper
             [Argument(ArgumentType.Multiple, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
             public IComponentFactory<IValueGenerator>[] SweptParameters;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of tries to generate distinct parameter sets.", ShortName = "r")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of tries to generate distinct parameter sets.", ShortName = "r")]
             public int Retries = 10;
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Sweeper
 
         public sealed class Options : OptionsBase
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Limit for the number of combinations to generate the entire grid.", ShortName = "maxpoints")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Limit for the number of combinations to generate the entire grid.", ShortName = "maxpoints")]
             public int MaxGridPoints = 1000000;
         }
 

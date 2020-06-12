@@ -108,7 +108,7 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// <see cref="InternalDataKind"/> of the items in the column. It defaults to float.
-            /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="DataKind"/>.
+            /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publicly accessed by <see cref="DataKind"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
             [BestFriend]
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Data
             /// <param name="min">The minimum inclusive index of the column.</param>
             /// <param name="max">The maximum-inclusive index of the column. If <c>null</c>
             /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
-            /// of the lines, and read untill the end.</param>
+            /// of the lines, and read until the end.</param>
             public Range(int min, int? max)
             {
                 Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// The maximum index of the column, inclusive. If <see langword="null"/>
             /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
-            /// of the lines, and read untill the end.
+            /// of the lines, and read until the end.
             /// If max is specified, the fields <see cref="AutoEnd"/> and <see cref="VariableEnd"/> are ignored.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
@@ -427,21 +427,30 @@ namespace Microsoft.ML.Data
         public class Options
         {
             /// <summary>
-            /// Whether the input may include quoted values, which can contain separator characters, colons,
-            /// and distinguish empty values from missing values. When true, consecutive separators denote a
-            /// missing value and an empty value is denoted by \"\". When false, consecutive separators denote an empty value.
+            /// Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+            /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
+            /// input value. When <see langword="false"/>, all separators, even those within quotes, are treated as delimiting a new column.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText =
-                    "Whether the input may include quoted values, which can contain separator characters, colons," +
-                    " and distinguish empty values from missing values. When true, consecutive separators denote a" +
-                    " missing value and an empty value is denoted by \"\". When false, consecutive separators" +
-                    " denote an empty value.",
+                    "Whether the input may include double-quoted values. This parameter is used to distinguish separator characters in an input value " +
+                    "from actual separators. When true, separators within double quotes are treated as part of the input value. When false, all " +
+                    "separators, even those within quotes, are treated as delimiting a new column.",
                 ShortName = "quote")]
             public bool AllowQuoting = Defaults.AllowQuoting;
 
             /// <summary>
-            /// Whether the input may include sparse representations.
+            /// Whether the input may include sparse representations. For example, a row containing
+            /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+            /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+            /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+            /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+            /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.
+            ///
+            /// In addition, <see cref="InputSize"/> should be used when the number of sparse elements (5 in this example) is not present in each line.
+            /// It should specify the total size, not just the size of the sparse part. However, indices of the spars part are relative to where the sparse part begins.
+            /// If <see cref="InputSize"/> is set to 7, the line "1 2 2:6 4:3" will be mapped to "1 2 0 0 6 0 4", but if set to 10, the same line will
+            /// be mapped to "1 2 0 0 6 0 4 0 0 0".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the input may include sparse representations", ShortName = "sparse")]
             public bool AllowSparse = Defaults.AllowSparse;
@@ -465,6 +474,12 @@ namespace Microsoft.ML.Data
             public char[] Separators = new[] { Defaults.Separator };
 
             /// <summary>
+            /// The character that should be used as the decimal marker. Default value is '.'. Only '.' and ',' are allowed to be decimal markers.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, Name = "Decimal Marker", HelpText = "Character symbol used to separate the integer part from the fractional part of a number written in decimal form.", ShortName = "decimal")]
+            public char DecimalMarker = Defaults.DecimalMarker;
+
+            /// <summary>
             /// Specifies the input columns that should be mapped to <see cref="IDataView"/> columns.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
@@ -478,17 +493,25 @@ namespace Microsoft.ML.Data
             public bool TrimWhitespace = Defaults.TrimWhitespace;
 
             /// <summary>
-            /// Whether the data file has a header with feature names.
+            /// Whether the file has a header with feature names. When <see langword="true"/>, the loader will skip the first line when
+            /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called. The sample can be used to infer slot name annotations if present.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
-            public bool HasHeader;
+            public bool HasHeader = Defaults.HasHeader;
 
             /// <summary>
             /// Whether to use separate parsing threads.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use separate parsing threads?", ShortName = "threads", Hide = true)]
             public bool UseThreads = true;
+
+            /// <summary>
+            /// If true, new line characters are acceptable inside a quoted field, and thus one field can have multiple lines of text inside it
+            /// If <see cref="TextLoader.Options.AllowQuoting"/> is false, this option is ignored.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Escape new line characters inside a quoted field? If AllowQuoting is false, this argument is ignored.", ShortName = "multilines", Hide = true)]
+            public bool ReadMultilines = Defaults.ReadMultilines;
 
             /// <summary>
             /// File containing a header with feature names. If specified, the header defined in the data file is ignored regardless of <see cref="HasHeader"/>.
@@ -504,6 +527,21 @@ namespace Microsoft.ML.Data
             public long? MaxRows;
 
             /// <summary>
+            /// Character to use to escape quotes inside quoted fields. It can't be a character used as separator.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Character to use to escape quotes inside quoted fields. It can't be a character used as separator.", ShortName = "escapechar")]
+            public char EscapeChar = Defaults.EscapeChar;
+
+            /// <summary>
+            /// If true, missing real fields (i.e. double or single fields) will be loaded as NaN.
+            /// If false, they'll be loaded as 0. Default is false.
+            /// A field is considered "missing" if it's empty, if it only has whitespace, or if there are missing columns
+            /// at the end of a given row.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If true, empty float fields will be loaded as NaN. If false, they'll be loaded as 0. Default is false.", ShortName = "missingrealnan")]
+            public bool MissingRealsAsNaNs = Defaults.MissingRealsAsNaNs;
+
+            /// <summary>
             /// Checks that all column specifications are valid (that is, ranges are disjoint and have min&lt;=max).
             /// </summary>
             internal bool IsValid()
@@ -517,8 +555,12 @@ namespace Microsoft.ML.Data
             internal const bool AllowQuoting = false;
             internal const bool AllowSparse = false;
             internal const char Separator = '\t';
+            internal const char DecimalMarker = '.';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
+            internal const bool ReadMultilines = false;
+            internal const char EscapeChar = '"';
+            internal const bool MissingRealsAsNaNs = false;
         }
 
         /// <summary>
@@ -683,11 +725,11 @@ namespace Microsoft.ML.Data
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
-                        Cursor.GetSomeLines(headerFile, 1, ref lines);
+                        Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(dataSample, 100, ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(dataSample, 1, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -1044,7 +1086,9 @@ namespace Microsoft.ML.Data
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
-                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType
+                //verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType, and added ReadMultilines flag to OptionFlags
+                //verWrittenCur: 0x0001000D, // Added escapeChar and decimalMarker chars
+                verWrittenCur: 0x0001000E, // Added MissingRealsAsNaNs flag
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1062,8 +1106,9 @@ namespace Microsoft.ML.Data
             HasHeader = 0x02,
             AllowQuoting = 0x04,
             AllowSparse = 0x08,
-
-            All = TrimWhitespace | HasHeader | AllowQuoting | AllowSparse
+            ReadMultilines = 0x10,
+            MissingRealsAsNaNs = 0x20,
+            All = TrimWhitespace | HasHeader | AllowQuoting | AllowSparse | ReadMultilines | MissingRealsAsNaNs
         }
 
         // This is reserved to mean the range extends to the end (the segment is variable).
@@ -1071,10 +1116,12 @@ namespace Microsoft.ML.Data
 
         private readonly bool _useThreads;
         private readonly OptionFlags _flags;
+        private readonly char _escapeChar;
         private readonly long _maxRows;
         // Input size is zero for unknown - determined by the data (including sparse rows).
         private readonly int _inputSize;
         private readonly char[] _separators;
+        private readonly char _decimalMarker;
         private readonly Bindings _bindings;
 
         private readonly Parser _parser;
@@ -1082,6 +1129,11 @@ namespace Microsoft.ML.Data
         private bool HasHeader
         {
             get { return (_flags & OptionFlags.HasHeader) != 0; }
+        }
+
+        private bool ReadMultilines
+        {
+            get { return (_flags & OptionFlags.ReadMultilines) != 0; }
         }
 
         private readonly IHost _host;
@@ -1136,6 +1188,10 @@ namespace Microsoft.ML.Data
                 _flags |= OptionFlags.AllowQuoting;
             if (options.AllowSparse)
                 _flags |= OptionFlags.AllowSparse;
+            if (options.AllowQuoting && options.ReadMultilines)
+                _flags |= OptionFlags.ReadMultilines;
+            if (options.MissingRealsAsNaNs)
+                _flags |= OptionFlags.MissingRealsAsNaNs;
 
             // REVIEW: This should be persisted (if it should be maintained).
             _maxRows = options.MaxRows ?? long.MaxValue;
@@ -1183,6 +1239,15 @@ namespace Microsoft.ML.Data
                         _separators = new char[] { ',' };
                 }
             }
+
+            if (options.DecimalMarker != '.' && options.DecimalMarker != ',')
+                throw _host.ExceptUserArg(nameof(Options.DecimalMarker), "Decimal marker cannot be the '{0}' character. It must be '.' or ','.", options.DecimalMarker);
+            if (!options.AllowQuoting && options.DecimalMarker == ',' && _separators.Contains(','))
+                throw _host.ExceptUserArg(nameof(Options.AllowQuoting), "Quoting must be allowed if decimal marker and separator are the ',' character.");
+            _decimalMarker = options.DecimalMarker;
+            _escapeChar = options.EscapeChar;
+            if(_separators.Contains(_escapeChar))
+                throw _host.ExceptUserArg(nameof(Options.EscapeChar), "EscapeChar '{0}' can't be used both as EscapeChar and separator", _escapeChar);
 
             _bindings = new Bindings(this, cols, headerFile, dataSample);
             _parser = new Parser(this);
@@ -1347,13 +1412,33 @@ namespace Microsoft.ML.Data
             // int: inputSize: 0 for determined from data
             // int: number of separators
             // char[]: separators
+            // char: escapeChar
+            // char: decimal marker
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
             host.CheckDecode(cbFloat == sizeof(float));
             _maxRows = ctx.Reader.ReadInt64();
             host.CheckDecode(_maxRows > 0);
             _flags = (OptionFlags)ctx.Reader.ReadUInt32();
-            host.CheckDecode((_flags & ~OptionFlags.All) == 0);
+
+            // Flags introduced with the first ML.NET commit:
+            var acceptableFlags = OptionFlags.TrimWhitespace;
+            acceptableFlags |= OptionFlags.HasHeader;
+            acceptableFlags |= OptionFlags.AllowQuoting;
+            acceptableFlags |= OptionFlags.AllowSparse;
+
+            // Flags added on later versions of TextLoader:
+            if(ctx.Header.ModelVerWritten >= 0x0001000C)
+            {
+                acceptableFlags |= OptionFlags.ReadMultilines;
+            }
+            if(ctx.Header.ModelVerWritten >= 0x0001000E)
+            {
+                acceptableFlags |= OptionFlags.MissingRealsAsNaNs;
+            }
+
+            host.CheckDecode((_flags & ~acceptableFlags) == 0);
+
             _inputSize = ctx.Reader.ReadInt32();
             host.CheckDecode(0 <= _inputSize && _inputSize < SrcLim);
 
@@ -1370,6 +1455,20 @@ namespace Microsoft.ML.Data
 
             if (_separators.Contains(':'))
                 host.CheckDecode((_flags & OptionFlags.AllowSparse) == 0);
+
+            if (ctx.Header.ModelVerWritten >= 0x0001000D)
+            {
+                _escapeChar = ctx.Reader.ReadChar();
+                _decimalMarker = ctx.Reader.ReadChar();
+                host.CheckDecode(_decimalMarker == '.' || _decimalMarker == ',');
+            }
+            else
+            {
+                _escapeChar = Defaults.EscapeChar;
+                _decimalMarker = Defaults.DecimalMarker;
+            }
+
+            host.CheckDecode(!_separators.Contains(_escapeChar));
 
             _bindings = new Bindings(ctx, this);
             _parser = new Parser(this);
@@ -1411,6 +1510,8 @@ namespace Microsoft.ML.Data
             // int: inputSize: 0 for determined from data
             // int: number of separators
             // char[]: separators
+            // char: escapeChar
+            // char: decimal marker
             // bindings
             ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(_maxRows);
@@ -1419,6 +1520,8 @@ namespace Microsoft.ML.Data
             _host.Assert(0 <= _inputSize && _inputSize < SrcLim);
             ctx.Writer.Write(_inputSize);
             ctx.Writer.WriteCharArray(_separators);
+            ctx.Writer.Write(_escapeChar);
+            ctx.Writer.Write(_decimalMarker);
 
             _bindings.Save(ctx);
         }
@@ -1449,6 +1552,23 @@ namespace Microsoft.ML.Data
            bool trimWhitespace = Defaults.TrimWhitespace,
            IMultiStreamSource dataSample = null)
         {
+            Options options = new Options
+            {
+                HasHeader = hasHeader,
+                Separators = new[] { separator },
+                AllowQuoting = allowQuoting,
+                AllowSparse = supportSparse,
+                TrimWhitespace = trimWhitespace
+            };
+
+            return CreateTextLoader<TInput>(host, options, dataSample);
+        }
+
+        internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
+           Options options = null,
+           IMultiStreamSource dataSample = null)
+        {
+            options = options ?? new Options();
             var userType = typeof(TInput);
 
             var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
@@ -1478,6 +1598,13 @@ namespace Microsoft.ML.Data
                 var column = new Column();
                 column.Name = mappingAttrName?.Name ?? memberInfo.Name;
                 column.Source = mappingAttr.Sources.ToArray();
+
+                var keyTypeAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
+                if (keyTypeAttr != null)
+                {
+                    column.KeyCount = keyTypeAttr.KeyCount;
+                }
+
                 InternalDataKind dk;
                 switch (memberInfo)
                 {
@@ -1502,15 +1629,7 @@ namespace Microsoft.ML.Data
                 columns.Add(column);
             }
 
-            Options options = new Options
-            {
-                HasHeader = hasHeader,
-                Separators = new[] { separator },
-                AllowQuoting = allowQuoting,
-                AllowSparse = supportSparse,
-                TrimWhitespace = trimWhitespace,
-                Columns = columns.ToArray()
-            };
+            options.Columns = columns.ToArray();
 
             return new TextLoader(host, options, dataSample: dataSample);
         }

@@ -80,7 +80,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     //RecursiveRegressionTree captures a recursive representation of a tree
     //and inherits from RegressionTreeNodeDocuments (a non-recursive node with documents)
-    //The class in most cases would be contructed with node index of 0 and would create
+    //The class in most cases would be constructed with node index of 0 and would create
     //entire structure of a full tree accessible with LTENode and GTNode
     //
     //Curently only used for smoothing and defines operations defined in recursive fashion

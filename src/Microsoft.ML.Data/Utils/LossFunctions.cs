@@ -579,7 +579,7 @@ namespace Microsoft.ML.Trainers
         [TlcModule.Component(Name = "TweedieLoss", FriendlyName = "Tweedie Loss", Alias = "tweedie", Desc = "Tweedie loss.")]
         internal sealed class Options : ISupportRegressionLossFactory
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText =
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText =
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
                 "and intermediate values are compound Poisson loss.")]
             public Double Index = 1.5;

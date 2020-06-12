@@ -868,6 +868,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Vector of known size of <xref:System.Single> |
+    /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.NgramHashingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// produces a vector of n-gram counts (sequences of consecutive words of length 1-n) from a given data.

@@ -9,6 +9,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -17,19 +18,19 @@ namespace Microsoft.ML.RunTests
 {
     public sealed partial class TestDataPipe : TestDataPipeBase
     {
-        private static float[] dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
+        private static float[] _dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
-        private static uint[] resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
+        private static uint[] _resultsFloat = new uint[] { 16, 16, 26, 12, 22, 12, 0, 13, 8, 4, 31, 14 };
 
-        private static VBuffer<Single> dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] resultsFloatSparse = new uint[] { 21, 21, 21, 21, 16 };
+        private static VBuffer<Single> _dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
+        private static uint[] _resultsFloatSparse = new uint[] { 16, 16, 16, 16, 26 };
 
-        private static Double[] dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
+        private static Double[] _dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
-        private static uint[] resultsDouble = new uint[] { 21, 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
+        private static uint[] _resultsDouble = new uint[] { 30, 30, 19, 24, 32, 25, 0, 2, 7, 30, 5, 3 };
 
-        private static VBuffer<Double> dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] resultsDoubleSparse = new uint[] { 21, 21, 21, 21, 31 };
+        private static VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
+        private static uint[] _resultsDoubleSparse = new uint[] { 30, 30, 30, 30, 19 };
 
         [Fact()]
         public void SavePipeLabelParsers()
@@ -231,7 +232,7 @@ namespace Microsoft.ML.RunTests
                             {
                                 getters[i](ref v1);
                                 getters[i + 1](ref v2);
-                                Check(CompareVec(in v1, in v2, v1.Length, fn), "Mismatch");
+                                Check(TestCommon.CompareVec(in v1, in v2, v1.Length, fn), "Mismatch");
                             }
                         }
                     }
@@ -587,7 +588,7 @@ namespace Microsoft.ML.RunTests
                         {
                             get1(ref bag1);
                             get2(ref bag2);
-                            if (!CompareVec(in bag1, in bag2, bag1.Length, (x1, x2) => x1 <= x2))
+                            if (!TestCommon.CompareVec(in bag1, in bag2, bag1.Length, (x1, x2) => x1 <= x2))
                             {
                                 Fail("Values don't match in columns F13, F23");
                                 return;
@@ -629,7 +630,7 @@ namespace Microsoft.ML.RunTests
                         {
                             get1(ref bag1);
                             get2(ref bag2);
-                            if (!CompareVec(in bag1, in bag2, bag1.Length, (x1, x2) => 2 * x1 == x2))
+                            if (!TestCommon.CompareVec(in bag1, in bag2, bag1.Length, (x1, x2) => 2 * x1 == x2))
                             {
                                 Fail("Values don't match");
                                 return;
@@ -644,7 +645,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void SavePipeInvertHash()
         {
-            string pathData = DeleteOutputPath("SavePipe","InvertHash-Data.txt");
+            string pathData = DeleteOutputPath("SavePipe", "InvertHash-Data.txt");
             // Four columns. First "A" with words starting with "a" (for easy identification), second
             // "K" with an explicit key type, third "E" a column that has all missing values, and fourth
             // "B" with words starting with "b".
@@ -781,7 +782,7 @@ namespace Microsoft.ML.RunTests
                         {
                             get1(ref b1);
                             get2(ref b2);
-                            if (!CompareVec(in b1, in b2, b1.Length, (x1, x2) => 2 * x1 == x2))
+                            if (!TestCommon.CompareVec(in b1, in b2, b1.Length, (x1, x2) => 2 * x1 == x2))
                             {
                                 Fail("Unexpected values in row {0}", c.Position);
                                 break;
@@ -924,7 +925,7 @@ namespace Microsoft.ML.RunTests
                         while (c.MoveNext())
                         {
                             getter(ref buffer);
-                            CompareVec(in buffer, in expected[index++], buffer.GetValues().Length, (s1, s2) => s1.Span.SequenceEqual(s2.Span));
+                            TestCommon.CompareVec(in buffer, in expected[index++], buffer.GetValues().Length, (s1, s2) => s1.Span.SequenceEqual(s2.Span));
                         }
                     }
                 };
@@ -1052,42 +1053,42 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TestHashTransformFloat()
         {
-            TestHashTransformHelper(dataFloat, resultsFloat, NumberDataViewType.Single);
+            TestHashTransformHelper(_dataFloat, _resultsFloat, NumberDataViewType.Single);
         }
 
         [Fact]
         public void TestHashTransformFloatVector()
         {
-            var data = new[] { dataFloat };
-            var results = new[] { resultsFloat };
+            var data = new[] { _dataFloat };
+            var results = new[] { _resultsFloat };
             TestHashTransformVectorHelper(data, results, NumberDataViewType.Single);
         }
 
         [Fact]
         public void TestHashTransformFloatSparseVector()
         {
-            var results = new[] { resultsFloatSparse };
-            TestHashTransformVectorHelper(dataFloatSparse, results, NumberDataViewType.Single);
+            var results = new[] { _resultsFloatSparse };
+            TestHashTransformVectorHelper(_dataFloatSparse, results, NumberDataViewType.Single);
         }
 
         [Fact]
         public void TestHashTransformDoubleSparseVector()
         {
-            var results = new[] { resultsDoubleSparse };
-            TestHashTransformVectorHelper(dataDoubleSparse, results, NumberDataViewType.Double);
+            var results = new[] { _resultsDoubleSparse };
+            TestHashTransformVectorHelper(_dataDoubleSparse, results, NumberDataViewType.Double);
         }
 
         [Fact]
         public void TestHashTransformDouble()
         {
-            TestHashTransformHelper(dataDouble, resultsDouble, NumberDataViewType.Double);
+            TestHashTransformHelper(_dataDouble, _resultsDouble, NumberDataViewType.Double);
         }
 
         [Fact]
         public void TestHashTransformDoubleVector()
         {
-            var data = new[] { dataDouble };
-            var results = new[] { resultsDouble };
+            var data = new[] { _dataDouble };
+            var results = new[] { _resultsDouble };
             TestHashTransformVectorHelper(data, results, NumberDataViewType.Double);
         }
 
@@ -1298,6 +1299,217 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
+
+        [Fact]
+        public void SavePipeExpr()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=A:BL:0 col=B:BL:0 col=C:I4:1 col=D:I4:5}",
+                    "xf=Expr{col=C col=D expr={x=>x-1}}",
+                    "xf=Expr{col={name=M1 src=A src=B expr={(a,b)=>!a && b}} col={name=N1 src=A src=B expr={(a,b)=>!a || b}}}",
+                    "xf=Expr{col={name=M2 src=A src=B expr={(a,b)=>a && !b}} col={name=N2 src=A src=B expr={(a,b)=>a || !b}}}",
+                    "xf=Expr{col=U:C,D expr={(c,d):10*c+d}}",
+                    "xf=Expr{col=V:C expr={(c):log(c + 1)}}",
+                    "xf=Expr{col=W:C,D expr={(c,d):log(abs(c-d) + 1, 2)}}",
+                    "xf=Expr{col=X1:C col=Y1:D expr={c=>(c+1)/10}}",
+                    "xf=Expr{col=X2:C col=Y2:D expr={c=>(c+1)/10.0}}",
+                    "xf=Expr{col=Z:M1,C,D expr={(m,c,d)=>m ? c + 10 : d + 100}}",
+                }, logCurs: true);
+
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=A:BL:0 col=B:BL:0 col=C:I4:5 col=D:Num:6}",
+                    "xf=Expr{col=ID:D expr={x:isna(x)}}",
+                    "xf=Expr{col=JD:D expr={x:x ?? -1}}",
+                    "xf=Expr{col=KA:A col=KB:B col=KC:C col=KD:D expr={x:float(x) / 2}}",
+                    "xf=Expr{col=LA:A,B,KA,KB col=LC:C,D,KC,KD expr={(a,b,x,y): isna(x) && isna(y) && isna(float(a)) == isna(x)}}",
+                },
+                null, "-Extra", forceDense: true);
+
+            // Handle all supported non-vector types, with NA.
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=I4:I4:5 col=I8:I8:5 col=R4:R4:4 col=R8:R8:4 col=BL:BL:0 col=T1:TX:6}",
+                    "xf=Expr{col=I4:I4 col=I8:I8 col=R4:R4 col=R8:R8 col=BL:BL col=T1:T1 expr={x => x}}", // Identity lambda.
+                    "xf=Expr{col=IR4:R4 col=IR8:R8 expr={x => -int(isna(x)) - 2 * int(isna(int(x)))}}", // NA testing and conversion.
+                    "xf=Expr{col=JR4:R4 col=JR8:R8 expr={x => x ?? -1}}", // Coalesce.
+                    "xf=Expr{col=KI4:I4 col=KI8:I8 col=KR4:R4 col=KR8:R8 col=KBL:BL col=KT1:T1 expr={x => single(x) ?? -1}}", // Convert and coalesce.
+                },
+                null, "-All", forceDense: true);
+
+            // These two should produce the same output.
+            string pathData = GetDataPath("MNIST.Test.tiny.txt");
+
+            // Text vector spare preservation when mapping to text.
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=N:I4:378 col=VI:I4:364-392 col=VR:Num:364-392}",
+                    "xf=Expr{col=N col=VI col=VR expr={x => x == default(x) ? \"\" : text(x)}}",
+                },
+                null, "TextDef");
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=N:TX:378 col=VI:TX:364-392 col=VR:TX:364-392}",
+                },
+                null, "TextDef-b", "TextDef");
+
+            // Text vector non-spare preservation when mapping to text.
+            // These two should produce the same output.
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=N:I4:378 col=VI:I4:364-392 col=VR:Num:364-392}",
+                    "xf=Expr{col=N col=VI col=VR expr={x => text(x)}}",
+                },
+                null, "TextFull", "TextFull");
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=N:TX:378 col=VI:TX:364-392 col=VR:TX:364-392}",
+                    "xf=Expr{col=N col=VI col=VR expr={x => x == \"\" ? text(0) : x}}",
+                },
+                null, "TextFull-b", "TextFull");
+
+            // These two should produce the same output.
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=M:I4:378 col=N:I4:378 col=VI:I4:364-392 col=VR:Num:364-392}",
+                    "xf=Expr{col=N col=VI col=VR expr={x=>x / 10}}",
+                    "xf=Expr{col=N col=VI expr={x=>x + 1}}",
+                },
+                null, "Vec1", "Vec1");
+
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=M:I4:378 col=N:I4:378 col=VI:I4:364-392 col=VR:Num:364-392}",
+                    "xf=Expr{col={name=N expr={x=>int(floor(x / 10.0)) + 1}} col={name=VR expr={x=>x / 10}}}",
+                    "xf=Expr{col=VI:VR expr={(x)=>int(floor(x)) + 1}}",
+                },
+                null, "Vec1-b", "Vec1");
+
+            // These should have the same output. The only line that varies is the third one.
+            // The primary purpose of this is for code coverage of ExprTransform.
+            // Make A, B, C, D be a linear progression with step size 2.
+            const string line0 = "loader=Text{sparse+ rows=100 col=A:I4:0 col=B:I4:0 col=C:I4:0 col=D:I4:0 col=M:I4:378 col=N:I4:378 col=VR:Num:364-392}";
+            const string line1 = "xf=Expr{col={name=B expr={x:x+2}} col={name=C expr={x:x+4}} col={name=D expr={x:x+6}}}";
+            TestCore(pathData, false,
+                new[] {
+                    line0, line1,
+                    "xf=Expr{col=N:A,N col=VR:A,VR expr={(a,x)=>x+(a-8)*(a-6)*(a-4)*(a-2)}}",
+                },
+                null, "Vec2", "Vec2");
+
+            TestCore(pathData, false,
+                new[] {
+                    line0, line1,
+                    "xf=Expr{col=N:A,N,B col=VR:A,VR,B expr={(a,x,b)=>x+(a-8)*(b-8)*(a-4)*(b-4)}}",
+                },
+                null, "Vec2-b", "Vec2");
+
+            TestCore(pathData, false,
+                new[] {
+                    line0, line1,
+                    "xf=Expr{col=N:N,B,C,A col=VR:VR,B,C,A expr={(x,b,c,a)=>x+(a-8)*(b-8)*(c-8)*(b-4)}}",
+                },
+                null, "Vec2-c", "Vec2");
+
+            TestCore(pathData, false,
+                new[] {
+                    line0, line1,
+                    "xf=Expr{col=N:D,A,C,B,N col=VR:D,A,C,B,VR expr={(d,a,c,b,x)=>x+(a-8)*(b-8)*(c-8)*(d-8)}}",
+                },
+                null, "Vec2-d", "Vec2");
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTable()
+        {
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=HashJoin{col=Hash1:Text col=Hash2:OneText bits=14 ord-}",
+                    "xf=CountTable{col=Hash1c:Hash1 col=Hash2c:Hash2 label=Label table=Dict prior=60}"
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTableShared()
+        {
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=HashJoin{col=Hash1:Text col=Hash2:OneText bits=14 ord-}",
+                    "xf=CountTable{col=Hash1c:Hash1 col=Hash2c:Hash2 label=Label table=Dict prior=60 shared+}"
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTargetEncoding()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text combine=- table=CMSketch} bits=14 table=Dict{gb=2}}",
+                    "xf=Dracula{lab=Label col=D1s:Text col={name=OneText2 src=OneText} bits=14 table=Dict shared=+}"
+                }, checkTranspose: true);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTargetEncodingKeyLabel()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:TX:0}",
+                    "xf=Term{col=Label}",
+                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text table=CMSketch} bits=14 table=Dict{gb=2}}",
+                    "xf=Dracula{lab=Label col=D1s:Text col={name=OneText2 src=OneText} bits=14 table=Dict shared=+}"
+                }, checkTranspose: true);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTargetEncodingLoadModel()
+        {
+            var inputData = GetDataPath("breast-cancer.txt");
+            var initialCountsModel = DeleteOutputPath("CTE", "initialCounts.zip");
+            var outputData = DeleteOutputPath("CTE", "countsData.txt");
+            var loaderArg = "loader=Text{col=Text:TX:1-2 col=OneText:TX:1 col=Label:0}";
+            MainForTest($"SaveData data={inputData} {loaderArg} xf=Dracula{{lab=Label col={{name=DT src=Text combine=-}} table = Dict}} out={initialCountsModel} dout={outputData}");
+
+            TestCore(null, false,
+                new[]
+                {
+                    loaderArg,
+                    "xf=Dracula{lab=Label col={name=DT src=Text combine=-} table=Dict}",
+                    $"xf=Dracula{{lab=Label col={{name=DT1 src=Text combine=-}} inmodel={{{initialCountsModel}}}}}"
+                }, loader =>
+                {
+                    using (var cursor = loader.GetRowCursor(loader.Schema["DT"], loader.Schema["DT1"]))
+                    {
+                        var getter = cursor.GetGetter<VBuffer<float>>(loader.Schema["DT"]);
+                        var getter1 = cursor.GetGetter<VBuffer<float>>(loader.Schema["DT1"]);
+                        VBuffer<float> buffer = default;
+                        VBuffer<float> buffer1 = default;
+                        while (cursor.MoveNext())
+                        {
+                            getter(ref buffer);
+                            getter1(ref buffer1);
+                            Assert.Equal(2 * buffer.GetValues()[0], buffer1.GetValues()[0]);
+                            Assert.Equal(2 * buffer.GetValues()[1], buffer1.GetValues()[1]);
+                        }
+                    }
+                });
+
+            Done();
+        }
     }
     /// <summary>
     /// A class for non-baseline data pipe tests.
@@ -1322,10 +1534,12 @@ namespace Microsoft.ML.RunTests
                 numberOfSummaryTermsPerTopic: 3, alphaSum: 3, numberOfThreads: 1, resetRandomGenerator: true);
             var est = ML.Transforms.Text.LatentDirichletAllocation(opt);
             var ldaTransformer = est.Fit(srcView);
-            var transformedData = ldaTransformer.Transform(srcView);
-
-            using (var cursor = transformedData.GetRowCursorForAllColumns())
+            try
             {
+                var transformedData = ldaTransformer.Transform(srcView);
+
+                using var cursor = transformedData.GetRowCursorForAllColumns();
+
                 var resultGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[1]);
                 VBuffer<float> resultFirstRow = new VBuffer<float>();
                 VBuffer<float> resultSecondRow = new VBuffer<float>();
@@ -1351,6 +1565,10 @@ namespace Microsoft.ML.RunTests
                 Assert.True(resultThirdRow.GetItemOrDefault(0) == 0);
                 Assert.True(resultThirdRow.GetItemOrDefault(1) == 0);
                 Assert.True(resultThirdRow.GetItemOrDefault(2) == 1.0);
+            }
+            finally
+            {
+                ldaTransformer.Dispose();
             }
         }
 

@@ -15,7 +15,7 @@ namespace Microsoft.ML.AutoML
         public static IEnumerable<SuggestedTrainer> AllowedTrainers(MLContext mlContext, TaskKind task,
             ColumnInformation columnInfo, IEnumerable<TrainerName> trainerWhitelist)
         {
-            var trainerExtensions = TrainerExtensionCatalog.GetTrainers(task, trainerWhitelist);
+            var trainerExtensions = TrainerExtensionCatalog.GetTrainers(task, trainerWhitelist, columnInfo);
 
             var trainers = new List<SuggestedTrainer>();
             foreach (var trainerExtension in trainerExtensions)

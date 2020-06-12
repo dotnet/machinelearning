@@ -1,0 +1,255 @@
+===== Start Script 1, lines 1 to 10 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+4
+6
+-1
+*** Parsing ? Failed *** 1
+-2147483648
+-2147483646
+===== End Script 1, lines 1 to 10 =====
+===== Start Script 2, lines 11 to 20 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+4
+6
+-1
+*** Parsing ? Failed *** 1
+-9223372036854775808
+-9223372036854775806
+===== End Script 2, lines 11 to 20 =====
+===== Start Script 3, lines 21 to 29 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+4
+6.25
+-1.5
+?
+1E+30
+===== End Script 3, lines 21 to 29 =====
+===== Start Script 4, lines 30 to 38 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+4
+6.25
+-1.5
+?
+1E+30
+===== End Script 4, lines 30 to 38 =====
+===== Start Script 5, lines 39 to 46 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+100
+3.1622777
+?
+1E+30
+===== End Script 5, lines 39 to 46 =====
+===== Start Script 6, lines 47 to 54 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+100
+3.1622776601683795
+?
+1E+30
+===== End Script 6, lines 47 to 54 =====
+===== Start Script 7, lines 55 to 57 =====
+  ExprParseInput.txt(56,12)-(56,15): error: at 'Ident: foo': Expected end of input
+===== End Script 7, lines 55 to 57 =====
+===== Start Script 8, lines 58 to 60 =====
+  ExprParseInput.txt(59,6)-(59,12): error: at 'Newline in constant': Newline in constant
+===== End Script 8, lines 58 to 60 =====
+===== Start Script 9, lines 61 to 62 =====
+  ExprParseInput.txt(61,9)-(62,1): error: at 'End-of-input found in comment': End-of-input found in comment
+===== End Script 9, lines 61 to 62 =====
+===== Start Script 10, lines 63 to 65 =====
+  ExprParseInput.txt(64,8)-(64,9): error: at 'Ident: x': Expected end of input
+===== End Script 10, lines 63 to 65 =====
+===== Start Script 11, lines 66 to 67 =====
+  ExprParseInput.txt(66,13)-(66,15): error: at 'GrtEqu': Mixed direction not allowed
+===== End Script 11, lines 66 to 67 =====
+===== Start Script 12, lines 68 to 70 =====
+  ExprParseInput.txt(70,1)-(70,1): error: at 'Eof': Expected: ')', Found: '<Eof>'
+===== End Script 12, lines 68 to 70 =====
+===== Start Script 13, lines 71 to 73 =====
+  ExprParseInput.txt(72,3)-(72,4): error: at 'CloseParen': Expected: '<Ident>', Found: ')'
+===== End Script 13, lines 71 to 73 =====
+===== Start Script 14, lines 74 to 75 =====
+  ExprParseInput.txt(74,4)-(74,7): error: at '123': Expected: '=>', Found: '<IntLit>'
+===== End Script 14, lines 74 to 75 =====
+===== Start Script 15, lines 76 to 77 =====
+  ExprParseInput.txt(76,6)-(76,9): error: at '123': Expected: '=>', Found: '<IntLit>'
+===== End Script 15, lines 76 to 77 =====
+===== Start Script 16, lines 78 to 79 =====
+  ExprParseInput.txt(79,1)-(79,1): error: at 'Eof': Expected: ')', Found: '<Eof>'
+===== End Script 16, lines 78 to 79 =====
+===== Start Script 17, lines 80 to 82 =====
+  ExprParseInput.txt(81,6)-(81,25): error: at '9223372036854775808': Overflow
+===== End Script 17, lines 80 to 82 =====
+===== Start Script 18, lines 83 to 85 =====
+  ExprParseInput.txt(84,9)-(84,10): error: at 'Add': Expected: '<Ident>', Found: '+'
+===== End Script 18, lines 83 to 85 =====
+===== Start Script 19, lines 86 to 90 =====
+  ExprParseInput.txt(87,9)-(87,10): error: at 'OpenParen': Expected one argument to function 'abs'
+  ExprParseInput.txt(89,6)-(89,7): error: at 'OpenParen': Expected one argument to function 'abs'
+===== End Script 19, lines 86 to 90 =====
+===== Start Script 20, lines 91 to 97 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+3
+3
+*** Parsing ? Failed *** 0
+===== End Script 20, lines 91 to 97 =====
+===== Start Script 21, lines 98 to 106 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+12
+*** Parsing ? Failed *** 12
+===== End Script 21, lines 98 to 106 =====
+===== Start Script 22, lines 107 to 109 =====
+  ExprParseInput.txt(108,8)-(108,12): error: at 'True': Operator expected
+===== End Script 22, lines 107 to 109 =====
+===== Start Script 23, lines 110 to 112 =====
+  ExprParseInput.txt(111,16)-(111,19): error: at 'Ident: xyz': Expected: ':', Found: 'xyz'
+===== End Script 23, lines 110 to 112 =====
+===== Start Script 24, lines 113 to 126 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+8
+8
+*** Parsing ? Failed *** 5
+*** Parsing ? Failed *** 3
+2147483647
+-2147483648
+-2147483648
+-2147483647
+-2147483648
+-2147483648
+===== End Script 24, lines 113 to 126 =====
+===== Start Script 25, lines 127 to 129 =====
+  ExprParseInput.txt(128,6)-(128,7): error: at 'Ident: z': Too many parameters, expected 2
+  ExprParseInput.txt(128,1)-(128,2): error: at 'OpenParen': Wrong number of parameters, expected: 2
+===== End Script 25, lines 127 to 129 =====
+===== Start Script 26, lines 130 to 132 =====
+  ExprParseInput.txt(131,1)-(131,2): error: at 'OpenParen': Wrong number of parameters, expected: 3
+===== End Script 26, lines 130 to 132 =====
+===== Start Script 27, lines 133 to 138 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+5
+1
+===== End Script 27, lines 133 to 138 =====
+===== Start Script 28, lines 139 to 144 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+161
+404
+===== End Script 28, lines 139 to 144 =====
+===== Start Script 29, lines 145 to 150 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+2
+3
+===== End Script 29, lines 145 to 150 =====
+===== Start Script 30, lines 151 to 156 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+78
+75
+===== End Script 30, lines 151 to 156 =====
+===== Start Script 31, lines 157 to 162 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+0
+1
+===== End Script 31, lines 157 to 162 =====
+===== Start Script 32, lines 163 to 169 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+*** Parsing ? Failed *** -5
+-3
+*** Parsing NA Failed *** -5
+===== End Script 32, lines 163 to 169 =====
+===== Start Script 33, lines 170 to 176 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+*** Parsing ? Failed *** 1
+1
+0
+===== End Script 33, lines 170 to 176 =====
+===== Start Script 34, lines 177 to 179 =====
+  ExprParseInput.txt(178,11)-(178,14): error: at ''x'': Expected: '<Ident>', Found: '<CharLit>'
+===== End Script 34, lines 177 to 179 =====
+===== Start Script 35, lines 180 to 186 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+0
+17
+-2
+*** Parsing ? Failed *** 0
+===== End Script 35, lines 180 to 186 =====
+===== Start Script 36, lines 187 to 188 =====
+  ExprParseInput.txt(187,12)-(187,13): error: at 'Ident: y': Expected: '(', Found: 'y'
+===== End Script 36, lines 187 to 188 =====
+===== Start Script 37, lines 189 to 190 =====
+  ExprParseInput.txt(189,14)-(189,15): error: at 'Equ': Expected: '<Ident>', Found: '='
+===== End Script 37, lines 189 to 190 =====
+===== Start Script 38, lines 191 to 192 =====
+  ExprParseInput.txt(191,16)-(191,17): error: at 'Ident: x': Expected: '=', Found: 'x'
+===== End Script 38, lines 191 to 192 =====
+===== Start Script 39, lines 193 to 194 =====
+  ExprParseInput.txt(193,17)-(193,18): error: at 'Semi': Expected: '<Ident>', Found: ';'
+===== End Script 39, lines 193 to 194 =====
+===== Start Script 40, lines 195 to 196 =====
+  ExprParseInput.txt(195,19)-(195,20): error: at 'Ident: y': Expected: ';', Found: 'y'
+===== End Script 40, lines 195 to 196 =====
+===== Start Script 41, lines 197 to 198 =====
+  ExprParseInput.txt(197,20)-(197,21): error: at 'CloseParen': Expected: '<Ident>', Found: ')'
+===== End Script 41, lines 197 to 198 =====
+===== Start Script 42, lines 199 to 200 =====
+  ExprParseInput.txt(200,1)-(200,1): error: at 'Eof': Expected: ')', Found: '<Eof>'
+===== End Script 42, lines 199 to 200 =====
+===== Start Script 43, lines 201 to 207 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+2
+19
+0
+*** Parsing ? Failed *** 2
+===== End Script 43, lines 201 to 207 =====
+===== Start Script 44, lines 208 to 215 =====
+  ExprParseInput.txt(209,43)-(209,45): error: at 'QueQue': Invalid text operand
+  ExprParseInput.txt(209,62)-(209,64): error: at 'QueQue': Invalid text operand
+  ExprParseInput.txt(209,81)-(209,83): error: at 'QueQue': Invalid text operand
+===== End Script 44, lines 208 to 215 =====
+===== Start Script 45, lines 216 to 217 =====
+  ExprParseInput.txt(216,17)-(216,18): error: at 'Semi': Expected end of input
+===== End Script 45, lines 216 to 217 =====
+===== Start Script 46, lines 218 to 225 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+-1
+0
+1
+*** Parsing ? Failed *** 0
+===== End Script 46, lines 218 to 225 =====
+===== Start Script 47, lines 226 to 228 =====
+  ExprParseInput.txt(227,12)-(227,13): error: at 'Dot': Expected end of input
+===== End Script 47, lines 226 to 228 =====
+===== Start Script 48, lines 229 to 232 =====
+Binding succeeded. Output type: String
+Compiling succeeded.
+ExprDumpChars: 0058 0041 000A 0042 0058 
+XA
+===== End Script 48, lines 229 to 232 =====
+===== Start Script 49, lines 233 to 236 =====
+Binding succeeded. Output type: String
+Compiling succeeded.
+ExprDumpChars: 0058 0041 000D 0042 0058 
+BX
+===== End Script 49, lines 233 to 236 =====
+===== Start Script 50, lines 237 to 240 =====
+Binding succeeded. Output type: String
+Compiling succeeded.
+ExprDumpChars: 0058 0041 000D 000A 0042 0058 
+XA
+===== End Script 50, lines 237 to 240 =====

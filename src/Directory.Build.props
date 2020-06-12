@@ -23,6 +23,7 @@
 
 <!-- API Compat -->
   <PropertyGroup>
+    <RunApiCompat Condition="'$(DesignTimeBuild)' == 'true'">false</RunApiCompat>
     <RunApiCompat Condition="'$(RunApiCompat)' == ''">$(IsStableProject)</RunApiCompat>
     <ToolHostCmd>$(ToolsDir)dotnetcli/dotnet</ToolHostCmd>
 
@@ -31,6 +32,7 @@
          API missing from old) -->
     <RunApiCompatForSrc>true</RunApiCompatForSrc>
     <RunMatchingRefApiCompat>false</RunMatchingRefApiCompat>
+    <ApiCompatExcludeAttributeList>$(MSBuildThisFileDirectory)DefaultGenApiDocIds.txt</ApiCompatExcludeAttributeList>
   </PropertyGroup>
   
   <ItemGroup>

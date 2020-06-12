@@ -96,7 +96,7 @@ namespace Microsoft.ML.AutoML
         /// This setting is true if the pipeline run succeeded and ran to completion.
         /// Else, it is false if some exception was thrown before the run could complete.
         /// </summary>
-        public readonly bool RunSucceded;
+        public readonly bool RunSucceeded;
 
         internal readonly Pipeline Pipeline;
 
@@ -104,7 +104,7 @@ namespace Microsoft.ML.AutoML
         {
             Pipeline = pipeline;
             Score = score;
-            RunSucceded = runSucceeded;
+            RunSucceeded = runSucceeded;
         }
     }
 }

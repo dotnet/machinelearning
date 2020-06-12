@@ -31,5 +31,5 @@ string ExpectedOutput = @"// Expected output:
             //   Mean Absolute Error: 0.05
             //   Mean Squared Error: 0.00
             //   Root Mean Squared Error: 0.06
-            //   RSquared: 0.97 (closer to 1 is better. The worest case is 0)";
+            //   RSquared: 0.97 (closer to 1 is better. The worst case is 0)";
 #>

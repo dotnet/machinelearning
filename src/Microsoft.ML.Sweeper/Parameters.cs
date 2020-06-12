@@ -32,13 +32,13 @@ namespace Microsoft.ML.Sweeper
 
     public abstract class NumericParamOptions : BaseParamOptions
     {
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of steps for grid runthrough.", ShortName = "steps")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of steps for grid runthrough.", ShortName = "steps")]
         public int NumSteps = 100;
 
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Amount of increment between steps (multiplicative if log).", ShortName = "inc")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Amount of increment between steps (multiplicative if log).", ShortName = "inc")]
         public Double? StepSize = null;
 
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Log scale.", ShortName = "log")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Log scale.", ShortName = "log")]
         public bool LogBase = false;
     }
 

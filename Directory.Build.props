@@ -5,8 +5,12 @@
   <Import Project="build/Dependencies.props" />
 
   <PropertyGroup>
+	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
-    <Configurations>Debug;Release;Debug-netcoreapp3_0;Release-netcoreapp3_0;Debug-netfx;Release-netfx</Configurations>
+    <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
     <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
     <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
@@ -19,6 +23,8 @@
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
       https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
       https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json;
+      https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json;
+      https://pkgs.dev.azure.com/dnceng/public/_packaging/machinelearning-testdata/nuget/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
 
@@ -65,9 +71,8 @@
     <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
     <IncludeBuildNumberInPackageVersion Condition="'$(IncludeBuildNumberInPackageVersion)' == '' and '$(StabilizePackageVersion)' != 'true'">true</IncludeBuildNumberInPackageVersion>
 
-    <VersionSuffix></VersionSuffix>
-    <VersionSuffix Condition="'$(StabilizePackageVersion)' != 'true'">$(PreReleaseLabel)</VersionSuffix>
-    <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)-$(BuildNumberMinor)</VersionSuffix>
+    <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(BuildNumberMajor)-$(BuildNumberMinor)</VersionSuffix>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
 
   <!-- SourceLink properties used by dotnet/buildtools - need to be set before importing $(ToolsDir)versioning.props -->
@@ -91,7 +96,8 @@
  
   <!-- Language configuration -->
   <PropertyGroup>
-    <LangVersion>latest</LangVersion> <!-- default to allowing all language features -->
+    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">8.0</LangVersion>
+    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.fsproj'">4.7</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   
@@ -106,7 +112,7 @@
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
   </PropertyGroup>
 
-  <!-- Need to explicitly set these properties for the -netcoreapp3_0 or -netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
+  <!-- Need to explicitly set these properties for the -netcoreapp3_1 or -netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
   <!-- Taken from https://github.com/dotnet/sdk/blob/073c98b92c81066c6c2e17c3674adbb6e833409a/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.Sdk.props#L41-L47 -->
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))">
     <DebugSymbols>true</DebugSymbols>

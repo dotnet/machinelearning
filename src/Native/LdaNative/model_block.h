@@ -45,7 +45,7 @@ namespace lda
         void Init(int32_t num_vocabs, int32_t num_topics, int64_t nonzero_num);
         void Init(int32_t num_vocabs, int32_t num_topics, int64_t mem_block_size, int64_t alias_mem_block_size);
 
-        void InitFromDataBlock(const LDADataBlock *data_block, int32_t num_vocabs, int32_t num_topics);
+        void InitFromDataBlock(const LDADataBlock &data_block, int32_t num_vocabs, int32_t num_topics);
 
         void GetModelStat(int64_t &mem_block_size, int64_t &alias_mem_block_size);
 

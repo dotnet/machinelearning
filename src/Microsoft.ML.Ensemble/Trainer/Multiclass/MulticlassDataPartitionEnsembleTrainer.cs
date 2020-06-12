@@ -58,10 +58,10 @@ namespace Microsoft.ML.Trainers.Ensemble
             {
                 BasePredictors = new[]
                 {
-                    // Note that this illustrates a fundamnetal problem with the mixture of `ITrainer` and `ITrainerEstimator`
+                    // Note that this illustrates a fundamental problem with the mixture of `ITrainer` and `ITrainerEstimator`
                     // present in this class. The options to the estimator have no way of being communicated to the `ITrainer`
-                    // implementation, so there is a fundamnetal disconnect if someone chooses to ever use the *estimator* with
-                    // non-default column names. Unfortuantely no method of resolving this temporary strikes me as being any
+                    // implementation, so there is a fundamental disconnect if someone chooses to ever use the *estimator* with
+                    // non-default column names. Unfortunately no method of resolving this temporary strikes me as being any
                     // less laborious than the proper fix, which is that this "meta" component should itself be a trainer
                     // estimator, as opposed to a regular trainer.
                     ComponentFactoryUtils.CreateFromFunction(env => new LbfgsMaximumEntropyMulticlassTrainer(env, LabelColumnName, FeatureColumnName))

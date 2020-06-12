@@ -5,13 +5,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class TransformInferenceTests
+    public class TransformInferenceTests : BaseTestClass
     {
+        public TransformInferenceTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TransformInferenceNumAndCatCols()
         {
@@ -643,6 +649,33 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
+        [Theory]
+        [InlineData(true, @"[
+  {
+    ""Name"": ""ValueToKeyMapping"",
+    ""NodeType"": ""Transform"",
+    ""InColumns"": [
+      ""CustomName""
+    ],
+    ""OutColumns"": [
+      ""CustomName""
+    ],
+    ""Properties"": {}
+  }
+]")]
+        [InlineData(false, @"[]")]
+        public void TransformInferenceCustomTextForRecommendation(bool useRecommendationTask, string expectedJson)
+        {
+            foreach (var columnPurpose in new[] { ColumnPurpose.UserId, ColumnPurpose.ItemId })
+            {
+                TransformInferenceTestCore(new[]
+                    {
+                    new DatasetColumnInfo(DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("CustomName", TextDataViewType.Instance, columnPurpose, new ColumnDimensions(null, null)),
+                }, expectedJson, useRecommendationTask ? TaskKind.Recommendation : TaskKind.MulticlassClassification);
+            }
+        }
+
         [Fact]
         public void TransformInferenceCustomTextLabelColMulticlass()
         {
@@ -729,7 +762,7 @@ namespace Microsoft.ML.AutoML.Test
             string expectedJson,
             TaskKind task = TaskKind.BinaryClassification)
         {
-            var transforms = TransformInferenceApi.InferTransforms(new MLContext(), task, columns);
+            var transforms = TransformInferenceApi.InferTransforms(new MLContext(1), task, columns);
             TestApplyTransformsToRealDataView(transforms, columns);
             var pipelineNodes = transforms.Select(t => t.PipelineNode);
             Util.AssertObjectMatchesJson(expectedJson, pipelineNodes);
@@ -741,7 +774,7 @@ namespace Microsoft.ML.AutoML.Test
             // create a dummy data view from input columns
             var data = DataViewTestFixture.BuildDummyDataView(columns);
 
-            // iterate thru suggested transforms and apply it to a real data view
+            // iterate through suggested transforms and apply it to a real data view
             foreach (var transform in transforms.Select(t => t.Estimator))
             {
                 data = transform.Fit(data).Transform(data);

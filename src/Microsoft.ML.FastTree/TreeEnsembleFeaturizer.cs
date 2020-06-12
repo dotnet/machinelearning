@@ -632,7 +632,7 @@ namespace Microsoft.ML.Data
 
                     ch.Trace("Loading model");
                     IPredictor predictor;
-                    using (Stream strm = new FileStream(args.TrainedModelFile, FileMode.Open, FileAccess.Read))
+                    using (Stream strm = new FileStream(args.TrainedModelFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                     using (var rep = RepositoryReader.Open(strm, ch))
                         ModelLoadContext.LoadModel<IPredictor, SignatureLoadModel>(host, out predictor, rep, ModelFileUtils.DirPredictor);
 
@@ -733,9 +733,8 @@ namespace Microsoft.ML.Data
             // key-types we just upfront convert it to the most general type (ulong) and work from there.
             KeyDataViewType dstType = new KeyDataViewType(typeof(ulong), type.Count);
             bool identity;
-            var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
-            var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);
-            ulong temp = 0;
+            var converter = Conversions.DefaultInstance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
+            var isNa = Conversions.DefaultInstance.GetIsNAPredicate<TInput>(type);
 
             ValueMapper<TInput, Single> mapper;
             if (seed == 0)
@@ -743,6 +742,10 @@ namespace Microsoft.ML.Data
                 mapper =
                     (in TInput src, ref Single dst) =>
                     {
+                        //Attention: This method is called from multiple threads.
+                        //Do not move the temp variable outside this method.
+                        //If you do, the variable is shared between the threads and results in a race condition.
+                        ulong temp = 0;
                         if (isNa(in src))
                         {
                             dst = Single.NaN;
@@ -759,6 +762,10 @@ namespace Microsoft.ML.Data
                 mapper =
                     (in TInput src, ref Single dst) =>
                     {
+                        //Attention: This method is called from multiple threads.
+                        //Do not move the temp variable outside this method.
+                        //If you do, the variable is shared between the threads and results in a race condition.
+                        ulong temp = 0;
                         if (isNa(in src))
                         {
                             dst = Single.NaN;

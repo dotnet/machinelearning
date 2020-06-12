@@ -42,6 +42,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Any |
     /// | Output column data type | The same as the data type in the input column |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting [ColumnCopyingTransformer](xref:Microsoft.ML.Transforms.ColumnCopyingTransformer) creates a new column, named as specified in the output column name parameters, and
     /// copies the data from the input column to this new column.
@@ -194,10 +195,13 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
+            private static readonly FuncStaticMethodInfo1<DataViewRow, int, Delegate> _makeGetterMethodInfo
+                = new FuncStaticMethodInfo1<DataViewRow, int, Delegate>(MakeGetter<int>);
+
             private readonly DataViewSchema _schema;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
 
-            public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             internal Mapper(ColumnCopyingTransformer parent, DataViewSchema inputSchema, (string outputColumnName, string inputColumnName)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -212,13 +216,13 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _columns.Length);
                 disposer = null;
 
-                Delegate MakeGetter<T>(DataViewRow row, int index)
-                    => input.GetGetter<T>(input.Schema[index]);
-
                 input.Schema.TryGetColumnIndex(_columns[iinfo].inputColumnName, out int colIndex);
                 var type = input.Schema[colIndex].Type;
-                return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
+                return Utils.MarshalInvoke(_makeGetterMethodInfo, type.RawType, input, colIndex);
             }
+
+            private static Delegate MakeGetter<T>(DataViewRow row, int index)
+                => row.GetGetter<T>(row.Schema[index]);
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
@@ -233,15 +237,19 @@ namespace Microsoft.ML.Transforms
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                var opType = "CSharp";
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
+                var opType = "Identity";
 
                 foreach (var column in _columns)
                 {
                     var srcVariableName = ctx.GetVariableName(column.inputColumnName);
+                    if (!ctx.ContainsColumn(srcVariableName))
+                        continue;
                     _schema.TryGetColumnIndex(column.inputColumnName, out int colIndex);
                     var dstVariableName = ctx.AddIntermediateVariable(_schema[colIndex].Type, column.outputColumnName);
-                    var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                    node.AddAttribute("type", LoaderSignature);
+                    var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType), "");
                 }
             }
         }

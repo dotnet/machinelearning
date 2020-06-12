@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void SimpleTest()
+        public void SimpleTest()
         {
             var metadataBuilder = new DataViewSchema.Annotations.Builder();
             metadataBuilder.Add("M", NumberDataViewType.Single, (ref float v) => v = 484f);

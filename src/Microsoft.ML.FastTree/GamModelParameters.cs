@@ -19,7 +19,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(GamModelParametersBase.VisualizationCommand), typeof(GamModelParametersBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
-    "GAM Vizualization Command", GamModelParametersBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
+    "GAM Visualization Command", GamModelParametersBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
 
 namespace Microsoft.ML.Trainers.FastTree
 {

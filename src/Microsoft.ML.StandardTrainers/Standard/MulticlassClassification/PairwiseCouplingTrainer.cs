@@ -43,6 +43,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Depends on the underlying binary classifier |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Training Algorithm Details
     /// In this strategy, a binary classification algorithm is trained on each pair of classes.
@@ -101,7 +102,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="labelColumnName">The name of the label colum.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="calibrator">The calibrator to use for each model instance. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
@@ -341,7 +342,7 @@ namespace Microsoft.ML.Trainers
             return true;
         }
 
-        private static PairwiseCouplingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PairwiseCouplingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

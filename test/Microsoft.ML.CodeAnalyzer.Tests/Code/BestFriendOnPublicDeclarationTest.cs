@@ -8,15 +8,15 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.BestFriendOnPublicDeclarationsAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.BestFriendOnPublicDeclarationsAnalyzer,
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class BestFriendOnPublicDeclarationTest
     {
-        private readonly Lazy<string> SourceAttribute = TestUtils.LazySource("BestFriendAttribute.cs");
-        private readonly Lazy<string> SourceDeclaration = TestUtils.LazySource("BestFriendOnPublicDeclaration.cs");
+        private readonly Lazy<string> _sourceAttribute = TestUtils.LazySource("BestFriendAttribute.cs");
+        private readonly Lazy<string> _sourceDeclaration = TestUtils.LazySource("BestFriendOnPublicDeclaration.cs");
 
         [Fact]
         public async Task BestFriendOnPublicDeclaration()
@@ -40,8 +40,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 {
                     Sources =
                     {
-                        SourceDeclaration.Value,
-                        ("BestFriendAttribute.cs", SourceAttribute.Value),
+                        _sourceDeclaration.Value,
+                        ("BestFriendAttribute.cs", _sourceAttribute.Value),
                     },
                 },
             };

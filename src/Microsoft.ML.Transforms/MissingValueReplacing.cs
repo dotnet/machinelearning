@@ -38,6 +38,9 @@ namespace Microsoft.ML.Transforms
     // REVIEW: May make sense to implement the transform template interface.
     public sealed partial class MissingValueReplacingTransformer : OneToOneTransformerBase
     {
+        private static readonly FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Array, BitArray> _computeDefaultSlotsMethodInfo
+            = FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Array, BitArray>.Create(target => target.ComputeDefaultSlots<int>);
+
         internal enum ReplacementKind : byte
         {
             // REVIEW: What should the full list of options for this transform be?
@@ -46,6 +49,7 @@ namespace Microsoft.ML.Transforms
             Minimum = 2,
             Maximum = 3,
             SpecifiedValue = 4,
+            Mode = 5,
 
             [HideEnumValue]
             Def = DefaultValue,
@@ -122,6 +126,12 @@ namespace Microsoft.ML.Transforms
             public bool ImputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot;
         }
 
+        private static readonly FuncStaticMethodInfo1<DataViewType, string> _testTypeMethodInfo
+            = new FuncStaticMethodInfo1<DataViewType, string>(TestType<int>);
+
+        private static readonly FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Delegate> _getIsNADelegateMethodInfo
+            = FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Delegate>.Create(target => target.GetIsNADelegate<int>);
+
         internal const string LoadName = "NAReplaceTransform";
 
         private static VersionInfo GetVersionInfo()
@@ -146,15 +156,14 @@ namespace Microsoft.ML.Transforms
         internal static string TestType(DataViewType type)
         {
             // Item type must have an NA value that exists and is not equal to its default value.
-            Func<DataViewType, string> func = TestType<int>;
             var itemType = type.GetItemType();
-            return Utils.MarshalInvoke(func, itemType.RawType, itemType);
+            return Utils.MarshalInvoke(_testTypeMethodInfo, itemType.RawType, itemType);
         }
 
         private static string TestType<T>(DataViewType type)
         {
             Contracts.Assert(type.GetItemType().RawType == typeof(T));
-            if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.GetItemType(), out InPredicate<T> isNA))
+            if (!Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate(type.GetItemType(), out InPredicate<T> isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
                     type, LoadName);
@@ -228,7 +237,7 @@ namespace Microsoft.ML.Transforms
                 {
                     // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
                     // It might be of value to consider storing the VBuffer in order to possibly benefit from sparsity. However, this would
-                    // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
+                    // necessitate a reimplementation of the FillValues code to accommodate sparse VBuffers.
                     object[] args = new object[] { repValue, savedVectorType, i };
                     Func<VBuffer<int>, VectorDataViewType, int, int[]> func = GetValuesArray<int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedVectorType.ItemType.RawType);
@@ -246,7 +255,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(srcType != null);
             Host.Assert(srcType.Size == src.Length);
             VBufferUtils.Densify<T>(ref src);
-            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
+            InPredicate<T> defaultPred = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(srcType.ItemType);
             _repIsDefault[iinfo] = new BitArray(srcType.Size);
             var srcValues = src.GetValues();
             for (int slot = 0; slot < srcValues.Length; slot++)
@@ -298,6 +307,7 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Mean:
                     case ReplacementKind.Minimum:
                     case ReplacementKind.Maximum:
+                    case ReplacementKind.Mode:
                         if (!(type.GetItemType() is NumberDataViewType))
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.GetItemType());
                         imputationModes[iinfo] = kind;
@@ -349,21 +359,20 @@ namespace Microsoft.ML.Transforms
                 int slot = columnsToImpute[ii];
                 if (repValues[slot] is Array)
                 {
-                    Func<DataViewType, int[], BitArray> func = ComputeDefaultSlots<int>;
-                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(types[slot].GetItemType().RawType);
-                    slotIsDefault[slot] = (BitArray)meth.Invoke(this, new object[] { types[slot], repValues[slot] });
+                    slotIsDefault[slot] = Utils.MarshalInvoke(_computeDefaultSlotsMethodInfo, this, types[slot].GetItemType().RawType, types[slot], (Array)repValues[slot]);
                 }
             }
         }
 
-        private BitArray ComputeDefaultSlots<T>(DataViewType type, T[] values)
+        private BitArray ComputeDefaultSlots<T>(DataViewType type, Array values)
         {
             Host.Assert(values.Length == type.GetVectorSize());
             BitArray defaultSlots = new BitArray(values.Length);
-            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.GetItemType());
+            InPredicate<T> defaultPred = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(type.GetItemType());
+            T[] typedValues = (T[])values;
             for (int slot = 0; slot < values.Length; slot++)
             {
-                if (defaultPred(in values[slot]))
+                if (defaultPred(in typedValues[slot]))
                     defaultSlots[slot] = true;
             }
             return defaultSlots;
@@ -371,14 +380,11 @@ namespace Microsoft.ML.Transforms
 
         private object GetDefault(DataViewType type)
         {
-            Func<object> func = GetDefault<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.GetItemType().RawType);
-            return meth.Invoke(this, null);
-        }
+            var rawType = type.GetItemType().RawType;
+            if (rawType.IsValueType)
+                return Activator.CreateInstance(rawType);
 
-        private object GetDefault<T>()
-        {
-            return default(T);
+            return null;
         }
 
         /// <summary>
@@ -386,12 +392,11 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private Delegate GetIsNADelegate(DataViewType type)
         {
-            Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
-            return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
+            return Utils.MarshalInvoke(_getIsNADelegateMethodInfo, this, type.GetItemType().RawType, type);
         }
 
         private Delegate GetIsNADelegate<T>(DataViewType type)
-            => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
+            => Data.Conversion.Conversions.DefaultInstance.GetIsNAPredicate<T>(type.GetItemType());
 
         /// <summary>
         /// Converts a string to its respective value in the corresponding type.
@@ -410,7 +415,7 @@ namespace Microsoft.ML.Transforms
             {
                 // Handles converting input strings to correct types.
                 var srcTxt = srcStr.AsMemory();
-                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextDataViewType.Instance, dstType.GetItemType(), out bool identity);
+                var strToT = Data.Conversion.Conversions.DefaultInstance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextDataViewType.Instance, dstType.GetItemType(), out bool identity);
                 strToT(in srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(in val))
@@ -535,6 +540,12 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _composeGetterOneMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterOne<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _composeGetterVecMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterVec<int>);
+
             private readonly MissingValueReplacingTransformer _parent;
             private readonly ColInfo[] _infos;
             private readonly DataViewType[] _types;
@@ -623,7 +634,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for single valued inputs.
             /// </summary>
             private Delegate ComposeGetterOne(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].TypeSrc.RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterOneMethodInfo, this, _infos[iinfo].TypeSrc.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for scalars.
@@ -649,7 +660,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for vector valued inputs.
             /// </summary>
             private Delegate ComposeGetterVec(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterVecMethodInfo, this, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for vectors.
@@ -658,7 +669,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
-                var isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.GetItemType());
+                var isDefault = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.GetItemType());
 
                 var src = default(VBuffer<T>);
                 ValueGetter<VBuffer<T>> getter;
@@ -858,6 +869,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoadName);
+
                 Type rawType;
                 var type = _infos[iinfo].TypeSrc;
                 if (type is VectorDataViewType vectorType)
@@ -898,6 +912,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector or scalar of <xref:System.Single> or <xref:System.Double> |
     /// | Output column data type | The same as the data type in the input column |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.MissingValueReplacingTransformer"/> creates a new column, named as specified in the output column name parameters, and
     /// copies the data from the input column to this new column with exception what missing values in data would be replaced according to chosen strategy.
@@ -931,6 +946,10 @@ namespace Microsoft.ML.Transforms
             /// Replace with the maximum value of the column.
             /// </summary>
             Maximum = 3,
+            /// <summary>
+            /// Replace with the most frequent value of the column.
+            /// </summary>
+            Mode = 5
         }
 
         [BestFriend]

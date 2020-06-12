@@ -465,7 +465,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple, HelpText = "Loss function", ShortName = "loss")]
             public ISupportRegressionLossFactory LossFunction = new SquaredLossFactory();
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Quantile index to select", ShortName = "ind")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Quantile index to select", ShortName = "ind")]
             public int? Index;
         }
 

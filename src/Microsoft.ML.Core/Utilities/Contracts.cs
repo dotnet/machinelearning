@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime
         /// Exceptions whose message communicates potentially sensitive information should be
         /// marked using this method, before they are thrown. Note that if the exception already
         /// had this flag set, the message will be flagged with the bitwise or of the existing
-        /// flag, alongside the passed in sensivity.
+        /// flag, alongside the passed in sensitivity.
         /// </summary>
         public static TException MarkSensitive<TException>(this TException ex, MessageSensitivity sensitivity)
             where TException : Exception
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime
 #if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// This is an internal convenience implementation of an exception context to make marking
-        /// exceptions with a specific sensitivity flag a bit less onorous. The alternative to a scheme
+        /// exceptions with a specific sensitivity flag a bit less onerous. The alternative to a scheme
         /// like this, where messages are marked through use of <see cref="Process{TException}(TException)"/>,
         /// would be that every check and exception method in this file would need some "peer" where
         /// sensitivity was set. Since there are so many, we have this method instead. I'm not sure if
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime
             public readonly IExceptionContext Inner;
 
             /// <summary>
-            /// Exceptions will be marked with this. If <see cref="Inner"/> happens to mark it with a sensivity
+            /// Exceptions will be marked with this. If <see cref="Inner"/> happens to mark it with a sensitivity
             /// flag, then the result will not only be this value, but the bitwise or of this with the existing
             /// value.
             /// </summary>
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime
         // REVIEW: Change ExceptUser*** to use a custom exception type.
 
         /// <summary>
-        /// For signalling bad user input.
+        /// For signaling bad user input.
         /// </summary>
         public static Exception ExceptUserArg(string name)
             => Process(new ArgumentOutOfRangeException(name));
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Runtime
             => Process(new ArgumentOutOfRangeException(name, GetMsg(msg, args)), ctx);
 
         /// <summary>
-        /// For signalling bad function parameters.
+        /// For signaling bad function parameters.
         /// </summary>
         public static Exception ExceptParam(string paramName)
             => Process(new ArgumentOutOfRangeException(paramName));
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Runtime
             => Process(new ArgumentOutOfRangeException(paramName, value, GetMsg(msg, args)), ctx);
 
         /// <summary>
-        /// For signalling null function parameters.
+        /// For signaling null function parameters.
         /// </summary>
         public static Exception ExceptValue(string paramName)
             => Process(new ArgumentNullException(paramName));
@@ -331,10 +331,10 @@ namespace Microsoft.ML.Runtime
         public static Exception ExceptValue(this IExceptionContext ctx, string paramName, string msg, params object[] args)
             => Process(new ArgumentNullException(paramName, GetMsg(msg, args)), ctx);
 
-        // For signalling null or empty function parameters (strings, arrays, collections, etc).
+        // For signaling null or empty function parameters (strings, arrays, collections, etc).
 
         /// <summary>
-        /// For signalling null or empty function parameters (strings, arrays, collections, etc).
+        /// For signaling null or empty function parameters (strings, arrays, collections, etc).
         /// </summary>
         public static Exception ExceptEmpty(string paramName)
             => Process(new ArgumentOutOfRangeException(paramName, string.Format("{0} cannot be null or empty", paramName)));
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Runtime
             => Process(new ArgumentOutOfRangeException(paramName, GetMsg(msg, args)), ctx);
 
         /// <summary>
-        /// For signalling null, empty or white-space function parameters (strings, arrays, collections, etc).
+        /// For signaling null, empty or white-space function parameters (strings, arrays, collections, etc).
         /// </summary>
         public static Exception ExceptWhiteSpace(string paramName)
             => Process(new ArgumentOutOfRangeException(paramName, string.Format("{0} cannot be null or white space", paramName)));
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Runtime
             => Process(new ArgumentOutOfRangeException(paramName, msg), ctx);
 
         /// <summary>
-        /// For signalling errors in decoding information, whether while reading from a file,
+        /// For signaling errors in decoding information, whether while reading from a file,
         /// parsing user input, etc.
         /// </summary>
         /// <returns></returns>
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Runtime
             => Process(new FormatException(GetMsg(msg, args), inner), ctx);
 
         /// <summary>
-        /// For signalling IO failures.
+        /// For signaling IO failures.
         /// </summary>
         public static Exception ExceptIO()
             => Process(new IOException());
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Runtime
             => Process(new IOException(GetMsg(msg, args), inner), ctx);
 
         /// <summary>
-        /// For signalling functionality that is not YET implemented.
+        /// For signaling functionality that is not YET implemented.
         /// </summary>
         public static Exception ExceptNotImpl()
             => Process(new NotImplementedException());
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Runtime
             => Process(new NotImplementedException(GetMsg(msg, args)), ctx);
 
         /// <summary>
-        /// For signalling functionality that is not implemented by design.
+        /// For signaling functionality that is not implemented by design.
         /// </summary>
         public static Exception ExceptNotSupp()
             => Process(new NotSupportedException());
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Runtime
             => Process(new NotSupportedException(GetMsg(msg, args)), ctx);
 
         /// <summary>
-        /// For signalling schema validation issues.
+        /// For signaling schema validation issues.
         /// </summary>
         public static Exception ExceptSchemaMismatch(string paramName, string columnRole, string columnName)
             => Process(new ArgumentOutOfRangeException(paramName, MakeSchemaMismatchMsg(columnRole, columnName)));
@@ -745,12 +745,12 @@ namespace Microsoft.ML.Runtime
         }
 #if !CPUMATH_INFRASTRUCTURE
         /// <summary>
-        /// Check state of the host and throw exception if host marked to stop all exection.
+        /// Check state of the host and throw exception if host marked to stop all execution.
         /// </summary>
         public static void CheckAlive(this IHostEnvironment env)
         {
             if (env is ICancelable cancelableEnv && cancelableEnv.IsCanceled)
-                throw Process(new OperationCanceledException("Operation was cancelled."), env);
+                throw Process(new OperationCanceledException("Operation was canceled."), env);
         }
 #endif
         /// <summary>

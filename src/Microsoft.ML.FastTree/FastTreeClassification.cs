@@ -84,7 +84,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -117,6 +117,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Exportable to ONNX | Yes |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fasttree.md)]
     /// ]]>
@@ -250,7 +251,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override void PrepareLabels(IChannel ch)
         {
             _trainSetLabels = GetClassificationLabelsFromRatings(TrainSet).ToArray(TrainSet.NumDocs);
-            //Here we set regression labels to what is in bin file if the values were not overriden with floats
+            //Here we set regression labels to what is in bin file if the values were not overridden with floats
         }
 
         private protected override Test ConstructTestForTrainingData()
@@ -291,7 +292,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
                 else
                 {
-                    //use tollerant stopping condition
+                    //use tolerant stopping condition
                     PruningTest = new TestWindowWithTolerance(ValidTest, 0, FastTreeTrainerOptions.PruningWindowSize, FastTreeTrainerOptions.PruningThreshold);
                 }
             }

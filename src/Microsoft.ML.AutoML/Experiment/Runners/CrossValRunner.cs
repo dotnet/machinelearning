@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -65,11 +66,11 @@ namespace Microsoft.ML.AutoML
 
         private static double CalcAverageScore(IEnumerable<double> scores)
         {
-            if (scores.Any(s => double.IsNaN(s)))
-            {
+            var newScores = scores.Where(r => !double.IsNaN(r));
+            // Return NaN iff all scores are NaN
+            if (newScores.Count() == 0)
                 return double.NaN;
-            }
-            return scores.Average();
+            return newScores.Average();
         }
     }
 }

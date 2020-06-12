@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return new SrCnnAnomalyDetector(env, ctx).MakeDataTransform(input);
         }
 
-        private static SrCnnAnomalyDetector Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static SrCnnAnomalyDetector Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
         }
 
-        internal SrCnnAnomalyDetector(IHostEnvironment env, ModelLoadContext ctx)
+        private SrCnnAnomalyDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
         }
@@ -187,8 +187,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | <xref:System.Single> |
     /// | Output column data type | 3-element vector of<xref:System.Double> |
+    /// | Exportable to ONNX | No |
+    ///
     /// ### Background
-    /// At Microsoft, we develop a time-series anomaly detection service which helps customers to monitor the time-series continuously
+    /// At Microsoft, we have developed a time-series anomaly detection service which helps customers to monitor the time-series continuously
     /// and alert for potential incidents on time. To tackle the problem of time-series anomaly detection,
     /// we propose a novel algorithm based on Spectral Residual (SR) and Convolutional Neural Network
     /// (CNN). The SR model is borrowed from visual saliency detection domain to time-series anomaly detection.
@@ -219,7 +221,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// these are the most important parameters to SR. Then you could search for an appropriate <strong>judgementWindowSize</strong>
     /// which is no larger than <strong>windowSize</strong>. And for the remaining parameters, you could use the default value directly.
     ///
-    /// * Link to the KDD 2019 paper will be updated after it goes public.
+    /// For more details please refer to the <a href="https://arxiv.org/pdf/1906.03821">Time-Series Anomaly Detection Service at Microsoft</a> paper.
     /// ]]>
     /// </format>
     /// </remarks>

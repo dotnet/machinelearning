@@ -8,7 +8,7 @@ This project contains performance benchmarks.
 
     git submodule update --init
 
-**Pre-requisite:** On a clean repo with initalized submodules, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release` with native dependencies. 
+**Pre-requisite:** On a clean repo with initialized submodules, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release` with native dependencies. 
 
     build.cmd -release -buildNative
     
@@ -49,7 +49,7 @@ To get the total number of allocated managed memory please pass additional conso
 
 ## .NET Core 3.0
 
-**Pre-requisite:** Follow the [netcoreapp3.0 instructions](../../docs/building/netcoreapp3.0-instructions.md).
+**Pre-requisite:** Follow the [netcoreapp3.1 instructions](../../docs/building/netcoreapp3.1-instructions.md).
 
 **Pre-requisite:** To use dotnet cli from the root directory remember to set `DOTNET_MULTILEVEL_LOOKUP` environment variable to `0`!
 
@@ -57,10 +57,10 @@ To get the total number of allocated managed memory please pass additional conso
 
 1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.Benchmarks)
 
-2. Run the benchmarks in `Release-netcoreapp3_0` configuration, choose one of the benchmarks when prompted
+2. Run the benchmarks in `Release-netcoreapp3_1` configuration, choose one of the benchmarks when prompted
 
 ```log
-    ..\..\Tools\dotnetcli\dotnet.exe run -c Release-netcoreapp3_0
+    ..\..\Tools\dotnetcli\dotnet.exe run -c Release-netcoreapp3_1
 ```
 ## Authoring new benchmarks
 
@@ -86,7 +86,7 @@ public class TrainingBenchmark
 ```
 ## Running the `BenchmarksProjectIsNotBroken`  test
 
-If your build is failing in the build machines, in the release configuraiton due to the `BenchmarksProjectIsNotBroken` test failing, 
+If your build is failing in the build machines, in the release configuration due to the `BenchmarksProjectIsNotBroken` test failing, 
 you can debug this test locally by:
 
 1- Building the solution in the release mode locally

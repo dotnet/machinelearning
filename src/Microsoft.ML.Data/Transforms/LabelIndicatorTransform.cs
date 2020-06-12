@@ -130,7 +130,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public LabelIndicatorTransform(IHostEnvironment env, Options options, IDataView input)
+        internal LabelIndicatorTransform(IHostEnvironment env, Options options, IDataView input)
             : base(env, LoadName, Contracts.CheckRef(options, nameof(options)).Columns,
                 input, TestIsMulticlassLabel)
         {

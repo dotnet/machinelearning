@@ -116,7 +116,7 @@ namespace Microsoft.ML.Internal.Utilities
                 return add ? AddCore(str.AsMemory(), hash) : null;
             }
 
-            public NormStr Get(ReadOnlyMemory<char> str, bool add = false)
+            public NormStr Get(ReadOnlyMemory<char> str, bool add = false, bool duplicateStr = true)
             {
                 AssertValid();
 
@@ -136,6 +136,15 @@ namespace Microsoft.ML.Internal.Utilities
                 }
                 Contracts.Assert(ins == -1);
 
+                if (duplicateStr)
+                {
+                    // To avoid the case where 'str' actually stores a string with the
+                    // content of a whole row in the dataset, a new 'str' is created
+                    // See issue https://github.com/dotnet/machinelearning/issues/4571
+                    // and PR https://github.com/dotnet/machinelearning/pull/4576
+                    return add ? AddCore(str.ToString().AsMemory(), hash) : null;
+                }
+
                 return add ? AddCore(str, hash) : null;
             }
 
@@ -147,9 +156,9 @@ namespace Microsoft.ML.Internal.Utilities
                 return Get(str, true);
             }
 
-            public NormStr Add(ReadOnlyMemory<char> str)
+            public NormStr Add(ReadOnlyMemory<char> str, bool duplicateStr = true)
             {
-                return Get(str, true);
+                return Get(str, true, duplicateStr);
             }
 
             /// <summary>

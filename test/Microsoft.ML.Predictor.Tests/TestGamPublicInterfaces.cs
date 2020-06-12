@@ -4,13 +4,19 @@
 
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public class TestGamPublicInterfaces
+    public class TestGamPublicInterfaces : BaseTestClass
     {
+        public TestGamPublicInterfaces(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         [TestCategory("FastTree")]
         public void TestGamDirectInstatiation()

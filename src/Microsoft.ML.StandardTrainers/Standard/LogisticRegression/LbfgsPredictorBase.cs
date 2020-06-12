@@ -93,7 +93,7 @@ namespace Microsoft.ML.Trainers
             /// This property is only used if the provided value is positive.
             /// The weights will be randomly selected from InitialWeights * [-0.5,0.5] interval with uniform distribution.
             /// </value>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Init weights diameter", ShortName = "initwts, InitWtsDiameter", SortOrder = 140)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Init weights diameter", ShortName = "initwts, InitWtsDiameter", SortOrder = 140)]
             [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
             [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
             public float InitialWeightsDiameter = 0;

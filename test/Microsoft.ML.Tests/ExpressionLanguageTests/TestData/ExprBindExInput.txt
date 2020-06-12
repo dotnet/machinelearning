@@ -1,0 +1,613 @@
+﻿R4: x => with(n = na(x) ; isna(log(x, n)) && isna(log(n, x)) && isna(log(n, n)) && !isna(log(x^2, x)))
+#
+    3
+$
+R8: x => with(n = na(x) ; isna(log(x, n)) && isna(log(n, x)) && isna(log(n, n)) && !isna(log(x^2, x)))
+#
+    3
+$
+I4: x => sign(x)
+#
+    -3
+    0
+    17
+    ?
+$
+I8: x => sign(x)
+#
+    -3
+    0
+    17
+    ?
+$
+R4: x => sign(x)
+#
+    -3
+    0
+    -0
+    17
+    ?
+$
+R8: x => sign(x)
+#
+    -3
+    0
+    -0
+    17
+    ?
+$
+I4: x => sign(-x)
+#
+    -3
+    0
+    17
+    ?
+$
+I8: x => sign(-x)
+#
+    -3
+    0
+    17
+    ?
+$
+R4: x => sign(-x)
+#
+    -3
+    0
+    -0
+    17
+    ?
+$
+R8: x => sign(-x)
+#
+    -3
+    0
+    -0
+    17
+    ?
+$
+R4: x => sign(1/x)
+#
+    -3
+    0
+    -0
+    17
+    ?
+$
+R8: x => sign(1/x)
+#
+    -3
+    0
+    -0
+    17
+    ?
+$
+I4: x => sign(-3)
+#
+    ?
+$
+I8: x => sign(17L)
+#
+    ?
+$
+R4: x => sign(0F)
+#
+    ?
+$
+R8: x => sign(-0D)
+#
+    ?
+$
+R4: x => sign(1 / 0F)
+#
+    ?
+$
+R8: x => sign(1 / -0D)
+#
+    ?
+$
+R4: x => sign(na(x))
+#
+    ?
+$
+TX: x => min(x, "hey") + max(x, "hey")
+$
+BL,I4: (s,x) => !s ? min(x, 2) : max(x, 2)
+#
+    0,-3
+    1,-3
+    0,17
+    1,17
+    0,0
+    1,0
+    0,?
+    1,?
+$
+BL,I4: (s,x) => !s ? min(15, x) : max(15, x)
+#
+    0,-3
+    1,-3
+    0,12
+    1,12
+    0,17
+    1,17
+    0,0
+    1,0
+    0,?
+    1,?
+$
+I4: x => min(x) + min(-1, x, 3) + min(x, true) + min("hi", x) + max(x) + max(-1, x, 3) + max(x, true) + max("hi", x)
+$
+BL,I4: (s,x) => !s ? 10 * min(3, 6) + min(7, 5) : 10 * max(3, 6) + max(7, 5)
+#
+    0,?
+    1,?
+$
+I4: x => with(n = na(x) ; isna(min(n, x)) && isna(min(x, n)) && isna(min(n, n)) && isna(max(n, x)) && isna(max(x, n)) && isna(max(n, n)))
+#
+    17
+$
+BL,I8: (s,x) => !s ? min(x, 2) : max(x, 2)
+#
+    0,-3
+    1,-3
+    0,17
+    1,17
+    0,0
+    1,0
+    0,?
+    1,?
+$
+BL,I8: (s,x) => !s ? min(15, x) : max(15, x)
+#
+    0,-3
+    1,-3
+    0,12
+    1,12
+    0,17
+    1,17
+    0,0
+    1,0
+    0,?
+    1,?
+$
+I8: x => min(x) + min(-1, x, 3) + min(x, true) + min("hi", x) + max(x) + max(-1, x, 3) + max(x, true) + max("hi", x)
+$
+BL,I8: (s,x) => !s ? 10 * min(3L, 6L) + min(7L, 5) : 10 * max(3, 6L) + max(7L, 5)
+#
+    0,?
+    1,?
+$
+I8: x => with(n = na(x) ; isna(min(n, x)) && isna(min(x, n)) && isna(min(n, n)) && isna(max(n, x)) && isna(max(x, n)) && isna(max(n, n)))
+#
+    17
+$
+BL,R4: (s,x) => !s ? min(x, 2) : max(x, 2)
+#
+    0,-3
+    1,-3
+    0,17
+    1,17
+    0,0
+    1,0
+    0,?
+    1,?
+$
+BL,R4: (s,x) => !s ? min(15, x) : max(15, x)
+#
+    0,-3
+    1,-3
+    0,12
+    1,12
+    0,17
+    1,17
+    0,0
+    1,0
+    0,?
+    1,?
+$
+R4: x => min(x) + min(-1, x, 3) + min(x, true) + min("hi", x) + max(x) + max(-1, x, 3) + max(x, true) + max("hi", x)
+$
+BL,R4: (s,x) => !s ? 10 * min(3f, 6f) + min(7f, 5) : 10 * max(3, 6f) + max(7f, 5)
+#
+    0,?
+    1,?
+$
+R4: x => with(n = na(x) ; isna(min(n, x)) && isna(min(x, n)) && isna(min(n, n)) && isna(max(n, x)) && isna(max(x, n)) && isna(max(n, n)))
+#
+    17
+$
+BL,R8: (s,x) => !s ? min(x, 2) : max(x, 2)
+#
+    0,-3
+    1,-3
+    0,17
+    1,17
+    0,0
+    1,0
+    0,?
+    1,?
+$
+BL,R8: (s,x) => !s ? min(15, x) : max(15, x)
+#
+    0,-3
+    1,-3
+    0,12
+    1,12
+    0,17
+    1,17
+    0,0
+    1,0
+    0,?
+    1,?
+$
+R8: x => min(x) + min(-1, x, 3) + min(x, true) + min("hi", x) + max(x) + max(-1, x, 3) + max(x, true) + max("hi", x)
+$
+BL,R8: (s,x) => !s ? 10 * min(3d, 6f) + min(7d, 5) : 10 * max(3, 6d) + max(7d, 5)
+#
+    0,?
+    1,?
+$
+R8: x => with(n = na(x) ; isna(min(n, x)) && isna(min(x, n)) && isna(min(n, n)) && isna(max(n, x)) && isna(max(x, n)) && isna(max(n, n)))
+#
+    17
+$
+R4,R4: (x,y) => atan2(x) + atan2(y, x, y) + atanyx(y, x == y) + atanyx("hi", x)
+$
+R8,R8: (x,y) => atan2(x) + atan2(y, x, y) + atanyx(y, x == y) + atanyx("hi", x)
+$
+R4,R4: (x,y) => deg(atan2(y,x))
+#
+     0, 0
+    -0, 0
+    -0,-0
+     0,-0
+     1, 0
+     1, 1
+     0, 1
+    -1, 1
+    -1, 0
+    -1,-1
+     0,-1
+     1,-1
+     1, 0
+     ?, 1
+     1, ?
+     ?, ?
+     Infinity, 1
+     1, Infinity
+    -1, Infinity
+    -Infinity, 1
+    -Infinity,-1
+    -1,-Infinity
+     1,-Infinity
+     Infinity,-1
+     Infinity, Infinity
+    -Infinity, Infinity
+    -Infinity,-Infinity
+     Infinity,-Infinity
+$
+R8,R8: (x,y) => degrees(atanyx(y,x))
+#
+     0, 0
+    -0, 0
+    -0,-0
+     0,-0
+     1, 0
+     1, 1
+     0, 1
+    -1, 1
+    -1, 0
+    -1,-1
+     0,-1
+     1,-1
+     1, 0
+     ?, 1
+     1, ?
+     ?, ?
+     Infinity, 1
+     1, Infinity
+    -1, Infinity
+    -Infinity, 1
+    -Infinity,-1
+    -1,-Infinity
+     1,-Infinity
+     Infinity,-1
+     Infinity, Infinity
+    -Infinity, Infinity
+    -Infinity,-Infinity
+     Infinity,-Infinity
+$
+I4: s => with(c = float(180 / pi()), nf = na(0f) ;
+    s == 0 ? c * atan2( 0f, 1f) :
+    s == 1 ? c * atan2( 1f, 1f) :
+    s == 2 ? c * atan2( 1f, 0f) :
+    s == 3 ? c * atan2( 1f,-1f) :
+    s == 4 ? c * atan2( 0f,-1f) :
+    s == 5 ? c * atan2(-1f,-1f) :
+    s == 6 ? c * atan2(-1f, 0f) :
+    s == 7 ? c * atan2( nf, 0f) :
+    s == 8 ? c * atan2( 0f, nf) :
+    s == 9 ? c * atan2( nf, nf) :
+             1234567f)
+#
+    0
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    -1
+$
+R4: x => with(n = na(x) ; isna(atan2(n, x)) && isna(atan2(x, n)) && isna(atan2(n, n)))
+#
+    1
+$
+I4: s => with(c = double(180 / pi()), nd = na(0d) ;
+    s == 0 ? c * atan2( 0d, 1d) :
+    s == 1 ? c * atan2( 1d, 1d) :
+    s == 2 ? c * atan2( 1d, 0d) :
+    s == 3 ? c * atan2( 1d,-1d) :
+    s == 4 ? c * atan2( 0d,-1d) :
+    s == 5 ? c * atan2(-1d,-1d) :
+    s == 6 ? c * atan2(-1d, 0d) :
+    s == 7 ? c * atan2( nd, 0f) :
+    s == 8 ? c * atan2( 0d, nd) :
+    s == 9 ? c * atan2( nd, nd) :
+             1234567d)
+#
+    0
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    -1
+$
+R8: x => with(n = na(x) ; isna(atan2(n, x)) && isna(atan2(x, n)) && isna(atan2(n, n)))
+#
+    1
+$
+R4: x => deg() + deg(x,x) + rad() + rad(x,3) + rad(text(x))
+$
+I4: s =>
+    s == 0 ? deg(0f) :
+    s == 1 ? deg(float(pi() / 2)) :
+    s == 2 ? degrees(float(pi() / 6)) :
+    s == 3 ? degrees(float(-pi() / 4)) :
+    s == 4 ? deg(na(0f)) :
+             -1
+#
+    0
+    1
+    2
+    3
+    4
+$
+I4: s =>
+    s == 0 ? deg(0d) :
+    s == 1 ? deg(pi() / 2) :
+    s == 2 ? degrees(pi() / 6) :
+    s == 3 ? degrees(-pi() / 4) :
+    s == 4 ? deg(na(0d)) :
+             -1
+#
+    0
+    1
+    2
+    3
+    4
+$
+I4: s =>
+    s == 0 ? rad(0f) :
+    s == 1 ? rad(90f) :
+    s == 2 ? radians(30f) :
+    s == 3 ? radians(-45f) :
+    s == 4 ? rad(na(0f)) :
+             -1
+#
+    0
+    1
+    2
+    3
+    4
+$
+I4: s =>
+    s == 0 ? rad(0d) :
+    s == 1 ? rad(90d) :
+    s == 2 ? radians(30d) :
+    s == 3 ? radians(-45d) :
+    s == 4 ? rad(na(0d)) :
+             -1
+#
+    0
+    1
+    2
+    3
+    4
+$
+R4: x => deg(float(pi() / 180) * x)
+#
+    0
+    30
+    45
+    -60
+    90
+    ?
+$
+R8: x => deg(pi() / 180 * x)
+#
+    0
+    30
+    45
+    -60
+    90
+    ?
+$
+R4: x => deg(rad(x)) - x
+#
+    0
+    30
+    45
+    -60
+    90
+    ?
+$
+R8: x => with(c = pi() / 180 ; radians(x) - x * c)
+#
+    0
+    30
+    45
+    -60
+    90
+    ?
+$
+R4: x =>
+        trunc() + trunc(x,x) + trunc(true) +
+        ceil () + ceil (x,x) + ceil (true) +
+        floor() + floor(x,x) + floor(true) +
+        round() + round(x,x) + round(true);
+$
+R4: x =>
+        trunc() + trunc(x,x) + trunc(true) +
+        ceil () + ceil (x,x) + ceil (true) +
+        floor() + floor(x,x) + floor(true) +
+        round() + round(x,x) + round(true)
+$
+R4: x => truncate(x)
+#
+    -1.2
+    -1.9
+    3.2
+    3.7
+    Infinity
+    -Infinity
+    ?
+$
+R4: x => floor(x)
+#
+    -1.2
+    -1.9
+    3.2
+    3.7
+    Infinity
+    -Infinity
+    ?
+$
+R4: x => ceil(x)
+#
+    -1.2
+    -1.9
+    3.2
+    3.7
+    Infinity
+    -Infinity
+    ?
+$
+R4: x => round(x)
+#
+    -1.2
+    -1.5
+    -1.9
+    -2.5
+    -3.5
+    3.2
+    3.7
+    3.5
+    2.5
+    1.5
+    Infinity
+    -Infinity
+    ?
+$
+I4: x => _aa(x)
+$
+I4: x => _aa(long(x))
+#
+    17
+    -12
+    ?
+$
+I4: x => _aa(float(x))
+#
+    17
+    -12
+    ?
+$
+I4: x => _ab(x)
+$
+I4: x => _ab(long(x))
+#
+    17
+    -12
+    ?
+$
+I4: x => _ab(float(x))
+#
+    17
+    -12
+    ?
+$
+I4: x => _ac(x)
+$
+I4: x => __test1._ac(x)
+#
+    17
+    -12
+    ?
+$
+I4: x => _ad(x)
+#
+    17
+    -12
+    ?
+$
+I8: x => _ad(x)
+#
+    17
+    -12
+    ?
+$
+I4,BL:
+(a,b) => _var(a, b, 1, 2, 3, 4)
+#
+    0,0
+    0,1
+    1,0
+    2,1
+    3,0
+    -1,0
+    4,1
+    2,?
+    ?,0
+    ?,?
+$
+I4:
+x => _ba() + 10 * _ba(x) + 100 * _ba(x, x)
+#
+    17
+    ?
+$
+I4:
+x => _ba(x, x, x)
+$
+I4:
+x => _bad(x)
+#
+    -1
+    1
+    17
+    ?
+$
+BL: x => _fa(blah(x))
+#
+    1
+$

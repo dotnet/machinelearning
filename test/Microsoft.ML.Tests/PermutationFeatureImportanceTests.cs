@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
@@ -199,13 +199,29 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Binary Classification for Dense Features
         /// </summary>
-        [Fact]
-        public void TestPfiBinaryClassificationOnDenseFeatures()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiBinaryClassificationOnDenseFeatures(bool saveModel)
         {
             var data = GetDenseDataset(TaskType.BinaryClassification);
             var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
                 new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
-            var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+
+            ImmutableArray<BinaryClassificationMetricsStatistics> pfi;
+            if (saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiBinaryClassificationOnDenseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
+                pfi = ML.BinaryClassification.PermutationFeatureImportance(castedModel, data);
+            }
+            else
+            {
+                pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0
@@ -237,13 +253,29 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Binary Classification for Sparse Features
         /// </summary>
-        [Fact]
-        public void TestPfiBinaryClassificationOnSparseFeatures()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiBinaryClassificationOnSparseFeatures(bool saveModel)
         {
             var data = GetSparseDataset(TaskType.BinaryClassification);
             var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
                 new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
-            var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+
+            ImmutableArray<BinaryClassificationMetricsStatistics> pfi;
+            if (saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiBinaryClassificationOnSparseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
+                pfi = ML.BinaryClassification.PermutationFeatureImportance(castedModel, data);
+            }
+            else
+            {
+                pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0
@@ -272,6 +304,36 @@ namespace Microsoft.ML.Tests
             Assert.Equal(5, MinDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
 
             Done();
+        }
+
+        [Fact]
+        public void TestBinaryClassificationWithoutCalibrator()
+        {
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var ff = ML.BinaryClassification.Trainers.FastForest();
+            var data = ML.Data.LoadFromTextFile(dataPath,
+                            new[] { new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("Features", DataKind.Single, 1, 9) });
+            var model = ff.Fit(data);
+            var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+
+            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
+            Assert.Equal(7, MaxDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.Accuracy.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.Accuracy.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.PositivePrecision.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositivePrecision.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.PositiveRecall.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositiveRecall.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativePrecision.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativePrecision.Mean));
+            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.F1Score.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.F1Score.Mean));
+            Assert.Equal(7, MaxDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
         }
         #endregion
 
@@ -437,7 +499,7 @@ namespace Microsoft.ML.Tests
 
 
         /// <summary>
-        /// Test PFI Multiclass Classification for Sparse Features
+        /// Test PFI Ranking Classification for Sparse Features
         /// </summary>
         [Theory]
         [InlineData(true)]
@@ -497,11 +559,11 @@ namespace Microsoft.ML.Tests
             // Setup synthetic dataset.
             const int numberOfInstances = 1000;
             var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances],
-                x1Array = new float[numberOfInstances],
-                x2Array = new float[numberOfInstances],
-                x3Array = new float[numberOfInstances],
-                x4RandArray = new float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances];
+            float[] x1Array = new float[numberOfInstances];
+            float[] x2Array = new float[numberOfInstances];
+            float[] x3Array = new float[numberOfInstances];
+            float[] x4RandArray = new float[numberOfInstances];
 
             for (var i = 0; i < numberOfInstances; i++)
             {
@@ -564,9 +626,9 @@ namespace Microsoft.ML.Tests
             // Setup synthetic dataset.
             const int numberOfInstances = 10000;
             var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances],
-                x1Array = new float[numberOfInstances],
-                x3Array = new float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances];
+            float[] x1Array = new float[numberOfInstances];
+            float[] x3Array = new float[numberOfInstances];
 
             VBuffer<float>[] vbArray = new VBuffer<float>[numberOfInstances];
 

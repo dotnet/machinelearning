@@ -292,7 +292,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             int innerLoopSize = 1 + dataset.NumDocs / BlockingThreadPool.NumThreads;  // minimize number of times we have to skip forward in the sparse arrays
             // REVIEW: This partitioning doesn't look optimal.
-            // Probably make sence to investigate better ways of splitting data?
+            // Probably make sense to investigate better ways of splitting data?
             var actions = new Action[(int)Math.Ceiling(1.0 * dataset.NumDocs / innerLoopSize)];
             var actionIndex = 0;
             for (int d = 0; d < dataset.NumDocs; d += innerLoopSize)
@@ -447,15 +447,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 sch[feat.Index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
-#if !CORECLR
-            var type = sch.GetMetadataTypeOrNull(BingBinLoader.IniContentMetadataKind, feat.Index);
-            if (type != null && type.IsVector && type.VectorSize == feat.Type.ValueCount && type.ItemType.IsText)
-                sch.GetMetadata(BingBinLoader.IniContentMetadataKind, feat.Index, ref _content);
-            else
-                _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
-#else
             _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
-#endif
             Contracts.Assert(_names.Length == _content.Length);
         }
 

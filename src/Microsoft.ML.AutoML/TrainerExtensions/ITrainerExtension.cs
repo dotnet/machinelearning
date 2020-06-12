@@ -7,13 +7,14 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.AutoML
 {
-    using ITrainerEstimator = ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object>;
+    using ITrainerEstimator = ITrainerEstimator<IPredictionTransformer<object>, object>;
 
     internal interface ITrainerExtension
     {
         IEnumerable<SweepableParam> GetHyperparamSweepRanges();
 
-        ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo);
+        ITrainerEstimator CreateInstance(MLContext mlContext,
+            IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo, IDataView validationSet = null);
 
         PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo);
     }

@@ -73,7 +73,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="ImageLoadingEstimator"/>, which loads the data from the column specified in <paramref name="inputColumnName"/>
-        /// as an image to a new column: <paramref name="outputColumnName"/>.
+        /// as an image of raw bytes to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -81,15 +81,14 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column with paths to the images to load.
         /// This estimator operates over text data.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
-        /// <param name="useImageType">Image type flag - If true loads image as a ImageDataViewType type else loads image as VectorDataViewType. Defaults to ImageDataViewType if not specified or is true.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string outputColumnName, string imageFolder, bool useImageType, string inputColumnName = null)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, useImageType, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        public static ImageLoadingEstimator LoadRawImageBytes(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName = null)
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, false, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
 
         /// <summary>
         /// Create a <see cref="ImagePixelExtractingEstimator"/>, which extracts pixels values from the data specified in column: <paramref name="inputColumnName"/>
@@ -102,7 +101,7 @@ namespace Microsoft.ML
         /// This estimator operates over <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="colorsToExtract">The colors to extract from the image.</param>
         /// <param name="orderOfExtraction">The order in which to extract colors from pixel.</param>
-        /// <param name="interleavePixelColors">Whether to interleave the pixels colors, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
+        /// <param name="interleavePixelColors">Whether to interleave the pixels colors, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the planner form:
         /// all the values for one color for all pixels, then all the values for another color, and so on.</param>
         /// <param name="offsetImage">Offset each pixel's color value by this amount. Applied to color value before <paramref name="scaleImage"/>.</param>
         /// <param name="scaleImage">Scale each pixel's color value by this amount. Applied to color value after <paramref name="offsetImage"/>.</param>
@@ -126,7 +125,7 @@ namespace Microsoft.ML
             => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colorsToExtract, orderOfExtraction, interleavePixelColors, offsetImage, scaleImage, outputAsFloatArray);
 
         /// <summary>
-        /// Create a <see cref="ImagePixelExtractingEstimator"/>, which exctracts pixel values from the data specified in column: <see cref="ImagePixelExtractingEstimator.ColumnOptions.InputColumnName"/>
+        /// Create a <see cref="ImagePixelExtractingEstimator"/>, which extracts pixel values from the data specified in column: <see cref="ImagePixelExtractingEstimator.ColumnOptions.InputColumnName"/>
         /// to a new column: <see cref="ImagePixelExtractingEstimator.ColumnOptions.Name"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
@@ -212,10 +211,10 @@ namespace Microsoft.ML
         /// all the values for one color for all pixels, then all the values for another color and so on.</param>
         /// <param name="scaleImage">The values are scaled by this value before being converted to pixels. Applied to vector value before <paramref name="offsetImage"/>.</param>
         /// <param name="offsetImage">The offset is subtracted before converting the values to pixels. Applied to vector value after <paramref name="scaleImage"/>.</param>
-        /// <param name="defaultAlpha">Default value for alpha color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Alpha"/>.</param>
-        /// <param name="defaultRed">Default value for red color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Red"/>.</param>
-        /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
-        /// <param name="defaultBlue">Default value for blue color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Blue"/>.</param>
+        /// <param name="defaultAlpha">Default value for alpha color, would be overridden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Alpha"/>.</param>
+        /// <param name="defaultRed">Default value for red color, would be overridden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Red"/>.</param>
+        /// <param name="defaultGreen">Default value for green color, would be overridden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
+        /// <param name="defaultBlue">Default value for blue color, would be overridden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Blue"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

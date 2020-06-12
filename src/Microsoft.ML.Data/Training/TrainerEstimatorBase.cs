@@ -136,7 +136,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(LabelColumn.IsValid);
 
             if (!LabelColumn.IsCompatibleWith(labelCol))
-                throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", WeightColumn.Name,
+                throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", LabelColumn.Name,
                     LabelColumn.GetTypeString(), labelCol.GetTypeString());
         }
 

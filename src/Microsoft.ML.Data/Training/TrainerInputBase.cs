@@ -45,7 +45,7 @@ namespace Microsoft.ML.Trainers
         /// like <see cref="EstimatorChain{TLastTransformer}.AppendCacheCheckpoint(IHostEnvironment)"/>.
         /// </summary>
         [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether trainer should cache input training data", ShortName = "cache", SortOrder = 6, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether trainer should cache input training data", ShortName = "cache", SortOrder = 6, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         internal CachingOptions Caching = CachingOptions.Auto;
     }
 

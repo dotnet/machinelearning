@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new VersionInfo(
                 modelSignature: "FFORE BC",
                 // verWrittenCur: 0x00010001, Initial
-                // verWrittenCur: 0x00010002, // InstanceWeights are part of QuantileRegression Tree to support weighted intances
+                // verWrittenCur: 0x00010002, // InstanceWeights are part of QuantileRegression Tree to support weighted instances
                 // verWrittenCur: 0x00010003, // _numFeatures serialized
                 // verWrittenCur: 0x00010004, // Ini content out of predictor
                 // verWrittenCur: 0x00010005, // Add _defaultValueForMissing
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -130,6 +130,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Exportable to ONNX | Yes |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fastforest.md)]
     /// ]]>

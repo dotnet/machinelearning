@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -93,7 +94,7 @@ namespace Microsoft.ML
         // more than once.
         // REVIEW: Should we garbage collect to some degree? Currently we don't delete any
         // of these temp files until the repository is disposed.
-        protected readonly Dictionary<string, string> PathMap;
+        protected readonly ConcurrentDictionary<string, string> PathMap;
 
         /// <summary>
         /// Exception context.
@@ -107,7 +108,7 @@ namespace Microsoft.ML
             Contracts.AssertValueOrNull(ectx);
             _ectx = ectx;
 
-            PathMap = new Dictionary<string, string>();
+            PathMap = new ConcurrentDictionary<string, string>();
             _open = new List<Entry>();
             if (needDir)
                 DirTemp = GetShortTempDir();
@@ -117,30 +118,9 @@ namespace Microsoft.ML
 
         private static string GetShortTempDir()
         {
-            var rnd = RandomUtils.Create();
-            string path;
-            do
-            {
-                path = Path.Combine(Path.GetTempPath(), "TLC_" + rnd.Next().ToString("X"));
-                path = Path.GetFullPath(path);
-                Directory.CreateDirectory(path);
-            }
-            while (!EnsureDirectory(path));
+            var path = Path.Combine(Path.GetFullPath(Path.GetTempPath()), "ml_dotnet", Path.GetRandomFileName());
+            Directory.CreateDirectory(path);
             return path;
-        }
-
-        private static bool EnsureDirectory(string path)
-        {
-            path = Path.GetFullPath(Path.Combine(path, ".lock"));
-            try
-            {
-                using (var stream = new FileStream(path, FileMode.CreateNew))
-                    return true;
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         ~Repository()
@@ -256,7 +236,7 @@ namespace Microsoft.ML
             string root = Path.GetFullPath(DirTemp ?? @"x:\dummy");
             string entityPath = Path.Combine(root, dir ?? "", name);
             entityPath = Path.GetFullPath(entityPath);
-            string tempPath = Path.Combine(root, PathMap.Count.ToString());
+            string tempPath = Path.Combine(root, Path.GetRandomFileName());
             tempPath = Path.GetFullPath(tempPath);
 
             string parent = Path.GetDirectoryName(entityPath);
@@ -333,10 +313,8 @@ namespace Microsoft.ML
             string pathEnt;
             string pathTemp;
             GetPath(out pathEnt, out pathTemp, dir, name, true);
-            if (PathMap.ContainsKey(pathEnt))
+            if (!PathMap.TryAdd(pathEnt, pathTemp))
                 throw ExceptionContext.ExceptParam(nameof(name), "Duplicate entry: '{0}'", pathEnt);
-            else
-                PathMap.Add(pathEnt, pathTemp);
 
             Stream stream;
             if (pathTemp != null)
@@ -506,7 +484,7 @@ namespace Microsoft.ML
             string pathLower = pathEnt.ToLowerInvariant();
             if (PathMap.TryGetValue(pathLower, out pathAbs))
             {
-                stream = new FileStream(pathAbs, FileMode.Open, FileAccess.Read);
+                stream = new FileStream(pathAbs, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
             else
             {
@@ -525,8 +503,10 @@ namespace Microsoft.ML
                     // Extract to a temporary file.
                     Directory.CreateDirectory(Path.GetDirectoryName(pathTemp));
                     entry.ExtractToFile(pathTemp);
-                    PathMap.Add(pathLower, pathTemp);
-                    stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read);
+                    if (!PathMap.TryAdd(pathLower, pathTemp))
+                        throw ExceptionContext.ExceptParam(nameof(name), "Duplicate entry: '{0}'", pathLower);
+
+                    stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read, FileShare.Read);
                 }
                 else
                 {

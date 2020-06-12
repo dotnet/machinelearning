@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data.IO
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of worker decompressor threads to use", ShortName = "t")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of worker decompresser threads to use", ShortName = "t")]
             public int? Threads;
         }
 
@@ -316,6 +316,9 @@ namespace Microsoft.ML.Data.IO
                 }
             }
         }
+
+        private static readonly FuncInstanceMethodInfo1<TransposeLoader, DataViewRowCursor, SlotCursor> _getSlotCursorCoreMethodInfo
+            = FuncInstanceMethodInfo1<TransposeLoader, DataViewRowCursor, SlotCursor>.Create(target => target.GetSlotCursorCore<int>);
 
         // Positive if explicit, otherwise let the sub-binary loader decide for themselves.
         private readonly int _threads;
@@ -647,7 +650,7 @@ namespace Microsoft.ML.Data.IO
             DataViewRowCursor inputCursor = view.GetRowCursorForAllColumns();
             try
             {
-                return Utils.MarshalInvoke(GetSlotCursorCore<int>, cursorType.RawType, inputCursor);
+                return Utils.MarshalInvoke(_getSlotCursorCoreMethodInfo, this, cursorType.RawType, inputCursor);
             }
             catch (Exception)
             {
@@ -690,7 +693,8 @@ namespace Microsoft.ML.Data.IO
             {
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                        $"expected type: '{_getter.GetType().GetGenericArguments().First().GetGenericArguments().First()}'.");
                 return getter;
             }
 
@@ -880,9 +884,11 @@ namespace Microsoft.ML.Data.IO
                 Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column), nameof(column), "requested column not active");
                 Ch.AssertValue(_getters[_colToActivesIndex[column.Index]]);
 
-                var getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
+                var originGetter = _getters[_colToActivesIndex[column.Index]];
+                var getter = originGetter as ValueGetter<TValue>;
                 if (getter == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue: '{typeof(TValue)}', " +
+                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
                 return getter;
             }
         }

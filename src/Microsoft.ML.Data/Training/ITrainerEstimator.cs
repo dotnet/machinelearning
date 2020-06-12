@@ -10,7 +10,7 @@ namespace Microsoft.ML.Trainers
     /// <typeparam name="TTransformer">The type of the transformer returned by the estimator.</typeparam>
     /// <typeparam name="TModel">The type of the model parameters.</typeparam>
     public interface ITrainerEstimator<out TTransformer, out TModel> : IEstimator<TTransformer>
-        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
+        where TTransformer : IPredictionTransformer<TModel>
         where TModel : class
     {
         /// <summary>

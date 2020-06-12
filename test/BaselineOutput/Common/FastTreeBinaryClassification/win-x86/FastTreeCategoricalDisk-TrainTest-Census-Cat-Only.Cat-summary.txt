@@ -1,0 +1,14 @@
+
+Per-feature gain summary for the boosted tree ensemble:
+	relationship.Own-child	1
+	occupation.Machine-op-inspct	0.880278821582324
+	marital-status.Never-married	0.636189547653334
+	education.11th	0.531653264369975
+	Workclass.Private	0.385322535658439
+	native-country-region.United-States	0.33460937598556
+	ethnicity.Black	0.217587401712812
+	education.Doctorate	0.140045184209198
+	Workclass.Local-gov	0.127340271504787
+	Workclass.Self-emp-inc	0.0950288918046404
+	marital-status.Married-civ-spouse	0.0857004482164758
+	occupation.Prof-specialty	0.0645281020239454

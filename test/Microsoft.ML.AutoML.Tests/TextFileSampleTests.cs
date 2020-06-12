@@ -4,13 +4,19 @@
 
 using System.IO;
 using System.Text;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class TextFileSampleTests
+    public class TextFileSampleTests : BaseTestClass
     {
+        public TextFileSampleTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void CanParseLargeRandomStream()
         {

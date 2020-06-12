@@ -33,7 +33,7 @@ namespace Samples.Dynamic
             // set 1 to corresponding key's value index in that array. After that we
             // concatenate two columns with single int values into vector of ints.
             // Third transform will create vector of keys, where key type is shared
-            // across whole vector. Forth transfrom output data as count vector and
+            // across whole vector. Forth transform output data as count vector and
             // that vector would have size equal to shared key type cardinality and
             // put key counts to corresponding indexes in array. Fifth transform
             // output indicator vector for each key and concatenate them together.

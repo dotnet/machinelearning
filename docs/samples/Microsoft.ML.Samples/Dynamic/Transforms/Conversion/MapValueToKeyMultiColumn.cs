@@ -62,7 +62,7 @@ namespace Samples.Dynamic
             // transform create it, we could do so by creating an IDataView one
             // column containing the values to map to. If the values in the dataset
             // are not found in the lookup IDataView they will get mapped to the
-            // mising value, 0. The keyData are shared among the columns, therefore
+            // missing value, 0. The keyData are shared among the columns, therefore
             // the keys are not contiguous for the column. Create the lookup map
             // data IEnumerable.  
             var lookupData = new[] {

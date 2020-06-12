@@ -4,13 +4,11 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -77,7 +75,7 @@ namespace Microsoft.ML.Data
         /// The flag for DataViewType for the image. If Type true, it is a VectorDataView of bytes else it is an ImageDataView type.
         /// If no options are specified, it defaults to false for ImageDataView type.
         /// </summary>
-        public readonly bool UseImageType;
+        private readonly bool _useImageType;
 
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
@@ -91,10 +89,8 @@ namespace Microsoft.ML.Data
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
         internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
+            : this (env, imageFolder, type: true, columns)
         {
-            ImageFolder = imageFolder;
-            UseImageType = true;
         }
 
         /// <summary>
@@ -107,8 +103,17 @@ namespace Microsoft.ML.Data
         internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, bool type = true, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
-            ImageFolder = imageFolder;
-            UseImageType = type;
+            // Throws ArgumentException if given imageFolder path is invalid. Note: imageFolder may be null or empty in this case.
+            if (String.IsNullOrEmpty(imageFolder))
+                ImageFolder = null;
+            else
+            {
+                if (Directory.Exists(imageFolder))
+                    ImageFolder = Path.GetFullPath(imageFolder);
+                else
+                    throw new ArgumentException(String.Format("Directory \"{0}\" does not exist.", imageFolder));
+            }
+            _useImageType = type;
         }
 
         // Factory method for SignatureDataTransform.
@@ -137,9 +142,9 @@ namespace Microsoft.ML.Data
 
             ImageFolder = ctx.LoadStringOrNull();
            if (ctx.Header.ModelVerWritten >= 0x00010003) // do a version check
-                UseImageType = ctx.Reader.ReadBoolean();
+                _useImageType = ctx.Reader.ReadBoolean();
             else
-                UseImageType = true; // It is an ImageDataViewType
+                _useImageType = true; // It is an ImageDataViewType
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -169,7 +174,7 @@ namespace Microsoft.ML.Data
 
             base.SaveColumns(ctx);
             ctx.SaveStringOrNull(ImageFolder);
-            ctx.Writer.Write(UseImageType);
+            ctx.Writer.Write(_useImageType);
         }
 
         private static VersionInfo GetVersionInfo()
@@ -184,7 +189,7 @@ namespace Microsoft.ML.Data
                 loaderAssemblyName: typeof(ImageLoadingTransformer).Assembly.FullName);
         }
 
-        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema, UseImageType);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema, _useImageType);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -212,7 +217,17 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                disposer = null;
+                var lastImage = default(Bitmap);
+
+                disposer = () =>
+                {
+                    if (lastImage != null)
+                    {
+                        lastImage.Dispose();
+                        lastImage = null;
+                    }
+                };
+
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
                 ValueGetter<Bitmap> del =
@@ -232,12 +247,18 @@ namespace Microsoft.ML.Data
                             if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
                                 path = Path.Combine(_parent.ImageFolder, path);
 
-                            dst = new Bitmap(path) { Tag = path };
+                            // to avoid locking file, use the construct below to load bitmap
+                            var bytes = File.ReadAllBytes(path);
+                            var ms = new MemoryStream(bytes);
+                            dst = (Bitmap)Image.FromStream(ms);
+                            dst.Tag = path;
 
                             // Check for an incorrect pixel format which indicates the loading failed
                             if (dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)
                                 throw Host.Except($"Failed to load image {src.ToString()}.");
                         }
+
+                        lastImage = dst;
                     };
 
                 return del;
@@ -366,6 +387,7 @@ namespace Microsoft.ML.Data
     /// | Input column data type | [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
     /// | Output column data type | <xref:System.Drawing.Bitmap> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
+    /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Data.ImageLoadingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// loads in it images specified in the input column.
@@ -430,7 +452,7 @@ namespace Microsoft.ML.Data
                 if (_type)
                     result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, new ImageDataViewType(), false);
                 else
-                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Byte, false);
+                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.VariableVector, NumberDataViewType.Byte, false);
             }
 
             return new SchemaShape(result.Values);

@@ -59,7 +59,7 @@ namespace Microsoft.ML.Trainers.FastTree
             using (Timer.Time(TimerEvent.ObjectiveFunctionGetDerivatives))
             {
                 // REVIEW: This partitioning doesn't look optimal.
-                // Probably make sence to investigate better ways of splitting data?
+                // Probably make sense to investigate better ways of splitting data?
                 var actions = new Action[(int)Math.Ceiling((double)Dataset.NumQueries / QueryThreadChunkSize)];
                 var actionIndex = 0;
                 var queue = new ConcurrentQueue<int>(Enumerable.Range(0, BlockingThreadPool.NumThreads));

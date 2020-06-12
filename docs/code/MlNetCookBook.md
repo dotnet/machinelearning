@@ -26,20 +26,24 @@ Please feel free to search this page and use any code that suits your needs.
 ### List of recipes
 
 - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
+- [How do I load data from multiple files?](#how-do-i-load-data-from-multiple-files)
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
 - [How do I debug my experiment or preview my pipeline?](#how-do-i-debug-my-experiment-or-preview-my-pipeline)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
+- [How do I look at intermediate transformers as they are trained?](#how-do-i-look-at-intermediate-transformers-as-they-are-trained)
 - [How do I train a regression model?](#how-do-i-train-a-regression-model)
 - [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
 - [How do I save and load the model?](#how-do-i-save-and-load-the-model)
 - [How do I use the model to make one prediction?](#how-do-i-use-the-model-to-make-one-prediction)
 - [What if my training data is not in a text file?](#what-if-my-training-data-is-not-in-a-text-file)
 - [I want to look at my model's coefficients](#i-want-to-look-at-my-models-coefficients)
+- [How do I get a model's weights to look at the global feature importance?](#how-do-i-get-a-models-weights-to-look-at-the-global-feature-importance)
+- [How do I look at the global feature importance?](#how-do-i-look-at-the-global-feature-importance)
+- [How do I look at the local feature importance per example?](#how-do-i-look-at-the-local-feature-importance-per-example)
 - [What is normalization and why do I need to care?](#what-is-normalization-and-why-do-i-need-to-care)
 - [How do I train my model on categorical data?](#how-do-i-train-my-model-on-categorical-data)
 - [How do I train my model on textual data?](#how-do-i-train-my-model-on-textual-data)
 - [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
-- [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
 - [How can I define my own transformation of data?](#how-can-i-define-my-own-transformation-of-data)
 
 ### General questions about the samples
@@ -93,17 +97,18 @@ This is how you can load this data:
 // Create the loader: define the data columns and where to find them in the text file.
 var loader = mlContext.Data.CreateTextLoader(new[] {
         // A boolean column depicting the 'label'.
-        new TextLoader.Column("IsOver50K", DataKind.BL, 0),
+        new TextLoader.Column("Label", DataKind.Boolean, 0),
         // Three text columns.
-        new TextLoader.Column("Workclass", DataKind.TX, 1),
-        new TextLoader.Column("Education", DataKind.TX, 2),
-        new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
+        new TextLoader.Column("Workclass", DataKind.String, 1),
+        new TextLoader.Column("Education", DataKind.String, 2),
+        new TextLoader.Column("MaritalStatus", DataKind.String, 3)
     },
     // First line of the file is a header, not a data row.
     hasHeader: true
 );
 
-// Now load the file (remember though, loaders are lazy, so the actual loading will happen when the data is accessed).
+// Now load the file (remember though, loaders are lazy, so the actual loading will happen when the data
+// is accessed).
 var data = loader.Load(dataPath);
 ```
 
@@ -114,7 +119,7 @@ You can also create a data model class, and load the data based on this type.
 private class InspectedRow
 {
     [LoadColumn(0)]
-    public bool IsOver50K { get; set; }
+    public bool Label { get; set; }
 
     [LoadColumn(1)]
     public string Workclass { get; set; }
@@ -124,8 +129,6 @@ private class InspectedRow
 
     [LoadColumn(3)]
     public string MaritalStatus { get; set; }
-
-    public string[] AllFeatures { get; set; }
 }
 
 private class InspectedRowWithAllFeatures : InspectedRow
@@ -144,10 +147,11 @@ var data = mlContext.Data.LoadFromTextFile<InspectedRow>(dataPath,
 ## How do I load data from multiple files?
 
 You can again use the `TextLoader`, and specify an array of files to its Load method.
-The files need to have the same schema (same number and type of columns) 
+The files need to have the same schema (same number and type of columns). Here, we demonstrate
+this using the same file twice.
 
-[Example file1](../../test/data/adult.train):
-[Example file2](../../test/data/adult.test):
+[Example file1](../../test/data/adult.tiny.with-schema.txt):
+[Example file2](../../test/data/adult.tiny.with-schema.txt):
 ```
 Label	Workclass	education	marital-status
 0	Private	11th	Never-married
@@ -163,11 +167,11 @@ This is how you can load this data:
 // Create the loader: define the data columns and where to find them in the text file.
 var loader = mlContext.Data.CreateTextLoader(new[] {
         // A boolean column depicting the 'label'.
-        new TextLoader.Column("IsOver50K", DataKind.BL, 0),
+        new TextLoader.Column("Label", DataKind.Boolean, 0),
         // Three text columns.
-        new TextLoader.Column("Workclass", DataKind.TX, 1),
-        new TextLoader.Column("Education", DataKind.TX, 2),
-        new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
+        new TextLoader.Column("Workclass", DataKind.String, 1),
+        new TextLoader.Column("Education", DataKind.String, 2),
+        new TextLoader.Column("MaritalStatus", DataKind.String, 3)
     },
     // First line of the file is a header, not a data row.
     hasHeader: true
@@ -182,10 +186,10 @@ When the input file contains many columns of the same type, always intended to b
 
 [Example file](../../test/data/generated_regression_dataset.csv):
 ```
--2.75,0.77,-0.61,0.14,1.39,0.38,-0.53,-0.50,-2.13,-0.39,0.46,140.66
--0.61,-0.37,-0.12,0.55,-1.00,0.84,-0.02,1.30,-0.24,-0.50,-2.12,148.12
--0.85,-0.91,1.81,0.02,-0.78,-1.41,-1.09,-0.65,0.90,-0.37,-0.22,402.20
-0.28,1.05,-0.24,0.30,-0.99,0.19,0.32,-0.95,-1.19,-0.63,0.75,443.51
+-2.75;0.77;-0.61;0.14;1.39;0.38;-0.53;-0.50;-2.13;-0.39;0.46;140.66
+-0.61;-0.37;-0.12;0.55;-1.00;0.84;-0.02;1.30;-0.24;-0.50;-2.12;148.12
+-0.85;-0.91;1.81;0.02;-0.78;-1.41;-1.09;-0.65;0.90;-0.37;-0.22;402.20
+0.28;1.05;-0.24;0.30;-0.99;0.19;0.32;-0.95;-1.19;-0.63;0.75;443.51
 ```
 
 Loading this file using `TextLoader`:
@@ -194,21 +198,22 @@ Loading this file using `TextLoader`:
 // Create the loader: define the data columns and where to find them in the text file.
 var loader = mlContext.Data.CreateTextLoader(new[] {
         // We load the first 10 values as a single float vector.
-        new TextLoader.Column("FeatureVector", DataKind.R4, new[] {new TextLoader.Range(0, 10)}),
+        new TextLoader.Column("FeatureVector", DataKind.Single, new[] { new TextLoader.Range(0, 10) }),
         // Separately, load the target variable.
-        new TextLoader.Column("Target", DataKind.R4, 11)
+        new TextLoader.Column("Target", DataKind.Single, 11)
     },
     // Default separator is tab, but we need a comma.
     separatorChar: ',');
 
-// Now load the file (remember though, loaders are lazy, so the actual loading will happen when the data is accessed).
+// Now load the file (remember though, loaders are lazy, so the actual loading will happen when the data
+// is accessed).
 var data = loader.Load(dataPath);
 ```
 
 Or by creating a data model for it:
 
 ```csharp
-private class AdultData
+private class RegressionData
 {
     [LoadColumn(0, 10), ColumnName("Features")]
     public float FeatureVector { get; set;}
@@ -218,7 +223,7 @@ private class AdultData
 }
 
 // Load the data into a data view.
-var trainData = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
+var trainData = mlContext.Data.LoadFromTextFile<RegressionData>(trainDataPath,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';',
                 // First line of the file is a header, not a data row.
@@ -243,13 +248,13 @@ We tried to make `Preview` debugger-friendly: our expectation is that, if you en
 
 Here is the code sample:
 ```csharp
-var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
-    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
+var estimator = mlContext.Transforms.Conversion.MapValueToKey("Label")
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
     .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
 var data = mlContext.Data.LoadFromTextFile(new TextLoader.Column[] {
-    new TextLoader.Column("Label", DataKind.Text, 0),
-    new TextLoader.Column("Features", DataKind.R4, 1, 4) }, filePath);
+    new TextLoader.Column("Label", DataKind.String, 0),
+    new TextLoader.Column("Features", DataKind.Single, 1, 4) }, filePath);
 
 // Preview the data. 
 var dataPreview = data.Preview();
@@ -264,7 +269,7 @@ Oftentimes, when we construct the experiment, we want to make sure that the data
 
 We will need to create the cursor and scan the data to obtain the actual values. One way to do this is to use [schema comprehension](SchemaComprehension.md) and map the data to an `IEnumerable` of user-defined objects.
 
-Another mechanism that lets you inspect the intermediate data is the `GetColumn<T>` extension method. It lets you look at the contents of one column of your data in a form of an `IEnumerable`.
+Another mechanism that lets you inspect the intermediate data is the `GetColumn<T>` extension method. It lets you look at the contents of one column of your data in the form of an `IEnumerable`.
 
 Here is all of this in action:
 
@@ -306,6 +311,45 @@ var someRows = mlContext
 var featureColumns = transformedData.GetColumn<string[]>(transformedData.Schema["AllFeatures"])
 
 ```
+## How do I look at intermediate transformers as they are trained?
+
+We provide a set of `onFit` delegates that allow inspection of the individual transformers as they are trained.
+The following code snippet shows how to use these delegates.
+
+```csharp
+// Create a pipeline to normalize the features and train a binary classifier. We use
+// WithOnFitDelegate for the intermediate binning normalization step, so that we can
+// inspect the properties of the normalizer after fitting.
+NormalizingTransformer binningTransformer = null;
+var pipeline =
+    mlContext.Transforms.NormalizeBinning("Features", maximumBinCount: 3)
+    .WithOnFitDelegate(fittedTransformer => binningTransformer = fittedTransformer)
+    .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression());
+
+Console.WriteLine(binningTransformer == null);
+// Expected Output:
+//   True
+
+var model = pipeline.Fit(data);
+
+// During fitting binningTransformer will get assigned a new value
+Console.WriteLine(binningTransformer == null);
+// Expected Output:
+//   False
+
+// Inspect some of the properties of the binning transformer
+var binningParam = binningTransformer.GetNormalizerModelParameters(0) as 
+    BinNormalizerModelParameters<ImmutableArray<float>>;
+
+for (int i = 0; i < binningParam.UpperBounds.Length; i++)
+{
+    var upperBounds = string.Join(", ", binningParam.UpperBounds[i]);
+    Console.WriteLine(
+        $"Bin {i}: Density = {binningParam.Density[i]}, " +
+        $"Upper-bounds = {upperBounds}");
+}
+```
+
 ## How do I train a regression model?
 
 Generally, in order to train any model in ML.NET, you will go through three steps:
@@ -326,16 +370,18 @@ In the file above, the last column (12th) is label that we predict, and all the 
 ```csharp
 // Step one: load the data as an IDataView.
 // First, we define the loader: specify the data columns and where to find them in the text file.
-// Load the data into a data view. Remember though, loaders are lazy, so the actual loading will happen when the data is accessed.
-var trainData = mlContext.Data.LoadFromTextFile<AdultData>(dataPath,
+// Load the data into a data view. Remember though, loaders are lazy, so the actual loading will
+// happen when the data is accessed.
+var trainData = mlContext.Data.LoadFromTextFile<RegressionData>(dataPath,
     // Default separator is tab, but the dataset has comma.
-    separatorChar: ','
+    separatorChar: ';'
 );
 
-// Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
-// several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
-// User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
-// a caching step, which provides the same caching function, will be inserted in the considered "pipeline."
+// Sometime, caching data in-memory after its first access can save some loading time when the data
+// is going to be used several times somewhere. The caching mechanism is also lazy; it only caches
+// things after being used. User can replace all the subsequently uses of "trainData" with "cachedTrainData".
+// We still use "trainData" because a caching step, which provides the same caching function, will
+// be inserted in the considered "pipeline."
 var cachedTrainData = mlContext.Data.Cache(trainData);
 
 // Step two: define the learning pipeline. 
@@ -371,9 +417,9 @@ Assuming the example above was used to train the model, here's how you calculate
 
 ```csharp
 // Load the test dataset.
-var testData = mlContext.Data.LoadFromTextFile<AdultData>(testDataPath,
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ','
+var testData = mlContext.Data.LoadFromTextFile<RegressionData>(testDataPath,
+    // Default separator is tab, but the dataset has semi-colon.
+    separatorChar: ';'
 );
 // Calculate metrics of the model on the test data.
 var metrics = mlContext.Regression.Evaluate(model.Transform(testData), labelColumnName: "Target");
@@ -422,7 +468,7 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
     .Append(mlContext.Transforms.Conversion.MapKeyToValue("Data", "PredictedLabel"));
 
@@ -456,7 +502,7 @@ The prediction code now looks as follows:
 // Make the prediction function object. Note that, on average, this call takes around 200x longer
 // than one prediction, so you might want to cache and reuse the prediction function, instead of
 // creating one per prediction.
-var predictionFunc = model.CreatePredictionEngine<IrisInput, IrisPrediction>(mlContext);
+var predictionFunc = mlContext.Model.CreatePredictionEngine<IrisInput, IrisPrediction>(model);
 
 // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
 // for simultaneous prediction, make sure each thread is using its own PredictionEngine.
@@ -508,24 +554,20 @@ var trainData = mlContext.Data.LoadFromEnumerable(churnData);
 // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
 var pipeline =
-    // Convert each categorical feature into one-hot encoding independently.
-    mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
+    // Convert the categorical feature 'DemographicCategory' into one-hot encoding.
+    mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategoryOneHot", "DemographicCategory")
     // Convert all categorical features into indices, and build a 'word bag' of these.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingEstimator.OutputKind.Bag))
-    // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
-    .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
+    .Append(mlContext.Transforms.Concatenate("Features", new[] { "DemographicCategoryOneHot", "LastVisits" })
+    .Append(mlContext.BinaryClassification.Trainers.FastTree());
 
 var model = pipeline.Fit(trainData);
 ```
 
 ## I want to look at my model's coefficients
 
-Oftentimes, once a model is trained, we are also interested on 'what it has learned'. 
+Oftentimes, once a model is trained, we are also interested in 'what it has learned'. 
 
 For example, if the linear model assigned zero weight to a feature that we consider important, it could indicate some problem with modeling. The weights of the linear model can also be used as a poor man's estimation of 'feature importance'.
-
-We provide a set of `onFit` delegates that allow introspection of the individual transformers as they are trained.
 
 This is how we can extract the learned parameters out of the model that we trained:
 ```csharp
@@ -546,7 +588,7 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy());
 
 // Train the model.
 var trainedModel = pipeline.Fit(trainData);
@@ -687,7 +729,7 @@ var pipeline =
 var normalizedData = pipeline.Fit(trainData).Transform(trainData);
 
 // Inspect one column of the resulting dataset.
-var meanVarValues = normalizedData.GetColumn<float[]>(normalizedData.Schema["MinMaxNormalized"]).ToArray();
+var minMaxValues = normalizedData.GetColumn<float[]>(normalizedData.Schema["MinMaxNormalized"]).ToArray();
 ```
 
 ## How do I train my model on categorical data?
@@ -701,7 +743,7 @@ If our data contains 'categorical' features (think 'enum'), we need to 'featuriz
 
 If some of the categories are very high-cardinality (there's lots of different values, but only several are commonly occurring), a one-hot encoding can be wasteful. We can use count-based feature selection to trim down the number of slots that we encode.
 
-Same with normalization, it's a good practice to include categorical featurization directly in the ML.NET learning pipeline: this way you are sure that the categorical transformation
+As with normalization, it's a good practice to include categorical featurization directly in the ML.NET learning pipeline: this way you are sure that the categorical transformation
 - is only 'trained' on the training data, and not on your test data,
 - is correctly applied to all the new incoming data, without the need for extra pre-processing at prediction time.
 
@@ -718,13 +760,13 @@ Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	n
 // Define the loader: specify the data columns and where to find them in the text file.
 var loader = mlContext.Data.CreateTextLoader(new[] 
     {
-        new TextLoader.Column("Label", DataKind.BL, 0),
+        new TextLoader.Column("Label", DataKind.Boolean, 0),
         // We will load all the categorical features into one vector column of size 8.
-        new TextLoader.Column("CategoricalFeatures", DataKind.TX, 1, 8),
+        new TextLoader.Column("CategoricalFeatures", DataKind.String, 1, 8),
         // Similarly, load all numerical features into one vector of size 6.
-        new TextLoader.Column("NumericalFeatures", DataKind.R4, 9, 14),
+        new TextLoader.Column("NumericalFeatures", DataKind.Single, 9, 14),
         // Let's also separately load the 'Workclass' column.
-        new TextLoader.Column("Workclass", DataKind.TX, 1),
+        new TextLoader.Column("Workclass", DataKind.String, 1)
     },
     hasHeader: true
 );
@@ -740,10 +782,10 @@ var pipeline =
     // Convert each categorical feature into one-hot encoding independently.
     mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
     // Convert all categorical features into indices, and build a 'word bag' of these.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", CategoricalTransform.OutputKind.Bag))
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingEstimator.OutputKind.Bag))
     // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
     .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
-    .Append(mlContext.Transforms.FeatureSelection.CountFeatureSelectingEstimator("WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
+    .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
 
 // Let's train our pipeline, and then apply it to the same data.
 var transformedData = pipeline.Fit(data).Transform(data);
@@ -797,8 +839,8 @@ Sentiment   SentimentText
 // Define the loader: specify the data columns and where to find them in the text file.
 var loader = mlContext.Data.CreateTextLoader(new[] 
     {
-        new TextLoader.Column("IsToxic", DataKind.BL, 0),
-        new TextLoader.Column("Message", DataKind.TX, 1),
+        new TextLoader.Column("IsToxic", DataKind.Boolean, 0),
+        new TextLoader.Column("Message", DataKind.String, 1),
     },
     hasHeader: true
 );
@@ -818,21 +860,21 @@ var pipeline =
     .Append(mlContext.Transforms.Text.NormalizeText("NormalizedMessage", "Message"))
 
     // NLP pipeline 1: bag of words.
-    .Append(new WordBagEstimator(mlContext, "BagOfWords", "NormalizedMessage"))
+    .Append(mlContext.Transforms.Text.ProduceWordBags("BagOfWords", "NormalizedMessage"))
 
     // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
-    .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
+    .Append(mlContext.Transforms.Text.ProduceHashedWordBags("BagOfBigrams","NormalizedMessage", 
                 ngramLength: 2, useAllLengths: false))
 
     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-    .Append(mlContext.Transforms.Text.ProduceCharactersAsKeys("MessageChars", "Message"))
-    .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
+    .Append(mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("MessageChars", "Message"))
+    .Append(mlContext.Transforms.Text.ProduceNgrams("BagOfTrichar", "MessageChars", 
                 ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
     // NLP pipeline 4: word embeddings.
-    .Append(mlContext.Transforms.Text.ProduceWordTokens("TokenizedMessage", "NormalizedMessage"))
-    .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
+    .Append(mlContext.Transforms.Text.TokenizeIntoWords("TokenizedMessage", "NormalizedMessage"))
+    .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Embeddings", "TokenizedMessage",
+                WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 
 // Let's train our pipeline, and then apply it to the same data.
 // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
@@ -852,7 +894,7 @@ There are a couple pitfalls that await us when we implement our own cross-valida
 - It is tempting to apply the same pre-processing to the entire data, and then just cross-validate the final training of the model. If we do this for data-dependent, 'trainable' pre-processing (like text featurization, categorical handling and normalization/rescaling), we cause these processing steps to 'train' on the union of train subset and test subset, thus causing label leakage. The correct way is to apply pre-processing independently for each 'fold' of the cross-validation.
 - In many cases there is a natural 'grouping' of the data that needs to be respected. For example, if we are solving a click prediction problem, it's a good idea to group all examples pertaining to one URL to appear in one-fold of the data. If they end up separated, we can introduce label leakage.
 
-ML.NET guards us against both these pitfalls: it will automatically apply the featurization correctly (as long as all of the preprocessing resides in one learning pipeline), and we can use the 'stratification column' concept to make sure that related examples don't get separated.
+ML.NET guards us against both these pitfalls: it will automatically apply the featurization correctly (as long as all of the preprocessing resides in one learning pipeline), and we can use the `samplingKeyColumnName` concept to make sure that related examples don't get separated.
 
 Here's an example of training on Iris dataset using randomized 90/10 train-test split, as well as a 5-fold cross-validation:
 ```csharp
@@ -873,7 +915,7 @@ var pipeline =
     // Notice that unused part in the data may not be cached.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCMaximumEntropy());
 
 // Split the data 90:10 into train and test sets, train and evaluate.
 var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
@@ -892,82 +934,6 @@ var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline,
 var microAccuracies = cvResults.Select(r => r.Metrics.AccuracyMicro);
 Console.WriteLine(microAccuracies.Average());
 
-```
-
-## Can I mix and match static and dynamic pipelines?
-
-Yes, we can have both of them in our codebase. The static pipelines are just a statically-typed way to build dynamic pipelines.
-
-Namely, any statically typed component (`DataView<T>`, `Transformer<T>`, `Estimator<T>`) has its dynamic counterpart as an `AsDynamic` property.
-
-Transitioning from dynamic to static types is more costly: we have to formally declare what is the 'schema shape'. Or, in case of estimators and transformers, what is the input and output schema shape. 
-
-We can do this via `AssertStatic<T>` extensions, as demonstrated in the following example, where we mix and match static and dynamic pipelines.
-```csharp
-// Load the data as an IDataView.
-// First, we define the loader: specify the data columns and where to find them in the text file.
-var loader = mlContext.Data.CreateTextLoader(ctx => (
-        // The four features of the Iris dataset.
-        SepalLength: ctx.LoadFloat(0),
-        SepalWidth: ctx.LoadFloat(1),
-        PetalLength: ctx.LoadFloat(2),
-        PetalWidth: ctx.LoadFloat(3),
-        // Label: kind of iris.
-        Label: ctx.LoadText(4)
-    ),
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ',');
-
-// Load the data.
-var data = loader.Load(dataPath);
-
-// Build the pre-processing pipeline.
-var learningPipeline = loader.MakeNewEstimator()
-    .Append(r => (
-        // Convert string label to a key.
-        Label: r.Label.ToKey(),
-        // Concatenate all the features together into one column 'Features'.
-        Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)));
-
-// Now, at the time of writing, there is no static pipeline for OVA (one-versus-all). So, let's
-// append the OVA learner to the pipeline.
-IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
-
-// Create a binary classification trainer.
-var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "Features");
-
-// Append the OVA learner to the pipeline.
-dynamicPipe = dynamicPipe.Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer));
-
-// At this point, we have a choice. We could continue working with the dynamically-typed pipeline, and
-// ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.
-// Here's how we go back to the static pipeline:
-var staticFinalPipe = dynamicPipe.AssertStatic(mlContext,
-        // Declare the shape of the input. As you can see, it's identical to the shape of the loader:
-        // four float features and a string label.
-        c => (
-            SepalLength: c.R4.Scalar,
-            SepalWidth: c.R4.Scalar,
-            PetalLength: c.R4.Scalar,
-            PetalWidth: c.R4.Scalar,
-            Label: c.Text.Scalar),
-        // Declare the shape of the output (or a relevant subset of it).
-        // In our case, we care only about the predicted label column (a key type), and scores (vector of floats).
-        c => (
-            Score: c.R4.Vector,
-            // Predicted label is a key backed by uint, with text values (since original labels are text).
-            PredictedLabel: c.KeyU4.TextValues.Scalar))
-    // Convert the predicted label from key back to the original string value.
-    .Append(r => r.PredictedLabel.ToValue());
-
-// Train the model in a statically typed way.
-var model = staticFinalPipe.Fit(data);
-
-// And here is how we could've stayed in the dynamic pipeline and train that way.
-dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(mlContext, "PredictedLabel"));
-var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
-
-// Now 'dynamicModel', and 'model.AsDynamic' are equivalent.
 ```
 
 ## How can I define my own transformation of data?

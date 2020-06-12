@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     /// Class for scorers that compute on additional "PredictedLabel" column from the score column.
     /// Currently, this scorer is used for binary classification, multi-class classification, and clustering.
     /// </summary>
-    internal abstract class PredictedLabelScorerBase : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
+    internal abstract class PredictedLabelScorerBase : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx, IDisposable
     {
         public abstract class ThresholdArgumentsBase : ScorerArgumentsBase
         {
@@ -31,6 +31,9 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected sealed class BindingsImpl : BindingsBase
         {
+            private static readonly FuncStaticMethodInfo1<DataViewSchema.Annotations, DataViewSchema.Column, DataViewSchema.Annotations> _keyValueMetadataFromMetadataMethodInfo
+                = new FuncStaticMethodInfo1<DataViewSchema.Annotations, DataViewSchema.Column, DataViewSchema.Annotations>(KeyValueMetadataFromMetadata<int>);
+
             // Column index of the score column in Mapper's schema.
             public readonly int ScoreColumnIndex;
             // The type of the derived column.
@@ -42,8 +45,8 @@ namespace Microsoft.ML.Data
             private readonly AnnotationUtils.AnnotationGetter<ReadOnlyMemory<char>> _getScoreValueKind;
             private readonly DataViewSchema.Annotations _predColMetadata;
             private BindingsImpl(DataViewSchema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
-                bool user, int scoreColIndex, DataViewType predColType)
-                : base(input, mapper, suffix, user, DefaultColumnNames.PredictedLabel)
+                bool user, int scoreColIndex, DataViewType predColType, string predictedLabelColumnName = DefaultColumnNames.PredictedLabel)
+                : base(input, mapper, suffix, user, predictedLabelColumnName)
             {
                 Contracts.AssertNonEmpty(scoreColumnKind);
                 Contracts.Assert(DerivedColumnCount == 1);
@@ -66,7 +69,7 @@ namespace Microsoft.ML.Data
                     if (trainLabelColumn?.Type is VectorDataViewType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
                     {
                         Contracts.Assert(trainLabelColVecType.Size > 0);
-                        _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,
+                        _predColMetadata = Utils.MarshalInvoke(_keyValueMetadataFromMetadataMethodInfo, trainLabelColVecType.RawType,
                             scoreColMetadata, trainLabelColumn.Value);
                     }
                 }
@@ -82,7 +85,7 @@ namespace Microsoft.ML.Data
             }
 
             public static BindingsImpl Create(DataViewSchema input, ISchemaBoundRowMapper mapper, string suffix,
-                string scoreColKind, int scoreColIndex, DataViewType predColType)
+                string scoreColKind, int scoreColIndex, DataViewType predColType, string predictedLabelColumnName = DefaultColumnNames.PredictedLabel)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(mapper);
@@ -90,7 +93,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertNonEmpty(scoreColKind);
 
                 return new BindingsImpl(input, mapper, suffix, scoreColKind, true,
-                    scoreColIndex, predColType);
+                    scoreColIndex, predColType, predictedLabelColumnName);
             }
 
             public BindingsImpl ApplyToSchema(DataViewSchema input, ISchemaBindableMapper bindable, IHostEnvironment env)
@@ -272,7 +275,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected PredictedLabelScorerBase(ScorerArgumentsBase args, IHostEnvironment env, IDataView data,
             ISchemaBoundMapper mapper, RoleMappedSchema trainSchema, string registrationName, string scoreColKind, string scoreColName,
-            Func<DataViewType, bool> outputTypeMatches, Func<DataViewType, ISchemaBoundRowMapper, DataViewType> getPredColType)
+            Func<DataViewType, bool> outputTypeMatches, Func<DataViewType, ISchemaBoundRowMapper, DataViewType> getPredColType, string predictedLabelColumnName = DefaultColumnNames.PredictedLabel)
             : base(env, data, registrationName, Contracts.CheckRef(mapper, nameof(mapper)).Bindable)
         {
             Host.CheckValue(args, nameof(args));
@@ -292,7 +295,7 @@ namespace Microsoft.ML.Data
             Host.Check(outputTypeMatches(scoreType), "Unexpected predictor output type");
             var predColType = getPredColType(scoreType, rowMapper);
 
-            Bindings = BindingsImpl.Create(data.Schema, rowMapper, args.Suffix, scoreColKind, scoreColIndex, predColType);
+            Bindings = BindingsImpl.Create(data.Schema, rowMapper, args.Suffix, scoreColKind, scoreColIndex, predColType, predictedLabelColumnName);
             OutputSchema = Bindings.AsSchema;
         }
 
@@ -373,7 +376,7 @@ namespace Microsoft.ML.Data
             {
                 int colIndex = Bindings.MapIinfoToCol(iinfo);
                 string colName = Bindings.GetColumnName(colIndex);
-                colName = ctx.AddIntermediateVariable(Bindings.GetColumnType(colIndex), colName, true);
+                colName = ctx.AddIntermediateVariable(Bindings.GetColumnType(colIndex), colName, false);
                 outVariableNames[iinfo] = colName;
             }
 
@@ -435,5 +438,20 @@ namespace Microsoft.ML.Data
                 cachedPosition = boundRow.Position;
             }
         }
+
+        #region IDisposable Support
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            (Bindings.RowMapper as IDisposable)?.Dispose();
+            (Bindable as IDisposable)?.Dispose();
+
+            _disposed = true;
+        }
+        #endregion
     }
 }

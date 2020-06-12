@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ch.Info("beta: {0}", beta);
             VectorUtils.MutiplyInPlace(previousDk, beta);
             VectorUtils.AddInPlace(previousDk, _currentGradient);
-            _currentDk = previousDk; // Reallay no-op opration
+            _currentDk = previousDk; // Really no-op operation
 
             // We know that LeastSquaresRegressionTreeLearner does not destroy gradients so we can return our reference that we will need in next iter.
             if (TreeLearner is LeastSquaresRegressionTreeLearner)

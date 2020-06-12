@@ -1,0 +1,240 @@
+﻿I4: // Basic
+x => x + 1
+#
+    3
+    5
+    -2
+    ?
+    2147483647
+    -2147483647
+$
+I8: // Basic
+x => x + 1
+#
+    3
+    5
+    -2
+    ?
+    9223372036854775807
+    -9223372036854775807
+$
+R4: // Basic
+x => x + 1
+#
+    3
+    5.25
+    -2.5
+    ?
+    1e30
+$
+R8: // Basic
+x => x + 1
+#
+    3
+    5.25
+    -2.5
+    ?
+    1e30
+$
+R4:
+x => 10 ^ x
+#
+    2
+    0.5
+    ?
+    30
+$
+R8:
+x => 10 ^ x
+#
+    2
+    0.5
+    ?
+    30
+$
+I4: // Expected EOF
+x => x + 1 foo
+$
+I4: // A bogus token
+x => "hello
+$
+I4: x => 3 /* Unterminated comment
+$
+I4: // Operator expected
+x => 3 x
+$
+I4: x => 1 < x >= -7
+$
+I4: // TokEat
+x : abs(-x
+$
+I4: // ParseParam
+( ) => 123
+$
+I4: x 123
+$
+I4: (x) 123
+$
+I4: x => 5 * (x + 2
+$
+I8: // Overflow
+x => 9223372036854775808
+$
+I4: // Missing primary
+x : 3 * + x
+$
+I4: // Empty list
+x => abs() +
+  // Multiple list items
+  abs(-3, true)
+$
+I4: // Peek past comment
+x => abs /*comment*/ ( /*comment*/ -x /*comment*/ )
+#
+    3
+    -3
+    ?
+$
+I4: // Peek past newline
+x => abs
+(
+-12
+)
+#
+    3
+    ?
+$
+I4: // Operator expected
+x => 0 true
+$
+I4: // Stringize ident
+x => x > 0 ? 3 xyz
+$
+I4,I4: // Multiple args
+(x,y) => x + y
+#
+    3,5
+    5,3
+    ?,5
+    3,?
+    2000000000,147483647
+    2000000000,147483648
+    147483648,2000000000
+    -2000000000,-147483647
+    -2000000000,-147483648
+    -147483648,-2000000000
+$
+I4,I4: // Too many params
+(x,y,z) => x + y + z
+$
+I4,I4,I4: // Too few params
+(x,y) => x + y
+$
+I4,I4,I4,I4:
+(a,b,c,d) => a + b * c / d
+#
+    -1,3,4,2
+    -1,3,4,5
+$
+I4,I4,I4,I4:
+(a,b,c,d) => a + b ^ c * d
+#
+    -1,3,4,2
+    -1,3,4,5
+$
+I4,I4,I4,I4:
+(a,b,c,d) => a + b ^ c % d
+#
+    -1,3,4,13
+    -1,3,4,7
+$
+I4,I4,I4,I4:
+(a,b,c,d) => a + b ^ c - d
+#
+    -1,3,4,2
+    -1,3,4,5
+$
+I4,I4,I4,I4:
+(a,b,c,d) => a + 2 == b || b + 2 != c && c - 2 < d
+#
+    -1,3,4,2
+    -1,3,4,5
+$
+I4: // NA
+x => single(x - 5) ?? 3
+#
+    ?
+    2
+    NA
+$
+I4: // not
+x => not (x == 3)
+#
+    ?
+    7
+    3
+$
+I4: // CharLit - error
+x => x == 'x'
+$
+I4: x => with(y = x; y)
+#
+    0
+    17
+    -2
+    ?
+$
+I4: x => with y = x; y)
+$
+I4: x => with(  = x; y)
+$
+I4: x => with(y   x; y)
+$
+I4: x => with(y =  ; y)
+$
+I4: x => with(y = x  y)
+$
+I4: x => with(y = x;  )
+$
+I4: x => with(y = x; y 
+$
+I4: x => with(y = x + 1, z = y + 1; z)
+#
+    0
+    17
+    -2
+    ?
+$
+I4:
+x => with(y = x, z = x + 1; concat(text(x)??"?", "|", text(y)??"?", "|", text(z)??"?"))
+#
+    0
+    17
+    -2
+    ?
+$
+BL: x => false || x;
+$
+I4:
+x => global.sign(x)
+#
+    -17
+    0
+    12
+    ?
+$
+I4:
+x => global.x
+$
+TX: x => left(_chars(concat(x, "A\nB", x)), 2)
+#
+    X
+$
+TX: x => right(_chars(concat(x, "A\rB", x)), -2)
+#
+    X
+$
+TX: x => left(_chars(concat(x, "A\r\nB", x)), 2)
+#
+    X
+$

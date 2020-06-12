@@ -8,7 +8,7 @@ using System.Linq;
 namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
-    /// This class defines a psuedorandom function, mapping a number to
+    /// This class defines a pseudo-random function, mapping a number to
     /// a hard to predict but deterministic other number, through some
     /// nefarious means.
     /// </summary>

@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <LangVersion>7.2</LangVersion>
     <GenerateProgramFile>false</GenerateProgramFile>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <!--
     work around https://github.com/dotnet/sdk/issues/3044
     The netfx configuration will set the RuntimeIdentifier, but this causes restore issues on 3.0.
@@ -29,5 +28,11 @@
   
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

@@ -125,7 +125,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             using (var fs = File.OpenRead(modelAndSchemaPath))
                 transformerChain = ML.Model.Load(fs, out var schema);
 
-            var lastTransformer = ((TransformerChain<ITransformer>)transformerChain).LastTransformer as BinaryPredictionTransformer<ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>>;
+            var lastTransformer = ((TransformerChain<ITransformer>)transformerChain).LastTransformer as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
             var model = lastTransformer.Model;
 
             linearModel = model.SubModel as LinearBinaryModelParameters;
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             using (FileStream fs = File.OpenRead(dropModelPath))
             {
-                var result = ModelFileUtils.LoadPredictorOrNull(Env, fs) as ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>;
+                var result = ModelFileUtils.LoadPredictorOrNull(Env, fs) as CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>;
                 var subPredictor = result?.SubModel as LinearBinaryModelParameters;
                 var stats = subPredictor?.Statistics;
 
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCore]
+        [Fact]
         public void TestMLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
@@ -198,8 +198,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var stats = modelParams.Statistics;
                 Assert.NotNull(stats);
 
+#if NETCOREAPP3_1
+                CompareNumbersWithTolerance(stats.Deviance, 45.79, digitsOfPrecision: 2);
+                CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
+#else
                 CompareNumbersWithTolerance(stats.Deviance, 45.35, digitsOfPrecision: 2);
                 CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
+#endif
                 //Assert.Equal(14, stats.ParametersCount);
                 Assert.Equal(150, stats.TrainingExampleCount);
             };

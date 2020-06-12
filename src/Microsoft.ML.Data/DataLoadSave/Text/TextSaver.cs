@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data.IO
 
             // REVIEW: This and the corresponding BinarySaver option should be removed,
             // with the silence being handled, somehow, at the environment level. (Task 6158846.)
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Suppress any info output (not warnings or errors)", Hide = true)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Suppress any info output (not warnings or errors)", Hide = true)]
             public bool Silent;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output the comment containing the loader settings", ShortName = "schema")]
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Data.IO
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else
-                    Conv = Conversions.Instance.GetStringConversion<T>(type);
+                    Conv = Conversions.DefaultInstance.GetStringConversion<T>(type);
 
                 var d = default(T);
                 Conv(in d, ref Sb);
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Data.IO
                 for (; ichCur < ichLim; ichCur++)
                 {
                     char ch = span[ichCur];
-                    if (ch != '"' && ch != sep && ch != ':')
+                    if (ch != '"' && ch != sep && ch != ':' && ch != '\n')
                         continue;
                     if (!quoted)
                     {

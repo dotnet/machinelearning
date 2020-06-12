@@ -19,6 +19,9 @@ namespace Microsoft.ML.Data.Commands
 {
     internal sealed class TypeInfoCommand : ICommand
     {
+        private static readonly FuncInstanceMethodInfo1<TypeInfoCommand, IChannel, PrimitiveDataViewType, TypeNaInfo> _kindReportMethodInfo
+            = FuncInstanceMethodInfo1<TypeInfoCommand, IChannel, PrimitiveDataViewType, TypeNaInfo>.Create(target => target.KindReport<int>);
+
         internal const string LoadName = "TypeInfo";
         internal const string Summary = "Displays information about the standard primitive " +
             "non-key types, and conversions between them.";
@@ -76,7 +79,7 @@ namespace Microsoft.ML.Data.Commands
         {
             using (var ch = _host.Start("Run"))
             {
-                var conv = Conversions.Instance;
+                var conv = Conversions.DefaultInstance;
                 var comp = new SetOfKindsComparer();
                 var dstToSrcMap = new Dictionary<HashSet<InternalDataKind>, HashSet<InternalDataKind>>(comp);
                 var srcToDstMap = new Dictionary<InternalDataKind, HashSet<InternalDataKind>>();
@@ -89,7 +92,7 @@ namespace Microsoft.ML.Data.Commands
                 for (int i = 0; i < types.Length; ++i)
                 {
                     ch.AssertValue(types[i]);
-                    var info = Utils.MarshalInvoke(KindReport<int>, types[i].RawType, ch, types[i]);
+                    var info = Utils.MarshalInvoke(_kindReportMethodInfo, this, types[i].RawType, ch, types[i]);
 
                     var dstKinds = new HashSet<InternalDataKind>();
                     Delegate del;
@@ -140,7 +143,7 @@ namespace Microsoft.ML.Data.Commands
             ch.AssertValue(type);
             ch.Assert(type.IsStandardScalar());
 
-            var conv = Conversions.Instance;
+            var conv = Conversions.DefaultInstance;
             InPredicate<T> isNaDel;
             bool hasNaPred = conv.TryGetIsNAPredicate(type, out isNaDel);
             bool defaultIsNa = false;

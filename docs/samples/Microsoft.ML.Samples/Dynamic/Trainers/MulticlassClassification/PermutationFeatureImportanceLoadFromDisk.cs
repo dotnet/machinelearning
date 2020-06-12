@@ -57,7 +57,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Now let's look at which features are most important to the model
             // overall. Get the feature indices sorted by their impact on
-            // microaccuracy.
+            // micro-accuracy.
             var sortedIndices = permutationMetrics
                 .Select((metrics, index) => new { index, metrics.MicroAccuracy })
                 .OrderByDescending(feature => Math.Abs(feature.MicroAccuracy.Mean))

@@ -36,11 +36,11 @@ namespace Microsoft.ML.Trainers.FastTree
             trainingScores.XK = xk;
 
             if (tree == null)
-                return null; // No tree was actually learnt. Give up.
+                return null; // No tree was actually learned. Give up.
 
             // ... and update the training scores that we omitted from update
             // in AcceleratedGradientDescent.UpdateScores
-            // Here we could use faster way of comuting train scores taking advantage of scores precompited by LineSearch
+            // Here we could use faster way of computing train scores taking advantage of scores precomputed by LineSearch
             // But that would make the code here even more difficult/complex
             trainingScores.AddScores(tree, TreeLearner.Partitioning, 1.0);
 

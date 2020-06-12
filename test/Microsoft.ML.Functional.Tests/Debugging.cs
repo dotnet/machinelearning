@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class Debugging : BaseTestClass
+    public class Debugging : FunctionalTestBaseClass
     {
         public Debugging(ITestOutputHelper output) : base(output)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Functional.Tests
         /// float vector {3:1, 25:1, 203:1, 511:1}, etc. etc.
         /// </remarks>
         [Fact]
-        void InspectIntermediatePipelineSteps()
+        public void InspectIntermediatePipelineSteps()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(DataDir, TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Define a pipeline
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(DataDir, TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Verify the column names.
             int i = 0;
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Functional.Tests
             mlContext.Log += logWatcher.ObserveEvent;
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(DataDir, TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Define a pipeline
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -186,26 +186,23 @@ namespace Microsoft.ML.Functional.Tests
                 @"[Source=SdcaTrainerBase; Training, Kind=Info] Using best model from iteration 7."};
             foreach (var line in expectedLines)
             {
-                Assert.Contains(line, logWatcher.Lines);
+                Assert.Contains(line, logWatcher.Lines as IReadOnlyDictionary<string, int>);
                 Assert.Equal(1, logWatcher.Lines[line]);
             }
         }
 
         internal class LogWatcher {
 
-            public readonly IDictionary<string, int> Lines;
+            public readonly ConcurrentDictionary<string, int> Lines;
 
             public LogWatcher()
             {
-                Lines = new Dictionary<string, int>();
+                Lines = new ConcurrentDictionary<string, int>();
             }
             
             public void ObserveEvent(object sender, LoggingEventArgs e)
             {
-                if (Lines.ContainsKey(e.Message))
-                    Lines[e.Message]++;
-                else
-                    Lines[e.Message] = 1;
+                Lines.AddOrUpdate(e.Message, 1, (key, oldValue) => oldValue + 1);
             }
         }
     }

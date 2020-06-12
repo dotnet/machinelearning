@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.ML.Dnn/Microsoft.ML.Dnn.nupkgproj" />
+    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindows)" />
+    <PackageReference Include="TensorFlow.NET" Version="$(TensorflowDotNETVersion)" />
+    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
   </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML.Runtime;
+using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.ML.Trainers.LightGbm
 {
@@ -66,6 +67,20 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         #region API Dataset
 
+        public sealed class SafeDataSetHandle : SafeHandleZeroOrMinusOneIsInvalid
+        {
+            private SafeDataSetHandle()
+                : base(true)
+            {
+            }
+
+            protected override bool ReleaseHandle()
+            {
+                LightGbmInterfaceUtils.Check(DatasetFree(handle));
+                return true;
+            }
+        }
+
         [DllImport(DllName, EntryPoint = "LGBM_DatasetCreateFromSampledColumn", CallingConvention = CallingConvention.StdCall)]
         public static extern int DatasetCreateFromSampledColumn(IntPtr sampleValuePerColumn,
             IntPtr sampleIndicesPerColumn,
@@ -74,22 +89,22 @@ namespace Microsoft.ML.Trainers.LightGbm
             int numSampleRow,
             int numTotalRow,
             [MarshalAs(UnmanagedType.LPStr)]string parameters,
-            ref IntPtr ret);
+            out SafeDataSetHandle ret);
 
         [DllImport(DllName, EntryPoint = "LGBM_DatasetCreateByReference", CallingConvention = CallingConvention.StdCall)]
-        public static extern int DatasetCreateByReference(IntPtr reference,
+        public static extern int DatasetCreateByReference(SafeDataSetHandle reference,
             long numRow,
-            ref IntPtr ret);
+            out SafeDataSetHandle ret);
 
         [DllImport(DllName, EntryPoint = "LGBM_DatasetPushRows", CallingConvention = CallingConvention.StdCall)]
-        private static extern int DatasetPushRows(IntPtr dataset,
+        private static extern int DatasetPushRows(SafeDataSetHandle dataset,
             float[] data,
             CApiDType dataType,
             int numRow,
             int numCol,
             int startRowIdx);
 
-        public static int DatasetPushRows(IntPtr dataset,
+        public static int DatasetPushRows(SafeDataSetHandle dataset,
             float[] data,
             int numRow,
             int numCol,
@@ -99,7 +114,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         [DllImport(DllName, EntryPoint = "LGBM_DatasetPushRowsByCSR", CallingConvention = CallingConvention.StdCall)]
-        private static extern int DatasetPushRowsByCsr(IntPtr dataset,
+        private static extern int DatasetPushRowsByCsr(SafeDataSetHandle dataset,
             int[] indPtr,
             CApiDType indPtrType,
             int[] indices,
@@ -110,7 +125,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             long numCol,
             long startRowIdx);
 
-        public static int DatasetPushRowsByCsr(IntPtr dataset,
+        public static int DatasetPushRowsByCsr(SafeDataSetHandle dataset,
             int[] indPtr,
             int[] indices,
             float[] data,
@@ -126,39 +141,53 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         [DllImport(DllName, EntryPoint = "LGBM_DatasetFree", CallingConvention = CallingConvention.StdCall)]
-        public static extern int DatasetFree(IntPtr handle);
+        private static extern int DatasetFree(IntPtr handle);
 
         [DllImport(DllName, EntryPoint = "LGBM_DatasetSetField", CallingConvention = CallingConvention.StdCall)]
         public static extern int DatasetSetField(
-            IntPtr handle,
+            SafeDataSetHandle handle,
             [MarshalAs(UnmanagedType.LPStr)]string field,
             IntPtr array,
             int len,
             CApiDType type);
 
         [DllImport(DllName, EntryPoint = "LGBM_DatasetGetNumData", CallingConvention = CallingConvention.StdCall)]
-        public static extern int DatasetGetNumData(IntPtr handle, ref int res);
+        public static extern int DatasetGetNumData(SafeDataSetHandle handle, ref int res);
 
         [DllImport(DllName, EntryPoint = "LGBM_DatasetGetNumFeature", CallingConvention = CallingConvention.StdCall)]
-        public static extern int DatasetGetNumFeature(IntPtr handle, ref int res);
+        public static extern int DatasetGetNumFeature(SafeDataSetHandle handle, ref int res);
 
         #endregion
 
         #region API Booster
 
+        public sealed class SafeBoosterHandle : SafeHandleZeroOrMinusOneIsInvalid
+        {
+            private SafeBoosterHandle()
+                : base(true)
+            {
+            }
+
+            protected override bool ReleaseHandle()
+            {
+                LightGbmInterfaceUtils.Check(BoosterFree(handle));
+                return true;
+            }
+        }
+
         [DllImport(DllName, EntryPoint = "LGBM_BoosterCreate", CallingConvention = CallingConvention.StdCall)]
-        public static extern int BoosterCreate(IntPtr trainset,
+        public static extern int BoosterCreate(SafeDataSetHandle trainset,
             [MarshalAs(UnmanagedType.LPStr)]string param,
-            ref IntPtr res);
+            out SafeBoosterHandle res);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterFree", CallingConvention = CallingConvention.StdCall)]
-        public static extern int BoosterFree(IntPtr handle);
+        private static extern int BoosterFree(IntPtr handle);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterAddValidData", CallingConvention = CallingConvention.StdCall)]
-        public static extern int BoosterAddValidData(IntPtr handle, IntPtr validset);
+        public static extern int BoosterAddValidData(SafeBoosterHandle handle, SafeDataSetHandle validset);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterSaveModelToString", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe int BoosterSaveModelToString(IntPtr handle,
+        public static extern unsafe int BoosterSaveModelToString(SafeBoosterHandle handle,
             int startIteration,
             int numIteration,
             int bufferLen,
@@ -170,20 +199,20 @@ namespace Microsoft.ML.Trainers.LightGbm
         #region API train
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterUpdateOneIter", CallingConvention = CallingConvention.StdCall)]
-        public static extern int BoosterUpdateOneIter(IntPtr handle, ref int isFinished);
+        public static extern int BoosterUpdateOneIter(SafeBoosterHandle handle, ref int isFinished);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterGetEvalCounts", CallingConvention = CallingConvention.StdCall)]
-        public static extern int BoosterGetEvalCounts(IntPtr handle, ref int outLen);
+        public static extern int BoosterGetEvalCounts(SafeBoosterHandle handle, ref int outLen);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterGetEval", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe int BoosterGetEval(IntPtr handle, int dataIdx,
+        public static extern unsafe int BoosterGetEval(SafeBoosterHandle handle, int dataIdx,
                                  ref int outLen, double* outResult);
 
         #endregion
 
         #region API predict
         [DllImport(DllName, EntryPoint = "LGBM_BoosterPredictForMat", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe int BoosterPredictForMat(IntPtr handle, IntPtr data, CApiDType dataType, int nRow, int nCol, int isRowMajor,
+        public static extern unsafe int BoosterPredictForMat(SafeBoosterHandle handle, IntPtr data, CApiDType dataType, int nRow, int nCol, int isRowMajor,
             int predictType, int numIteration, [MarshalAs(UnmanagedType.LPStr)]string parameters, ref int outLen, double* outResult);
         #endregion
 

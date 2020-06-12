@@ -19,14 +19,13 @@ namespace Microsoft.ML.Trainers.LightGbm
         private readonly bool _hasValid;
         private readonly bool _hasMetric;
 
-        public IntPtr Handle { get; private set; }
+        public WrappedLightGbmInterface.SafeBoosterHandle Handle { get; private set; }
         public int BestIteration { get; set; }
 
         public Booster(Dictionary<string, object> parameters, Dataset trainset, Dataset validset = null)
         {
             var param = LightGbmInterfaceUtils.JoinParameters(parameters);
-            var handle = IntPtr.Zero;
-            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterCreate(trainset.Handle, param, ref handle));
+            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterCreate(trainset.Handle, param, out var handle));
             Handle = handle;
             if (validset != null)
             {
@@ -180,7 +179,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 for (int k = 0; k < 32; ++k)
                 {
                     int cat = (j - lowerBound) * 32 + k;
-                    if (FindInBitset(catThreshold, lowerBound, upperBound, cat) && cat > 0)
+                    if (FindInBitset(catThreshold, lowerBound, upperBound, cat))
                         cats.Add(cat);
                 }
             }
@@ -240,7 +239,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                                     categoricalSplitFeatures[node] = new int[cats.Length];
                                     // Convert Cat thresholds to feature indices.
                                     for (int j = 0; j < cats.Length; ++j)
-                                        categoricalSplitFeatures[node][j] = splitFeature[node] + cats[j] - 1;
+                                        categoricalSplitFeatures[node][j] = splitFeature[node] + cats[j];
 
                                     splitFeature[node] = -1;
                                     categoricalSplit[node] = true;
@@ -284,9 +283,8 @@ namespace Microsoft.ML.Trainers.LightGbm
         #region IDisposable Support
         public void Dispose()
         {
-            if (Handle != IntPtr.Zero)
-                LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterFree(Handle));
-            Handle = IntPtr.Zero;
+            Handle?.Dispose();
+            Handle = null;
         }
         #endregion
     }

@@ -93,7 +93,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             [VectorType(featureLength)]
             public float[] Field1 { get; set; }
 
-            // Features from the thrid field. 
+            // Features from the third field. 
             [VectorType(featureLength)]
             public float[] Field2 { get; set; }
         }

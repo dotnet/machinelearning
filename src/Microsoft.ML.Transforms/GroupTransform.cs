@@ -392,6 +392,9 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private sealed class GroupKeyColumnChecker
             {
+                private static readonly FuncStaticMethodInfo1<DataViewRow, int, Func<bool>> _makeSameCheckerMethodInfo
+                    = new FuncStaticMethodInfo1<DataViewRow, int, Func<bool>>(MakeSameChecker<int>);
+
                 public readonly Func<bool> IsSameKey;
 
                 private static Func<bool> MakeSameChecker<T>(DataViewRow row, int col)
@@ -425,9 +428,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.AssertValue(row);
                     var type = row.Schema[col].Type;
 
-                    Func<DataViewRow, int, Func<bool>> del = MakeSameChecker<int>;
-                    var mi = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
-                    IsSameKey = (Func<bool>)mi.Invoke(null, new object[] { row, col });
+                    IsSameKey = Utils.MarshalInvoke(_makeSameCheckerMethodInfo, type.RawType, row, col);
                 }
             }
 

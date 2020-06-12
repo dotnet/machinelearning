@@ -171,7 +171,7 @@ namespace Microsoft.ML.Transforms
                 int processedCnt = 0;
                 int nextFeatureIndex = 0;
                 var shuffleRand = RandomUtils.Create(host.Rand.Next());
-                using (var pch = host.StartProgressChannel("SDCA preprocessing with lookup"))
+                using (var pch = host.StartProgressChannel("Calculating Permutation Feature Importance"))
                 {
                     pch.SetHeader(new ProgressHeader("processed slots"), e => e.SetProgress(0, processedCnt));
                     foreach (var workingIndx in workingFeatureIndices)

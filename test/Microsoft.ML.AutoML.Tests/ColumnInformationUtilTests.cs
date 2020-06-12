@@ -3,13 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class ColumnInformationUtilTests
+    public class ColumnInformationUtilTests : BaseTestClass
     {
+        public ColumnInformationUtilTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void GetColumnPurpose()
         {
@@ -18,6 +24,8 @@ namespace Microsoft.ML.AutoML.Test
                 LabelColumnName = "Label",
                 ExampleWeightColumnName = "Weight",
                 SamplingKeyColumnName = "SamplingKey",
+                UserIdColumnName = "UserId",
+                ItemIdColumnName = "MovieId"
             };
             columnInfo.CategoricalColumnNames.Add("Cat");
             columnInfo.NumericColumnNames.Add("Num");
@@ -27,6 +35,8 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(ColumnPurpose.Label, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Label"));
             Assert.Equal(ColumnPurpose.Weight, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Weight"));
             Assert.Equal(ColumnPurpose.SamplingKey, ColumnInformationUtil.GetColumnPurpose(columnInfo, "SamplingKey"));
+            Assert.Equal(ColumnPurpose.UserId, ColumnInformationUtil.GetColumnPurpose(columnInfo, "UserId"));
+            Assert.Equal(ColumnPurpose.ItemId, ColumnInformationUtil.GetColumnPurpose(columnInfo, "MovieId"));
             Assert.Equal(ColumnPurpose.CategoricalFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Cat"));
             Assert.Equal(ColumnPurpose.NumericFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Num"));
             Assert.Equal(ColumnPurpose.TextFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Text"));
@@ -41,14 +51,18 @@ namespace Microsoft.ML.AutoML.Test
             {
                 LabelColumnName = "Label",
                 SamplingKeyColumnName = "SamplingKey",
+                UserIdColumnName = "UserId",
+                ItemIdColumnName = "MovieId"
             };
             columnInfo.CategoricalColumnNames.Add("Cat1");
             columnInfo.CategoricalColumnNames.Add("Cat2");
             columnInfo.NumericColumnNames.Add("Num");
             var columnNames = ColumnInformationUtil.GetColumnNames(columnInfo);
-            Assert.Equal(5, columnNames.Count());
+            Assert.Equal(7, columnNames.Count());
             Assert.Contains("Label", columnNames);
             Assert.Contains("SamplingKey", columnNames);
+            Assert.Contains("UserId", columnNames);
+            Assert.Contains("MovieId", columnNames);
             Assert.Contains("Cat1", columnNames);
             Assert.Contains("Cat2", columnNames);
             Assert.Contains("Num", columnNames);

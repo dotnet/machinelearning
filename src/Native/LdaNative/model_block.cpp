@@ -353,12 +353,12 @@ namespace lda
         cout << "alias_mem_block_size = " << sizeof(alias_mem_block_size_) << endl;
     }
 
-    void LDAModelBlock::InitFromDataBlock(const LDADataBlock *data_block, int32_t num_vocabs, int32_t num_topics)
+    void LDAModelBlock::InitFromDataBlock(const LDADataBlock &data_block, int32_t num_vocabs, int32_t num_topics)
     {
         num_vocabs_ = num_vocabs;
         num_topics_ = num_topics;
 
-        int32_t doc_num = data_block->num_documents();
+        int32_t doc_num = data_block.num_documents();
         dict_ = new WordEntry[num_vocabs_];
         for (int i = 0; i < num_vocabs_; ++i)
         {
@@ -367,7 +367,7 @@ namespace lda
 
         for (int i = 0; i < doc_num; ++i)
         {
-            shared_ptr<LDADocument> doc = data_block->GetOneDoc(i);
+            shared_ptr<LDADocument> doc = data_block.GetOneDoc(i);
             int32_t doc_size = doc->size();
             for (int j = 0; j < doc_size; ++j)
             {

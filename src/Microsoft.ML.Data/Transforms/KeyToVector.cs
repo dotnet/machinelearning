@@ -606,16 +606,11 @@ namespace Microsoft.ML.Transforms
                     ColInfo info = _infos[iinfo];
                     string inputColumnName = info.InputColumnName;
                     if (!ctx.ContainsColumn(inputColumnName))
-                    {
-                        ctx.RemoveColumn(info.Name, false);
                         continue;
-                    }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
-                        ctx.AddIntermediateVariable(_types[iinfo], info.Name)))
-                    {
-                        ctx.RemoveColumn(info.Name, true);
-                    }
+                    var srcVariableName = ctx.GetVariableName(inputColumnName);
+                    var dstVariableName = ctx.AddIntermediateVariable(_types[iinfo], info.Name);
+                    SaveAsOnnxCore(ctx, iinfo, info, srcVariableName, dstVariableName);
                 }
             }
 
@@ -692,32 +687,36 @@ namespace Microsoft.ML.Transforms
                     PfaUtils.Call("cast.fanoutDouble", -1, 0, keyCount, false), PfaUtils.FuncRef("u." + funcName));
             }
 
-            private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                var shape = ctx.RetrieveShapeOrNull(srcVariableName);
-                // Make sure that shape must present for calculating the reduction axes. The shape here is generally not null
-                // because inputs and outputs of a transform are declared with shapes.
-                Contracts.CheckValue(shape, nameof(shape));
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
-                // If Bag is true, the output of ONNX LabelEncoder needs to be fed into ONNX ReduceSum because
-                // default ONNX LabelEncoder just matches the behavior of Bag=false.
-                var encodedVariableName = _parent._columns[iinfo].OutputCountVector ? ctx.AddIntermediateVariable(null, "encoded", true) : dstVariableName;
+                var dim = info.TypeSrc.GetValueCount();
 
-                string opType = "OneHotEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host)).Select(x => (long)x));
+                string opType = "Cast";
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, dim), opType);
+                var castNode = ctx.CreateNode(opType, srcVariableName, castOutput, ctx.GetNodeName(opType), "");
+                castNode.AddAttribute("to", typeof(long));
+
+                opType = "OneHotEncoder";
+                var isOutputCountVector = _parent._columns[iinfo].OutputCountVector;
+                var categoryRange = info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
+                var typeShape = new VectorDataViewType(NumberDataViewType.Single, dim, categoryRange);
+
+                var encodedVariableName = (isOutputCountVector && info.TypeSrc is VectorDataViewType) ?
+                    ctx.AddIntermediateVariable(typeShape, "encoded") : dstVariableName;
+                var node = ctx.CreateNode(opType, castOutput, encodedVariableName, ctx.GetNodeName(opType));
+                node.AddAttribute("cats_int64s", Enumerable.Range(1, categoryRange).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
-                if (_parent._columns[iinfo].OutputCountVector)
+
+                if (_parent._columns[iinfo].OutputCountVector && info.TypeSrc is VectorDataViewType)
                 {
-                    // If input shape is [1, 3], then OneHotEncoder may produce a 3-D tensor. Thus, we need to do a
-                    // reduction along the second last axis to merge the one-hot vectors produced by all input features.
-                    // Note that one input feature got expended to an one-hot vector.
                     opType = "ReduceSum";
                     var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
-                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
+                    reduceNode.AddAttribute("axes", new long[] { 1 });
                     reduceNode.AddAttribute("keepdims", 0);
                 }
-                return true;
             }
         }
     }
@@ -734,6 +733,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Scalar or known-size vector of [key](xref:Microsoft.Ml.Data.KeyDataViewType) type. |
     /// | Output column data type | A known-size vector of [System.Single](xref:System.Single). |
+    /// | Exportable to ONNX | Yes |
     ///
     /// It iterates over keys in data, and for each key it produces vector of key cardinality filled with zeros except position of key value in which it put's `1.0`.
     /// For vector of keys it can either produce vector of counts for each key or concatenate them together into one vector.

@@ -374,7 +374,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            // The getters are initialized in InitializeNextPass(), when the new IRowCursor is available.
+            // The getters are initialized in InitializeNextPass(), when the new DataViewRowCursor is available.
             private ValueGetter<Single> _labelGetter;
             private ValueGetter<VBuffer<Single>> _scoreGetter;
             private ValueGetter<Single> _weightGetter;

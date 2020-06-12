@@ -38,6 +38,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-sdca.md)]
     ///
@@ -149,7 +150,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
+                Conversions.DefaultInstance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
             return new LinearRegressionModelParameters(Host, in maybeSparseWeights, bias[0]);
         }

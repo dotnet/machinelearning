@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -21,11 +22,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// usage of already established components), but should still be possible.
         /// </summary>
         [Fact]
-        void Extensibility()
+        public void Extensibility()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
 
-            var ml = new MLContext();
+            var ml = new MLContext(1);
             var data = ml.Data.CreateTextLoader(TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                 .Load(dataPath);
 

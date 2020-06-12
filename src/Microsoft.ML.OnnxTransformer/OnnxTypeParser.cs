@@ -5,11 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics.Tensors;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
+
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.Onnx
@@ -17,13 +18,14 @@ namespace Microsoft.ML.Transforms.Onnx
     internal static class OnnxTypeParser
     {
         /// <summary>
-        /// Derive the corresponding <see cref="Type"/> for ONNX tensor's element type specified by <paramref name="dataType"/>.
+        /// Derive the corresponding <see cref="Type"/> for ONNX tensor's element type specified by <paramref name="elementType"/>.
         /// The corresponding <see cref="Type"/> should match the type system in ONNXRuntime's C# APIs.
         /// This function is used when determining the corresponding <see cref="Type"/> of <see cref="OnnxCSharpToProtoWrapper.TypeProto"/>.
         /// </summary>
-        /// <param name="dataType">ONNX's tensor element type.</param>
-        public static Type GetNativeScalarType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
+        /// <param name="elementType">ONNX's tensor element type.</param>
+        public static Type GetNativeScalarType(int elementType)
         {
+            var dataType = (OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)elementType;
             Type scalarType = null;
             switch (dataType)
             {
@@ -106,11 +108,12 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Derive the corresponding <see cref="DataViewType"/> for ONNX tensor's element type specified by <paramref name="dataType"/>.
+        /// Derive the corresponding <see cref="DataViewType"/> for ONNX tensor's element type specified by <paramref name="elementType"/>.
         /// </summary>
-        /// <param name="dataType">ONNX's tensor element type.</param>
-        public static DataViewType GetScalarDataViewType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
+        /// <param name="elementType">ONNX's tensor element type.</param>
+        public static DataViewType GetScalarDataViewType(int elementType)
         {
+            var dataType = (OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)elementType;
             DataViewType scalarType = null;
             switch (dataType)
             {
@@ -174,10 +177,10 @@ namespace Microsoft.ML.Transforms.Onnx
                     break;
                 case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.DimParam:
                     // Variable-length dimension is translated to 0.
-                    value = 0;
                     break;
-                default:
-                    throw Contracts.ExceptParamValue(dim.DimValue, nameof(dim), $"Dimension {dim} in ONNX tensor cannot exceed the maximum of 32-bit signed integer.");
+                case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.None:
+                    // Empty dimension is translated to 0.
+                    break;
             }
             return value;
         }
@@ -198,6 +201,16 @@ namespace Microsoft.ML.Transforms.Onnx
                 var dimValue = GetDimValue(d);
                 dims.Add(dimValue);
             }
+
+            // In ONNX, the first dimension refers to the batch size. If that is set to -1, it means OnnxRuntime can do inferencing in batches on
+            // multiple rows at once. In ML.NET, a vector is considered to be of known size if the dimensions are all greater than zero
+            // Leaving the batch size at -1 causes all Onnx vectors to be considered to be of unknown size. Therefore, if the first dimension is -1,
+            // we need to fix up the shape. But GetDimValue above converts any dimension < 0 to be 0. We need that behavior for dimensions other than
+            // the first dimension. So we check only the first dimension here and fix it up. (The '<=' comparison below is there to make sure that
+            // this holds even if the behavior of GetDimValue changes).
+            if ((dims.Count > 0) && (dims[0] <= 0))
+                dims[0] = 1;
+
             return dims;
         }
 

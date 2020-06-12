@@ -3,22 +3,30 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class EstimatorExtensionTests
+    public class EstimatorExtensionTests : BaseTestClass
     {
+        public EstimatorExtensionTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void EstimatorExtensionInstanceTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var pipelineNode = new PipelineNode()
             {
                 InColumns = new string[] { "Input" },
-                OutColumns = new string[] { "Output" }
+                OutColumns = new string[] { "Output" },
+                Properties = new Dictionary<string, object> { }
             };
 
             var estimatorNames = Enum.GetValues(typeof(EstimatorName)).Cast<EstimatorName>();
@@ -33,7 +41,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void EstimatorExtensionStaticTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var inCol = "Input";
             var outCol = "Output";
             var inCols = new string[] { inCol };

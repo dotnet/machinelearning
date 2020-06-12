@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -396,6 +397,7 @@ namespace Microsoft.ML.Calibrators
     }
 
     [BestFriend]
+    [PredictionTransformerLoadType(typeof(CalibratedModelParametersBase<,>))]
     internal sealed class ValueMapperCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>, ICanSaveModel
         where TSubModel : class
@@ -430,8 +432,8 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(ValueMapperCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        private ValueMapperCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
+        private ValueMapperCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx, TSubModel predictor, TCalibrator calibrator)
+            : base(env, RegistrationName, predictor, calibrator)
         {
         }
 
@@ -443,7 +445,16 @@ namespace Microsoft.ML.Calibrators
             var ver2 = GetVersionInfoBulk();
             var ver = ctx.Header.ModelSignature == ver2.ModelSignature ? ver2 : ver1;
             ctx.CheckAtModel(ver);
-            return new ValueMapperCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
+
+            // Load first the predictor and calibrator
+            var predictor = GetPredictor(env, ctx);
+            var calibrator = GetCalibrator(env, ctx);
+
+            // Create a generic type using the correct parameter types of predictor and calibrator
+            Type genericType = typeof(ValueMapperCalibratedModelParameters<,>);
+            var genericInstance = CreateCalibratedModelParameters.Create(env, ctx, predictor, calibrator, genericType);
+
+            return (CalibratedModelParametersBase)genericInstance;
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -456,6 +467,7 @@ namespace Microsoft.ML.Calibrators
     }
 
     [BestFriend]
+    [PredictionTransformerLoadType(typeof(CalibratedModelParametersBase<,>))]
     internal sealed class FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>,
         IPredictorWithFeatureWeights<float>,
@@ -487,8 +499,9 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        private FeatureWeightsCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
+        private FeatureWeightsCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx,
+            TSubModel predictor, TCalibrator calibrator)
+            : base(env, RegistrationName, predictor, calibrator)
         {
             Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
             _featureWeights = (IPredictorWithFeatureWeights<float>)SubModel;
@@ -499,7 +512,16 @@ namespace Microsoft.ML.Calibrators
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
+
+            // Load first the predictor and calibrator
+            var predictor = GetPredictor(env, ctx);
+            var calibrator = GetCalibrator(env, ctx);
+
+            // Create a generic type using the correct parameter types of predictor and calibrator
+            Type genericType = typeof(FeatureWeightsCalibratedModelParameters<,>);
+            var genericInstance = CreateCalibratedModelParameters.Create(env, ctx, predictor, calibrator, genericType);
+
+            return (CalibratedModelParametersBase) genericInstance;
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -520,6 +542,7 @@ namespace Microsoft.ML.Calibrators
     /// Encapsulates a predictor and a calibrator that implement <see cref="IParameterMixer"/>.
     /// Its implementation of <see cref="IParameterMixer.CombineParameters"/> combines both the predictors and the calibrators.
     /// </summary>
+    [PredictionTransformerLoadType(typeof(CalibratedModelParametersBase <,>))]
     internal sealed class ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>,
         IParameterMixer<float>,
@@ -553,8 +576,8 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        private ParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
+        private ParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx, TSubModel predictor, TCalibrator calibrator)
+            : base(env, RegistrationName, predictor, calibrator)
         {
             Host.Check(SubModel is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
             Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
@@ -566,7 +589,16 @@ namespace Microsoft.ML.Calibrators
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
+
+            // Load first the predictor and calibrator
+            var predictor = GetPredictor(env, ctx);
+            var calibrator = GetCalibrator(env, ctx);
+
+            // Create a generic type using the correct parameter types of predictor and calibrator
+            Type genericType = typeof(ParameterMixingCalibratedModelParameters<,>);
+            object genericInstance = CreateCalibratedModelParameters.Create(env, ctx, predictor, calibrator, genericType);
+
+            return (CalibratedModelParametersBase) genericInstance;
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -612,6 +644,9 @@ namespace Microsoft.ML.Calibrators
     {
         private sealed class Bound : ISchemaBoundRowMapper
         {
+            private static readonly FuncInstanceMethodInfo1<Bound, DataViewRow, int, Delegate> _getPredictorGetterMethodInfo
+                = FuncInstanceMethodInfo1<Bound, DataViewRow, int, Delegate>.Create(target => target.GetPredictorGetter<int>);
+
             private readonly SchemaBindableCalibratedModelParameters<TSubModel, TCalibrator> _parent;
             private readonly ISchemaBoundRowMapper _predictor;
             private readonly int _scoreCol;
@@ -665,7 +700,7 @@ namespace Microsoft.ML.Calibrators
                         continue;
                     }
                     var type = predictorRow.Schema[column.Index].Type;
-                    getters[column.Index] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, column.Index);
+                    getters[column.Index] = Utils.MarshalInvoke(_getPredictorGetterMethodInfo, this, type.RawType, predictorRow, column.Index);
                 }
 
                 if (hasProbabilityColumn)
@@ -728,7 +763,7 @@ namespace Microsoft.ML.Calibrators
             _featureContribution = SubModel as IFeatureContributionMapper;
         }
 
-        private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -774,6 +809,28 @@ namespace Microsoft.ML.Calibrators
             // REVIEW: checking this a bit too late.
             Host.Check(_featureContribution != null, "Predictor does not implement " + nameof(IFeatureContributionMapper));
             return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
+        }
+    }
+
+    internal static class CreateCalibratedModelParameters
+    {
+        internal static object Create(IHostEnvironment env, ModelLoadContext ctx, object predictor, ICalibrator calibrator, Type calibratedModelParametersType)
+        {
+            Type[] genericTypeArgs = { predictor.GetType(), calibrator.GetType() };
+            Type constructed = calibratedModelParametersType.MakeGenericType(genericTypeArgs);
+
+            Type[] constructorArgs = {
+                typeof(IHostEnvironment),
+                typeof(ModelLoadContext),
+                predictor.GetType(),
+                calibrator.GetType()
+            };
+
+            // Call the appropriate constructor of the created generic type passing on the previously loaded predictor and calibrator
+            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            object genericInstance = genericCtor.Invoke(new object[] { env, ctx, predictor, calibrator });
+
+            return genericInstance;
         }
     }
 
@@ -1170,7 +1227,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(_binProbs.All(x => (0 <= x && x <= 1)));
         }
 
-        private static NaiveCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static NaiveCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1527,10 +1584,10 @@ namespace Microsoft.ML.Calibrators
         [TlcModule.Component(Name = "FixedPlattCalibrator", FriendlyName = "Fixed Platt Calibrator", Aliases = new[] { "FixedPlatt", "FixedSigmoid" })]
         public sealed class Arguments : ICalibratorTrainerFactory
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "a")]
-            public Double Slope = 1;
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The slope parameter of f(x) = 1 / (1 + exp(slope * x + offset)", ShortName = "a")]
+            public Double Slope = -1;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "b")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The offset parameter of f(x) = 1 / (1 + exp(slope * x + offset)", ShortName = "b")]
             public Double Offset = 0;
 
             public ICalibratorTrainer CreateComponent(IHostEnvironment env)
@@ -1564,7 +1621,7 @@ namespace Microsoft.ML.Calibrators
 
     ///<summary>
     /// The Platt calibrator calculates the probability following:
-    /// P(x) = 1 / (1 + exp(-<see cref="PlattCalibrator.Slope"/> * x + <see cref="PlattCalibrator.Offset"/>)
+    /// P(x) = 1 / (1 + exp(<see cref="PlattCalibrator.Slope"/> * x + <see cref="PlattCalibrator.Offset"/>)
     /// </summary>.
     public sealed class PlattCalibrator : ICalibrator, IParameterMixer, ICanSaveModel, ISingleCanSavePfa, ISingleCanSaveOnnx
     {
@@ -1621,7 +1678,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(FloatUtils.IsFinite(Offset));
         }
 
-        private static PlattCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PlattCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1688,12 +1745,20 @@ namespace Microsoft.ML.Calibrators
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));
             _host.Check(Utils.Size(scoreProbablityColumnNames) == 2);
 
-            string opType = "Affine";
-            string linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
-            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0] },
-                new[] { linearOutput }, ctx.GetNodeName(opType), "");
-            node.AddAttribute("alpha", Slope * -1);
-            node.AddAttribute("beta", -0.0000001);
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "PlattCalibrator");
+
+            // The Affine operator is no longer supported in the v11 opset.
+            // So we have to decompose it using Mul and Add
+            string opType = "Mul";
+            var slopVar = ctx.AddInitializer((float)(-Slope), "Slope");
+            var mulNodeOutput = ctx.AddIntermediateVariable(null, "MulNodeOutput", true);
+            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0], slopVar }, new[] { mulNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Add";
+            var betaVar = ctx.AddInitializer((float)(-Offset), "Offset");
+            var linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
+            node = ctx.CreateNode(opType, new[] { mulNodeOutput, betaVar }, new[] { linearOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Sigmoid";
             node = ctx.CreateNode(opType, new[] { linearOutput },
@@ -1918,7 +1983,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(valuePrev <= 1);
         }
 
-        private static IsotonicCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IsotonicCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -2026,10 +2091,10 @@ namespace Microsoft.ML.Calibrators
 
         public sealed class FixedPlattInput : CalibrateInputBase
         {
-            [Argument(ArgumentType.AtMostOnce, ShortName = "slope", HelpText = "The slope parameter of the calibration function 1 / (1 + exp(-slope * x + offset)", SortOrder = 1)]
-            public Double Slope = 1;
+            [Argument(ArgumentType.AtMostOnce, ShortName = "slope", HelpText = "The slope parameter of the calibration function 1 / (1 + exp(slope * x + offset)", SortOrder = 1)]
+            public Double Slope = -1;
 
-            [Argument(ArgumentType.AtMostOnce, ShortName = "offset", HelpText = "The offset parameter of the calibration function 1 / (1 + exp(-slope * x + offset)", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce, ShortName = "offset", HelpText = "The offset parameter of the calibration function 1 / (1 + exp(slope * x + offset)", SortOrder = 3)]
             public Double Offset = 0;
         }
 

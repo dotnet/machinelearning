@@ -134,7 +134,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Finds the bits necessary for the optimal variable bit encoding of this
         /// array. If we are also finding the actual optimal path, it can only work
         ///
-        /// This is a considerably less efficienct managed analogue to the
+        /// This is a considerably less efficiency managed analogue to the
         /// C_SegmentFindOptimalPath and C_SegmentFindOptimalCost functions.
         /// It is used by the class only when not using the unmanaged library.
         /// </summary>

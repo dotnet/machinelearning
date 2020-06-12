@@ -362,7 +362,7 @@ namespace Microsoft.ML.Data
         /// <param name="dir">The directory name.</param>
         /// <param name="name">The resulting name.</param>
         /// <param name="value">The resulting value.</param>
-        /// <returns>true if the parsing was successfull.</returns>
+        /// <returns>true if the parsing was successful.</returns>
         private static bool TryParseNameValueFromDir(string dir, out string name, out string value)
         {
             const char nameValueSeparator = '=';

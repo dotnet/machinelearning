@@ -220,7 +220,7 @@ namespace Microsoft.ML.CommandLine
             while (_curs.ChNext() == '\\')
                 cv++;
 
-            // This assumes that slash is escaped iff it preceeds a special character
+            // This assumes that slash is escaped iff it precedes a special character
             switch (_curs.ChCur)
             {
                 case '"':

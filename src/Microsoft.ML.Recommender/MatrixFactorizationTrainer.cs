@@ -48,6 +48,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Recommender |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Background
     /// The basic idea of matrix factorization is finding two low-rank factor matrices to approximate the training matrix.
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Trainers
     /// <seealso cref="Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(MatrixFactorizationTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class MatrixFactorizationTrainer : ITrainer<MatrixFactorizationModelParameters>,
-        IEstimator<MatrixFactorizationPredictionTransformer>
+        ITrainerEstimator<MatrixFactorizationPredictionTransformer, MatrixFactorizationModelParameters>
     {
         /// <summary>
         /// Type of loss function.
@@ -302,6 +303,11 @@ namespace Microsoft.ML.Trainers
 
         PredictionKind ITrainer.PredictionKind => PredictionKind.Recommendation;
 
+        /// <summary>
+        /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
+        /// </summary>
+        public TrainerInfo Info => _info;
+
         internal const string LoadNameValue = "MatrixFactorization";
 
         /// <summary>
@@ -327,11 +333,6 @@ namespace Microsoft.ML.Trainers
         /// The name variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's element value.
         /// </summary>
         internal readonly string LabelName;
-
-        /// <summary>
-        /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
-        /// </summary>
-        TrainerInfo ITrainer.Info => _info;
 
         private readonly TrainerInfo _info;
 
@@ -512,7 +513,7 @@ namespace Microsoft.ML.Trainers
 
         private SafeTrainingAndModelBuffer PrepareBuffer()
         {
-            return new SafeTrainingAndModelBuffer(_host, _fun, _k, _threads, Math.Max(20, 2 * _threads),
+            return new SafeTrainingAndModelBuffer(_host, _fun, _k, _threads, 2 * _threads + 1,
                 _iter, _lambda, _eta, _alpha, _c, _doNmf, _quiet, copyData: false);
         }
 

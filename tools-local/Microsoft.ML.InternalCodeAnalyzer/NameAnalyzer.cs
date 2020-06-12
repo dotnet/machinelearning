@@ -74,6 +74,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
             context.RegisterSyntaxNodeAction(AnalyzeField, SyntaxKind.FieldDeclaration);
             context.RegisterSyntaxNodeAction(AnalyzeField, SyntaxKind.EventFieldDeclaration);
             context.RegisterSyntaxNodeAction(AnalyzeClass, SyntaxKind.ClassDeclaration);

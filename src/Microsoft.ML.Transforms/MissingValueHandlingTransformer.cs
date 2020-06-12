@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal const string Summary = "Handle missing values by replacing them with either the default value or the "
-            + "mean/min/max value (for non-text columns only). An indicator column can optionally be concatenated, if the" +
+            + "mean/min/max value (for non-text columns only). An indicator column can optionally be concatenated, if the " +
             "input column type is numeric.";
 
         internal const string FriendlyName = "NA Handle Transform";
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
                     throw h.Except("Column '{0}' does not exist", column.Source);
                 var replaceType = input.Schema[inputCol].Type;
                 var replaceItemType = replaceType.GetItemType();
-                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BooleanDataViewType.Instance, replaceItemType, out Delegate conv, out bool identity))
+                if (!Data.Conversion.Conversions.DefaultInstance.TryGetStandardConversion(BooleanDataViewType.Instance, replaceItemType, out Delegate conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
                         BooleanDataViewType.Instance, replaceItemType);

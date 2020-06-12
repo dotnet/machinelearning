@@ -7,16 +7,22 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Newtonsoft.Json;
+using Microsoft.ML.TestFramework;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class GetNextPipelineTests
+    public class GetNextPipelineTests : BaseTestClass
     {
+        public GetNextPipelineTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void GetNextPipeline()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var uciAdult = DatasetUtil.GetUciAdultDataView();
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
@@ -40,7 +46,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void GetNextPipelineMock()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var uciAdult = DatasetUtil.GetUciAdultDataView();
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 

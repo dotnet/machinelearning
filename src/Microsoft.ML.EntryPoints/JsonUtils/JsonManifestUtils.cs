@@ -166,7 +166,7 @@ namespace Microsoft.ML.EntryPoints
                 // unit tests to compare manifest are passing. For the same reason
                 // duplicate name skipped are always in the same correct order.
                 // Same name field can bubble up from base class even though
-                // its overidden / hidden, skip it.
+                // its overridden / hidden, skip it.
                 if (collectedFields.Contains(name))
                     continue;
                 var jo = new JObject();
