@@ -10,15 +10,25 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for
-            // exception tracking and logging, as well as the source of randomness.
+            /* Create a new ML context, for ML.NET operations. It can be used for
+             exception tracking and logging, as well as the source of randomness.*/
             var mlContext = new MLContext();
 
-            var dataView = mlContext.Data.LoadFromEnumerable(GetPointsWithSeasonality());
             // Create a seasonal data as input for DetectSeasonality.
-            var input = GetPointsWithSeasonality();
-            SeasonalityDetector seasonalityDetector = new SeasonalityDetector();
-            int period = mlContext.AnomalyDetection.DetectSeasonality(dataView, "Input");
+            var dataView = mlContext.Data.LoadFromEnumerable(GetPointsWithSeasonality());
+
+            /* Two option parameters:
+             * seasonalityWindowSize: Default value is -1. When set to -1, use the whole input to fit model; 
+             * when set to a positive integer, only the first windowSize number of values will be considered.
+             * randomnessThreshold: Randomness threashold that specifies how confidence the input values follows 
+             * a predictable pattern recurring over an interval as seasonal data. By default, it is set as 2.81
+             * for 99.5% confidence. The higher the threshold is set, the more strict recurring pattern the 
+             * input values should follow to be determined as seasonal data.
+             */
+            int period = mlContext.AnomalyDetection.DetectSeasonality(
+                dataView,
+                nameof(TimeSeriesData.Value),
+                seasonalityWindowSize: 40);
 
             // Print the Seasonality Period result.
             Console.WriteLine($"Seasonality Period: #{period}");

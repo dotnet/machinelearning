@@ -35,18 +35,26 @@ namespace Microsoft.ML.TimeSeries
         private const double MinEnergyThreshold = 1e-10;
 
         /// <summary>
-        /// Obtain the period by adopting techniques of spectral analysis. which is founded by
-        /// the fourier analysis. returns -1 means there's no significant period. otherwise, a period
-        /// is returned.
+        /// This method detects this predictable interval (or period) by adopting techniques of fourier analysis.
+        /// Returns -1 if no such pattern is found, that is, the input values do not follow a seasonal fluctuation.
         /// </summary>
         /// <param name="host">The detect seasonality host environment.</param>
         /// <param name="input">Input DataView.The data is an instance of <see cref="Microsoft.ML.IDataView"/>.</param>
         /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
-        /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.
-        /// When set to -1, use the whole input to fit model, when set to a positive integer, use this number as batch size.
+        /// <param name="seasonalityWindowSize">An upper bound on the number of values to be considered in the input values.
+        /// When set to -1, use the whole input to fit model; when set to a positive integer, use this number as batch size.
         /// Default value is -1.</param>
+        /// <param name="randomessThreshold">Randomness flutuation threashold  that specifies how confidence the input
+        /// follows a predictable pattern recurring over an interval as seasonal data.
+        /// By default, it is set as 2.81 for 99.5% confidence interval
+        /// </param>
         /// <returns>The detected period if seasonality period exists, otherwise return -1.</returns>
-        public int DetectSeasonality(IHostEnvironment host, IDataView input, string inputColumnName, int seasonalityWindowSize)
+        public int DetectSeasonality(
+            IHostEnvironment host,
+            IDataView input,
+            string inputColumnName,
+            int seasonalityWindowSize,
+            double randomessThreshold)
         {
             host.CheckValue(input, nameof(input));
             host.CheckValue(inputColumnName, nameof(inputColumnName));
@@ -60,7 +68,7 @@ namespace Microsoft.ML.TimeSeries
 
             int length = 0;
             float valueRef = 0;
-            List<float> valueCache = new List<float>(seasonalityWindowSize == -1 ? 1024 : seasonalityWindowSize);
+            var valueCache = seasonalityWindowSize == -1 ? new List<double>() : new List<double>(seasonalityWindowSize);
             while (rowCursor.MoveNext())
             {
                 valueDelegate.Invoke(ref valueRef);
@@ -70,60 +78,61 @@ namespace Microsoft.ML.TimeSeries
                     break;
             }
 
-            float[] fftRe = new float[length];
-            float[] fftIm = new float[length];
-            float[] inputRe = valueCache.ToArray();
+            double[] fftRe = new double[length];
+            double[] fftIm = new double[length];
+            double[] inputRe = valueCache.ToArray();
 
-            FftUtils.ComputeForwardFft(inputRe, Enumerable.Repeat(0f, length).ToArray(), fftRe, fftIm, length);
+            FftUtils.ComputeForwardFft(inputRe, Enumerable.Repeat(0.0, length).ToArray(), fftRe, fftIm, length);
 
-            var z = fftRe.Select((m, i) => new Complex(m, fftIm[i])).ToArray();
+            var energies = fftRe.Select((m, i) => new Complex(m, fftIm[i])).ToArray();
 
-            /* Here w is the periodogram, which indicates the square of "energy" on the  frequency domain.
-             * Specifically, w[j] = a[j]^2+b[j]^2, where a and b are Fourier Coefficients for cosine and sine,
+            /* Periodogram indicates the square of "energy" on the  frequency domain.
+             * Specifically, periodogram[j] = a[j]^2+b[j]^2, where a and b are Fourier Coefficients for cosine and sine,
              * x(t) = a0+sum(a[j]cos(2Pi * f[j]t)+b[j]sin(2Pi * f[j]t)
              */
-            var w = z.Select((t, i) => t * Complex.Conjugate(t)).ToArray();
-            FindBestTwoFrequencies(w, length, out var bestFreq, out var secondFreq);
+            var periodogram = energies.Select((t, i) => t * Complex.Conjugate(t)).ToArray();
+            FindBestTwoFrequencies(periodogram, length, out var bestFreq, out var secondFreq);
 
             double[] ifftRe = new double[length];
             double[] ifftIm = new double[length];
             FftUtils.ComputeBackwardFft(
-                w.Select(t => (double)t.Real).ToArray(),
-                w.Select(t => (double)t.Imaginary).ToArray(), ifftRe, ifftIm, length);
-            var r = ifftRe.Select((t, i) => new Complex(t, ifftIm[i])).ToArray();
+                periodogram.Select(t => t.Real).ToArray(),
+                periodogram.Select(t => t.Imaginary).ToArray(),
+                ifftRe,
+                ifftIm,
+                length);
+            var values = ifftRe.Select((t, i) => new Complex(t, ifftIm[i])).ToArray();
 
-            int period = FindActualPeriod(r, bestFreq, secondFreq, length);
-
-            if (period < 0)
-            {
-                period = -1;
-            }
-
-            return period;
+            int period = FindActualPeriod(values, bestFreq, secondFreq, length, randomessThreshold);
+            return period < 0 ? -1 : period;
         }
 
         /// <summary>
-        /// Find the actual period following the steps:
+        /// Find the actual period based on best frequency and second best frequency:
         /// Pick the best frequency by inspecting the auto-correlation energy (pick the highest) in time-domain.
         /// In the normal case, usually, when the time series is with period T, then the best frequency is N/T,
         /// while the second frequency would be N/2T, because period = T implies period = nT, where n is an integer.
-        /// In such a case, smaller period will win out on the autu-correlation energy list, due to the property of auto-correlation.
+        /// In such a case, smaller period will win out on the autu-correlation energy list, due to the property
+        /// of auto-correlation.
         /// </summary>
-        /// <param name="r"></param>
-        /// <param name="bestFreq"></param>
-        /// <param name="secondFreq"></param>
-        /// <param name="timeSeriesLength"></param>
-        /// <returns></returns>
-        private static int FindActualPeriod(Complex[] r, int bestFreq, int secondFreq, int timeSeriesLength)
+        /// <param name="values">The auto-correlation function of the augmented time series</param>
+        /// <param name="bestFrequency">The best frequency candidate</param>
+        /// <param name="secondFrequency">The second best frequency candidate</param>
+        /// <param name="timeSeriesLength">The length of the original time series, this is used for post processing to reduce false positive</param>
+        /// <param name="randomnessThreshold">Randomness flutuation threashold  that specifies how confidence the input
+        /// follows a predictable pattern recurring over an interval as seasonal data.
+        /// </param>
+        /// <returns>The period detected by check best frequency and second best frequency</returns>
+        private static int FindActualPeriod(Complex[] values, int bestFrequency, int secondFrequency, int timeSeriesLength, double randomnessThreshold)
         {
             int firstPeriod = -1;
             int secondPeriod = -1;
             double firstTimeDomainEnergy = -1;
             double secondTimeDomainEnergy = -1;
-            firstPeriod = FindBestPeriod(r, bestFreq, timeSeriesLength, out firstTimeDomainEnergy);
-            if (secondFreq != -1)
+            firstPeriod = FindBestPeriod(values, bestFrequency, timeSeriesLength, out firstTimeDomainEnergy);
+            if (secondFrequency != -1)
             {
-                secondPeriod = FindBestPeriod(r, secondFreq, timeSeriesLength, out secondTimeDomainEnergy);
+                secondPeriod = FindBestPeriod(values, secondFrequency, timeSeriesLength, out secondTimeDomainEnergy);
             }
             if (firstPeriod == -1 && secondPeriod == -1)
                 return -1;
@@ -161,39 +170,39 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
             }
-            trueTimeDomainEnergy /= r[0].Real;
+            trueTimeDomainEnergy /= values[0].Real;
 
             /* This is a key equation, which is named the "testing for randomness with the correlogram". /ref: http://www.ltrr.arizona.edu/~dmeko/notes_3.pdf
              * 1.96 is for the 2-sigma, which has 95% statistical confidence. 2.58 is for 99% confidence, 2.85 for 99.5% confidence
              * increasing the threshold aims to mitigate the fake seasonal component caused by outliers. in practice, if there exist true seasonal component,
              * such as BirdStrike/Appdownloads, the energy is far larger than threshold, hence change threshold from 2.85 to 4.0 have no impact (tested);
              */
-            double threshold = 4 / Math.Sqrt(timeSeriesLength);
+            double threshold = randomnessThreshold / Math.Sqrt(timeSeriesLength);
 
-            if (trueTimeDomainEnergy < threshold || r[truePeriod].Real < MinEnergyThreshold)
+            if (trueTimeDomainEnergy < threshold || values[truePeriod].Real < MinEnergyThreshold)
                 return -1;
 
             return truePeriod;
         }
 
         /// <summary>
-        /// In order to pick up a proper frequency robustly (this is useful especially for large frequency, or small period, e.g., period = 2),
-        /// this method aims to pick up the top two frequencies for further evaluation.
-        /// of course, the energy of the second frequency (in frequency domain) must be at similar magnitude compared with the energy of the first
-        /// frequency.
+        /// In order to pick up a proper frequency robustly (this is useful especially for large frequency,
+        /// or small period, e.g., period = 2), this method aims to pick up the top two frequencies for
+        /// further evaluation. The energy of the second frequency (in frequency domain) must be at similar
+        /// magnitude compared with the energy of the first frequency.
         /// </summary>
-        /// <param name="w">the energy list in the frequency domain, the index is the frequency.</param>
+        /// <param name="values">the energy list in the frequency domain, the index is the frequency.</param>
         /// <param name="timeSeriesLength">the original time series length</param>
-        /// <param name="bestFreq">the frequency with highest energy</param>
-        /// <param name="secondFreq">the frequency with second highest energy</param>
-        private static void FindBestTwoFrequencies(Complex[] w, int timeSeriesLength, out int bestFreq, out int secondFreq)
+        /// <param name="bestFrequency">the frequency with highest energy</param>
+        /// <param name="secondFrequency">the frequency with second highest energy</param>
+        private static void FindBestTwoFrequencies(Complex[] values, int timeSeriesLength, out int bestFrequency, out int secondFrequency)
         {
-            bestFreq = -1;
+            bestFrequency = -1;
             double bestEnergy = -1.0;
-            secondFreq = -1;
+            secondFrequency = -1;
             double secondEnergy = -1.0;
 
-            if (w.Length < 2)
+            if (values.Length < 2)
                 return;
 
             List<double> energies = new List<double>();
@@ -201,44 +210,44 @@ namespace Microsoft.ML.TimeSeries
             /* Length of time series divided by frequency is period.
              * It is obvious that the period should be larger than 1 and smaller than the total length, and is an integer.
              */
-            for (int i = w.Length / timeSeriesLength; i < w.Length / 2 + 1; i++)
+            for (int i = values.Length / timeSeriesLength; i < values.Length / 2 + 1; i++)
             {
-                double nextWeight = w[i].Magnitude;
+                double nextWeight = values[i].Magnitude;
                 energies.Add(nextWeight);
 
                 if (nextWeight > bestEnergy)
                 {
                     bestEnergy = nextWeight;
-                    bestFreq = i;
+                    bestFrequency = i;
                 }
             }
 
             /* Once we found a best frequency, the region formed by lower bound to upper bound corresponding to this frequency
              * will not be inspected anymore. because they all share the same period.
             */
-            int period = w.Length / bestFreq;
-            double lowerBound = w.Length * 1.0 / (period + 1);
-            double upperBound = w.Length * 1.0 / (period - 1);
+            int period = values.Length / bestFrequency;
+            double lowerBound = values.Length * 1.0 / (period + 1);
+            double upperBound = values.Length * 1.0 / (period - 1);
 
-            for (int i = w.Length / timeSeriesLength; i < w.Length / 2 + 1; i++)
+            for (int i = values.Length / timeSeriesLength; i < values.Length / 2 + 1; i++)
             {
                 if (i > lowerBound && i < upperBound)
                     continue;
-                double weight = w[i].Magnitude;
+                double weight = values[i].Magnitude;
                 if (weight > secondEnergy)
                 {
                     double prevWeight = 0;
                     if (i > 0)
-                        prevWeight = w[i - 1].Magnitude;
+                        prevWeight = values[i - 1].Magnitude;
                     double nextWeight = 0;
-                    if (i < w.Length - 1)
-                        nextWeight = w[i + 1].Magnitude;
+                    if (i < values.Length - 1)
+                        nextWeight = values[i + 1].Magnitude;
 
                     // should be a local maximum
                     if (weight >= prevWeight && weight >= nextWeight)
                     {
                         secondEnergy = nextWeight;
-                        secondFreq = i;
+                        secondFrequency = i;
                     }
                 }
             }
@@ -258,20 +267,21 @@ namespace Microsoft.ML.TimeSeries
                 return;
 
             // set the second frequency to -1, since it is obviously not strong enought to compete with the best energy.
-            secondFreq = -1;
+            secondFrequency = -1;
         }
 
         /// <summary>
-        /// Given a frequency F represented by an integer, we aim to find the best period by inspecting the auto-correlation function in time domain.
-        /// Since either frequency or the period is an integer, the possible period located within
-        /// [N/(F+1), N/(F-1)], we need to check this domain, and pick the best one, where N is the length of the augmented time series
+        /// Given a frequency F represented by an integer, we aim to find the best period by inspecting the
+        /// auto-correlation function in time domain. Since either frequency or the period is an integer,
+        /// the possible period located within [N/(F+1), N/(F-1)], we need to check this domain, and pick
+        /// the best one, where N is the length of the augmented time series.
         /// </summary>
-        /// <param name="r">The auto-correlation function of the augmented time series</param>
+        /// <param name="values">The auto-correlation function of the augmented time series</param>
         /// <param name="frequency">The input frequency candidate</param>
         /// <param name="timeSeriesLength">The length of the original time series, this is used for post processing to reduce false positive</param>
         /// <param name="energy">Output the energy on the auto-correlation function</param>
         /// <returns>The best period estimated</returns>
-        private static int FindBestPeriod(Complex[] r, int frequency, int timeSeriesLength, out double energy)
+        private static int FindBestPeriod(Complex[] values, int frequency, int timeSeriesLength, out double energy)
         {
             energy = -1;
 
@@ -279,12 +289,12 @@ namespace Microsoft.ML.TimeSeries
             if (frequency <= 1)
                 return -1;
 
-            int lowerBound = r.Length / (frequency + 1);
-            int upperBound = r.Length / (frequency - 1);
+            int lowerBound = values.Length / (frequency + 1);
+            int upperBound = values.Length / (frequency - 1);
             int bestPeriod = -1;
-            for (int i = lowerBound; i <= upperBound && i < r.Length; i++)
+            for (int i = lowerBound; i <= upperBound && i < values.Length; i++)
             {
-                var currentEnergy = r[i].Real;
+                var currentEnergy = values[i].Real;
                 if (currentEnergy > energy)
                 {
                     energy = currentEnergy;

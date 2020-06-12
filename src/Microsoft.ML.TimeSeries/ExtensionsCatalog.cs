@@ -211,17 +211,34 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Obtain the period by adopting techniques of spectral analysis. which is founded by
-        /// the fourier analysis. returns -1 means there's no significant period. otherwise, a period
-        /// is returned.
+        /// <para>
+        /// In time series data, seasonality (or periodicity) is the presence of variations that occur at specific regular intervals,
+        /// such as weekly, monthly, or quarterly.
+        /// </para>
+        /// <para>
+        /// This method detects this predictable interval (or period) by adopting techniques of fourier analysis.
+        /// Assuming the input values have the same time interval (e.g., sensor data collected at every second ordered by timestamps),
+        /// this method takes a list of time-series data, and returns the regular period for the input seasonal data,
+        /// if a predictable fluctuation or pattern can be found that recurs or repeats over this period throughout the input values.
+        /// </para>
+        /// <para>
+        /// Returns -1 if no such pattern is found, that is, the input values do not follow a seasonal fluctuation.
+        /// </para>
         /// </summary>
         /// <param name="catalog">The detect seasonality catalog.</param>
         /// <param name="input">Input DataView.The data is an instance of <see cref="Microsoft.ML.IDataView"/>.</param>
         /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
-        /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.
-        /// When set to -1, use the whole input to fit model, when set to a positive integer, use this number as batch size.
-        /// Default value is -1.</param>
-        /// <returns>The detected period if seasonality period exists, otherwise return -1.</returns>
+        /// <param name="seasonalityWindowSize">An upper bound on the number of values to be considered in the input values.
+        /// When set to -1, use the whole input to fit model; when set to a positive integer, only the first windowSize number
+        /// of values will be considered. Default value is -1.</param>
+        /// <param name="randomnessThreshold"><a href ="https://en.wikipedia.org/wiki/Correlogram">Randomness flutuation threashold</a>
+        /// that specifies how confidence the input values follows a predictable pattern recurring over an interval as seasonal data.
+        /// By default, it is set as 2.81: <a href="https://en.wikipedia.org/wiki/Student%27s_t-distribution">two-sided t-distribution
+        /// for 99.5% confidence interval</a> with infinit degree of freedom.
+        /// The higher the threshold is set, the more strict recurring pattern the input values should follow to be determined as
+        /// seasonal data.
+        /// </param>
+        /// <returns>The regular interval for the input as seasonal data, otherwise return -1.</returns>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -229,8 +246,18 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static int DetectSeasonality(this AnomalyDetectionCatalog catalog, IDataView input, string inputColumnName, int seasonalityWindowSize = -1)
-        => new SeasonalityDetector().DetectSeasonality(CatalogUtils.GetEnvironment(catalog), input, inputColumnName, seasonalityWindowSize);
+        public static int DetectSeasonality(
+             this AnomalyDetectionCatalog catalog,
+             IDataView input,
+             string inputColumnName,
+             int seasonalityWindowSize = -1,
+             double randomnessThreshold = 2.81)
+         => new SeasonalityDetector().DetectSeasonality(
+             CatalogUtils.GetEnvironment(catalog),
+             input,
+             inputColumnName,
+             seasonalityWindowSize,
+             randomnessThreshold);
 
         private static void CheckRootCauseInput(IHostEnvironment host, RootCauseLocalizationInput src)
         {
