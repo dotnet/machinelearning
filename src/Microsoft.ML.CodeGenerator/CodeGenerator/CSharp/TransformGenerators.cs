@@ -444,7 +444,7 @@ internal class CustomNormalizeMapping : TransformGeneratorBase
 
         public override string GenerateTransformer()
         {
-            return @"CustomMapping<ObjectDetectionLabelMappingInput, ObjectDetectionLabelMappingOutput>( // added this line not sure what to do.
+            return @"CustomMapping<ObjectDetectionLabelMappingInput, ObjectDetectionLabelMappingOutput>(
                                           (input, output) => ObjectDetectionLabelMapping.Mapping(input, output),
                                           contractName: nameof(ObjectDetectionLabelMapping))";
         }
