@@ -83,7 +83,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 }
             }
 
-            // For AzureAttach
+            // For  the AzureAttach
             if (Enum.TryParse(node.Name, out SpecialTransformer transformer))
             {
                 switch (transformer)
