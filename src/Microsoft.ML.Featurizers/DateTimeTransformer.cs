@@ -590,7 +590,6 @@ namespace Microsoft.ML.Featurizers
                     {
                         success = CreateEstimatorHelper(countryPointer, dataRootDir, out estimator, out errorHandle);
                     }
-
                 }
                 if (!success)
                 {
