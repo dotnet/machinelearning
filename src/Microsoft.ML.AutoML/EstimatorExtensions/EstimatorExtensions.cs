@@ -71,6 +71,27 @@ namespace Microsoft.ML.AutoML
         }
     }
 
+    internal class HashingExtension : IEstimatorExtension
+    {
+        public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
+        {
+            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
+        }
+
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
+        {
+            var pipelineNode = new PipelineNode(EstimatorName.Hashing.ToString(),
+                PipelineNodeType.Transform, inColumn, outColumn);
+            var estimator = CreateInstance(context, inColumn, outColumn);
+            return new SuggestedTransform(pipelineNode, estimator);
+        }
+
+        private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
+        {
+            return context.Transforms.Conversion.Hash(outColumn, inColumn);
+        }
+    }
+
     internal class MissingValueIndicatingExtension : IEstimatorExtension
     {
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
@@ -174,48 +195,31 @@ namespace Microsoft.ML.AutoML
 
     internal class OneHotHashEncodingExtension : IEstimatorExtension
     {
-
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
         {
-            return CreateInstance(context, pipelineNode.InColumns, pipelineNode.OutColumns, null);
-        }
-
-        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn, OneHotEncodingEstimator.OutputKind outputKind)
-        {
-            var pipelineNodeProperty = new Dictionary<string, OneHotEncodingEstimator.OutputKind>()
-            {
-                { "outputKind", outputKind},
-            };
-            return CreateSuggestedTransform(context, new[] { inColumn }, new[] { outColumn }, pipelineNodeProperty);
+            return CreateInstance(context, pipelineNode.InColumns, pipelineNode.OutColumns);
         }
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
         {
-            return CreateSuggestedTransform(context, new[] { inColumn }, new[] { outColumn }, null);
+            return CreateSuggestedTransform(context, new[] { inColumn }, new[] { outColumn });
         }
 
-        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string[] inColumn, string[] outColumn)
-        {
-            return CreateSuggestedTransform(context, inColumn, outColumn, null);
-        }
-
-        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string[] inColumns, string[] outColumns, Dictionary<string, OneHotEncodingEstimator.OutputKind> pipelineNodeProperty)
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string[] inColumns, string[] outColumns)
         {
             var pipelineNode = new PipelineNode(EstimatorName.OneHotHashEncoding.ToString(),
                 PipelineNodeType.Transform, inColumns, outColumns);
-            var estimator = CreateInstance(context, inColumns, outColumns, pipelineNodeProperty);
+            var estimator = CreateInstance(context, inColumns, outColumns);
             return new SuggestedTransform(pipelineNode, estimator);
         }
 
-        private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns, Dictionary<string, OneHotEncodingEstimator.OutputKind> pipelineNodeProperty)
+        private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
         {
             var cols = new InputOutputColumnPair[inColumns.Length];
             for (var i = 0; i < cols.Length; i++)
             {
                 cols[i] = new InputOutputColumnPair(outColumns[i], inColumns[i]);
             }
-            if(pipelineNodeProperty != null)
-                return context.Transforms.Categorical.OneHotHashEncoding(cols, pipelineNodeProperty["outputKind"]);
             return context.Transforms.Categorical.OneHotHashEncoding(cols);
         }
     }

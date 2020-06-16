@@ -56,9 +56,9 @@ namespace TestNamespace.ConsoleApp
         public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
         {
             // Data process configuration with pipeline data transformations 
-            var dataProcessPipeline = mlContext.Transforms.Categorical.OneHotHashEncoding(new[] { new InputOutputColumnPair("groupId", "groupId") });
+            var dataProcessPipeline = mlContext.Transforms.Conversion.Hash("GroupId", "GroupId");
             // Set the training algorithm 
-            var trainer = mlContext.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options() { rowGroupdColumnName = "groupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
+            var trainer = mlContext.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options() { rowGroupColumnName = "GroupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
 
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
@@ -118,12 +118,11 @@ namespace TestNamespace.ConsoleApp
             var max = (crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? metrics.NormalizedDiscountedCumulativeGains.Count - 1 : 9;
             var NDCG = crossValidationResults.Select(r => r.Metrics.NormalizedDiscountedCumulativeGains[max]);
             var DCG = crossValidationResults.Select(r => r.Metrics.DiscountedCumulativeGains[max]);
-
             Console.WriteLine($"*************************************************************************************************************");
             Console.WriteLine($"*       Metrics for Ranking model      ");
             Console.WriteLine($"*------------------------------------------------------------------------------------------------------------");
-            Console.WriteLine($"*       Average Normalized Discounted Cumulative Gains @10:       {NDCG.Average():0.###} ");
-            Console.WriteLine($"*       Average Discounted Cumulative Gains @10:       {DCG.Average():#.###}  ");
+            Console.WriteLine($"*       Average Normalized Discounted Cumulative Gains @10:       {NDCG.Average():0.###}");
+            Console.WriteLine($"*       Average Discounted Cumulative Gains @10:       {DCG.Average():#.###}");
             Console.WriteLine($"*************************************************************************************************************");
         }
     }

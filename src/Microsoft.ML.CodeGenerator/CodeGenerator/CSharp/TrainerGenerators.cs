@@ -25,7 +25,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     {
                         {"NumberOfLeaves","numberOfLeaves" },
                         {"LabelColumnName","labelColumnName" },
-                        {"RowGroupdColumnName","rowGroupdColumnName" },
+                        {"RowGroupColumnName","rowGroupColumnName" },
                         {"FeatureColumnName","featureColumnName" },
                         {"MinimumExampleCountPerLeaf","minimumExampleCountPerLeaf" },
                         {"LearningRate","learningRate" },
@@ -128,7 +128,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         {"ExampleWeightColumnName","exampleWeightColumnName" },
                         {"LabelColumnName","labelColumnName" },
                         {"FeatureColumnName","featureColumnName" },
-                        {"RowGroupdColumnName","rowGroupdColumnName" },
+                        {"RowGroupColumnName","rowGroupColumnName" },
                         {"LearningRate","learningRate" },
                         {"NumberOfLeaves","numberOfLeaves" },
                         {"NumberOfTrees","numberOfTrees" },

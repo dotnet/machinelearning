@@ -616,14 +616,14 @@ namespace mlnet.Tests
                 MLContext context = new MLContext();
                 var hyperParam = new Dictionary<string, object>()
                 {
-                    {"rowGroupdColumnName","groupId" },
+                    {"rowGroupColumnName","GroupId" },
                     {"LabelColumnName","Label" },
                 };
-                var oneHotHashPipelineNode = new PipelineNode(nameof(EstimatorName.OneHotHashEncoding), PipelineNodeType.Transform, "groupId", "groupId");
+                var hashPipelineNode = new PipelineNode(nameof(EstimatorName.Hashing), PipelineNodeType.Transform, "GroupId", "GroupId");
                 var lightGbmPipelineNode = new PipelineNode(nameof(TrainerName.LightGbmRanking), PipelineNodeType.Trainer, "Features", "Score", hyperParam);
                 var pipeline = new Pipeline(new PipelineNode[]
                 {
-                    oneHotHashPipelineNode,
+                    hashPipelineNode,
                     lightGbmPipelineNode
                 });
                 _mockedPipeline = pipeline;
@@ -631,7 +631,7 @@ namespace mlnet.Tests
                 {
                     Columns = new[] {
                         new TextLoader.Column("Label", DataKind.Boolean, 0),
-                        new TextLoader.Column("groupId", DataKind.Single, 1),
+                        new TextLoader.Column("GroupId", DataKind.Single, 1),
                         new TextLoader.Column("col1", DataKind.Single, 0),
                         new TextLoader.Column("col2", DataKind.String, 0),
                         new TextLoader.Column("col3", DataKind.Int32, 0),
@@ -646,7 +646,7 @@ namespace mlnet.Tests
                 this._columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
-                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" , GroupIdColumnName = "groupId"}
+                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" , GroupIdColumnName = "GroupId"}
                 };
             }
 
