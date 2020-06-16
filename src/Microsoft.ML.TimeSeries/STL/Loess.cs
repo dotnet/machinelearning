@@ -22,11 +22,11 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// key is the index of the given point, value is the corresponding neighbors of the given point.
         /// </summary>
-        private Dictionary<int, LocalRegression> _neighbors;
+        private readonly Dictionary<int, LocalRegression> _neighbors;
 
         private IReadOnlyList<double> _x;
         private IReadOnlyList<double> _y;
-        private int _length;
+        private readonly int _length;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Loess"/> class.
@@ -196,11 +196,11 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// (0, 1], a smooth range ratio. let fn be the number of neighbors of a specific point.
         /// </summary>
-        public static readonly double F = 0.3;
+        public const double F = 0.3;
 
         /// <summary>
         /// the number of iterations for robust regression.
         /// </summary>
-        public static readonly int T = 2;
+        public const int T = 2;
     }
 }

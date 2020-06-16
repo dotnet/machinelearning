@@ -12,7 +12,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// this class is a sampling based method, so here specifies the sample size.
         /// </summary>
-        private static int _sampleSize = 100;
+        private const int _sampleSize = 100;
 
         private readonly IReadOnlyList<double> _x;
         private readonly IReadOnlyList<double> _y;

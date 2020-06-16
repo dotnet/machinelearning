@@ -10,8 +10,8 @@ namespace Microsoft.ML.TimeSeries
 
         public override void Deseasonality(ref double[] values, int period, ref double[] results)
         {
-            Array.Resize<double>(ref _circularComponent, period);
-            Array.Resize<List<double>>(ref _subSeries, period);
+            Array.Resize(ref _circularComponent, period);
+            Array.Resize(ref _subSeries, period);
 
             var length = values.Length;
 
