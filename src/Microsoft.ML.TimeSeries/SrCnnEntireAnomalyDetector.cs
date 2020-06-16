@@ -453,7 +453,7 @@ namespace Microsoft.ML.TimeSeries
                     Array.Resize<double[]>(ref results, values.Length);
                 }
 
-                AllocateDoubleArray(ref _seriesToDetect, values.Length);
+                Array.Resize(ref _seriesToDetect, values.Length);
                 for (int i = 0; i < values.Length; ++i)
                 {
                     _seriesToDetect[i] = values[i];
@@ -491,18 +491,6 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            private void AllocateDoubleArray(ref double[] arr, int length)
-            {
-                if (arr == null)
-                {
-                    arr = new double[length];
-                }
-                else if (arr.Length != length)
-                {
-                    Array.Resize<double>(ref arr, length);
-                }
-            }
-
             private void SpectralResidual(double[] values, double[][] results, double threshold)
             {
                 // Step 1: Get backadd wave
@@ -510,15 +498,15 @@ namespace Microsoft.ML.TimeSeries
 
                 // Step 2: FFT transformation
                 int length = _backAddArray.Length;
-                AllocateDoubleArray(ref _fftRe, length);
-                AllocateDoubleArray(ref _fftIm, length);
+                Array.Resize(ref _fftRe, length);
+                Array.Resize(ref _fftIm, length);
 
-                AllocateDoubleArray(ref _zeroArray, length);
+                Array.Resize(ref _zeroArray, length);
                 FftUtils.ComputeForwardFft(_backAddArray, _zeroArray, _fftRe, _fftIm, length);
 
                 // Step 3: Calculate mags of FFT
-                AllocateDoubleArray(ref _magList, length);
-                AllocateDoubleArray(ref _magLogList, length);
+                Array.Resize(ref _magList, length);
+                Array.Resize(ref _magLogList, length);
                 for (int i = 0; i < length; ++i)
                 {
                     _magList[i] = Math.Sqrt((Math.Pow(_fftRe[i], 2) + Math.Pow(_fftIm[i], 2)));
@@ -534,15 +522,15 @@ namespace Microsoft.ML.TimeSeries
 
                 // Step 4: Calculate spectral
                 AverageFilter(_magLogList, _averagingWindowSize);
-                AllocateDoubleArray(ref _spectralList, length);
+                Array.Resize(ref _spectralList, length);
                 for (int i = 0; i < length; ++i)
                 {
                     _spectralList[i] = Math.Exp(_magLogList[i] - _cumSumList[i]);
                 }
 
                 // Step 5: IFFT transformation
-                AllocateDoubleArray(ref _transRe, length);
-                AllocateDoubleArray(ref _transIm, length);
+                Array.Resize(ref _transRe, length);
+                Array.Resize(ref _transIm, length);
                 for (int i = 0; i < length; ++i)
                 {
                     if (_magLogList[i] != 0)
@@ -557,12 +545,12 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
 
-                AllocateDoubleArray(ref _ifftRe, length);
-                AllocateDoubleArray(ref _ifftIm, length);
+                Array.Resize(ref _ifftRe, length);
+                Array.Resize(ref _ifftIm, length);
                 FftUtils.ComputeBackwardFft(_transRe, _transIm, _ifftRe, _ifftIm, length);
 
                 // Step 6: Calculate mag and ave_mag of IFFT
-                AllocateDoubleArray(ref _ifftMagList, length);
+                Array.Resize(ref _ifftMagList, length);
                 for (int i = 0; i < length; ++i)
                 {
                     _ifftMagList[i] = Math.Sqrt((Math.Pow(_ifftRe[i], 2) + Math.Pow(_ifftIm[i], 2)));
@@ -593,7 +581,7 @@ namespace Microsoft.ML.TimeSeries
                     _predictArray[j++] = data[i];
                 }
                 var predictedValue = PredictNext(_predictArray);
-                AllocateDoubleArray(ref _backAddArray, data.Length + _backAddWindowSize);
+                Array.Resize(ref _backAddArray, data.Length + _backAddWindowSize);
                 for (int i = 0; i < data.Length; ++i)
                 {
                     _backAddArray[i] = data[i];
@@ -620,8 +608,8 @@ namespace Microsoft.ML.TimeSeries
                 double cumsum = 0.0f;
                 int length = data.Length;
 
-                AllocateDoubleArray(ref _cumSumList, length);
-                AllocateDoubleArray(ref _cumSumShift, length);
+                Array.Resize(ref _cumSumList, length);
+                Array.Resize(ref _cumSumShift, length);
 
                 for (int i = 0; i < length; ++i)
                 {
@@ -800,7 +788,7 @@ namespace Microsoft.ML.TimeSeries
 
             private void GetDeanomalyData(double[] data, int[] anomalyIdxList)
             {
-                AllocateDoubleArray(ref _deAnomalyData, data.Length);
+                Array.Resize(ref _deAnomalyData, data.Length);
                 Array.Copy(data, _deAnomalyData, data.Length);
                 int minPointsToFit = 4;
                 foreach (var idx in anomalyIdxList)
@@ -857,9 +845,9 @@ namespace Microsoft.ML.TimeSeries
             private void CalculateExpectedValueByFft(double[] data)
             {
                 int length = data.Length;
-                AllocateDoubleArray(ref _fftRe, length);
-                AllocateDoubleArray(ref _fftIm, length);
-                AllocateDoubleArray(ref _zeroArray, length);
+                Array.Resize(ref _fftRe, length);
+                Array.Resize(ref _fftIm, length);
+                Array.Resize(ref _zeroArray, length);
                 FftUtils.ComputeForwardFft(data, _zeroArray, _fftRe, _fftIm, length);
 
                 for (int i = 0; i < length; ++i)
@@ -871,8 +859,8 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
 
-                AllocateDoubleArray(ref _ifftRe, length);
-                AllocateDoubleArray(ref _ifftIm, length);
+                Array.Resize(ref _ifftRe, length);
+                Array.Resize(ref _ifftIm, length);
                 FftUtils.ComputeBackwardFft(_fftRe, _fftIm, _ifftRe, _ifftIm, length);
             }
 
@@ -903,7 +891,7 @@ namespace Microsoft.ML.TimeSeries
                     trendFraction = 1.0;
                 }
 
-                AllocateDoubleArray(ref _units, _trends.Length);
+                Array.Resize(ref _units, _trends.Length);
                 for (int i = 0; i < _units.Length; ++i)
                 {
                     _units[i] = Math.Max(1, averageTrendPart + Math.Abs(_trends[i]) * trendFraction);
@@ -918,11 +906,11 @@ namespace Microsoft.ML.TimeSeries
             {
                 int wLen = window / 2 * 2 + 1;
                 int tLen = data.Length;
-                AllocateDoubleArray(ref _val, tLen);
+                Array.Resize(ref _val, tLen);
                 Array.Copy(data, _val, tLen);
-                AllocateDoubleArray(ref _trends, tLen);
+                Array.Resize(ref _trends, tLen);
                 Array.Copy(data, _trends, tLen);
-                AllocateDoubleArray(ref _curWindow, wLen);
+                Array.Resize(ref _curWindow, wLen);
 
                 if (tLen < wLen)
                     return;
