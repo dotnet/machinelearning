@@ -3,166 +3,166 @@ Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=
 Training 20 learners for the batch 1
 Beginning training model 1 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 9 instances with missing features during training (over 1 iterations; 9 inst/iter)
+Warning: Skipped 90 instances with missing features during training (over 10 iterations; 9 inst/iter)
 Trainer 1 of 20 finished in %Time%
 Beginning training model 2 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 4 instances with missing features during training (over 1 iterations; 4 inst/iter)
+Warning: Skipped 40 instances with missing features during training (over 10 iterations; 4 inst/iter)
 Trainer 2 of 20 finished in %Time%
 Beginning training model 3 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 12 instances with missing features during training (over 1 iterations; 12 inst/iter)
+Warning: Skipped 120 instances with missing features during training (over 10 iterations; 12 inst/iter)
 Trainer 3 of 20 finished in %Time%
 Beginning training model 4 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 10 instances with missing features during training (over 1 iterations; 10 inst/iter)
+Warning: Skipped 100 instances with missing features during training (over 10 iterations; 10 inst/iter)
 Trainer 4 of 20 finished in %Time%
 Beginning training model 5 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 11 instances with missing features during training (over 1 iterations; 11 inst/iter)
+Warning: Skipped 110 instances with missing features during training (over 10 iterations; 11 inst/iter)
 Trainer 5 of 20 finished in %Time%
 Beginning training model 6 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 9 instances with missing features during training (over 1 iterations; 9 inst/iter)
+Warning: Skipped 90 instances with missing features during training (over 10 iterations; 9 inst/iter)
 Trainer 6 of 20 finished in %Time%
 Beginning training model 7 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 9 instances with missing features during training (over 1 iterations; 9 inst/iter)
+Warning: Skipped 90 instances with missing features during training (over 10 iterations; 9 inst/iter)
 Trainer 7 of 20 finished in %Time%
 Beginning training model 8 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 11 instances with missing features during training (over 1 iterations; 11 inst/iter)
+Warning: Skipped 110 instances with missing features during training (over 10 iterations; 11 inst/iter)
 Trainer 8 of 20 finished in %Time%
 Beginning training model 9 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 9 instances with missing features during training (over 1 iterations; 9 inst/iter)
+Warning: Skipped 90 instances with missing features during training (over 10 iterations; 9 inst/iter)
 Trainer 9 of 20 finished in %Time%
 Beginning training model 10 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 7 instances with missing features during training (over 1 iterations; 7 inst/iter)
+Warning: Skipped 70 instances with missing features during training (over 10 iterations; 7 inst/iter)
 Trainer 10 of 20 finished in %Time%
 Beginning training model 11 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 8 instances with missing features during training (over 1 iterations; 8 inst/iter)
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
 Trainer 11 of 20 finished in %Time%
 Beginning training model 12 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 10 instances with missing features during training (over 1 iterations; 10 inst/iter)
+Warning: Skipped 100 instances with missing features during training (over 10 iterations; 10 inst/iter)
 Trainer 12 of 20 finished in %Time%
 Beginning training model 13 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 11 instances with missing features during training (over 1 iterations; 11 inst/iter)
+Warning: Skipped 110 instances with missing features during training (over 10 iterations; 11 inst/iter)
 Trainer 13 of 20 finished in %Time%
 Beginning training model 14 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 8 instances with missing features during training (over 1 iterations; 8 inst/iter)
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
 Trainer 14 of 20 finished in %Time%
 Beginning training model 15 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 10 instances with missing features during training (over 1 iterations; 10 inst/iter)
+Warning: Skipped 100 instances with missing features during training (over 10 iterations; 10 inst/iter)
 Trainer 15 of 20 finished in %Time%
 Beginning training model 16 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 7 instances with missing features during training (over 1 iterations; 7 inst/iter)
+Warning: Skipped 70 instances with missing features during training (over 10 iterations; 7 inst/iter)
 Trainer 16 of 20 finished in %Time%
 Beginning training model 17 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 6 instances with missing features during training (over 1 iterations; 6 inst/iter)
+Warning: Skipped 60 instances with missing features during training (over 10 iterations; 6 inst/iter)
 Trainer 17 of 20 finished in %Time%
 Beginning training model 18 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 10 instances with missing features during training (over 1 iterations; 10 inst/iter)
+Warning: Skipped 100 instances with missing features during training (over 10 iterations; 10 inst/iter)
 Trainer 18 of 20 finished in %Time%
 Beginning training model 19 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 11 instances with missing features during training (over 1 iterations; 11 inst/iter)
+Warning: Skipped 110 instances with missing features during training (over 10 iterations; 11 inst/iter)
 Trainer 19 of 20 finished in %Time%
 Beginning training model 20 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 7 instances with missing features during training (over 1 iterations; 7 inst/iter)
+Warning: Skipped 70 instances with missing features during training (over 10 iterations; 7 inst/iter)
 Trainer 20 of 20 finished in %Time%
 Training calibrator.
 Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
 Training 20 learners for the batch 1
 Beginning training model 1 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 13 instances with missing features during training (over 1 iterations; 13 inst/iter)
+Warning: Skipped 130 instances with missing features during training (over 10 iterations; 13 inst/iter)
 Trainer 1 of 20 finished in %Time%
 Beginning training model 2 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 8 instances with missing features during training (over 1 iterations; 8 inst/iter)
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
 Trainer 2 of 20 finished in %Time%
 Beginning training model 3 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 7 instances with missing features during training (over 1 iterations; 7 inst/iter)
+Warning: Skipped 70 instances with missing features during training (over 10 iterations; 7 inst/iter)
 Trainer 3 of 20 finished in %Time%
 Beginning training model 4 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 8 instances with missing features during training (over 1 iterations; 8 inst/iter)
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
 Trainer 4 of 20 finished in %Time%
 Beginning training model 5 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 6 instances with missing features during training (over 1 iterations; 6 inst/iter)
+Warning: Skipped 60 instances with missing features during training (over 10 iterations; 6 inst/iter)
 Trainer 5 of 20 finished in %Time%
 Beginning training model 6 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 7 instances with missing features during training (over 1 iterations; 7 inst/iter)
+Warning: Skipped 70 instances with missing features during training (over 10 iterations; 7 inst/iter)
 Trainer 6 of 20 finished in %Time%
 Beginning training model 7 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 8 instances with missing features during training (over 1 iterations; 8 inst/iter)
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
 Trainer 7 of 20 finished in %Time%
 Beginning training model 8 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 12 instances with missing features during training (over 1 iterations; 12 inst/iter)
+Warning: Skipped 120 instances with missing features during training (over 10 iterations; 12 inst/iter)
 Trainer 8 of 20 finished in %Time%
 Beginning training model 9 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 7 instances with missing features during training (over 1 iterations; 7 inst/iter)
+Warning: Skipped 70 instances with missing features during training (over 10 iterations; 7 inst/iter)
 Trainer 9 of 20 finished in %Time%
 Beginning training model 10 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 4 instances with missing features during training (over 1 iterations; 4 inst/iter)
+Warning: Skipped 40 instances with missing features during training (over 10 iterations; 4 inst/iter)
 Trainer 10 of 20 finished in %Time%
 Beginning training model 11 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 6 instances with missing features during training (over 1 iterations; 6 inst/iter)
+Warning: Skipped 60 instances with missing features during training (over 10 iterations; 6 inst/iter)
 Trainer 11 of 20 finished in %Time%
 Beginning training model 12 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 6 instances with missing features during training (over 1 iterations; 6 inst/iter)
+Warning: Skipped 60 instances with missing features during training (over 10 iterations; 6 inst/iter)
 Trainer 12 of 20 finished in %Time%
 Beginning training model 13 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 11 instances with missing features during training (over 1 iterations; 11 inst/iter)
+Warning: Skipped 110 instances with missing features during training (over 10 iterations; 11 inst/iter)
 Trainer 13 of 20 finished in %Time%
 Beginning training model 14 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 8 instances with missing features during training (over 1 iterations; 8 inst/iter)
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
 Trainer 14 of 20 finished in %Time%
 Beginning training model 15 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 9 instances with missing features during training (over 1 iterations; 9 inst/iter)
+Warning: Skipped 90 instances with missing features during training (over 10 iterations; 9 inst/iter)
 Trainer 15 of 20 finished in %Time%
 Beginning training model 16 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 13 instances with missing features during training (over 1 iterations; 13 inst/iter)
+Warning: Skipped 130 instances with missing features during training (over 10 iterations; 13 inst/iter)
 Trainer 16 of 20 finished in %Time%
 Beginning training model 17 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 7 instances with missing features during training (over 1 iterations; 7 inst/iter)
+Warning: Skipped 70 instances with missing features during training (over 10 iterations; 7 inst/iter)
 Trainer 17 of 20 finished in %Time%
 Beginning training model 18 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 5 instances with missing features during training (over 1 iterations; 5 inst/iter)
+Warning: Skipped 50 instances with missing features during training (over 10 iterations; 5 inst/iter)
 Trainer 18 of 20 finished in %Time%
 Beginning training model 19 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 8 instances with missing features during training (over 1 iterations; 8 inst/iter)
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
 Trainer 19 of 20 finished in %Time%
 Beginning training model 20 of 20
 Warning: Training data does not support shuffling, so ignoring request to shuffle
-Warning: Skipped 10 instances with missing features during training (over 1 iterations; 10 inst/iter)
+Warning: Skipped 100 instances with missing features during training (over 10 iterations; 10 inst/iter)
 Trainer 20 of 20 finished in %Time%
 Training calibrator.
 Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
@@ -171,43 +171,43 @@ Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||      129 |        5 | 0.9627
+ positive ||      132 |        2 | 0.9851
  negative ||        7 |      213 | 0.9682
           ||======================
-Precision ||   0.9485 |   0.9771 |
-OVERALL 0/1 ACCURACY: 0.966102
-LOG LOSS/instance:  0.143167
+Precision ||   0.9496 |   0.9907 |
+OVERALL 0/1 ACCURACY: 0.974576
+LOG LOSS/instance:  0.135181
 Test-set entropy (prior Log-Loss/instance): 0.956998
-LOG-LOSS REDUCTION (RIG): 0.850400
-AUC:                0.993996
+LOG-LOSS REDUCTION (RIG): 0.858745
+AUC:                0.994233
 Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
 TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
 Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||      103 |        2 | 0.9810
- negative ||        4 |      220 | 0.9821
+ positive ||       96 |        9 | 0.9143
+ negative ||        3 |      221 | 0.9866
           ||======================
-Precision ||   0.9626 |   0.9910 |
-OVERALL 0/1 ACCURACY: 0.981763
-LOG LOSS/instance:  0.115437
+Precision ||   0.9697 |   0.9609 |
+OVERALL 0/1 ACCURACY: 0.963526
+LOG LOSS/instance:  0.119656
 Test-set entropy (prior Log-Loss/instance): 0.903454
-LOG-LOSS REDUCTION (RIG): 0.872227
-AUC:                0.997832
+LOG-LOSS REDUCTION (RIG): 0.867557
+AUC:                0.997406
 
 OVERALL RESULTS
 ---------------------------------------
-AUC:                0.995914 (0.0019)
-Accuracy:           0.973932 (0.0078)
-Positive precision: 0.955573 (0.0070)
-Positive recall:    0.971819 (0.0091)
-Negative precision: 0.984028 (0.0070)
-Negative recall:    0.975162 (0.0070)
-Log-loss:           0.129302 (0.0139)
-Log-loss reduction: 0.861313 (0.0109)
-F1 Score:           0.963627 (0.0081)
-AUPRC:              0.992159 (0.0031)
+AUC:                0.995820 (0.0016)
+Accuracy:           0.969051 (0.0055)
+Positive precision: 0.959669 (0.0100)
+Positive recall:    0.949680 (0.0354)
+Negative precision: 0.975784 (0.0149)
+Negative recall:    0.977394 (0.0092)
+Log-loss:           0.127418 (0.0078)
+Log-loss reduction: 0.863151 (0.0044)
+F1 Score:           0.954105 (0.0129)
+AUPRC:              0.991850 (0.0025)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

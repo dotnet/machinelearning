@@ -181,6 +181,13 @@ namespace Microsoft.ML.RunTests
             LogWriter.Dispose();
             LogWriter = null;
 
+            Contracts.AssertValue(TestLogger);
+            TestLogger.Close();
+            TestLogger = null;
+
+            Contracts.AssertValue(ML);
+            ML = null;
+
             base.Cleanup();
         }
 

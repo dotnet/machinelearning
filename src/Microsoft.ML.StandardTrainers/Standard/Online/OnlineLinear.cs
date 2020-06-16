@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers
         [BestFriend]
         internal class OnlineDefault
         {
-            public const int NumberOfIterations = 1;
+            public const int NumberOfIterations = 10;
         }
     }
 
