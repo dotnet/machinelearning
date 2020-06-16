@@ -22,7 +22,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         ExtractPixel = 2,
         NormalizeMapping = 3,
         LabelMapping = 4,
-        ObjectDetectionLabelMapping = 5, // Tevin: added for OD mappings
+        ObjectDetectionLabelMapping = 5,
         ReshapeTransformer = 6,
         ObjectDetectionResizeImage = 7,
         ObjectDetectionExtractPixel = 8,
