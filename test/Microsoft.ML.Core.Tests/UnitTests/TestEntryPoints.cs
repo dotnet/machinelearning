@@ -6614,7 +6614,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [LightGBMFact]
         void RankingWithColumnIdEntryPoint()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
