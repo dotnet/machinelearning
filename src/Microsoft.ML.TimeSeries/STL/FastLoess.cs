@@ -7,7 +7,7 @@ namespace Microsoft.ML.TimeSeries
     /// this is the fast version of Loess. there are several alternatives to improve the performance. this one is an approximation approach.
     /// the smoothing is conducted on a sample set, and then the values on the left points are assigned directly.
     /// </summary>
-    public class FastLoess
+    internal class FastLoess
     {
         /// <summary>
         /// this class is a sampling based method, so here specifies the sample size.

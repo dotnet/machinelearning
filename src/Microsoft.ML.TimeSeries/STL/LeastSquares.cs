@@ -7,7 +7,7 @@ namespace Microsoft.ML.TimeSeries
     /// this class is used to calculate the least squares of the scatterplots.
     /// please check http://en.wikipedia.org/wiki/Least_squares for more details.
     /// </summary>
-    public class LeastSquares
+    internal class LeastSquares
     {
         private readonly List<double> _x;
         private readonly List<double> _y;
@@ -102,7 +102,7 @@ namespace Microsoft.ML.TimeSeries
     /// <summary>
     /// indicate a specific polynomial model
     /// </summary>
-    public class PolynomialModel
+    internal class PolynomialModel
     {
         private readonly List<double> _coeffs;
 

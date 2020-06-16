@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
 using Microsoft.ML.Runtime;
@@ -109,6 +111,52 @@ namespace Microsoft.ML.TimeSeries
         private readonly SrCnnDetectMode _detectMode;
         private readonly int _period;
         private readonly SrCnnDeseasonalityMode _deseasonalityMode;
+        private readonly Options _options;
+
+        internal sealed class Options
+        {
+            [Argument(ArgumentType.Required, HelpText = "The name of the input column.", ShortName = "input",
+                SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
+            public string InputColumn;
+
+            [Argument(ArgumentType.Required, HelpText = "The name of the output column.", ShortName = "output",
+                SortOrder = 2)]
+            public string OutputColumnName;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
+                SortOrder = 3, ShortName = "thr")]
+            public double Threshold;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of data points to be detected in each batch. It should be at least 12. Set this parameter to -1 to detect anomaly on the entire series.",
+                SortOrder = 4, ShortName = "bsz")]
+            public int BatchSize;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "This parameter is used in AnomalyAndMargin mode the determine the range of the boundaries.",
+                SortOrder = 4, ShortName = "sen")]
+            public double Sensitivity;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Specify the detect mode as one of AnomalyOnly, AnomalyAndExpectedValue and AnomalyAndMargin.",
+                SortOrder = 5, ShortName = "dtmd")]
+            public SrCnnDetectMode DetectMode;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If there is circular pattern in the series, set this value to the number of points in one cycle.",
+                SortOrder = 5, ShortName = "prd")]
+            public int Period;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Specify the deseasonality mode as one of stl, mean and median.",
+                SortOrder = 6, ShortName = "dsmd")]
+            public SrCnnDeseasonalityMode DeseasonalityMode;
+
+            internal static class Defaults
+            {
+                public const double Threshold = 0.3;
+                public const int BatchSize = 2000;
+                public const double Sensitivity = 55;
+                public const SrCnnDetectMode DetectMode = SrCnnDetectMode.AnomalyOnly;
+                public const int Period = 0;
+                public const SrCnnDeseasonalityMode DeseasonalityMode = SrCnnDeseasonalityMode.Stl;
+            }
+        }
 
         private class Bindings : ColumnBindingsBase
         {
@@ -149,6 +197,12 @@ namespace Microsoft.ML.TimeSeries
 
                 return col => 0 <= col && col < active.Length && active[col];
             }
+        }
+
+        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, Options options)
+            : base(env, nameof(SrCnnEntireAnomalyDetector), input)
+        {
+            _options = options;
         }
 
         public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode, int period, SrCnnDeseasonalityMode deseasonalityMode)

@@ -7,7 +7,7 @@ namespace Microsoft.ML.TimeSeries
     /// <summary>
     /// Loess is short for Robust Locally Weighted Regression and Smoothing Scatterplots.
     /// </summary>
-    public class Loess
+    internal class Loess
     {
 
         private const double NumericalThreshold = 1.0e-10;
@@ -147,7 +147,7 @@ namespace Microsoft.ML.TimeSeries
     /// this class is used to define a set of weight functions. these functions are useful for various purposes for smoothing.
     /// i.e., the weighted least squares.
     /// </summary>
-    public class WeightMethod
+    internal class WeightMethod
     {
         /// <summary>
         /// this is used for robust weight, it is one iteration step of loess.
@@ -179,7 +179,7 @@ namespace Microsoft.ML.TimeSeries
     /// this class is used to store the parameters which are needed for lowess algorithm.
     /// the name of these constansts are compliant with the original terms in paper.
     /// </summary>
-    public class LoessConfiguration
+    internal class LoessConfiguration
     {
         /// <summary>
         /// this value is used for performance concern. when the length of the series goes large, a ratio of neighbors will be significant,

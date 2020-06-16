@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.ML.TimeSeries
 {
-    public class BasicParameters
+    internal class BasicParameters
     {
         /// <summary>
         /// the minimum length of a valid time series. a time series with length equals 2 is so trivial. when less than 2, meaningless.

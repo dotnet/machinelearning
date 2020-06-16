@@ -115,18 +115,18 @@ namespace Microsoft.ML.TimeSeries
                 throw Contracts.Except("input data structure cannot be 0-length: innerSTL");
 
             _length = yValues.Count;
-            AllocateDoubleArray(ref _seasonalComponent, _length);
-            AllocateDoubleArray(ref _trendComponent, _length);
-            AllocateDoubleArray(ref _residual, _length);
+            Array.Resize(ref _seasonalComponent, _length);
+            Array.Resize(ref _trendComponent, _length);
+            Array.Resize(ref _residual, _length);
 
-            AllocateDoubleArray(ref _s, _length);
-            AllocateDoubleArray(ref _t, _length);
-            AllocateDoubleArray(ref _detrendedY, _length);
-            AllocateDoubleArray(ref _c, _length + np * 2);
-            AllocateDoubleArray(ref _deseasonSeries, _length);
+            Array.Resize(ref _s, _length);
+            Array.Resize(ref _t, _length);
+            Array.Resize(ref _detrendedY, _length);
+            Array.Resize(ref _c, _length + np * 2);
+            Array.Resize(ref _deseasonSeries, _length);
 
-            AllocateListDoubleArray(ref _cycleSubSeries, np);
-            AllocateListDoubleArray(ref _smoothedSubseries, np);
+            Array.Resize(ref _cycleSubSeries, np);
+            Array.Resize(ref _smoothedSubseries, np);
 
             for (int i = 0; i < _length; ++i)
             {
@@ -317,35 +317,6 @@ namespace Microsoft.ML.TimeSeries
             results.Add(partialSum / length);
 
             return results;
-        }
-
-        private void AllocateDoubleArray(ref double[] arr, int length)
-        {
-            if (arr == null)
-            {
-                arr = new double[length];
-            }
-            else if (arr.Length != length)
-            {
-                Array.Resize<double>(ref arr, length);
-            }
-        }
-
-        private void AllocateListDoubleArray(ref List<double>[] arr, int length)
-        {
-            if (arr == null)
-            {
-                arr = new List<double>[length];
-            }
-            else if (arr.Length != length)
-            {
-                Array.Resize<List<double>>(ref arr, length);
-            }
-
-            for (int i = 0; i < length; ++i)
-            {
-                arr[i] = new List<double>();
-            }
         }
     }
 }

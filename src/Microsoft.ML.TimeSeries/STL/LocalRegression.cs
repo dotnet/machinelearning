@@ -29,7 +29,7 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="selfIndex">the index of the current point</param>
         /// <param name="r">number of neighbors, usually should be less then n. if it is equal/larger than n, the weight has slight change.</param>
         /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
-        internal LocalRegression(IReadOnlyList<double> x, IReadOnlyList<double> y, int selfIndex, int r, bool isTemporal = true)
+        public LocalRegression(IReadOnlyList<double> x, IReadOnlyList<double> y, int selfIndex, int r, bool isTemporal = true)
         {
             Contracts.CheckValue(x, nameof(x));
             Contracts.CheckValue(y, nameof(y));

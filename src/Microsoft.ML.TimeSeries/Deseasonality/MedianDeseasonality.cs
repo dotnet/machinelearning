@@ -10,7 +10,8 @@ namespace Microsoft.ML.TimeSeries
 
         public override void Deseasonality(ref double[] values, int period, ref double[] results)
         {
-            AllocateListDoubleArray(period);
+            Array.Resize<double>(ref _circularComponent, period);
+            Array.Resize<List<double>>(ref _subSeries, period);
 
             var length = values.Length;
 
@@ -27,7 +28,6 @@ namespace Microsoft.ML.TimeSeries
             }
 
             // calculate the median value as circular component.
-            AllocateDoubleArray(period);
             for (int i = 0; i < period; ++i)
             {
                 _circularComponent[i] = MathUtility.QuickMedian(_subSeries[i]);
@@ -38,30 +38,6 @@ namespace Microsoft.ML.TimeSeries
             {
                 var indexInPeriod = i % period;
                 results[i] -= _circularComponent[indexInPeriod];
-            }
-        }
-
-        private void AllocateListDoubleArray(int length)
-        {
-            if (_subSeries == null)
-            {
-                _subSeries = new List<double>[length];
-            }
-            else if (_subSeries.Length != length)
-            {
-                Array.Resize<List<double>>(ref _subSeries, length);
-            }
-        }
-
-        private void AllocateDoubleArray(int length)
-        {
-            if (_circularComponent == null)
-            {
-                _circularComponent = new double[length];
-            }
-            else if (_circularComponent.Length != length)
-            {
-                Array.Resize<double>(ref _circularComponent, length);
             }
         }
     }

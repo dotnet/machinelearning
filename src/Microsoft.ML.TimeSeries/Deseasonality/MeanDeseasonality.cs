@@ -8,7 +8,8 @@ namespace Microsoft.ML.TimeSeries.Deseasonality
 
         public override void Deseasonality(ref double[] values, int period, ref double[] results)
         {
-            AllocateDoubleArray(period);
+            Array.Resize<double>(ref _circularComponent, period);
+
             var length = values.Length;
 
             // initialize the circurlar component to 0.
@@ -38,18 +39,6 @@ namespace Microsoft.ML.TimeSeries.Deseasonality
             {
                 var indexInPeriod = i % period;
                 results[i] -= _circularComponent[indexInPeriod];
-            }
-        }
-
-        private void AllocateDoubleArray(int length)
-        {
-            if (_circularComponent == null)
-            {
-                _circularComponent = new double[length];
-            }
-            else if (_circularComponent.Length != length)
-            {
-                Array.Resize<double>(ref _circularComponent, length);
             }
         }
     }
