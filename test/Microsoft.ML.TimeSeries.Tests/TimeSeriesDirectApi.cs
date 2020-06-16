@@ -678,8 +678,19 @@ namespace Microsoft.ML.Tests
             string inputColumnName = nameof(TimeSeriesDataDouble.Value);
 
             // Do batch anomaly detection
-            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
-                threshold: 0.3, batchSize: -1, sensitivity: 53.0, detectMode: SrCnnDetectMode.AnomalyAndMargin, period: 288, deseasonalityMode: mode);
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+                Threshold = 0.3,
+                BatchSize = -1,
+                Sensitivity = 53.0,
+                DetectMode = SrCnnDetectMode.AnomalyAndMargin,
+                Period = 288,
+                DeseasonalityMode = mode
+            };
+
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, options);
 
                         // Getting the data of the newly created column as an IEnumerable of
             // SrCnnAnomalyDetection.
@@ -710,8 +721,18 @@ namespace Microsoft.ML.Tests
             string inputColumnName = nameof(TimeSeriesDataDouble.Value);
 
             // Do batch anomaly detection
-            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
-                threshold: 0.23, batchSize: -1, sensitivity: 53.0, detectMode: SrCnnDetectMode.AnomalyAndMargin, period: 288, deseasonalityMode: mode);
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+                Threshold = 0.23,
+                BatchSize = -1,
+                Sensitivity = 53.0,
+                DetectMode = SrCnnDetectMode.AnomalyAndMargin,
+                Period = 288,
+                DeseasonalityMode = mode
+            };
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, options);
 
             // Getting the data of the newly created column as an IEnumerable of
             // SrCnnAnomalyDetection.

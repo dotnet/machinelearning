@@ -167,8 +167,6 @@ namespace Microsoft.ML
         /// When set to AnomalyAndMargin, the output vector would be a 7-element Double vector of (IsAnomaly, AnomalyScore, Mag, ExpectedValue, BoundaryUnit, UpperBoundary, LowerBoundary).
         /// The RawScore is output by SR to determine whether a point is an anomaly or not, under AnomalyAndMargin mode, when a point is an anomaly, an AnomalyScore will be calculated according to sensitivity setting.
         /// Default value is AnomalyOnly.</param>
-        /// <param name="period">The period of the data to be detected. If the data has periodical pattern, set this parameter to the length of one period, otherwise 0 which indicates that there is no circular pattern. Default value is 0.</param>
-        /// <param name="deseasonalityMode">If the data has periodcal pattern, set this parameter to specify the method to perform deseasonality on the series.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -177,8 +175,36 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, string outputColumnName, string inputColumnName,
-            double threshold = 0.3, int batchSize = 1024, double sensitivity = 99, SrCnnDetectMode detectMode = SrCnnDetectMode.AnomalyOnly, int period = 0, SrCnnDeseasonalityMode deseasonalityMode = SrCnnDeseasonalityMode.Stl)
-            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, inputColumnName, outputColumnName, threshold, batchSize, sensitivity, detectMode, period, deseasonalityMode);
+            double threshold = 0.3, int batchSize = 1024, double sensitivity = 99, SrCnnDetectMode detectMode = SrCnnDetectMode.AnomalyOnly)
+        {
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+                Threshold = threshold,
+                BatchSize = batchSize,
+                Sensitivity = sensitivity,
+                DetectMode = detectMode,
+            };
+
+            return DetectEntireAnomalyBySrCnn(catalog, input, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="SrCnnEntireAnomalyDetector"/>, which detects timeseries anomalies for entire input using SRCNN algorithm.
+        /// </summary>
+        /// <param name="catalog">The AnomalyDetectionCatalog.</param>
+        /// <param name="input">Input DataView.</param>
+        /// <param name="options">Defines the settings of the load operation.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectEntireAnomalyBySrCnn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectEntireAnomalyBySrCnn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, SrCnnEntireAnomalyDetectorOptions options = null)
+            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, options);
 
         /// <summary>
         /// Create <see cref="RootCause"/>, which localizes root causes using decision tree algorithm.

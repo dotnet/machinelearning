@@ -56,6 +56,50 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         Median = 2
     }
+    public sealed class SrCnnEntireAnomalyDetectorOptions
+    {
+        [Argument(ArgumentType.Required, HelpText = "The name of the input column.", ShortName = "input",
+            SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
+        public string InputColumnName;
+
+        [Argument(ArgumentType.Required, HelpText = "The name of the output column.", ShortName = "output",
+            SortOrder = 2)]
+        public string OutputColumnName;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
+            SortOrder = 3, ShortName = "thr")]
+        public double Threshold = Defaults.Threshold;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The number of data points to be detected in each batch. It should be at least 12. Set this parameter to -1 to detect anomaly on the entire series.",
+            SortOrder = 4, ShortName = "bsz")]
+        public int BatchSize = Defaults.BatchSize;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "This parameter is used in AnomalyAndMargin mode the determine the range of the boundaries.",
+            SortOrder = 4, ShortName = "sen")]
+        public double Sensitivity = Defaults.Sensitivity;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Specify the detect mode as one of AnomalyOnly, AnomalyAndExpectedValue and AnomalyAndMargin.",
+            SortOrder = 5, ShortName = "dtmd")]
+        public SrCnnDetectMode DetectMode = Defaults.DetectMode;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "If there is circular pattern in the series, set this value to the number of points in one cycle.",
+            SortOrder = 5, ShortName = "prd")]
+        public int Period = Defaults.Period;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Specify the deseasonality mode as one of stl, mean and median.",
+            SortOrder = 6, ShortName = "dsmd")]
+        public SrCnnDeseasonalityMode DeseasonalityMode = Defaults.DeseasonalityMode;
+
+        internal static class Defaults
+        {
+            public const double Threshold = 0.3;
+            public const int BatchSize = 2000;
+            public const double Sensitivity = 55;
+            public const SrCnnDetectMode DetectMode = SrCnnDetectMode.AnomalyOnly;
+            public const int Period = 0;
+            public const SrCnnDeseasonalityMode DeseasonalityMode = SrCnnDeseasonalityMode.Stl;
+        }
+    }
 
     /// <summary>
     /// Detect timeseries anomalies for entire input using Spectral Residual(SR) algorithm.
@@ -96,67 +140,16 @@ namespace Microsoft.ML.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode, int, SrCnnDeseasonalityMode)"/>
+    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode)"/>
+    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, SrCnnEntireAnomalyDetectorOptions)"/>
     internal sealed class SrCnnEntireAnomalyDetector : BatchDataViewMapperBase<double, SrCnnEntireAnomalyDetector.Batch>
     {
         private const int MinBatchSize = 12;
 
         private static readonly int[] _outputLengthArray = {3, 7, 4};
-        private readonly int _batchSize;
-        private readonly string _inputColumnName;
+        private readonly SrCnnEntireAnomalyDetectorOptions _options;
         private readonly int _outputLength;
         private readonly Bindings _bindings;
-        private readonly double _threshold;
-        private readonly double _sensitivity;
-        private readonly SrCnnDetectMode _detectMode;
-        private readonly int _period;
-        private readonly SrCnnDeseasonalityMode _deseasonalityMode;
-        private readonly Options _options;
-
-        internal sealed class Options
-        {
-            [Argument(ArgumentType.Required, HelpText = "The name of the input column.", ShortName = "input",
-                SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
-            public string InputColumn;
-
-            [Argument(ArgumentType.Required, HelpText = "The name of the output column.", ShortName = "output",
-                SortOrder = 2)]
-            public string OutputColumnName;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
-                SortOrder = 3, ShortName = "thr")]
-            public double Threshold;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of data points to be detected in each batch. It should be at least 12. Set this parameter to -1 to detect anomaly on the entire series.",
-                SortOrder = 4, ShortName = "bsz")]
-            public int BatchSize;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "This parameter is used in AnomalyAndMargin mode the determine the range of the boundaries.",
-                SortOrder = 4, ShortName = "sen")]
-            public double Sensitivity;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Specify the detect mode as one of AnomalyOnly, AnomalyAndExpectedValue and AnomalyAndMargin.",
-                SortOrder = 5, ShortName = "dtmd")]
-            public SrCnnDetectMode DetectMode;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "If there is circular pattern in the series, set this value to the number of points in one cycle.",
-                SortOrder = 5, ShortName = "prd")]
-            public int Period;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Specify the deseasonality mode as one of stl, mean and median.",
-                SortOrder = 6, ShortName = "dsmd")]
-            public SrCnnDeseasonalityMode DeseasonalityMode;
-
-            internal static class Defaults
-            {
-                public const double Threshold = 0.3;
-                public const int BatchSize = 2000;
-                public const double Sensitivity = 55;
-                public const SrCnnDetectMode DetectMode = SrCnnDetectMode.AnomalyOnly;
-                public const int Period = 0;
-                public const SrCnnDeseasonalityMode DeseasonalityMode = SrCnnDeseasonalityMode.Stl;
-            }
-        }
 
         private class Bindings : ColumnBindingsBase
         {
@@ -199,43 +192,37 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, Options options)
+        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, SrCnnEntireAnomalyDetectorOptions options)
             : base(env, nameof(SrCnnEntireAnomalyDetector), input)
         {
+            Host.CheckValue(options, nameof(options));
+            CheckOptionArguments(options);
+
             _options = options;
+            _outputLength = _outputLengthArray[(int)options.DetectMode];
+
+            _bindings = new Bindings(input.Schema, options.InputColumnName, options.OutputColumnName, new VectorDataViewType(NumberDataViewType.Double, _outputLength));
         }
 
-        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode, int period, SrCnnDeseasonalityMode deseasonalityMode)
-            : base(env, nameof(SrCnnEntireAnomalyDetector), input)
+        private void CheckOptionArguments(SrCnnEntireAnomalyDetectorOptions options)
         {
-            Host.CheckValue(inputColumnName, nameof(inputColumnName));
-            _inputColumnName = inputColumnName;
+            Host.CheckValue(options.InputColumnName, nameof(options.InputColumnName));
 
-            Host.CheckUserArg(period >= 0, nameof(period), "Must be integer equal or greater than 0.");
-            _period = period;
+            Host.CheckUserArg(options.Period >= 0, nameof(options.Period), "Must be integer equal or greater than 0.");
 
-            Host.CheckUserArg(batchSize == -1 || batchSize >= MinBatchSize, nameof(batchSize), "BatchSize must be -1 or no less than 12.");
-            Host.CheckUserArg(batchSize >= 4 * period || batchSize == -1 || period == 0, nameof(batchSize), "BatchSize must be at least four times the length of one period.");
-            _batchSize = batchSize;
+            Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize >= MinBatchSize, nameof(options.BatchSize), "Must be -1 or no less than 12.");
+            Host.CheckUserArg(options.BatchSize >= 4 * options.Period || options.BatchSize == -1 || options.Period == 0, nameof(options.BatchSize), "Must be at least four times the length of one period.");
 
-            Host.CheckUserArg(threshold >= 0 && threshold <= 1, nameof(threshold), "Must be in [0,1].");
-            Host.CheckUserArg(detectMode == SrCnnDetectMode.AnomalyOnly
-                || detectMode == SrCnnDetectMode.AnomalyAndExpectedValue
-                || detectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(detectMode), "Invalid detectMode");
+            Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(options.Threshold), "Must be in [0,1].");
+            Host.CheckUserArg(options.DetectMode == SrCnnDetectMode.AnomalyOnly
+                || options.DetectMode == SrCnnDetectMode.AnomalyAndExpectedValue
+                || options.DetectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(options.DetectMode), "Invalid detectMode");
 
-            Host.CheckUserArg(deseasonalityMode == SrCnnDeseasonalityMode.Stl
-                || deseasonalityMode == SrCnnDeseasonalityMode.Mean
-                || deseasonalityMode == SrCnnDeseasonalityMode.Median, nameof(detectMode), "Invalid detectMode");
+            Host.CheckUserArg(options.DeseasonalityMode == SrCnnDeseasonalityMode.Stl
+                || options.DeseasonalityMode == SrCnnDeseasonalityMode.Mean
+                || options.DeseasonalityMode == SrCnnDeseasonalityMode.Median, nameof(options.DeseasonalityMode), "Invalid detectMode");
 
-            Host.CheckUserArg(sensitivity >= 0 && sensitivity <= 100, nameof(sensitivity), "Must be in [0,100].");
-
-            _outputLength = _outputLengthArray[(int)detectMode];
-            _threshold = threshold;
-            _sensitivity = sensitivity;
-            _detectMode = detectMode;
-            _deseasonalityMode = deseasonalityMode;
-
-            _bindings = new Bindings(input.Schema, inputColumnName, outputColumnName, new VectorDataViewType(NumberDataViewType.Double, _outputLength));
+            Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(options.Sensitivity), "Must be in [0,100].");
         }
 
         protected override ColumnBindingsBase SchemaBindings => _bindings;
@@ -244,24 +231,25 @@ namespace Microsoft.ML.TimeSeries
         {
             if (!SchemaBindings.AnyNewColumnsActive(x => active[x]))
                 return new Delegate[1];
-            return new[] { currentBatch.CreateGetter(input, _inputColumnName) };
+            return new[] { currentBatch.CreateGetter(input, _options.InputColumnName) };
         }
 
-        protected override Batch CreateBatch(DataViewRowCursor input) => new Batch(_batchSize, _outputLength, _threshold, _sensitivity, _detectMode, _period, _deseasonalityMode);
+        protected override Batch CreateBatch(DataViewRowCursor input)
+            => new Batch(_options.BatchSize, _outputLength, _options.Threshold, _options.Sensitivity, _options.DetectMode, _options.Period, _options.DeseasonalityMode);
 
         protected override Func<bool> GetIsNewBatchDelegate(DataViewRowCursor input)
         {
-            return () => _batchSize == -1 ? input.Position == 0 : input.Position % _batchSize == 0;
+            return () => _options.BatchSize == -1 ? input.Position == 0 : input.Position % _options.BatchSize == 0;
         }
 
         protected override Func<bool> GetLastInBatchDelegate(DataViewRowCursor input)
         {
-            return () => _batchSize == -1 ? input.Position == -1 : (input.Position + 1) % _batchSize == 0;
+            return () => _options.BatchSize == -1 ? input.Position == -1 : (input.Position + 1) % _options.BatchSize == 0;
         }
 
         protected override ValueGetter<double> GetLookAheadGetter(DataViewRowCursor input)
         {
-            return input.GetGetter<double>(input.Schema[_inputColumnName]);
+            return input.GetGetter<double>(input.Schema[_options.InputColumnName]);
         }
 
         protected override Func<int, bool> GetSchemaBindingDependencies(Func<int, bool> predicate)
