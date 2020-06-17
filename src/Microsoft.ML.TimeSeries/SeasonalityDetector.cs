@@ -35,6 +35,18 @@ namespace Microsoft.ML.TimeSeries
         private const double MinEnergyThreshold = 1e-10;
 
         /// <summary>
+        /// The inverse normal cumulative distribution table that maps the confidence interval (randomness threshold) to the inverse of
+        /// normal cumulative distribution value.
+        /// </summary>
+        private static readonly SortedDictionary<double, double> _confidenceToInverseNormalDistribution = new SortedDictionary<double, double>
+        {
+            { 0.95,  1.96 },
+            { 0.99,  2.58 },
+            { 0.995, 2.81 },
+            { 0.999, 3.29 },
+        };
+
+        /// <summary>
         /// This method detects this predictable interval (or period) by adopting techniques of fourier analysis.
         /// Returns -1 if no such pattern is found, that is, the input values do not follow a seasonal fluctuation.
         /// </summary>
@@ -44,9 +56,8 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="seasonalityWindowSize">An upper bound on the number of values to be considered in the input values.
         /// When set to -1, use the whole input to fit model; when set to a positive integer, use this number as batch size.
         /// Default value is -1.</param>
-        /// <param name="randomessThreshold">Randomness flutuation threashold  that specifies how confidence the input
-        /// follows a predictable pattern recurring over an interval as seasonal data.
-        /// By default, it is set as 2.81 for 99.5% confidence interval
+        /// <param name="randomessThreshold">Randomness threshold, ranging from [0, 1]. It specifies how confidence the input
+        /// follows a predictable pattern recurring as seasonal data. By default, it is set as 0.99.
         /// </param>
         /// <returns>The detected period if seasonality period exists, otherwise return -1.</returns>
         public int DetectSeasonality(
@@ -119,7 +130,7 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="bestFrequency">The best frequency candidate</param>
         /// <param name="secondFrequency">The second best frequency candidate</param>
         /// <param name="timeSeriesLength">The length of the original time series, this is used for post processing to reduce false positive</param>
-        /// <param name="randomnessThreshold">Randomness flutuation threashold  that specifies how confidence the input
+        /// <param name="randomnessThreshold">Randomness threshold  that specifies how confidence the input
         /// follows a predictable pattern recurring over an interval as seasonal data.
         /// </param>
         /// <returns>The period detected by check best frequency and second best frequency</returns>
@@ -134,8 +145,12 @@ namespace Microsoft.ML.TimeSeries
             {
                 secondPeriod = FindBestPeriod(values, secondFrequency, timeSeriesLength, out secondTimeDomainEnergy);
             }
+
             if (firstPeriod == -1 && secondPeriod == -1)
+            {
                 return -1;
+            }
+
             int truePeriod;
             double trueTimeDomainEnergy;
             if (firstPeriod == -1)
@@ -157,7 +172,7 @@ namespace Microsoft.ML.TimeSeries
                 }
                 else
                 {
-                    // hueristic: if the second frequency is with somewhat higher energy in time domain, we think it is a better candidate
+                    // hueristic: if the second frequency is with higher energy in time domain, we think it is a better candidate
                     if (secondTimeDomainEnergy > firstTimeDomainEnergy * 1.05)
                     {
                         truePeriod = secondPeriod;
@@ -170,6 +185,7 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
             }
+
             trueTimeDomainEnergy /= values[0].Real;
 
             /* This is a key equation, which is named the "testing for randomness with the correlogram". /ref: http://www.ltrr.arizona.edu/~dmeko/notes_3.pdf
@@ -177,10 +193,23 @@ namespace Microsoft.ML.TimeSeries
              * increasing the threshold aims to mitigate the fake seasonal component caused by outliers. in practice, if there exist true seasonal component,
              * such as BirdStrike/Appdownloads, the energy is far larger than threshold, hence change threshold from 2.85 to 4.0 have no impact (tested);
              */
-            double threshold = randomnessThreshold / Math.Sqrt(timeSeriesLength);
+            double randomnessValue = _confidenceToInverseNormalDistribution.First().Value;
+            foreach (var entry in _confidenceToInverseNormalDistribution)
+            {
+                if (randomnessThreshold < entry.Key)
+                {
+                    break;
+                }
+
+                randomnessValue = entry.Value;
+            }
+
+            double threshold = randomnessValue / Math.Sqrt(timeSeriesLength);
 
             if (trueTimeDomainEnergy < threshold || values[truePeriod].Real < MinEnergyThreshold)
+            {
                 return -1;
+            }
 
             return truePeriod;
         }
@@ -203,9 +232,11 @@ namespace Microsoft.ML.TimeSeries
             double secondEnergy = -1.0;
 
             if (values.Length < 2)
+            {
                 return;
+            }
 
-            List<double> energies = new List<double>();
+            var medianAggregator = new MedianDblAggregator(values.Length / 2 + 1 - values.Length / timeSeriesLength);
 
             /* Length of time series divided by frequency is period.
              * It is obvious that the period should be larger than 1 and smaller than the total length, and is an integer.
@@ -213,7 +244,7 @@ namespace Microsoft.ML.TimeSeries
             for (int i = values.Length / timeSeriesLength; i < values.Length / 2 + 1; i++)
             {
                 double nextWeight = values[i].Magnitude;
-                energies.Add(nextWeight);
+                medianAggregator.ProcessValue(nextWeight);
 
                 if (nextWeight > bestEnergy)
                 {
@@ -232,16 +263,24 @@ namespace Microsoft.ML.TimeSeries
             for (int i = values.Length / timeSeriesLength; i < values.Length / 2 + 1; i++)
             {
                 if (i > lowerBound && i < upperBound)
+                {
                     continue;
+                }
+
                 double weight = values[i].Magnitude;
                 if (weight > secondEnergy)
                 {
                     double prevWeight = 0;
                     if (i > 0)
+                    {
                         prevWeight = values[i - 1].Magnitude;
+                    }
+
                     double nextWeight = 0;
                     if (i < values.Length - 1)
+                    {
                         nextWeight = values[i + 1].Magnitude;
+                    }
 
                     // should be a local maximum
                     if (weight >= prevWeight && weight >= nextWeight)
@@ -252,19 +291,15 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            var medianAggregator = new MedianDblAggregator(energies.Count);
-            foreach (var value in energies)
-            {
-                medianAggregator.ProcessValue(value);
-            }
-
-            var typycalEnergy = medianAggregator.Median;
+            var typicalEnergy = medianAggregator.Median;
 
             /* The second energy must be at least significantly large enough than typical energies,
              * and also similar to best energy at magnitude level.
             */
-            if (typycalEnergy * 6.0 < secondEnergy && secondEnergy * 10.0 > bestEnergy)
+            if (typicalEnergy * 6.0 < secondEnergy && secondEnergy * 10.0 > bestEnergy)
+            {
                 return;
+            }
 
             // set the second frequency to -1, since it is obviously not strong enought to compete with the best energy.
             secondFrequency = -1;
@@ -287,7 +322,9 @@ namespace Microsoft.ML.TimeSeries
 
             // this will never make sense of a seasonal signal
             if (frequency <= 1)
+            {
                 return -1;
+            }
 
             int lowerBound = values.Length / (frequency + 1);
             int upperBound = values.Length / (frequency - 1);
@@ -311,6 +348,7 @@ namespace Microsoft.ML.TimeSeries
                 energy = -1;
                 return -1;
             }
+
             return bestPeriod;
         }
     }

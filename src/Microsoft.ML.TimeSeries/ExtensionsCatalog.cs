@@ -231,12 +231,9 @@ namespace Microsoft.ML
         /// <param name="seasonalityWindowSize">An upper bound on the number of values to be considered in the input values.
         /// When set to -1, use the whole input to fit model; when set to a positive integer, only the first windowSize number
         /// of values will be considered. Default value is -1.</param>
-        /// <param name="randomnessThreshold"><a href ="https://en.wikipedia.org/wiki/Correlogram">Randomness flutuation threashold</a>
-        /// that specifies how confidence the input values follows a predictable pattern recurring over an interval as seasonal data.
-        /// By default, it is set as 2.81: <a href="https://en.wikipedia.org/wiki/Student%27s_t-distribution">two-sided t-distribution
-        /// for 99.5% confidence interval</a> with infinit degree of freedom.
-        /// The higher the threshold is set, the more strict recurring pattern the input values should follow to be determined as
-        /// seasonal data.
+        /// <param name="randomnessThreshold"><a href ="https://en.wikipedia.org/wiki/Correlogram">Randomness threshold</a>
+        /// that specifies how confidence the input values follows a predictable pattern recurring as seasonal data.
+        /// The range is between [0, 1]. By default, it is set as 0.99.
         /// </param>
         /// <returns>The regular interval for the input as seasonal data, otherwise return -1.</returns>
         /// <example>
@@ -251,7 +248,7 @@ namespace Microsoft.ML
              IDataView input,
              string inputColumnName,
              int seasonalityWindowSize = -1,
-             double randomnessThreshold = 2.81)
+             double randomnessThreshold = 0.99)
          => new SeasonalityDetector().DetectSeasonality(
              CatalogUtils.GetEnvironment(catalog),
              input,
