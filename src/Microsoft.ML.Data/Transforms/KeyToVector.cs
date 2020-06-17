@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms
                             _types[i] = new VectorDataViewType(NumberDataViewType.Single, valueCount, keyCount);
                     }
                 }
-                catch (Exception e)
+                catch (OverflowException e)
                 {
                     var errorMsg = e.Message + " Related column: ";
                     foreach (var info in _infos)

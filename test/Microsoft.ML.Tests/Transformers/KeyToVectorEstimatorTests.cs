@@ -247,6 +247,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             // This test is introduced for https://github.com/dotnet/machinelearning/issues/5211
             // that provides users an informational exception message
+            // This exception happens if call OneHotHashEncoding twice in your pipeline
             MLContext mlContext = new MLContext(1);
 
             IDataView dataview = mlContext.Data.LoadFromEnumerable(GetData());
