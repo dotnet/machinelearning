@@ -176,12 +176,6 @@ namespace Microsoft.ML.TimeSeries
     internal class LoessConfiguration
     {
         /// <summary>
-        /// this value is used for performance concern. when the length of the series goes large, a ratio of neighbors will be significant,
-        /// which leads to unsatisfied slow. so this value is used to bound the maximum # of neighbors one epoch can have.
-        /// </summary>
-        public const int MaximumNeighborCount = 100;
-
-        /// <summary>
         /// minumum number of neighbor counts, to apply underlying regression analysis.
         /// this number should be even, so that neighbors on left/right side of a given data point is balanced. unbalanced neighbors would make the local-weighted regression biased noticeably at corner cases.
         /// </summary>
