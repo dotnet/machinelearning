@@ -232,7 +232,7 @@ namespace Microsoft.ML
         /// When set to -1, use the whole input to fit model; when set to a positive integer, only the first windowSize number
         /// of values will be considered. Default value is -1.</param>
         /// <param name="randomnessThreshold"><a href ="https://en.wikipedia.org/wiki/Correlogram">Randomness threshold</a>
-        /// that specifies how confidence the input values follows a predictable pattern recurring as seasonal data.
+        /// that specifies how confidently the input values follow a predictable pattern recurring as seasonal data.
         /// The range is between [0, 1]. By default, it is set as 0.99.
         /// </param>
         /// <returns>The regular interval for the input as seasonal data, otherwise return -1.</returns>
