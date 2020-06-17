@@ -159,10 +159,10 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// Creates a new AutoML experiment to run on a ranking classification dataset.
+        /// Creates a new AutoML experiment to run on a ranking dataset.
         /// </summary>
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
-        /// <returns>A new AutoML recommendation classification experiment.</returns>
+        /// <returns>A new AutoML ranking experiment.</returns>
         /// <remarks>
         /// <para>See <see cref="RankingExperiment"/> for a more detailed code example of an AutoML ranking experiment.</para>
         /// <para>An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.

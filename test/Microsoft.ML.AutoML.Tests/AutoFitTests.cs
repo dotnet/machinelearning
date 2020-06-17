@@ -125,11 +125,12 @@ namespace Microsoft.ML.AutoML.Test
             string labelColumnName = "Label";
             string scoreColumnName = "Score";
             string groupIdColumnName = "GroupId";
-            string featuresColumnName = "Features";
+            string featuresColumnVectorNameA = "FeatureVectorA";
+            string featuresColumnVectorNameB = "FeatureVectorB";
             var mlContext = new MLContext(1);
 
             // STEP 1: Load data
-            var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName, featuresColumnName));
+            var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB));
             var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
             var testDataView = mlContext.Data.TakeRows(trainDataView, 500);
             trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
@@ -146,11 +147,11 @@ namespace Microsoft.ML.AutoML.Test
             RunDetail<RankingMetrics> bestRun = experimentResult.BestRun;
             Assert.True(experimentResult.RunDetails.Count() > 0);
             Assert.NotNull(bestRun.ValidationMetrics);
-            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .4));
-            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.DiscountedCumulativeGains.Max() > .4));
+            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .5));
+            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.DiscountedCumulativeGains.Max() > 34));
             var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
-            var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, 
-                featuresColumnName, scoreColumnName };
+            var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
+                "Features", scoreColumnName };
             foreach (var col in outputSchema)
                 Assert.True(col.Name == expectedOutputNames[col.Index]);
         }
@@ -216,7 +217,7 @@ namespace Microsoft.ML.AutoML.Test
             };
         }
 
-        private TextLoader.Options GetLoaderArgsRank(string labelColumnName, string groupIdColumnName, string featureColumnName)
+        private TextLoader.Options GetLoaderArgsRank(string labelColumnName, string groupIdColumnName, string featureColumnVectorNameA, string featureColumnVectorNameB)
         {
             return new TextLoader.Options()
             {
@@ -225,8 +226,9 @@ namespace Microsoft.ML.AutoML.Test
                 Columns = new[]
                 {
                     new TextLoader.Column(labelColumnName, DataKind.Single, 0),
-                    new TextLoader.Column(groupIdColumnName, DataKind.UInt32, 1),
-                    new TextLoader.Column(featureColumnName, DataKind.Single, 2, 9)
+                    new TextLoader.Column(groupIdColumnName, DataKind.Int32, 1),
+                    new TextLoader.Column(featureColumnVectorNameA, DataKind.Single, 2, 9),
+                    new TextLoader.Column(featureColumnVectorNameB, DataKind.Single, 10, 137)
                 }
             };
         }
