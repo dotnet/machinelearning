@@ -80,6 +80,7 @@ namespace Microsoft.ML.TimeSeries
             int length = 0;
             double valueRef = 0;
             var valueCache = seasonalityWindowSize == -1 ? new List<double>() : new List<double>(seasonalityWindowSize);
+
             while (rowCursor.MoveNext())
             {
                 valueDelegate.Invoke(ref valueRef);
@@ -115,6 +116,7 @@ namespace Microsoft.ML.TimeSeries
             var values = ifftRe.Select((t, i) => new Complex(t, ifftIm[i])).ToArray();
 
             int period = FindActualPeriod(values, bestFreq, secondFreq, length, randomessThreshold);
+
             return period < 0 ? -1 : period;
         }
 
@@ -141,6 +143,7 @@ namespace Microsoft.ML.TimeSeries
             double firstTimeDomainEnergy = -1;
             double secondTimeDomainEnergy = -1;
             firstPeriod = FindBestPeriod(values, bestFrequency, timeSeriesLength, out firstTimeDomainEnergy);
+
             if (secondFrequency != -1)
             {
                 secondPeriod = FindBestPeriod(values, secondFrequency, timeSeriesLength, out secondTimeDomainEnergy);
@@ -153,6 +156,7 @@ namespace Microsoft.ML.TimeSeries
 
             int truePeriod;
             double trueTimeDomainEnergy;
+
             if (firstPeriod == -1)
             {
                 truePeriod = secondPeriod;
@@ -194,6 +198,7 @@ namespace Microsoft.ML.TimeSeries
              * such as BirdStrike/Appdownloads, the energy is far larger than threshold, hence change threshold from 2.85 to 4.0 have no impact (tested);
              */
             double randomnessValue = _confidenceToInverseNormalDistribution.First().Value;
+
             foreach (var entry in _confidenceToInverseNormalDistribution)
             {
                 if (randomnessThreshold < entry.Key)
