@@ -131,9 +131,11 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="values">The auto-correlation function of the augmented time series</param>
         /// <param name="bestFrequency">The best frequency candidate</param>
         /// <param name="secondFrequency">The second best frequency candidate</param>
-        /// <param name="timeSeriesLength">The length of the original time series, this is used for post processing to reduce false positive</param>
-        /// <param name="randomnessThreshold">Randomness threshold  that specifies how confidence the input
-        /// follows a predictable pattern recurring over an interval as seasonal data.
+        /// <param name="timeSeriesLength">The length of the original time series, this is used for post
+        /// processing to reduce false positive
+        /// </param>
+        /// <param name="randomnessThreshold">Randomness threshold that specifies how confidently the input
+        /// values follow a predictable pattern recurring as seasonal data.
         /// </param>
         /// <returns>The period detected by check best frequency and second best frequency</returns>
         private static int FindActualPeriod(Complex[] values, int bestFrequency, int secondFrequency, int timeSeriesLength, double randomnessThreshold)
