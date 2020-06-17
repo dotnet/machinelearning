@@ -21,6 +21,7 @@ namespace Microsoft.ML.AutoML
         private readonly IEstimator<ITransformer> _preFeaturizer;
         private readonly ITransformer[] _preprocessorTransforms;
         private readonly string _labelColumn;
+        private readonly string _groupIdColumn;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
         private readonly IChannel _logger;
         private readonly DataViewSchema _modelInputSchema;
@@ -32,6 +33,7 @@ namespace Microsoft.ML.AutoML
             IEstimator<ITransformer> preFeaturizer,
             ITransformer[] preprocessorTransforms,
             string labelColumn,
+            string groupIdColumn,
             OptimizingMetricInfo optimizingMetricInfo,
             IChannel logger)
         {
@@ -42,6 +44,7 @@ namespace Microsoft.ML.AutoML
             _preFeaturizer = preFeaturizer;
             _preprocessorTransforms = preprocessorTransforms;
             _labelColumn = labelColumn;
+            _groupIdColumn = groupIdColumn;
             _optimizingMetricInfo = optimizingMetricInfo;
             _logger = logger;
             _modelInputSchema = trainDatasets[0].Schema;
@@ -56,7 +59,7 @@ namespace Microsoft.ML.AutoML
             {
                 var modelFileInfo = RunnerUtil.GetModelFileInfo(modelDirectory, iterationNum, i + 1);
                 var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainDatasets[i], _validDatasets[i],
-                    _labelColumn, _metricsAgent, _preprocessorTransforms?.ElementAt(i), modelFileInfo, _modelInputSchema,
+                    _labelColumn, _groupIdColumn,_metricsAgent, _preprocessorTransforms?.ElementAt(i), modelFileInfo, _modelInputSchema,
                     _logger);
                 trainResults.Add(trainResult);
             }

@@ -124,7 +124,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             string labelColumnName = "Label";
             string scoreColumnName = "Score";
-            string groupIdColumnName = "GroupId";
+            string groupIdColumnName = "CustomGroupId";
             string featuresColumnVectorNameA = "FeatureVectorA";
             string featuresColumnVectorNameB = "FeatureVectorB";
             var mlContext = new MLContext(1);
