@@ -35,7 +35,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(yValues, nameof(yValues));
             Y = new List<double>();
 
-            if (yValues.Count < BasicParameters.MinTimeSeriesLength)
+            if (yValues.Count < LoessBasicParameters.MinTimeSeriesLength)
                 throw Contracts.Except("input data structure cannot be 0-length: lowess");
 
             _x = xValues;

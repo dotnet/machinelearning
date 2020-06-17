@@ -11,8 +11,6 @@ namespace Microsoft.ML.TimeSeries
         private double[] _trendComponent;
         private double[] _residual;
 
-        private int _length;
-
         // arrays for intermediate results
         private List<double>[] _cycleSubSeries;
         private List<double>[] _smoothedSubseries;
@@ -114,21 +112,21 @@ namespace Microsoft.ML.TimeSeries
             if (yValues.Count == 0)
                 throw Contracts.Except("input data structure cannot be 0-length: innerSTL");
 
-            _length = yValues.Count;
-            Array.Resize(ref _seasonalComponent, _length);
-            Array.Resize(ref _trendComponent, _length);
-            Array.Resize(ref _residual, _length);
+            int length = yValues.Count;
+            Array.Resize(ref _seasonalComponent, length);
+            Array.Resize(ref _trendComponent, length);
+            Array.Resize(ref _residual, length);
 
-            Array.Resize(ref _s, _length);
-            Array.Resize(ref _t, _length);
-            Array.Resize(ref _detrendedY, _length);
-            Array.Resize(ref _c, _length + np * 2);
-            Array.Resize(ref _deseasonSeries, _length);
+            Array.Resize(ref _s, length);
+            Array.Resize(ref _t, length);
+            Array.Resize(ref _detrendedY, length);
+            Array.Resize(ref _c, length + np * 2);
+            Array.Resize(ref _deseasonSeries, length);
 
             Array.Resize(ref _cycleSubSeries, np);
             Array.Resize(ref _smoothedSubseries, np);
 
-            for (int i = 0; i < _length; ++i)
+            for (int i = 0; i < length; ++i)
             {
                 _t[i] = 0;
             }
@@ -170,7 +168,7 @@ namespace Microsoft.ML.TimeSeries
 
         private void Detrending(IReadOnlyList<double> y, IReadOnlyList<double> t, double[] detrendedY)
         {
-            for (int i = 0; i < _length; i++)
+            for (int i = 0; i < y.Count; i++)
                 detrendedY[i] = y[i] - t[i];
         }
 
@@ -183,7 +181,7 @@ namespace Microsoft.ML.TimeSeries
             }
 
             // obtain all the subseries
-            for (int i = 0; i < _length; i++)
+            for (int i = 0; i < detrendedY.Length; i++)
             {
                 int cycleIndex = i % np;
                 _cycleSubSeries[cycleIndex].Add(detrendedY[i]);
@@ -239,7 +237,7 @@ namespace Microsoft.ML.TimeSeries
 
         private void SmoothedCycleSubseriesDetrending(double[] c, FastLoess lowPass, double[] s)
         {
-            for (int i = 0; i < _length; i++)
+            for (int i = 0; i < c.Length; i++)
             {
                 s[i] = c[i] - lowPass.Y[i];
             }
@@ -247,7 +245,7 @@ namespace Microsoft.ML.TimeSeries
 
         private void Deseasonalizing(IReadOnlyList<double> y, double[] s, double[] deseasonSeries)
         {
-            for (int i = 0; i < _length; i++)
+            for (int i = 0; i < y.Count; i++)
             {
                 deseasonSeries[i] = y[i] - s[i];
             }
@@ -258,7 +256,7 @@ namespace Microsoft.ML.TimeSeries
             List<double> virtualDeseasonSeries = VirtualXValuesProvider.GetXValues(deseasonSeries.Length);
             FastLoess trender = new FastLoess(virtualDeseasonSeries, deseasonSeries, _isTemporal, Nt(np));
             trender.Estimate();
-            for (int i = 0; i < _length; i++)
+            for (int i = 0; i < deseasonSeries.Length; i++)
             {
                 t[i] = trender.Y[i];
             }

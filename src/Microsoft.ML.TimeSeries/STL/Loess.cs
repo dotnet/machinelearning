@@ -40,7 +40,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(xValues, nameof(xValues));
             Contracts.CheckValue(yValues, nameof(yValues));
 
-            if (xValues.Count < BasicParameters.MinTimeSeriesLength || yValues.Count < BasicParameters.MinTimeSeriesLength)
+            if (xValues.Count < LoessBasicParameters.MinTimeSeriesLength || yValues.Count < LoessBasicParameters.MinTimeSeriesLength)
                 throw Contracts.Except("input data structure cannot be 0-length: lowess");
 
             if (xValues.Count != yValues.Count)
@@ -81,7 +81,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(xValues, nameof(xValues));
             Contracts.CheckValue(yValues, nameof(yValues));
 
-            if (xValues.Count < BasicParameters.MinTimeSeriesLength || yValues.Count < BasicParameters.MinTimeSeriesLength)
+            if (xValues.Count < LoessBasicParameters.MinTimeSeriesLength || yValues.Count < LoessBasicParameters.MinTimeSeriesLength)
                 throw Contracts.Except("input data structure cannot be 0-length: lowess");
 
             if (xValues.Count != yValues.Count)

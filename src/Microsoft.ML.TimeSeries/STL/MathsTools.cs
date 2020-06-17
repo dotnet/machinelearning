@@ -6,15 +6,6 @@ namespace Microsoft.ML.TimeSeries
     internal class MathUtility
     {
         /// <summary>
-        /// calculate the standard sigmoid function
-        /// </summary>
-        /// <param name="x">the input value</param>
-        public static double Sigmoid(double x)
-        {
-            return 1.0 / (1.0 + Math.Exp(-x));
-        }
-
-        /// <summary>
         /// use quick-sort like method to obtain the median value.
         /// the complexity in expectation is O(n), which is faster than using quickSort.
         /// </summary>
