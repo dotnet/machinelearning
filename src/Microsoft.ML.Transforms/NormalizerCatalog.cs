@@ -333,7 +333,7 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         ///                               The data type on this column should be <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
-        /// <param name="centerData">Whether to center the data around 0 be removing the median. Defaults to true.</param>
+        /// <param name="centerData">Whether to center the data around 0 by removing the median. Defaults to true.</param>
         /// <param name="quantileMin">Quantile min used to scale the data. Defaults to 25.</param>
         /// <param name="quantileMax">Quantile max used to scale the data. Defaults to 75.</param>
         /// <example>
