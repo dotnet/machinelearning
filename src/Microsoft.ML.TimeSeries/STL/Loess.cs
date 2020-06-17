@@ -59,12 +59,6 @@ namespace Microsoft.ML.TimeSeries
             else if (_r < LoessConfiguration.MinimumNeighborCount) // the neighbors should be at least 2, or the matrix operations would encounter issues.
                 _r = LoessConfiguration.MinimumNeighborCount;
 
-            // DEBUG
-            // control the performance
-            if (_r >= LoessConfiguration.MaximumNeighborCount)
-            {
-                _r = LoessConfiguration.MaximumNeighborCount;
-            }
             Init(xValues, yValues);
         }
 
