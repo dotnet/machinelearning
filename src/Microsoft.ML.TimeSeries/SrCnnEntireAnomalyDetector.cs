@@ -57,14 +57,6 @@ namespace Microsoft.ML.TimeSeries
     }
     public sealed class SrCnnEntireAnomalyDetectorOptions
     {
-        [Argument(ArgumentType.Required, HelpText = "The name of the input column.", ShortName = "input",
-            SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
-        public string InputColumnName;
-
-        [Argument(ArgumentType.Required, HelpText = "The name of the output column.", ShortName = "output",
-            SortOrder = 2)]
-        public string OutputColumnName;
-
         [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
             SortOrder = 3, ShortName = "thr")]
         public double Threshold = Defaults.Threshold;
@@ -140,13 +132,14 @@ namespace Microsoft.ML.TimeSeries
     /// </format>
     /// </remarks>
     /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode)"/>
-    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, SrCnnEntireAnomalyDetectorOptions)"/>
+    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, SrCnnEntireAnomalyDetectorOptions)"/>
     internal sealed class SrCnnEntireAnomalyDetector : BatchDataViewMapperBase<double, SrCnnEntireAnomalyDetector.Batch>
     {
         private const int MinBatchSize = 12;
 
         private static readonly int[] _outputLengthArray = {3, 7, 4};
         private readonly SrCnnEntireAnomalyDetectorOptions _options;
+        private readonly string _inputColumnName;
         private readonly int _outputLength;
         private readonly Bindings _bindings;
 
@@ -191,22 +184,25 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, SrCnnEntireAnomalyDetectorOptions options)
+        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string outputColumnName, string inputColumnName, SrCnnEntireAnomalyDetectorOptions options)
             : base(env, nameof(SrCnnEntireAnomalyDetector), input)
         {
+            Host.CheckValue(outputColumnName, nameof(outputColumnName));
+
+            Host.CheckValue(inputColumnName, nameof(inputColumnName));
+            _inputColumnName = inputColumnName;
+
             Host.CheckValue(options, nameof(options));
             CheckOptionArguments(options);
 
             _options = options;
             _outputLength = _outputLengthArray[(int)options.DetectMode];
 
-            _bindings = new Bindings(input.Schema, options.InputColumnName, options.OutputColumnName, new VectorDataViewType(NumberDataViewType.Double, _outputLength));
+            _bindings = new Bindings(input.Schema, inputColumnName, outputColumnName, new VectorDataViewType(NumberDataViewType.Double, _outputLength));
         }
 
         private void CheckOptionArguments(SrCnnEntireAnomalyDetectorOptions options)
         {
-            Host.CheckValue(options.InputColumnName, nameof(options.InputColumnName));
-
             Host.CheckUserArg(options.Period >= 0, nameof(options.Period), "Must be integer equal or greater than 0.");
 
             Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize >= MinBatchSize, nameof(options.BatchSize), "Must be -1 or no less than 12.");
@@ -230,7 +226,7 @@ namespace Microsoft.ML.TimeSeries
         {
             if (!SchemaBindings.AnyNewColumnsActive(x => active[x]))
                 return new Delegate[1];
-            return new[] { currentBatch.CreateGetter(input, _options.InputColumnName) };
+            return new[] { currentBatch.CreateGetter(input, _inputColumnName) };
         }
 
         protected override Batch CreateBatch(DataViewRowCursor input)
@@ -248,7 +244,7 @@ namespace Microsoft.ML.TimeSeries
 
         protected override ValueGetter<double> GetLookAheadGetter(DataViewRowCursor input)
         {
-            return input.GetGetter<double>(input.Schema[_options.InputColumnName]);
+            return input.GetGetter<double>(input.Schema[_inputColumnName]);
         }
 
         protected override Func<int, bool> GetSchemaBindingDependencies(Func<int, bool> predicate)

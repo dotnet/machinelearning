@@ -237,7 +237,7 @@ namespace Microsoft.ML.TimeSeries
 
         private void SmoothedCycleSubseriesDetrending(double[] c, FastLoess lowPass, double[] s)
         {
-            for (int i = 0; i < c.Length; i++)
+            for (int i = 0; i < s.Length; i++)
             {
                 s[i] = c[i] - lowPass.Y[i];
             }

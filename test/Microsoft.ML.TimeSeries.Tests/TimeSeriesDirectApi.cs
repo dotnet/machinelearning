@@ -679,8 +679,6 @@ namespace Microsoft.ML.Tests
             // Do batch anomaly detection
             var options = new SrCnnEntireAnomalyDetectorOptions()
             {
-                InputColumnName = inputColumnName,
-                OutputColumnName = outputColumnName,
                 Threshold = 0.3,
                 BatchSize = -1,
                 Sensitivity = 53.0,
@@ -689,7 +687,7 @@ namespace Microsoft.ML.Tests
                 DeseasonalityMode = mode
             };
 
-            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, options);
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, options);
 
             // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
@@ -721,8 +719,6 @@ namespace Microsoft.ML.Tests
             // Do batch anomaly detection
             var options = new SrCnnEntireAnomalyDetectorOptions()
             {
-                InputColumnName = inputColumnName,
-                OutputColumnName = outputColumnName,
                 Threshold = 0.23,
                 BatchSize = -1,
                 Sensitivity = 53.0,
@@ -731,7 +727,7 @@ namespace Microsoft.ML.Tests
                 DeseasonalityMode = mode
             };
 
-            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, options);
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, options);
 
             // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(

@@ -179,15 +179,13 @@ namespace Microsoft.ML
         {
             var options = new SrCnnEntireAnomalyDetectorOptions()
             {
-                InputColumnName = inputColumnName,
-                OutputColumnName = outputColumnName,
                 Threshold = threshold,
                 BatchSize = batchSize,
                 Sensitivity = sensitivity,
                 DetectMode = detectMode,
             };
 
-            return DetectEntireAnomalyBySrCnn(catalog, input, options);
+            return DetectEntireAnomalyBySrCnn(catalog, input, outputColumnName, inputColumnName, options);
         }
 
         /// <summary>
@@ -195,6 +193,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The AnomalyDetectionCatalog.</param>
         /// <param name="input">Input DataView.</param>
+        /// <param name="outputColumnName">Name of the column resulting from data processing of <paramref name="inputColumnName"/>.
+        /// The column data is a vector of <see cref="System.Double"/>. The length of this vector varies depending on <paramref name="options.DetectMode"/>.</param>
+        /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -203,8 +204,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, SrCnnEntireAnomalyDetectorOptions options = null)
-            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, options);
+        public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, string outputColumnName, string inputColumnName, SrCnnEntireAnomalyDetectorOptions options)
+            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, outputColumnName, inputColumnName, options);
 
         /// <summary>
         /// Create <see cref="RootCause"/>, which localizes root causes using decision tree algorithm.
