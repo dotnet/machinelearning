@@ -246,14 +246,28 @@ namespace Microsoft.ML.Transforms
                 _parent = parent;
                 _infos = CreateInfos(inputSchema);
                 _types = new VectorDataViewType[_parent.ColumnPairs.Length];
-                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+
+                // The following try catch block is designed to provide user a better exception message
+                // by providing related column name when some exceptions occur in VectorDataViewType()(e.g overflow)
+                // This change is related with https://github.com/dotnet/machinelearning/issues/5211
+                try
                 {
-                    int valueCount = _infos[i].TypeSrc.GetValueCount();
-                    int keyCount = _infos[i].TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
-                    if (_parent._columns[i].OutputCountVector || valueCount == 1)
-                        _types[i] = new VectorDataViewType(NumberDataViewType.Single, keyCount);
-                    else
-                        _types[i] = new VectorDataViewType(NumberDataViewType.Single, valueCount, keyCount);
+                    for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                    {
+                        int valueCount = _infos[i].TypeSrc.GetValueCount();
+                        int keyCount = _infos[i].TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
+                        if (_parent._columns[i].OutputCountVector || valueCount == 1)
+                            _types[i] = new VectorDataViewType(NumberDataViewType.Single, keyCount);
+                        else
+                            _types[i] = new VectorDataViewType(NumberDataViewType.Single, valueCount, keyCount);
+                    }
+                }
+                catch (OverflowException e)
+                {
+                    var errorMsg = e.Message + " Related column: ";
+                    foreach (var info in _infos)
+                        errorMsg += info.Name + " ";
+                    throw Host.Except(errorMsg);
                 }
             }
 
