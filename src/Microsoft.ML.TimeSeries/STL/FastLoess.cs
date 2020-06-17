@@ -48,7 +48,7 @@ namespace Microsoft.ML.TimeSeries
                 if (r == -1)
                     _smoother = new Loess(_x, _y, isTemporal);
                 else
-                    _smoother = new Loess(_x, _y, r, isTemporal);
+                    _smoother = new Loess(_x, _y, isTemporal, r);
             }
             else
             {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.TimeSeries
                 if (r == -1)
                     _smoother = new Loess(sampleX, sampleY, isTemporal);
                 else
-                    _smoother = new Loess(sampleX, sampleY, r, isTemporal);
+                    _smoother = new Loess(sampleX, sampleY, isTemporal, r);
             }
         }
 

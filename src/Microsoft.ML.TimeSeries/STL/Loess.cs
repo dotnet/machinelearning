@@ -30,12 +30,13 @@ namespace Microsoft.ML.TimeSeries
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Loess"/> class.
-        /// constructing the least square algorithm
+        /// constructing the least square algorithm. specified with the # of neighbors
         /// </summary>
         /// <param name="xValues">the corresponding x-axis value</param>
         /// <param name="yValues">the corresponding y-axis value</param>
         /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
-        public Loess(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, bool isTemporal)
+        /// <param name="r">the smoothing range. If it is not specified, the algorithm will estimate the value of r by ratio.</param>
+        public Loess(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, bool isTemporal, int? r = null)
         {
             Contracts.CheckValue(xValues, nameof(xValues));
             Contracts.CheckValue(yValues, nameof(yValues));
@@ -51,44 +52,20 @@ namespace Microsoft.ML.TimeSeries
             _length = xValues.Count;
             _isTemporal = isTemporal;
 
-            _r = (int)(_length * LoessConfiguration.F);
+            if (r == null)
+            {
+                _r = (int)(_length * LoessConfiguration.F);
+            }
+            else
+            {
+                _r = (int)r;
+            }
 
-            // r cannot be equal to length.
             if (_r >= _length)
                 _r = _length - 1;
             else if (_r < LoessConfiguration.MinimumNeighborCount) // the neighbors should be at least 2, or the matrix operations would encounter issues.
                 _r = LoessConfiguration.MinimumNeighborCount;
 
-            Init(xValues, yValues);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Loess"/> class.
-        /// constructing the least square algorithm. specified with the # of neighbors
-        /// </summary>
-        /// <param name="xValues">the corresponding x-axis value</param>
-        /// <param name="yValues">the corresponding y-axis value</param>
-        /// <param name="r">the smoothing range is not determined by the ratio, but be specified externally. (which can exceed the length of the list)</param>
-        /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
-        public Loess(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, int r, bool isTemporal)
-        {
-            Contracts.CheckValue(xValues, nameof(xValues));
-            Contracts.CheckValue(yValues, nameof(yValues));
-
-            if (xValues.Count < LoessBasicParameters.MinTimeSeriesLength || yValues.Count < LoessBasicParameters.MinTimeSeriesLength)
-                throw Contracts.Except("input data structure cannot be 0-length: lowess");
-
-            if (xValues.Count != yValues.Count)
-                throw Contracts.Except("the x-axis length should be equal to y-axis length!: lowess");
-
-            _neighbors = new Dictionary<int, LocalRegression>();
-
-            _length = xValues.Count;
-            _isTemporal = isTemporal;
-
-            _r = r;
-            if (_r < LoessConfiguration.MinimumNeighborCount) // the neighbors should be at least 2, or the matrix operations would encounter issues.
-                _r = LoessConfiguration.MinimumNeighborCount;
             Init(xValues, yValues);
         }
 
