@@ -49,6 +49,7 @@ namespace Microsoft.ML.Transforms
             Minimum = 2,
             Maximum = 3,
             SpecifiedValue = 4,
+            Mode = 5,
 
             [HideEnumValue]
             Def = DefaultValue,
@@ -306,6 +307,7 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Mean:
                     case ReplacementKind.Minimum:
                     case ReplacementKind.Maximum:
+                    case ReplacementKind.Mode:
                         if (!(type.GetItemType() is NumberDataViewType))
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.GetItemType());
                         imputationModes[iinfo] = kind;
@@ -867,6 +869,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoadName);
+
                 Type rawType;
                 var type = _infos[iinfo].TypeSrc;
                 if (type is VectorDataViewType vectorType)
@@ -941,6 +946,10 @@ namespace Microsoft.ML.Transforms
             /// Replace with the maximum value of the column.
             /// </summary>
             Maximum = 3,
+            /// <summary>
+            /// Replace with the most frequent value of the column.
+            /// </summary>
+            Mode = 5
         }
 
         [BestFriend]

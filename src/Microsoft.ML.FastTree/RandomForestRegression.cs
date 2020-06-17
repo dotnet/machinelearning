@@ -213,6 +213,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
             // Mapping score to prediction
             var fastTreeOutput = ctx.AddIntermediateVariable(null, "FastTreeOutput", true);
             var numTrees = ctx.AddInitializer((float)TrainedEnsemble.NumTrees, "NumTrees");

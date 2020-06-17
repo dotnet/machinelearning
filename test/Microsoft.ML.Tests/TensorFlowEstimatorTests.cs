@@ -231,6 +231,21 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        [TensorFlowFact]
+        public void TestLoadMultipleModel()
+        {
+            var modelFile1 = "model_matmul/frozen_saved_model.pb";
+            var modelFile2 = "cifar_model/frozen_model.pb";
+
+            MLContext context = new MLContext(seed: 1);
+
+            TensorFlowModel model1 = context.Model.LoadTensorFlowModel(modelFile1);
+            TensorFlowModel model2 = context.Model.LoadTensorFlowModel(modelFile2);
+
+            model1.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
+            model2.ScoreTensorFlowModel("Output", "Input");
+        }
+
         private void ValidateTensorFlowTransformer(IDataView result)
         {
             using (var cursor = result.GetRowCursorForAllColumns())
