@@ -41,11 +41,11 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
 
             PrintScore(outScores, 5);
             // Preview of scoredDataPreview.RowView
-            // Score   4.18144
-            // Score  -14.10248
-            // Score   2.731951
-            // Score  -2.554229
-            // Score   5.36571
+            //Score -0.09044361
+            //Score -9.105377
+            //Score -11.049
+            //Score -3.061928
+            //Score -6.375817
 
             // Let's train a calibrator estimator on this scored dataset. The
             // trained calibrator estimator produces a transformer that can
@@ -66,11 +66,11 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
                 reuseRowObject: false);
 
             PrintScoreAndProbability(outScoresAndProbabilities, 5);
-            // Score   4.18144   Probability 0.8
-            // Score  -14.10248  Probability 1E-15
-            // Score   2.731951  Probability 0.7370371
-            // Score  -2.554229  Probability 0.2063954
-            // Score   5.36571   Probability 0.8958333
+            //Score -0.09044361 Probability 0.4473684
+            //Score -9.105377   Probability 0.02122641
+            //Score -11.049     Probability 0.005328597
+            //Score -3.061928   Probability 0.2041801
+            //Score -6.375817   Probability 0.05836574
         }
 
         private static void PrintScore(IEnumerable<ScoreValue> values, int numRows)
