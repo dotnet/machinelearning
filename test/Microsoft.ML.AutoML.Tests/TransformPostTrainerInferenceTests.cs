@@ -68,7 +68,7 @@ namespace Microsoft.ML.AutoML.Test
             DatasetColumnInfo[] columns,
             string expectedJson)
         {
-            var transforms = TransformInferenceApi.InferTransformsPostTrainer(new MLContext(1), task, columns);
+            var transforms = TransformInferenceApi.InferTransformsPostTrainer (new MLContext(1), task, columns);
             var pipelineNodes = transforms.Select(t => t.PipelineNode);
             Util.AssertObjectMatchesJson(expectedJson, pipelineNodes);
         }

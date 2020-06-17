@@ -36,6 +36,12 @@ namespace Microsoft.ML.AutoML.Test
                 rms, lossFn, rSquared);
         }
 
+        public static RankingMetrics CreateRankingMetrics(double[] dcg, 
+            double[] ndcg)
+        {
+            return CreateInstance<RankingMetrics>(dcg, ndcg);
+        }
+
         private static T CreateInstance<T>(params object[] args)
         {
             var type = typeof(T);
