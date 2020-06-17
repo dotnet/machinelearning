@@ -271,11 +271,17 @@ namespace Microsoft.ML.Trainers.FastTree
             internal bool NormalizeQueryLambdas;
 
             /// <summary>
+            /// Column to use for example groupId.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public new string RowGroupColumnName = "GroupId";
+
+            /// <summary>
             /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
             /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
             /// </summary>
             // Disable 649 because Visual Studio can't detect its assignment via property.
-            #pragma warning disable 649
+#pragma warning disable 649
             private EarlyStoppingRankingMetric _earlyStoppingMetric;
             #pragma warning restore 649
 

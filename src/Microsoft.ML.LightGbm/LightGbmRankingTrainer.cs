@@ -146,6 +146,12 @@ namespace Microsoft.ML.Trainers.LightGbm
                 ShortName = "em")]
             public EvaluateMetricType EvaluationMetric = EvaluateMetricType.NormalizedDiscountedCumulativeGain;
 
+            /// <summary>
+            /// Column to use for example groupId.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public new string RowGroupColumnName = "GroupId";
+
             static Options()
             {
                 NameMapping.Add(nameof(CustomGains), "label_gain");

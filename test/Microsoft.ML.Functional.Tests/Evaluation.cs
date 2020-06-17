@@ -194,7 +194,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             var scoredData = GetScoredDataForRankingEvaluation(mlContext);
-            var metrics = mlContext.Ranking.Evaluate(scoredData, labelColumnName: "Label", rowGroupColumnName: "GroupId");
+            var metrics = mlContext.Ranking.Evaluate(scoredData, labelColumnName: "Label");
 
             // Check that the metrics returned are valid.
             Common.AssertMetrics(metrics);
