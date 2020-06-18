@@ -363,7 +363,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
 
         [Fact]
-        public void TestTrainTestSplitWithStratification()
+        public void TestSplitsWithSamplingKeyColumn()
         {
             var mlContext = new MLContext(0);
             var input = mlContext.Data.LoadFromEnumerable(new[]
@@ -402,6 +402,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 },
             });
 
+            // TEST TRAINTESTSPLIT
             var split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.TextStrat));
             var ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
             Assert.Contains(1, ids);
@@ -432,7 +433,26 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
             Assert.Contains(1, ids);
             Assert.Contains(5, ids);
-            Assert.NotNull(split.TrainSet.Schema.GetColumnOrNull("KeyStrat")); // Check that the original column wasn't deleted by the split
+            Assert.NotNull(split.TrainSet.Schema.GetColumnOrNull("KeyStrat")); // Check that the key column used as SamplingKeyColumn wasn't deleted by the split
+
+            // TEST CROSSVALIDATIONSPLIT
+            var colnames = new[] {
+                nameof(Input.TextStrat),
+                nameof(Input.FloatStrat),
+                nameof(Input.VectorStrat),
+                nameof(Input.DateTimeStrat),
+                nameof(Input.DateTimeOffsetStrat),
+                nameof(Input.TimeSpanStrat),
+                "KeyStrat" };
+
+            foreach(var colname in colnames)
+            {
+                var cvSplits = mlContext.Data.CrossValidationSplit(inputWithKey, numberOfFolds: 2, samplingKeyColumnName: colname);
+                var idsTest1 = cvSplits[0].TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+                var idsTest2 = cvSplits[1].TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+                Assert.True(Enumerable.Intersect(idsTest1, idsTest2).Count() == 0);
+                Assert.NotNull(split.TrainSet.Schema.GetColumnOrNull(colname)); // Check that using CV didn't remove the SamplingKeyColumn
+            }
         }
     }
 }
