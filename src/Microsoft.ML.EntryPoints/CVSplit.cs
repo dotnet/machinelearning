@@ -54,7 +54,7 @@ namespace Microsoft.ML.EntryPoints
 
             var data = input.Data;
 
-            var stratCol = DataOperationsCatalog.EnsureGroupPreservationColumn(env, ref data, input.StratificationColumn);
+            var stratCol = DataOperationsCatalog.CreateGroupPreservationColumn(env, ref data, input.StratificationColumn);
 
             int n = input.NumFolds;
             var output = new Output

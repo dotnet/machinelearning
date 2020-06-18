@@ -413,7 +413,7 @@ namespace Microsoft.ML
             _env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
             _env.CheckValueOrNull(samplingKeyColumnName);
 
-            var newSamplingKeyColumn = EnsureGroupPreservationColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
+            var newSamplingKeyColumn = CreateGroupPreservationColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
 
             var trainFilter = new RangeFilter(_env, new RangeFilter.Options()
             {
@@ -455,7 +455,7 @@ namespace Microsoft.ML
             _env.CheckValue(data, nameof(data));
             _env.CheckParam(numberOfFolds > 1, nameof(numberOfFolds), "Must be more than 1");
             _env.CheckValueOrNull(samplingKeyColumnName);
-            var newSamplingKeyColumn = EnsureGroupPreservationColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
+            var newSamplingKeyColumn = CreateGroupPreservationColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
             var result = new List<TrainTestData>();
             foreach (var split in CrossValidationSplit(_env, data, numberOfFolds, newSamplingKeyColumn))
                 result.Add(split);
@@ -491,11 +491,21 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing, copying, or normalizing it if necessary,
-        /// or creates a new column if <paramref name="samplingKeyColumn"/> is null.
+        /// Based on the input samplingKeyColumn creates a new column that will be used by the callers to apply a RangeFilter that will produce train-test split
+        /// or cross-validation splits.
+        ///
+        /// Notice that the new column might get dropped by the callers of this method after using it.
         /// </summary>
+        /// <param name="env">IHostEnvironment of the caller</param>
+        /// <param name="data">DataView that should contain the "samplingKeyColumn". The new column will be added to this DataView.</param>
+        /// <param name="samplingKeyColumn">Name of the column that will be used as base of the new GroupPreservationColumn.
+        /// Notice that in other places in the code this column, and/or the column that this method creates,
+        /// are refered to as "SamplingKeyColumn", "GroupPreservationColumn" or "StratificationColumn". </param>
+        /// <param name="seed">The seed used by the transformers that will create the new column</param>
+        /// <param name="fallbackInEnvSeed">If seed = null, then should we use the env seed? If seed = null, and this parameter is false, then we won't use a seed.</param>
+        /// <return>The name of the new column</return>
         [BestFriend]
-        internal static string EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, string samplingKeyColumn, int? seed = null, bool fallbackInEnvSeed = false)
+        internal static string CreateGroupPreservationColumn(IHostEnvironment env, ref IDataView data, string samplingKeyColumn, int? seed = null, bool fallbackInEnvSeed = false)
         {
             Contracts.CheckValue(env, nameof(env));
             Contracts.CheckValueOrNull(samplingKeyColumn);

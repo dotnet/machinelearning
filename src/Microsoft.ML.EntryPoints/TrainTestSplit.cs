@@ -50,7 +50,7 @@ namespace Microsoft.ML.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
 
             var data = input.Data;
-            var stratCol = DataOperationsCatalog.EnsureGroupPreservationColumn(env, ref data, input.StratificationColumn);
+            var stratCol = DataOperationsCatalog.CreateGroupPreservationColumn(env, ref data, input.StratificationColumn);
 
             IDataView trainData = new RangeFilter(host,
                 new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = false }, data);

@@ -305,7 +305,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            var newStratificationColumn = DataOperationsCatalog.EnsureGroupPreservationColumn(Host, ref output, stratificationColumn);
+            var newStratificationColumn = DataOperationsCatalog.CreateGroupPreservationColumn(Host, ref output, stratificationColumn);
             return newStratificationColumn;
         }
 
