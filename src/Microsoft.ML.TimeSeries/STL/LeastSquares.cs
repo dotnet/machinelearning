@@ -50,9 +50,10 @@ namespace Microsoft.ML.TimeSeries
             double sum01 = 0;
             double sum10 = 0;
             double sum11 = 0;
+            double temp;
             for (int k = 0; k < _length; k++)
             {
-                double temp = weights[k];
+                temp = weights[k];
                 sum00 += temp;
                 temp *= _x[k];
                 sum01 += temp;
@@ -79,7 +80,7 @@ namespace Microsoft.ML.TimeSeries
             double fy1 = 0;
             for (int i = 0; i < _length; i++)
             {
-                double temp = weights[i] * _y[i];
+                temp = weights[i] * _y[i];
                 fy0 += temp;
                 fy1 += temp * _x[i];
             }

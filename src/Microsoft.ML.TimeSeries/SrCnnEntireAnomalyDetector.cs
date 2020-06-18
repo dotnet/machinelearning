@@ -504,7 +504,7 @@ namespace Microsoft.ML.TimeSeries
                 Array.Resize(ref _magLogList, length);
                 for (int i = 0; i < length; ++i)
                 {
-                    _magList[i] = Math.Sqrt((Math.Pow(_fftRe[i], 2) + Math.Pow(_fftIm[i], 2)));
+                    _magList[i] = Math.Sqrt(_fftRe[i] * _fftRe[i] + _fftIm[i] * _fftIm[i]);
                     if (_magList[i] > _eps)
                     {
                         _magLogList[i] = Math.Log(_magList[i]);
@@ -548,7 +548,7 @@ namespace Microsoft.ML.TimeSeries
                 Array.Resize(ref _ifftMagList, length);
                 for (int i = 0; i < length; ++i)
                 {
-                    _ifftMagList[i] = Math.Sqrt((Math.Pow(_ifftRe[i], 2) + Math.Pow(_ifftIm[i], 2)));
+                    _ifftMagList[i] = Math.Sqrt(_ifftRe[i] * _ifftRe[i] + _ifftIm[i] * _ifftIm[i]);
                 }
                 AverageFilter(_ifftMagList, Math.Min(_ifftMagList.Length, _judgementWindowSize));
 
@@ -828,11 +828,11 @@ namespace Microsoft.ML.TimeSeries
                 var n = values.Count;
                 double sumX = values.Sum(item => item.Item1);
                 double sumY = values.Sum(item => item.Item2);
-                double sumXX = values.Sum(item => Math.Pow(item.Item1, 2));
+                double sumXX = values.Sum(item => item.Item1 * item.Item1);
                 double sumXY = values.Sum(item => item.Item1 * item.Item2);
 
-                var a = ((double)n * sumXY - sumX * sumY) / ((double)n * sumXX - sumX * sumX);
-                var b = (sumXX * sumY - sumX * sumXY) / ((double)n * sumXX - sumX * sumX);
+                var a = ((n * sumXY) - (sumX * sumY)) / ((n * sumXX) - (sumX * sumX));
+                var b = ((sumXX * sumY) - (sumX * sumXY)) / ((n * sumXX) - (sumX * sumX));
 
                 return a * (double)idx + b;
             }
