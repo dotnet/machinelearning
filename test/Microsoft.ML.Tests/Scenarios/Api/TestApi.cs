@@ -408,7 +408,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Contains(1, ids);
             Assert.Contains(5, ids);
             split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.FloatStrat));
-            ids = split.TrainSet.GetColumn<int>(split.TrainSet.Schema[nameof(Input.Id)]);
+            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
             Assert.Contains(4, ids);
             Assert.Contains(5, ids);
             split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.VectorStrat));
@@ -448,10 +448,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             foreach(var colname in colnames)
             {
                 var cvSplits = mlContext.Data.CrossValidationSplit(inputWithKey, numberOfFolds: 2, samplingKeyColumnName: colname);
-                var idsTest1 = cvSplits[0].TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
-                var idsTest2 = cvSplits[1].TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+                var idsTest1 = cvSplits[0].TestSet.GetColumn<int>(cvSplits[0].TestSet.Schema[nameof(Input.Id)]);
+                var idsTest2 = cvSplits[1].TestSet.GetColumn<int>(cvSplits[1].TestSet.Schema[nameof(Input.Id)]);
                 Assert.True(Enumerable.Intersect(idsTest1, idsTest2).Count() == 0);
-                Assert.NotNull(split.TrainSet.Schema.GetColumnOrNull(colname)); // Check that using CV didn't remove the SamplingKeyColumn
+                Assert.True(idsTest1.Count() > 0, $"CV Split 0 for Column {colname} was empty");
+                Assert.True(idsTest2.Count() > 0, $"CV Split 1 for Column {colname} was empty");
+
+                // Check that using CV didn't remove the SamplingKeyColumn
+                Assert.NotNull(split.TrainSet.Schema.GetColumnOrNull(colname));
             }
         }
     }

@@ -491,13 +491,13 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing it if necessary, or creates a new column <paramref name="samplingKeyColumn"/> is null.
+        /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing, copying, or normalizing it if necessary,
+        /// or creates a new column if <paramref name="samplingKeyColumn"/> is null.
         /// </summary>
         internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
-            // build a single hash of it. If it is not, we generate a random number.
+            // We need to handle two cases: if samplingKeyColumn is not provided, we generate a random number.
             if (samplingKeyColumn == null)
             {
                 samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
@@ -505,14 +505,18 @@ namespace Microsoft.ML
             }
             else
             {
+                // If samplingKeyColumn was provided we will make a new column based on it, but using a temporary
+                // name, as it might be dropped elsewhere in the code
+
                 if (!data.Schema.TryGetColumnIndex(samplingKeyColumn, out int stratCol))
                     throw env.ExceptSchemaMismatch(nameof(samplingKeyColumn), "SamplingKeyColumn", samplingKeyColumn);
+
+                var origStratCol = samplingKeyColumn;
+                samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
 
                 var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(env, type))
                 {
-                    var origStratCol = samplingKeyColumn;
-                    samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
                     // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
                     var itemType = type.GetItemType();
                     if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
@@ -527,11 +531,13 @@ namespace Microsoft.ML
                 }
                 else
                 {
-                    if (!data.Schema[samplingKeyColumn].IsNormalized() && (type == NumberDataViewType.Single || type == NumberDataViewType.Double))
+                    if (data.Schema[origStratCol].IsNormalized() || (type != NumberDataViewType.Single && type != NumberDataViewType.Double))
                     {
-                        var origStratCol = samplingKeyColumn;
-                        samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
-                        data = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(samplingKeyColumn, origStratCol, ensureZeroUntouched: true)).Fit(data).Transform(data);
+                        data = new ColumnCopyingEstimator(env, (samplingKeyColumn, origStratCol)).Fit(data).Transform(data);
+                    }
+                    else
+                    {
+                        data = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(samplingKeyColumn, origStratCol, ensureZeroUntouched: false)).Fit(data).Transform(data);
                     }
                 }
             }
