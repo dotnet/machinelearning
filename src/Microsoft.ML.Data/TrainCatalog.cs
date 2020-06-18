@@ -93,7 +93,7 @@ namespace Microsoft.ML
             Environment.CheckParam(numFolds > 1, nameof(numFolds), "Must be more than 1");
             Environment.CheckValueOrNull(samplingKeyColumn);
 
-            var newSamplingKeyColumn = DataOperationsCatalog.CreateGroupPreservationColumn(Environment, ref data, samplingKeyColumn, seed);
+            var newSamplingKeyColumn = DataOperationsCatalog.CreateGroupPreservationColumn(Environment, ref data, samplingKeyColumn, seed, fallbackInEnvSeed: true);
             var result = new CrossValidationResult[numFolds];
             int fold = 0;
             // Sequential per-fold training.
