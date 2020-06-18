@@ -50,7 +50,7 @@ namespace Microsoft.ML.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
 
             var data = input.Data;
-            var stratCol = SplitUtils.CreateStratificationColumn(host, ref data, input.StratificationColumn);
+            var stratCol = DataOperationsCatalog.EnsureGroupPreservationColumn(env, ref data, input.StratificationColumn);
 
             IDataView trainData = new RangeFilter(host,
                 new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = false }, data);
@@ -63,64 +63,5 @@ namespace Microsoft.ML.EntryPoints
             return new Output() { TrainData = trainData, TestData = testData };
         }
 
-    }
-
-    internal static class SplitUtils
-    {
-        // Creates a new Stratification column to be used for splitting.
-        // Notice that the new column might be dropped elsewhere in the code
-        // Returns: the name of the new column.
-        public static string CreateStratificationColumn(IHost host, ref IDataView data, string stratificationColumn = null)
-        {
-            host.CheckValue(data, nameof(data));
-            host.CheckValueOrNull(stratificationColumn);
-
-            // Pick a unique name for the new stratificationColumn.
-            const string stratColName = "StratificationKey";
-            string stratCol = data.Schema.GetTempColumnName(stratColName);
-
-            if (stratificationColumn == null)
-            {
-                // If the stratificationColumn wasn't provided by the user, simply create a new Random Number Generator
-                data = new GenerateNumberTransform(host,
-                    new GenerateNumberTransform.Options
-                    {
-                        Columns = new[] { new GenerateNumberTransform.Column { Name = stratCol } }
-                    }, data);
-            }
-            else
-            {
-                var col = data.Schema.GetColumnOrNull(stratificationColumn);
-                if (col == null)
-                    throw host.ExceptSchemaMismatch(nameof(stratificationColumn), "Stratification", stratificationColumn);
-
-                var type = col.Value.Type;
-                if (!RangeFilter.IsValidRangeFilterColumnType(host, type))
-                {
-                    // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
-                    var itemType = type.GetItemType();
-                    if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
-                        data = new TypeConvertingTransformer(host, stratificationColumn, DataKind.Int64, stratificationColumn).Transform(data);
-
-                    var columnOptions = new HashingEstimator.ColumnOptions(stratCol, stratificationColumn, 30, combine: true);
-                    data = new HashingEstimator(host, columnOptions).Fit(data).Transform(data);
-                }
-                else
-                {
-                    if (data.Schema[stratificationColumn].IsNormalized() || (type != NumberDataViewType.Single && type != NumberDataViewType.Double))
-                    {
-                        data = new ColumnCopyingEstimator(host,(stratCol,stratificationColumn)).Fit(data).Transform(data);
-                    }
-                    else
-                    {
-                        data = new NormalizingEstimator(host,
-                            new NormalizingEstimator.MinMaxColumnOptions(stratCol, stratificationColumn, ensureZeroUntouched: true))
-                            .Fit(data).Transform(data);
-                    }
-                }
-            }
-
-            return stratCol;
-        }
     }
 }

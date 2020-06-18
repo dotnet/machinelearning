@@ -4,6 +4,7 @@
 
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
@@ -53,7 +54,7 @@ namespace Microsoft.ML.EntryPoints
 
             var data = input.Data;
 
-            var stratCol = SplitUtils.CreateStratificationColumn(host, ref data, input.StratificationColumn);
+            var stratCol = DataOperationsCatalog.EnsureGroupPreservationColumn(env, ref data, input.StratificationColumn);
 
             int n = input.NumFolds;
             var output = new Output
