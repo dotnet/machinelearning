@@ -33,7 +33,8 @@ namespace Microsoft.ML.TimeSeries
         private const int Ni = 2;
 
         /// <summary>
-        /// the number of robustness iterations of the outer loop
+        /// the number of robustness iterations of the outer loop. This parameter is not used in this implementation as we simplify the implementation.
+        /// Keep this parameter here as it is listed as one of the six parameters described in the original paper.
         /// </summary>
         private const int No = 10;
 

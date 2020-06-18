@@ -12,12 +12,12 @@ namespace Microsoft.ML.TimeSeries
         private const double NumericalThreshold = 1.0e-10;
         private readonly IReadOnlyList<double> _x;
         private readonly IReadOnlyList<double> _y;
-        private int _length;
+        private readonly int _length;
 
         /// <summary>
         /// the model is learned by several iterations of local weighted regression.
         /// </summary>
-        private PolynomialModel _model;
+        private AbstractPolynomialModel _model;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalRegression"/> class.
@@ -241,7 +241,7 @@ namespace Microsoft.ML.TimeSeries
             return _model.Y(xValue);
         }
 
-        private PolynomialModel Regression()
+        private AbstractPolynomialModel Regression()
         {
             LeastSquares ls = new LeastSquares(NeighborsX, NeighborsY);
             return ls.RegressionDegreeOneWeighted(Weights);
