@@ -11,7 +11,7 @@ namespace Microsoft.ML.TimeSeries
     public sealed class RootCause
     {
         /// <summary>
-        /// A List for root cause item. Instance of the item should be <see cref="RootCauseItem"/>
+        /// A List for root cause item. Instance of the item should be <see cref="RootCauseItem"/>.
         /// </summary>
         public List<RootCauseItem> Items { get; set; }
         public RootCause()
@@ -23,12 +23,12 @@ namespace Microsoft.ML.TimeSeries
     public sealed class RootCauseLocalizationInput
     {
         /// <summary>
-        /// When the anomaly incident occurs
+        /// When the anomaly incident occurs.
         /// </summary>
         public DateTime AnomalyTimestamp { get; set; }
 
         /// <summary>
-        /// Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause
+        /// Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause.
         /// </summary>
         public Dictionary<string, Object> AnomalyDimension { get; set; }
 
@@ -38,7 +38,7 @@ namespace Microsoft.ML.TimeSeries
         public List<MetricSlice> Slices { get; set; }
 
         /// <summary>
-        /// The aggregated type, the type should be  <see cref="TimeSeries.AggregateType"/>
+        /// The aggregated type, the type should be  <see cref="TimeSeries.AggregateType"/>.
         /// </summary>
         public AggregateType AggregateType { get; set; }
 
@@ -119,11 +119,11 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         public List<string> Path;
         /// <summary>
-        /// The dimension for the detected root cause point
+        /// The dimension for the detected root cause point.
         /// </summary>
         public Dictionary<string, Object> Dimension;
         /// <summary>
-        /// The direction for the detected root cause point, should be <see cref="AnomalyDirection"/>
+        /// The direction for the detected root cause point, should be <see cref="AnomalyDirection"/>.
         /// </summary>
         public AnomalyDirection Direction;
 
@@ -158,7 +158,7 @@ namespace Microsoft.ML.TimeSeries
     public sealed class MetricSlice
     {
         /// <summary>
-        /// Timestamp for the point list
+        /// Timestamp for the point list.
         /// </summary>
         public DateTime TimeStamp { get; set; }
         /// <summary>
@@ -178,15 +178,15 @@ namespace Microsoft.ML.TimeSeries
     public sealed class TimeSeriesPoint : IEquatable<TimeSeriesPoint>
     {
         /// <summary>
-        /// Value of a time series point
+        /// Value of a time series point.
         /// </summary>
         public double Value { get; set; }
         /// <summary>
-        /// Forecasted value for the time series point
+        /// Forecasted value for the time series point.
         /// </summary>
         public double ExpectedValue { get; set; }
         /// <summary>
-        /// Whether the point is an anomaly point
+        /// Whether the point is an anomaly point.
         /// </summary>
         public bool IsAnomaly { get; set; }
         /// <summary>
@@ -194,7 +194,7 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         public Dictionary<string, Object> Dimension { get; set; }
         /// <summary>
-        /// Difference between value and expected value
+        /// Difference between value and expected value.
         /// </summary>
         public double Delta { get; set; }
 

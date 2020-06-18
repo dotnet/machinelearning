@@ -19,11 +19,11 @@ namespace Microsoft.ML.TimeSeries
         private double _beta;
         private double _rootCauseThreshold;
 
-        public RootCauseAnalyzer(RootCauseLocalizationInput src, double beta, double rootCauseThreshold)
+        public RootCauseAnalyzer(RootCauseLocalizationInput src, RootCauseOptions options)
         {
             _src = src;
-            _beta = beta;
-            _rootCauseThreshold = rootCauseThreshold;
+            _beta = options.Beta;
+            _rootCauseThreshold = options.RootCauseThreshold;
         }
 
         public RootCause Analyze()
@@ -752,6 +752,26 @@ namespace Microsoft.ML.TimeSeries
                 return DimensionKey.CompareTo(other.DimensionKey);
             else
                 throw new ArgumentException("Object is not a BestDimension");
+        }
+    }
+
+    public class RootCauseOptions
+    {
+        internal double Beta;
+        /// <summary>
+        /// A threshold to determine whether the point should be root cause. The range of this threshold should be in [0,1]. If the point's delta is equal to or larger than rootCauseThreshold multiplied by anomaly dimension point's delta, this point is treated as a root cause. Different threshold will turn out different results. Users can choose the delta according to their data and requirments.
+        ///</summary>
+        internal double RootCauseThreshold;
+        public RootCauseOptions()
+        {
+            Beta = 0.3;
+            RootCauseThreshold = 0.95;
+        }
+
+        public RootCauseOptions(double beta, double rootCauseThreshold)
+        {
+            Beta = beta;
+            RootCauseThreshold = rootCauseThreshold;
         }
     }
 

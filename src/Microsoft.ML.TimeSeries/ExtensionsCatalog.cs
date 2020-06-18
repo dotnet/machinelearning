@@ -183,11 +183,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog.</param>
         /// <param name="src">Root cause's input. The data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
-        /// <param name="beta">Beta is a weight parameter for user to choose.
-        /// It is used when score is calculated for each root cause item. The range of beta should be in [0,1].
-        /// For a larger beta, root cause items which have a large difference between value and expected value will get a high score.
-        /// For a small beta, root cause items which have a high relative change will get a low score.</param>
-        /// <param name="rootCauseThreshold">A threshold to determine whether the point should be root cause. If the point's delta is equal to or larger than rootCauseThreshold multiplied by anomaly dimension point's delta, this point is treated as a root cause. Different threshold will turn out different results. Users can choose the delta according to their data and requirments. </param>
+        /// <param name="options">An instance of of <see cref="Microsoft.ML.TimeSeries.RootCauseOptions"/> to indicate root cause parameters.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -195,18 +191,20 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5, double rootCauseThreshold = 0.95)
+        public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, RootCauseOptions options = null)
         {
+            options = options ?? new RootCauseOptions();
             IHostEnvironment host = CatalogUtils.GetEnvironment(catalog);
 
             //check the root cause input
             CheckRootCauseInput(host, src);
 
-            //check beta
-            host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
+            //check parameters
+            host.CheckUserArg(options.Beta >= 0 && options.Beta <= 1, nameof(options.Beta), "Must be in [0,1]");
+            host.CheckUserArg(options.RootCauseThreshold >= 0 && options.RootCauseThreshold <= 1, nameof(options.Beta), "Must be in [0,1]");
 
             //find out the root cause
-            RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta, rootCauseThreshold);
+            RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, options);
             RootCause dst = analyzer.Analyze();
             return dst;
         }
