@@ -426,6 +426,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
             Assert.Contains(1, ids);
             Assert.Contains(2, ids);
+
+            var inputWithKey = mlContext.Transforms.Conversion.MapValueToKey("KeyStrat", "TextStrat").Fit(input).Transform(input);
+            split = mlContext.Data.TrainTestSplit(inputWithKey, 0.5, "KeyStrat");
+            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(1, ids);
+            Assert.Contains(5, ids);
+            Assert.NotNull(split.TrainSet.Schema.GetColumnOrNull("KeyStrat")); // Check that the original column wasn't deleted by the split
         }
     }
 }
