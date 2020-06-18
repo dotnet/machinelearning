@@ -9,8 +9,8 @@ namespace Microsoft.ML.TimeSeries
     /// </summary>
     internal class LeastSquares
     {
-        private readonly List<double> _x;
-        private readonly List<double> _y;
+        private readonly IReadOnlyList<double> _x;
+        private readonly IReadOnlyList<double> _y;
         private readonly int _length;
 
         /// <summary>
@@ -19,7 +19,7 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         /// <param name="x">the corresponding x-axis value</param>
         /// <param name="y">the corresponding y-axis value</param>
-        public LeastSquares(List<double> x, List<double> y)
+        public LeastSquares(IReadOnlyList<double> x, IReadOnlyList<double> y)
         {
             Contracts.CheckValue(x, nameof(x));
             Contracts.CheckValue(y, nameof(y));
@@ -37,7 +37,7 @@ namespace Microsoft.ML.TimeSeries
         /// y=b0+b1x, but the penalty is weighted
         /// </summary>
         /// <param name="weights">the weighted least squares. note that the weight should be non-negative, and equal length to data </param>
-        public AbstractPolynomialModel RegressionDegreeOneWeighted(List<double> weights)
+        public AbstractPolynomialModel RegressionDegreeOneWeighted(IReadOnlyList<double> weights)
         {
             Contracts.CheckValue(weights, nameof(weights));
 

@@ -44,10 +44,6 @@ namespace Microsoft.ML.TimeSeries
             _length = _x.Count;
             SelfIndex = selfIndex;
 
-            NeighborsX = new List<double>();
-            NeighborsY = new List<double>();
-            Weights = new List<double>();
-
             int startIndex = selfIndex;
             int endIndex = selfIndex;
             double selfValue = _x[SelfIndex];
@@ -88,6 +84,11 @@ namespace Microsoft.ML.TimeSeries
                 StartIndex = startIndex;
                 EndIndex = endIndex;
 
+                var neighborsCount = EndIndex - StartIndex + 1;
+                NeighborsX = new double[neighborsCount];
+                NeighborsY = new double[neighborsCount];
+                Weights = new double[neighborsCount];
+
                 double leftRange = selfValue - _x[startIndex];
                 double rightRange = _x[endIndex] - selfValue;
                 double range = Math.Max(leftRange, rightRange);
@@ -96,20 +97,20 @@ namespace Microsoft.ML.TimeSeries
                 {
                     for (int i = StartIndex; i <= EndIndex; i++)
                     {
-                        NeighborsX.Add(_x[i]);
-                        NeighborsY.Add(_y[i]);
-                        Weights.Add(WeightMethod.Tricube((_x[i] - selfValue) / range));
+                        NeighborsX[i - StartIndex] = _x[i];
+                        NeighborsY[i - StartIndex] = _y[i];
+                        Weights[i - StartIndex] = WeightMethod.Tricube((_x[i] - selfValue) / range);
                     }
                 }
                 else
                 {
                     for (int i = StartIndex; i <= EndIndex; i++)
                     {
-                        NeighborsX.Add(_x[i]);
-                        NeighborsY.Add(_y[i]);
+                        NeighborsX[i - StartIndex] = _x[i];
+                        NeighborsY[i - StartIndex] = _y[i];
 
                         // since we do not consider the local/temporal information, all the neighbors share same weight for further weighted regression
-                        Weights.Add(1.0);
+                        Weights[i - StartIndex] = 1.0;
                     }
                 }
             }
@@ -123,6 +124,11 @@ namespace Microsoft.ML.TimeSeries
                 double rightRange = _x[EndIndex] - selfValue;
                 double range = Math.Max(leftRange, rightRange);
 
+                var neighborsCount = EndIndex - StartIndex + 1;
+                NeighborsX = new double[neighborsCount];
+                NeighborsY = new double[neighborsCount];
+                Weights = new double[neighborsCount];
+
                 // this is the slight modification of the weighting calculation
                 range = range * r / (_length - 1);
 
@@ -130,20 +136,20 @@ namespace Microsoft.ML.TimeSeries
                 {
                     for (int i = StartIndex; i <= EndIndex; i++)
                     {
-                        NeighborsX.Add(_x[i]);
-                        NeighborsY.Add(_y[i]);
-                        Weights.Add(WeightMethod.Tricube((_x[i] - selfValue) / range));
+                        NeighborsX[i - StartIndex] = _x[i];
+                        NeighborsY[i - StartIndex] = _y[i];
+                        Weights[i - StartIndex] = WeightMethod.Tricube((_x[i] - selfValue) / range);
                     }
                 }
                 else
                 {
                     for (int i = StartIndex; i <= EndIndex; i++)
                     {
-                        NeighborsX.Add(_x[i]);
-                        NeighborsY.Add(_y[i]);
+                        NeighborsX[i - StartIndex] = _x[i];
+                        NeighborsY[i - StartIndex] = _y[i];
 
                         // since we do not consider the local/temporal information, all the neighbors share same weight for further weighted regression
-                        Weights.Add(1.0);
+                        Weights[i - StartIndex] = 1.0;
                     }
                 }
             }
@@ -152,17 +158,17 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// the values of the y-axis of the neighbors (include the self point)
         /// </summary>
-        public List<double> NeighborsY { get; private set; }
+        public double[] NeighborsY { get; private set; }
 
         /// <summary>
         /// the values of the x-axis of the neighbors (include the self point)
         /// </summary>
-        public List<double> NeighborsX { get; private set; }
+        public double[] NeighborsX { get; private set; }
 
         /// <summary>
         /// the weights for each neighbor. this is used for weighted least squares.
         /// </summary>
-        public List<double> Weights { get; private set; }
+        public double[] Weights { get; private set; }
 
         /// <summary>
         /// the start index of the neighbors (inclusive)
@@ -186,9 +192,9 @@ namespace Microsoft.ML.TimeSeries
                 _model = Regression();
 
                 // calculate the errors
-                var errors = new double[NeighborsX.Count];
-                var absErrors = new double[NeighborsX.Count];
-                for (int i = 0; i < NeighborsX.Count; i++)
+                var errors = new double[NeighborsX.Length];
+                var absErrors = new double[NeighborsX.Length];
+                for (int i = 0; i < NeighborsX.Length; i++)
                 {
                     double error = NeighborsY[i] - _model.Y(NeighborsX[i]);
                     errors[i] = error;
@@ -209,7 +215,7 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 // update new weights.
-                for (int i = 0; i < Weights.Count; i++)
+                for (int i = 0; i < Weights.Length; i++)
                 {
                     Weights[i] *= deltas[i];
                 }

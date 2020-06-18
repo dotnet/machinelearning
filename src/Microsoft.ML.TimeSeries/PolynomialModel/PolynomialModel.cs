@@ -3,9 +3,9 @@
 namespace Microsoft.ML.TimeSeries
 {
     /// <summary>
-    /// indicate a general polynomial model
+    /// a general polynomial model
     /// </summary>
-    internal class PolynomialModel : AbstractPolynomialModel
+    internal sealed class PolynomialModel : AbstractPolynomialModel
     {
         public PolynomialModel(IReadOnlyList<double> coeffs)
             : base(coeffs)
