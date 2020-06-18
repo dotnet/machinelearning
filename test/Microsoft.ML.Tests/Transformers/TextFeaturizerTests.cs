@@ -221,14 +221,14 @@ namespace Microsoft.ML.Tests.Transformers
             var prediction = engine.Predict(data[0]);
             Assert.Equal(data[0].A, string.Join(" ", prediction.OutputTokens));
             var exp1 = 0.333333343f;
-            var exp2 = 0.707106769f;
-            var expected = new float[] { exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp2, exp2 };
+            var exp2 = 0.577350259f;
+            var expected = new float[] { exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp2, exp2, exp2 };
             Assert.Equal(expected, prediction.Features);
 
             prediction = engine.Predict(data[1]);
             exp1 = 0.4472136f;
             Assert.Equal(data[1].A, string.Join(" ", prediction.OutputTokens));
-            expected = new float[] { exp1, 0.0f, 0.0f, 0.0f, 0.0f, exp1, exp1, exp1, exp1, 0.0f, 1.0f };
+            expected = new float[] { exp1, 0.0f, 0.0f, 0.0f, 0.0f, exp1, exp1, exp1, exp1, 0.0f, 0.0f, 1.0f };
             Assert.Equal(expected, prediction.Features);
         }
 

@@ -1012,7 +1012,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         private FeatureFlockBase CreateOneHotFlock(IChannel ch,
-                List<int> features, int[] binnedValues, int[] lastOn, ValuesList[] instanceList,
+                List<int> features, int[] binnedValues, int[] lastOn, Dictionary<int, ValuesList> instanceList,
                 ref int[] forwardIndexerWork, ref VBuffer<double> temp, bool categorical)
         {
             Contracts.AssertValue(ch);
@@ -1732,7 +1732,7 @@ namespace Microsoft.ML.Trainers.FastTree
             private readonly RoleMappedData _data;
 
             // instanceList[feature] is the vector of values for the given feature
-            private readonly ValuesList[] _instanceList;
+            private readonly Dictionary<int, ValuesList> _instanceList;
 
             private readonly List<short> _targetsList;
             private readonly List<double> _actualTargets;
@@ -1753,10 +1753,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 : base(data, host, binUpperBounds, maxLabel, kind, categoricalFeatureIndices, categoricalSplit)
             {
                 _data = data;
-                // Array of List<double> objects for each feature, containing values for that feature over all rows
-                _instanceList = new ValuesList[NumFeatures];
-                for (int i = 0; i < _instanceList.Length; i++)
-                    _instanceList[i] = new ValuesList();
+
+                // Dictionary<int, List<double>> objects for each feature, containing values for that feature over all rows.
+                // We use a dictionary so we only allocate memory for a feature when its needed. This helps greatly with memory
+                // and cpu performance when the features are sparse.
+                _instanceList = new Dictionary<int, ValuesList>();
+
                 // Labels.
                 _targetsList = new List<short>();
                 _actualTargets = new List<double>();
@@ -1864,7 +1866,12 @@ namespace Microsoft.ML.Trainers.FastTree
                             }
 
                             foreach (var kvp in cursor.Features.Items())
-                                _instanceList[kvp.Key].Add(index, kvp.Value);
+                            {
+                                if (!_instanceList.TryGetValue(kvp.Key, out ValuesList value))
+                                    value = new ValuesList();
+                                value.Add(index, kvp.Value);
+                                _instanceList[kvp.Key] = value;
+                            }
 
                             _actualTargets.Add(cursor.Label);
                             if (_weights != null)
@@ -1904,13 +1911,19 @@ namespace Microsoft.ML.Trainers.FastTree
                     int iFeature = 0;
                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, NumFeatures));
                     List<int> trivialFeatures = new List<int>();
+
+                    // Use for when we dont have a value at the index. This saves memory by only allocating it once.
+                    var tempValue = new ValuesList();
                     for (iFeature = 0; iFeature < NumFeatures; iFeature++)
                     {
                         Host.CheckAlive();
                         if (!localConstructBinFeatures[iFeature])
                             continue;
                         // The following strange call will actually sparsify.
-                        _instanceList[iFeature].CopyTo(len, ref temp);
+                        if (!_instanceList.TryGetValue(iFeature, out ValuesList value))
+                            value = tempValue;
+                        value.CopyTo(len, ref temp);
+
                         // REVIEW: In principle we could also put the min docs per leaf information
                         // into here, and collapse bins somehow as we determine the bins, so that "trivial"
                         // bins on the head or tail of the bin distribution are never actually considered.
@@ -2040,7 +2053,9 @@ namespace Microsoft.ML.Trainers.FastTree
                         ? NumFeatures
                         : FeatureMap[iFeature + flock.Count];
                     for (int i = min; i < lim; ++i)
-                        _instanceList[i] = null;
+                        if(_instanceList.TryGetValue(i, out ValuesList value))
+                            _instanceList[i] = null;
+
                     iFeature += flock.Count;
                     yield return flock;
                 }
@@ -2608,7 +2623,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public sealed class ForwardIndexer
             {
                 // All of the _values list. We are only addressing _min through _lim.
-                private readonly ValuesList[] _values;
+                private readonly Dictionary<int, ValuesList> _values;
                 // Parallel to the subsequence of _values in min to lim, indicates the index where
                 // we should start to look for the next value, if the corresponding value list in
                 // _values is sparse. If the corresponding value list is dense the entry at this
@@ -2680,12 +2695,17 @@ namespace Microsoft.ML.Trainers.FastTree
                 /// <param name="features">The array of feature indices this will index</param>
                 /// <param name="workArray">A possibly shared working array, once used by this forward
                 /// indexer it should not be used in any previously created forward indexer</param>
-                public ForwardIndexer(ValuesList[] values, int[] features, ref int[] workArray)
+                public ForwardIndexer(Dictionary<int, ValuesList> values, int[] features, ref int[] workArray)
                 {
                     Contracts.AssertValue(values);
                     Contracts.AssertValueOrNull(workArray);
                     Contracts.AssertValue(features);
-                    Contracts.Assert(Utils.IsIncreasing(0, features, values.Length));
+                    // REVIEW: Currently we have Int32.MaxValue, but it used to be the length of the feature array.
+                    // Now that we are using a sparse representation with the dictionary we don't have that length here anymore.
+                    // Is this min/max comparison useful here? Or is Int32.MaxValue ok? If not we can pass the feature length to this method
+                    // so it has access to it. All tests pass using Int32.MaxValue, so I am not sure what this is really testing, or if the
+                    // only thing that was really needed was the increasing check, but not the bounds check.
+                    Contracts.Assert(Utils.IsIncreasing(0, features, Int32.MaxValue));
                     Contracts.Assert(features.All(i => values[i] != null));
                     _values = values;
                     _featureIndices = features;

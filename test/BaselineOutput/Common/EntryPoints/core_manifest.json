@@ -23696,6 +23696,7 @@
           "Default": {
             "Name": "NGram",
             "Settings": {
+              "NgramLength": 2,
               "MaxNumTerms": [
                 10000000
               ]
