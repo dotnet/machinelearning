@@ -247,6 +247,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
         {
             IList<string> result = new List<string>();
             HashSet<string> columnNames = new HashSet<string>();
+            Dictionary<string, int> duplicates = new Dictionary<string, int>();
             foreach (var column in columnInferenceResults.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();
@@ -281,12 +282,23 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
+                // Obtain normalized version of column name
                 string normalizedColumnName = Utils.Normalize(column.Name);
+                // Check if there's already a variable with the same normalized column name
                 if (columnNames.Contains(normalizedColumnName))
                 {
+                    // Add first differentiator to column name
                     normalizedColumnName = normalizedColumnName + "_" + GetSymbolOfDataKind(dataKind);
+                    // Check if there's already a variable  with the same normalized column name and type
                     if (columnNames.Contains(normalizedColumnName))
-                        throw new ArgumentException($"The column '{column.Name}' with type '{dataKind}' is not unique in the dataset.");
+                    {
+                        if (duplicates.ContainsKey(normalizedColumnName))
+                            duplicates[normalizedColumnName] += 1;
+                        else
+                            duplicates.Add(normalizedColumnName, 1);
+                        // Add second differentiator to column name
+                        normalizedColumnName = normalizedColumnName + "_" + duplicates[normalizedColumnName];
+                    }
                 }
                 columnNames.Add(normalizedColumnName);
                 sb.Append(normalizedColumnName);
