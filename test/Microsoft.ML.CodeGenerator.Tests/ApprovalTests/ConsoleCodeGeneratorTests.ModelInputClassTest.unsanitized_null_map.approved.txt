@@ -27,7 +27,7 @@ namespace test.Model
 
 
         [ColumnName("model"), LoadColumn(4)]
-        public double Model_double { get; set; }
+        public double Model_double_0 { get; set; }
 
 
         [ColumnName("work category"), LoadColumn(5)]
@@ -35,7 +35,7 @@ namespace test.Model
 
 
         [ColumnName("Work category"), LoadColumn(6)]
-        public int Work_category_int { get; set; }
+        public int Work_category_int_0 { get; set; }
 
 
         [ColumnName("IsDetachable"), LoadColumn(7)]
