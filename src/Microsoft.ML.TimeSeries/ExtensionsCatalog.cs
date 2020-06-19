@@ -187,6 +187,8 @@ namespace Microsoft.ML
         /// It is used when score is calculated for each root cause item. The range of beta should be in [0,1].
         /// For a larger beta, root cause items which have a large difference between value and expected value will get a high score.
         /// For a small beta, root cause items which have a high relative change will get a low score.</param>
+        /// <param name="rootCauseThreshold">A threshold to determine whether the point should be root cause. The range of this threshold should be in [0,1].
+        /// If the point's delta is equal to or larger than rootCauseThreshold multiplied by anomaly dimension point's delta, this point is treated as a root cause. Different threshold will turn out different results. Users can choose the delta according to their data and requirments.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -194,18 +196,19 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
+        public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.3, double rootCauseThreshold = 0.95)
         {
             IHostEnvironment host = CatalogUtils.GetEnvironment(catalog);
 
             //check the root cause input
             CheckRootCauseInput(host, src);
 
-            //check beta
+            //check parameters
             host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
+            host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(beta), "Must be in [0,1]");
 
             //find out the root cause
-            RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta);
+            RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta, rootCauseThreshold);
             RootCause dst = analyzer.Analyze();
             return dst;
         }

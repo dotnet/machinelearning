@@ -527,10 +527,10 @@ namespace Microsoft.ML.Tests
         {
             var ml = new MLContext(1);
             IDataView dataView;
-            if(loadDataFromFile)
+            if (loadDataFromFile)
             {
                 var dataPath = GetDataPath(Path.Combine("Timeseries", "anomaly_detection.csv"));
-                
+
                 // Load data from file into the dataView
                 dataView = ml.Data.LoadFromTextFile(dataPath, new[] {
                     new TextLoader.Column("Value", DataKind.Single, 0),
@@ -577,9 +577,9 @@ namespace Microsoft.ML.Tests
 
         [Theory, CombinatorialData]
         public void TestSrCnnBatchAnomalyDetector(
-            [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)]SrCnnDetectMode mode,
-            [CombinatorialValues(true, false)]bool loadDataFromFile,
-            [CombinatorialValues(-1, 24, 26, 512)]int batchSize)
+            [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)] SrCnnDetectMode mode,
+            [CombinatorialValues(true, false)] bool loadDataFromFile,
+            [CombinatorialValues(-1, 24, 26, 512)] int batchSize)
         {
             var ml = new MLContext(1);
             IDataView dataView;
@@ -596,7 +596,7 @@ namespace Microsoft.ML.Tests
                 var data = new List<TimeSeriesDataDouble>();
                 for (int index = 0; index < 20; index++)
                 {
-                    data.Add(new TimeSeriesDataDouble { Value = 5 } );
+                    data.Add(new TimeSeriesDataDouble { Value = 5 });
                 }
                 data.Add(new TimeSeriesDataDouble { Value = 10 });
                 for (int index = 0; index < 5; index++)
