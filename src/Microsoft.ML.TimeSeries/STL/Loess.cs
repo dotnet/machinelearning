@@ -13,14 +13,14 @@ namespace Microsoft.ML.TimeSeries
         private const double NumericalThreshold = 1.0e-10;
 
         /// <summary>
-        /// the ratio to determine the local region
+        /// The ratio to determine the local region
         /// </summary>
         private readonly int _r;
 
         private readonly bool _isTemporal;
 
         /// <summary>
-        /// key is the index of the given point, value is the corresponding neighbors of the given point.
+        /// Key is the index of the given point, value is the corresponding neighbors of the given point.
         /// </summary>
         private readonly Dictionary<int, LocalRegression> _neighbors;
 
@@ -30,12 +30,12 @@ namespace Microsoft.ML.TimeSeries
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Loess"/> class.
-        /// constructing the least square algorithm. specified with the # of neighbors
+        /// Construct the least square algorithm specified with the number of neighbors
         /// </summary>
-        /// <param name="xValues">the corresponding x-axis value</param>
-        /// <param name="yValues">the corresponding y-axis value</param>
-        /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
-        /// <param name="r">the smoothing range. If it is not specified, the algorithm will estimate the value of r by ratio.</param>
+        /// <param name="xValues">The corresponding x-axis value</param>
+        /// <param name="yValues">The corresponding y-axis value</param>
+        /// <param name="isTemporal">If the regression is considered to take temporal information into account. In general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
+        /// <param name="r">The smoothing range, if it is not specified, the algorithm will estimate the value of r by ratio.</param>
         public Loess(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, bool isTemporal, int? r = null)
         {
             Contracts.CheckValue(xValues, nameof(xValues));
@@ -70,10 +70,10 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// initialize the signal with basic checking
+        /// Initialize the signal with basic checking
         /// </summary>
-        /// <param name="xValues">the input x-axis values</param>
-        /// <param name="yValues">the input y-axis values</param>
+        /// <param name="xValues">The input x-axis values</param>
+        /// <param name="yValues">The input y-axis values</param>
         private void Init(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues)
         {
             _x = xValues;
@@ -86,8 +86,8 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// estimate any y value by given any x value, even the x value is not one of the input points.
-        /// when the x value is not one of the input points, find the closed one from input points, and use its model.
+        /// Estimate a y value by giving an x value, even if the x value is not one of the input points.
+        /// When the x value is not one of the input points, find the closed one from input points, and use its model.
         /// </summary>
         /// <param name="xValue">find the index with value closest to the input x value.</param>
         public double EstimateY(double xValue)
@@ -115,13 +115,13 @@ namespace Microsoft.ML.TimeSeries
     }
 
     /// <summary>
-    /// this class is used to define a set of weight functions. these functions are useful for various purposes for smoothing.
+    /// This class is used to define a set of weight functions. These functions are useful for various purposes for smoothing,
     /// i.e., the weighted least squares.
     /// </summary>
     internal class WeightMethod
     {
         /// <summary>
-        /// this is used for robust weight, it is one iteration step of loess.
+        /// This is used for robust weight, It is one iteration step of loess.
         /// </summary>
         public static double BisquareWeight(double value)
         {
@@ -133,8 +133,8 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// a famous weight function, since it enhances a chi-squared distributional approximation of an estimated of the error variance.
-        /// tricube should provide an adequate smooth in almost all situations. /ref
+        /// A famous weight function, since it enhances a chi-squared distributional approximation f an estimated of the error variance.
+        /// Tricube should provide an adequate smooth in almost all situations.
         /// </summary>
         public static double Tricube(double value)
         {
@@ -147,24 +147,24 @@ namespace Microsoft.ML.TimeSeries
     }
 
     /// <summary>
-    /// this class is used to store the parameters which are needed for lowess algorithm.
-    /// the name of these constansts are compliant with the original terms in paper.
+    /// This class is used to store the parameters which are needed for lowess algorithm.
+    /// The name of these constansts are compliant with the original terms in paper.
     /// </summary>
     internal class LoessConfiguration
     {
         /// <summary>
-        /// minumum number of neighbor counts, to apply underlying regression analysis.
-        /// this number should be even, so that neighbors on left/right side of a given data point is balanced. unbalanced neighbors would make the local-weighted regression biased noticeably at corner cases.
+        /// Minumum number of neighbor counts, to apply underlying regression analysis.
+        /// This number should be even, so that neighbors on left/right side of a given data point is balanced. Unbalanced neighbors would make the local-weighted regression biased noticeably at corner cases.
         /// </summary>
         public const int MinimumNeighborCount = 4;
 
         /// <summary>
-        /// (0, 1], a smooth range ratio. let fn be the number of neighbors of a specific point.
+        /// (0, 1], a smooth range ratio. Let fn be the number of neighbors of a specific point.
         /// </summary>
         public const double F = 0.3;
 
         /// <summary>
-        /// the number of iterations for robust regression.
+        /// The number of iterations for robust regression.
         /// </summary>
         public const int T = 2;
     }

@@ -4,8 +4,8 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.TimeSeries
 {
     /// <summary>
-    /// this class is used to calculate the least squares of the scatterplots.
-    /// please check http://en.wikipedia.org/wiki/Least_squares for more details.
+    /// This class is used to calculate the least squares of the scatterplots.
+    /// Please check http://en.wikipedia.org/wiki/Least_squares for more details.
     /// </summary>
     internal class LeastSquares
     {
@@ -15,10 +15,10 @@ namespace Microsoft.ML.TimeSeries
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LeastSquares"/> class.
-        /// constructing the least square algorithm. the input will be consumed directly without any copy, due to memory usage concern.
+        /// Constructing the least square algorithm. the input will be consumed directly without any copy, due to memory usage concern.
         /// </summary>
-        /// <param name="x">the corresponding x-axis value</param>
-        /// <param name="y">the corresponding y-axis value</param>
+        /// <param name="x">The corresponding x-axis value</param>
+        /// <param name="y">The corresponding y-axis value</param>
         public LeastSquares(IReadOnlyList<double> x, IReadOnlyList<double> y)
         {
             Contracts.CheckValue(x, nameof(x));
@@ -34,9 +34,9 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// y=b0+b1x, but the penalty is weighted
+        /// y=b0+b1x, while the penalty is weighted
         /// </summary>
-        /// <param name="weights">the weighted least squares. note that the weight should be non-negative, and equal length to data </param>
+        /// <param name="weights">The weighted least squares. note that the weight should be non-negative, and equal length to data </param>
         public AbstractPolynomialModel RegressionDegreeOneWeighted(IReadOnlyList<double> weights)
         {
             Contracts.CheckValue(weights, nameof(weights));

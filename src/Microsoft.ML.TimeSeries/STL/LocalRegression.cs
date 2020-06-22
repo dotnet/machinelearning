@@ -5,7 +5,7 @@ using Microsoft.ML.Internal.CpuMath.Core;
 namespace Microsoft.ML.TimeSeries
 {
     /// <summary>
-    /// this class is used to maintain the neighbors of a given particular point.
+    /// This class is used to maintain the neighbors of a given particular point.
     /// </summary>
     internal class LocalRegression
     {
@@ -15,20 +15,20 @@ namespace Microsoft.ML.TimeSeries
         private readonly int _length;
 
         /// <summary>
-        /// the model is learned by several iterations of local weighted regression.
+        /// The model is learned by several iterations of local weighted regression.
         /// </summary>
         private AbstractPolynomialModel _model;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalRegression"/> class.
-        /// construct the neighborhood information of a given point. note that the input series will not be copies again, due to
+        /// Construct the neighborhood information of a given point. note that the input series will not be copies again, due to
         /// memory usage concern.
         /// </summary>
-        /// <param name="x">the complete values of x-axis</param>
-        /// <param name="y">the complete values of y-axis</param>
-        /// <param name="selfIndex">the index of the current point</param>
-        /// <param name="r">number of neighbors, usually should be less then n. if it is equal/larger than n, the weight has slight change.</param>
-        /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
+        /// <param name="x">The complete values of x-axis</param>
+        /// <param name="y">The complete values of y-axis</param>
+        /// <param name="selfIndex">The index of the current point</param>
+        /// <param name="r">Number of neighbors, usually should be less then n. if it is equal/larger than n, the weight has slight change.</param>
+        /// <param name="isTemporal">If the regression is considered to take temporal information into account. In general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
         public LocalRegression(IReadOnlyList<double> x, IReadOnlyList<double> y, int selfIndex, int r, bool isTemporal = true)
         {
             Contracts.CheckValue(x, nameof(x));
@@ -48,7 +48,7 @@ namespace Microsoft.ML.TimeSeries
             int endIndex = selfIndex;
             double selfValue = _x[SelfIndex];
 
-            // the normal case, the farthest neighbor is contained in the list.
+            // The farthest neighbor is contained in the list. This is the normal case.
             if (r < _length)
             {
                 int left = r;
@@ -156,32 +156,32 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// the values of the y-axis of the neighbors (include the self point)
+        /// The values of the y-axis of the neighbors (include the self point)
         /// </summary>
         public double[] NeighborsY { get; private set; }
 
         /// <summary>
-        /// the values of the x-axis of the neighbors (include the self point)
+        /// The values of the x-axis of the neighbors (include the self point)
         /// </summary>
         public double[] NeighborsX { get; private set; }
 
         /// <summary>
-        /// the weights for each neighbor. this is used for weighted least squares.
+        /// The weights for each neighbor. This is used for weighted least squares.
         /// </summary>
         public double[] Weights { get; private set; }
 
         /// <summary>
-        /// the start index of the neighbors (inclusive)
+        /// The start index of the neighbors (inclusive)
         /// </summary>
         public int StartIndex { get; private set; }
 
         /// <summary>
-        /// the end index of the neighbors (inclusive)
+        /// The end index of the neighbors (inclusive)
         /// </summary>
         public int EndIndex { get; private set; }
 
         /// <summary>
-        /// the index of the self point. the index is on the complete series, not only on the neighbor series.
+        /// The index of the self point. The index is on the complete series, not only on the neighbor series.
         /// </summary>
         public int SelfIndex { get; private set; }
 
@@ -223,7 +223,7 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// get the best estimated y for the current value.
+        /// Get the best estimated y for the current value.
         /// </summary>
         public double Y()
         {
@@ -235,9 +235,9 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// get the best estimated y for any given x-value, event not one of the observed point
+        /// Get the best estimated y for any given x-value, event not one of the observed point
         /// </summary>
-        /// <param name="xValue">any given x value</param>
+        /// <param name="xValue">Any given x value</param>
         public double Y(double xValue)
         {
             if (_model == null)

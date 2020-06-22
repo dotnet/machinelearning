@@ -4,13 +4,13 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.TimeSeries
 {
     /// <summary>
-    /// this is the fast version of Loess. there are several alternatives to improve the performance. this one is an approximation approach.
+    /// This is the fast version of Loess. there are several alternatives to improve the performance. this one is an approximation approach.
     /// the smoothing is conducted on a sample set, and then the values on the left points are assigned directly.
     /// </summary>
     internal class FastLoess
     {
         /// <summary>
-        /// this class is a sampling based method, so here specifies the sample size.
+        /// This class is a sampling based method, so here specifies the sample size.
         /// </summary>
         private const int _sampleSize = 100;
 
@@ -42,7 +42,6 @@ namespace Microsoft.ML.TimeSeries
             _y = yValues;
             _length = _y.Count;
 
-            // the sampling is not neccessary
             if (_length <= FastLoess._sampleSize)
             {
                 if (r == -1)
@@ -52,7 +51,7 @@ namespace Microsoft.ML.TimeSeries
             }
             else
             {
-                // conduct sampling based strategy, to boost the performance.
+                // Conduct sampling based strategy, to boost the performance.
                 double step = _length * 1.0 / FastLoess._sampleSize;
                 var sampleX = new double[FastLoess._sampleSize];
                 var sampleY = new double[FastLoess._sampleSize];
@@ -70,12 +69,12 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// the estimated y values. this is the very cool smoothing method.
+        /// The estimated y values. this is the very cool smoothing method.
         /// </summary>
         public List<double> Y { get; }
 
         /// <summary>
-        /// assign the smoothing values to all the data points, not only on the sample size.
+        /// Assign the smoothing values to all the data points, not only on the sample size.
         /// </summary>
         public void Estimate()
         {
@@ -87,7 +86,7 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// estimate any y value by given any x value, event the x value is not one of the input points.
+        /// Estimate a y value by giving an x value, even if the x value is not one of the input points.
         /// </summary>
         public double EstimateY(double xValue)
         {

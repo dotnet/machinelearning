@@ -9,7 +9,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.TimeSeries.Deseasonality;
 using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.TimeSeries
@@ -384,7 +383,7 @@ namespace Microsoft.ML.TimeSeries
             private readonly double _sensitivity;
             private readonly SrCnnDetectMode _detectMode;
             private readonly int _period;
-            private readonly DeseasonalityBase _deseasonalityFunction;
+            private readonly IDeseasonality _deseasonalityFunction;
 
             //used in all modes
             private readonly double[] _predictArray;
