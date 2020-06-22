@@ -1,7 +1,84 @@
-maml.exe CV tr=LightGBMRanking{t=1} eval=RankingEvaluator{t=10} threads=- norm=Warn prexf=rangefilter{col=Label min=20 max=25} prexf=term{col=Strat:Label} loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+} data=%Data% out=%Output% xf=term{col=Label} xf=hash{col=GroupId}
+maml.exe CV tr=LightGBMRanking eval=RankingEvaluator{t=10} loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138 header=+} data=%Data% out=%Output% xf=HashTransform{col=GroupId} xf=NAHandleTransform{col=Features}
+Not adding a normalizer.
+Not adding a normalizer.
+Auto-tuning parameters: UseCategoricalSplit = False
+Auto-tuning parameters: LearningRate = 0.2
+Auto-tuning parameters: NumberOfLeaves = 20
+Auto-tuning parameters: MinimumExampleCountPerLeaf = 20
+Auto-tuning parameters: UseCategoricalSplit = False
+Auto-tuning parameters: LearningRate = 0.2
+Auto-tuning parameters: NumberOfLeaves = 20
+Auto-tuning parameters: MinimumExampleCountPerLeaf = 20
+LightGBM objective=lambdarank
+Not training a calibrator because it is not needed.
+LightGBM objective=lambdarank
+Not training a calibrator because it is not needed.
+NDCG@1:             0.489790
+NDCG@2:             0.474530
+NDCG@3:             0.484441
+NDCG@4:             0.488791
+NDCG@5:             0.496866
+NDCG@6:             0.504959
+NDCG@7:             0.511733
+NDCG@8:             0.519171
+NDCG@9:             0.525367
+NDCG@10:            0.529584
+DCG@1:              10.025053
+DCG@2:              14.165583
+DCG@3:              17.250043
+DCG@4:              19.647721
+DCG@5:              21.729604
+DCG@6:              23.612304
+DCG@7:              25.166836
+DCG@8:              26.662733
+DCG@9:              27.951477
+DCG@10:             29.113995
+NDCG@1:             0.483301
+NDCG@2:             0.476892
+NDCG@3:             0.482366
+NDCG@4:             0.488954
+NDCG@5:             0.498165
+NDCG@6:             0.502917
+NDCG@7:             0.510119
+NDCG@8:             0.515722
+NDCG@9:             0.522356
+NDCG@10:            0.528916
+DCG@1:              9.744912
+DCG@2:              13.969609
+DCG@3:              17.055498
+DCG@4:              19.483914
+DCG@5:              21.553430
+DCG@6:              23.304994
+DCG@7:              24.929146
+DCG@8:              26.233021
+DCG@9:              27.571646
+DCG@10:             28.746331
+
+OVERALL RESULTS
+---------------------------------------
+NDCG@1:             0.486546 (0.0032)
+NDCG@2:             0.475711 (0.0012)
+NDCG@3:             0.483403 (0.0010)
+NDCG@4:             0.488872 (0.0001)
+NDCG@5:             0.497515 (0.0006)
+NDCG@6:             0.503938 (0.0010)
+NDCG@7:             0.510926 (0.0008)
+NDCG@8:             0.517447 (0.0017)
+NDCG@9:             0.523862 (0.0015)
+NDCG@10:            0.529250 (0.0003)
+DCG@1:              9.884983 (0.1401)
+DCG@2:              14.067596 (0.0980)
+DCG@3:              17.152770 (0.0973)
+DCG@4:              19.565818 (0.0819)
+DCG@5:              21.641517 (0.0881)
+DCG@6:              23.458649 (0.1537)
+DCG@7:              25.047991 (0.1188)
+DCG@8:              26.447877 (0.2149)
+DCG@9:              27.761561 (0.1899)
+DCG@10:             28.930163 (0.1838)
+
+---------------------------------------
 Physical memory usage(MB): %Number%
 Virtual memory usage(MB): %Number%
 %DateTime%	 Time elapsed(s): %Number%
 
-Unknown loadable class: LightGBMRanking
-Error log has been saved to '%Temp%\%ErrorLog%'. Please refer to https://aka.ms/MLNetIssue if you need assistance.

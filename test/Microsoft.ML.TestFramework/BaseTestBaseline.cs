@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
+using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -106,6 +107,8 @@ namespace Microsoft.ML.RunTests
             TestLogger = new TestLogger(Output);
             _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter, testWriter: TestLogger)
                 .AddStandardComponents();
+            _env.ComponentCatalog.RegisterAssembly(typeof(RankingEvaluator).Assembly);
+            _env.ComponentCatalog.RegisterAssembly(typeof(LightGbmMulticlassTrainer).Assembly);
             ML = new MLContext(42);
             ML.Log += LogTestOutput;
             ML.AddStandardComponents();

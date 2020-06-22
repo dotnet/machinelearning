@@ -680,16 +680,16 @@ namespace Microsoft.ML.RunTests
         [LightGBMFact]
         public void EvaluateRankingWithMaml()
         {
-            RunMTAThread(() =>
-            {
-                string trainData = GetDataPath("adult.tiny.with-schema.txt");
-                string extraArgs = $"tr=LightGBMRanking{{t=1}} eval=RankingEvaluator{{t=10}} prexf=rangefilter{{col=Label min=20 max=25}} " +
-                $"prexf=term{{col=Strat:Label}} xf=term{{col=Label}} xf=hash{{col=GroupId}} threads- norm=Warn";
+            string mslrWeb10kTrain = GetDataPath("MSLRWeb1K-tiny.tsv");
+            string extraArgs = " tr=LightGBMRanking" +
+                " eval=RankingEvaluator{t=10}" +
+                " k=2";
+            string loaderArgs = " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138 header=+}" +
+                " xf = HashTransform{col=GroupId}" +
+                " xf = NAHandleTransform{col=Features}";
+            int digitsOfPrecision = 2;
+            TestCore("cv", mslrWeb10kTrain, loaderArgs, extraArgs, digitsOfPrecision);
 
-                string loaderArgs = "loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+}";
-
-                TestCore("cv", trainData, loaderArgs, extraArgs);
-            });
             Done();
         }
 
