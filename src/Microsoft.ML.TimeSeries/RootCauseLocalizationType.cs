@@ -8,9 +8,8 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.TimeSeries
 {
-    public sealed class RootCauses
+    public sealed class PreparedCauses
     {
-        public double MeanGain { get; set; }
         public List<RootCause> Causes { get; set; }
     }
 
@@ -20,6 +19,13 @@ namespace Microsoft.ML.TimeSeries
         /// A List for root cause item. Instance of the item should be <see cref="RootCauseItem"/>
         /// </summary>
         public List<RootCauseItem> Items { get; set; }
+        /// <summary>
+        /// The gain ...
+        /// </summary>
+        public double Gain { get; set; }
+        /// <summary>
+        /// The gain ratio ...
+        /// </summary>
         public double GainRatio { get; set; }
         public RootCause()
         {

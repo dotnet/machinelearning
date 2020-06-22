@@ -20,7 +20,7 @@ namespace Samples.Dynamic
             var data = new RootCauseLocalizationInput(timestamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timestamp, GetPoints()) }, AggregateType.Sum, AGG_SYMBOL);
 
             // Get the root cause localization result.
-            RootCauses prediction = mlContext.AnomalyDetection.LocalizeRootCauses(data);
+            PreparedCauses prediction = mlContext.AnomalyDetection.LocalizeRootCauses(data);
 
             // Print the localization result.
             int count = 0;

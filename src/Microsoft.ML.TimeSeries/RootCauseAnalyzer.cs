@@ -18,13 +18,13 @@ namespace Microsoft.ML.TimeSeries
 
         private RootCauseLocalizationInput _src;
         private double _beta;
-        private RootCauses _rootCauses;
+        private PreparedCauses _rootCauses;
 
         public RootCauseAnalyzer(RootCauseLocalizationInput src, double beta)
         {
             _src = src;
             _beta = beta;
-            _rootCauses = new RootCauses() { Causes = new List<RootCause>() };
+            _rootCauses = new PreparedCauses() { Causes = new List<RootCause>() };
         }
 
         public RootCause Analyze()
@@ -32,7 +32,7 @@ namespace Microsoft.ML.TimeSeries
             return AnalyzeOneLayer(_src).Causes.FirstOrDefault();
         }
 
-        public RootCauses AnalyzeAll()
+        public PreparedCauses AnalyzeMultiDimensionalRootCauses()
         {
             return AnalyzeOneLayer(_src);
         }
@@ -41,7 +41,7 @@ namespace Microsoft.ML.TimeSeries
         ///  This is a function for analyzing one layer for root cause. We rank dimensions according to their likelihood of containing the root case.
         ///  For each dimension, we select one dimension with values who contributes the most to the anomaly.
         /// </summary>
-        private RootCauses AnalyzeOneLayer(RootCauseLocalizationInput src)
+        private PreparedCauses AnalyzeOneLayer(RootCauseLocalizationInput src)
         {
             DimensionInfo dimensionInfo = SeparateDimension(src.AnomalyDimension, src.AggSymbol);
             Tuple<PointTree, PointTree, Dictionary<string, Point>> pointInfo = GetPointsInfo(src, dimensionInfo);
@@ -240,7 +240,7 @@ namespace Microsoft.ML.TimeSeries
         protected IEnumerable<BestDimension> SelectBestDimension(List<Point> totalPoints, List<Point> anomalyPoints, List<string> aggDim)
         {
             double totalEntropy = GetEntropy(totalPoints.Count, anomalyPoints.Count);
-            SortedDictionary<BestDimension, double> entroyGainMap = new SortedDictionary<BestDimension, double>();
+            SortedDictionary<BestDimension, double> entropyGainMap = new SortedDictionary<BestDimension, double>();
             Dictionary<BestDimension, double> entroyGainRatioMap = new Dictionary<BestDimension, double>();
             double sumGain = 0;
 
@@ -258,7 +258,8 @@ namespace Microsoft.ML.TimeSeries
                 {
                     gain = 0;
                 }
-                entroyGainMap.Add(dimension, gain);
+                entropyGainMap.Add(dimension, gain);
+                dimension.Gain = gain;
 
                 double gainRatio = gain / GetDimensionIntrinsicValue(dimension.PointDis);
                 if (Double.IsInfinity(gainRatio))
@@ -272,9 +273,8 @@ namespace Microsoft.ML.TimeSeries
             }
 
             double meanGain = sumGain / aggDim.Count();
-            _rootCauses.MeanGain = meanGain;
 
-            return OrderDimensions(entroyGainMap, entroyGainRatioMap, meanGain);
+            return OrderDimensions(entropyGainMap, entroyGainRatioMap, meanGain);
         }
 
         /// <summary>
@@ -320,7 +320,6 @@ namespace Microsoft.ML.TimeSeries
             }
 
             double meanGain = sumGain / aggDim.Count;
-            _rootCauses.MeanGain = meanGain;
 
             return OrderDimensions(entropyMap, entropyRatioMap, meanGain, false);
         }
@@ -486,12 +485,12 @@ namespace Microsoft.ML.TimeSeries
                     {
                         if (!isRatioNan && (right.Key.AnomalyDis.Count != 1 && (isLeavesLevel ? valueRatioMap[right.Key].CompareTo(left.Value) <= 0 : valueRatioMap[right.Key].CompareTo(left.Value) >= 0)))
                         {
-                            return -1;
+                            return 1;
                         }
                     }
                     else
                     {
-                        if (right.Key.AnomalyDis.Count > -1)
+                        if (right.Key.AnomalyDis.Count > 1)
                         {
                             return 1;
                         }
@@ -612,12 +611,10 @@ namespace Microsoft.ML.TimeSeries
 
         private bool ShouldSeparateAnomaly(double total, double parent, int totalSize, int size)
         {
-            /*
             if (Math.Abs(total) < Math.Abs(parent) * _anomalyDeltaThreshold)
             {
                 return false;
             }
-            */
 
             if (size == totalSize && size == 1)
             {
@@ -729,6 +726,7 @@ namespace Microsoft.ML.TimeSeries
         internal string DimensionKey;
         internal Dictionary<string, int> AnomalyDis;
         internal Dictionary<string, int> PointDis;
+        internal double Gain;
         internal double GainRatio;
 
         public BestDimension()

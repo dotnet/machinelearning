@@ -170,7 +170,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="RootCause"/>, which localizes root causes using decision tree algorithm.
+        /// Create <see cref="PreparedCauses"/>, which localizes root causes using decision tree algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog.</param>
         /// <param name="src">Root cause's input. The data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
@@ -178,11 +178,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[LocalizeRootCause](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/LocalizeRootCauseMultipleDimensions.cs)]
+        /// [!code-csharp[LocalizeRootCauseMultipleDimensions](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/LocalizeRootCauseMultipleDimensions.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public static RootCauses LocalizeRootCauses(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
+        public static PreparedCauses LocalizeRootCauses(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
         {
             IHostEnvironment host = CatalogUtils.GetEnvironment(catalog);
 
@@ -194,7 +194,7 @@ namespace Microsoft.ML
 
             //find out the root cause
             RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta);
-            return analyzer.AnalyzeAll();
+            return analyzer.AnalyzeMultiDimensionalRootCauses();
         }
 
         private static void CheckRootCauseInput(IHostEnvironment host, RootCauseLocalizationInput src)
