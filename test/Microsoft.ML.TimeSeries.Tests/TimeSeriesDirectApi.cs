@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TimeSeries;
@@ -686,6 +687,29 @@ namespace Microsoft.ML.Tests
             {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
             }
+        }
+
+        [Theory]
+        [InlineData(-1, 6)]
+        [InlineData(60, 6)]
+        [InlineData(20, -1)]
+        public void TestDetectSeasonality(int seasonalityWindowSize, int expectedPeriod)
+        {
+            // Create a detect seasonality input: y = sin(2 * Pi + x)
+            var input = Enumerable.Range(0, 100).Select(x =>
+                new TimeSeriesDataDouble()
+                {
+                    Value = Math.Sin(2 * Math.PI + x),
+                });
+            foreach (var data in input)
+                Console.WriteLine(data.Value);
+            var mlContext = new MLContext();
+
+            var dataView = mlContext.Data.LoadFromEnumerable(input);
+            SeasonalityDetector seasonalityDetector = new SeasonalityDetector();
+
+            int period = mlContext.AnomalyDetection.DetectSeasonality(dataView, nameof(TimeSeriesDataDouble.Value), seasonalityWindowSize);
+            Assert.Equal(expectedPeriod, period);
         }
 
         private static List<TimeSeriesPoint> GetRootCauseLocalizationPoints()
