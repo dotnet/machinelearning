@@ -418,17 +418,18 @@ namespace Microsoft.ML.TimeSeries
                 _period = period;
                 _predictArray = new double[_lookaheadWindowSize + 1];
 
-                if (deseasonalityMode == SrCnnDeseasonalityMode.Stl)
+                switch (deseasonalityMode)
                 {
-                    _deseasonalityFunction = new StlDeseasonality();
-                }
-                else if (deseasonalityMode == SrCnnDeseasonalityMode.Mean)
-                {
-                    _deseasonalityFunction = new MeanDeseasonality();
-                }
-                else // if (deseasonalityMode == SrCnnDeseasonalityMode.Median)
-                {
-                    _deseasonalityFunction = new MedianDeseasonality();
+                    case SrCnnDeseasonalityMode.Stl:
+                        _deseasonalityFunction = new StlDeseasonality();
+                        break;
+                    case SrCnnDeseasonalityMode.Mean:
+                        _deseasonalityFunction = new MeanDeseasonality();
+                        break;
+                    default:
+                        Contracts.Assert(deseasonalityMode == SrCnnDeseasonalityMode.Median);
+                        _deseasonalityFunction = new MedianDeseasonality();
+                        break;
                 }
             }
 
@@ -655,10 +656,7 @@ namespace Microsoft.ML.TimeSeries
             private void GetMarginPeriod(double[] values, double[][] results, IReadOnlyList<double> residual, double sensitivity)
             {
                 //Step 8: Calculated Expected Value
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    results[i][3] = values[i] - residual[i];
-                }
+                GetExpectedValuePeriod(values, results, residual);
 
                 //Step 9: Calculate Boundary Unit
                 CalculateBoundaryUnit(values, results.Select(x => x[0] > 0).ToArray());
