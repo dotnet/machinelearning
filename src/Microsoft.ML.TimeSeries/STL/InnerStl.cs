@@ -280,7 +280,7 @@ namespace Microsoft.ML.TimeSeries
             /// Get a list of virtual x-axis values. the values are from 0 to length - 1.
             /// </summary>
             /// <param name="length">Specify the length you want to create the x values.</param>
-            /// <returns>If this is cached, return directly. otherwise, create a new list and return</returns>
+            /// <returns>If the input is cached, return the cached output directly. otherwise, create a new list and return</returns>
             internal static List<double> GetXValues(int length)
             {
                 lock (_xValuesPool)
