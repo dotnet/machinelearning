@@ -43,7 +43,7 @@ namespace Microsoft.ML.TimeSeries
 
             Contracts.CheckParam(weights.Count == _length, nameof(weights));
             if (weights.Count != _length)
-                throw Contracts.Except("the weight vector is not equal length to the data points");
+                throw Contracts.Except("The length of the weight vector is not equal to the length of the data points.");
 
             // This part unfolds the matrix calculation of [sqrt(W), sqrt(W) .* X]^T * [sqrt(W), sqrt(W) .* X]
             double sum00 = 0;

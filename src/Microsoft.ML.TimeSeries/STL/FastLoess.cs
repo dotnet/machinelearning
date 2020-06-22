@@ -14,6 +14,11 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         private const int _sampleSize = 100;
 
+        /// <summary>
+        /// The minimum length of a valid time series. A time series with length equals 2 is so trivial and meaningless less than 2.
+        /// </summary>
+        public const int MinTimeSeriesLength = 3;
+
         private readonly IReadOnlyList<double> _x;
         private readonly IReadOnlyList<double> _y;
         private readonly int _length;
@@ -35,7 +40,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(yValues, nameof(yValues));
             Y = new List<double>();
 
-            if (yValues.Count < LoessBasicParameters.MinTimeSeriesLength)
+            if (yValues.Count < MinTimeSeriesLength)
                 throw Contracts.Except("input data structure cannot be 0-length: lowess");
 
             _x = xValues;

@@ -202,7 +202,7 @@ namespace Microsoft.ML.TimeSeries
 
         private void CheckOptionArguments(SrCnnEntireAnomalyDetectorOptions options)
         {
-            Host.CheckUserArg(options.Period >= 0, nameof(options.Period), "Must be integer equal or greater than 0.");
+            Host.CheckUserArg(options.Period >= 0, nameof(options.Period), "Must be an integer equal to or greater than 0.");
 
             Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize >= MinBatchSize, nameof(options.BatchSize), "Must be -1 or no less than 12.");
             Host.CheckUserArg(options.BatchSize >= 4 * options.Period || options.BatchSize == -1 || options.Period == 0, nameof(options.BatchSize), "Must be at least four times the length of one period.");
