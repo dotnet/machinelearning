@@ -233,7 +233,7 @@ namespace Microsoft.ML
         /// of values will be considered. Default value is -1.</param>
         /// <param name="randomnessThreshold"><a href ="https://en.wikipedia.org/wiki/Correlogram">Randomness threshold</a>
         /// that specifies how confidently the input values follow a predictable pattern recurring as seasonal data.
-        /// The range is between [0, 1]. By default, it is set as 0.99.
+        /// The range is between [0, 1]. By default, it is set as 0.95.
         /// </param>
         /// <returns>The regular interval for the input as seasonal data, otherwise return -1.</returns>
         /// <example>
@@ -248,7 +248,7 @@ namespace Microsoft.ML
              IDataView input,
              string inputColumnName,
              int seasonalityWindowSize = -1,
-             double randomnessThreshold = 0.99)
+             double randomnessThreshold = 0.95)
          => new SeasonalityDetector().DetectSeasonality(
              CatalogUtils.GetEnvironment(catalog),
              input,

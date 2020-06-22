@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -35,18 +36,6 @@ namespace Microsoft.ML.TimeSeries
         private const double MinEnergyThreshold = 1e-10;
 
         /// <summary>
-        /// The inverse normal cumulative distribution table that maps the confidence interval (randomness threshold) to the inverse of
-        /// normal cumulative distribution value.
-        /// </summary>
-        private static readonly SortedDictionary<double, double> _confidenceToInverseNormalDistribution = new SortedDictionary<double, double>
-        {
-            { 0.95,  1.96 },
-            { 0.99,  2.58 },
-            { 0.995, 2.81 },
-            { 0.999, 3.29 },
-        };
-
-        /// <summary>
         /// This method detects this predictable interval (or period) by adopting techniques of fourier analysis.
         /// Returns -1 if no such pattern is found, that is, the input values do not follow a seasonal fluctuation.
         /// </summary>
@@ -57,7 +46,7 @@ namespace Microsoft.ML.TimeSeries
         /// When set to -1, use the whole input to fit model; when set to a positive integer, use this number as batch size.
         /// Default value is -1.</param>
         /// <param name="randomessThreshold">Randomness threshold, ranging from [0, 1]. It specifies how confidence the input
-        /// follows a predictable pattern recurring as seasonal data. By default, it is set as 0.99.
+        /// follows a predictable pattern recurring as seasonal data. By default, it is set as 0.95.
         /// </param>
         /// <returns>The detected period if seasonality period exists, otherwise return -1.</returns>
         public int DetectSeasonality(
@@ -199,18 +188,7 @@ namespace Microsoft.ML.TimeSeries
              * increasing the threshold aims to mitigate the fake seasonal component caused by outliers. in practice, if there exist true seasonal component,
              * such as BirdStrike/Appdownloads, the energy is far larger than threshold, hence change threshold from 2.85 to 4.0 have no impact (tested);
              */
-            double randomnessValue = _confidenceToInverseNormalDistribution.First().Value;
-
-            foreach (var entry in _confidenceToInverseNormalDistribution)
-            {
-                if (randomnessThreshold < entry.Key)
-                {
-                    break;
-                }
-
-                randomnessValue = entry.Value;
-            }
-
+            double randomnessValue = ProbabilityFunctions.Probit(randomnessThreshold);
             double threshold = randomnessValue / Math.Sqrt(timeSeriesLength);
 
             if (trueTimeDomainEnergy < threshold || values[truePeriod].Real < MinEnergyThreshold)
