@@ -1,10 +1,20 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.ML.TimeSeries
 {
     internal interface IDeseasonality
     {
+        /// <summary>
+        /// Remove the seasonality component of the given time-series.
+        /// </summary>
+        /// <param name="values">An array representing the input time-series.</param>
+        /// <param name="period">The period value of the time-series.</param>
+        /// <param name="results">The de-seasonalized time-series.</param>
         public abstract void Deseasonality(ref double[] values, int period, ref double[] results);
     }
 

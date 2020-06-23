@@ -8,8 +8,8 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.TimeSeries
 {
     /// <summary>
-    /// This is the fast version of Loess. there are several alternatives to improve the performance. this one is an approximation approach.
-    /// the smoothing is conducted on a sample set, and then the values on the left points are assigned directly.
+    /// This is the fast version of Loess. There are several alternatives to improve the performance. This one is an approximation approach.
+    /// The smoothing is conducted on a sample set, and then the values on the left points are assigned directly.
     /// </summary>
     internal class FastLoess
     {
@@ -31,13 +31,12 @@ namespace Microsoft.ML.TimeSeries
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FastLoess"/> class.
-        /// the fast version of the Loess method. when the time series is too long, the sampling will be conducted first
-        /// to improve the performance.
+        /// The fast version of the Loess method. when the time series is too long, the sampling will be conducted first to improve the performance.
         /// </summary>
-        /// <param name="xValues">the input x-axis values</param>
-        /// <param name="yValues">the input y-axis values</param>
-        /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
-        /// <param name="r">this method will provide default smoothing ratio if user did not specify</param>
+        /// <param name="xValues">The input x-axis values</param>
+        /// <param name="yValues">The input y-axis values</param>
+        /// <param name="isTemporal">If the regression is considered to take temporal information into account. In general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
+        /// <param name="r">This method will provide default smoothing ratio if user did not specify</param>
         public FastLoess(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, bool isTemporal = true, int r = -1)
         {
             Contracts.CheckValue(xValues, nameof(xValues));
@@ -78,7 +77,7 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// The estimated y values. this is the very cool smoothing method.
+        /// The estimated y values. This is the very cool smoothing method.
         /// </summary>
         public List<double> Y { get; }
 

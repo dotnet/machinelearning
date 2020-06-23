@@ -40,7 +40,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// y=b0+b1x, while the penalty is weighted
         /// </summary>
-        /// <param name="weights">The weighted least squares. note that the weight should be non-negative, and equal length to data </param>
+        /// <param name="weights">The weighted least squares. Note that the weight should be non-negative, and equal length to data </param>
         public AbstractPolynomialModel RegressionDegreeOneWeighted(IReadOnlyList<double> weights)
         {
             Contracts.CheckValue(weights, nameof(weights));
@@ -66,9 +66,8 @@ namespace Microsoft.ML.TimeSeries
                 sum11 += temp;
             }
 
-            /* calculate the reverse of a 2X2 matrix is simple, because suppose the matrix is [a,b;c,d], then its reverse is
-             * [x1,x2;x3,x4] where x1 = d/K, x2 = -c/K, x3 = -b/K, x4 = a/K, where K = ad-bc.
-             */
+            // calculate the reverse of a 2X2 matrix is simple, because suppose the matrix is [a,b;c,d], then its reverse is
+            // [x1,x2;x3,x4] where x1 = d/K, x2 = -c/K, x3 = -b/K, x4 = a/K, where K = ad-bc.
             double a = sum00;
             double b = sum01;
             double c = sum10;

@@ -33,7 +33,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// This function calculates the y value by given the x value, under this model
         /// </summary>
-        /// <param name="x">the specific x value</param>
+        /// <param name="x">The specific x value</param>
         public override double Y(double x)
         {
             double result = Coeffs[0];

@@ -74,7 +74,7 @@ namespace Microsoft.ML.TimeSeries
         /// Since this method supports decompose seasonal signal, which requires the equal-space of the input x-axis values.
         /// Otherwise, the smoothing on seasonal component will be very complicated.
         /// </summary>
-        /// <param name="isTemporal">if the regression is considered to take temporal information into account. in general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
+        /// <param name="isTemporal">If the regression is considered to take temporal information into account. In general, this is true if we are regressing a time series, and false if we are regressing scatter plot data</param>
         public InnerStl(bool isTemporal)
         {
             _isTemporal = isTemporal;
@@ -105,10 +105,10 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// The core for the robust trend-seasonal decomposition. see the ref: http://www.wessa.net/download/stl.pdf,
+        /// The core for the robust trend-seasonal decomposition. See the ref: http://www.wessa.net/download/stl.pdf,
         /// See section 2 and 3. especially section 2.
         /// </summary>
-        /// <returns>Return true if the process goes successfully. otherwise, return false.</returns>
+        /// <returns>Return true if the process goes successfully. Otherwise, return false.</returns>
         public bool Decomposition(IReadOnlyList<double> yValues, int np)
         {
             Contracts.CheckValue(yValues, nameof(yValues));
@@ -284,7 +284,7 @@ namespace Microsoft.ML.TimeSeries
             /// Get a list of virtual x-axis values. the values are from 0 to length - 1.
             /// </summary>
             /// <param name="length">Specify the length you want to create the x values.</param>
-            /// <returns>If the input is cached, return the cached output directly. otherwise, create a new list and return</returns>
+            /// <returns>If the input is cached, return the cached output directly. Otherwise, create a new list and return</returns>
             internal static List<double> GetXValues(int length)
             {
                 lock (_xValuesPool)
