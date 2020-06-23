@@ -560,7 +560,7 @@ namespace Microsoft.ML
                 }
                 else
                 {
-                    if (data.Schema[samplingKeyColumn].IsNormalized() || (type != NumberDataViewType.Single && type != NumberDataViewType.Double))
+                    if (type != NumberDataViewType.Single && type != NumberDataViewType.Double)
                     {
                         data = new ColumnCopyingEstimator(env, (newSamplingKeyColumn, samplingKeyColumn)).Fit(data).Transform(data);
                     }
