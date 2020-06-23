@@ -77,7 +77,7 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// The estimated y values. This is the very cool smoothing method.
+        /// The estimated y values.
         /// </summary>
         public List<double> Y { get; }
 
