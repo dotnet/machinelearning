@@ -977,7 +977,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastForestBinaryClassificationTestSummary()
         {
-            var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
+            var (pipeline, dataView) = GetBinaryClassificationPipeline();
             var estimator = pipeline.Append(ML.BinaryClassification.Trainers.FastForest(
                 new FastForestBinaryTrainer.Options { NumberOfTrees = 2, NumberOfThreads = 1, NumberOfLeaves = 4, CategoricalSplit = true }));
 
