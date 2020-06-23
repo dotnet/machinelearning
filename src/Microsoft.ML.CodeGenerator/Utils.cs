@@ -247,8 +247,8 @@ namespace Microsoft.ML.CodeGenerator.Utilities
         internal static IList<string> GenerateClassLabels(ColumnInferenceResults columnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
             IList<string> result = new List<string>();
-            HashSet<string> columnNames = new HashSet<string>();
-            Dictionary<(string, DataKind), int> propertyNames = new Dictionary<(string, DataKind), int>();
+            List<string> normalizedColumnNames = new List<string>();
+            bool duplicateColumnNamesExist = false;
             foreach (var column in columnInferenceResults.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();
@@ -284,46 +284,26 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
-
-                // Obtain normalized and unique version of column name
-                string normalizedColumnName = GetNormalizedColumnName(column.Name, dataKind, ref propertyNames);
-                sb.Append(normalizedColumnName);
-                sb.Append("{get; set;}");
+                string normalizedColumnName = Utils.Normalize(column.Name);
+                // Put placeholder for normalized and unique version of column name
+                if (!duplicateColumnNamesExist && normalizedColumnNames.Contains(normalizedColumnName))
+                    duplicateColumnNamesExist = true;
+                normalizedColumnNames.Add(normalizedColumnName);
                 result.Add(sb.ToString());
                 result.Add("\r\n");
             }
+            for (int i = 1; i < result.Count; i+=3)
+            {
+                // Get normalized column name for correctly typed class property name
+                // If duplicate column names exist, the only way to ensure all generated column names are unique is to add
+                // a differentiator depending on the column load order from dataset.
+                if (duplicateColumnNamesExist)
+                    result[i] += normalizedColumnNames[i/3] + $"_col_{i/3}";
+                else
+                    result[i] += normalizedColumnNames[i/3];
+                result[i] += "{get; set;}";
+            }
             return result;
-        }
-
-        internal static string GetNormalizedColumnName(string rawColumnName, DataKind dataKind, ref Dictionary<(string, DataKind), int> propertyNames)
-        {
-            // Get normalized column name for correctly typed class property name
-            string normalizedColumnName = Utils.Normalize(rawColumnName);
-            // Check if the normalized column name already has type and/or count in name, and remove that substring if it exists.
-            // These will be added on as necessary below.
-            // This regex checks for the "_[dataKind]" and "_[dataKind]_[int]" pattern.
-            Match match = Regex.Match(normalizedColumnName, $@"_{GetSymbolOfDataKind(dataKind)}_*(\d)*?$");
-            if (match.Success)
-                normalizedColumnName = normalizedColumnName.Substring(0, match.Index);
-
-            // Check if there's already a variable with the same normalized column name and type
-            if (propertyNames.ContainsKey((normalizedColumnName, dataKind)))
-            {
-                propertyNames[(normalizedColumnName, dataKind)] += 1;
-                normalizedColumnName += String.Concat("_", GetSymbolOfDataKind(dataKind), "_", propertyNames[(normalizedColumnName, dataKind)] - 1);
-            }
-            // Check if there's already a variable with the same normalized column name but different type
-            else if (propertyNames.Keys.ToList().Select(t=>t.Item1).Contains(normalizedColumnName))
-            {
-                propertyNames.Add((normalizedColumnName, dataKind), 1);
-                normalizedColumnName += String.Concat("_", GetSymbolOfDataKind(dataKind), "_", propertyNames[(normalizedColumnName, dataKind)] - 1);
-            }
-            // This normalized column name is unique, add it to dictionary
-            else
-            {
-                propertyNames.Add((normalizedColumnName, dataKind), 1);
-            }
-            return normalizedColumnName;
         }
 
         internal static string GetSymbolOfDataKind(DataKind dataKind)
