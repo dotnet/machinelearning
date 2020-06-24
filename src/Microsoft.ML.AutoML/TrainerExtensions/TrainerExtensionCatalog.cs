@@ -41,7 +41,9 @@ namespace Microsoft.ML.AutoML
                 { TrainerName.SymbolicSgdLogisticRegressionBinary, typeof(SymbolicSgdLogisticRegressionBinaryExtension) },
                 { TrainerName.SymbolicSgdLogisticRegressionOva, typeof(SymbolicSgdLogisticRegressionOvaExtension) },
                 { TrainerName.MatrixFactorization, typeof(MatrixFactorizationExtension) },
-                { TrainerName.ImageClassification, typeof(ImageClassificationExtension) }
+                { TrainerName.ImageClassification, typeof(ImageClassificationExtension) },
+                { TrainerName.LightGbmRanking, typeof(LightGbmRankingExtension) },
+                { TrainerName.FastTreeRanking, typeof(FastTreeRankingExtension) },
             };
 
         private static readonly IDictionary<Type, TrainerName> _extensionTypesToTrainerNames =
@@ -88,6 +90,10 @@ namespace Microsoft.ML.AutoML
             else if (task == TaskKind.Recommendation)
             {
                 trainers = GetRecommendationLearners();
+            }
+            else if (task == TaskKind.Ranking)
+            {
+                trainers = GetRankingLearners();
             }
             else
             {
@@ -157,6 +163,15 @@ namespace Microsoft.ML.AutoML
             return new ITrainerExtension[]
             {
                 new MatrixFactorizationExtension()
+            };
+        }
+
+        private static IEnumerable<ITrainerExtension> GetRankingLearners()
+        {
+            return new ITrainerExtension[]
+            {
+                new LightGbmRankingExtension(),
+                new FastTreeRankingExtension()
             };
         }
     }

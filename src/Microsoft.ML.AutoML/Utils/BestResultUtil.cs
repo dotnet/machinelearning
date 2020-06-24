@@ -34,6 +34,14 @@ namespace Microsoft.ML.AutoML
             return GetBestRun(results, metricsAgent, metricInfo.IsMaximizing);
         }
 
+        public static RunDetail<RankingMetrics> GetBestRun(IEnumerable<RunDetail<RankingMetrics>> results,
+            RankingMetric metric)
+        {
+            var metricsAgent = new RankingMetricsAgent(null, metric);
+            var metricInfo = new OptimizingMetricInfo(metric);
+            return GetBestRun(results, metricsAgent, metricInfo.IsMaximizing);
+        }
+
         public static RunDetail<TMetrics> GetBestRun<TMetrics>(IEnumerable<RunDetail<TMetrics>> results,
             IMetricsAgent<TMetrics> metricsAgent, bool isMetricMaximizing)
         {

@@ -51,6 +51,11 @@ namespace Microsoft.ML.AutoML
                 return ColumnPurpose.UserId;
             }
 
+            if (columnName == columnInfo.GroupIdColumnName)
+            {
+                return ColumnPurpose.GroupId;
+            }
+
             if (columnName == columnInfo.ItemIdColumnName)
             {
                 return ColumnPurpose.ItemId;
@@ -96,6 +101,9 @@ namespace Microsoft.ML.AutoML
                     case ColumnPurpose.ItemId:
                         columnInfo.ItemIdColumnName = column.name;
                         break;
+                    case ColumnPurpose.GroupId:
+                        columnInfo.GroupIdColumnName = column.name;
+                        break;
                     case ColumnPurpose.TextFeature:
                         columnInfo.TextColumnNames.Add(column.name);
                         break;
@@ -123,6 +131,7 @@ namespace Microsoft.ML.AutoML
             AddStringToListIfNotNull(columnNames, columnInformation.LabelColumnName);
             AddStringToListIfNotNull(columnNames, columnInformation.UserIdColumnName);
             AddStringToListIfNotNull(columnNames, columnInformation.ItemIdColumnName);
+            AddStringToListIfNotNull(columnNames, columnInformation.GroupIdColumnName);
             AddStringToListIfNotNull(columnNames, columnInformation.ExampleWeightColumnName);
             AddStringToListIfNotNull(columnNames, columnInformation.SamplingKeyColumnName);
             AddStringsToListIfNotNull(columnNames, columnInformation.CategoricalColumnNames);

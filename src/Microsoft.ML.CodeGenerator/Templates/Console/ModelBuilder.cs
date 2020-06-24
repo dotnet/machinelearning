@@ -192,7 +192,13 @@ if("Recommendation".Equals(TaskType)){
             this.Write(".Evaluate(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\", \"Score\");\r\n            PrintRegressionMetrics(metrics);\r\n");
-} 
+}if("Ranking".Equals(TaskType)){ 
+            this.Write("            var metrics = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".Evaluate(predictions, \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\", \"Score\");\r\n            PrintRankingMetrics(metrics);\r\n");
+}
             this.Write("        }\r\n");
 }else{
             this.Write(@"        private static void Evaluate(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)
@@ -229,6 +235,15 @@ if("Regression".Equals(TaskType)){
             this.Write(", labelColumnName:\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\");\r\n            PrintRegressionFoldsAverageMetrics(crossValidationResults);\r\n");
+}
+if("Ranking".Equals(TaskType)){ 
+            this.Write("            var crossValidationResults = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
+            this.Write(", labelColumnName:\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\");\r\n            PrintRankingFoldsAverageMetrics(crossValidationResults);\r\n");
 }
             this.Write("        }\r\n");
 }
@@ -387,7 +402,35 @@ if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){
                     "alues)\r\n        {\r\n            double confidenceInterval95 = 1.96 * CalculateSta" +
                     "ndardDeviation(values) / Math.Sqrt((values.Count() - 1));\r\n            return co" +
                     "nfidenceInterval95;\r\n        }\r\n");
-}
+} if("Ranking".Equals(TaskType)){ 
+            this.Write("        public static void PrintRankingMetrics(RankingMetrics metrics)\r\n        {" +
+                    "\r\n            Console.WriteLine($\"**********************************************" +
+                    "***\");\r\n            Console.WriteLine($\"*       Metrics for ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(@" model      "");
+            var max = (metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? metrics.NormalizedDiscountedCumulativeGains.Count-1 : 9;
+            Console.WriteLine($""*------------------------------------------------"");
+            Console.WriteLine($""*       Normalized Discounted Cumulative Gains @10:        {metrics.NormalizedDiscountedCumulativeGains[max]:0.##}"");
+            Console.WriteLine($""*       Discounted Cumulative Gains @10:      {metrics.DiscountedCumulativeGains[max]:#.##}"");
+            Console.WriteLine($""*************************************************"");
+        }
+
+        public static void PrintRankingFoldsAverageMetrics(IEnumerable<TrainCatalogBase.CrossValidationResult<RankingMetrics>> crossValidationResults)
+        {
+            var max = (crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? metrics.NormalizedDiscountedCumulativeGains.Count-1 : 9;
+            var NDCG = crossValidationResults.Select(r => r.Metrics.NormalizedDiscountedCumulativeGains[max]);
+            var DCG = crossValidationResults.Select(r => r.Metrics.DiscountedCumulativeGains[max]);
+            Console.WriteLine($""*************************************************************************************************************"");
+            Console.WriteLine($""*       Metrics for ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(@" model      "");
+            Console.WriteLine($""*------------------------------------------------------------------------------------------------------------"");
+            Console.WriteLine($""*       Average Normalized Discounted Cumulative Gains @10:       {NDCG.Average():0.###}"");
+            Console.WriteLine($""*       Average Discounted Cumulative Gains @10:       {DCG.Average():#.###}"");
+            Console.WriteLine($""*************************************************************************************************************"");
+        }
+");
+ }
             this.Write("    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }

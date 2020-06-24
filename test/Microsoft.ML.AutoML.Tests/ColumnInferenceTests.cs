@@ -141,7 +141,8 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void DefaultColumnNamesInferredCorrectly()
         {
-            var result = new MLContext(1).Auto().InferColumns(Path.Combine("TestData", "DatasetWithDefaultColumnNames.txt"),
+            var result = new MLContext(1).Auto()
+                .InferColumns(Path.Combine("TestData", "DatasetWithDefaultColumnNames.txt"),
                 new ColumnInformation()
                 {
                     LabelColumnName = DefaultColumnNames.Label,

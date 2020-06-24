@@ -59,6 +59,11 @@ namespace Microsoft.ML.AutoML
         public string UserIdColumnName { get; set; }
 
         /// <summary>
+        /// The dataset column to use as a group ID for computation.
+        /// </summary>
+        public string GroupIdColumnName { get; set; }
+
+        /// <summary>
         /// The dataset column to use as a item ID for computation.
         /// </summary>
         public string ItemIdColumnName { get; set; }
