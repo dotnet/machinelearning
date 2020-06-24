@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.TimeSeries;
 
@@ -20,29 +21,36 @@ namespace Samples.Dynamic
             var data = new RootCauseLocalizationInput(timestamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timestamp, GetPoints()) }, AggregateType.Sum, AGG_SYMBOL);
 
             // Get the root cause localization result.
-            PreparedCauses prediction = mlContext.AnomalyDetection.LocalizeRootCauses(data);
+            List<RootCause> prediction = mlContext.AnomalyDetection.LocalizeRootCauses(data);
 
-            // Print the localization result.
+            // Print the localization results.
             int count = 0;
-            foreach (RootCauseItem item in prediction.Causes[0].Items)
+            foreach (RootCause cause in prediction)
             {
                 count++;
-                Console.WriteLine($"Root cause item #{count} ...");
-                Console.WriteLine($"Score: {item.Score}, Path: {String.Join(" ",item.Path)}, Direction: {item.Direction}, Dimension:{String.Join(" ", item.Dimension)}");
+                foreach (RootCauseItem item in cause.Items)
+                {
+                    Console.WriteLine($"Prepared cause #{count} ...");
+                    Console.WriteLine($"Score: {item.Score}, Path: {String.Join(" ", item.Path)}, Direction: {item.Direction}, Dimension:{String.Join(" ", item.Dimension)}");
+                }
             }
 
-            //Item #1 ...
+            //Prepared cause #1 ...
             //Score: 0.26670448876705927, Path: DataCenter, Direction: Up, Dimension:[Country, UK] [DeviceType, ##SUM##] [DataCenter, DC1]
+            //Prepared cause #2 ...
+            //Score: 0.254746585094852, Path: DeviceType, Direction: Up, Dimension:[Country, UK] [DeviceType, Laptop] [DataCenter, ##SUM##]        
         }
 
         private static List<Point> GetPoints()
         {
             List<Point> points = new List<Point>();
 
-            Dictionary<string, Object> dic1 = new Dictionary<string, Object>();
-            dic1.Add("Country", "UK");
-            dic1.Add("DeviceType", "Laptop");
-            dic1.Add("DataCenter", "DC1");
+            Dictionary<string, Object> dic1 = new Dictionary<string, Object>
+            {
+                { "Country", "UK" },
+                { "DeviceType", "Laptop" },
+                { "DataCenter", "DC1" }
+            };
             points.Add(new Point(200, 100, true, dic1));
 
             Dictionary<string, Object> dic2 = new Dictionary<string, Object>();
@@ -79,19 +87,37 @@ namespace Samples.Dynamic
             dic7.Add("Country", "UK");
             dic7.Add("DeviceType", AGG_SYMBOL);
             dic7.Add("DataCenter", AGG_SYMBOL);
-            points.Add(new Point(1500, 500, true, dic7));
+            points.Add(new Point(1800, 750, true, dic7));
 
             Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
             dic8.Add("Country", "UK");
             dic8.Add("DeviceType", "Laptop");
             dic8.Add("DataCenter", AGG_SYMBOL);
-            points.Add(new Point(300, 200, true, dic8));
+            points.Add(new Point(1500, 450, true, dic8));
 
             Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
             dic9.Add("Country", "UK");
             dic9.Add("DeviceType", "Mobile");
             dic9.Add("DataCenter", AGG_SYMBOL);
-            points.Add(new Point(1200, 300, true, dic9));
+            points.Add(new Point(600, 550, false, dic9));
+
+            Dictionary<string, Object> dic10 = new Dictionary<string, Object>();
+            dic10.Add("Country", "UK");
+            dic10.Add("DeviceType", "Mobile");
+            dic10.Add("DataCenter", "DC3");
+            points.Add(new Point(100, 100, false, dic10));
+
+            Dictionary<string, Object> dic11 = new Dictionary<string, Object>();
+            dic11.Add("Country", "UK");
+            dic11.Add("DeviceType", "Laptop");
+            dic11.Add("DataCenter", "DC3");
+            points.Add(new Point(200, 250, false, dic11));
+
+            Dictionary<string, Object> dic12 = new Dictionary<string, Object>();
+            dic12.Add("Country", "UK");
+            dic12.Add("DeviceType", AGG_SYMBOL);
+            dic12.Add("DataCenter", "DC3");
+            points.Add(new Point(300, 350, false, dic12));
 
             return points;
         }

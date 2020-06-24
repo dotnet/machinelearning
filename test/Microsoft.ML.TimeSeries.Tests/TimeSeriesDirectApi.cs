@@ -598,14 +598,61 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        [Fact]
+        public void MultiDimensionalRootCauseLocalization()
+        {
+            // Create an root cause localizatiom input
+            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _rootCauseAggSymbol);
+
+            var ml = new MLContext(1);
+            List<RootCause> preparedCauses = ml.AnomalyDetection.LocalizeRootCauses(rootCauseLocalizationInput);
+
+            Assert.NotNull(preparedCauses);
+            Assert.Equal(2, preparedCauses.Count);
+
+            Assert.Equal(1, (int)preparedCauses[0].Items.Count);
+            Assert.Equal(3, (int)preparedCauses[0].Items[0].Dimension.Count);
+            Assert.Equal(AnomalyDirection.Up, preparedCauses[0].Items[0].Direction);
+            Assert.Equal(1, (int)preparedCauses[0].Items[0].Path.Count);
+            Assert.Equal("DataCenter", preparedCauses[0].Items[0].Path[0]);
+
+            Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
+            expectedDim.Add("Country", "UK");
+            expectedDim.Add("DeviceType", _rootCauseAggSymbol);
+            expectedDim.Add("DataCenter", "DC1");
+
+            foreach (KeyValuePair<string, object> pair in preparedCauses[0].Items[0].Dimension)
+            {
+                Assert.Equal(expectedDim[pair.Key], pair.Value);
+            }
+
+            Assert.Equal(1, (int)preparedCauses[1].Items.Count);
+            Assert.Equal(3, (int)preparedCauses[1].Items[0].Dimension.Count);
+            Assert.Equal(AnomalyDirection.Up, preparedCauses[1].Items[0].Direction);
+            Assert.Equal(1, (int)preparedCauses[1].Items[0].Path.Count);
+            Assert.Equal("DeviceType", preparedCauses[1].Items[0].Path[0]);
+
+            expectedDim = new Dictionary<string, Object>();
+            expectedDim.Add("Country", "UK");
+            expectedDim.Add("DeviceType", "Laptop");
+            expectedDim.Add("DataCenter", _rootCauseAggSymbol);
+
+            foreach (KeyValuePair<string, object> pair in preparedCauses[1].Items[0].Dimension)
+            {
+                Assert.Equal(expectedDim[pair.Key], pair.Value);
+            }
+        }
+
         private static List<Point> GetRootCauseLocalizationPoints()
         {
             List<Point> points = new List<Point>();
 
-            Dictionary<string, Object> dic1 = new Dictionary<string, Object>();
-            dic1.Add("Country", "UK");
-            dic1.Add("DeviceType", "Laptop");
-            dic1.Add("DataCenter", "DC1");
+            Dictionary<string, Object> dic1 = new Dictionary<string, Object>
+            {
+                { "Country", "UK" },
+                { "DeviceType", "Laptop" },
+                { "DataCenter", "DC1" }
+            };
             points.Add(new Point(200, 100, true, dic1));
 
             Dictionary<string, Object> dic2 = new Dictionary<string, Object>();
@@ -642,19 +689,37 @@ namespace Microsoft.ML.Tests
             dic7.Add("Country", "UK");
             dic7.Add("DeviceType", _rootCauseAggSymbol);
             dic7.Add("DataCenter", _rootCauseAggSymbol);
-            points.Add(new Point(1500, 500, true, dic7));
+            points.Add(new Point(1800, 750, true, dic7));
 
             Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
             dic8.Add("Country", "UK");
             dic8.Add("DeviceType", "Laptop");
             dic8.Add("DataCenter", _rootCauseAggSymbol);
-            points.Add(new Point(300, 200, true, dic8));
+            points.Add(new Point(1500, 450, true, dic8));
 
             Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
             dic9.Add("Country", "UK");
             dic9.Add("DeviceType", "Mobile");
             dic9.Add("DataCenter", _rootCauseAggSymbol);
-            points.Add(new Point(1200, 300, true, dic9));
+            points.Add(new Point(600, 550, false, dic9));
+
+            Dictionary<string, Object> dic10 = new Dictionary<string, Object>();
+            dic10.Add("Country", "UK");
+            dic10.Add("DeviceType", "Mobile");
+            dic10.Add("DataCenter", "DC3");
+            points.Add(new Point(100, 100, false, dic10));
+
+            Dictionary<string, Object> dic11 = new Dictionary<string, Object>();
+            dic11.Add("Country", "UK");
+            dic11.Add("DeviceType", "Laptop");
+            dic11.Add("DataCenter", "DC3");
+            points.Add(new Point(200, 250, false, dic11));
+
+            Dictionary<string, Object> dic12 = new Dictionary<string, Object>();
+            dic12.Add("Country", "UK");
+            dic12.Add("DeviceType", _rootCauseAggSymbol);
+            dic12.Add("DataCenter", "DC3");
+            points.Add(new Point(300, 350, false, dic12));
 
             return points;
         }

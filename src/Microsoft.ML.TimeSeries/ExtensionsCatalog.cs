@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TimeSeries;
@@ -166,11 +165,11 @@ namespace Microsoft.ML
         /// </example>
         public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
         {
-            return LocalizeRootCauses(catalog, src, beta).Causes.FirstOrDefault();
+            return LocalizeRootCauses(catalog, src, beta).FirstOrDefault();
         }
 
         /// <summary>
-        /// Create <see cref="PreparedCauses"/>, which localizes root causes using decision tree algorithm.
+        /// Outputs an ordered list of <see cref="RootCause"/>s. The order corresponds to which prepared cause is most likely to be the root cause.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog.</param>
         /// <param name="src">Root cause's input. The data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
@@ -182,7 +181,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static PreparedCauses LocalizeRootCauses(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
+        public static List<RootCause> LocalizeRootCauses(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
         {
             IHostEnvironment host = CatalogUtils.GetEnvironment(catalog);
 
@@ -192,7 +191,7 @@ namespace Microsoft.ML
             //check beta
             host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
 
-            //find out the root cause
+            //find out the prepared causes
             RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta);
             return analyzer.AnalyzeMultiDimensionalRootCauses();
         }
