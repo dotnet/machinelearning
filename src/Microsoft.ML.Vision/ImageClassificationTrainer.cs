@@ -169,12 +169,8 @@ namespace Microsoft.ML.Vision
             /// </summary>
             public override string ToString()
             {
-                if (DatasetUsed == ImageClassificationMetrics.Dataset.Train)
-                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, Learning Rate: {LearningRate,10} " +
-                        $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
-                else
-                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +
-                        $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}";
+                return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, Learning Rate: {LearningRate,10} " +
+                    $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
             }
         }
 
@@ -951,8 +947,9 @@ namespace Microsoft.ML.Vision
 
                 if (validationNeeded)
                 {
-                    validationEvalRunner = new Runner(_session, new[] { _bottleneckInput.name, _labelTensor.name },
-                        new[] { _evaluationStep.name });
+                    validationEvalRunner = new Runner(_session, runnerInputTensorNames.ToArray(),
+                        runnerOutputTensorNames.Count() > 0 ? runnerOutputTensorNames.ToArray() : null,
+                        new[] { _trainStep.name });
                 }
 
                 runner = new Runner(_session, runnerInputTensorNames.ToArray(),
@@ -1029,21 +1026,25 @@ namespace Microsoft.ML.Vision
 
                     // Evaluate.
                     TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
-                        metrics, labelTensorShape, featureTensorShape, batchSize,
-                        validationSetLabelReader, validationSetFeatureReader, labelBuffer, featuresBuffer,
-                        labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize, null,
+                        metrics, labelTensorShape, featureTensorShape, batchSize, validationSetLabelReader,
+                        validationSetFeatureReader, labelBuffer, featuresBuffer, labelBufferSizeInBytes,
+                        featureBufferSizeInBytes, featureFileRecordSize, _options.LearningRateScheduler,
                         trainState, validationEvalRunner, featureBufferPtr, labelBufferPtr,
                         (outputTensors, metrics) =>
                             {
                                 outputTensors[0].ToScalar(ref accuracy);
+                                outputTensors[1].ToScalar(ref crossentropy);
                                 metrics.Train.Accuracy += accuracy;
+                                metrics.Train.CrossEntropy += crossentropy;
                                 outputTensors[0].Dispose();
+                                outputTensors[1].Dispose();
                             });
 
                     if (statisticsCallback != null)
                     {
                         metrics.Train.Epoch = epoch;
                         metrics.Train.Accuracy /= metrics.Train.BatchProcessedCount;
+                        metrics.Train.CrossEntropy /= metrics.Train.BatchProcessedCount;
                         metrics.Train.DatasetUsed = ImageClassificationMetrics.Dataset.Validation;
                         statisticsCallback(metrics);
                     }
