@@ -761,12 +761,10 @@ namespace Microsoft.ML.Tests
         {
             List<TimeSeriesPoint> points = new List<TimeSeriesPoint>();
 
-            Dictionary<string, Object> dic1 = new Dictionary<string, Object>
-            {
-                { "Country", "UK" },
-                { "DeviceType", "Laptop" },
-                { "DataCenter", "DC1" }
-            };
+            Dictionary<string, Object> dic1 = new Dictionary<string, Object>();
+            dic1.Add("Country", "UK");
+            dic1.Add("DeviceType", "Laptop");
+            dic1.Add("DataCenter", "DC1");
             points.Add(new TimeSeriesPoint(200, 100, true, dic1));
 
             Dictionary<string, Object> dic2 = new Dictionary<string, Object>();

@@ -135,7 +135,7 @@ namespace Microsoft.ML.TimeSeries
             IEnumerable<BestDimension> best;
             if (anomalyTree.ChildrenNodes.Count == 0)
             {
-                //has no children node information, should use the leaves node(whose point has no aggrgated dimensions) information
+                //has no children node information, should use the leaves node (whose point has no aggregated dimensions) information
                 best = SelectOrderedDimension(pointTree.Leaves, anomalyTree.Leaves, aggDims);
             }
             else
@@ -477,14 +477,14 @@ namespace Microsoft.ML.TimeSeries
 
         private IEnumerable<BestDimension> OrderDimensions(SortedDictionary<BestDimension, double> valueMap, Dictionary<BestDimension, double> valueRatioMap, double meanGain, bool isLeavesLevel = true)
         {
-            List<KeyValuePair<BestDimension, double>> unOrdered = valueMap.ToList();
+            List<KeyValuePair<BestDimension, double>> valueMapAsList = valueMap.ToList();
             List<BestDimension> ordered = new List<BestDimension>();
 
             BestDimension best;
             do {
                 best = null;
 
-                foreach (KeyValuePair<BestDimension, double> dimension in unOrdered)
+                foreach (KeyValuePair<BestDimension, double> dimension in valueMapAsList)
                 {
                     if (dimension.Key.AnomalyDis.Count == 1 || (isLeavesLevel ? dimension.Value >= meanGain : dimension.Value <= meanGain))
                     {
@@ -523,7 +523,7 @@ namespace Microsoft.ML.TimeSeries
 
                 if (best != null)
                 {
-                    unOrdered.RemoveAll(kv => kv.Key == best);
+                    valueMapAsList.RemoveAll(kv => kv.Key == best);
                     ordered.Add(best);
                 }
             } while (best != null);

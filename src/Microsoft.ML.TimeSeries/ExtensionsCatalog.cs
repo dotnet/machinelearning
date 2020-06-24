@@ -229,7 +229,7 @@ namespace Microsoft.ML
             host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
             host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(beta), "Must be in [0,1]");
 
-            //find out the prepared causes
+            //find out the possible causes
             RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta, rootCauseThreshold);
             return analyzer.AnalyzeMultiDimensionalRootCauses();
         }
