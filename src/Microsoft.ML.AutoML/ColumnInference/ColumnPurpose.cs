@@ -15,6 +15,7 @@ namespace Microsoft.ML.AutoML
         ImagePath = 6,
         SamplingKey = 7,
         UserId = 8,
-        ItemId = 9
+        ItemId = 9,
+        GroupId = 10
     }
 }

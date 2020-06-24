@@ -1,0 +1,39 @@
+10
+11
+12
+13
+14
+15
+16
+17
+0
+19
+20
+21
+22
+this is a description
+this is a quoted description
+this is a multiline\nquoted description
+this has one"doublequote which should be escaped as a single quote
+this has "doublequotes" inside of it
+this is a multiline\nquoted description with\n\n"doublequotes" and\n\nempty new lines and\n\n\n\nescaped quotes inside of "it"\n\n//and this comment with // shouldn't be ignored\nsince it is part of the "multiline"
+here is text after the empty line
+this is a line with an empty animal
+this is a line with an empty id
+
+we also allow"quotes in the middle of fields
+or also at the end"
+this is the last row description
+dog
+cat
+bird
+dog
+cat
+bird
+dog
+
+bird
+dog
+cat
+bird
+dog

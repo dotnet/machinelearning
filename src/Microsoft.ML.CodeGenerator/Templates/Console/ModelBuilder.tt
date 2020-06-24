@@ -139,7 +139,10 @@ else{#>
 <#}if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){ #>
             var metrics = mlContext.<#= TaskType #><#if("Recommendation".Equals(TaskType)){ #>()<# } #>.Evaluate(predictions, "<#= LabelName #>", "Score");
             PrintRegressionMetrics(metrics);
-<#} #>
+<#}if("Ranking".Equals(TaskType)){ #>
+            var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
+            PrintRankingMetrics(metrics);
+<#}#>
         }
 <#}else{#>
         private static void Evaluate(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)
@@ -156,6 +159,9 @@ else{#>
 <#}#><#if("Regression".Equals(TaskType)){ #>
             var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: <#= Kfolds #>, labelColumnName:"<#= LabelName #>");
             PrintRegressionFoldsAverageMetrics(crossValidationResults);
+<#}#><#if("Ranking".Equals(TaskType)){ #>
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: <#= Kfolds #>, labelColumnName:"<#= LabelName #>");
+            PrintRankingFoldsAverageMetrics(crossValidationResults);
 <#}#>
         }
 <#}#>
@@ -316,7 +322,31 @@ else{#>
             double confidenceInterval95 = 1.96 * CalculateStandardDeviation(values) / Math.Sqrt((values.Count() - 1));
             return confidenceInterval95;
         }
-<#}#>
+<#} if("Ranking".Equals(TaskType)){ #>
+        public static void PrintRankingMetrics(RankingMetrics metrics)
+        {
+            Console.WriteLine($"*************************************************");
+            Console.WriteLine($"*       Metrics for <#= TaskType #> model      ");
+            var max = (metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? metrics.NormalizedDiscountedCumulativeGains.Count-1 : 9;
+            Console.WriteLine($"*------------------------------------------------");
+            Console.WriteLine($"*       Normalized Discounted Cumulative Gains @10:        {metrics.NormalizedDiscountedCumulativeGains[max]:0.##}");
+            Console.WriteLine($"*       Discounted Cumulative Gains @10:      {metrics.DiscountedCumulativeGains[max]:#.##}");
+            Console.WriteLine($"*************************************************");
+        }
+
+        public static void PrintRankingFoldsAverageMetrics(IEnumerable<TrainCatalogBase.CrossValidationResult<RankingMetrics>> crossValidationResults)
+        {
+            var max = (crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? metrics.NormalizedDiscountedCumulativeGains.Count-1 : 9;
+            var NDCG = crossValidationResults.Select(r => r.Metrics.NormalizedDiscountedCumulativeGains[max]);
+            var DCG = crossValidationResults.Select(r => r.Metrics.DiscountedCumulativeGains[max]);
+            Console.WriteLine($"*************************************************************************************************************");
+            Console.WriteLine($"*       Metrics for <#= TaskType #> model      ");
+            Console.WriteLine($"*------------------------------------------------------------------------------------------------------------");
+            Console.WriteLine($"*       Average Normalized Discounted Cumulative Gains @10:       {NDCG.Average():0.###}");
+            Console.WriteLine($"*       Average Discounted Cumulative Gains @10:       {DCG.Average():#.###}");
+            Console.WriteLine($"*************************************************************************************************************");
+        }
+<# }#>
     }
 }
 <#+

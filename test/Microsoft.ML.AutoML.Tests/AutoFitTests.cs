@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFrameworkCommon;
-using Microsoft.ML.TestFramework.Attributes;
-using Xunit;
-using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
+using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -121,6 +119,43 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
         }
 
+        [LightGBMFact]
+        public void AutoFitRankingTest()
+        {
+            string labelColumnName = "Label";
+            string scoreColumnName = "Score";
+            string groupIdColumnName = "GroupId";
+            string featuresColumnVectorNameA = "FeatureVectorA";
+            string featuresColumnVectorNameB = "FeatureVectorB";
+            var mlContext = new MLContext(1);
+
+            // STEP 1: Load data
+            var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB));
+            var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
+            var testDataView = mlContext.Data.TakeRows(trainDataView, 500);
+            trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
+            // STEP 2: Run AutoML experiment
+            ExperimentResult<RankingMetrics> experimentResult = mlContext.Auto()
+                .CreateRankingExperiment(5)
+                .Execute(trainDataView, testDataView,
+                    new ColumnInformation()
+                    {
+                        LabelColumnName = labelColumnName,
+                        GroupIdColumnName = groupIdColumnName
+                    });
+
+            RunDetail<RankingMetrics> bestRun = experimentResult.BestRun;
+            Assert.True(experimentResult.RunDetails.Count() > 0);
+            Assert.NotNull(bestRun.ValidationMetrics);
+            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .5));
+            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.DiscountedCumulativeGains.Max() > 34));
+            var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
+            var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
+                "Features", scoreColumnName };
+            foreach (var col in outputSchema)
+                Assert.True(col.Name == expectedOutputNames[col.Index]);
+        }
+
         [Fact]
         public void AutoFitRecommendationTest()
         {
@@ -178,6 +213,22 @@ namespace Microsoft.ML.AutoML.Test
                     new TextLoader.Column(labelColumnName, DataKind.Single, new [] { new TextLoader.Range(0) }),
                     new TextLoader.Column(userIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
                     new TextLoader.Column(itemIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
+                }
+            };
+        }
+
+        private TextLoader.Options GetLoaderArgsRank(string labelColumnName, string groupIdColumnName, string featureColumnVectorNameA, string featureColumnVectorNameB)
+        {
+            return new TextLoader.Options()
+            {
+                Separator = "\t",
+                HasHeader = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column(labelColumnName, DataKind.Single, 0),
+                    new TextLoader.Column(groupIdColumnName, DataKind.Int32, 1),
+                    new TextLoader.Column(featureColumnVectorNameA, DataKind.Single, 2, 9),
+                    new TextLoader.Column(featureColumnVectorNameB, DataKind.Single, 10, 137)
                 }
             };
         }

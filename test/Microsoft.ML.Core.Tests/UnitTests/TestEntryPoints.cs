@@ -4659,25 +4659,77 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointHashJoinCountTable()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:Text:1-9 col=Label:0",
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var countsModel = DeleteOutputPath("CountTable-trained-counts.zip");
+
+            var data = ML.Data.LoadFromTextFile(dataPath, new[]
+                {
+                    new TextLoader.Column("Text", DataKind.String, 1, 2),
+                    new TextLoader.Column("Label", DataKind.Single, 0)
+                });
+            var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(), combine: false);
+            var transformer = estimator.Fit(data);
+            ML.Model.Save(transformer, data.Schema, countsModel);
+
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
                 new[]
                 {
                     "Transforms.HashConverter",
+                    "Transforms.CountTableBuilder"
                 },
                 new[]
                 {
                     @"'Column': [
                       {
                         'Name': 'Temp',
-                        'Src': 'Text'
-                      },
-                      {
-                        'Name': 'Temp2',
                         'Src': 'Text',
                         'CustomSlotMap': '0,1;2,3,4,5'
                       }
+                      ]",
+                    $@"'Columns': [
+                      {{
+                        'Name': 'DT',
+                        'Src': 'Temp'
+                      }}
+                      ],
+                     'Lab': 'Label',
+                     'Table': {{ 'Name': 'Dict' }},
+                     'InitialCountsModel': '{EscapePath(countsModel)}'"
+                });
+        }
 
-                      ]"
+        [Fact]
+        public void EntryPointCountTargetEncoding()
+        {
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var countsModel = DeleteOutputPath("cte-trained-counts.zip");
+
+            var data = ML.Data.LoadFromTextFile(dataPath, new[]
+                {
+                    new TextLoader.Column("Text", DataKind.String, 1, 2),
+                    new TextLoader.Column("Label", DataKind.Single, 0)
+                });
+            var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(), combine: false);
+            var transformer = estimator.Fit(data);
+            ML.Model.Save(transformer, data.Schema, countsModel);
+
+            TestEntryPointPipelineRoutine(dataPath, "col=Text:TX:1-2 col=Label:0",
+                new[]
+                {
+                    "Transforms.CountTargetEncoder",
+                },
+                new[]
+                {
+                    $@"'Columns': [
+                      {{
+                        'Name': 'DT',
+                        'Src': 'Text',
+                        'Combine': 'False'
+                      }}
+                      ],
+                     'Lab': 'Label',
+                     'Table': {{ 'Name': 'Dict' }},
+                     'InitialCountsModel': '{EscapePath(countsModel)}'"
                 });
         }
 
@@ -5682,7 +5734,7 @@ namespace Microsoft.ML.RunTests
                 getter(ref stdev);
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
-                Assert.Equal(0.00481, stdev, 5);
+                Assert.Equal(0.0087, stdev, 5);
 
                 double sum = 0;
                 double val = 0;

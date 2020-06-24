@@ -20,6 +20,9 @@ namespace Microsoft.ML.AutoML.Samples
                 MulticlassClassificationExperiment.Run();
                 Console.Clear();
 
+                RankingExperiment.Run();
+                Console.Clear();
+
                 Console.WriteLine("Done");
             }
             catch (Exception ex)

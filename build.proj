@@ -8,6 +8,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <Import Project="build/ExternalBenchmarkDataFiles.props" />
+  <Import Project="build/TensorflowMetaFiles.props" />
   <Import Project="$(ToolsDir)VersionTools.targets" Condition="Exists('$(ToolsDir)VersionTools.targets')" />
   <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <PropertyGroup>
@@ -36,6 +37,8 @@
       BuildNative;
       $(TraversalBuildDependsOn);
       DownloadExternalTestFiles;
+      DownloadTensorflowMetaFiles;
+      DeleteTestHost;
     </TraversalBuildDependsOn>
   </PropertyGroup>
 
@@ -93,6 +96,37 @@
             Retries="5"
             SkipUnchangedFiles="true">
     </DownloadFile>
+  </Target>
+
+  <ItemGroup Condition="'$(IncludeTensorflowMetaFile)' == 'true'">
+    <MetaFile Update="@(MetaFile)">
+      <Url>https://aka.ms/mlnet-resources/meta/%(Identity)</Url>
+      <DestinationFile>$([System.IO.Path]::GetTempPath())/MLNET/</DestinationFile>
+    </MetaFile>
+
+    <TensorflowMetaFile Include="@(MetaFile->'$([System.IO.Path]::GetTempPath())/MLNET/%(Identity)')" />
+  </ItemGroup>
+
+  <Target Name="DownloadTensorflowMetaFiles" Inputs="@(TensorflowMetaFile)" Outputs="%(TensorflowMetaFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading tensorflow meta files... %(TensorflowMetaFile.DestinationFile)" />
+    <DownloadFile
+            SourceUrl="%(MetaFile.Url)"
+            DestinationFolder="$([System.IO.Path]::GetTempPath())/MLNET/"
+            Retries="5"
+            SkipUnchangedFiles="true">
+    </DownloadFile>
+  </Target>
+
+  <!-- Delete testhost.dll and testhost.exe from output folder,
+  start test from dotnet.exe to keep consistent behavior with older version of Microsoft.NET.Test.Sdk -->
+  <Target Name="DeleteTestHost">
+    <Message Importance="High" Text="Delete testhost.dll and testhost.exe from output folder..." />
+    <ItemGroup>
+        <FilesToClean Include="$(MSBuildThisFileDirectory)\bin\**\testhost.dll" />
+        <FilesToClean Include="$(MSBuildThisFileDirectory)\bin\**\testhost.exe" />
+    </ItemGroup>
+    <Delete Files="@(FilesToClean)"/>
+    <RemoveDir Directories="@(FoldersToClean)" />
   </Target>
 
   <Target Name="RunTests">

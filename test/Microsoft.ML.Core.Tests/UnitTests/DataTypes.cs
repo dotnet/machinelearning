@@ -18,14 +18,14 @@ namespace Microsoft.ML.RunTests
         {
         }
 
-        private readonly static Conversions _conv = Conversions.Instance;
+        private readonly static Conversions _conv = Conversions.DefaultInstance;
 
         [Fact]
         public void R4ToSBtoR4()
         {
-            var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberDataViewType.Single);
+            var r4ToSB = Conversions.DefaultInstance.GetStringConversion<float>(NumberDataViewType.Single);
 
-            var txToR4 = Conversions.Instance.GetStandardConversion< ReadOnlyMemory<char>, float>(
+            var txToR4 = Conversions.DefaultInstance.GetStandardConversion< ReadOnlyMemory<char>, float>(
                 TextDataViewType.Instance, NumberDataViewType.Single, out bool identity2);
 
             Assert.NotNull(r4ToSB);
@@ -47,9 +47,9 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void R8ToSBtoR8()
         {
-            var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberDataViewType.Double);
+            var r8ToSB = Conversions.DefaultInstance.GetStringConversion<double>(NumberDataViewType.Double);
 
-            var txToR8 = Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, double>(
+            var txToR8 = Conversions.DefaultInstance.GetStandardConversion<ReadOnlyMemory<char>, double>(
                 TextDataViewType.Instance, NumberDataViewType.Double, out bool identity2);
 
             Assert.NotNull(r8ToSB);
@@ -232,7 +232,7 @@ namespace Microsoft.ML.RunTests
         public void DTToDT()
         {
             bool identity;
-            var dtToDT = Conversions.Instance.GetStandardConversion<DateTime, DateTime>(
+            var dtToDT = Conversions.DefaultInstance.GetStandardConversion<DateTime, DateTime>(
                 DateTimeDataViewType.Instance, DateTimeDataViewType.Instance, out identity);
 
             Assert.NotNull(dtToDT);
@@ -252,7 +252,7 @@ namespace Microsoft.ML.RunTests
         {
             Assert.True(typeof(TDst) == dstType.RawType);
 
-            return Conversions.Instance.GetStandardConversion<TSrc, TDst>(
+            return Conversions.DefaultInstance.GetStandardConversion<TSrc, TDst>(
                 TextDataViewType.Instance, dstType, out bool identity);
         }
     }

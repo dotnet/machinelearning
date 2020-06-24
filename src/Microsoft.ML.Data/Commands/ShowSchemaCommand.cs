@@ -234,7 +234,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(!(type is VectorDataViewType));
             Contracts.Assert(type.RawType == typeof(T));
 
-            var conv = Conversions.Instance.GetStringConversion<T>(type);
+            var conv = Conversions.DefaultInstance.GetStringConversion<T>(type);
 
             var value = default(T);
             var sb = default(StringBuilder);
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(type);
             Contracts.Assert(type.ItemType.RawType == typeof(T));
 
-            var conv = Conversions.Instance.GetStringConversion<T>(type.ItemType);
+            var conv = Conversions.DefaultInstance.GetStringConversion<T>(type.ItemType);
 
             var value = default(VBuffer<T>);
             schema[col].Annotations.GetValue(kind, ref value);

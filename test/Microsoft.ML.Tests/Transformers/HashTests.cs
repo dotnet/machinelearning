@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -124,7 +125,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        private void HashTestCore<T>(T val, PrimitiveDataViewType type, uint expected, uint expectedOrdered, uint expectedOrdered3)
+        private void HashTestCore<T>(T val, PrimitiveDataViewType type, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
         {
             const int bits = 10;
 
@@ -133,7 +134,7 @@ namespace Microsoft.ML.Tests.Transformers
             var inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
             //helper
-            ValueGetter<TType> hashGetter<TType>(HashingEstimator.ColumnOptionsInternal colInfo)
+            ValueGetter<TType> hashGetter<TType>(HashingEstimator.ColumnOptions colInfo)
             {
                 var xf = new HashingTransformer(Env, new[] { colInfo });
                 var mapper = ((ITransformer)xf).GetRowToRowMapper(inRow.Schema);
@@ -144,14 +145,14 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             // First do an unordered hash.
-            var info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits);
+            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits);
             var getter = hashGetter<uint>(info);
             uint result = 0;
             getter(ref result);
             Assert.Equal(expected, result);
 
             // Next do an ordered hash.
-            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
             getter = hashGetter<uint>(info);
             getter(ref result);
             Assert.Equal(expectedOrdered, result);
@@ -164,7 +165,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.Add("Foo", new VectorDataViewType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
-            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
             var vecGetter = hashGetter<VBuffer<uint>>(info);
             VBuffer<uint> vecResult = default;
             vecGetter(ref vecResult);
@@ -174,7 +175,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.All(vecResult.DenseValues(), v => Assert.Equal(expected, v));
 
             // Now do ordered with the dense vector.
-            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 
@@ -183,13 +184,19 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expectedOrdered3, vecResult.GetItemOrDefault(3));
             Assert.All(vecResult.DenseValues(), v => Assert.True((v == 0) == (expectedOrdered == 0)));
 
+            // Now combine into one hash.
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, combine: true);
+            getter = hashGetter<uint>(info);
+            getter(ref result);
+            Assert.Equal(expectedCombined, result);
+
             // Let's now do a sparse vector.
             var sparseVec = new VBuffer<T>(10, 3, Utils.CreateArray(3, val), new[] { 0, 3, 7 });
             builder = new DataViewSchema.Annotations.Builder();
             builder.Add("Foo", new VectorDataViewType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
-            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 
@@ -198,86 +205,116 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, vecResult.GetItemOrDefault(3));
             Assert.Equal(expected, vecResult.GetItemOrDefault(7));
 
-            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 
             Assert.Equal(10, vecResult.Length);
             Assert.Equal(expectedOrdered, vecResult.GetItemOrDefault(0));
             Assert.Equal(expectedOrdered3, vecResult.GetItemOrDefault(3));
+
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, combine: true);
+            getter = hashGetter<uint>(info);
+            getter(ref result);
+            Assert.Equal(expectedCombinedSparse, result);
         }
 
-        private void HashTestPositiveIntegerCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3)
+        private void HashTestPositiveIntegerCore32Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
         {
             uint eKey = value == 0 ? 0 : expected;
             uint eoKey = value == 0 ? 0 : expectedOrdered;
             uint e3Key = value == 0 ? 0 : expectedOrdered3;
+            uint ecKey = value == 0 ? 0 : expectedCombined;
 
             if (value <= byte.MaxValue)
             {
-                HashTestCore((byte)value, NumberDataViewType.Byte, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((byte)value, new KeyDataViewType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((byte)value, NumberDataViewType.Byte, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+                HashTestCore((byte)value, new KeyDataViewType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
             if (value <= ushort.MaxValue)
             {
-                HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort), ushort.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
             if (value <= uint.MaxValue)
             {
-                HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+                HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
-            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3);
-            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
-
-            HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3);
 
             // Next let's check signed numbers.
-
             if (value <= (ulong)sbyte.MaxValue)
-                HashTestCore((sbyte)value, NumberDataViewType.SByte, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((sbyte)value, NumberDataViewType.SByte, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= (ulong)short.MaxValue)
-                HashTestCore((short)value, NumberDataViewType.Int16, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((short)value, NumberDataViewType.Int16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= int.MaxValue)
-                HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+        }
+
+        private void HashTestPositiveIntegerCore64Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
+        {
+            uint eKey = value == 0 ? 0 : expected;
+            uint eoKey = value == 0 ? 0 : expectedOrdered;
+            uint e3Key = value == 0 ? 0 : expectedOrdered3;
+            uint ecKey = value == 0 ? 0 : expectedCombined;
+
+            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+
+            // Next let's check signed numbers.
             if (value <= long.MaxValue)
-                HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+
+            // ulong keys
+            HashTestCore(value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
+        }
+
+        private void HashTestPositiveIntegerCore128Bits(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
+        {
+            HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
         }
 
         [Fact]
         public void TestHashIntegerNumbers()
         {
-            HashTestPositiveIntegerCore(0, 842, 358, 20);
-            HashTestPositiveIntegerCore(1, 502, 537, 746);
-            HashTestPositiveIntegerCore(2, 407, 801, 652);
+            HashTestPositiveIntegerCore32Bits(0, 842, 358, 20, 429, 333);
+            HashTestPositiveIntegerCore32Bits(1, 502, 537, 746, 847, 711);
+            HashTestPositiveIntegerCore32Bits(2, 407, 801, 652, 727, 462);
+
+            HashTestPositiveIntegerCore64Bits(0, 512, 851, 795, 333, 113);
+            HashTestPositiveIntegerCore64Bits(1, 329, 190, 574, 880, 471);
+            HashTestPositiveIntegerCore64Bits(2, 484, 713, 128, 95, 9);
+
+            HashTestPositiveIntegerCore128Bits(0, 362, 161, 115, 429, 333);
+            HashTestPositiveIntegerCore128Bits(1294, 712, 920, 291, 859, 353);
         }
 
         [Fact]
         public void TestHashString()
         {
-            HashTestCore("".AsMemory(), TextDataViewType.Instance, 0, 0, 0);
-            HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 940, 951, 857);
+            HashTestCore("".AsMemory(), TextDataViewType.Instance, 0, 0, 0, 0, 0);
+            HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 940, 951, 857, 770, 0);
         }
 
         [Fact]
         public void TestHashFloatingPointNumbers()
         {
-            HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732);
-            HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780);
-            HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20);
-            // Note that while we have the hash for numeric types be equal, the same is not necessarily the case for floating point numbers.
-            HashTestCore(1d, NumberDataViewType.Double, 937, 667, 424);
-            HashTestCore(-1d, NumberDataViewType.Double, 930, 78, 813);
-            HashTestCore(0d, NumberDataViewType.Double, 842, 358, 20);
+            HashTestCore(1f, NumberDataViewType.Single, 463, 855, 732, 56, 557);
+            HashTestCore(-1f, NumberDataViewType.Single, 252, 612, 780, 116, 515);
+            HashTestCore(0f, NumberDataViewType.Single, 842, 358, 20, 429, 333);
+            HashTestCore(float.NaN, NumberDataViewType.Single, 0, 0, 0, 0, 0);
+
+            HashTestCore(1d, NumberDataViewType.Double, 188, 57, 690, 655, 896);
+            HashTestCore(-1d, NumberDataViewType.Double, 885, 804, 22, 461, 309);
+            HashTestCore(0d, NumberDataViewType.Double, 512, 851, 795, 333, 113);
+            HashTestCore(double.NaN, NumberDataViewType.Double, 0, 0, 0, 0, 0);
         }
 
         [Fact]
         public void TestHashBool()
         {
             // These are the same for the hashes of 0 and 1.
-            HashTestCore(false, BooleanDataViewType.Instance, 842, 358, 20);
-            HashTestCore(true, BooleanDataViewType.Instance, 502, 537, 746);
+            HashTestCore(false, BooleanDataViewType.Instance, 842, 358, 20, 429, 333);
+            HashTestCore(true, BooleanDataViewType.Instance, 502, 537, 746, 847, 711);
         }
 
         private class HashData
@@ -288,30 +325,84 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestHashBackCompatability()
         {
-            var mlContext = new MLContext();
-
             var samples = new[]
             {
                 new HashData {Foo = "alibaba".AsMemory()},
                 new HashData {Foo = "ba ba".AsMemory()},
             };
 
-            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
+            IDataView data = ML.Data.LoadFromEnumerable(samples);
 
             var modelPath = GetDataPath("backcompat", "MurmurHashV1.zip");
-            var estimator = ML.Model.Load(modelPath, out var schema);
+            var model = ML.Model.Load(modelPath, out var _);
 
-            var outputPath = GetOutputPath("Text", "murmurHash.tsv");
+            var outputPath = DeleteOutputPath("Text", "murmurHash.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 using (var fs = File.Create(outputPath))
                 {
-                    var transformedData = estimator.Transform(data);
+                    var transformedData = model.Transform(data);
                     DataSaverUtils.SaveDataView(ch, saver, transformedData, fs, keepHidden: true);
                 }
             }
             CheckEquality("Text", "murmurHash.tsv");
+        }
+
+        [Fact]
+        public void TestBackCompatNoCombineOption()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[]
+            {
+                new TextLoader.Column("Features", DataKind.Single, 1, 9)
+            });
+
+            string modelPath = GetDataPath("backcompat", "hashing-before-combine.zip");
+            var model = ML.Model.Load(modelPath, out _);
+
+            var hashed = model.Transform(dataView);
+            var hashedCol = hashed.Schema["Features"];
+            Assert.True(hashedCol.Type.GetItemType() is KeyDataViewType);
+            Assert.Equal(9, hashedCol.Type.GetValueCount());
+            Assert.Equal(Math.Pow(2, 31), hashedCol.Type.GetItemType().GetKeyCount());
+        }
+
+        [Fact]
+        public void TestCombineLengthOneVector()
+        {
+            var data = new[] 
+            { 
+                new TestClass() { A = 1, B = 2, C = 3 },
+                new TestClass() { A = 4, B = 5, C = 6 },
+                new TestClass() { A = float.NaN, B = 3, C = 12 }
+            };
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var pipeline = ML.Transforms.Concatenate("D", "A")
+                .Append(ML.Transforms.Conversion.Hash(
+                    new HashingEstimator.ColumnOptions("AHashed", "A"),
+                    new HashingEstimator.ColumnOptions("DHashed", "D"),
+                    new HashingEstimator.ColumnOptions("DHashedCombined", "D", combine: true)));
+
+            var transformed = pipeline.Fit(dataView).Transform(dataView);
+            Assert.True(transformed.Schema["D"].Type.IsKnownSizeVector());
+            Assert.True(transformed.Schema["DHashed"].Type.IsKnownSizeVector());
+            Assert.Equal(1, transformed.Schema["DHashed"].Type.GetValueCount());
+            Assert.False(transformed.Schema["DHashedCombined"].Type.IsKnownSizeVector());
+            Assert.Equal(1, transformed.Schema["DHashedCombined"].Type.GetValueCount());
+
+            var aHashed = transformed.GetColumn<uint>(transformed.Schema["AHashed"]);
+            var dHashed = transformed.GetColumn<VBuffer<uint>>(transformed.Schema["DHashed"]).Select(buffer =>
+            {
+                Assert.True(buffer.Length == 1);
+                return buffer.DenseValues().First();
+            });
+            var dHashedCombined = transformed.GetColumn<uint>(transformed.Schema["DHashedCombined"]);
+
+            Assert.Equal(aHashed, dHashed);
+            Assert.Equal(aHashed, dHashedCombined);
+            Assert.Equal((uint)0, aHashed.Last());
         }
     }
 }

@@ -79,7 +79,7 @@ namespace Microsoft.ML.Data.Commands
         {
             using (var ch = _host.Start("Run"))
             {
-                var conv = Conversions.Instance;
+                var conv = Conversions.DefaultInstance;
                 var comp = new SetOfKindsComparer();
                 var dstToSrcMap = new Dictionary<HashSet<InternalDataKind>, HashSet<InternalDataKind>>(comp);
                 var srcToDstMap = new Dictionary<InternalDataKind, HashSet<InternalDataKind>>();
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Data.Commands
             ch.AssertValue(type);
             ch.Assert(type.IsStandardScalar());
 
-            var conv = Conversions.Instance;
+            var conv = Conversions.DefaultInstance;
             InPredicate<T> isNaDel;
             bool hasNaPred = conv.TryGetIsNAPredicate(type, out isNaDel);
             bool defaultIsNa = false;

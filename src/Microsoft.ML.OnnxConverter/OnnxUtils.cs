@@ -285,7 +285,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         }
 
         public static ModelProto MakeModel(List<NodeProto> nodes, string producerName, string name,
-            string domain, string producerVersion, long modelVersion, List<ModelArgs> inputs,
+            string domain, string producerVersion, long modelVersion, int opSetVersion, List<ModelArgs> inputs,
             List<ModelArgs> outputs, List<ModelArgs> intermediateValues, List<TensorProto> initializers)
         {
             Contracts.CheckValue(nodes, nameof(nodes));
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             model.IrVersion = (long)OnnxCSharpToProtoWrapper.Version.IrVersion;
             model.ModelVersion = modelVersion;
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 2 });
-            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 11 });
+            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = opSetVersion });
             model.Graph = new GraphProto();
             var graph = model.Graph;
             graph.Node.Add(nodes);

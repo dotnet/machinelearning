@@ -319,7 +319,7 @@
               {
                 "Name": "AllowQuoting",
                 "Type": "Bool",
-                "Desc": "Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by \"\". When false, consecutive separators denote an empty value.",
+                "Desc": "Whether the input may include double-quoted values. This parameter is used to distinguish separator characters in an input value from actual separators. When true, separators within double quotes are treated as part of the input value. When false, all separators, even those within quotes, are treated as delimiting a new column.",
                 "Aliases": [
                   "quote"
                 ],
@@ -370,6 +370,18 @@
                 ]
               },
               {
+                "Name": "Decimal Marker",
+                "Type": "Char",
+                "Desc": "Character symbol used to separate the integer part from the fractional part of a number written in decimal form.",
+                "Aliases": [
+                  "decimal"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": "."
+              },
+              {
                 "Name": "TrimWhitespace",
                 "Type": "Bool",
                 "Desc": "Remove trailing whitespace from lines",
@@ -406,6 +418,18 @@
                 "Default": true
               },
               {
+                "Name": "ReadMultilines",
+                "Type": "Bool",
+                "Desc": "Escape new line characters inside a quoted field? If AllowQuoting is false, this argument is ignored.",
+                "Aliases": [
+                  "multilines"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": false
+              },
+              {
                 "Name": "HeaderFile",
                 "Type": "String",
                 "Desc": "File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.",
@@ -428,6 +452,30 @@
                 "SortOrder": 150.0,
                 "IsNullable": true,
                 "Default": null
+              },
+              {
+                "Name": "EscapeChar",
+                "Type": "Char",
+                "Desc": "Character to use to escape quotes inside quoted fields. It can't be a character used as separator.",
+                "Aliases": [
+                  "escapechar"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": "\""
+              },
+              {
+                "Name": "MissingRealsAsNaNs",
+                "Type": "Bool",
+                "Desc": "If true, empty float fields will be loaded as NaN. If false, they'll be loaded as 0. Default is false.",
+                "Aliases": [
+                  "missingrealnan"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": false
               }
             ]
           },
@@ -17672,82 +17720,6 @@
       ]
     },
     {
-      "Name": "Transforms.CategoryImputer",
-      "Desc": "Fills in missing values in a column based on the most frequent value",
-      "FriendlyName": "CategoryImputer",
-      "ShortName": "CategoryImputer",
-      "Inputs": [
-        {
-          "Name": "Column",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": {
-              "Kind": "Struct",
-              "Fields": [
-                {
-                  "Name": "Name",
-                  "Type": "String",
-                  "Desc": "Name of the new column",
-                  "Aliases": [
-                    "name"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                },
-                {
-                  "Name": "Source",
-                  "Type": "String",
-                  "Desc": "Name of the source column",
-                  "Aliases": [
-                    "src"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                }
-              ]
-            }
-          },
-          "Desc": "New column definition (optional form: name:src)",
-          "Aliases": [
-            "col"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Transformed dataset"
-        },
-        {
-          "Name": "Model",
-          "Type": "TransformModel",
-          "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ],
-      "OutputKind": [
-        "ITransformOutput"
-      ]
-    },
-    {
       "Name": "Transforms.CharacterTokenizer",
       "Desc": "Character-oriented tokenizer where text is considered a sequence of characters.",
       "FriendlyName": "Character Tokenizer Transform",
@@ -18440,6 +18412,479 @@
       ],
       "InputKind": [
         "ITransformInput"
+      ]
+    },
+    {
+      "Name": "Transforms.CountTableBuilder",
+      "Desc": "Transforms the categorical column into the set of features: count of each label class, log-odds for each label class, back-off indicator. The input columns must be keys.",
+      "FriendlyName": "Count Table Transform",
+      "ShortName": "Count",
+      "Inputs": [
+        {
+          "Name": "Columns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "CountTable",
+                  "Type": {
+                    "Kind": "Component",
+                    "ComponentKind": "CountTableBuilder"
+                  },
+                  "Desc": "Count table settings",
+                  "Aliases": [
+                    "table"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "PriorCoefficient",
+                  "Type": "Float",
+                  "Desc": "The coefficient with which to apply the prior smoothing to the features",
+                  "Aliases": [
+                    "prior"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "LaplaceScale",
+                  "Type": "Float",
+                  "Desc": "Laplacian noise diversity/scale-parameter. Suggest keeping it less than 1.",
+                  "Aliases": [
+                    "laplace"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Seed",
+                  "Type": "Int",
+                  "Desc": "Seed for the random generator for the laplacian noise.",
+                  "Aliases": [
+                    "seed"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "CountTable",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "CountTableBuilder"
+          },
+          "Desc": "Count table settings",
+          "Aliases": [
+            "table"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "CMSketch"
+          }
+        },
+        {
+          "Name": "PriorCoefficient",
+          "Type": "Float",
+          "Desc": "The coefficient with which to apply the prior smoothing to the features",
+          "Aliases": [
+            "prior"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
+          "Name": "LaplaceScale",
+          "Type": "Float",
+          "Desc": "Laplacian noise diversity/scale-parameter. Suggest keeping it less than 1.",
+          "Aliases": [
+            "laplace"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.0
+        },
+        {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Seed for the random generator for the laplacian noise.",
+          "Aliases": [
+            "seed"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 314489979
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Label column",
+          "Aliases": [
+            "label",
+            "lab"
+          ],
+          "Required": true,
+          "SortOrder": 150.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "InitialCountsModel",
+          "Type": "String",
+          "Desc": "Optional model file to load counts from. If this is specified all other options are ignored.",
+          "Aliases": [
+            "inmodel",
+            "extfile"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "SharedTable",
+          "Type": "Bool",
+          "Desc": "Keep counts for all columns in one shared count table",
+          "Aliases": [
+            "shared"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.CountTargetEncoder",
+      "Desc": "Transforms the categorical column into the set of features: count of each label class, log-odds for each label class, back-off indicator. The columns can be of arbitrary type.",
+      "FriendlyName": "Count Table Transform",
+      "ShortName": "Count",
+      "Inputs": [
+        {
+          "Name": "Columns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "CountTable",
+                  "Type": {
+                    "Kind": "Component",
+                    "ComponentKind": "CountTableBuilder"
+                  },
+                  "Desc": "Count table settings",
+                  "Aliases": [
+                    "table"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "PriorCoefficient",
+                  "Type": "Float",
+                  "Desc": "The coefficient with which to apply the prior smoothing to the features",
+                  "Aliases": [
+                    "prior"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "LaplaceScale",
+                  "Type": "Float",
+                  "Desc": "Laplacian noise diversity/scale-parameter. Suggest keeping it less than 1.",
+                  "Aliases": [
+                    "laplace"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Seed",
+                  "Type": "Int",
+                  "Desc": "Seed for the random generator for the laplacian noise.",
+                  "Aliases": [
+                    "seed"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Combine",
+                  "Type": "Bool",
+                  "Desc": "Whether the values need to be combined for a single hash",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Combine",
+          "Type": "Bool",
+          "Desc": "Whether the values need to be combined for a single hash",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "CountTable",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "CountTableBuilder"
+          },
+          "Desc": "Count table settings",
+          "Aliases": [
+            "table"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "CMSketch"
+          }
+        },
+        {
+          "Name": "PriorCoefficient",
+          "Type": "Float",
+          "Desc": "The coefficient with which to apply the prior smoothing to the features",
+          "Aliases": [
+            "prior"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
+          "Name": "LaplaceScale",
+          "Type": "Float",
+          "Desc": "Laplacian noise diversity/scale-parameter. Suggest keeping it less than 1.",
+          "Aliases": [
+            "laplace"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.0
+        },
+        {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Seed for the random generator for the laplacian noise.",
+          "Aliases": [
+            "seed"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 314489979
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Label column",
+          "Aliases": [
+            "label",
+            "lab"
+          ],
+          "Required": true,
+          "SortOrder": 150.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "InitialCountsModel",
+          "Type": "String",
+          "Desc": "Optional model file to load counts from. If this is specified all other options are ignored.",
+          "Aliases": [
+            "inmodel",
+            "extfile"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "SharedTable",
+          "Type": "Bool",
+          "Desc": "Keep counts for all columns in one shared count table",
+          "Aliases": [
+            "shared"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "NumberOfBits",
+          "Type": "Int",
+          "Desc": "Number of bits to hash into. Must be between 1 and 31, inclusive.",
+          "Aliases": [
+            "bits"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 31
+        },
+        {
+          "Name": "HashingSeed",
+          "Type": "UInt",
+          "Desc": "Hashing seed",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 314489979
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
       ]
     },
     {
@@ -21641,7 +22086,8 @@
                       "Mean",
                       "Minimum",
                       "Maximum",
-                      "SpecifiedValue"
+                      "SpecifiedValue",
+                      "Mode"
                     ]
                   },
                   "Desc": "The replacement method to utilize",
@@ -21711,7 +22157,8 @@
               "Mean",
               "Minimum",
               "Maximum",
-              "SpecifiedValue"
+              "SpecifiedValue",
+              "Mode"
             ]
           },
           "Desc": "The replacement method to utilize",
@@ -21721,7 +22168,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Def"
         },
         {
           "Name": "ImputeBySlot",
@@ -22467,130 +22914,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 42
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Transformed dataset"
-        },
-        {
-          "Name": "Model",
-          "Type": "TransformModel",
-          "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ],
-      "OutputKind": [
-        "ITransformOutput"
-      ]
-    },
-    {
-      "Name": "Transforms.RobustScaler",
-      "Desc": "Removes the median and scales the data according to the quantile range.",
-      "FriendlyName": "RobustScalerTransformer",
-      "ShortName": "RobScalT",
-      "Inputs": [
-        {
-          "Name": "Column",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": {
-              "Kind": "Struct",
-              "Fields": [
-                {
-                  "Name": "Name",
-                  "Type": "String",
-                  "Desc": "Name of the new column",
-                  "Aliases": [
-                    "name"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                },
-                {
-                  "Name": "Source",
-                  "Type": "String",
-                  "Desc": "Name of the source column",
-                  "Aliases": [
-                    "src"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                }
-              ]
-            }
-          },
-          "Desc": "New column definition (optional form: name:src)",
-          "Aliases": [
-            "col"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Center",
-          "Type": "Bool",
-          "Desc": "If True, center the data before scaling.",
-          "Aliases": [
-            "ctr"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
-          "Name": "Scale",
-          "Type": "Bool",
-          "Desc": "If True, scale the data to interquartile range.",
-          "Aliases": [
-            "sc"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
-          "Name": "QuantileMin",
-          "Type": "Float",
-          "Desc": "Min for the quantile range used to calculate scale.",
-          "Aliases": [
-            "min"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": 25.0
-        },
-        {
-          "Name": "QuantileMax",
-          "Type": "Float",
-          "Desc": "Max for the quantile range used to calculate scale.",
-          "Aliases": [
-            "max"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": 75.0
         }
       ],
       "Outputs": [
@@ -23725,82 +24048,6 @@
           "SortOrder": 3.0,
           "IsNullable": false,
           "Default": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Transformed dataset"
-        },
-        {
-          "Name": "Model",
-          "Type": "TransformModel",
-          "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ],
-      "OutputKind": [
-        "ITransformOutput"
-      ]
-    },
-    {
-      "Name": "Transforms.ToString",
-      "Desc": "Turns the given column into a column of its string representation",
-      "FriendlyName": "ToString Transform",
-      "ShortName": "tostr",
-      "Inputs": [
-        {
-          "Name": "Column",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": {
-              "Kind": "Struct",
-              "Fields": [
-                {
-                  "Name": "Name",
-                  "Type": "String",
-                  "Desc": "Name of the new column",
-                  "Aliases": [
-                    "name"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                },
-                {
-                  "Name": "Source",
-                  "Type": "String",
-                  "Desc": "Name of the source column",
-                  "Aliases": [
-                    "src"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                }
-              ]
-            }
-          },
-          "Desc": "New column definition (optional form: name:src)",
-          "Aliases": [
-            "col"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
         }
       ],
       "Outputs": [
@@ -25198,6 +25445,67 @@
               "SortOrder": 150.0,
               "IsNullable": false,
               "Default": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": "CountTableBuilder",
+      "Components": [
+        {
+          "Name": "CMSketch",
+          "Desc": "Create the count table using the count-min sketch structure, which has a smaller memory footprint, at the expense of some overcounting due to collisions.",
+          "FriendlyName": "Count Min Table Builder",
+          "Aliases": [
+            "CMTable"
+          ],
+          "Settings": [
+            {
+              "Name": "Depth",
+              "Type": "Int",
+              "Desc": "Count-Min Sketch table depth",
+              "Aliases": [
+                "d"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 4
+            },
+            {
+              "Name": "Width",
+              "Type": "Int",
+              "Desc": "Count-Min Sketch width",
+              "Aliases": [
+                "w"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 8388608
+            }
+          ]
+        },
+        {
+          "Name": "Dict",
+          "Desc": "Build a dictionary containing the exact count of each categorical feature value.",
+          "FriendlyName": "Dictionary Based Count Table Builder",
+          "Aliases": [
+            "Dictionary"
+          ],
+          "Settings": [
+            {
+              "Name": "GarbageThreshold",
+              "Type": "Float",
+              "Desc": "Garbage threshold (counts below or equal to the threshold are assigned to the garbage bin)",
+              "Aliases": [
+                "gb"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
             }
           ]
         }

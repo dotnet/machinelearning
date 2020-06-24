@@ -45,22 +45,22 @@
                 var imageWidth = 224;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
+                
+                var mlContext = new MLContext();
 
-                var data = TextLoader.CreateLoader(env, ctx => (
-                    imagePath: ctx.LoadText(0),
-                    name: ctx.LoadText(1)))
-                    .Read(new MultiFileSource(dataFile));
+                var data = mlContext.Data.LoadFromTextFile&lt;ImageData&gt;, &lt;ImagePrediction&gt;(dataFile);
 
-                var pipe = data.MakeNewEstimator()
-                    .Append(row => (
-                        row.name,
-                        data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
+                var pipe = mlContext.Transforms.LoadImages("data_0", imageFolder: "images", inputColumnName: nameof(ImageData.ImagePath))
+                .Append(mlContext.Transforms.ResizeImages("data_0", imageWidth, imageHeight, inputColumnName: "data_0")
+                .Append(mlContext.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
+                .Append(mlContext.Transforms.ApplyOnnxModel(modelFile));
 
-                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+                TestEstimatorCore(pipe, data);
 
-                var result = pipe.Fit(data).Transform(data).AsDynamic;
-                result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
+                var result = pipe.Fit(data).Transform(data);
+
+                var output = result.Schema.GetColumnOrNull("softmaxout_1");
+
                 using (var cursor = result.GetRowCursor(col => col == output))
                 {
                     var buffer = default(VBuffer&lt;float&gt;);
@@ -71,7 +71,7 @@
                         getter(ref buffer);
                         numRows += 1;
                     }
-                    System.Console.Writeline("Number of rows scored=" + numRows);
+                    System.Console.Writeline("Number of rows scored = " + numRows);
                 }
         </code>
       </example>

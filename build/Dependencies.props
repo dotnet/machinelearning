@@ -16,7 +16,7 @@
     <GoogleProtobufPackageVersion>3.10.1</GoogleProtobufPackageVersion>
     <LightGBMPackageVersion>2.2.3</LightGBMPackageVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
-    <MicrosoftMLOnnxRuntimePackageVersion>1.2</MicrosoftMLOnnxRuntimePackageVersion>
+    <MicrosoftMLOnnxRuntimePackageVersion>1.3.0</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.9</MlNetMklDepsPackageVersion>
     <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
@@ -43,7 +43,7 @@
   <PropertyGroup>
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
     <CodecovVersion>1.9.0</CodecovVersion>
-    <CoverletVersion>2.7.0</CoverletVersion>
+    <CoverletCollectorVersion>1.2.1</CoverletCollectorVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <MicrosoftDotNetApiCompatPackageVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatPackageVersion>
   </PropertyGroup>

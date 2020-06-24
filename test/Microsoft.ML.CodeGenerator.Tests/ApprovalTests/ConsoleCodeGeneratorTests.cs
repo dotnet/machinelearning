@@ -86,7 +86,20 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ConsoleAppModelBuilderCSFileContentRankingTest()
+        {
+            (Pipeline pipeline,
+                        ColumnInferenceResults columnInference) = GetMockedRankingPipelineAndInference();
 
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Ranking));
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
+                false, false, false, false);
+
+            Approvals.Verify(result.modelBuilderCSFileContent);
+        }
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
@@ -593,6 +606,50 @@ namespace mlnet.Tests
                     ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
                 };
             }
+            return (_mockedPipeline, _columnInference);
+        }
+
+        private (Pipeline, ColumnInferenceResults) GetMockedRankingPipelineAndInference()
+        {
+            if (_mockedPipeline == null)
+            {
+                MLContext context = new MLContext();
+                var hyperParam = new Dictionary<string, object>()
+                {
+                    {"rowGroupColumnName","GroupId" },
+                    {"LabelColumnName","Label" },
+                };
+                var hashPipelineNode = new PipelineNode(nameof(EstimatorName.Hashing), PipelineNodeType.Transform, "GroupId", "GroupId");
+                var lightGbmPipelineNode = new PipelineNode(nameof(TrainerName.LightGbmRanking), PipelineNodeType.Trainer, "Features", "Score", hyperParam);
+                var pipeline = new Pipeline(new PipelineNode[]
+                {
+                    hashPipelineNode,
+                    lightGbmPipelineNode
+                });
+                _mockedPipeline = pipeline;
+                var textLoaderArgs = new TextLoader.Options()
+                {
+                    Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("GroupId", DataKind.Single, 1),
+                        new TextLoader.Column("col1", DataKind.Single, 0),
+                        new TextLoader.Column("col2", DataKind.String, 0),
+                        new TextLoader.Column("col3", DataKind.Int32, 0),
+                        new TextLoader.Column("col4", DataKind.UInt32, 0),
+                    },
+                    AllowQuoting = true,
+                    AllowSparse = true,
+                    HasHeader = true,
+                    Separators = new[] { ',' }
+                };
+
+                this._columnInference = new ColumnInferenceResults()
+                {
+                    TextLoaderOptions = textLoaderArgs,
+                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" , GroupIdColumnName = "GroupId"}
+                };
+            }
+
             return (_mockedPipeline, _columnInference);
         }
 

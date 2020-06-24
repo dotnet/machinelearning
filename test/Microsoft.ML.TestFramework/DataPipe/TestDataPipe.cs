@@ -27,10 +27,10 @@ namespace Microsoft.ML.RunTests
 
         private static Double[] _dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
-        private static uint[] _resultsDouble = new uint[] { 16, 16, 25, 27, 12, 2, 0, 6, 17, 4, 11, 30 };
+        private static uint[] _resultsDouble = new uint[] { 30, 30, 19, 24, 32, 25, 0, 2, 7, 30, 5, 3 };
 
         private static VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] _resultsDoubleSparse = new uint[] { 16,16,16,16, 25 };
+        private static uint[] _resultsDoubleSparse = new uint[] { 30, 30, 30, 30, 19 };
 
         [Fact()]
         public void SavePipeLabelParsers()
@@ -645,7 +645,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void SavePipeInvertHash()
         {
-            string pathData = DeleteOutputPath("SavePipe","InvertHash-Data.txt");
+            string pathData = DeleteOutputPath("SavePipe", "InvertHash-Data.txt");
             // Four columns. First "A" with words starting with "a" (for easy identification), second
             // "K" with an explicit key type, third "E" a column that has all missing values, and fourth
             // "B" with words starting with "b".
@@ -1099,7 +1099,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptionsInternal("F1", "F1", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1", "F1", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<uint>(cursor.Schema[1]);
@@ -1130,7 +1130,7 @@ namespace Microsoft.ML.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptionsInternal("F1V", "F1V", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1V", "F1V", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(cursor.Schema[1]);
@@ -1418,6 +1418,95 @@ namespace Microsoft.ML.RunTests
                     "xf=Expr{col=N:D,A,C,B,N col=VR:D,A,C,B,VR expr={(d,a,c,b,x)=>x+(a-8)*(b-8)*(c-8)*(d-8)}}",
                 },
                 null, "Vec2-d", "Vec2");
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTable()
+        {
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=HashJoin{col=Hash1:Text col=Hash2:OneText bits=14 ord-}",
+                    "xf=CountTable{col=Hash1c:Hash1 col=Hash2c:Hash2 label=Label table=Dict prior=60}"
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTableShared()
+        {
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=HashJoin{col=Hash1:Text col=Hash2:OneText bits=14 ord-}",
+                    "xf=CountTable{col=Hash1c:Hash1 col=Hash2c:Hash2 label=Label table=Dict prior=60 shared+}"
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTargetEncoding()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text combine=- table=CMSketch} bits=14 table=Dict{gb=2}}",
+                    "xf=Dracula{lab=Label col=D1s:Text col={name=OneText2 src=OneText} bits=14 table=Dict shared=+}"
+                }, checkTranspose: true);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTargetEncodingKeyLabel()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:TX:0}",
+                    "xf=Term{col=Label}",
+                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text table=CMSketch} bits=14 table=Dict{gb=2}}",
+                    "xf=Dracula{lab=Label col=D1s:Text col={name=OneText2 src=OneText} bits=14 table=Dict shared=+}"
+                }, checkTranspose: true);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountTargetEncodingLoadModel()
+        {
+            var inputData = GetDataPath("breast-cancer.txt");
+            var initialCountsModel = DeleteOutputPath("CTE", "initialCounts.zip");
+            var outputData = DeleteOutputPath("CTE", "countsData.txt");
+            var loaderArg = "loader=Text{col=Text:TX:1-2 col=OneText:TX:1 col=Label:0}";
+            MainForTest($"SaveData data={inputData} {loaderArg} xf=Dracula{{lab=Label col={{name=DT src=Text combine=-}} table = Dict}} out={initialCountsModel} dout={outputData}");
+
+            TestCore(null, false,
+                new[]
+                {
+                    loaderArg,
+                    "xf=Dracula{lab=Label col={name=DT src=Text combine=-} table=Dict}",
+                    $"xf=Dracula{{lab=Label col={{name=DT1 src=Text combine=-}} inmodel={{{initialCountsModel}}}}}"
+                }, loader =>
+                {
+                    using (var cursor = loader.GetRowCursor(loader.Schema["DT"], loader.Schema["DT1"]))
+                    {
+                        var getter = cursor.GetGetter<VBuffer<float>>(loader.Schema["DT"]);
+                        var getter1 = cursor.GetGetter<VBuffer<float>>(loader.Schema["DT1"]);
+                        VBuffer<float> buffer = default;
+                        VBuffer<float> buffer1 = default;
+                        while (cursor.MoveNext())
+                        {
+                            getter(ref buffer);
+                            getter1(ref buffer1);
+                            Assert.Equal(2 * buffer.GetValues()[0], buffer1.GetValues()[0]);
+                            Assert.Equal(2 * buffer.GetValues()[1], buffer1.GetValues()[1]);
+                        }
+                    }
+                });
 
             Done();
         }

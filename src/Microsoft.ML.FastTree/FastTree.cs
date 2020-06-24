@@ -1289,7 +1289,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             private ValueMapper<VBuffer<T1>, VBuffer<T2>> GetCopier<T1, T2>(DataViewType itemType1, DataViewType itemType2)
             {
-                var conv = Conversions.Instance.GetStandardConversion<T1, T2>(itemType1, itemType2, out bool identity);
+                var conv = Conversions.DefaultInstance.GetStandardConversion<T1, T2>(itemType1, itemType2, out bool identity);
                 if (identity)
                 {
                     ValueMapper<VBuffer<T1>, VBuffer<T1>> identityResult =
@@ -1368,7 +1368,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         BinFinder finder = new BinFinder();
                         FeaturesToContentMap fmap = new FeaturesToContentMap(examples.Schema);
 
-                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<float>(((ITransposeDataView)trans).GetSlotType(featIdx));
+                        var hasMissingPred = Conversions.DefaultInstance.GetHasMissingPredicate<float>(((ITransposeDataView)trans).GetSlotType(featIdx));
                         // There is no good mechanism to filter out rows with missing feature values on transposed data.
                         // So, we instead perform one featurization pass which, if successful, will remain one pass but,
                         // if we ever encounter missing values will become a "detect missing features" pass, which will
@@ -3031,6 +3031,9 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(Utils.Size(outputNames) >= 1);
+
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "TreeEnsembleModelParameters");
 
             //Nodes.
             var nodesTreeids = new List<long>();

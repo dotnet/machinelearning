@@ -348,8 +348,84 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.True(Enumerable.Intersect(uniqueSeedTrain, uniqueSeedTest).Count() == 0);
             // Validate we got different test results on same stratification column with different seeds
             Assert.NotEqual(uniqueTest, uniqueSeedTest);
-
         }
 
+        private sealed class Input
+        {
+            public int Id { get; set; }
+            public string TextStrat { get; set; }
+            public float FloatStrat { get; set; }
+            [VectorType(4)]
+            public float[] VectorStrat { get; set; }
+            public DateTime DateTimeStrat { get; set; }
+            public DateTimeOffset DateTimeOffsetStrat { get; set; }
+            public TimeSpan TimeSpanStrat { get; set; }
+        }
+
+        [Fact]
+        public void TestTrainTestSplitWithStratification()
+        {
+            var mlContext = new MLContext(0);
+            var input = mlContext.Data.LoadFromEnumerable(new[]
+            {
+                new Input() {
+                    Id = 0, TextStrat = "a", FloatStrat = 3, VectorStrat = new float[]{ 2, 3, 4, 5 }, DateTimeStrat = new DateTime(2002, 2, 23),
+                    DateTimeOffsetStrat = new DateTimeOffset(2002, 2, 23, 3, 30, 0, new TimeSpan(1, 0, 0)), TimeSpanStrat = new TimeSpan(2, 0, 0)
+                },
+                new Input() {
+                    Id = 1, TextStrat = "b", FloatStrat = 3, VectorStrat = new float[]{ 1, 2, 3, 4 }, DateTimeStrat = new DateTime(2020, 2, 23),
+                    DateTimeOffsetStrat = new DateTimeOffset(2002, 2, 23, 3, 30, 0, new TimeSpan(2, 0, 0)), TimeSpanStrat = new TimeSpan(2, 0, 10)
+                },
+                new Input() {
+                    Id = 2, TextStrat = "c", FloatStrat = 4, VectorStrat = new float[]{ 3, 4, 5, 6 }, DateTimeStrat = new DateTime(2018, 2, 23),
+                    DateTimeOffsetStrat = new DateTimeOffset(2002, 2, 23, 3, 30, 0, new TimeSpan(1, 0, 0)), TimeSpanStrat = new TimeSpan(2, 0, 10)
+                },
+                new Input() {
+                    Id = 3, TextStrat = "d", FloatStrat = 4, VectorStrat = new float[]{ 4, 5, 6, 7 }, DateTimeStrat = new DateTime(2016, 2, 23),
+                    DateTimeOffsetStrat = new DateTimeOffset(2002, 2, 23, 3, 30, 0, new TimeSpan(2, 0, 0)), TimeSpanStrat = new TimeSpan(2, 0, 0)
+                },
+                new Input() {
+                    Id = 4, TextStrat = "a", FloatStrat = -493.28f, VectorStrat = new float[]{ 2, 3, 4, 5 }, DateTimeStrat = new DateTime(2016, 2, 23),
+                    DateTimeOffsetStrat = new DateTimeOffset(2002, 2, 23, 3, 30, 0, new TimeSpan(3, 0, 0)), TimeSpanStrat = new TimeSpan(2, 0, 20)
+                },
+                new Input() {
+                    Id = 5, TextStrat = "b", FloatStrat = -493.28f, VectorStrat = new float[]{ 1, 2, 3, 4 }, DateTimeStrat = new DateTime(2018, 2, 23),
+                    DateTimeOffsetStrat = new DateTimeOffset(2002, 2, 23, 3, 30, 0, new TimeSpan(4, 0, 0)), TimeSpanStrat = new TimeSpan(2, 0, 30)
+                },
+                new Input() {
+                    Id = 6, TextStrat = "c", FloatStrat = 6, VectorStrat = new float[]{ 3, 4, 5, 6 }, DateTimeStrat = new DateTime(2020,2 , 23),
+                    DateTimeOffsetStrat = new DateTimeOffset(2002, 2, 23, 3, 30, 0, new TimeSpan(3, 0, 0)), TimeSpanStrat = new TimeSpan(2, 0, 30)
+                },
+                new Input() {
+                    Id = 7, TextStrat = "d", FloatStrat = 6, VectorStrat = new float[]{ 4, 5, 6, 7 }, DateTimeStrat = new DateTime(2002, 2, 23),
+                    DateTimeOffsetStrat = new DateTimeOffset(2002, 2, 23, 3, 30, 0, new TimeSpan(4, 0, 0)), TimeSpanStrat = new TimeSpan(2, 0, 20)
+                },
+            });
+
+            var split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.TextStrat));
+            var ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(1, ids);
+            Assert.Contains(5, ids);
+            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.FloatStrat));
+            ids = split.TrainSet.GetColumn<int>(split.TrainSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(4, ids);
+            Assert.Contains(5, ids);
+            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.VectorStrat));
+            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(0, ids);
+            Assert.Contains(4, ids);
+            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.DateTimeStrat));
+            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(5, ids);
+            Assert.Contains(6, ids);
+            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.DateTimeOffsetStrat));
+            ids = split.TrainSet.GetColumn<int>(split.TrainSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(4, ids);
+            Assert.Contains(7, ids);
+            split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.TimeSpanStrat));
+            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(1, ids);
+            Assert.Contains(2, ids);
+        }
     }
 }
