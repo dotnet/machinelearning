@@ -66,6 +66,12 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
+
+            if (Count >= 1 && RowCount == 0 && column.Length != RowCount)
+            {
+                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
+            }
+
             if (_columnNameToIndexDictionary.ContainsKey(column.Name))
             {
                 throw new ArgumentException(string.Format(Strings.DuplicateColumnName, column.Name), nameof(column));

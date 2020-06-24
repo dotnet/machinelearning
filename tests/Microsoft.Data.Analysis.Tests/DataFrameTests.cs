@@ -1716,6 +1716,18 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestInsertMismatchedColumnToEmptyDataFrame()
+        {
+            DataFrame df = new DataFrame();
+            DataFrameColumn dataFrameColumn1 = new Int32DataFrameColumn("Int1");
+            df.Columns.Insert(0, dataFrameColumn1);
+
+            // should throw exception as column sizes are mismatched.
+
+            Assert.Throws<ArgumentException>(() => df.Columns.Insert(1, new Int32DataFrameColumn("Int2", Enumerable.Range(0, 5).Select(x => x))));
+        }
+
+        [Fact]
         public void TestFillNulls()
         {
             DataFrame df = MakeDataFrameWithTwoColumns(20);
