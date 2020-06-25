@@ -4610,7 +4610,7 @@
           "Required": false,
           "SortOrder": 50.0,
           "IsNullable": false,
-          "Default": 1,
+          "Default": 10,
           "SweepRange": {
             "RangeType": "Long",
             "Min": 1,

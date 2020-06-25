@@ -462,7 +462,7 @@ namespace Microsoft.ML.CommandLine
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(type.IsClass, nameof(type));
-
+            var fullname = type.FullName;
             var args = new List<Argument>();
             var map = new Dictionary<string, Argument>();
             Argument def = null;
