@@ -509,6 +509,7 @@ namespace Microsoft.ML.Transforms
                     var shape = originalShape.dims;
 
                     var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
+                    var typeDims = (type as VectorDataViewType).Dimensions;
                     if (shape == null || (shape.Length == 0))
                         _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
                     else
@@ -529,6 +530,24 @@ namespace Microsoft.ML.Transforms
                         if (typeValueCount % valCount != 0)
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
+                        //This cover the 2-variable senario e.g. [?,?,?,3] where we can assume W = H and typeDims provides the information of [W, H, C]
+                        var originalShapeDims = originalShape.dims;
+                        var originalShapeNdim = originalShape.ndim;
+                        if (numOfUnkDim == typeDims.Length && originalShapeNdim == numOfUnkDim + 1)
+                        {
+                            if (typeDims.Length != 3)
+                                throw Contracts.Except($"Input '{_parent.Inputs[i]}' Schema does not provide enough information for tensor shape inferencing");
+                            for (int ishape = 1; ishape < originalShapeNdim; ++ishape)
+                            {
+                                if (originalShapeDims[ishape] == -1)
+                                {
+                                    originalShapeDims[ishape] = typeDims.IndexOf(ishape - 1);
+                                    valCount *= originalShapeDims[ishape];
+                                    numOfUnkDim--;
+                                }
+                            }
+                        }
+
                         // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
                         // in a single value for the unknown shapes. For example, if the shape is [?,?,3], then there should exist a value
                         // d such that d*d*3 is equal to the length of the input column.
@@ -537,8 +556,6 @@ namespace Microsoft.ML.Transforms
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
                         // Fill in the unknown dimensions.
-                        var originalShapeNdim = originalShape.ndim;
-                        var originalShapeDims = originalShape.dims;
                         var l = new int[originalShapeNdim];
                         for (int ishape = 0; ishape < originalShapeNdim; ishape++)
                             l[ishape] = originalShapeDims[ishape] == -1 ? (int)d : originalShapeDims[ishape];
@@ -553,6 +570,61 @@ namespace Microsoft.ML.Transforms
                             l[ishape] = _fullySpecifiedShapes[i].dims[ishape - 1];
                         _fullySpecifiedShapes[i] = new TensorShape(l);
                     }
+
+                    /*if (shape == null || (shape.Length == 0))
+                        _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
+                    else
+                    {
+                        // If the column is one dimension we make sure that the total size of the TF shape matches.
+                        // Compute the total size of the known dimensions of the shape.
+                        int valCount = 1;
+                        int numOfUnkDim = 0;
+                        foreach (var s in shape)
+                        {
+                            if (s > 0)
+                                valCount *= s;
+                            else
+                                numOfUnkDim++;
+                        }
+                        // The column length should be divisible by this, so that the other dimensions can be integral.
+                        int typeValueCount = type.GetValueCount();
+                        var typeDims = (type as VectorDataViewType).Dimensions;
+
+                        if (typeValueCount % valCount != 0)
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+
+                        int[] originalShapeDims = originalShape.dims;
+                        if (typeDims.Length == originalShape.ndim)
+                        {
+                            int shapeNDim = originalShape.ndim + (_parent._addBatchDimensionInput ? 1 : 0);
+                            int[] l = new int[shapeNDim];
+                            l[0] = 1;
+                            for (int rishape = shapeNDim - 1; rishape >= 0; --rishape)
+                            {
+                                if (originalShapeDims[rishape] != -1 && originalShapeDims[rishape] != typeDims.IndexOf(rishape))
+                                    throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of shape {typeDims.ToString()}."); //bugbug
+                                l[rishape] = typeDims.IndexOf(rishape);
+                            }
+                            _fullySpecifiedShapes[i] = new TensorShape(l);
+                        }
+                        else if (typeDims.Length + 1 == originalShape.ndim && _parent._addBatchDimensionInput)
+                        {
+                            int shapeNDim = originalShape.ndim;
+                            int[] l = new int[shapeNDim];
+                            l[0] = 1;
+                            for (int ishape = 1; ishape < shapeNDim; ++ishape)
+                            {
+                                if (originalShapeDims[ishape] != -1 && originalShapeDims[ishape] != typeDims.ElementAt(ishape - 1))
+                                    throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of shape {typeDims.ToString()}."); //bugbug
+                                l[ishape] = typeDims.IndexOf(ishape - 1);
+                            }
+                            _fullySpecifiedShapes[i] = new TensorShape(l);
+                        }
+                        else
+                        {
+                            throw Contracts.Except($"Input dimension number mismatch: Input '{_parent.Inputs[i]}' has {originalShape.ndim} dimensions, but input data has {typeDims.Length}.");
+                        }
+                    }*/
                 }
 
                 _runners = new ConcurrentBag<Runner>();
