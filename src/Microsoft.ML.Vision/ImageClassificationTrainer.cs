@@ -948,8 +948,7 @@ namespace Microsoft.ML.Vision
                 if (validationNeeded)
                 {
                     validationEvalRunner = new Runner(_session, runnerInputTensorNames.ToArray(),
-                        runnerOutputTensorNames.Count() > 0 ? runnerOutputTensorNames.ToArray() : null,
-                        new[] { _trainStep.name });
+                        new[] { _evaluationStep.name, _crossEntropy.name }, new[] { _trainStep.name });
                 }
 
                 runner = new Runner(_session, runnerInputTensorNames.ToArray(),

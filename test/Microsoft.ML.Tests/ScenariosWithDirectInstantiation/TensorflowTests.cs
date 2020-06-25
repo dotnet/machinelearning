@@ -1532,7 +1532,18 @@ namespace Microsoft.ML.Scenarios
                 Epoch = epoch,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metric) => Console.WriteLine(metric),
+                MetricsCallback = (metric) =>
+                {
+                    //Check that learning rate in metrics from both the training and validation phases decays
+                    if (metric.Train != null)
+                    {
+                        // At epoch 50, validation training starts with default learning rate, which decays
+                        // at each successive epoch
+                        if (epoch > 1 && epoch != 50)
+                            Assert.True(metric.Train.LearningRate < 0.01f);
+                    }
+                    Console.WriteLine(metric);
+                },
                 ValidationSet = validationSet,
                 WorkspacePath = workspacePath,
                 TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
