@@ -533,10 +533,8 @@ namespace Microsoft.ML.Transforms
                         //This cover the 2-variable senario e.g. [?,?,?,3] where we can assume typeDims provides the information of [W, H, C]
                         var originalShapeDims = originalShape.dims;
                         var originalShapeNdim = originalShape.ndim;
-                        if (numOfUnkDim == typeDims.Length && originalShapeNdim == numOfUnkDim + 1)
+                        if (numOfUnkDim == typeDims.Length && originalShapeNdim == numOfUnkDim + 1 && typeDims.Length == 3)
                         {
-                            if (typeDims.Length != 3)
-                                throw Contracts.Except($"Input '{_parent.Inputs[i]}' Schema does not provide enough information for tensor shape inferencing");
                             for (int ishape = 1; ishape < originalShapeNdim; ++ishape)
                             {
                                 if (originalShapeDims[ishape] == -1)
