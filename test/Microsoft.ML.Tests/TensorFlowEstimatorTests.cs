@@ -274,7 +274,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [TensorFlowFact]
+        /*[TensorFlowFact]
         public void MyTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Tests
 
             var transformer = pipeline.Fit(data);
 
-            /*var modelLocation = "cifar_model/frozen_model.pb";
+            *//*var modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1);
             var imageHeight = 32;
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
                 .Append(ML.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
 
-            TestEstimatorCore(pipe, data);*/
-        }
+            TestEstimatorCore(pipe, data);*//*
+        }*/
     }
 }
