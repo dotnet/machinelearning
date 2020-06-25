@@ -530,7 +530,7 @@ namespace Microsoft.ML.Transforms
                         if (typeValueCount % valCount != 0)
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
-                        //This cover the 2-variable senario e.g. [?,?,?,3] where we can assume W = H and typeDims provides the information of [W, H, C]
+                        //This cover the 2-variable senario e.g. [?,?,?,3] where we can assume typeDims provides the information of [W, H, C]
                         var originalShapeDims = originalShape.dims;
                         var originalShapeNdim = originalShape.ndim;
                         if (numOfUnkDim == typeDims.Length && originalShapeNdim == numOfUnkDim + 1)
