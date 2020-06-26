@@ -10,5 +10,11 @@
     "ItemKind": "TX",
     "Purpose": "TextFeature",
     "ColumnRangeSelector": "1"
+  },
+  {
+    "SuggestedName": "LoggedIn",
+    "ItemKind": "Bool",
+    "Purpose": "Categorical",
+    "ColumnRangeSelector": "2"
   }
 ]
