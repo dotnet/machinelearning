@@ -7,9 +7,6 @@ using System.Text;
 using System.IO;
 using Microsoft.ML;
 using Namespace.Model;
- 
-using Microsoft.ML.CodeGenerator.Helper;
-using Microsoft.ML.CodeGenerator.Helper.ImageClassification;
 
 namespace Namespace.Model
 {

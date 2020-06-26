@@ -19,7 +19,8 @@ namespace TestNamespace.ConsoleApp
     {
         private static string TRAIN_DATA_FILEPATH = @"x:\dummypath\dummy_train.csv";
         private static string TEST_DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
-        private static string MODEL_FILEPATH = @"x:\models\model.zip";
+        private static string MODEL_FILE = ConsumeModel.MLNetModelPath;
+
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
@@ -50,7 +51,7 @@ namespace TestNamespace.ConsoleApp
             EvaluateModel(mlContext, mlModel, testDataView);
 
             // Save model
-            SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
+            SaveModel(mlContext, mlModel, MODEL_FILE, trainingDataView.Schema);
         }
 
         public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
