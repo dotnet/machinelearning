@@ -8,6 +8,7 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
+using Microsoft.ML.Trainers.LightGbm;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
 
@@ -154,6 +155,31 @@ namespace Microsoft.ML.AutoML.Test
                 "Features", scoreColumnName };
             foreach (var col in outputSchema)
                 Assert.True(col.Name == expectedOutputNames[col.Index]);
+        }
+
+        [LightGBMFact]
+        public void AutoFitRankingCVTest()
+        {
+            string labelColumnName = "Label";
+            string groupIdColumnName = "GroupId";
+            string featuresColumnVectorNameA = "FeatureVectorA";
+            string featuresColumnVectorNameB = "FeatureVectorB";
+            int numFolds = 3;
+
+            var mlContext = new MLContext(1);
+            var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "FeatureVectorA", "FeatureVectorB" }).Append(
+                mlContext.Transforms.Conversion.Hash("GroupId", "GroupId"));
+
+            var trainer = mlContext.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options() { RowGroupColumnName = "GroupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
+            var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB));
+            var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
+            var result = mlContext.Ranking.CrossValidate(trainDataView, trainingPipeline, numberOfFolds: numFolds);
+            for (int i = 0; i < numFolds; i++)
+            {
+                Assert.True(result[i].Metrics.NormalizedDiscountedCumulativeGains.Max() > .4);
+                Assert.True(result[i].Metrics.DiscountedCumulativeGains.Max() > 16);
+            }
         }
 
         [Fact]

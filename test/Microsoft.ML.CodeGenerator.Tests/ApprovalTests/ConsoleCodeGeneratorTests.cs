@@ -623,10 +623,9 @@ namespace mlnet.Tests
         {
             if (_mockedPipeline == null)
             {
-                MLContext context = new MLContext();
                 var hyperParam = new Dictionary<string, object>()
                 {
-                    {"rowGroupColumnName","GroupId" },
+                    {"RowGroupColumnName","GroupId" },
                     {"LabelColumnName","Label" },
                 };
                 var hashPipelineNode = new PipelineNode(nameof(EstimatorName.Hashing), PipelineNodeType.Transform, "GroupId", "GroupId");
