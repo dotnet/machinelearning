@@ -34,7 +34,7 @@ namespace Microsoft.ML.TimeSeries
                 _circularComponent[i] = 0;
             }
 
-            // Sum up values that locates at the same position in one period.
+            // Sum up values that locate at the same position in one period.
             for (int i = 0; i < length; ++i)
             {
                 var indexInPeriod = i % period;
@@ -98,6 +98,9 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
+    /// <summary>
+    /// This class takes the residual component of stl decompose as the deseasonality result.
+    /// </summary>
     internal sealed class StlDeseasonality : IDeseasonality
     {
         private readonly InnerStl _stl;
