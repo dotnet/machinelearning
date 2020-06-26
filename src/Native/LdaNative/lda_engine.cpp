@@ -465,15 +465,6 @@ namespace lda {
             if (thread_id == 0)
             {
                 double seconds_this_iter = iter_end - iter_start;
-
-                printf("Iter: %04d", iter);
-                std::cout
-                    << "\tThread = " << thread_id
-                    << "\tTokens: " << atomic_stats_->num_tokens_clock_
-                    << "\tTook: " << seconds_this_iter << " sec"
-                    << "\tThroughput: "
-                    << static_cast<double>(atomic_stats_->num_tokens_clock_) / (seconds_this_iter) << " token/(thread*sec)"
-                    << std::endl;
             }
             process_barrier_->wait();
             CheckFunction(thread_id, tmDebug, "train(gibbs sampling) - in function train_thread");
@@ -618,16 +609,6 @@ namespace lda {
             if (thread_id == 0)
             {
                 double seconds_this_iter = iter_end - iter_start;
-
-                printf("Iter: %04d", iter);
-                std::cout
-                    << "\tThread = " << thread_id
-                    << "\tTokens: " << atomic_stats_->num_tokens_clock_
-                    << "\tTook: " << seconds_this_iter << " sec"
-                    << "\tThroughput: "
-                    << static_cast<double>(atomic_stats_->num_tokens_clock_) / (seconds_this_iter) << " token/(thread*sec)"
-                    << std::endl;
-
             }
 
             process_barrier_->wait();
@@ -952,11 +933,6 @@ namespace lda {
             {
                 likelihood_in_iter_[iter] = (float)total_ll;
             }
-
-            std::cout << "Total likelihood: " << total_ll << "\t";
-            std::cout << "..........[Nomralized word ll: " << normalized_ll << "\t"
-                << "Word  likelihood: " << atomic_stats_->word_ll_ << "\t"
-                << "Doc   likelihood: " << atomic_stats_->doc_ll_ << "]" << std::endl;
         }
         process_barrier_->wait();
 
