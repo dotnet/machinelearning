@@ -76,7 +76,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     StablePackageVersion = _settings.StablePackageVersion,
                     UnstablePackageVersion = _settings.UnstablePackageVersion,
                     OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
-                    CodeGenHelperPackageVersion = _settings.CodeGenHelperPackageVersion,
                 }.TransformText(),
                 Name = $"{_settings.OutputName}.ConsoleApp.csproj",
             };

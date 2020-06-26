@@ -30,8 +30,6 @@ namespace <#= Namespace #>.Model
         public static string MLNetModelPath = Path.GetFullPath("<#= MLNetModelName #>");
 <#if(IsAzureImage){ #> 
         public static string OnnxModelPath = Path.GetFullPath("<#= OnnxModelName #>");
-
-        public static string OnnxLabelPath = Path.GetFullPath("<#= OnnxLabelName #>");
 <#} #>
 
         // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
@@ -46,9 +44,6 @@ namespace <#= Namespace #>.Model
         {
             // Create new MLContext
             MLContext mlContext = new MLContext();
-<#if(IsAzureImage){ #> 
-            LabelMapping.Label = Utilities.GeltLabelFromJsonFile(OnnxLabelPath);
-<#} #>
 
             // Load model & create prediction engine
             ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);
@@ -64,5 +59,4 @@ internal CSharp.GenerateTarget Target {get;set;}
 public bool IsAzureImage {get; set;}=false;
 public string MLNetModelName {get; set;}
 public string OnnxModelName {get; set;}
-public string OnnxLabelName {get; set;}
 #>

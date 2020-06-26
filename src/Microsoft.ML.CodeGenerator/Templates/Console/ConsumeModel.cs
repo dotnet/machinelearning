@@ -52,8 +52,6 @@ if(IsAzureImage){
 if(IsAzureImage){ 
             this.Write(" \r\n        public static string OnnxModelPath = Path.GetFullPath(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(OnnxModelName));
-            this.Write("\");\r\n\r\n        public static string OnnxLabelPath = Path.GetFullPath(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(OnnxLabelName));
             this.Write("\");\r\n");
 } 
             this.Write(@"
@@ -69,12 +67,7 @@ if(IsAzureImage){
         {
             // Create new MLContext
             MLContext mlContext = new MLContext();
-");
-if(IsAzureImage){ 
-            this.Write(" \r\n            LabelMapping.Label = Utilities.GeltLabelFromJsonFile(OnnxLabelPath" +
-                    ");\r\n");
-} 
-            this.Write(@"
+
             // Load model & create prediction engine
             ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
@@ -92,7 +85,6 @@ internal CSharp.GenerateTarget Target {get;set;}
 public bool IsAzureImage {get; set;}=false;
 public string MLNetModelName {get; set;}
 public string OnnxModelName {get; set;}
-public string OnnxLabelName {get; set;}
 
 
 void CLI_Annotation()

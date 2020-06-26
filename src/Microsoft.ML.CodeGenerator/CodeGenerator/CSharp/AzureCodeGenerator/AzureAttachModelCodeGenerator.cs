@@ -55,12 +55,11 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 
             ModelOutputClass = new CSharpCodeFile()
             {
-                File = new ModelOutputClass()
+                File = new AzureImageModelOutputClass()
                 {
                     Namespace = _nameSpaceValue,
                     Target = _settings.Target,
-                    TaskType = _settings.MlTask.ToString(),
-                    PredictionLabelType = labelTypeCsharp.Name,
+                    Labels = _settings.ClassificationLabel,
                 }.TransformText(),
                 Name = "ModelOutput.cs",
             };
@@ -78,7 +77,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     IncludeRecommenderPackage = false,
                     StablePackageVersion = _settings.StablePackageVersion,
                     UnstablePackageVersion = _settings.UnstablePackageVersion,
-                    CodeGenHelperPackageVersion = _settings.CodeGenHelperPackageVersion,
                     OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
                     Target = _settings.Target,
                 }.TransformText(),
@@ -106,7 +104,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     Target = _settings.Target,
                     MLNetModelName = _settings.ModelName,
                     OnnxModelName = _settings.OnnxModelName,
-                    OnnxLabelName = _settings.OnnxLabelName,
                     IsAzureImage = _settings.IsAzureAttach && _settings.IsImage,
                 }.TransformText(),
                 Name = "ConsumeModel.cs",

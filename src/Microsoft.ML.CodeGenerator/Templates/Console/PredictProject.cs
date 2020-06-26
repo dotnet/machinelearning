@@ -73,9 +73,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write(this.ToStringHelper.ToStringWithCulture(UnstablePackageVersion));
             this.Write("\" />\r\n");
 }
-            this.Write("    <PackageReference Include=\"Microsoft.ML.CodeGenerator.Helper\" Version=\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(CodeGenHelperPackageVersion));
-            this.Write("\" />\r\n  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
+            this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -100,7 +98,6 @@ public bool IncludeResNet18Package {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
-public string CodeGenHelperPackageVersion {get;set;}
 public string OnnxRuntimePackageVersion {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 

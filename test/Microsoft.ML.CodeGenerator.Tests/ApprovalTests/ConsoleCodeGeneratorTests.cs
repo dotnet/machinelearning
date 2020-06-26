@@ -213,8 +213,6 @@ namespace mlnet.Tests
                 UnstablePackageVersion = "unstableversion",
                 OnnxModelName = @"/path/to/onnxModel",
                 OnnxRuntimePacakgeVersion = "1.2.3",
-                CodeGenHelperPackageVersion = "1.2.3",
-                OnnxLabelName = "onnx.json",
                 IsAzureAttach = true,
                 IsImage = true,
             };
@@ -250,8 +248,6 @@ namespace mlnet.Tests
                 UnstablePackageVersion = "UnstablePackageVersion",
                 OnnxModelName = @"\path\to\onnx",
                 OnnxRuntimePacakgeVersion = "1.2.3",
-                CodeGenHelperPackageVersion = "1.2.3",
-                OnnxLabelName = "onnx.json",
                 IsAzureAttach = true,
                 IsImage = false,
                 OnnxInputMapping = mapping,
@@ -604,12 +600,7 @@ namespace mlnet.Tests
         private (Pipeline, ColumnInferenceResults) GetMockedAzureImagePipelineAndInference()
         {
             // construct pipeline
-            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
-                new Dictionary<string, object>()
-                {
-                    { "outputColumnNames", "output1" },
-                    { "inputColumnNames", "input1"},
-                });
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, string.Empty, string.Empty);
             var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImageSource", "ImageSource_featurized");
             var resizeImageNode = new PipelineNode(
                 nameof(SpecialTransformer.ResizeImage),
@@ -621,17 +612,13 @@ namespace mlnet.Tests
                     { "imageWidth", 224 },
                     { "imageHeight", 224 },
                 });
-            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "ImageSource_featurized");
-            var normalizePipeline = new PipelineNode(nameof(SpecialTransformer.NormalizeMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
-            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "input1");
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 loadImageNode,
                 resizeImageNode,
                 extractPixelsNode,
-                normalizePipeline,
                 onnxPipeLineNode,
-                labelMapPipelineNode,
             });
 
             // construct column inference
@@ -659,17 +646,10 @@ namespace mlnet.Tests
         private (Pipeline, ColumnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping>) GetMockedAzurePipelineAndInference()
         {
             // construct pipeline
-            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
-                new Dictionary<string, object>()
-                {
-                    { "outputColumnNames", "output1" },
-                    { "inputColumnNames", "input1"},
-                });
-            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, string.Empty, string.Empty);
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 onnxPipeLineNode,
-                labelMapPipelineNode,
             });
 
             // construct column inference
@@ -887,7 +867,6 @@ namespace mlnet.Tests
                 StablePackageVersion = StablePackageVersion,
                 UnstablePackageVersion = UnstablePackageVersion,
                 OnnxRuntimePacakgeVersion = "1.2.3",
-                CodeGenHelperPackageVersion = "1.2.3",
             };
         }
     }

@@ -16,6 +16,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             // Set default value
             Target = GenerateTarget.Cli;
             OnnxInputMapping = new Dictionary<string, ColumnMapping>();
+            ClassificationLabel = new string[] { };
         }
 
         public string LabelName { get; set; }
@@ -31,9 +32,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         public string OnnxModelName { get; set; }
 
         /// <summary>
-        /// onnx label name
+        /// classification label
+        /// for Azure image only
         /// </summary>
-        public string OnnxLabelName { get; set; }
+        public string[] ClassificationLabel { get; set; }
 
         public string OutputName { get; set; }
 
@@ -48,8 +50,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         public string StablePackageVersion { get; set; }
 
         public string UnstablePackageVersion { get; set; }
-
-        public string CodeGenHelperPackageVersion { get; set; }
 
         public string OnnxRuntimePacakgeVersion { get; set; }
 

@@ -46,10 +46,7 @@ namespace Test.ConsoleApp
             // Data process configuration with pipeline data transformations to:
             // 1. Score using provided onnx model
             // 2. Map scores to labels to make model output easier to understand and use
-            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL)
-                                      .Append(mlContext.Transforms.CustomMapping<LabelMappingInput, LabelMappingOutput>(
-                                          LabelMapping.Mapping,
-                                          contractName: nameof(LabelMapping)));
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL);
             return pipeline;
         }
 

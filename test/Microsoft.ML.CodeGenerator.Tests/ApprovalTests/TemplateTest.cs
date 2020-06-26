@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using ApprovalTests;
 using ApprovalTests.Reporters;
+using Microsoft.ML.CodeGenerator.Templates.Azure.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -65,11 +66,25 @@ namespace Microsoft.ML.CodeGenerator.Tests
                 Namespace = "Namespace",
                 IsAzureImage = true,
                 MLNetModelName = @"mlmodel.zip",
-                OnnxLabelName = "onnx.json",
                 OnnxModelName = "onnx.onnx"
             };
 
             Approvals.Verify(consumeModel.TransformText());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestAzureImageModelOutputClass_WithLabel()
+        {
+            var azureImageOutput = new AzureImageModelOutputClass
+            {
+                Namespace = "Namespace",
+                Labels = new string[] { "str1", "str2", "str3" },
+                Target = CSharp.GenerateTarget.Cli
+            };
+
+            Approvals.Verify(azureImageOutput.TransformText());
         }
 
         [Fact]

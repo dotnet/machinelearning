@@ -21,8 +21,6 @@ namespace CodeGenTest.Model
 
         public static string OnnxModelPath = Path.GetFullPath("/path/to/onnxModel");
 
-        public static string OnnxLabelPath = Path.GetFullPath("onnx.json");
-
         // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app
         public static ModelOutput Predict(ModelInput input)
@@ -35,8 +33,6 @@ namespace CodeGenTest.Model
         {
             // Create new MLContext
             MLContext mlContext = new MLContext();
-
-            LabelMapping.Label = Utilities.GeltLabelFromJsonFile(OnnxLabelPath);
 
             // Load model & create prediction engine
             ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);

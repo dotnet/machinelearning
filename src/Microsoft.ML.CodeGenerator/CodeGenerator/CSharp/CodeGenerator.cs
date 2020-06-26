@@ -347,7 +347,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeRecommenderPackage = includeRecommenderPackage,
                 StablePackageVersion = stablePackageVersion,
                 UnstablePackageVersion = unstablePackageVersion,
-                CodeGenHelperPackageVersion = _settings.CodeGenHelperPackageVersion,
                 OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
                 Target = target,
             };
@@ -397,7 +396,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeRecommenderPackage = includeRecommenderPackage,
                 StablePackageVersion = stablePackageVersion,
                 UnstablePackageVersion = unstablePackageVersion,
-                CodeGenHelperPackageVersion = _settings.CodeGenHelperPackageVersion,
                 OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
                 Target = target,
             };

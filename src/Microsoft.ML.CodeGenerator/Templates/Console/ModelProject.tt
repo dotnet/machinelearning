@@ -33,7 +33,6 @@
 <# if (IncludeRecommenderPackage){ #>
     <PackageReference Include="Microsoft.ML.Recommender" Version="<#= UnstablePackageVersion #>" />
 <#}#>
-    <PackageReference Include="Microsoft.ML.CodeGenerator.Helper" Version="<#= CodeGenHelperPackageVersion #>" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,7 +67,6 @@ public bool IncludeOnnxModel {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
-public string CodeGenHelperPackageVersion {get;set;}
 public string OnnxRuntimePackageVersion {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 #>
