@@ -30,6 +30,8 @@ namespace Microsoft.ML.AutoML.Test
 
         public static string GetIrisDataset() => GetDataPath("iris.txt");
 
+        public static string GetMLSRDataset() => GetDataPath("MSLRWeb1K-tiny.tsv");
+
         public static string GetDataPath(string fileName)
         {
             return Path.Combine(TestCommon.GetRepoRoot(), "test", "data", fileName);

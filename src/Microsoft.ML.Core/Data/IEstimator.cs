@@ -294,6 +294,12 @@ namespace Microsoft.ML
         IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema);
     }
 
+    [BestFriend]
+    internal interface ITransformerWithDifferentMappingAtTrainingTime : ITransformer
+    {
+        IDataView TransformForTrainingPipeline(IDataView input);
+    }
+
     /// <summary>
     /// The estimator (in Spark terminology) is an 'untrained transformer'. It needs to 'fit' on the data to manufacture
     /// a transformer.

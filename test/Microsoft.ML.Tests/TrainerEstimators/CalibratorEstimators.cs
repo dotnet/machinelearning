@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformer = pipeline.Fit(data);
             var scoredData = transformer.Transform(data);
             var scoredDataPreview = scoredData.Preview();
-            Assert.True(scoredDataPreview.ColumnView.Length == 5);
+            Assert.True(scoredDataPreview.ColumnView.Length == 6);
 
             return new CalibratorTestData
             {
@@ -128,11 +128,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var calibratedData = transformer.Transform(scoredData).Preview();
 
-            Assert.True(calibratedData.ColumnView.Length == 6);
+            Assert.True(calibratedData.ColumnView.Length == 7);
 
             for (int i = 0; i < 10; i++)
             {
-                var probability = calibratedData.RowView[i].Values[5];
+                var probability = calibratedData.RowView[i].Values[6];
                 Assert.InRange((float)probability.Value, 0, 1);
             }
         }

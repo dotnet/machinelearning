@@ -101,14 +101,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 Assert.NotNull(biasStats);
 
-                CompareNumbersWithTolerance(biasStats.StandardError, 0.25, digitsOfPrecision: 2);
-                CompareNumbersWithTolerance(biasStats.ZScore, 7.97, digitsOfPrecision: 2);
+                CompareNumbersWithTolerance(biasStats.StandardError, 0.24, digitsOfPrecision: 2);
+                CompareNumbersWithTolerance(biasStats.ZScore, 8.32, digitsOfPrecision: 2);
 
                 var scoredData = transformer.Transform(dataView);
 
                 var coefficients = stats.GetWeightsCoefficientStatistics(100);
 
-                Assert.Equal(18, coefficients.Length);
+                Assert.Equal(17, coefficients.Length);
 
                 foreach (var coefficient in coefficients)
                     Assert.True(coefficient.StandardError < 1.0);

@@ -45,6 +45,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     case EstimatorName.KeyToValueMapping:
                         result = new KeyToValueMapping(node);
                         break;
+                    case EstimatorName.Hashing:
+                        result = new Hashing(node);
+                        break;
                     case EstimatorName.MissingValueIndicating:
                         result = new MissingValueIndicator(node);
                         break;

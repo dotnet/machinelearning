@@ -159,6 +159,41 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
+        /// Creates a new AutoML experiment to run on a ranking dataset.
+        /// </summary>
+        /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
+        /// <returns>A new AutoML ranking experiment.</returns>
+        /// <remarks>
+        /// <para>See <see cref="RankingExperiment"/> for a more detailed code example of an AutoML ranking experiment.</para>
+        /// <para>An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
+        /// This is because once AutoML starts training an ML.NET model, AutoML lets the
+        /// model train to completion. For instance, if the first model
+        /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
+        /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours,
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).</para>
+        /// </remarks>
+        public RankingExperiment CreateRankingExperiment(uint maxExperimentTimeInSeconds)
+        {
+            return new RankingExperiment(_context, new RankingExperimentSettings()
+            {
+                MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
+            });
+        }
+
+        /// <summary>
+        /// Creates a new AutoML experiment to run on a ranking dataset.
+        /// </summary>
+        /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
+        /// <returns>A new AutoML ranking experiment.</returns>
+        /// <remarks>
+        /// See <see cref="RankingExperiment"/> for a more detailed code example of an AutoML ranking experiment.
+        /// </remarks>
+        public RankingExperiment CreateRankingExperiment(RankingExperimentSettings experimentSettings)
+        {
+            return new RankingExperiment(_context, experimentSettings);
+        }
+
+        /// <summary>
         /// Infers information about the columns of a dataset in a file located at <paramref name="path"/>.
         /// </summary>
         /// <param name="path">Path to a dataset file.</param>

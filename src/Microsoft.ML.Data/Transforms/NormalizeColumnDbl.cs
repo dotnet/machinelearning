@@ -597,6 +597,7 @@ namespace Microsoft.ML.Transforms
     /// It tracks median values of non-sparse values (vCount).
     /// NaNs are ignored when updating min and max.
     /// </summary>
+    [BestFriend]
     internal sealed class MedianDblAggregator : IColumnAggregator<double>
     {
         private MedianAggregatorUtils.MaxHeap<double> _belowMedianHeap;
@@ -1213,7 +1214,7 @@ namespace Microsoft.ML.Transforms
                     }
 
                     public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                         => new NormalizingTransformer.BinNormalizerModelParameters<TFloat>(ImmutableArray.Create(_binUpperBounds), _den,_offset);
+                         => new NormalizingTransformer.BinNormalizerModelParameters<TFloat>(ImmutableArray.Create(_binUpperBounds), _den, _offset);
                 }
 
                 public sealed class ImplVec : BinColumnFunction

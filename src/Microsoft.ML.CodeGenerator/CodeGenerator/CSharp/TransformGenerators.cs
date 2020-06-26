@@ -143,6 +143,29 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
+    internal class Hashing : TransformGeneratorBase
+    {
+        public Hashing(PipelineNode node) : base(node)
+        {
+        }
+
+        internal override string MethodName => "Conversion.Hash";
+
+        public override string GenerateTransformer()
+        {
+            StringBuilder sb = new StringBuilder();
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            sb.Append(MethodName);
+            sb.Append("(");
+            sb.Append(outputColumn);
+            sb.Append(",");
+            sb.Append(inputColumn);
+            sb.Append(")");
+            return sb.ToString();
+        }
+    }
+
     internal class MissingValueIndicator : TransformGeneratorBase
     {
         public MissingValueIndicator(PipelineNode node) : base(node)

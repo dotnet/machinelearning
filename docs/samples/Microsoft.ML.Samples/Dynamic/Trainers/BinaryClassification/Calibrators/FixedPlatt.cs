@@ -29,27 +29,27 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
                 .AveragedPerceptron();
 
             // Fit the pipeline, and get a transformer that knows how to score new
-            // data.  
+            // data.
             var transformer = pipeline.Fit(trainTestData.TrainSet);
             // Fit this pipeline to the training data.
             // Let's score the new data. The score will give us a numerical
             // estimation of the chance that the particular sample bears positive
-            // sentiment. This estimate is relative to the numbers obtained. 
+            // sentiment. This estimate is relative to the numbers obtained.
             var scoredData = transformer.Transform(trainTestData.TestSet);
             var outScores = mlContext.Data
                 .CreateEnumerable<ScoreValue>(scoredData, reuseRowObject: false);
 
             PrintScore(outScores, 5);
             // Preview of scoredDataPreview.RowView
-            // Score   4.18144
-            // Score  -14.10248
-            // Score   2.731951
-            // Score  -2.554229
-            // Score   5.36571
+            // Score  -0.09044361
+            // Score  -9.105377
+            // Score  -11.049
+            // Score  -3.061928
+            // Score  -6.375817
 
             // Let's train a calibrator estimator on this scored dataset. The
             // trained calibrator estimator produces a transformer that can
-            // transform the scored data by adding a new column names "Probability". 
+            // transform the scored data by adding a new column names "Probability".
             var calibratorEstimator = mlContext.BinaryClassification.Calibrators
                 .Platt(slope: -1f, offset: -0.05f);
 
@@ -59,18 +59,18 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // new column names "Probability". This column is a calibrated version
             // of the "Score" column, meaning its values are a valid probability
             // value in the [0, 1] interval representing the chance that the
-            // respective sample bears positive sentiment. 
+            // respective sample bears positive sentiment.
             var finalData = calibratorTransformer.Transform(scoredData);
             var outScoresAndProbabilities = mlContext.Data
                 .CreateEnumerable<ScoreAndProbabilityValue>(finalData,
                 reuseRowObject: false);
 
             PrintScoreAndProbability(outScoresAndProbabilities, 5);
-            // Score   4.18144   Probability 0.9856767
-            // Score  -14.10248  Probability 7.890148E-07
-            // Score   2.731951  Probability 0.9416927
-            // Score  -2.554229  Probability 0.07556222
-            // Score   5.36571   Probability 0.9955735
+            // Score -0.09044361  Probability 0.4898905
+            // Score -9.105377    Probability 0.0001167479
+            // Score -11.049      Probability 1.671815E-05
+            // Score -3.061928    Probability 0.04688989
+            // Score -6.375817    Probability 0.001786307
         }
 
         private static void PrintScore(IEnumerable<ScoreValue> values, int numRows)
@@ -84,7 +84,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
 
         {
             foreach (var value in values.Take(numRows))
-                Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10}", "Score", 
+                Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10}", "Score",
                     value.Score, "Probability", value.Probability);
         }
 

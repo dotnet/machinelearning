@@ -65,7 +65,10 @@ namespace Microsoft.ML.Data
             {
                 var est = _estimators[i];
                 xfs[i] = est.Fit(current);
-                current = xfs[i].Transform(current);
+                if (xfs[i] is ITransformerWithDifferentMappingAtTrainingTime xf)
+                    current = xf.TransformForTrainingPipeline(current);
+                else
+                    current = xfs[i].Transform(current);
                 if (_needCacheAfter[i] && i < _estimators.Length - 1)
                 {
                     Contracts.AssertValue(_host);
