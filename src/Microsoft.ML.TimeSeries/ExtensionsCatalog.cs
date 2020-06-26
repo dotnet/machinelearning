@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TimeSeries;
@@ -200,7 +199,16 @@ namespace Microsoft.ML
         /// </example>
         public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.3, double rootCauseThreshold = 0.95)
         {
-            return LocalizeRootCauses(catalog, src, beta, rootCauseThreshold).FirstOrDefault();
+            List<RootCause> causes = LocalizeRootCauses(catalog, src, beta, rootCauseThreshold);
+            if (causes?.Count > 0)
+            {
+                return causes[0];
+            }
+            else
+            {
+                return null;
+            }
+
         }
 
         /// <summary>
