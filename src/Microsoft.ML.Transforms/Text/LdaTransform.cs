@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms.Text
             public bool ResetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the topic-word summary in text format", ShortName = "summary")]
-            public bool OutputTopicWordSummary;
+            public bool OutputTopicWordSummary = LatentDirichletAllocationEstimator.Defaults.OutputTopicWordSummary;
         }
 
         internal sealed class Column : OneToOneColumn
@@ -140,6 +140,9 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Reset the random number generator for each document", ShortName = "reset")]
             public bool? ResetRandomGenerator;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the topic-word summary in text format", ShortName = "summary")]
+            public bool? OutputTopicWordSummary;
 
             internal static Column Parse(string str)
             {
@@ -206,13 +209,17 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        [BestFriend]
-        internal ModelParameters GetLdaDetails(int iinfo)
+        /// <summary>
+        /// Method to provide details about the topic discovered by LightLDA
+        /// </summary>
+        /// <param name="topicIndex">index of topic</param>
+        /// <returns></returns>
+        public ModelParameters GetLdaDetails(int topicIndex)
         {
-            Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
+            Contracts.Assert(0 <= topicIndex && topicIndex < _ldas.Length);
 
-            var ldaState = _ldas[iinfo];
-            var mapping = _columnMappings[iinfo];
+            var ldaState = _ldas[topicIndex];
+            var mapping = _columnMappings[topicIndex];
 
             return ldaState.GetLdaSummary(mapping);
         }
@@ -760,7 +767,46 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < _ldas.Length; i++)
             {
                 _ldas[i].Save(ctx);
+
+                if(_columns[i].OutputTopicWordSummary)
+                    SaveTopicWordSummary(ctx, i);
             }
+        }
+
+        private void SaveTopicWordSummary(ModelSaveContext ctx, int i)
+        {
+            var summary = GetLdaDetails(i);
+
+            ctx.SaveTextStream(WordTopicModelFilename, writer =>
+            {
+                if (summary.WordScoresPerTopic != null)
+                {
+                    int topId = 0;
+                    foreach (var wordScores in summary.WordScoresPerTopic)
+                    {
+                        foreach (var wordScore in wordScores)
+                        {
+                            writer.WriteLine($"Top[{topId}]: {wordScore.Word}\t{wordScore.Score}");
+                        }
+
+                        topId++;
+                    }
+                }
+
+                if (summary.ItemScoresPerTopic != null)
+                {
+                    int topId = 0;
+                    foreach (var itemScores in summary.ItemScoresPerTopic)
+                    {
+                        foreach (var itemScore in itemScores)
+                        {
+                            writer.WriteLine($"Top[{topId}]: {itemScore.Item}\t{itemScore.Score}");
+                        }
+
+                        topId++;
+                    }
+                }
+            });
         }
 
         private static int GetFrequency(double value)
@@ -994,6 +1040,7 @@ namespace Microsoft.ML.Transforms.Text
             public const int NumberOfSummaryTermsPerTopic = 10;
             public const int NumberOfBurninIterations = 10;
             public const bool ResetRandomGenerator = false;
+            public const bool OutputTopicWordSummary = false;
         }
 
         private readonly IHost _host;
@@ -1100,6 +1147,10 @@ namespace Microsoft.ML.Transforms.Text
             /// Reset the random number generator for each document.
             /// </summary>
             public readonly bool ResetRandomGenerator;
+            /// <summary>
+            /// Whether to output the topic-word summary in text format
+            /// </summary>
+            public readonly bool OutputTopicWordSummary;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -1117,6 +1168,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="numberOfSummaryTermsPerTopic">The number of words to summarize the topic.</param>
             /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
             /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
+            /// <param name="outputTopicWordSummary">Whether to output the topic-word summary in text format.</param>
             public ColumnOptions(string name,
                 string inputColumnName = null,
                 int numberOfTopics = LatentDirichletAllocationEstimator.Defaults.NumberOfTopics,
@@ -1129,7 +1181,8 @@ namespace Microsoft.ML.Transforms.Text
                 int maximumTokenCountPerDocument = LatentDirichletAllocationEstimator.Defaults.MaximumTokenCountPerDocument,
                 int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic,
                 int numberOfBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
-                bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
+                bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator,
+                bool outputTopicWordSummary = LatentDirichletAllocationEstimator.Defaults.OutputTopicWordSummary)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValueOrNull(inputColumnName);
@@ -1155,6 +1208,7 @@ namespace Microsoft.ML.Transforms.Text
                 NumberOfSummaryTermsPerTopic = numberOfSummaryTermsPerTopic;
                 NumberOfBurninIterations = numberOfBurninIterations;
                 ResetRandomGenerator = resetRandomGenerator;
+                OutputTopicWordSummary = outputTopicWordSummary;
             }
 
             internal ColumnOptions(LatentDirichletAllocationTransformer.Column item, LatentDirichletAllocationTransformer.Options options) :
@@ -1170,7 +1224,8 @@ namespace Microsoft.ML.Transforms.Text
                     item.NumMaxDocToken ?? options.NumMaxDocToken,
                     item.NumSummaryTermPerTopic ?? options.NumSummaryTermPerTopic,
                     item.NumBurninIterations ?? options.NumBurninIterations,
-                    item.ResetRandomGenerator ?? options.ResetRandomGenerator)
+                    item.ResetRandomGenerator ?? options.ResetRandomGenerator,
+                    item.OutputTopicWordSummary ?? options.OutputTopicWordSummary)
             {
             }
 

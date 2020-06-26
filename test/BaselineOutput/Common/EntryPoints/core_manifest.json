@@ -20901,6 +20901,18 @@
                   "Default": null
                 },
                 {
+                  "Name": "OutputTopicWordSummary",
+                  "Type": "Bool",
+                  "Desc": "Whether to output the topic-word summary in text format",
+                  "Aliases": [
+                    "summary"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
                   "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
