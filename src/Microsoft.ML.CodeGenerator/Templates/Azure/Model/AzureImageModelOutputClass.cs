@@ -33,8 +33,8 @@ MB_Annotation();
             this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\nusing System.Linq;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n        [ColumnName(\"output1\")]\r\n" +
-                    "        public float[] Output1 { get; set; }\r\n\r\n        public string[] Label = " +
-                    "new string[]{");
+                    "        public float[] Output1 { get; set; }\r\n\r\n        public string[] Classifi" +
+                    "cationLabels = new string[]{");
 foreach(var label in Labels){
             this.Write("\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(label));
@@ -47,8 +47,8 @@ foreach(var label in Labels){
             get
             {
                 var maxScore = this.Score.Max();
-                var maxIndex = Arrary.IndexOf(this.Score, maxScore);
-                return this.Label[maxIndex];
+                var maxIndex = Array.IndexOf(this.Score, maxScore);
+                return this.ClassificationLabels[maxIndex];
             }
         }
 

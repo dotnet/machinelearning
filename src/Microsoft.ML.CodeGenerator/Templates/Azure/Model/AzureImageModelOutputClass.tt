@@ -20,15 +20,15 @@ namespace <#= Namespace #>.Model
         [ColumnName("output1")]
         public float[] Output1 { get; set; }
 
-        public string[] Label = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
+        public string[] ClassificationLabels = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
 
         public string Prediction
         {
             get
             {
                 var maxScore = this.Score.Max();
-                var maxIndex = Arrary.IndexOf(this.Score, maxScore);
-                return this.Label[maxIndex];
+                var maxIndex = Array.IndexOf(this.Score, maxScore);
+                return this.ClassificationLabels[maxIndex];
             }
         }
 

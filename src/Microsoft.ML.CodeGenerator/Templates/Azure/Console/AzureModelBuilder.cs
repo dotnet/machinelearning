@@ -34,8 +34,7 @@ MB_Annotation();
             this.Write("using System;\r\nusing System.Collections.Generic;\r\nusing System.IO;\r\nusing System." +
                     "Linq;\r\nusing Microsoft.ML;\r\nusing Microsoft.ML.Data;\r\nusing ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model;\r\nusing Microsoft.ML.CodeGenerator.Helper.ImageClassification;\r\nnamespace " +
-                    "");
+            this.Write(".Model;\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".ConsoleApp\r\n{\r\n    public static class ModelBuilder\r\n    {\r\n        private stat" +
                     "ic string TRAIN_DATA_FILEPATH = @\"");

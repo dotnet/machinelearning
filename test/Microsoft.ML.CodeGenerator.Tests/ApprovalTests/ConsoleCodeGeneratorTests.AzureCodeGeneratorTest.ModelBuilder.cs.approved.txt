@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Test.Model;
-using Microsoft.ML.CodeGenerator.Helper.ImageClassification;
 namespace Test.ConsoleApp
 {
     public static class ModelBuilder

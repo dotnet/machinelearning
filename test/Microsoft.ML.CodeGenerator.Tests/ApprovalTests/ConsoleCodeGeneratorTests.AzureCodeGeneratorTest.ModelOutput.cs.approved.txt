@@ -11,15 +11,15 @@ namespace Test.Model
         [ColumnName("output1")]
         public float[] Output1 { get; set; }
 
-        public string[] Label = new string[] { };
+        public string[] ClassificationLabels = new string[] { };
 
         public string Prediction
         {
             get
             {
                 var maxScore = this.Score.Max();
-                var maxIndex = Arrary.IndexOf(this.Score, maxScore);
-                return this.Label[maxIndex];
+                var maxIndex = Array.IndexOf(this.Score, maxScore);
+                return this.ClassificationLabels[maxIndex];
             }
         }
 

@@ -16,7 +16,6 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using <#= Namespace #>.Model;
-using Microsoft.ML.CodeGenerator.Helper.ImageClassification;
 namespace <#= Namespace #>.ConsoleApp
 {
     public static class ModelBuilder

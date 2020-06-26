@@ -33,12 +33,7 @@ MB_Annotation();
             this.Write("\r\nusing System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Sys" +
                     "tem.Text;\r\nusing System.IO;\r\nusing Microsoft.ML;\r\nusing ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model;\r\n");
-if(IsAzureImage){ 
-            this.Write(" \r\nusing Microsoft.ML.CodeGenerator.Helper;\r\nusing Microsoft.ML.CodeGenerator.Hel" +
-                    "per.ImageClassification;\r\n");
-} 
-            this.Write("\r\nnamespace ");
+            this.Write(".Model;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(@".Model
 {

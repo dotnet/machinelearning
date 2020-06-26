@@ -8,9 +8,6 @@ using System.IO;
 using Microsoft.ML;
 using CodeGenTest.Model;
 
-using Microsoft.ML.CodeGenerator.Helper;
-using Microsoft.ML.CodeGenerator.Helper.ImageClassification;
-
 namespace CodeGenTest.Model
 {
     public class ConsumeModel
