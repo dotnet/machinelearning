@@ -305,8 +305,8 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            var newStratificationColumn = DataOperationsCatalog.CreateGroupPreservationColumn(Host, ref output, stratificationColumn);
-            return newStratificationColumn;
+            var splitColumn = DataOperationsCatalog.CreateSplitColumn(Host, ref output, stratificationColumn);
+            return splitColumn;
         }
 
         private bool TryGetOverallMetrics(Dictionary<string, IDataView>[] metrics, out List<IDataView> overallList)

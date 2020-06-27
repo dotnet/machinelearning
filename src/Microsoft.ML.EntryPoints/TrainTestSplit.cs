@@ -50,15 +50,15 @@ namespace Microsoft.ML.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
 
             var data = input.Data;
-            var stratCol = DataOperationsCatalog.CreateGroupPreservationColumn(env, ref data, input.StratificationColumn);
+            var splitCol = DataOperationsCatalog.CreateSplitColumn(env, ref data, input.StratificationColumn);
 
             IDataView trainData = new RangeFilter(host,
-                new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = false }, data);
-            trainData = ColumnSelectingTransformer.CreateDrop(host, trainData, stratCol);
+                new RangeFilter.Options { Column = splitCol, Min = 0, Max = input.Fraction, Complement = false }, data);
+            trainData = ColumnSelectingTransformer.CreateDrop(host, trainData, splitCol);
 
             IDataView testData = new RangeFilter(host,
-                new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = true }, data);
-            testData = ColumnSelectingTransformer.CreateDrop(host, testData, stratCol);
+                new RangeFilter.Options { Column = splitCol, Min = 0, Max = input.Fraction, Complement = true }, data);
+            testData = ColumnSelectingTransformer.CreateDrop(host, testData, splitCol);
 
             return new Output() { TrainData = trainData, TestData = testData };
         }
