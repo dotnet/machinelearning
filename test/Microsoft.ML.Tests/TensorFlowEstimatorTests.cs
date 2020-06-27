@@ -14,7 +14,6 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.ML.Scenarios.TensorFlowScenariosTests;
 
 namespace Microsoft.ML.Tests
 {

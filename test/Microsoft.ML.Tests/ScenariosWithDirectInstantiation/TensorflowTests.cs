@@ -1905,7 +1905,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorflowPlaceholderShapeInferenceTest()
         {
-            //download the file
+            //download the pb file
             string gitPath = "https://github.com/dotnet/machinelearning-testdata/raw/ddf00f8d60ff1b4bb1f3e33639bec318e67fd32e/Microsoft.ML.TensorFlow.TestModels/cifar_model/frozen_model_variadic_input_shape.pb";
             using (WebClient client = new WebClient())
             {
