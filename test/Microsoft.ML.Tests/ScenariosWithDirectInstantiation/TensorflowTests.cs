@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Vision;
@@ -23,10 +24,6 @@ using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Model;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.Tools;
-using static Microsoft.ML.Scenarios.TensorFlowScenariosTests;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -1906,49 +1903,39 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        public void MyTest()
+        public void TensorflowPlaceholderShapeInferenceTest()
         {
-            /*import tensorflow as tf
-            graph_path = './saved_model.pb'
+            //download the file
+            string gitPath = "https://github.com/dotnet/machinelearning-testdata/raw/ddf00f8d60ff1b4bb1f3e33639bec318e67fd32e/Microsoft.ML.TensorFlow.TestModels/cifar_model/frozen_model_variadic_input_shape.pb";
+            using (WebClient client = new WebClient())
+            {
+                client.DownloadFile(new Uri($"{gitPath}"), "cifar_model/frozen_model_variadic_input_shape.pb");
+            }
+            //frozen_model_variadic_input_shape.pb is modified by frozen_model.pb 
+            //the shape of placeholder is changed from [?, w, h, c] to [?, ?, ?, c]
+            string modelLocation = "cifar_model/frozen_model_variadic_input_shape.pb";
 
-            def load_frozen_graph(frozen_file):
-                graph = tf.Graph()
-                with graph.as_default():
-                    od_graph_def = tf.compat.v1.GraphDef()
-                    with tf.io.gfile.GFile(frozen_file, 'rb') as fid:
-                        serialized_graph = fid.read()
-                        od_graph_def.ParseFromString(serialized_graph)
-                        tf.import_graph_def(od_graph_def, name = '')
-                return graph
-            graph = load_frozen_graph(graph_path)
+            int imageHeight = 32;
+            int imageWidth = 32;
+            string dataFile = GetDataPath("images/images.tsv");
+            string imageFolder = Path.GetDirectoryName(dataFile);
 
-            new_graph = tf.Graph()
-            with new_graph.as_default():
-                new_input = tf.compat.v1.placeholder(dtype = tf.float32, shape =[None, None, None, 3], name = 'Input')
-                tf.import_graph_def(graph.as_graph_def(), name = '', input_map ={ 'Input:0': new_input})
-
-            frozen_file = './new.pb'
-            with open(frozen_file, 'wb') as f:
-                f.write(new_graph.as_graph_def().SerializeToString())*/
-            var modelLocation = "cifar_model/frozen_model_variadic_input_shape.pb";
-
-            var imageHeight = 32;
-            var imageWidth = 32;
-            var dataFile = GetDataPath("images/images.tsv");
-            var imageFolder = Path.GetDirectoryName(dataFile);
-
-            var data = _mlContext.Data.LoadFromTextFile(dataFile, new[] {
+            IDataView data = _mlContext.Data.LoadFromTextFile(dataFile, new[] {
                 new TextLoader.Column("imagePath", DataKind.String, 0),
                 new TextLoader.Column("name", DataKind.String, 1)
             });
 
-            // Note that CamelCase column names are there to match the TF graph node names.
             var pipeline = _mlContext.Transforms.LoadImages("Input", imageFolder, "imagePath")
                 .Append(_mlContext.Transforms.ResizeImages("Input", imageHeight, imageWidth))
                 .Append(_mlContext.Transforms.ExtractPixels("Input", interleavePixelColors: true))
                 .Append(_mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
 
             var transformer = pipeline.Fit(data);
+
+            Tensorflow.TensorShape[] tfInputShape = transformer.LastTransformer.TFInputShapes;
+
+            Assert.Equal(imageHeight, tfInputShape.ElementAt(0)[1].dims[0]);
+            Assert.Equal(imageWidth, tfInputShape.ElementAt(0)[2].dims[0]);
         }
     }
 }
