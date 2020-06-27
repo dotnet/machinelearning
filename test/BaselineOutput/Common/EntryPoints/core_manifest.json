@@ -20903,7 +20903,7 @@
                 {
                   "Name": "OutputTopicWordSummary",
                   "Type": "Bool",
-                  "Desc": "Whether to output the topic-word summary in text format",
+                  "Desc": "Whether to output the topic-word summary in text format when saving the model to disk",
                   "Aliases": [
                     "summary"
                   ],
@@ -21124,7 +21124,7 @@
         {
           "Name": "OutputTopicWordSummary",
           "Type": "Bool",
-          "Desc": "Whether to output the topic-word summary in text format",
+          "Desc": "Whether to output the topic-word summary in text format when saving the model to disk",
           "Aliases": [
             "summary"
           ],

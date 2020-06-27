@@ -1063,7 +1063,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
         /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
-        /// <param name="outputTopicWordSummary">Whether to output the topic-word summary in text format.</param>
+        /// <param name="outputTopicWordSummary">Whether to output the topic-word summary in text format when saving the model to disk.</param>
         internal LatentDirichletAllocationEstimator(IHostEnvironment env,
             string outputColumnName, string inputColumnName = null,
             int numberOfTopics = Defaults.NumberOfTopics,
@@ -1152,7 +1152,7 @@ namespace Microsoft.ML.Transforms.Text
             /// </summary>
             public readonly bool ResetRandomGenerator;
             /// <summary>
-            /// Whether to output the topic-word summary in text format
+            /// Whether to output the topic-word summary in text format when saving the model to disk.
             /// </summary>
             public readonly bool OutputTopicWordSummary;
 
