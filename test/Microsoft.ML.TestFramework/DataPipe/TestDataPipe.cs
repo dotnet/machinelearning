@@ -1057,7 +1057,7 @@ namespace Microsoft.ML.RunTests
             using (var strm = file.OpenReadStream())
             using (var zip = new ZipArchive(strm, ZipArchiveMode.Read))
             {
-                var entry = zip.Entries.First(source => source.Name == "word_topic_summary.txt");
+                var entry = zip.Entries.First(source => source.Name == "word_topic_summary-Result.txt");
                 Assert.True(entry != null);
             }
 
