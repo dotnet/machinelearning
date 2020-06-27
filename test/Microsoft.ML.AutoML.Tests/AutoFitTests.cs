@@ -202,6 +202,63 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotEqual(0, metrices.MeanSquaredError);
         }
 
+        [Fact]
+        public void AutoFitWithPresplittedData()
+        {
+            // Models created in AutoML should work over the same data,
+            // no matter how that data is splitted before passing it to the experiment execution
+            // or to the model for prediction
+
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var dataFull = textLoader.Load(dataPath);
+            var dataTrainTest = context.Data.TrainTestSplit(dataFull);
+            var dataCV = context.Data.CrossValidationSplit(dataFull, numberOfFolds: 2);
+
+            var modelFull = context.Auto()
+                .CreateBinaryClassificationExperiment(0)
+                .Execute(dataFull,
+                    new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
+                .BestRun
+                .Model;
+
+            var modelTrainTest = context.Auto()
+                .CreateBinaryClassificationExperiment(0)
+                .Execute(dataTrainTest.TrainSet,
+                    new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
+                .BestRun
+                .Model;
+
+            var modelCV = context.Auto()
+                .CreateBinaryClassificationExperiment(0)
+                .Execute(dataCV.First().TrainSet,
+                    new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
+                .BestRun
+                .Model;
+
+            var models = new[] { modelFull, modelTrainTest, modelCV };
+
+            foreach(var model in models)
+            {
+                var resFull = model.Transform(dataFull);
+                var resTrainTest = model.Transform(dataTrainTest.TrainSet);
+                var resCV = model.Transform(dataCV.First().TrainSet);
+
+                Assert.Equal(30, resFull.Schema.Count);
+                Assert.Equal(30, resTrainTest.Schema.Count);
+                Assert.Equal(30, resCV.Schema.Count);
+
+                foreach (var col in resFull.Schema)
+                {
+                    Assert.Equal(col.Name, resTrainTest.Schema[col.Index].Name);
+                    Assert.Equal(col.Name, resCV.Schema[col.Index].Name);
+                }
+            }
+
+        }
+
         private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)
         {
             return new TextLoader.Options()

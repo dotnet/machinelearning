@@ -430,7 +430,10 @@ namespace Microsoft.ML
                 Complement = false
             }, data);
 
-            return new TrainTestData(trainFilter, testFilter);
+            var trainDV = ColumnSelectingTransformer.CreateDrop(_env, trainFilter, newSamplingKeyColumn);
+            var testDV = ColumnSelectingTransformer.CreateDrop(_env, testFilter, newSamplingKeyColumn);
+
+            return new TrainTestData(trainDV, testDV);
         }
 
         /// <summary>
@@ -457,18 +460,24 @@ namespace Microsoft.ML
             _env.CheckValueOrNull(samplingKeyColumnName);
             var newSamplingKeyColumn = CreateGroupPreservationColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
             var result = new List<TrainTestData>();
-            foreach (var split in CrossValidationSplit(_env, data, numberOfFolds, newSamplingKeyColumn))
+            foreach (var split in CrossValidationSplit(_env, data, newSamplingKeyColumn, numberOfFolds))
                 result.Add(split);
             return result;
         }
 
-        internal static IEnumerable<TrainTestData> CrossValidationSplit(IHostEnvironment env, IDataView data, int numberOfFolds = 5, string samplingKeyColumnName = null)
+        /// <summary>
+        /// Splits the data based on the tempSamplingKeyColumnName, and drops that column as it is only
+        /// intended to be used for splitting the data
+        /// </summary>
+        internal static IEnumerable<TrainTestData> CrossValidationSplit(IHostEnvironment env, IDataView data, string tempSamplingKeyColumnName, int numberOfFolds = 5)
         {
+            env.CheckValue(tempSamplingKeyColumnName, nameof(tempSamplingKeyColumnName));
+
             for (int fold = 0; fold < numberOfFolds; fold++)
             {
                 var trainFilter = new RangeFilter(env, new RangeFilter.Options
                 {
-                    Column = samplingKeyColumnName,
+                    Column = tempSamplingKeyColumnName,
                     Min = (double)fold / numberOfFolds,
                     Max = (double)(fold + 1) / numberOfFolds,
                     Complement=true,
@@ -478,7 +487,7 @@ namespace Microsoft.ML
 
                 var testFilter = new RangeFilter(env, new RangeFilter.Options
                 {
-                    Column = samplingKeyColumnName,
+                    Column = tempSamplingKeyColumnName,
                     Min = (double)fold / numberOfFolds,
                     Max = (double)(fold + 1) / numberOfFolds,
                     Complement = false,
@@ -486,7 +495,10 @@ namespace Microsoft.ML
                     IncludeMax = true
                 }, data);
 
-                yield return new TrainTestData(trainFilter, testFilter);
+                var trainDV = ColumnSelectingTransformer.CreateDrop(env, trainFilter, tempSamplingKeyColumnName);
+                var testDV = ColumnSelectingTransformer.CreateDrop(env, testFilter, tempSamplingKeyColumnName);
+
+                yield return new TrainTestData(trainDV, testDV);
             }
         }
 

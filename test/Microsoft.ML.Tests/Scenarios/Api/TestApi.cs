@@ -291,6 +291,55 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
 
         [Fact]
+        public void TestSplitsSchema()
+        {
+
+            var mlContext = new MLContext(0);
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+
+            var fullInput = mlContext.Data.LoadFromTextFile(dataPath, new[] {
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("Workclass", DataKind.String, 1),
+                            new TextLoader.Column("Education", DataKind.String,2),
+                            new TextLoader.Column("Age", DataKind.Single,9)
+            }, hasHeader: true);
+
+            var ttSplit = mlContext.Data.TrainTestSplit(fullInput);
+            var ttSplitWithSeed = mlContext.Data.TrainTestSplit(fullInput, seed: 10);
+            var ttSplitWithSeedAndSamplingKey = mlContext.Data.TrainTestSplit(fullInput, seed: 10, samplingKeyColumnName: "Workclass");
+
+            var cvSplit = mlContext.Data.CrossValidationSplit(fullInput);
+            var cvSplitWithSeed = mlContext.Data.CrossValidationSplit(fullInput, seed: 10);
+            var cvSplitWithSeedAndSamplingKey = mlContext.Data.CrossValidationSplit(fullInput, seed: 10, samplingKeyColumnName: "Workclass");
+
+            var splits = new[]
+            {
+                ttSplit.TrainSet,
+                ttSplit.TestSet,
+                ttSplitWithSeed.TrainSet,
+                ttSplitWithSeed.TestSet,
+                ttSplitWithSeedAndSamplingKey.TrainSet,
+                ttSplitWithSeedAndSamplingKey.TestSet,
+                cvSplit.First().TrainSet,
+                cvSplit.First().TestSet,
+                cvSplitWithSeed.First().TrainSet,
+                cvSplitWithSeed.First().TestSet,
+                cvSplitWithSeedAndSamplingKey.First().TrainSet,
+                cvSplitWithSeedAndSamplingKey.First().TestSet
+            };
+
+            // Splitting a dataset shouldn't affect its schema
+            foreach(var split in splits)
+            {
+                Assert.Equal(fullInput.Schema.Count, split.Schema.Count);
+                foreach(var col in fullInput.Schema)
+                {
+                    Assert.Equal(col.Name, split.Schema[col.Index].Name);
+                }
+            }
+        }
+
+        [Fact]
         public void TestTrainTestSplit()
         {
             var mlContext = new MLContext(0);

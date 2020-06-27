@@ -99,7 +99,7 @@ namespace Microsoft.ML
             // Sequential per-fold training.
             // REVIEW: we could have a parallel implementation here. We would need to
             // spawn off a separate host per fold in that case.
-            foreach (var split in DataOperationsCatalog.CrossValidationSplit(Environment, data, numFolds, newSamplingKeyColumn))
+            foreach (var split in DataOperationsCatalog.CrossValidationSplit(Environment, data, newSamplingKeyColumn, numFolds))
             {
                 var model = estimator.Fit(split.TrainSet);
                 var scoredTest = model.Transform(split.TestSet);
