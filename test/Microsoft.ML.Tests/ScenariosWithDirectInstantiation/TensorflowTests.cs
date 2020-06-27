@@ -23,6 +23,10 @@ using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Tools;
+using static Microsoft.ML.Scenarios.TensorFlowScenariosTests;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -1899,6 +1903,52 @@ namespace Microsoft.ML.Scenarios
             string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);
             return tempDirectory;
+        }
+
+        [TensorFlowFact]
+        public void MyTest()
+        {
+            /*import tensorflow as tf
+            graph_path = './saved_model.pb'
+
+            def load_frozen_graph(frozen_file):
+                graph = tf.Graph()
+                with graph.as_default():
+                    od_graph_def = tf.compat.v1.GraphDef()
+                    with tf.io.gfile.GFile(frozen_file, 'rb') as fid:
+                        serialized_graph = fid.read()
+                        od_graph_def.ParseFromString(serialized_graph)
+                        tf.import_graph_def(od_graph_def, name = '')
+                return graph
+            graph = load_frozen_graph(graph_path)
+
+            new_graph = tf.Graph()
+            with new_graph.as_default():
+                new_input = tf.compat.v1.placeholder(dtype = tf.float32, shape =[None, None, None, 3], name = 'Input')
+                tf.import_graph_def(graph.as_graph_def(), name = '', input_map ={ 'Input:0': new_input})
+
+            frozen_file = './new.pb'
+            with open(frozen_file, 'wb') as f:
+                f.write(new_graph.as_graph_def().SerializeToString())*/
+            var modelLocation = "cifar_model/frozen_model_variadic_input_shape.pb";
+
+            var imageHeight = 32;
+            var imageWidth = 32;
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var data = _mlContext.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
+
+            // Note that CamelCase column names are there to match the TF graph node names.
+            var pipeline = _mlContext.Transforms.LoadImages("Input", imageFolder, "imagePath")
+                .Append(_mlContext.Transforms.ResizeImages("Input", imageHeight, imageWidth))
+                .Append(_mlContext.Transforms.ExtractPixels("Input", interleavePixelColors: true))
+                .Append(_mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
+
+            var transformer = pipeline.Fit(data);
         }
     }
 }

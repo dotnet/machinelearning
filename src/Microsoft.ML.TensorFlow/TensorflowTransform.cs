@@ -509,7 +509,6 @@ namespace Microsoft.ML.Transforms
                     var shape = originalShape.dims;
 
                     var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
-                    var typeDims = (type as VectorDataViewType).Dimensions;
                     if (shape == null || (shape.Length == 0))
                         _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
                     else
@@ -533,13 +532,13 @@ namespace Microsoft.ML.Transforms
                         //This cover the 2-variable senario e.g. [?,?,?,3] where we can assume typeDims provides the information of [W, H, C]
                         var originalShapeDims = originalShape.dims;
                         var originalShapeNdim = originalShape.ndim;
-                        if (numOfUnkDim == typeDims.Length && originalShapeNdim == numOfUnkDim + 1 && typeDims.Length == 3)
+                        if (numOfUnkDim == colTypeDims.Length && originalShapeNdim == numOfUnkDim + 1 && colTypeDims.Length == 3)
                         {
                             for (int ishape = 1; ishape < originalShapeNdim; ++ishape)
                             {
                                 if (originalShapeDims[ishape] == -1)
                                 {
-                                    originalShapeDims[ishape] = typeDims.IndexOf(ishape - 1);
+                                    originalShapeDims[ishape] = colTypeDims[ishape - 1];
                                     valCount *= originalShapeDims[ishape];
                                     numOfUnkDim--;
                                 }

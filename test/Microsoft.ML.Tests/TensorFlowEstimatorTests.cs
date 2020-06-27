@@ -273,51 +273,5 @@ namespace Microsoft.ML.Tests
                 }
             }
         }
-
-        /*[TensorFlowFact]
-        public void MyTest()
-        {
-            var mlContext = new MLContext(seed: 1);
-
-            var modelFile = "C:\\Users\\Administrator\\Desktop\\MLNET\\PotatoDetector.pb";
-
-            var dataFile = GetDataPath("images/images.tsv");
-            var imageFolder = Path.GetDirectoryName(dataFile);
-
-            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
-                new TextLoader.Column("imagePath", DataKind.String, 0),
-                new TextLoader.Column("name", DataKind.String, 1)
-            });
-
-            var pipeline = mlContext.Transforms
-             .LoadImages("image_tensor", imageFolder, "imagePath")
-              .Append(mlContext.Transforms.ResizeImages(outputColumnName: "image_tensor", imageWidth: 500, imageHeight: 500))
-                .Append(mlContext.Transforms.ExtractPixels(outputColumnName: "image_tensor", interleavePixelColors: true, outputAsFloatArray: false))
-                .Append(mlContext.Model.LoadTensorFlowModel(modelFile)
-              .ScoreTensorFlowModel(outputColumnNames: new[] { "detection_boxes", "detection_scores", "num_detections" }, inputColumnNames: new[] { "image_tensor" }, addBatchDimensionInput: false));
-
-            var transformer = pipeline.Fit(data);
-
-            *//*var modelLocation = "cifar_model/frozen_model.pb";
-
-            var mlContext = new MLContext(seed: 1);
-            var imageHeight = 32;
-            var imageWidth = 32;
-            var dataFile = GetDataPath("images/images.tsv");
-            var imageFolder = Path.GetDirectoryName(dataFile);
-
-            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
-                new TextLoader.Column("imagePath", DataKind.String, 0),
-                new TextLoader.Column("name", DataKind.String, 1)
-            });
-
-            // Note that CamelCase column names are there to match the TF graph node names.
-            var pipe = ML.Transforms.LoadImages("Input", imageFolder, "imagePath")
-                .Append(ML.Transforms.ResizeImages("Input", imageHeight, imageWidth))
-                .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
-                .Append(ML.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
-
-            TestEstimatorCore(pipe, data);*//*
-        }*/
     }
 }
