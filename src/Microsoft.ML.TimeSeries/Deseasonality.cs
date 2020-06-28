@@ -10,7 +10,7 @@ namespace Microsoft.ML.TimeSeries
     internal interface IDeseasonality
     {
         /// <summary>
-        /// Remove the seasonality component of the given time-series.
+        /// Remove the seasonality component from the given time-series.
         /// </summary>
         /// <param name="values">An array representing the input time-series.</param>
         /// <param name="period">The period value of the time-series.</param>
