@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -221,6 +222,52 @@ namespace Microsoft.ML.Tests.Transformers
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
             }
+        }
+
+        public class ModelInput
+        {
+            [ColumnName("Label"), LoadColumn(0)]
+            public int Label { get; set; }
+
+
+            [ColumnName("ProblematicColumn"), LoadColumn(1)]
+            public string ProblematicColumn { get; set; }
+        }
+
+        static IEnumerable<ModelInput> GetData()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                yield return new ModelInput { Label = i % 3, ProblematicColumn = (i % 200).ToString() };
+            }
+        }
+
+        [Fact]
+        public void KeyToVectorOverflowTest()
+        {
+            // This test is introduced for https://github.com/dotnet/machinelearning/issues/5211
+            // that provides users an informational exception message
+            // This exception happens if call OneHotHashEncoding twice in your pipeline
+            MLContext mlContext = new MLContext(1);
+
+            IDataView dataview = mlContext.Data.LoadFromEnumerable(GetData());
+
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                   .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("ProblematicColumn"));
+
+            var featurizedData = pipeline.Fit(dataview).Transform(dataview);
+
+            try
+            {
+                var transformer = pipeline.Fit(featurizedData);
+                Assert.True(false);
+            }
+            catch (System.Exception ex)
+            {
+                Assert.Contains("Arithmetic operation resulted in an overflow. Related column: ProblematicColumn", ex.Message);
+                return;
+            }
+
         }
     }
 }

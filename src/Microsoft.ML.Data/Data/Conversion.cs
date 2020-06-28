@@ -1369,7 +1369,8 @@ namespace Microsoft.ML.Data.Conversion
         }
 
         /// <summary>
-        /// This produces zero for empty. It returns false if the text is not parsable.
+        /// This produces zero for empty, or NaN depending on the <see cref="DoubleParser.OptionFlags.EmptyAsNaN"/> used.
+        /// It returns false if the text is not parsable.
         /// On failure, it sets dst to the NA value.
         /// </summary>
         public bool TryParse(in TX src, out R4 dst)
@@ -1382,7 +1383,8 @@ namespace Microsoft.ML.Data.Conversion
         }
 
         /// <summary>
-        /// This produces zero for empty. It returns false if the text is not parsable.
+        /// This produces zero for empty, or NaN depending on the <see cref="DoubleParser.OptionFlags.EmptyAsNaN"/> used.
+        /// It returns false if the text is not parsable.
         /// On failure, it sets dst to the NA value.
         /// </summary>
         public bool TryParse(in TX src, out R8 dst)
@@ -1394,6 +1396,9 @@ namespace Microsoft.ML.Data.Conversion
             return IsStdMissing(ref span);
         }
 
+        /// <summary>
+        /// This produces default for empty.
+        /// </summary>
         public bool TryParse(in TX src, out TS dst)
         {
             if (src.IsEmpty)
@@ -1408,6 +1413,9 @@ namespace Microsoft.ML.Data.Conversion
             return false;
         }
 
+        /// <summary>
+        /// This produces default for empty.
+        /// </summary>
         public bool TryParse(in TX src, out DT dst)
         {
             if (src.IsEmpty)
@@ -1422,6 +1430,9 @@ namespace Microsoft.ML.Data.Conversion
             return false;
         }
 
+        /// <summary>
+        /// This produces default for empty.
+        /// </summary>
         public bool TryParse(in TX src, out DZ dst)
         {
             if (src.IsEmpty)

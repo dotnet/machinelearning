@@ -139,6 +139,8 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly HashingEstimator.ColumnOptions[] _columns;
+        [BestFriend]
+        internal IReadOnlyCollection<HashingEstimator.ColumnOptions> Columns => _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorDataViewType[] _kvTypes;
         private readonly bool _nonOnnxExportableVersion;
@@ -1353,6 +1355,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariable, string dstVariable)
             {
+                const int minimumOpSetVersion = 11;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 string castOutput;
                 string isGreaterThanZeroOutput = "";
                 OnnxNode castNode;
@@ -1759,8 +1764,10 @@ namespace Microsoft.ML.Transforms
     public sealed class HashingEstimator : IEstimator<HashingTransformer>
     {
         internal const int NumBitsMin = 1;
+        [BestFriend]
         internal const int NumBitsLim = 32;
 
+        [BestFriend]
         internal static class Defaults
         {
             public const int NumberOfBits = NumBitsLim - 1;

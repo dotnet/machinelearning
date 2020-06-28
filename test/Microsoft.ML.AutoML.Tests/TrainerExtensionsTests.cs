@@ -281,6 +281,32 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void BuildFastTreeRankingPipelineNode()
+        {
+            var columnInfo = new ColumnInformation()
+            {
+                LabelColumnName = "L",
+                GroupIdColumnName = "GId"
+            };
+            var pipelineNode = new FastTreeRankingExtension().CreatePipelineNode(null, columnInfo);
+            var expectedJson = @"{
+  ""Name"": ""FastTreeRanking"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""LabelColumnName"": ""L"",
+    ""RowGroupColumnName"": ""GId""
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+        }
+
+        [Fact]
         public void BuildParameterSetLightGbm()
         {
             var props = new Dictionary<string, object>()
@@ -299,8 +325,9 @@ namespace Microsoft.ML.AutoML.Test
             var binaryParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.LightGbmBinary, props);
             var multiParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.LightGbmMulti, props);
             var regressionParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.LightGbmRegression, props);
+            var rankingParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.LightGbmRanking, props);
 
-            foreach (var paramSet in new ParameterSet[] { binaryParams, multiParams, regressionParams })
+            foreach (var paramSet in new ParameterSet[] { binaryParams, multiParams, regressionParams, rankingParams })
             {
                 Assert.Equal(4, paramSet.Count);
                 Assert.Equal("1", paramSet["NumberOfIterations"].ValueText);
@@ -356,7 +383,15 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }
 
-       [Fact]
+        [Fact]
+        public void PublicToPrivateTrainerNamesRankingTest()
+        {
+            var publicNames = Enum.GetValues(typeof(RankingTrainer)).Cast<RankingTrainer>();
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
+            Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+        }
+
+        [Fact]
         public void PublicToPrivateTrainerNamesNullTest()
         {
             var internalNames = TrainerExtensionUtil.GetTrainerNames(null as IEnumerable<BinaryClassificationTrainer>);

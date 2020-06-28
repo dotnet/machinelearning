@@ -187,6 +187,8 @@ namespace Microsoft.ML
         /// It is used when score is calculated for each root cause item. The range of beta should be in [0,1].
         /// For a larger beta, root cause items which have a large difference between value and expected value will get a high score.
         /// For a small beta, root cause items which have a high relative change will get a low score.</param>
+        /// <param name="rootCauseThreshold">A threshold to determine whether the point should be root cause. The range of this threshold should be in [0,1].
+        /// If the point's delta is equal to or larger than rootCauseThreshold multiplied by anomaly dimension point's delta, this point is treated as a root cause. Different threshold will turn out different results. Users can choose the delta according to their data and requirments.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -194,21 +196,68 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5)
+        public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.3, double rootCauseThreshold = 0.95)
         {
             IHostEnvironment host = CatalogUtils.GetEnvironment(catalog);
 
             //check the root cause input
             CheckRootCauseInput(host, src);
 
-            //check beta
+            //check parameters
             host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
+            host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(beta), "Must be in [0,1]");
 
             //find out the root cause
-            RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta);
+            RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta, rootCauseThreshold);
             RootCause dst = analyzer.Analyze();
             return dst;
         }
+
+        /// <summary>
+        /// <para>
+        /// In time series data, seasonality (or periodicity) is the presence of variations that occur at specific regular intervals,
+        /// such as weekly, monthly, or quarterly.
+        /// </para>
+        /// <para>
+        /// This method detects this predictable interval (or period) by adopting techniques of fourier analysis.
+        /// Assuming the input values have the same time interval (e.g., sensor data collected at every second ordered by timestamps),
+        /// this method takes a list of time-series data, and returns the regular period for the input seasonal data,
+        /// if a predictable fluctuation or pattern can be found that recurs or repeats over this period throughout the input values.
+        /// </para>
+        /// <para>
+        /// Returns -1 if no such pattern is found, that is, the input values do not follow a seasonal fluctuation.
+        /// </para>
+        /// </summary>
+        /// <param name="catalog">The detect seasonality catalog.</param>
+        /// <param name="input">Input DataView.The data is an instance of <see cref="Microsoft.ML.IDataView"/>.</param>
+        /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
+        /// <param name="seasonalityWindowSize">An upper bound on the number of values to be considered in the input values.
+        /// When set to -1, use the whole input to fit model; when set to a positive integer, only the first windowSize number
+        /// of values will be considered. Default value is -1.</param>
+        /// <param name="randomnessThreshold"><a href ="https://en.wikipedia.org/wiki/Correlogram">Randomness threshold</a>
+        /// that specifies how confidently the input values follow a predictable pattern recurring as seasonal data.
+        /// The range is between [0, 1]. By default, it is set as 0.95.
+        /// </param>
+        /// <returns>The regular interval for the input as seasonal data, otherwise return -1.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LocalizeRootCause](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectSeasonality.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static int DetectSeasonality(
+             this AnomalyDetectionCatalog catalog,
+             IDataView input,
+             string inputColumnName,
+             int seasonalityWindowSize = -1,
+             double randomnessThreshold = 0.95)
+         => new SeasonalityDetector().DetectSeasonality(
+             CatalogUtils.GetEnvironment(catalog),
+             input,
+             inputColumnName,
+             seasonalityWindowSize,
+             randomnessThreshold);
 
         private static void CheckRootCauseInput(IHostEnvironment host, RootCauseLocalizationInput src)
         {

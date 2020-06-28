@@ -43,13 +43,16 @@ namespace Microsoft.ML.AutoML
         SymbolicSgdLogisticRegressionBinary,
         SymbolicSgdLogisticRegressionOva,
         MatrixFactorization,
-        ImageClassification
+        ImageClassification,
+        LightGbmRanking,
+        FastTreeRanking
     }
 
     internal static class TrainerExtensionUtil
     {
         private const string WeightColumn = "ExampleWeightColumnName";
         private const string LabelColumn = "LabelColumnName";
+        private const string GroupColumn = "GroupColumnName";
 
         public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams, string labelColumn) where T : TrainerInputBaseWithLabel
         {
@@ -129,10 +132,10 @@ namespace Microsoft.ML.AutoML
         }
 
         public static PipelineNode BuildLightGbmPipelineNode(TrainerName trainerName, IEnumerable<SweepableParam> sweepParams,
-            string labelColumn, string weightColumn)
+            string labelColumn, string weightColumn, string groupColumn)
         {
             return new PipelineNode(trainerName.ToString(), PipelineNodeType.Trainer, DefaultColumnNames.Features,
-                DefaultColumnNames.Score, BuildLightGbmPipelineNodeProps(sweepParams, labelColumn, weightColumn));
+                DefaultColumnNames.Score, BuildLightGbmPipelineNodeProps(sweepParams, labelColumn, weightColumn, groupColumn));
         }
 
         private static IDictionary<string, object> BuildBasePipelineNodeProps(IEnumerable<SweepableParam> sweepParams,
@@ -155,7 +158,7 @@ namespace Microsoft.ML.AutoML
         }
 
         private static IDictionary<string, object> BuildLightGbmPipelineNodeProps(IEnumerable<SweepableParam> sweepParams,
-            string labelColumn, string weightColumn)
+            string labelColumn, string weightColumn, string groupColumn = null)
         {
             Dictionary<string, object> props = null;
             if (sweepParams == null || !sweepParams.Any())
@@ -179,6 +182,10 @@ namespace Microsoft.ML.AutoML
             {
                 props[WeightColumn] = weightColumn;
             }
+            if (groupColumn != null)
+            {
+                props[GroupColumn] = groupColumn;
+            }
 
             return props;
         }
@@ -189,7 +196,7 @@ namespace Microsoft.ML.AutoML
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             if (trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
-                trainerName == TrainerName.LightGbmRegression)
+                trainerName == TrainerName.LightGbmRegression || trainerName == TrainerName.LightGbmRanking)
             {
                 return BuildLightGbmParameterSet(props);
             }
@@ -375,6 +382,20 @@ namespace Microsoft.ML.AutoML
             throw new NotSupportedException($"{regressionTrainer} not supported");
         }
 
+        public static TrainerName GetTrainerName(RankingTrainer rankingTrainer)
+        {
+            switch (rankingTrainer)
+            {
+                case RankingTrainer.FastTreeRanking:
+                    return TrainerName.FastTreeRanking;
+                case RankingTrainer.LightGbmRanking:
+                    return TrainerName.LightGbmRanking;
+            }
+
+            // never expected to reach here
+            throw new NotSupportedException($"{rankingTrainer} not supported");
+        }
+
         public static TrainerName GetTrainerName(RecommendationTrainer recommendationTrainer)
         {
             switch (recommendationTrainer)
@@ -405,6 +426,11 @@ namespace Microsoft.ML.AutoML
         public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<RecommendationTrainer> recommendationTrainers)
         {
             return recommendationTrainers?.Select(t => GetTrainerName(t));
+        }
+
+        public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<RankingTrainer> rankingTrainers)
+        {
+            return rankingTrainers?.Select(t => GetTrainerName(t));
         }
     }
 }

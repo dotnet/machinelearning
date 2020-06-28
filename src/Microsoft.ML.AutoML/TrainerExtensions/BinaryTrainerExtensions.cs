@@ -122,7 +122,7 @@ namespace Microsoft.ML.AutoML
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
         {
             return TrainerExtensionUtil.BuildLightGbmPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
-                columnInfo.LabelColumnName, columnInfo.ExampleWeightColumnName);
+                columnInfo.LabelColumnName, columnInfo.ExampleWeightColumnName, columnInfo.GroupIdColumnName);
         }
     }
 

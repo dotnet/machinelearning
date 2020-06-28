@@ -627,6 +627,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 string opType;
 
                 if ((_norms[iinfo] != LpNormNormalizingEstimatorBase.NormFunction.StandardDeviation) && (_ensureZeroMeans[iinfo] == false))

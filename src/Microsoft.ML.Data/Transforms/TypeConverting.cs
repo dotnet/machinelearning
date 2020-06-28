@@ -497,6 +497,9 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 var opType = "Cast";
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType), "");
                 var t = _parent._columns[iinfo].OutputKind.ToInternalDataKind().ToType();

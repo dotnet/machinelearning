@@ -69,6 +69,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         return new ImageClassificationTrainer(node);
                     case TrainerName.MatrixFactorization:
                         return new MatrixFactorization(node);
+                    case TrainerName.LightGbmRanking:
+                        return new LightGbmRanking(node);
+                    case TrainerName.FastTreeRanking:
+                        return new FastTreeRanking(node);
                     default:
                         throw new ArgumentException($"The trainer '{trainer}' is not handled currently.");
                 }

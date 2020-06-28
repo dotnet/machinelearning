@@ -1,0 +1,15 @@
+int,description,num1,num2,date,num3,num4
+0,"this is a description",0.12,0.34,01/01/2001,0.56,0.78
+,"this has an empty int and date", 1.1, 11.11,,111.111,1111.11111
+"","this has a quoted empty int and date", 1.1, 11.11,"",111.111,1111.11111
+"1","this has a quoted int and date", 1.1, 11.11,"1/1/2001",111.111,1111.11111
+2,"this has an empty num1 and a space in num3",,22.22,2/2/2002, ,2222.2222
+3,"this has an empty quoted num1 and a quoted space in num3","",33.33,3/3/2003," ",3333.3333
+4,"this has a space in num2 and a space in num4",4.4, ,4/4/2004,444.444, 
+5,"this has a quoted space num2 and quoted space in num4",5.5,"",5/5/2005,555.555," "
+6,"this has no date, num3 or num4 (the separator corresponding to them is also missing)",6.6,66.66
+7,"this has no num4 (the separator corresponding to it is missing)",7.7,77.77,7/7/2007,777.777
+8,"this has nothing in num4, but includes the last separator",8.8,88.88,8/8/2008,888.888,
+9,"",9.9,99.99,9/9/2009,999.999,NaN
+,,10.10,?,10/10/2010,101010.101010,?
+11,NaN,?,NaN,11/11/2011,,Infinity
