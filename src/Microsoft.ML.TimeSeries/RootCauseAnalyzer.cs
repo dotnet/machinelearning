@@ -33,7 +33,7 @@ namespace Microsoft.ML.TimeSeries
             return AnalyzeOneLayer(_src).FirstOrDefault();
         }
 
-        public List<RootCause> AnalyzeMultiDimensionalRootCauses()
+        public List<RootCause> AnalyzePossibleCauses()
         {
             return AnalyzeOneLayer(_src);
         }

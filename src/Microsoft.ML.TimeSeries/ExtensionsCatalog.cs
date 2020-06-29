@@ -235,11 +235,11 @@ namespace Microsoft.ML
 
             //check parameters
             host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
-            host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(beta), "Must be in [0,1]");
+            host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(rootCauseThreshold), "Must be in [0,1]");
 
             //find out the possible causes
             RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta, rootCauseThreshold);
-            return analyzer.AnalyzeMultiDimensionalRootCauses();
+            return analyzer.AnalyzePossibleCauses();
         }
 
         /// <summary>
