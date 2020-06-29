@@ -176,7 +176,36 @@ namespace Microsoft.ML
         /// </example>
         public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, string outputColumnName, string inputColumnName,
             double threshold = 0.3, int batchSize = 1024, double sensitivity = 99, SrCnnDetectMode detectMode = SrCnnDetectMode.AnomalyOnly)
-            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, inputColumnName, outputColumnName, threshold, batchSize, sensitivity, detectMode);
+        {
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                Threshold = threshold,
+                BatchSize = batchSize,
+                Sensitivity = sensitivity,
+                DetectMode = detectMode,
+            };
+
+            return DetectEntireAnomalyBySrCnn(catalog, input, outputColumnName, inputColumnName, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="SrCnnEntireAnomalyDetector"/>, which detects timeseries anomalies for entire input using SRCNN algorithm.
+        /// </summary>
+        /// <param name="catalog">The AnomalyDetectionCatalog.</param>
+        /// <param name="input">Input DataView.</param>
+        /// <param name="outputColumnName">Name of the column resulting from data processing of <paramref name="inputColumnName"/>.
+        /// The column data is a vector of <see cref="System.Double"/>. The length of this vector varies depending on <paramref name="options.DetectMode"/>.</param>
+        /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
+        /// <param name="options">Defines the settings of the load operation.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectEntireAnomalyBySrCnn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectEntireAnomalyBySrCnn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, string outputColumnName, string inputColumnName, SrCnnEntireAnomalyDetectorOptions options)
+            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, outputColumnName, inputColumnName, options);
 
         /// <summary>
         /// Create <see cref="RootCause"/>, which localizes root causes using decision tree algorithm.

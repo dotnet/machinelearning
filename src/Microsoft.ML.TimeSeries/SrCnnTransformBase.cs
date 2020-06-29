@@ -26,7 +26,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             SortOrder = 3)]
         public int WindowSize = 24;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the initial window for computingd. The default value is set to 0, which means there is no initial window considered.", ShortName = "iwnd",
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the initial window for computing. The default value is set to 0, which means there is no initial window considered.", ShortName = "iwnd",
             SortOrder = 4)]
         public int InitialWindowSize = 0;
 
