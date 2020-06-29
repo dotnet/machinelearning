@@ -48,7 +48,7 @@ namespace Microsoft.ML.AutoML
         {
             var modelFileInfo = GetModelFileInfo(modelDirectory, iterationNum);
             var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainData, _validData,
-                _labelColumn, _groupIdColumn, _metricsAgent, _preprocessorTransform, modelFileInfo, _modelInputSchema, _logger);
+                _labelColumn, _metricsAgent, _preprocessorTransform, modelFileInfo, _modelInputSchema, _logger);
             var suggestedPipelineRunDetail = new SuggestedPipelineRunDetail<TMetrics>(pipeline,
                 trainResult.score,
                 trainResult.exception == null,

@@ -78,7 +78,7 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        public BinaryClassificationMetrics EvaluateMetrics(IDataView data, string labelColumn, string groupId)
+        public BinaryClassificationMetrics EvaluateMetrics(IDataView data, string labelColumn)
         {
             return _mlContext.BinaryClassification.EvaluateNonCalibrated(data, labelColumn);
         }

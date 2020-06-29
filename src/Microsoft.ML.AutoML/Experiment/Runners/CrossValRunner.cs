@@ -30,8 +30,8 @@ namespace Microsoft.ML.AutoML
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
             ITransformer[] preprocessorTransforms,
-            string labelColumn,
             string groupIdColumn,
+            string labelColumn,
             IChannel logger)
         {
             _context = context;
@@ -55,7 +55,7 @@ namespace Microsoft.ML.AutoML
             {
                 var modelFileInfo = RunnerUtil.GetModelFileInfo(modelDirectory, iterationNum, i + 1);
                 var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainDatasets[i], _validDatasets[i],
-                    _labelColumn, _groupIdColumn, _metricsAgent, _preprocessorTransforms?[i], modelFileInfo, _modelInputSchema, _logger);
+                    _labelColumn, _metricsAgent, _preprocessorTransforms?[i], modelFileInfo, _modelInputSchema, _logger);
                 trainResults.Add(new SuggestedPipelineTrainResult<TMetrics>(trainResult.model, trainResult.metrics, trainResult.exception, trainResult.score));
             }
 

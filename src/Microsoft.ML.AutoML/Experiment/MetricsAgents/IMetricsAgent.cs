@@ -10,6 +10,6 @@ namespace Microsoft.ML.AutoML
 
         bool IsModelPerfect(double score);
 
-        T EvaluateMetrics(IDataView data, string labelColumn, string groupId);
+        T EvaluateMetrics(IDataView data, string labelColumn);
     }
 }

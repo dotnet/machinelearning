@@ -16,7 +16,6 @@ namespace Microsoft.ML.AutoML
             IDataView trainData,
             IDataView validData,
             string labelColumn,
-            string groupId,
             IMetricsAgent<TMetrics> metricsAgent,
             ITransformer preprocessorTransform,
             FileInfo modelFileInfo,
@@ -29,7 +28,7 @@ namespace Microsoft.ML.AutoML
                 var model = estimator.Fit(trainData);
 
                 var scoredData = model.Transform(validData);
-                var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn, groupId);
+                var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn);
                 var score = metricsAgent.GetScore(metrics);
 
                 if (preprocessorTransform != null)

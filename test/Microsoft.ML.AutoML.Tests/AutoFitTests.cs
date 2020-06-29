@@ -136,7 +136,7 @@ namespace Microsoft.ML.AutoML.Test
             trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
             // STEP 2: Run AutoML experiment
             ExperimentResult<RankingMetrics> experimentResult = mlContext.Auto()
-                .CreateRankingExperiment(5)
+                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = "CustomGroupId", MaxExperimentTimeInSeconds = 5})
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation()
                     {
