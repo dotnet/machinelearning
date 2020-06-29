@@ -280,8 +280,18 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ModelInputClassTest()
         {
-            (var pipeline, var columnInference, var mapping) = this.GetMockedAzurePipelineAndInference();
+            // Test with datasets whose columns are sanitized and not sanitized. The columns of a dataset are considered
+            // sanitized if the column names are all unique and distinct, irrespective of capitalization. 
+            (var pipelineSanitized, var columnInferenceSanitized, var mappingSanitized) = this.GetMockedAzurePipelineAndInference();
+            TestModelInput(pipelineSanitized, columnInferenceSanitized, mappingSanitized, "sanitized");
+            (var pipelineUnsatinized, var columnInferenceUnsatinized, var mappingUnsatinized) = this.GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames();
+            TestModelInput(pipelineUnsatinized, columnInferenceUnsatinized, mappingUnsatinized, "unsanitized");
 
+        }
+
+        private void TestModelInput(Pipeline pipeline, ColumnInferenceResults columnInference,
+                                    IDictionary<string, CodeGeneratorSettings.ColumnMapping> mapping, string info)
+        {
             // test with null map case
             var columnMappingStringList = Utils.GenerateClassLabels(columnInference);
             var modelInputProject = new CSharpCodeFile()
@@ -294,7 +304,7 @@ namespace mlnet.Tests
                 }.TransformText(),
                 Name = "ModelInput.cs",
             };
-            NamerFactory.AdditionalInformation = "null_map";
+            NamerFactory.AdditionalInformation = info + "_null_map";
             Approvals.Verify(modelInputProject.File);
 
             // test with map case
@@ -309,7 +319,7 @@ namespace mlnet.Tests
                 }.TransformText(),
                 Name = "ModelInput.cs",
             };
-            NamerFactory.AdditionalInformation = "map";
+            NamerFactory.AdditionalInformation = info + "_map";
             Approvals.Verify(modelInputProject.File);
         }
 
@@ -877,6 +887,120 @@ namespace mlnet.Tests
                     new CodeGeneratorSettings.ColumnMapping()
                     {
                         ColumnName = "label(IsOver50K)",
+                        ColumnType = DataKind.Boolean,
+                    }
+                }
+            };
+
+            return (bestPipeLine, columnInference, mapping);
+        }
+
+        private (Pipeline, ColumnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping>) GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames()
+        {
+            // construct pipeline
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
+                new Dictionary<string, object>()
+                {
+                    { "outputColumnNames", "output1" },
+                    { "inputColumnNames", "input1"},
+                });
+            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var bestPipeLine = new Pipeline(new PipelineNode[]
+            {
+                onnxPipeLineNode,
+                labelMapPipelineNode,
+            });
+
+            // construct column inference
+            var textLoaderArgs = new TextLoader.Options()
+            {
+                Columns = new[] {
+                        new TextLoader.Column("id", DataKind.Int32, 0),
+                        new TextLoader.Column("MsAssetNum", DataKind.Int32, 1),
+                        new TextLoader.Column("Make", DataKind.String, 2),
+                        new TextLoader.Column("Model", DataKind.String, 3),
+                        new TextLoader.Column("model", DataKind.Double, 4),
+                        new TextLoader.Column("work category", DataKind.String, 5),
+                        new TextLoader.Column("Work category", DataKind.Int32, 6),
+                        new TextLoader.Column("IsDetachable", DataKind.Boolean, 7),
+                    },
+                AllowQuoting = true,
+                AllowSparse = true,
+                HasHeader = true,
+                Separators = new[] { ',' }
+            };
+
+            var columnInference = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = textLoaderArgs,
+                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+            };
+
+            // construct columnMapping
+            // mock columnMapping
+            var mapping = new Dictionary<string, CodeGeneratorSettings.ColumnMapping>()
+            {
+                {
+                    "id",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_0",
+                        ColumnType = DataKind.Int32,
+                    }
+                },
+                {
+                    "MsAssetNum",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_1",
+                        ColumnType = DataKind.Int32,
+                    }
+                },
+                {
+                    "Make",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_2",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Model",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_3",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "model",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_4",
+                        ColumnType = DataKind.Double,
+                    }
+                },
+                {
+                    "work category",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_5",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Work Category",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_6",
+                        ColumnType = DataKind.Int32,
+                    }
+                },
+                {
+                    "IsDetachable",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_7",
                         ColumnType = DataKind.Boolean,
                     }
                 }
