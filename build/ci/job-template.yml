@@ -16,9 +16,9 @@ jobs:
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
       timeoutInMinutes: 30
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
-      timeoutInMinutes: 75
+      timeoutInMinutes: 90
     ${{ if eq(parameters.codeCoverage, 'true') }}:
-      timeoutInMinutes: 100
+      timeoutInMinutes: 120
     cancelTimeoutInMinutes: 10
     variables:
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
