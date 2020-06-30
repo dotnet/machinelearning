@@ -253,7 +253,7 @@ namespace Microsoft.ML.AutoML
                 validationData = preprocessorTransform.Transform(validationData);
             }
 
-            var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumnName, columnInfo.GroupIdColumnName, MetricsAgent,
+            var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumnName, MetricsAgent,
                 preFeaturizer, preprocessorTransform, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainData, columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
@@ -273,7 +273,7 @@ namespace Microsoft.ML.AutoML
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
 
             var runner = new CrossValRunner<TMetrics>(Context, trainDatasets, validationDatasets, MetricsAgent, preFeaturizer,
-                preprocessorTransforms, columnInfo.LabelColumnName, columnInfo.GroupIdColumnName, _logger);
+                preprocessorTransforms, columnInfo.LabelColumnName, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
 
             // Execute experiment & get all pipelines run
@@ -300,7 +300,7 @@ namespace Microsoft.ML.AutoML
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
 
             var runner = new CrossValSummaryRunner<TMetrics>(Context, trainDatasets, validationDatasets, MetricsAgent, preFeaturizer,
-                preprocessorTransforms, columnInfo.LabelColumnName, columnInfo.GroupIdColumnName, OptimizingMetricInfo, _logger);
+                preprocessorTransforms, columnInfo.LabelColumnName, OptimizingMetricInfo, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }

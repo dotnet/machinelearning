@@ -14,7 +14,6 @@ namespace Microsoft.ML.AutoML
         private readonly IDataView _trainData;
         private readonly IDataView _validData;
         private readonly string _labelColumn;
-        private readonly string _groupIdColumn;
         private readonly IMetricsAgent<TMetrics> _metricsAgent;
         private readonly IEstimator<ITransformer> _preFeaturizer;
         private readonly ITransformer _preprocessorTransform;
@@ -25,7 +24,6 @@ namespace Microsoft.ML.AutoML
             IDataView trainData,
             IDataView validData,
             string labelColumn,
-            string groupIdColumn,
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
             ITransformer preprocessorTransform,
@@ -35,7 +33,6 @@ namespace Microsoft.ML.AutoML
             _trainData = trainData;
             _validData = validData;
             _labelColumn = labelColumn;
-            _groupIdColumn = groupIdColumn;
             _metricsAgent = metricsAgent;
             _preFeaturizer = preFeaturizer;
             _preprocessorTransform = preprocessorTransform;

@@ -20,7 +20,6 @@ namespace Microsoft.ML.AutoML
         private readonly IEstimator<ITransformer> _preFeaturizer;
         private readonly ITransformer[] _preprocessorTransforms;
         private readonly string _labelColumn;
-        private readonly string _groupIdColumn;
         private readonly IChannel _logger;
         private readonly DataViewSchema _modelInputSchema;
 
@@ -30,7 +29,6 @@ namespace Microsoft.ML.AutoML
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
             ITransformer[] preprocessorTransforms,
-            string groupIdColumn,
             string labelColumn,
             IChannel logger)
         {
@@ -41,7 +39,6 @@ namespace Microsoft.ML.AutoML
             _preFeaturizer = preFeaturizer;
             _preprocessorTransforms = preprocessorTransforms;
             _labelColumn = labelColumn;
-            _groupIdColumn = groupIdColumn;
             _logger = logger;
             _modelInputSchema = trainDatasets[0].Schema;
         }
