@@ -137,5 +137,101 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
         }
 
+        /// <summary>
+        /// Test to confirm calibrator estimators work with classes
+        /// where order of label and score columns are reversed, and
+        /// where 
+        /// </summary>
+        [Fact]
+        public void TestNonStandardCalibratorEstimatorClasses()
+        {
+            var mlContext = new MLContext(0);
+            // Store different possible variations of calibrator data classes.
+            IDataView[] dataArray = new IDataView[]
+            {
+                mlContext.Data.LoadFromEnumerable<CalibratorTestInputReversedOrder>(
+                    new CalibratorTestInputReversedOrder[]
+                    {
+                        new CalibratorTestInputReversedOrder { Score = 10, Label = true },
+                        new CalibratorTestInputReversedOrder { Score = 15, Label = false }
+                    }),
+                mlContext.Data.LoadFromEnumerable<CalibratorTestInputUniqueScoreColumnName>(
+                    new CalibratorTestInputUniqueScoreColumnName[]
+                    {
+                        new CalibratorTestInputUniqueScoreColumnName { Label = true, ScoreX = 10 },
+                        new CalibratorTestInputUniqueScoreColumnName { Label = false, ScoreX = 15 }
+                    }),
+                mlContext.Data.LoadFromEnumerable<CalibratorTestInputReversedOrderAndUniqueScoreColumnName>(
+                    new CalibratorTestInputReversedOrderAndUniqueScoreColumnName[]
+                    {
+                        new CalibratorTestInputReversedOrderAndUniqueScoreColumnName { ScoreX = 10, Label = true },
+                        new CalibratorTestInputReversedOrderAndUniqueScoreColumnName { ScoreX = 15, Label = false }
+                    })
+            };
+
+            // When label and/or score columns are different from their default names ("Label" and "Score", respectively), they
+            // need to be manually defined as done below.
+            // Successful training of estimators and transforming with transformers indicate correct label and score columns
+            // have been found.
+            for (int i = 0; i < dataArray.Length; i++)
+            {
+                // Test PlattCalibratorEstimator
+                var calibratorPlattEstimator = new PlattCalibratorEstimator(Env,
+                    scoreColumnName: i > 0 ? "ScoreX" : DefaultColumnNames.Score);
+                var calibratorPlattTransformer = calibratorPlattEstimator.Fit(dataArray[i]);
+                calibratorPlattTransformer.Transform(dataArray[i]);
+
+                // Test FixedPlattCalibratorEstimator
+                var calibratorFixedPlattEstimator = new FixedPlattCalibratorEstimator(Env,
+                    scoreColumn: i > 0 ? "ScoreX" : DefaultColumnNames.Score); 
+                var calibratorFixedPlattTransformer = calibratorFixedPlattEstimator.Fit(dataArray[i]);
+                calibratorFixedPlattTransformer.Transform(dataArray[i]);
+
+                // Test NaiveCalibratorEstimator
+                var calibratorNaiveEstimator = new NaiveCalibratorEstimator(Env,
+                    scoreColumn: i > 0 ? "ScoreX" : DefaultColumnNames.Score);
+                var calibratorNaiveTransformer = calibratorNaiveEstimator.Fit(dataArray[i]);
+                calibratorNaiveTransformer.Transform(dataArray[i]);
+
+                // Test IsotonicCalibratorEstimator
+                var calibratorIsotonicEstimator = new IsotonicCalibratorEstimator(Env,
+                    scoreColumn: i > 0 ? "ScoreX" : DefaultColumnNames.Score);
+                var calibratorIsotonicTransformer = calibratorIsotonicEstimator.Fit(dataArray[i]);
+                calibratorIsotonicTransformer.Transform(dataArray[i]);
+            }
+        }
+
+        /// <summary>
+        /// Test class where the column order of the label and score
+        /// columns are reversed (by default, label column is before
+        /// that of score column).
+        /// </summary>
+        private sealed class CalibratorTestInputReversedOrder
+        {
+            public float Score { get; set; }
+            public bool Label { get; set; }
+        }
+
+        /// <summary>
+        /// Test class where name of score column is different than
+        /// the default column name of "Score".
+        /// </summary>
+        private sealed class CalibratorTestInputUniqueScoreColumnName
+        {
+            public bool Label { get; set; }
+            public float ScoreX { get; set; }
+        }
+
+        /// <summary>
+        /// Test class where the column order of the label and score
+        /// columns are reversed (by default, label column is before
+        /// that of score column), and where name of score column is
+        /// different than the default column name of "Score".
+        /// </summary>
+        private sealed class CalibratorTestInputReversedOrderAndUniqueScoreColumnName
+        {
+            public float ScoreX { get; set; }
+            public bool Label { get; set; }
+        }
     }
 }
