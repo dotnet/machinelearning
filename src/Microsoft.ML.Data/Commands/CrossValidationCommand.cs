@@ -305,41 +305,8 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            if (string.IsNullOrEmpty(stratificationColumn))
-            {
-                stratificationColumn = "StratificationColumn";
-                int tmp;
-                int inc = 0;
-                while (input.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
-                    stratificationColumn = string.Format("StratificationColumn_{0:000}", ++inc);
-                var keyGenArgs = new GenerateNumberTransform.Options();
-                var col = new GenerateNumberTransform.Column();
-                col.Name = stratificationColumn;
-                keyGenArgs.Columns = new[] { col };
-                output = new GenerateNumberTransform(Host, keyGenArgs, input);
-            }
-            else
-            {
-                int col;
-                if (!input.Schema.TryGetColumnIndex(stratificationColumn, out col))
-                    throw ch.ExceptUserArg(nameof(Arguments.StratificationColumn), "Column '{0}' does not exist", stratificationColumn);
-                var type = input.Schema[col].Type;
-                if (!RangeFilter.IsValidRangeFilterColumnType(ch, type))
-                {
-                    ch.Info("Hashing the stratification column");
-                    var origStratCol = stratificationColumn;
-                    stratificationColumn = input.Schema.GetTempColumnName("strat");
-
-                    // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
-                    var itemType = type.GetItemType();
-                    if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
-                        input = new TypeConvertingTransformer(Host, origStratCol, DataKind.Int64, origStratCol).Transform(input);
-
-                    output = new HashingEstimator(Host, stratificationColumn, origStratCol, 30).Fit(input).Transform(input);
-                }
-            }
-
-            return stratificationColumn;
+            var splitColumn = DataOperationsCatalog.CreateSplitColumn(Host, ref output, stratificationColumn);
+            return splitColumn;
         }
 
         private bool TryGetOverallMetrics(Dictionary<string, IDataView>[] metrics, out List<IDataView> overallList)
