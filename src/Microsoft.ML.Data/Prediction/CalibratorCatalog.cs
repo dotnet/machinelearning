@@ -188,7 +188,9 @@ namespace Microsoft.ML.Calibrators
 
             // *** Binary format ***
             // model: _calibrator
+            // scoreColumnName: _scoreColumnName
             ctx.LoadModel<TICalibrator, SignatureLoadModel>(env, out _calibrator, "Calibrator");
+            _scoreColumnName = ctx.LoadString();
         }
 
         string ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnName => DefaultColumnNames.Score;
@@ -207,7 +209,9 @@ namespace Microsoft.ML.Calibrators
 
             // *** Binary format ***
             // model: _calibrator
+            // scoreColumnName: _scoreColumnName
             ctx.SaveModel(_calibrator, "Calibrator");
+            ctx.SaveString(_scoreColumnName);
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper<TICalibrator>(this, _calibrator, schema, _scoreColumnName);
@@ -216,7 +220,8 @@ namespace Microsoft.ML.Calibrators
         {
             return new VersionInfo(
                 modelSignature: "CALTRANS",
-                verWrittenCur: 0x00010001, // Initial
+                // verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Added _scoreColumnName
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: _loaderSignature,
