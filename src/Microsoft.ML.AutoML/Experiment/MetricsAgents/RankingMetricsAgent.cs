@@ -10,11 +10,13 @@ namespace Microsoft.ML.AutoML
     {
         private readonly MLContext _mlContext;
         private readonly RankingMetric _optimizingMetric;
+        private readonly string _groupIdColumnName;
 
-        public RankingMetricsAgent(MLContext mlContext, RankingMetric optimizingMetric)
+        public RankingMetricsAgent(MLContext mlContext, RankingMetric optimizingMetric, string groupIdColumnName)
         {
             _mlContext = mlContext;
             _optimizingMetric = optimizingMetric;
+            _groupIdColumnName = groupIdColumnName;
         }
 
         // Optimizing metric used: NDCG@10 and DCG@10
@@ -59,7 +61,7 @@ namespace Microsoft.ML.AutoML
 
         public RankingMetrics EvaluateMetrics(IDataView data, string labelColumn)
         {
-            return _mlContext.Ranking.Evaluate(data, labelColumn);
+            return _mlContext.Ranking.Evaluate(data, labelColumn, _groupIdColumnName);
         }
     }
 }

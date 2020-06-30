@@ -127,14 +127,14 @@ namespace Microsoft.ML.AutoML.Test
             double[] ndcg = { 0.2, 0.3, 0.4 };
             double[] dcg = { 0.2, 0.3, 0.4 };
             var metrics = MetricsUtil.CreateRankingMetrics(dcg, ndcg);
-            Assert.Equal(0.4, GetScore(metrics, RankingMetric.Dcg));
-            Assert.Equal(0.4, GetScore(metrics, RankingMetric.Ndcg));
+            Assert.Equal(0.4, GetScore(metrics, RankingMetric.Dcg, "GroupId"));
+            Assert.Equal(0.4, GetScore(metrics, RankingMetric.Ndcg, "GroupId"));
 
             double[] largeNdcg = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95 };
             double[] largeDcg = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95 };
             metrics = MetricsUtil.CreateRankingMetrics(largeDcg, largeNdcg);
-            Assert.Equal(0.9, GetScore(metrics, RankingMetric.Dcg));
-            Assert.Equal(0.9, GetScore(metrics, RankingMetric.Ndcg));
+            Assert.Equal(0.9, GetScore(metrics, RankingMetric.Dcg, "GroupId"));
+            Assert.Equal(0.9, GetScore(metrics, RankingMetric.Ndcg, "GroupId"));
         }
 
         [Fact]
@@ -143,8 +143,8 @@ namespace Microsoft.ML.AutoML.Test
             double[] ndcg = { 0.2, 0.3, 0.4 };
             double[] dcg = { 0.2, 0.3, 0.4 };
             var metrics = MetricsUtil.CreateRankingMetrics(dcg, ndcg);
-            Assert.False(IsPerfectModel(metrics, RankingMetric.Dcg));
-            Assert.False(IsPerfectModel(metrics, RankingMetric.Ndcg));
+            Assert.False(IsPerfectModel(metrics, RankingMetric.Dcg, "GroupId"));
+            Assert.False(IsPerfectModel(metrics, RankingMetric.Ndcg, "GroupId"));
         }
 
         [Fact]
@@ -153,8 +153,8 @@ namespace Microsoft.ML.AutoML.Test
             double[] ndcg = { 0.2, 0.3, 1 };
             double[] dcg = { 0.2, 0.3, 1 };
             var metrics = MetricsUtil.CreateRankingMetrics(dcg, ndcg);
-            Assert.False(IsPerfectModel(metrics, RankingMetric.Dcg)); //REVIEW: No true Perfect model
-            Assert.True(IsPerfectModel(metrics, RankingMetric.Ndcg));
+            Assert.False(IsPerfectModel(metrics, RankingMetric.Dcg, "GroupId")); //REVIEW: No true Perfect model
+            Assert.True(IsPerfectModel(metrics, RankingMetric.Ndcg, "GroupId"));
         }
 
         [Fact]
@@ -179,9 +179,9 @@ namespace Microsoft.ML.AutoML.Test
             return new RegressionMetricsAgent(null, metric).GetScore(metrics);
         }
 
-        private static double GetScore(RankingMetrics metrics, RankingMetric metric)
+        private static double GetScore(RankingMetrics metrics, RankingMetric metric, string groupIdColumnName)
         {
-            return new RankingMetricsAgent(null, metric).GetScore(metrics);
+            return new RankingMetricsAgent(null, metric, groupIdColumnName).GetScore(metrics);
         }
 
         private static bool IsPerfectModel(BinaryClassificationMetrics metrics, BinaryClassificationMetric metric)
@@ -202,9 +202,9 @@ namespace Microsoft.ML.AutoML.Test
             return IsPerfectModel(metricsAgent, metrics);
         }
 
-        private static bool IsPerfectModel(RankingMetrics metrics, RankingMetric metric)
+        private static bool IsPerfectModel(RankingMetrics metrics, RankingMetric metric, string groupIdColumnName)
         {
-            var metricsAgent = new RankingMetricsAgent(null, metric);
+            var metricsAgent = new RankingMetricsAgent(null, metric, groupIdColumnName);
             return IsPerfectModel(metricsAgent, metrics);
         }
 
