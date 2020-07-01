@@ -532,7 +532,7 @@ namespace Microsoft.ML.Transforms
                         //This cover the 2-variable senario e.g. [?,?,?,3] where we can assume typeDims provides the information of [W, H, C]
                         var originalShapeDims = originalShape.dims;
                         var originalShapeNdim = originalShape.ndim;
-                        if (numOfUnkDim == colTypeDims.Length && originalShapeNdim == numOfUnkDim + 1 && colTypeDims.Length == 3)
+                        if (numOfUnkDim == 3 && colTypeDims.Length == 3 && originalShapeNdim == numOfUnkDim + 1)
                         {
                             for (int ishape = 1; ishape < originalShapeNdim; ++ishape)
                             {
