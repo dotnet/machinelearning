@@ -169,8 +169,12 @@ namespace Microsoft.ML.Vision
             /// </summary>
             public override string ToString()
             {
-                return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, Learning Rate: {LearningRate,10} " +
-                    $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
+                if (DatasetUsed == ImageClassificationMetrics.Dataset.Train)
+                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, Learning Rate: {LearningRate,10} " +
+                        $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
+                else
+                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +
+                        $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
             }
         }
 
@@ -1025,9 +1029,9 @@ namespace Microsoft.ML.Vision
 
                     // Evaluate.
                     TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
-                        metrics, labelTensorShape, featureTensorShape, batchSize, validationSetLabelReader,
-                        validationSetFeatureReader, labelBuffer, featuresBuffer, labelBufferSizeInBytes,
-                        featureBufferSizeInBytes, featureFileRecordSize, _options.LearningRateScheduler,
+                        metrics, labelTensorShape, featureTensorShape, batchSize,
+                        validationSetLabelReader, validationSetFeatureReader, labelBuffer, featuresBuffer,
+                        labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize, null,
                         trainState, validationEvalRunner, featureBufferPtr, labelBufferPtr,
                         (outputTensors, metrics) =>
                             {

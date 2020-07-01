@@ -1483,19 +1483,16 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationWithExponentialLRScheduling()
         {
-            ExponentialLRDecay exponentialLRDecay = new ExponentialLRDecay();
-            TensorFlowImageClassificationWithLRScheduling(exponentialLRDecay, 50, (int)exponentialLRDecay.NumEpochsPerDecay);
+            TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
         [TensorFlowFact]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
-            PolynomialLRDecay polynomialLRDecay = new PolynomialLRDecay();
-            TensorFlowImageClassificationWithLRScheduling(polynomialLRDecay, 50, (int)polynomialLRDecay.NumEpochsPerDecay, polynomialLRDecay.EndLearningRate);
+            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
         }
 
-        internal void TensorFlowImageClassificationWithLRScheduling(
-            LearningRateScheduler learningRateScheduler, int epoch, int numEpochsPerDecay, float endLearningRate = 0.0f)
+        internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler learningRateScheduler, int epoch)
         {
             //Load all the original images info
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
@@ -1523,8 +1520,6 @@ namespace Microsoft.ML.Scenarios
             var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
                 workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, _finalImagesFolderName);
 
-            float[] learningRatesTraining = new float[epoch];
-            float[] learningRatesValidation = new float[epoch];
             float[] crossEntropyTraining = new float[epoch];
             float[] crossEntropyValidation = new float[epoch];
             float baseLearningRate = 0.01f;
@@ -1541,57 +1536,24 @@ namespace Microsoft.ML.Scenarios
                 LearningRate = baseLearningRate,
                 MetricsCallback = (metric) =>
                 {
-                    // Check that learning rates in metrics from both the training and validation phases decay and are sensible
                     if (metric.Train != null)
                     {
-                        if (metric.Train.Epoch > 1)
-                        {
-                            Assert.InRange(metric.Train.LearningRate, 0, baseLearningRate);
-                            Assert.True(metric.Train.CrossEntropy > 0);
-                        }
-                        // Save learning rate and cross entropy values in training phase
+                        // Check that cross validation rates during both the training and validation phases are decreasing and are sensible
                         if (metric.Train.DatasetUsed == ImageClassificationTrainer.ImageClassificationMetrics.Dataset.Train)
-                        { 
-                            learningRatesTraining[metric.Train.Epoch] = metric.Train.LearningRate;
+                        {
+                            // Save cross entropy values in training phase
                             crossEntropyTraining[metric.Train.Epoch] = metric.Train.CrossEntropy;
-                            // Check that learning rates over each epoch-per-decay are decreasing, and that cross entropy is also decreasing
-                            if (metric.Train.Epoch > 1)
-                            {
-                                // Testing PolynomialLRDecay training
-                                if (endLearningRate != 0.0)
-                                {
-                                    Assert.True(learningRatesTraining[metric.Train.Epoch - numEpochsPerDecay] > learningRatesTraining[metric.Train.Epoch]
-                                                || learningRatesTraining[metric.Train.Epoch] == endLearningRate);
-                                }
-                                // Testing ExponentialLRDecay training
-                                else
-                                {
-                                    Assert.True(learningRatesTraining[metric.Train.Epoch - numEpochsPerDecay] > learningRatesTraining[metric.Train.Epoch]);
-                                }
-                                Assert.True(crossEntropyTraining[metric.Train.Epoch - numEpochsPerDecay] > crossEntropyTraining[metric.Train.Epoch]);
-                            }
+                            // Check that cross entropy values over each epoch-per-decay are decreasing in training phase
+                            if (metric.Train.Epoch > 0)
+                                Assert.True(crossEntropyTraining[metric.Train.Epoch - 1] > crossEntropyTraining[metric.Train.Epoch]);
                         }
-                        // Save learning rate and cross entropy values in validation phase
                         else
                         {
-                            learningRatesValidation[metric.Train.Epoch] = metric.Train.LearningRate;
+                            // Save cross entropy values in validation phase
                             crossEntropyValidation[metric.Train.Epoch] = metric.Train.CrossEntropy;
-                            // Check that learning rates over each epoch-per-decay are decreasing, and that cross entropy is also decreasing
-                            if (metric.Train.Epoch > 1)
-                            {
-                                // Testing PolynomialLRDecay validation
-                                if (endLearningRate != 0.0)
-                                {
-                                    Assert.True(learningRatesValidation[metric.Train.Epoch - numEpochsPerDecay] > learningRatesValidation[metric.Train.Epoch]
-                                                || learningRatesValidation[metric.Train.Epoch] == endLearningRate);
-                                }
-                                // Testing ExponentialLRDecay validation
-                                else
-                                {
-                                    Assert.True(learningRatesValidation[metric.Train.Epoch - numEpochsPerDecay] > learningRatesValidation[metric.Train.Epoch]);
-                                }
-                                Assert.True(crossEntropyValidation[metric.Train.Epoch - numEpochsPerDecay] > crossEntropyValidation[metric.Train.Epoch]);
-                            }
+                            // Check that cross entropy values over each epoch-per-decay are decreasing in validation phase
+                            if (metric.Train.Epoch > 0)
+                                Assert.True(crossEntropyValidation[metric.Train.Epoch - 1] > crossEntropyValidation[metric.Train.Epoch]);
                         }
                     }
                     Console.WriteLine(metric);
