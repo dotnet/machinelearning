@@ -254,7 +254,7 @@ namespace Microsoft.ML.Calibrators
                 _scoreColumnName = scoreColumnName;
                 _scoreColIndex = inputSchema.GetColumnOrNull(_scoreColumnName)?.Index ?? -1;
 
-                parent.Host.Check(_scoreColIndex >= 0, @"The data to calibrate contains no \'{scoreColumnName}\' column");
+                parent.Host.Check(_scoreColIndex >= 0, "The data to calibrate contains no \'" + scoreColumnName + "\' column.");
             }
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
