@@ -1905,12 +1905,6 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorflowPlaceholderShapeInferenceTest()
         {
-            //download the pb file
-            string gitPath = "https://github.com/dotnet/machinelearning-testdata/raw/ddf00f8d60ff1b4bb1f3e33639bec318e67fd32e/Microsoft.ML.TensorFlow.TestModels/cifar_model/frozen_model_variadic_input_shape.pb";
-            using (WebClient client = new WebClient())
-            {
-                client.DownloadFile(new Uri($"{gitPath}"), "cifar_model/frozen_model_variadic_input_shape.pb");
-            }
             //frozen_model_variadic_input_shape.pb is modified by frozen_model.pb 
             //the shape of placeholder is changed from [?, w, h, c] to [?, ?, ?, c]
             string modelLocation = "cifar_model/frozen_model_variadic_input_shape.pb";
