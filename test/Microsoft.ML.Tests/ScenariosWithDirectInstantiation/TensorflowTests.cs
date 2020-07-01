@@ -1925,14 +1925,19 @@ namespace Microsoft.ML.Scenarios
                 new TextLoader.Column("name", DataKind.String, 1)
             });
 
-            var pipeline = _mlContext.Transforms.LoadImages("Input", imageFolder, "imagePath")
-                .Append(_mlContext.Transforms.ResizeImages("Input", imageHeight, imageWidth))
-                .Append(_mlContext.Transforms.ExtractPixels("Input", interleavePixelColors: true))
-                .Append(_mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
+            Tensorflow.TensorShape[] tfInputShape;
 
-            var transformer = pipeline.Fit(data);
+            using (var tfModel = _mlContext.Model.LoadTensorFlowModel(modelLocation))
+            {
+                var pipeline = _mlContext.Transforms.LoadImages("Input", imageFolder, "imagePath")
+                    .Append(_mlContext.Transforms.ResizeImages("Input", imageHeight, imageWidth))
+                    .Append(_mlContext.Transforms.ExtractPixels("Input", interleavePixelColors: true))
+                    .Append(tfModel.ScoreTensorFlowModel("Output", "Input"));
 
-            Tensorflow.TensorShape[] tfInputShape = transformer.LastTransformer.TFInputShapes;
+                var transformer = pipeline.Fit(data);
+
+                tfInputShape = transformer.LastTransformer.TFInputShapes;
+            }
 
             Assert.Equal(imageHeight, tfInputShape.ElementAt(0)[1].dims[0]);
             Assert.Equal(imageWidth, tfInputShape.ElementAt(0)[2].dims[0]);
