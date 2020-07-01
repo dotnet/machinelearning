@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Vision;
