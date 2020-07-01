@@ -190,7 +190,14 @@ namespace Microsoft.ML.Calibrators
             // model: _calibrator
             // scoreColumnName: _scoreColumnName
             ctx.LoadModel<TICalibrator, SignatureLoadModel>(env, out _calibrator, "Calibrator");
-            _scoreColumnName = ctx.LoadString();
+            if (ctx.Header.ModelVerWritten >= 0x00010002)
+            {
+                _scoreColumnName = ctx.LoadString();
+            }
+            else
+            {
+                _scoreColumnName = DefaultColumnNames.Score;
+            }
         }
 
         string ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnName => DefaultColumnNames.Score;
@@ -247,7 +254,7 @@ namespace Microsoft.ML.Calibrators
                 _scoreColumnName = scoreColumnName;
                 _scoreColIndex = inputSchema.GetColumnOrNull(_scoreColumnName)?.Index ?? -1;
 
-                parent.Host.Check(_scoreColIndex >= 0, "The data to calibrate contains no 'Score' column");
+                parent.Host.Check(_scoreColIndex >= 0, @"The data to calibrate contains no \'{scoreColumnName}\' column");
             }
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)

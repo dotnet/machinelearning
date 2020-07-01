@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
@@ -140,7 +141,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// Test to confirm calibrator estimators work with classes
         /// where order of label and score columns are reversed, and
-        /// where 
+        /// where name of score column is different than the default.
         /// </summary>
         [Fact]
         public void TestNonStandardCalibratorEstimatorClasses()
@@ -232,6 +233,48 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             public float ScoreX { get; set; }
             public bool Label { get; set; }
+        }
+
+        /// <summary>
+        /// Test to check backwards compatibility of calibrator estimators
+        /// trained before the current version of VerWritten: 0x00010001.
+        /// </summary>
+        [Fact]
+        public void TestCalibratorEstimatorBackwardsCompatibility()
+        {
+            // The legacy model being loaded below was trained and saved with
+            // version as such:
+            /* 
+             * var mlContext = new MLContext(seed: 1);
+             * var calibratorTestData = GetCalibratorTestData();
+             * var plattCalibratorEstimator = new PlattCalibratorEstimator(Env);
+             * var plattCalibratorTransformer = plattCalibratorEstimator.Fit(calibratorTestData.ScoredData);
+             * mlContext.Model.Save(plattCalibratorTransformer, calibratorTestData.ScoredData.Schema, "calibrator-model_VerWritten_0x00010001xyz.zip");
+             */
+            
+            var modelPath = GetDataPath("backcompat", "Calibrator_Model_VerWritten_0x00010001.zip");
+            ITransformer oldPlattCalibratorTransformer;
+            using (var fs = File.OpenRead(modelPath))
+                oldPlattCalibratorTransformer = ML.Model.Load(fs, out var schema);
+                    
+            var calibratorTestData = GetCalibratorTestData();
+            var newPlattCalibratorEstimator = new PlattCalibratorEstimator(Env);
+            var newPlattCalibratorTransformer = newPlattCalibratorEstimator.Fit(calibratorTestData.ScoredData);
+
+            // Check that both models produce the same output
+            var oldCalibratedData = oldPlattCalibratorTransformer.Transform(calibratorTestData.ScoredData).Preview();
+            var newCalibratedData = newPlattCalibratorTransformer.Transform(calibratorTestData.ScoredData).Preview();
+
+            // Check first that the produced schemas and outputs are of the same size
+            Assert.True(oldCalibratedData.RowView.Length == newCalibratedData.RowView.Length);
+            Assert.True(oldCalibratedData.ColumnView.Length == newCalibratedData.ColumnView.Length);
+
+            // Then check the produced probabilities (5th value corresponds to probabilities) for
+            // equality, within rounding error.
+            for (int i = 0; i < 10; i++)
+                Assert.True((float)oldCalibratedData.RowView[i].Values[5].Value == (float)newCalibratedData.RowView[i].Values[5].Value);
+
+            Done();
         }
     }
 }
