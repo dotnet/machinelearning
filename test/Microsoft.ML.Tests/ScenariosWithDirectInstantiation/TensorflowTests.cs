@@ -1900,5 +1900,40 @@ namespace Microsoft.ML.Scenarios
             Directory.CreateDirectory(tempDirectory);
             return tempDirectory;
         }
+
+        [TensorFlowFact]
+        public void TensorflowPlaceholderShapeInferenceTest()
+        {
+            //frozen_model_variadic_input_shape.pb is modified by frozen_model.pb 
+            //the shape of placeholder is changed from [?, w, h, c] to [?, ?, ?, c]
+            string modelLocation = "cifar_model/frozen_model_variadic_input_shape.pb";
+
+            int imageHeight = 32;
+            int imageWidth = 32;
+            string dataFile = GetDataPath("images/images.tsv");
+            string imageFolder = Path.GetDirectoryName(dataFile);
+
+            IDataView data = _mlContext.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
+
+            Tensorflow.TensorShape[] tfInputShape;
+
+            using (var tfModel = _mlContext.Model.LoadTensorFlowModel(modelLocation))
+            {
+                var pipeline = _mlContext.Transforms.LoadImages("Input", imageFolder, "imagePath")
+                    .Append(_mlContext.Transforms.ResizeImages("Input", imageHeight, imageWidth))
+                    .Append(_mlContext.Transforms.ExtractPixels("Input", interleavePixelColors: true))
+                    .Append(tfModel.ScoreTensorFlowModel("Output", "Input"));
+
+                var transformer = pipeline.Fit(data);
+
+                tfInputShape = transformer.LastTransformer.TFInputShapes;
+            }
+
+            Assert.Equal(imageHeight, tfInputShape.ElementAt(0)[1].dims[0]);
+            Assert.Equal(imageWidth, tfInputShape.ElementAt(0)[2].dims[0]);
+        }
     }
 }
