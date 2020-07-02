@@ -170,11 +170,11 @@ namespace Microsoft.ML.Vision
             public override string ToString()
             {
                 if (DatasetUsed == ImageClassificationMetrics.Dataset.Train)
-                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, Learning Rate: {LearningRate,10} " +
-                        $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
+                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +
+                        $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}, Learning Rate: {LearningRate,10}";
                 else
                     return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +
-                        $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}";
+                        $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
             }
         }
 
@@ -952,7 +952,7 @@ namespace Microsoft.ML.Vision
                 if (validationNeeded)
                 {
                     validationEvalRunner = new Runner(_session, new[] { _bottleneckInput.name, _labelTensor.name },
-                        new[] { _evaluationStep.name });
+                        new[] { _evaluationStep.name, _crossEntropy.name });
                 }
 
                 runner = new Runner(_session, runnerInputTensorNames.ToArray(),
@@ -1036,14 +1036,18 @@ namespace Microsoft.ML.Vision
                         (outputTensors, metrics) =>
                             {
                                 outputTensors[0].ToScalar(ref accuracy);
+                                outputTensors[1].ToScalar(ref crossentropy);
                                 metrics.Train.Accuracy += accuracy;
+                                metrics.Train.CrossEntropy += crossentropy;
                                 outputTensors[0].Dispose();
+                                outputTensors[1].Dispose();
                             });
 
                     if (statisticsCallback != null)
                     {
                         metrics.Train.Epoch = epoch;
                         metrics.Train.Accuracy /= metrics.Train.BatchProcessedCount;
+                        metrics.Train.CrossEntropy /= metrics.Train.BatchProcessedCount;
                         metrics.Train.DatasetUsed = ImageClassificationMetrics.Dataset.Validation;
                         statisticsCallback(metrics);
                     }

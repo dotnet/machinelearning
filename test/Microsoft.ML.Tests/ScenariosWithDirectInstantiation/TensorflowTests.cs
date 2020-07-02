@@ -1489,7 +1489,6 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
-
             TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
         }
 
@@ -1521,6 +1520,8 @@ namespace Microsoft.ML.Scenarios
             var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
                 workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, _finalImagesFolderName);
 
+            float[] crossEntropyTraining = new float[epoch];
+            float[] crossEntropyValidation = new float[epoch];
             var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
@@ -1532,7 +1533,30 @@ namespace Microsoft.ML.Scenarios
                 Epoch = epoch,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metric) => Console.WriteLine(metric),
+                MetricsCallback = (metric) =>
+                {
+                    if (metric.Train != null)
+                    {
+                        // Check that cross validation rates during both the training and validation phases are decreasing and are sensible
+                        if (metric.Train.DatasetUsed == ImageClassificationTrainer.ImageClassificationMetrics.Dataset.Train)
+                        {
+                            // Save cross entropy values in training phase
+                            crossEntropyTraining[metric.Train.Epoch] = metric.Train.CrossEntropy;
+                            // Check that cross entropy values over each epoch-per-decay are decreasing in training phase
+                            if (metric.Train.Epoch > 0)
+                                Assert.True(crossEntropyTraining[metric.Train.Epoch - 1] > crossEntropyTraining[metric.Train.Epoch]);
+                        }
+                        else
+                        {
+                            // Save cross entropy values in validation phase
+                            crossEntropyValidation[metric.Train.Epoch] = metric.Train.CrossEntropy;
+                            // Check that cross entropy values over each epoch-per-decay are decreasing in validation phase
+                            if (metric.Train.Epoch > 0)
+                                Assert.True(crossEntropyValidation[metric.Train.Epoch - 1] > crossEntropyValidation[metric.Train.Epoch]);
+                        }
+                    }
+                    Console.WriteLine(metric);
+                },
                 ValidationSet = validationSet,
                 WorkspacePath = workspacePath,
                 TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
