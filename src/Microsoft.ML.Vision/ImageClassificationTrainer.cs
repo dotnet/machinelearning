@@ -170,7 +170,7 @@ namespace Microsoft.ML.Vision
             public override string ToString()
             {
                 if (DatasetUsed == ImageClassificationMetrics.Dataset.Train)
-                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}" +
+                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +
                         $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}, Learning Rate: {LearningRate,10}";
                 else
                     return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +
