@@ -1522,7 +1522,6 @@ namespace Microsoft.ML.Scenarios
 
             float[] crossEntropyTraining = new float[epoch];
             float[] crossEntropyValidation = new float[epoch];
-            float baseLearningRate = 0.01f;
             var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
@@ -1533,7 +1532,7 @@ namespace Microsoft.ML.Scenarios
                 Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                 Epoch = epoch,
                 BatchSize = 10,
-                LearningRate = baseLearningRate,
+                LearningRate = 0.01f,
                 MetricsCallback = (metric) =>
                 {
                     if (metric.Train != null)
