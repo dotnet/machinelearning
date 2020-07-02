@@ -1145,8 +1145,8 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            // Note: Since StringNormalizer only accepts inputs of [C] or [1,C], we squeeze the batch dimension which
-            // may exceed 1
+            // Note: Since StringNormalizer only accepts inputs of shape [C] or [1,C], we temporarily squeeze the
+            // batch dimension which may exceed 1
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 var opType = "Squeeze";

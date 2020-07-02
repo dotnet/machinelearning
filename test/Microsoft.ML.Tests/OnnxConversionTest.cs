@@ -1359,10 +1359,9 @@ namespace Microsoft.ML.Tests
                 new TextData(){ Text = "mat not fit cat" },
                 new TextData(){ Text = "a cat think mat bad" },
             };
-
             var dataView = mlContext.Data.LoadFromEnumerable(samples);
-
             var onnxFileName = $"CustomStopWordsRemovingEstimator.onnx";
+
             TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("WordsWithoutStopWords")});
 
             Done();
@@ -1384,9 +1383,7 @@ namespace Microsoft.ML.Tests
                 new TextData(){ Text = "a mat not fit go cat" },
                 new TextData(){ Text = "cat think mat bad a" },
             };
-
             var dataView = mlContext.Data.LoadFromEnumerable(samples);
-
             var onnxFileName = $"StopWordsRemovingEstimator.onnx";
 
             TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("WordsWithoutStopWords") });
