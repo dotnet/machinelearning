@@ -413,24 +413,27 @@ namespace Microsoft.ML
             _env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
             _env.CheckValueOrNull(samplingKeyColumnName);
 
-            EnsureGroupPreservationColumn(_env, ref data, ref samplingKeyColumnName, seed);
+            var splitColumn = CreateSplitColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
 
             var trainFilter = new RangeFilter(_env, new RangeFilter.Options()
             {
-                Column = samplingKeyColumnName,
+                Column = splitColumn,
                 Min = 0,
                 Max = testFraction,
                 Complement = true
             }, data);
             var testFilter = new RangeFilter(_env, new RangeFilter.Options()
             {
-                Column = samplingKeyColumnName,
+                Column = splitColumn,
                 Min = 0,
                 Max = testFraction,
                 Complement = false
             }, data);
 
-            return new TrainTestData(trainFilter, testFilter);
+            var trainDV = ColumnSelectingTransformer.CreateDrop(_env, trainFilter, splitColumn);
+            var testDV = ColumnSelectingTransformer.CreateDrop(_env, testFilter, splitColumn);
+
+            return new TrainTestData(trainDV, testDV);
         }
 
         /// <summary>
@@ -455,20 +458,26 @@ namespace Microsoft.ML
             _env.CheckValue(data, nameof(data));
             _env.CheckParam(numberOfFolds > 1, nameof(numberOfFolds), "Must be more than 1");
             _env.CheckValueOrNull(samplingKeyColumnName);
-            EnsureGroupPreservationColumn(_env, ref data, ref samplingKeyColumnName, seed);
+            var splitColumn = CreateSplitColumn(_env, ref data, samplingKeyColumnName, seed, fallbackInEnvSeed: true);
             var result = new List<TrainTestData>();
-            foreach (var split in CrossValidationSplit(_env, data, numberOfFolds, samplingKeyColumnName))
+            foreach (var split in CrossValidationSplit(_env, data, splitColumn, numberOfFolds))
                 result.Add(split);
             return result;
         }
 
-        internal static IEnumerable<TrainTestData> CrossValidationSplit(IHostEnvironment env, IDataView data, int numberOfFolds = 5, string samplingKeyColumnName = null)
+        /// <summary>
+        /// Splits the data based on the splitColumn, and drops that column as it is only
+        /// intended to be used for splitting the data, and shouldn't be part of the output schema.
+        /// </summary>
+        internal static IEnumerable<TrainTestData> CrossValidationSplit(IHostEnvironment env, IDataView data, string splitColumn, int numberOfFolds = 5)
         {
+            env.CheckValue(splitColumn, nameof(splitColumn));
+
             for (int fold = 0; fold < numberOfFolds; fold++)
             {
                 var trainFilter = new RangeFilter(env, new RangeFilter.Options
                 {
-                    Column = samplingKeyColumnName,
+                    Column = splitColumn,
                     Min = (double)fold / numberOfFolds,
                     Max = (double)(fold + 1) / numberOfFolds,
                     Complement=true,
@@ -478,7 +487,7 @@ namespace Microsoft.ML
 
                 var testFilter = new RangeFilter(env, new RangeFilter.Options
                 {
-                    Column = samplingKeyColumnName,
+                    Column = splitColumn,
                     Min = (double)fold / numberOfFolds,
                     Max = (double)(fold + 1) / numberOfFolds,
                     Complement = false,
@@ -486,55 +495,96 @@ namespace Microsoft.ML
                     IncludeMax = true
                 }, data);
 
-                yield return new TrainTestData(trainFilter, testFilter);
+                var trainDV = ColumnSelectingTransformer.CreateDrop(env, trainFilter, splitColumn);
+                var testDV = ColumnSelectingTransformer.CreateDrop(env, testFilter, splitColumn);
+
+                yield return new TrainTestData(trainDV, testDV);
             }
         }
 
         /// <summary>
-        /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing it if necessary, or creates a new column <paramref name="samplingKeyColumn"/> is null.
+        /// Based on the input samplingKeyColumn creates a new splitColumn that will be used by the callers to apply a RangeFilter that will produce train-test splits
+        /// or cross-validation splits.
+        ///
+        /// Notice that the new splitColumn might get dropped by the callers of this method after using it, as it wasn't part of
+        /// the input DataView schema.
         /// </summary>
-        internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
+        /// <param name="env">IHostEnvironment of the caller</param>
+        /// <param name="data">DataView that should contain the "samplingKeyColumn". The new splitColumn will be added to this DataView.</param>
+        /// <param name="samplingKeyColumn">Name of the column that will be used as base of the new splitColumn.
+        /// Notice that in other places in the code the samplingKeyColumn, and/or the splitColumn this method creates,
+        /// are refered to as "SamplingKeyColumn", "StratificationColumn", "SplitColumn", "GroupPreservationColumn" or similar names. </param>
+        /// <param name="seed">The seed that might be used by the transformers that will create the new splitColumn</param>
+        /// <param name="fallbackInEnvSeed">If seed = null, then should we use the env seed? If seed = null, and this parameter is false, then we won't use a seed.</param>
+        /// <return>The name of the new column</return>
+        [BestFriend]
+        internal static string CreateSplitColumn(IHostEnvironment env, ref IDataView data, string samplingKeyColumn, int? seed = null, bool fallbackInEnvSeed = false)
         {
             Contracts.CheckValue(env, nameof(env));
-            // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
-            // build a single hash of it. If it is not, we generate a random number.
-            if (samplingKeyColumn == null)
+            Contracts.CheckValueOrNull(samplingKeyColumn);
+
+            var splitColumnName = data.Schema.GetTempColumnName("SplitColumn");
+            int? seedToUse;
+
+            if(seed.HasValue)
             {
-                samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
-                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)(seed ?? ((ISeededEnvironment)env).Seed));
+                seedToUse = seed.Value;
+            }
+            else if(fallbackInEnvSeed)
+            {
+                ISeededEnvironment seededEnv = (ISeededEnvironment)env;
+                seedToUse = seededEnv.Seed;
             }
             else
             {
-                if (!data.Schema.TryGetColumnIndex(samplingKeyColumn, out int stratCol))
+                seedToUse = null;
+            }
+
+            // We need to handle two cases: if samplingKeyColumn is not provided, we generate a random number.
+            if (samplingKeyColumn == null)
+            {
+                data = new GenerateNumberTransform(env, data, splitColumnName, (uint?)seedToUse);
+            }
+            else
+            {
+                // If samplingKeyColumn was provided we will make a new column based on it, but using a temporary
+                // name, as it might be dropped elsewhere in the code
+
+                if (!data.Schema.TryGetColumnIndex(samplingKeyColumn, out int samplingColIndex))
                     throw env.ExceptSchemaMismatch(nameof(samplingKeyColumn), "SamplingKeyColumn", samplingKeyColumn);
 
-                var type = data.Schema[stratCol].Type;
+                var type = data.Schema[samplingColIndex].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(env, type))
                 {
-                    var origStratCol = samplingKeyColumn;
-                    samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
+                    var hashInputColumnName = samplingKeyColumn;
                     // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
                     var itemType = type.GetItemType();
                     if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
-                        data = new TypeConvertingTransformer(env, origStratCol, DataKind.Int64, origStratCol).Transform(data);
+                    {
+                        data = new TypeConvertingTransformer(env, splitColumnName, DataKind.Int64, samplingKeyColumn).Transform(data);
+                        hashInputColumnName = splitColumnName;
+                    }
 
-                    var localSeed = seed.HasValue ? seed : ((ISeededEnvironment)env).Seed.HasValue ? ((ISeededEnvironment)env).Seed : null;
                     var columnOptions =
-                        localSeed.HasValue ?
-                        new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)localSeed.Value, combine: true) :
-                        new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, combine: true);
+                        seedToUse.HasValue ?
+                        new HashingEstimator.ColumnOptions(splitColumnName, hashInputColumnName, 30, (uint)seedToUse.Value, combine: true) :
+                        new HashingEstimator.ColumnOptions(splitColumnName, hashInputColumnName, 30, combine: true);
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
                 else
                 {
-                    if (!data.Schema[samplingKeyColumn].IsNormalized() && (type == NumberDataViewType.Single || type == NumberDataViewType.Double))
+                    if (type != NumberDataViewType.Single && type != NumberDataViewType.Double)
                     {
-                        var origStratCol = samplingKeyColumn;
-                        samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
-                        data = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(samplingKeyColumn, origStratCol, ensureZeroUntouched: true)).Fit(data).Transform(data);
+                        data = new ColumnCopyingEstimator(env, (splitColumnName, samplingKeyColumn)).Fit(data).Transform(data);
+                    }
+                    else
+                    {
+                        data = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(splitColumnName, samplingKeyColumn, ensureZeroUntouched: false)).Fit(data).Transform(data);
                     }
                 }
             }
+
+            return splitColumnName;
         }
     }
 }

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
@@ -246,6 +247,8 @@ namespace Microsoft.ML.CodeGenerator.Utilities
         internal static IList<string> GenerateClassLabels(ColumnInferenceResults columnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
             IList<string> result = new List<string>();
+            List<string> normalizedColumnNames = new List<string>();
+            bool duplicateColumnNamesExist = false;
             foreach (var column in columnInferenceResults.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();
@@ -268,37 +271,9 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     dataKind = column.DataKind;
                     columnName = column.Name;
                 }
-                switch (dataKind)
-                {
-                    case Microsoft.ML.Data.DataKind.String:
-                        sb.Append(Symbols.StringSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Boolean:
-                        sb.Append(Symbols.BoolSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Single:
-                        sb.Append(Symbols.FloatSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Double:
-                        sb.Append(Symbols.DoubleSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Int32:
-                        sb.Append(Symbols.IntSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.UInt32:
-                        sb.Append(Symbols.UIntSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Int64:
-                        sb.Append(Symbols.LongSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.UInt64:
-                        sb.Append(Symbols.UlongSymbol);
-                        break;
-                    default:
-                        throw new ArgumentException($"The data type '{column.DataKind}' is not handled currently.");
+                sb.Append(GetSymbolOfDataKind(dataKind));
 
-                }
-
+                // Accomodate VectorType (array) columns
                 if (range > 0)
                 {
                     result.Add($"[ColumnName(\"{columnName}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
@@ -309,12 +284,51 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
-                sb.Append(Utils.Normalize(column.Name));
-                sb.Append("{get; set;}");
+                string normalizedColumnName = Utils.Normalize(column.Name);
+                // Put placeholder for normalized and unique version of column name
+                if (!duplicateColumnNamesExist && normalizedColumnNames.Contains(normalizedColumnName))
+                    duplicateColumnNamesExist = true;
+                normalizedColumnNames.Add(normalizedColumnName);
                 result.Add(sb.ToString());
                 result.Add("\r\n");
             }
+            for (int i = 1; i < result.Count; i+=3)
+            {
+                // Get normalized column name for correctly typed class property name
+                // If duplicate column names exist, the only way to ensure all generated column names are unique is to add
+                // a differentiator depending on the column load order from dataset.
+                if (duplicateColumnNamesExist)
+                    result[i] += normalizedColumnNames[i/3] + $"_col_{i/3}";
+                else
+                    result[i] += normalizedColumnNames[i/3];
+                result[i] += "{get; set;}";
+            }
             return result;
+        }
+
+        internal static string GetSymbolOfDataKind(DataKind dataKind)
+        {
+            switch (dataKind)
+            {
+                case DataKind.String:
+                    return Symbols.StringSymbol;
+                case DataKind.Boolean:
+                    return Symbols.BoolSymbol;
+                case DataKind.Single:
+                    return Symbols.FloatSymbol;
+                case DataKind.Double:
+                    return Symbols.DoubleSymbol;
+                case DataKind.Int32:
+                    return Symbols.IntSymbol;
+                case DataKind.UInt32:
+                    return Symbols.UIntSymbol;
+                case DataKind.Int64:
+                    return Symbols.LongSymbol;
+                case DataKind.UInt64:
+                    return Symbols.UlongSymbol;
+                default:
+                    throw new ArgumentException($"The data type '{dataKind}' is not handled currently.");
+            }
         }
     }
 }

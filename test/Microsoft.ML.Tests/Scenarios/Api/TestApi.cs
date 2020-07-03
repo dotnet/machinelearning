@@ -291,6 +291,55 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
 
         [Fact]
+        public void TestSplitsSchema()
+        {
+
+            var mlContext = new MLContext(0);
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+
+            var fullInput = mlContext.Data.LoadFromTextFile(dataPath, new[] {
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("Workclass", DataKind.String, 1),
+                            new TextLoader.Column("Education", DataKind.String,2),
+                            new TextLoader.Column("Age", DataKind.Single,9)
+            }, hasHeader: true);
+
+            var ttSplit = mlContext.Data.TrainTestSplit(fullInput);
+            var ttSplitWithSeed = mlContext.Data.TrainTestSplit(fullInput, seed: 10);
+            var ttSplitWithSeedAndSamplingKey = mlContext.Data.TrainTestSplit(fullInput, seed: 10, samplingKeyColumnName: "Workclass");
+
+            var cvSplit = mlContext.Data.CrossValidationSplit(fullInput);
+            var cvSplitWithSeed = mlContext.Data.CrossValidationSplit(fullInput, seed: 10);
+            var cvSplitWithSeedAndSamplingKey = mlContext.Data.CrossValidationSplit(fullInput, seed: 10, samplingKeyColumnName: "Workclass");
+
+            var splits = new[]
+            {
+                ttSplit.TrainSet,
+                ttSplit.TestSet,
+                ttSplitWithSeed.TrainSet,
+                ttSplitWithSeed.TestSet,
+                ttSplitWithSeedAndSamplingKey.TrainSet,
+                ttSplitWithSeedAndSamplingKey.TestSet,
+                cvSplit.First().TrainSet,
+                cvSplit.First().TestSet,
+                cvSplitWithSeed.First().TrainSet,
+                cvSplitWithSeed.First().TestSet,
+                cvSplitWithSeedAndSamplingKey.First().TrainSet,
+                cvSplitWithSeedAndSamplingKey.First().TestSet
+            };
+
+            // Splitting a dataset shouldn't affect its schema
+            foreach(var split in splits)
+            {
+                Assert.Equal(fullInput.Schema.Count, split.Schema.Count);
+                foreach(var col in fullInput.Schema)
+                {
+                    Assert.Equal(col.Name, split.Schema[col.Index].Name);
+                }
+            }
+        }
+
+        [Fact]
         public void TestTrainTestSplit()
         {
             var mlContext = new MLContext(0);
@@ -363,7 +412,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
 
         [Fact]
-        public void TestTrainTestSplitWithStratification()
+        public void TestSplitsWithSamplingKeyColumn()
         {
             var mlContext = new MLContext(0);
             var input = mlContext.Data.LoadFromEnumerable(new[]
@@ -402,12 +451,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 },
             });
 
+            // TEST TRAINTESTSPLIT
             var split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.TextStrat));
             var ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
             Assert.Contains(1, ids);
             Assert.Contains(5, ids);
             split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.FloatStrat));
-            ids = split.TrainSet.GetColumn<int>(split.TrainSet.Schema[nameof(Input.Id)]);
+            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
             Assert.Contains(4, ids);
             Assert.Contains(5, ids);
             split = mlContext.Data.TrainTestSplit(input, 0.5, nameof(Input.VectorStrat));
@@ -426,6 +476,36 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
             Assert.Contains(1, ids);
             Assert.Contains(2, ids);
+
+            var inputWithKey = mlContext.Transforms.Conversion.MapValueToKey("KeyStrat", "TextStrat").Fit(input).Transform(input);
+            split = mlContext.Data.TrainTestSplit(inputWithKey, 0.5, "KeyStrat");
+            ids = split.TestSet.GetColumn<int>(split.TestSet.Schema[nameof(Input.Id)]);
+            Assert.Contains(1, ids);
+            Assert.Contains(5, ids);
+            Assert.NotNull(split.TrainSet.Schema.GetColumnOrNull("KeyStrat")); // Check that the key column used as SamplingKeyColumn wasn't deleted by the split
+
+            // TEST CROSSVALIDATIONSPLIT
+            var colnames = new[] {
+                nameof(Input.TextStrat),
+                nameof(Input.FloatStrat),
+                nameof(Input.VectorStrat),
+                nameof(Input.DateTimeStrat),
+                nameof(Input.DateTimeOffsetStrat),
+                nameof(Input.TimeSpanStrat),
+                "KeyStrat" };
+
+            foreach(var colname in colnames)
+            {
+                var cvSplits = mlContext.Data.CrossValidationSplit(inputWithKey, numberOfFolds: 2, samplingKeyColumnName: colname);
+                var idsTest1 = cvSplits[0].TestSet.GetColumn<int>(cvSplits[0].TestSet.Schema[nameof(Input.Id)]);
+                var idsTest2 = cvSplits[1].TestSet.GetColumn<int>(cvSplits[1].TestSet.Schema[nameof(Input.Id)]);
+                Assert.True(Enumerable.Intersect(idsTest1, idsTest2).Count() == 0);
+                Assert.True(idsTest1.Count() > 0, $"CV Split 0 for Column {colname} was empty");
+                Assert.True(idsTest2.Count() > 0, $"CV Split 1 for Column {colname} was empty");
+
+                // Check that using CV didn't remove the SamplingKeyColumn
+                Assert.NotNull(split.TrainSet.Schema.GetColumnOrNull(colname));
+            }
         }
     }
 }

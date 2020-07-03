@@ -93,13 +93,13 @@ namespace Microsoft.ML
             Environment.CheckParam(numFolds > 1, nameof(numFolds), "Must be more than 1");
             Environment.CheckValueOrNull(samplingKeyColumn);
 
-            DataOperationsCatalog.EnsureGroupPreservationColumn(Environment, ref data, ref samplingKeyColumn, seed);
+            var splitColumn = DataOperationsCatalog.CreateSplitColumn(Environment, ref data, samplingKeyColumn, seed, fallbackInEnvSeed: true);
             var result = new CrossValidationResult[numFolds];
             int fold = 0;
             // Sequential per-fold training.
             // REVIEW: we could have a parallel implementation here. We would need to
             // spawn off a separate host per fold in that case.
-            foreach (var split in DataOperationsCatalog.CrossValidationSplit(Environment, data, numFolds, samplingKeyColumn))
+            foreach (var split in DataOperationsCatalog.CrossValidationSplit(Environment, data, splitColumn, numFolds))
             {
                 var model = estimator.Fit(split.TrainSet);
                 var scoredTest = model.Transform(split.TestSet);

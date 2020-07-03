@@ -5734,7 +5734,7 @@ namespace Microsoft.ML.RunTests
                 getter(ref stdev);
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
-                Assert.Equal(0.0087, stdev, 5);
+                Assert.Equal(0.02582, stdev, 5);
 
                 double sum = 0;
                 double val = 0;
@@ -6612,6 +6612,232 @@ namespace Microsoft.ML.RunTests
             CheckEquality("EntryPoints", "Summarize.txt");
 
             Done();
+        }
+
+        [LightGBMFact]
+        void RankingWithColumnIdEntryPoint()
+        {
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
+            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+
+            string inputGraph = $@"
+                {{
+                    'Nodes': [
+                        {{
+                            'Inputs': {{
+                                'CustomSchema': 'col=Label:R4:0 col=GroupId:TX:1 col=Features_1:R4:9-14 header+ sep=tab',
+                                'InputFile': '$file'
+                            }},
+                            'Name': 'Data.CustomTextLoader',
+                            'Outputs': {{
+                                'Data': '$input_data'
+                            }}
+                        }},
+                        {{
+                            'Inputs': {{
+                                'Column': [
+                                    {{
+                                        'Name': 'GroupId',
+                                        'Source': 'GroupId'
+                                    }}
+                                ],
+                                'Data': '$input_data',
+                                'MaxNumTerms': 1000000,
+                                'Sort': 'ByOccurrence',
+                                'TextKeyValues': false
+                            }},
+                            'Name': 'Transforms.TextToKeyConverter',
+                            'Outputs': {{
+                                'Model': '$output_model1',
+                                'OutputData': '$output_data1'
+                            }}
+                        }},
+                        {{
+                            'Inputs': {{
+                                'Column': [
+                                    {{
+                                        'Name': 'Features',
+                                        'Source': [
+                                            'Features_1'
+                                        ]
+                                    }}
+                                ],
+                                'Data': '$output_data1'
+                            }},
+                            'Name': 'Transforms.ColumnConcatenator',
+                            'Outputs': {{
+                                'Model': '$output_model2',
+                                'OutputData': '$output_data2'
+                            }}
+                        }},
+                        {{
+                            'Inputs': {{
+                                'Models': [
+                                    '$output_model1',
+                                    '$output_model2'
+                                ]
+                            }},
+                            'Name': 'Transforms.ModelCombiner',
+                            'Outputs': {{
+                                'OutputModel': '$output_model_combined_pre_split'
+                            }}
+                        }},
+                        {{
+                            'Inputs': {{
+                                'Data': '$output_data2',
+                                'GroupColumn': 'GroupId',
+                                'Inputs': {{
+                                    'Data': '$cv_subgraph_input_data'
+                                }},
+                                'Kind': 'SignatureRankerTrainer',
+                                'LabelColumn': 'Label',
+                                'NameColumn': 'Name',
+                                'Nodes': [
+                                    {{
+                                        'Inputs': {{
+                                            'Column': [
+                                                'Label'
+                                            ],
+                                            'Data': '$cv_subgraph_input_data'
+                                        }},
+                                        'Name': 'Transforms.OptionalColumnCreator',
+                                        'Outputs': {{
+                                            'Model': '$output_model3',
+                                            'OutputData': '$optional_data'
+                                        }}
+                                    }},
+                                    {{
+                                        'Inputs': {{
+                                            'Data': '$optional_data',
+                                            'LabelColumn': 'Label',
+                                            'TextKeyValues': false
+                                        }},
+                                        'Name': 'Transforms.LabelColumnKeyBooleanConverter',
+                                        'Outputs': {{
+                                            'Model': '$output_model4',
+                                            'OutputData': '$label_data'
+                                        }}
+                                    }},
+                                    {{
+                                        'Inputs': {{
+                                            'Data': '$label_data',
+                                            'Features': [
+                                                'Features'
+                                            ]
+                                        }},
+                                        'Name': 'Transforms.FeatureCombiner',
+                                        'Outputs': {{
+                                            'Model': '$output_model5',
+                                            'OutputData': '$output_data'
+                                        }}
+                                    }},
+                                    {{
+                                        'Inputs': {{
+                                            'BatchSize': 1048576,
+                                            'Caching': 'Auto',
+                                            'CategoricalSmoothing': 10.0,
+                                            'CustomGains': [
+                                                0,
+                                                3,
+                                                7,
+                                                15,
+                                                31,
+                                                63,
+                                                127,
+                                                255,
+                                                511,
+                                                1023,
+                                                2047,
+                                                4095
+                                            ],
+                                            'EarlyStoppingRound': 0,
+                                            'EvaluationMetric': 'NormalizedDiscountedCumulativeGain',
+                                            'FeatureColumnName': 'Features',
+                                            'HandleMissingValue': true,
+                                            'L2CategoricalRegularization': 10.0,
+                                            'LabelColumnName': 'Label',
+                                            'MaximumBinCountPerFeature': 255,
+                                            'MaximumCategoricalSplitPointCount': 32,
+                                            'MinimumExampleCountPerGroup': 100,
+                                            'MinimumExampleCountPerLeaf': 1,
+                                            'NormalizeFeatures': 'Auto',
+                                            'NumberOfIterations': 100,
+                                            'RowGroupColumnName': 'GroupId',
+                                            'Sigmoid': 0.5,
+                                            'Silent': true,
+                                            'TrainingData': '$output_data',
+                                            'UseZeroAsMissingValue': false,
+                                            'Verbose': false
+                                        }},
+                                        'Name': 'Trainers.LightGbmRanker',
+                                        'Outputs': {{
+                                            'PredictorModel': '$output_model_learner'
+                                        }}
+                                    }},
+                                    {{
+                                        'Inputs': {{
+                                            'PredictorModel': '$output_model_learner',
+                                            'TransformModels': [
+                                                '$output_model3',
+                                                '$output_model4',
+                                                '$output_model5'
+                                            ]
+                                        }},
+                                        'Name': 'Transforms.ManyHeterogeneousModelCombiner',
+                                        'Outputs': {{
+                                            'PredictorModel': '$predictor_model'
+                                        }}
+                                    }}
+                                ],
+                                'NumFolds': 2,
+                                'Outputs': {{
+                                    'PredictorModel': '$predictor_model'
+                                }},
+                                'StratificationColumn': 'GroupId',
+                                'TransformModel': '$output_model_combined_pre_split'
+                            }},
+                            'Name': 'Models.CrossValidator',
+                            'Outputs': {{
+                                'OverallMetrics': '$overall_metrics',
+                                'PerInstanceMetrics': '$per_instance_metrics',
+                                'PredictorModel': '$predictor_model',
+                                'Warnings': '$warnings'
+                            }}
+                        }}
+                    ],
+                    'Outputs': {{
+                        'overall_metrics': '$outmetrics',
+                        'per_instance_metrics': '',
+                        'predictor_model': '$outModel',
+                        'warnings': '$outwarnings'
+                    }}
+                }}
+
+            ";
+
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("file", inputFile);
+            runner.RunAll();
+
+            var data = runner.GetOutput<IDataView>("overall_metrics");
+            using(var cursor = data.GetRowCursorForAllColumns())
+            {
+                var ndcgGetter = cursor.GetGetter<VBuffer<Double>>(data.Schema["NDCG"]);
+                VBuffer<Double> ndcgBuffer = default;
+
+                cursor.MoveNext();
+                ndcgGetter(ref ndcgBuffer);
+                var ndcgArray = ndcgBuffer.DenseValues().ToArray();
+
+                // Since we used a toy dataset, we won't worry much about comparing actual
+                // Double values of the result. Simply check that we get results.
+                Assert.Equal(3, ndcgArray.Length);
+                Assert.True(ndcgArray[0] > 0);
+                Assert.True(ndcgArray[1] > 0);
+                Assert.True(ndcgArray[2] > 0);
+            }
         }
     }
 }

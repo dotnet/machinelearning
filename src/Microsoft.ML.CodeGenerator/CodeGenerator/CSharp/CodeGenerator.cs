@@ -260,77 +260,12 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             return (trainerString, trainerUsings);
         }
 
+        /// <summary>
+        /// Utilize <see cref="ML.CodeGenerator.Utilities.Utils.GenerateClassLabels(ColumnInferenceResults, IDictionary{string, CodeGeneratorSettings.ColumnMapping})"/>
+        /// </summary>
         internal IList<string> GenerateClassLabels(IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
-            IList<string> result = new List<string>();
-            foreach (var column in _columnInferenceResult.TextLoaderOptions.Columns)
-            {
-                StringBuilder sb = new StringBuilder();
-                int range = (column.Source[0].Max - column.Source[0].Min).Value;
-                bool isArray = range > 0;
-                sb.Append(Symbols.PublicSymbol);
-                sb.Append(Symbols.Space);
-
-                // if column is in columnMapping, use the type and name in that
-                DataKind dataKind;
-                string columnName;
-
-                if (columnMapping != null && columnMapping.ContainsKey(column.Name))
-                {
-                    dataKind = columnMapping[column.Name].ColumnType;
-                    columnName = columnMapping[column.Name].ColumnName;
-                }
-                else
-                {
-                    dataKind = column.DataKind;
-                    columnName = column.Name;
-                }
-                switch (dataKind)
-                {
-                    case Microsoft.ML.Data.DataKind.String:
-                        sb.Append(Symbols.StringSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Boolean:
-                        sb.Append(Symbols.BoolSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Single:
-                        sb.Append(Symbols.FloatSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Double:
-                        sb.Append(Symbols.DoubleSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Int32:
-                        sb.Append(Symbols.IntSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.UInt32:
-                        sb.Append(Symbols.UIntSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Int64:
-                        sb.Append(Symbols.LongSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.UInt64:
-                        sb.Append(Symbols.UlongSymbol);
-                        break;
-                    default:
-                        throw new ArgumentException($"The data type '{column.DataKind}' is not handled currently.");
-                }
-
-                if (range > 0)
-                {
-                    result.Add($"[ColumnName(\"{columnName}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
-                    sb.Append("[]");
-                }
-                else
-                {
-                    result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
-                }
-                sb.Append(" ");
-                sb.Append(Utils.Normalize(column.Name));
-                sb.Append("{get; set;}");
-                result.Add(sb.ToString());
-                result.Add("\r\n");
-            }
-            return result;
+            return Utils.GenerateClassLabels(_columnInferenceResult, columnMapping);
         }
 
         #region Model project
