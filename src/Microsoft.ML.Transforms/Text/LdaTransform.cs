@@ -210,9 +210,9 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Method to provide details about the topic discovered by LightLDA
+        /// Method to provide details about the topics discovered by LightLDA
         /// </summary>
-        /// <param name="columnIndex">index of column</param>
+        /// <param name="columnIndex">index of column options pair</param>
         /// <returns></returns>
         public ModelParameters GetLdaDetails(int columnIndex)
         {
