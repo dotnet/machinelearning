@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -49,23 +51,35 @@ namespace Microsoft.ML.CodeGenerator.Utilities
 
         internal static IDictionary<string, string> GenerateSampleData(IDataView dataView, ColumnInferenceResults columnInference)
         {
-            var featureColumns = dataView.Schema.AsEnumerable().Where(col => col.Name != columnInference.ColumnInformation.LabelColumnName && !columnInference.ColumnInformation.IgnoredColumnNames.Contains(col.Name));
+            var featureColumns = dataView.Schema.ToList().FindAll(
+                col => col.Name != columnInference.ColumnInformation.LabelColumnName &&
+                       !columnInference.ColumnInformation.IgnoredColumnNames.Contains(col.Name));
             var rowCursor = dataView.GetRowCursor(featureColumns);
 
-            var sampleData = featureColumns.Select(column => new { key = Utils.Normalize(column.Name), val = "null" }).ToDictionary(x => x.key, x => x.val);
+            OrderedDictionary sampleData = new OrderedDictionary();
+            // Get normalized and unique column names. If there are duplicate column names, the
+            // differentiator suffix '_col_x' will be added to each column name, where 'x' is
+            // the load order for a given column.
+            List<string> normalizedColumnNames= GenerateColumnNames(featureColumns.Select(column => column.Name).ToList());
+            foreach (string columnName in normalizedColumnNames)
+                sampleData[columnName] = null;
             if (rowCursor.MoveNext())
             {
                 var getGetGetterMethod = typeof(Utils).GetMethod(nameof(Utils.GetValueFromColumn), BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
-                foreach (var column in featureColumns)
+                // Access each feature column name through its index in featureColumns
+                // as there may exist duplicate column names. In this case, sampleData
+                // column names may have the differentiator suffix of '_col_x' added,
+                // which requires access to each column name in through its index.
+                for(int i = 0; i < featureColumns.Count(); i++)
                 {
-                    var getGeneraicGetGetterMethod = getGetGetterMethod.MakeGenericMethod(column.Type.RawType);
-                    string val = getGeneraicGetGetterMethod.Invoke(null, new object[] { rowCursor, column }) as string;
-                    sampleData[Utils.Normalize(column.Name)] = val;
+                    var getGenericGetGetterMethod = getGetGetterMethod.MakeGenericMethod(featureColumns[i].Type.RawType);
+                    string val = getGenericGetGetterMethod.Invoke(null, new object[] { rowCursor, featureColumns[i] }) as string;
+                    sampleData[i] = val;
                 }
             }
 
-            return sampleData;
+            return sampleData.Cast<DictionaryEntry>().ToDictionary(k => (string)k.Key, v => (string)v.Value);
         }
 
         internal static string GetValueFromColumn<T>(DataViewRowCursor rowCursor, DataViewSchema.Column column)
@@ -247,8 +261,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
         internal static IList<string> GenerateClassLabels(ColumnInferenceResults columnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
             IList<string> result = new List<string>();
-            List<string> normalizedColumnNames = new List<string>();
-            bool duplicateColumnNamesExist = false;
+            List<string> columnNames = new List<string>();
             foreach (var column in columnInferenceResults.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();
@@ -284,26 +297,45 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
-                string normalizedColumnName = Utils.Normalize(column.Name);
-                // Put placeholder for normalized and unique version of column name
-                if (!duplicateColumnNamesExist && normalizedColumnNames.Contains(normalizedColumnName))
-                    duplicateColumnNamesExist = true;
-                normalizedColumnNames.Add(normalizedColumnName);
+                columnNames.Add(column.Name);
                 result.Add(sb.ToString());
                 result.Add("\r\n");
             }
+            // Get normalized and unique column names. If there are duplicate column names, the
+            // differentiator suffix '_col_x' will be added to each column name, where 'x' is
+            // the load order for a given column.
+            List<string> normalizedColumnNames = GenerateColumnNames(columnNames);
             for (int i = 1; i < result.Count; i+=3)
             {
                 // Get normalized column name for correctly typed class property name
-                // If duplicate column names exist, the only way to ensure all generated column names are unique is to add
-                // a differentiator depending on the column load order from dataset.
-                if (duplicateColumnNamesExist)
-                    result[i] += normalizedColumnNames[i/3] + $"_col_{i/3}";
-                else
-                    result[i] += normalizedColumnNames[i/3];
+                result[i] += normalizedColumnNames[i/3];
                 result[i] += "{get; set;}";
             }
             return result;
+        }
+
+        /// <summary>
+        /// Take a list of column names that may not be normalized to fit property name standards
+        /// and contain duplicate column names. Return unique and normalized column names.
+        /// </summary>
+        /// <param name="columnNames">Column names to normalize.</param>
+        /// <returns>A list of strings that contain normalized and unique column names.</returns>
+        internal static List<string> GenerateColumnNames(List<string> columnNames)
+        {
+            for (int i = 0; i < columnNames.Count; i++)
+                columnNames[i] = Utils.Normalize(columnNames[i]);
+            // Check if there are any duplicates in columnNames by obtaining its set
+            // and seeing whether or not they are the same size.
+            HashSet<String> columnNamesSet = new HashSet<String>(columnNames);
+            // If there are duplicates, add the differentiator suffix '_col_x'
+            // to each normalized column name, where 'x' is the load
+            // order for a given column from dataset.
+            if (columnNamesSet.Count != columnNames.Count)
+            {
+                for (int i = 0; i < columnNames.Count; i++)
+                    columnNames[i] += String.Concat("_col_", i);
+            }
+            return columnNames;
         }
 
         internal static string GetSymbolOfDataKind(DataKind dataKind)
