@@ -417,6 +417,8 @@ namespace Microsoft.ML.Data
                 private Task _thdRead;
                 private volatile bool _abort;
 
+                private string _headerString;
+
                 public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, bool readMultilines, char[] separators, char escapeChar, long limit, int cref)
                 {
                     // Note that files is allowed to be empty.
@@ -438,6 +440,8 @@ namespace Microsoft.ML.Data
 
                     _queue = new BlockingQueue<LineBatch>(bufSize);
                     _thdRead = Utils.RunOnBackgroundThreadAsync(ThreadProc);
+
+                    _headerString = string.Empty;
                 }
 
                 public void Release()
@@ -557,7 +561,7 @@ namespace Microsoft.ML.Data
                         while (ichCur < ichLim)
                         {
                             ret = FieldIncludesNewLine(ref line, ref ichCur, ichLim, ref quotingError, false);
-                            if(quotingError)
+                            if (quotingError)
                                 return false;
 
                             // Skip empty fields
@@ -581,7 +585,7 @@ namespace Microsoft.ML.Data
                         if (ichCur >= ichLim) // if there were only leading spaces on the line
                             return startsInsideQuoted;
 
-                        if(startsInsideQuoted || line[ichCur] == '"')
+                        if (startsInsideQuoted || line[ichCur] == '"')
                         {
                             // Quoted Field Case
 
@@ -662,7 +666,7 @@ namespace Microsoft.ML.Data
 
                         // Unquoted field case.
                         // An unquoted field shouldn't contain new lines
-                        while(ichCur < ichLim && !IsSep(line[ichCur]))
+                        while (ichCur < ichLim && !IsSep(line[ichCur]))
                         {
                             ichCur++;
                         }
@@ -731,6 +735,8 @@ namespace Microsoft.ML.Data
                                         return;
                                     }
                                 }
+                                else
+                                    _headerString = text;
 
                                 for (; ; )
                                 {
@@ -750,11 +756,15 @@ namespace Microsoft.ML.Data
                                     }
                                     line++;
 
-                                    // Filter out comments and empty strings.
+                                    // Filter out comments, empty strings and duplicate header string.
                                     if (text.Length >= 2)
                                     {
                                         // Don't use string.StartsWith("//") - it is too slow.
                                         if (text[0] == '/' && text[1] == '/')
+                                            continue;
+
+                                        // Skip duplicate header string
+                                        if (_headerString == text)
                                             continue;
                                     }
                                     else if (text.Length == 0)
