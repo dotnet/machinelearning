@@ -147,7 +147,8 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, 0, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._escapeChar, parent._maxRows, 1);
+                var reader = new LineReader(parent._host, files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines,
+                    parent._separators, parent._escapeChar, parent._maxRows, 1);
                 var stats = new ParseStats(parent._host, 1);
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
@@ -164,7 +165,8 @@ namespace Microsoft.ML.Data
                 SetupCursor(parent, active, n, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines, parent._separators, parent._escapeChar, parent._maxRows, cthd);
+                var reader = new LineReader(parent._host, files, BatchSize, 100, parent.HasHeader, parent.ReadMultilines,
+                    parent._separators, parent._escapeChar, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
                     return new DataViewRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
@@ -206,7 +208,8 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            public static void GetSomeLines(IMultiStreamSource source, int count, bool readMultilines, char[] separators, char escapeChar, ref List<ReadOnlyMemory<char>> lines)
+            public static void GetSomeLines(IHost host, IMultiStreamSource source, int count, bool readMultilines,
+                char[] separators, char escapeChar, ref List<ReadOnlyMemory<char>> lines)
             {
                 Contracts.AssertValue(source);
                 Contracts.Assert(count > 0);
@@ -216,7 +219,7 @@ namespace Microsoft.ML.Data
                     count = 2;
 
                 LineBatch batch;
-                var reader = new LineReader(source, count, 1, false, readMultilines, separators, escapeChar, count, 1);
+                var reader = new LineReader(host, source, count, 1, false, readMultilines, separators, escapeChar, count, 1);
                 try
                 {
                     batch = reader.GetBatch();
@@ -417,17 +420,23 @@ namespace Microsoft.ML.Data
                 private Task _thdRead;
                 private volatile bool _abort;
 
+                // The channel to report messages on.
+                private readonly IChannel _ch;
+                // text file header string if any
                 private string _headerString;
 
-                public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, bool readMultilines, char[] separators, char escapeChar, long limit, int cref)
+                public LineReader(IChannelProvider provider, IMultiStreamSource files, int batchSize, int bufSize,
+                    bool hasHeader, bool readMultilines, char[] separators, char escapeChar, long limit, int cref)
                 {
+                    _ch = provider.Start("LineReader");
+
                     // Note that files is allowed to be empty.
-                    Contracts.AssertValue(files);
-                    Contracts.Assert(files.Count >= 0);
-                    Contracts.Assert(batchSize >= 2);
-                    Contracts.Assert(bufSize > 0);
-                    Contracts.Assert(limit >= 0);
-                    Contracts.Assert(cref > 0);
+                    _ch.AssertValue(files);
+                    _ch.Assert(files.Count >= 0);
+                    _ch.Assert(batchSize >= 2);
+                    _ch.Assert(bufSize > 0);
+                    _ch.Assert(limit >= 0);
+                    _ch.Assert(cref > 0);
 
                     _limit = limit;
                     _hasHeader = hasHeader;
@@ -439,7 +448,7 @@ namespace Microsoft.ML.Data
                     _cref = cref;
 
                     _queue = new BlockingQueue<LineBatch>(bufSize);
-                    _thdRead = Utils.RunOnBackgroundThreadAsync(ThreadProc);
+                    _thdRead = Utils.RunOnBackgroundThreadAsync(ReadLines);
 
                     _headerString = string.Empty;
                 }
@@ -447,7 +456,7 @@ namespace Microsoft.ML.Data
                 public void Release()
                 {
                     int n = Interlocked.Decrement(ref _cref);
-                    Contracts.Assert(n >= 0);
+                    _ch.Assert(n >= 0);
 
                     if (n != 0)
                         return;
@@ -474,8 +483,8 @@ namespace Microsoft.ML.Data
                     if (batch.Exception == null)
                         return batch;
 
-                    Contracts.AssertValue(batch.Exception);
-                    throw Contracts.ExceptDecode(batch.Exception, "Stream reading encountered exception");
+                    _ch.AssertValue(batch.Exception);
+                    throw _ch.ExceptDecode(batch.Exception, "Stream reading encountered exception");
                 }
 
                 private class MultiLineReader
@@ -686,9 +695,9 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                private void ThreadProc()
+                private void ReadLines()
                 {
-                    Contracts.Assert(_batchSize >= 2);
+                    _ch.Assert(_batchSize >= 2);
 
                     try
                     {
@@ -761,14 +770,23 @@ namespace Microsoft.ML.Data
                                     {
                                         // Don't use string.StartsWith("//") - it is too slow.
                                         if (text[0] == '/' && text[1] == '/')
+                                        {
+                                            _ch.Info("Ignore comments line {text} at line {line}.");
                                             continue;
+                                        }
 
                                         // Skip duplicate header string
                                         if (_headerString == text)
+                                        {
+                                            _ch.Warning($"Ignore duplicate header string {text} at line {line}.");
                                             continue;
+                                        }
                                     }
                                     else if (text.Length == 0)
+                                    {
+                                        _ch.Info($"Ignore empty line at line {line}.");
                                         continue;
+                                    }
 
                                     infos[index] = new LineInfo(line, text);
                                     if (++index >= infos.Length)
@@ -811,9 +829,9 @@ namespace Microsoft.ML.Data
 
                 private void PostPartial(string path, long total, ref long batch, int index, LineInfo[] infos)
                 {
-                    Contracts.AssertValueOrNull(path);
-                    Contracts.Assert(0 <= total);
-                    Contracts.Assert(0 <= index && index < Utils.Size(infos));
+                    _ch.AssertValueOrNull(path);
+                    _ch.Assert(0 <= total);
+                    _ch.Assert(0 <= index && index < Utils.Size(infos));
 
                     // Queue the last partial batch.
                     if (index <= 0)

@@ -734,5 +734,15 @@ namespace Microsoft.ML.TestFrameworkCommon
             fileSeparator = '\t',
             loaderSettings = "loader=Text{col=Label:R4:0 col=User:U4[0-19]:1 col=Item:U4[0-39]:2 header+}"
         };
+
+        public static TestDataset trivialMatrixFactorizationWithDuplicateHeader = new TestDataset()
+        {
+            name = "trivialMatrixFactorizationWithDuplicateHeader",
+            trainFilename = @"trivial-train-dup-header.tsv",
+            testFilename = @"trivial-test-dup-header.tsv",
+            fileHasHeader = true,
+            fileSeparator = '\t',
+            loaderSettings = "loader=Text{col=Label:R4:0 col=User:U4[0-19]:1 col=Item:U4[0-39]:2 header+}"
+        };
     }
 }

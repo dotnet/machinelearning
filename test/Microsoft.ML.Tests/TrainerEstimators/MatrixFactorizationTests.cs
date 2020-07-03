@@ -54,6 +54,23 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
+        public void MatrixFactorization_Duplicate_Header()
+        {
+            string labelColumnName = "Label";
+            string matrixColumnIndexColumnName = "Col";
+            string matrixRowIndexColumnName = "Row";
+
+            var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName))
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+
+            var dataDuplicateHeader = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName))
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorizationWithDuplicateHeader.trainFilename)));
+
+            TestCommon.CheckSameSchemas(data.Schema, dataDuplicateHeader.Schema);
+            CheckSameValues(data, dataDuplicateHeader);
+        }
+
+        [Fact]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
