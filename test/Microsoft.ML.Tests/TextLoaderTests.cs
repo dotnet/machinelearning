@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -134,6 +133,38 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             Assert.True(false, "Test failed.");
+        }
+
+        [Fact]
+        public void TestLoadTextWithDuplicateHeader()
+        {
+            string labelColumnName = "Label";
+            string matrixColumnIndexColumnName = "Col";
+            string matrixRowIndexColumnName = "Row";
+
+            var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName))
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+
+            var dataDuplicateHeader = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName))
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorizationWithDuplicateHeader.trainFilename)));
+
+            TestCommon.CheckSameSchemas(data.Schema, dataDuplicateHeader.Schema);
+            CheckSameValues(data, dataDuplicateHeader);
+        }
+
+        private TextLoader.Options GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
+        {
+            return new TextLoader.Options()
+            {
+                Separator = "\t",
+                HasHeader = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column(labelColumnName, DataKind.Single, new [] { new TextLoader.Range(0) }),
+                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.UInt32, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
+                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
+                }
+            };
         }
     }
 

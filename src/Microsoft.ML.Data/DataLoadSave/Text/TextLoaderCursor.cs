@@ -770,10 +770,7 @@ namespace Microsoft.ML.Data
                                     {
                                         // Don't use string.StartsWith("//") - it is too slow.
                                         if (text[0] == '/' && text[1] == '/')
-                                        {
-                                            _ch.Info("Ignore comments line {text} at line {line}.");
                                             continue;
-                                        }
 
                                         // Skip duplicate header string
                                         if (_headerString == text)
@@ -783,10 +780,7 @@ namespace Microsoft.ML.Data
                                         }
                                     }
                                     else if (text.Length == 0)
-                                    {
-                                        _ch.Info($"Ignore empty line at line {line}.");
                                         continue;
-                                    }
 
                                     infos[index] = new LineInfo(line, text);
                                     if (++index >= infos.Length)

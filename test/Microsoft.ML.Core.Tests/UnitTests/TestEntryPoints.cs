@@ -69,7 +69,7 @@ namespace Microsoft.ML.RunTests
             {
                 Arguments =
                 {
-                    HasHeader = true,
+                    HasHeader = false,
                     Columns = new[]
                     {
                         new TextLoader.Column("Label", DataKind.Single, 0),

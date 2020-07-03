@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tests
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = mlContext.Data.LoadFromTextFile<BreastCancerFeatureVector>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.NormalizeMinMax("Features").
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansTrainer.Options
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: false);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.BinaryClassification.Trainers.AveragedPerceptron(),
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: false);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.BinaryClassification.Trainers.AveragedPerceptron(),
@@ -598,7 +598,7 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features").
                 Append(mlContext.Transforms.NormalizeMinMax("Features")).
@@ -762,7 +762,7 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
@@ -1405,7 +1405,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath, separatorChar: '\t', hasHeader: false);
 
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
@@ -1647,7 +1647,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassificationNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassificationNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: false);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector"),
@@ -1685,7 +1685,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExampleNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExampleNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: false);
 
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
