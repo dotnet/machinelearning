@@ -20901,6 +20901,18 @@
                   "Default": null
                 },
                 {
+                  "Name": "OutputTopicWordSummary",
+                  "Type": "Bool",
+                  "Desc": "Whether to output the topic-word summary in text format when saving the model to disk",
+                  "Aliases": [
+                    "summary"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
                   "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
@@ -21112,7 +21124,7 @@
         {
           "Name": "OutputTopicWordSummary",
           "Type": "Bool",
-          "Desc": "Whether to output the topic-word summary in text format",
+          "Desc": "Whether to output the topic-word summary in text format when saving the model to disk",
           "Aliases": [
             "summary"
           ],

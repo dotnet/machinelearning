@@ -305,11 +305,25 @@ namespace Microsoft.ML.Tests
             public float Score { get; set; }
         }
 
+        class PlattModelInput2
+        {
+            public bool Label { get; set; }
+            public float ScoreX { get; set; }
+        }
+
         static IEnumerable<PlattModelInput> PlattGetData()
         {
             for (int i = 0; i < 100; i++)
             {
                 yield return new PlattModelInput { Score = i, Label = i % 2 == 0 };
+            }
+        }
+
+        static IEnumerable<PlattModelInput2> PlattGetData2()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                yield return new PlattModelInput2 { ScoreX = i, Label = i % 2 == 0 };
             }
         }
 
@@ -326,6 +340,15 @@ namespace Microsoft.ML.Tests
             var onnxFileName = $"{pipeline}.onnx";
 
             TestPipeline(pipeline, data, onnxFileName, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
+
+            // Test PlattCalibrator with a non-default Score column name, and without any binary prediction trainer
+            IDataView data2 = mlContext.Data.LoadFromEnumerable(PlattGetData2());
+
+            var pipeline2 = mlContext.BinaryClassification.Calibrators
+                .Platt(scoreColumnName: "ScoreX");
+            var onnxFileName2 = $"{pipeline2}.onnx";
+
+            TestPipeline(pipeline2, data2, onnxFileName2, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
             Done();
         }
