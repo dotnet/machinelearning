@@ -38,7 +38,6 @@ namespace Microsoft.ML.Tests
             DatabaseSource dbs = GetIrisDatabaseSourceWithTimeOut("WAITFOR DELAY '00:00:05'; SELECT * FROM {0}", 1);
             var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => IrisLightGbmImpl(dbs));
             Assert.Contains("Timeout expired", ex.InnerException.Message);
-
         }
 
         private void IrisLightGbmImpl(DatabaseSource dbs)
