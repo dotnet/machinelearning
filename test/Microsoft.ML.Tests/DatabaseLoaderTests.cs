@@ -28,6 +28,21 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisLightGbm()
         {
+            DatabaseSource dbs = GetIrisDatabaseSource("SELECT * FROM {0}");
+            IrisLightGbmImpl(dbs);
+        }
+
+        [LightGBMFact]
+        public void IrisLightGbmWithTimeOut()
+        {
+            DatabaseSource dbs = GetIrisDatabaseSourceWithTimeOut("WAITFOR DELAY '00:00:05'; SELECT * FROM {0}", 1);
+            var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => IrisLightGbmImpl(dbs));
+            Assert.Contains("Timeout expired", ex.InnerException.Message);
+
+        }
+
+        private void IrisLightGbmImpl(DatabaseSource dbs)
+        {
             var mlContext = new MLContext(seed: 1);
 
             var loaderColumns = new DatabaseLoader.Column[]
@@ -41,7 +56,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
-            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
+            var trainingData = loader.Load(dbs);
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -223,6 +238,22 @@ namespace Microsoft.ML.Tests
                     SQLiteFactory.Instance,
                     GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
                     String.Format(command, TestDatasets.irisDbSQLite.trainFilename));
+        }
+
+        private DatabaseSource GetIrisDatabaseSourceWithTimeOut(string command, int commandTimeOut)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return new DatabaseSource(
+                    SqlClientFactory.Instance,
+                    GetMSSQLConnectionString(TestDatasets.irisDb.name),
+                    String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""),
+                    commandTimeOut);
+            else
+                return new DatabaseSource(
+                    SQLiteFactory.Instance,
+                    GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
+                    String.Format(command, TestDatasets.irisDbSQLite.trainFilename),
+                    commandTimeOut);
         }
 
         private string GetMSSQLConnectionString(string databaseName)
