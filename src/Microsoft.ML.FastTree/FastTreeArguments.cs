@@ -301,6 +301,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public Options()
             {
                 EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt1; // Use L1 by default.
+                RowGroupColumnName = "GroupId"; // Use GroupId as default for ranking options.
             }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
