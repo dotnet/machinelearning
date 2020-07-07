@@ -158,7 +158,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             public Options()
             {
-                RowGroupColumnName = "GroupId"; // Use GroupId as default for ranking options.
+                RowGroupColumnName = DefaultColumnNames.GroupId; // Use GroupId as default for ranking options.
             }
 
             internal override Dictionary<string, object> ToDictionary(IHost host)
