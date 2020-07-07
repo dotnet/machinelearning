@@ -10,35 +10,36 @@ namespace Microsoft.ML.Data
     /// <summary>Exposes the data required for opening a database for reading.</summary>
     public sealed class DatabaseSource
     {
+        public static readonly int DefaultCommandTimeoutInSeconds = 30;
         /// <summary>Creates a new instance of the <see cref="DatabaseSource" /> class.</summary>
         /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>..</param>
         /// <param name="connectionString">The string used to open the connection.</param>
         /// <param name="commandText">The text command to run against the data source.</param>
-        public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText)
+        public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText) :
+            this(providerFactory, connectionString, commandText, DefaultCommandTimeoutInSeconds)
+        {
+        }
+
+        /// <summary>Creates a new instance of the <see cref="DatabaseSource" /> class.</summary>
+        /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>..</param>
+        /// <param name="connectionString">The string used to open the connection.</param>
+        /// <param name="commandText">The text command to run against the data source.</param>
+        /// <param name="commandTimeoutInSeconds">The timeout(in seconds) for database command.</param>
+        public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText, int commandTimeoutInSeconds)
         {
             Contracts.CheckValue(providerFactory, nameof(providerFactory));
             Contracts.CheckValue(connectionString, nameof(connectionString));
             Contracts.CheckValue(commandText, nameof(commandText));
+            Contracts.CheckUserArg(commandTimeoutInSeconds >= 0, nameof(commandTimeoutInSeconds));
 
             ProviderFactory = providerFactory;
             ConnectionString = connectionString;
             CommandText = commandText;
-        }
-
-        /// <summary>Creates a new instance of the <see cref="DatabaseSource" /> class.</summary>
-        /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>..</param>
-        /// <param name="connectionString">The string used to open the connection.</param>
-        /// <param name="commandText">The text command to run against the data source.</param>
-        /// <param name="commandTimeOutInSeconds">The timeout(in seconds) for database command.</param>
-        public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText, int commandTimeOutInSeconds) :
-            this(providerFactory, connectionString, commandText)
-        {
-            Contracts.CheckUserArg(commandTimeOutInSeconds >= 0, nameof(commandTimeOutInSeconds));
-            CommandTimeOutInSeconds = commandTimeOutInSeconds;
+            CommandTimeoutInSeconds = commandTimeoutInSeconds;
         }
 
         /// <summary>Gets the timeout for database command.</summary>
-        public int? CommandTimeOutInSeconds { get; }
+        public int CommandTimeoutInSeconds { get; }
 
         /// <summary>Gets the text command to run against the data source.</summary>
         public string CommandText { get; }
