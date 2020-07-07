@@ -82,6 +82,11 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public sealed class Options : AveragedLinearOptions
         {
+            public Options()
+            {
+                NumberOfIterations = 10;
+            }
+
             /// <summary>
             /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
