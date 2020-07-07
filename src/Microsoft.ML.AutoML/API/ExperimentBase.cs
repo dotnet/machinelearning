@@ -194,7 +194,8 @@ namespace Microsoft.ML.AutoML
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
-            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumnName);
+            UserInputValidationUtil.ValidateSamplingKey(columnInformation?.SamplingKeyColumnName, columnInformation?.GroupIdColumnName, _task);
+            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.GroupIdColumnName);
             return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
         }
 
