@@ -261,8 +261,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void PlattCalibratorOnnxConversionTest()
+        private (MLContext, IDataView, List<IEstimator<ITransformer>>, EstimatorChain<NormalizingTransformer>) GetEstimatorsForOnnxConversionTests()
         {
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -289,6 +288,13 @@ namespace Microsoft.ML.Tests
 
             var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features").
                 Append(mlContext.Transforms.NormalizeMinMax("Features"));
+            return (mlContext, dataView, estimators, initialPipeline);
+        }
+
+        [Fact]
+        public void PlattCalibratorOnnxConversionTest()
+        {
+            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
             foreach (var estimator in estimators)
             {
                 var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Platt());
@@ -299,7 +305,52 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        class PlattModelInput
+        [Fact]
+        public void FixedPlattCalibratorOnnxConversionTest()
+        {
+            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
+            foreach (var estimator in estimators)
+            {
+                // Utilize FixedPlattCalibrator by defining slope and offset
+                var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f));
+                var onnxFileName = $"{estimator}-WithFixedPlattCalibrator.onnx";
+
+                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
+            }
+            Done();
+        }
+
+        [Fact]
+        [Trait("Category", "SkipInCI")]
+        public void NaiveCalibratorOnnxConversionTest()
+        {
+            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
+            foreach (var estimator in estimators)
+            {
+                var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Naive());
+                var onnxFileName = $"{estimator}-WithNaiveCalibrator.onnx";
+
+                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
+            }
+            Done();
+        }
+
+        [Fact]
+        [Trait("Category", "SkipInCI")]
+        public void IsotonicCalibratorOnnxConversionTest()
+        {
+            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
+            foreach (var estimator in estimators)
+            {
+                var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Isotonic());
+                var onnxFileName = $"{estimator}-WithIsotonicCalibrator.onnx";
+
+                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
+            }
+            Done();
+        }
+
+        class ModelInput
         {
             public bool Label { get; set; }
             public float Score { get; set; }
@@ -311,11 +362,11 @@ namespace Microsoft.ML.Tests
             public float ScoreX { get; set; }
         }
 
-        static IEnumerable<PlattModelInput> PlattGetData()
+        static IEnumerable<ModelInput> PlattGetData()
         {
             for (int i = 0; i < 100; i++)
             {
-                yield return new PlattModelInput { Score = i, Label = i % 2 == 0 };
+                yield return new ModelInput { Score = i, Label = i % 2 == 0 };
             }
         }
 
