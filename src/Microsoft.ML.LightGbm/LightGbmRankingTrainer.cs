@@ -156,6 +156,11 @@ namespace Microsoft.ML.Trainers.LightGbm
                 NameMapping.Add(nameof(EvaluateMetricType.NormalizedDiscountedCumulativeGain), "ndcg");
             }
 
+            public Options()
+            {
+                RowGroupColumnName = DefaultColumnNames.GroupId; // Use GroupId as default for ranking options.
+            }
+
             internal override Dictionary<string, object> ToDictionary(IHost host)
             {
                 var res = base.ToDictionary(host);

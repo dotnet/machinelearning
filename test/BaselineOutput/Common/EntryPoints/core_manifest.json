@@ -7675,7 +7675,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": null
+          "Default": "GroupId"
         },
         {
           "Name": "NormalizeFeatures",
@@ -12532,7 +12532,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": null
+          "Default": "GroupId"
         },
         {
           "Name": "NormalizeFeatures",
@@ -27384,7 +27384,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": null
+              "Default": "GroupId"
             },
             {
               "Name": "NormalizeFeatures",
