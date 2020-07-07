@@ -29,21 +29,16 @@ namespace Microsoft.ML.Data
         /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>..</param>
         /// <param name="connectionString">The string used to open the connection.</param>
         /// <param name="commandText">The text command to run against the data source.</param>
-        /// <param name="commandTimeOut">The timeout(in seconds) for database command.</param>
-        public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText, int commandTimeOut)
+        /// <param name="commandTimeOutInSeconds">The timeout(in seconds) for database command.</param>
+        public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText, int commandTimeOutInSeconds) :
+            this(providerFactory, connectionString, commandText)
         {
-            Contracts.CheckValue(providerFactory, nameof(providerFactory));
-            Contracts.CheckValue(connectionString, nameof(connectionString));
-            Contracts.CheckValue(commandText, nameof(commandText));
-
-            ProviderFactory = providerFactory;
-            ConnectionString = connectionString;
-            CommandText = commandText;
-            CommandTimeOut = commandTimeOut;
+            Contracts.CheckUserArg(commandTimeOutInSeconds >= 0, nameof(commandTimeOutInSeconds));
+            CommandTimeOutInSeconds = commandTimeOutInSeconds;
         }
 
         /// <summary>Gets the timeout for database command.</summary>
-        public int? CommandTimeOut { get; }
+        public int? CommandTimeOutInSeconds { get; }
 
         /// <summary>Gets the text command to run against the data source.</summary>
         public string CommandText { get; }
