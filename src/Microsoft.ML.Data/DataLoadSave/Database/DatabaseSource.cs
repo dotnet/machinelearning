@@ -43,7 +43,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>Gets the timeout for database command.</summary>
-        public int CommandTimeOut { get; }
+        public int? CommandTimeOut { get; }
 
         /// <summary>Gets the text command to run against the data source.</summary>
         public string CommandText { get; }
