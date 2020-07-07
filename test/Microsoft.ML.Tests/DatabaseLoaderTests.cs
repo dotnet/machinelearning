@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests
         }
 
         [LightGBMFact]
-        public void IrisLightGbmWithTimeOut()
+        public void IrisLightGbmWithTimeout()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) //sqlite does not have built-in command for sleep
                 return;
@@ -227,20 +227,20 @@ namespace Microsoft.ML.Tests
         /// SQLite database is used on Linux and MacOS builds.
         /// </summary>
         /// <returns>Return the appropiate Iris DatabaseSource according to build OS.</returns>
-        private DatabaseSource GetIrisDatabaseSource(string command, int commandTimeOutInSeconds = 30)
+        private DatabaseSource GetIrisDatabaseSource(string command, int commandTimeoutInSeconds = 30)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return new DatabaseSource(
                     SqlClientFactory.Instance,
                     GetMSSQLConnectionString(TestDatasets.irisDb.name),
                     String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""),
-                    commandTimeOutInSeconds);
+                    commandTimeoutInSeconds);
             else
                 return new DatabaseSource(
                     SQLiteFactory.Instance,
                     GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
                     String.Format(command, TestDatasets.irisDbSQLite.trainFilename),
-                    commandTimeOutInSeconds);
+                    commandTimeoutInSeconds);
         }
 
         private string GetMSSQLConnectionString(string databaseName)
