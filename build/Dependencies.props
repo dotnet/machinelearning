@@ -8,7 +8,7 @@
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
-    <SystemThreadingTasksDataflowPackageVersion>4.8.0</SystemThreadingTasksDataflowPackageVersion>
+    <SystemThreadingChannelsPackageVersion>4.7.1</SystemThreadingChannelsPackageVersion>
   </PropertyGroup>
 
   <!-- Other/Non-Core Product Dependencies -->
