@@ -186,7 +186,7 @@ namespace Microsoft.ML.AutoML.Test
         public void AutoFitRankingCV2Test()
         {
             string labelColumnName = "Label";
-            string groupIdColumnName = "GroupId";
+            string groupIdColumnName = "GroupIdCustom";
             string featuresColumnVectorNameA = "FeatureVectorA";
             string featuresColumnVectorNameB = "FeatureVectorB";
             uint numFolds = 3;

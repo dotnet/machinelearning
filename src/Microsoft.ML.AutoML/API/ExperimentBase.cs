@@ -67,11 +67,23 @@ namespace Microsoft.ML.AutoML
         public ExperimentResult<TMetrics> Execute(IDataView trainData, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
-            var columnInformation = new ColumnInformation()
+            ColumnInformation columnInformation;
+            if (_task == TaskKind.Ranking)
             {
-                LabelColumnName = labelColumnName,
-                SamplingKeyColumnName = samplingKeyColumn
-            };
+                columnInformation = new ColumnInformation()
+                {
+                    LabelColumnName = labelColumnName,
+                    GroupIdColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId
+                };
+            }
+            else
+            {
+                columnInformation = new ColumnInformation()
+                {
+                    LabelColumnName = labelColumnName,
+                    SamplingKeyColumnName = samplingKeyColumn
+                };
+            }
             return Execute(trainData, columnInformation, preFeaturizer, progressHandler);
         }
 
@@ -102,17 +114,26 @@ namespace Microsoft.ML.AutoML
             const int crossValRowCountThreshold = 15000;
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
+            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName);
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
-                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName);
+                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, samplingKeyColumnName);
                 return ExecuteCrossValSummary(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
             }
             else
             {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
+                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, samplingKeyColumnName);
                 return ExecuteTrainValidate(splitResult.trainData, columnInformation, splitResult.validationData, preFeaturizer, progressHandler);
             }
+        }
+
+        private string GetSamplingKey(string groupIdColumnName, string samplingKeyColumnName)
+        {
+            UserInputValidationUtil.ValidateSamplingKey(samplingKeyColumnName, groupIdColumnName, _task);
+            if ( _task == TaskKind.Ranking)
+                return groupIdColumnName ?? DefaultColumnNames.GroupId;
+            return samplingKeyColumnName;
         }
 
         /// <summary>
@@ -194,8 +215,8 @@ namespace Microsoft.ML.AutoML
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
-            UserInputValidationUtil.ValidateSamplingKey(columnInformation?.SamplingKeyColumnName, columnInformation?.GroupIdColumnName, _task);
-            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.GroupIdColumnName);
+            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName);
+            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, samplingKeyColumnName);
             return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
         }
 

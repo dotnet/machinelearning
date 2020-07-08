@@ -118,7 +118,6 @@ namespace Microsoft.ML.AutoML
         public ColumnInformation()
         {
             LabelColumnName = DefaultColumnNames.Label;
-            GroupIdColumnName = DefaultColumnNames.GroupId;
             CategoricalColumnNames = new Collection<string>();
             NumericColumnNames = new Collection<string>();
             TextColumnNames = new Collection<string>();
