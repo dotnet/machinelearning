@@ -633,20 +633,23 @@ namespace Microsoft.ML.Transforms
                 while (_liveCount < _poolRows && !_doneConsuming)
                 {
                     // We are under capacity. Try to get some more.
-                    var hasReadItem = _toConsumeChannel.Reader.TryRead(out int got);
-                    if (hasReadItem)
+                    while (_toConsumeChannel.Reader.WaitToReadAsync().GetAwaiter().GetResult())
                     {
-                        if (got == 0)
+                        var hasReadItem = _toConsumeChannel.Reader.TryRead(out int got);
+                        if (hasReadItem)
                         {
-                            // We've reached the end of the Channel. There's no reason
-                            // to attempt further communication with the producer.
-                            // Check whether something horrible happened.
-                            if (_producerTaskException != null)
-                                throw Ch.Except(_producerTaskException, "Shuffle input cursor reader failed with an exception");
-                            _doneConsuming = true;
-                            break;
+                            if (got == 0)
+                            {
+                                // We've reached the end of the Channel. There's no reason
+                                // to attempt further communication with the producer.
+                                // Check whether something horrible happened.
+                                if (_producerTaskException != null)
+                                    throw Ch.Except(_producerTaskException, "Shuffle input cursor reader failed with an exception");
+                                _doneConsuming = true;
+                                break;
+                            }
+                            _liveCount += got;
                         }
-                        _liveCount += got;
                     }
                 }
                 if (_liveCount == 0)
