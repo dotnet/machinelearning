@@ -1158,7 +1158,7 @@ namespace Microsoft.ML.Calibrators
     /// <summary>
     /// The naive binning-based calibrator.
     /// </summary>
-    public sealed class NaiveCalibrator : ICalibrator, ICanSaveInBinaryFormat
+    public sealed class NaiveCalibrator : ICalibrator, ICanSaveInBinaryFormat, ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "NaiveCaliExec";
         internal const string RegistrationName = "NaiveCalibrator";
@@ -1173,6 +1173,12 @@ namespace Microsoft.ML.Calibrators
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(NaiveCalibrator).Assembly.FullName);
         }
+
+        /// <summary>
+        /// Bool required by the interface ISingleCanSaveOnnx, returns true if
+        /// and only if calibrator can be exported in ONNX.
+        /// </summary>
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         private readonly IHost _host;
 
@@ -1280,6 +1286,48 @@ namespace Microsoft.ML.Calibrators
             return binIdx;
         }
 
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            _host.CheckValue(ctx, nameof(ctx));
+            _host.CheckValue(outputNames, nameof(outputNames));
+            _host.Check(Utils.Size(outputNames) == 2);
+
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "NaiveCalibrator");
+
+            var binProbabilities = ctx.AddInitializer(_binProbs, new long[] { _binProbs.Length, 1 }, "binProbabilities");
+
+            string opType = "Sub";
+            var minVar = ctx.AddInitializer((float)(Min), "Min");
+            var subNodeOutput = ctx.AddIntermediateVariable(null, "subNodeOutput", true);
+            var node = ctx.CreateNode(opType, new[] { outputNames[0], minVar }, new[] { subNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Div";
+            var binSizeVar = ctx.AddInitializer((float)(BinSize), "BinSize");
+            var binIndexOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int32, "binIndexOutput", true);
+            node = ctx.CreateNode(opType, new[] { subNodeOutput, binSizeVar }, new[] { binIndexOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Cast";
+            var castOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "CastOutput");
+            var castNode = ctx.CreateNode(opType, binIndexOutput, castOutput, ctx.GetNodeName(opType), "");
+            var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
+            castNode.AddAttribute("to", t);
+
+            opType = "Not";
+            var notOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsBinIndexZero");
+            ctx.CreateNode(opType, castOutput, notOutput, ctx.GetNodeName(opType), "");
+
+            opType = "Cast";
+            var castIsBinIndexToInt = ctx.AddIntermediateVariable(NumberDataViewType.Int32, "IsBinIndexAsInt");
+            var castIsBinIndexToIntNode = ctx.CreateNode(opType, notOutput, castIsBinIndexToInt, ctx.GetNodeName(opType), "");
+            var t1 = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int32).ToType();
+            castIsBinIndexToIntNode.AddAttribute("to", t1);
+
+            var numBinsVar = ctx.AddInitializer((int)(BinSize), "NumBins");
+
+            // TO DO: Complete ONNX conversion.
+            return true;
+        }
     }
 
     /// <summary>
@@ -1879,7 +1927,7 @@ namespace Microsoft.ML.Calibrators
     /// <item><description><see cref="Values"/>[n], if x &gt; <see cref="Maxes"/>[n]</description></item>
     ///</list>
     /// </remarks>
-    public sealed class IsotonicCalibrator : ICalibrator, ICanSaveInBinaryFormat
+    public sealed class IsotonicCalibrator : ICalibrator, ICanSaveInBinaryFormat, ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "PAVCaliExec";
         internal const string RegistrationName = "PAVCalibrator";
@@ -1913,6 +1961,12 @@ namespace Microsoft.ML.Calibrators
         /// Values of PAV intervals.
         /// </summary>
         public readonly ImmutableArray<float> Values;
+
+        /// <summary>
+        /// Bool required by the interface ISingleCanSaveOnnx, returns true if
+        /// and only if calibrator can be exported in ONNX.
+        /// </summary>
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Initializes a new instance of <see cref="IsotonicCalibrator"/>.
@@ -2070,7 +2124,20 @@ namespace Microsoft.ML.Calibrators
             float t = (score - Maxes[pos - 1]) / (Mins[pos] - Maxes[pos - 1]);
             return Values[pos - 1] + t * (Values[pos] - Values[pos - 1]);
         }
-    }
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+		{
+            _host.CheckValue(ctx, nameof(ctx));
+            _host.CheckValue(outputNames, nameof(outputNames));
+            _host.Check(Utils.Size(outputNames) == 2);
+
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "IsotonicCalibrator");
+
+            // TO DO: Complete ONNX conversion.
+            return true;
+		}
+	}
 
     internal static class Calibrate
     {
