@@ -10,7 +10,8 @@ namespace Microsoft.ML.Data
     /// <summary>Exposes the data required for opening a database for reading.</summary>
     public sealed class DatabaseSource
     {
-        public static readonly int DefaultCommandTimeoutInSeconds = 30;
+        private const int DefaultCommandTimeoutInSeconds = 30;
+
         /// <summary>Creates a new instance of the <see cref="DatabaseSource" /> class.</summary>
         /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>..</param>
         /// <param name="connectionString">The string used to open the connection.</param>
