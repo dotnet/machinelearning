@@ -312,7 +312,7 @@ namespace Microsoft.ML.RunTests
 
             // Default to breast-cancer.txt.
             if (string.IsNullOrEmpty(pathData))
-                pathData = GetDataPath("breast-cancer.txt");
+                pathData = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             files = new MultiFileSource(pathData == "<none>" ? null : pathData);
             var sub = new SubComponent<ILegacyDataLoader, SignatureDataLoader>("Pipe", argsPipe);

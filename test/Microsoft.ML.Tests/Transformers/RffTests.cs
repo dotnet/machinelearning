@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void ApproximateKernelMap()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("VectorFloat", DataKind.Single, 1, 8),
                 new TextLoader.Column("Label", DataKind.Single, 0)

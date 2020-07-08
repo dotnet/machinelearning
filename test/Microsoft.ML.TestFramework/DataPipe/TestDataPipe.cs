@@ -1492,7 +1492,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void SavePipeCountTargetEncodingLoadModel()
         {
-            var inputData = GetDataPath("breast-cancer.txt");
+            var inputData = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var initialCountsModel = DeleteOutputPath("CTE", "initialCounts.zip");
             var outputData = DeleteOutputPath("CTE", "countsData.txt");
             var loaderArg = "loader=Text{col=Text:TX:1-2 col=OneText:TX:1 col=Label:0}";

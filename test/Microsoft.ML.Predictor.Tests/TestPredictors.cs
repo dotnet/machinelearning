@@ -622,7 +622,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TestTreeEnsembleCombiner()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var fastTrees = new PredictorModel[3];
@@ -752,7 +752,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TestEnsembleCombiner()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
@@ -798,7 +798,7 @@ namespace Microsoft.ML.RunTests
         [LightGBMFact]
         public void TestMulticlassEnsembleCombiner()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
