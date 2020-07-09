@@ -1922,7 +1922,7 @@ namespace Microsoft.ML.Calibrators
     /// <item><description><see cref="Values"/>[n], if x &gt; <see cref="Maxes"/>[n]</description></item>
     ///</list>
     /// </remarks>
-    public sealed class IsotonicCalibrator : ICalibrator, ICanSaveInBinaryFormat, ISingleCanSaveOnnx
+    public sealed class IsotonicCalibrator : ICalibrator, ICanSaveInBinaryFormat
     {
         internal const string LoaderSignature = "PAVCaliExec";
         internal const string RegistrationName = "PAVCalibrator";
@@ -1956,12 +1956,6 @@ namespace Microsoft.ML.Calibrators
         /// Values of PAV intervals.
         /// </summary>
         public readonly ImmutableArray<float> Values;
-
-        /// <summary>
-        /// Bool required by the interface ISingleCanSaveOnnx, returns true if
-        /// and only if calibrator can be exported in ONNX.
-        /// </summary>
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Initializes a new instance of <see cref="IsotonicCalibrator"/>.
@@ -2119,116 +2113,6 @@ namespace Microsoft.ML.Calibrators
             float t = (score - Maxes[pos - 1]) / (Mins[pos] - Maxes[pos - 1]);
             return Values[pos - 1] + t * (Values[pos] - Values[pos - 1]);
         }
-
-        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
-		{
-            _host.CheckValue(ctx, nameof(ctx));
-            _host.CheckValue(outputNames, nameof(outputNames));
-            _host.Check(Utils.Size(outputNames) == 2);
-
-            const int minimumOpSetVersion = 9;
-            ctx.CheckOpSetVersion(minimumOpSetVersion, "IsotonicCalibrator");
-
-            var minsLengthVar = ctx.AddInitializer(Mins.Length, "MinsLength");
-            var minToReturnVar = ctx.AddInitializer((float)1e-15, "MinToReturn");
-            var maxToReturnVar = ctx.AddInitializer((float)(1 - 1e-15), "MaxToReturn");
-            var minsVar = ctx.AddInitializer(Mins, new long[] { Mins.Length, 1 }, "Mins");
-            var maxesVar = ctx.AddInitializer(Maxes, new long[] { Maxes.Length, 1 }, "Maxes");
-            var valuesVar = ctx.AddInitializer(Values, new long[] { Values.Length, 1 }, "Values");
-
-            //The isotonic regression optimization problem is defined by:
-            //  min(sum(w_i, (y[i] - y_[i])^2))
-            //  subject to y_[i] <= y_[j] whenever X[i] <= X[j] (non-decreasing)
-            //  and min(y_) = y_min, max(y_) = y_max
-            //  where:
-            //    *y[i] are inputs(real numbers)
-            //    *y_[i] are fitted
-            //    *X specifies the order.If X is non-decreasing then y_ is non-decreasing.
-            //    *w[i] are optional strictly positive weights(default to 1.0)
-
-            string opType = "PlaceHolder";
-            var node = ctx.CreateNode(opType, new[] { "PlaceHolder" }, new[] { "PlaceHolder" }, ctx.GetNodeName(opType), "");
-
-            // Goal: Given output, calculate prob
-
-            // 1st, implement if-then-else logic for (p = Mins.Length):
-            //     If p == 0, Return 0
-            //     If score < Mins[0], Return prob = Values[0]
-            //     If score > Maxes[p-1], Return prob = Values[0]
-            //     Else, continue
-
-            // To-do
-
-            // 2nd, calculate pos, which is the index of the given score in the sorted Maxes
-
-            // To-do
-
-            // 3rd, calculate (score - Maxes[pos - 1]) / (Mins[pos] - Maxes[pos - 1])
-            // score: outputNames[0]
-
-            // placeholders for pos and pos-1, will be calculated above
-            var posVar = ctx.AddInitializer(1, "Pos");
-            var posMinusOneVar = ctx.AddInitializer(0, "PosMinusOne");
-
-            opType = "GatherElements";
-            var maxesPosMinusOneOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "maxesPosMinusOneOutput");
-            node = ctx.CreateNode(opType, new[] { maxesVar, posMinusOneVar }, new[] { maxesPosMinusOneOutput }, ctx.GetNodeName(opType), "");
-
-            opType = "GatherElements";
-            var minsPosOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "maxesPosMinusOneOutput");
-            node = ctx.CreateNode(opType, new[] { minsVar, posVar }, new[] { minsPosOutput }, ctx.GetNodeName(opType), "");
-
-            opType = "Sub";
-            var subNode1Output = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeUpperOutput");
-            node = ctx.CreateNode(opType, new[] { outputNames[0], maxesPosMinusOneOutput }, new[] { subNode1Output }, ctx.GetNodeName(opType), "");
-
-            opType = "Sub";
-            var subNode2Output = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeLowerOutput");
-            node = ctx.CreateNode(opType, new[] { minsPosOutput, maxesPosMinusOneOutput }, new[] { subNode2Output }, ctx.GetNodeName(opType), "");
-
-            opType = "Div";
-            var tNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "divNodeOutput");
-            node = ctx.CreateNode(opType, new[] { subNode1Output, subNode2Output }, new[] { tNodeOutput }, ctx.GetNodeName(opType), "");
-
-            // 4th, if score >= Mins[pos], then prob = Values[pos]
-
-            // To-do
-
-            // 5th, calculate and return prob = Values[pos - 1] + t * (Values[pos] - Values[pos - 1]);
-
-            opType = "GatherElements";
-            var valuesPosMinusOneOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "valuesPosMinusOneOutput");
-            node = ctx.CreateNode(opType, new[] { valuesVar, posMinusOneVar }, new[] { valuesPosMinusOneOutput }, ctx.GetNodeName(opType), "");
-
-            opType = "GatherElements";
-            var valuesPosOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "valuesPosOutput");
-            node = ctx.CreateNode(opType, new[] { valuesVar, posVar }, new[] { valuesPosOutput }, ctx.GetNodeName(opType), "");
-
-            opType = "Sub";
-            var subNode3Output = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeLowerOutput");
-            node = ctx.CreateNode(opType, new[] { valuesPosOutput, valuesPosMinusOneOutput }, new[] { subNode3Output }, ctx.GetNodeName(opType), "");
-
-            opType = "Mul";
-            var mulNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeLowerOutput");
-            node = ctx.CreateNode(opType, new[] { tNodeOutput, subNode3Output }, new[] { mulNodeOutput }, ctx.GetNodeName(opType), "");
-
-            opType = "Add";
-            var probabilityNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeLowerOutput");
-            node = ctx.CreateNode(opType, new[] { valuesPosMinusOneOutput, mulNodeOutput }, new[] { probabilityNodeOutput }, ctx.GetNodeName(opType), "");
-
-            // 6th, continue with logic
-            // if (prob < MinToReturn)
-            //    return MinToReturn;
-            // if (prob > MaxToReturn)
-            //    return MaxToReturn;
-            // return prob
-
-            // To-do
-            opType = "Clip";
-            node = ctx.CreateNode(opType, new[] { probabilityNodeOutput, probabilityNodeOutput, probabilityNodeOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
-
-            return true;
-		}
 	}
 
     internal static class Calibrate

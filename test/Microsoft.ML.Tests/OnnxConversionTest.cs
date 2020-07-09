@@ -394,41 +394,6 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        [Trait("Category", "SkipInCI")]
-        public void IsotonicCalibratorOnnxConversionTest()
-        {
-            // Step 1: Test calibrator with binary prediction trainer
-            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
-            foreach (var estimator in estimators)
-            {
-                var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Isotonic());
-                var onnxFileName = $"{estimator}-WithIsotonicCalibrator.onnx";
-
-                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
-            }
-
-            // Step 2: Test calibrator without any binary prediction trainer
-            IDataView dataSoloCalibrator = mlContext.Data.LoadFromEnumerable(GetCalibratorTestData());
-
-            var pipelineSoloCalibrator = mlContext.BinaryClassification.Calibrators
-                .Isotonic();
-            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-SoloCalibrator.onnx";
-
-            TestPipeline(pipelineSoloCalibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
-
-            // Step 3: Test calibrator with a non-default Score column name and without any binary prediction trainer
-            IDataView dataSoloCalibratorNonStandard = mlContext.Data.LoadFromEnumerable(GetCalibratorTestDataNonStandard());
-
-            var pipelineSoloCalibratorNonStandard = mlContext.BinaryClassification.Calibrators
-                .Isotonic(scoreColumnName: "ScoreX");
-            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
-
-            TestPipeline(pipelineSoloCalibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
-
-            Done();
-        }
-
         class ModelInput
         {
             public bool Label { get; set; }
