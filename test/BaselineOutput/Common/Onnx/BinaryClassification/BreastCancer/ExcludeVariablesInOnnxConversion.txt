@@ -19,7 +19,7 @@
             "name": "keys_strings",
             "strings": [
               "MQ==",
-			  "NA==",
+              "NA==",
               "OA==",
               "MTA=",
               "Mg==",
