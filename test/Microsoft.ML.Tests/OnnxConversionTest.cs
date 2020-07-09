@@ -361,7 +361,6 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        [Trait("Category", "SkipInCI")]
         public void NaiveCalibratorOnnxConversionTest()
         {
             // Step 1: Test calibrator with binary prediction trainer
