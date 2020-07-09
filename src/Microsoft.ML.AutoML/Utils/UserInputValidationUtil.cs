@@ -61,7 +61,7 @@ namespace Microsoft.ML.AutoML
         {
             if (task == TaskKind.Ranking && samplingKeyColumnName != null && samplingKeyColumnName != groupIdColumnName)
             {
-                throw new ArgumentException($"{nameof(samplingKeyColumnName)} must be the same as {nameof(groupIdColumnName)}", samplingKeyColumnName);
+                throw new ArgumentException($"{nameof(samplingKeyColumnName)} must be the same as {nameof(groupIdColumnName)} for Ranking Experiments", samplingKeyColumnName);
             }
         }
 

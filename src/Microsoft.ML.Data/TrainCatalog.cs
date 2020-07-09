@@ -677,25 +677,25 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
+        /// and respecting <paramref name="rowGroupColumnName"/>if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">The label column (for evaluation).</param>
-        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
-        /// If <see langword="null"/> no row grouping will be performed.</param>
-        /// <param name="rowGroupColumnName">The name of the groupId column in <paramref name="data"/>.</param>
-        /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
+        /// <param name="rowGroupColumnName">The name of the groupId column in <paramref name="data"/>, which is used to group rows.
+        /// While for other crossvalidation methods this column is called samplingKeyColumnName, ranking requires
+        /// this column to be <paramref name="rowGroupColumnName"/>.
+        /// If <see langword="null"/> no row grouping will be performed. </param>
+        /// <param name="seed">  Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public IReadOnlyList<CrossValidationResult<RankingMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
-            string samplingKeyColumnName = DefaultColumnNames.GroupId, string rowGroupColumnName = DefaultColumnNames.GroupId, int ? seed = null)
+            string rowGroupColumnName = DefaultColumnNames.GroupId, int ? seed = null)
         {
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
-            var result = CrossValidateTrain(data, estimator, numberOfFolds, samplingKeyColumnName, seed);
+            var result = CrossValidateTrain(data, estimator, numberOfFolds, rowGroupColumnName, seed);
             return result.Select(x => new CrossValidationResult<RankingMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumnName, rowGroupColumnName), x.Scores, x.Fold)).ToArray();
         }

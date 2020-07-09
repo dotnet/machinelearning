@@ -161,31 +161,6 @@ namespace Microsoft.ML.AutoML.Test
         public void AutoFitRankingCVTest()
         {
             string labelColumnName = "Label";
-            string groupIdColumnName = "GroupId";
-            string featuresColumnVectorNameA = "FeatureVectorA";
-            string featuresColumnVectorNameB = "FeatureVectorB";
-            int numFolds = 3;
-
-            var mlContext = new MLContext(1);
-            var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "FeatureVectorA", "FeatureVectorB" }).Append(
-                mlContext.Transforms.Conversion.Hash("GroupId", "GroupId"));
-
-            var trainer = mlContext.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options() { RowGroupColumnName = "GroupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
-            var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB));
-            var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
-            var trainingPipeline = dataProcessPipeline.Append(trainer);
-            var result = mlContext.Ranking.CrossValidate(trainDataView, trainingPipeline, numberOfFolds: numFolds);
-            for (int i = 0; i < numFolds; i++)
-            {
-                Assert.True(result[i].Metrics.NormalizedDiscountedCumulativeGains.Max() > .4);
-                Assert.True(result[i].Metrics.DiscountedCumulativeGains.Max() > 16);
-            }
-        }
-
-        [LightGBMFact]
-        public void AutoFitRankingCV2Test()
-        {
-            string labelColumnName = "Label";
             string groupIdColumnName = "GroupIdCustom";
             string featuresColumnVectorNameA = "FeatureVectorA";
             string featuresColumnVectorNameB = "FeatureVectorB";
@@ -197,7 +172,7 @@ namespace Microsoft.ML.AutoML.Test
             var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
 
             CrossValidationExperimentResult<RankingMetrics> experimentResult = mlContext.Auto()
-                .CreateRankingExperiment(5)
+                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = groupIdColumnName, MaxExperimentTimeInSeconds = 5 })
                 .Execute(trainDataView, numFolds,
                     new ColumnInformation()
                     {
