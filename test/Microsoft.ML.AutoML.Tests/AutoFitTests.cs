@@ -135,26 +135,36 @@ namespace Microsoft.ML.AutoML.Test
             var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
             var testDataView = mlContext.Data.TakeRows(trainDataView, 500);
             trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
+
             // STEP 2: Run AutoML experiment
-            ExperimentResult<RankingMetrics> experimentResult = mlContext.Auto()
-                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = "CustomGroupId", MaxExperimentTimeInSeconds = 5})
-                .Execute(trainDataView, testDataView,
+            var experiment = mlContext.Auto()
+                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = groupIdColumnName, MaxExperimentTimeInSeconds = 5 });
+
+            ExperimentResult<RankingMetrics>[] experimentResults =
+            {
+                experiment.Execute(trainDataView, labelColumnName, groupIdColumnName),
+                //experiment.Execute(trainDataView, testDataView),
+                experiment.Execute(trainDataView, testDataView,
                     new ColumnInformation()
                     {
                         LabelColumnName = labelColumnName,
-                        GroupIdColumnName = groupIdColumnName
-                    });
+                        GroupIdColumnName = groupIdColumnName,
+                    })
+            };
 
-            RunDetail<RankingMetrics> bestRun = experimentResult.BestRun;
-            Assert.True(experimentResult.RunDetails.Count() > 0);
-            Assert.NotNull(bestRun.ValidationMetrics);
-            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .5));
-            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.DiscountedCumulativeGains.Max() > 34));
-            var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
-            var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
+            for (int i = 0; i < experimentResults.Length; i++)
+            {
+                RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
+                Assert.True(experimentResults[i].RunDetails.Count() > 0);
+                Assert.NotNull(bestRun.ValidationMetrics);
+                Assert.True(experimentResults[i].RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .4));
+                Assert.True(experimentResults[i].RunDetails.Max(i => i.ValidationMetrics.DiscountedCumulativeGains.Max() > 20));
+                var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
+                var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
                 "Features", scoreColumnName };
-            foreach (var col in outputSchema)
-                Assert.True(col.Name == expectedOutputNames[col.Index]);
+                foreach (var col in outputSchema)
+                    Assert.True(col.Name == expectedOutputNames[col.Index]);
+            }
         }
 
         [LightGBMFact]
@@ -171,23 +181,29 @@ namespace Microsoft.ML.AutoML.Test
                 featuresColumnVectorNameA, featuresColumnVectorNameB));
             var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
 
-            CrossValidationExperimentResult<RankingMetrics> experimentResult = mlContext.Auto()
-                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = groupIdColumnName, MaxExperimentTimeInSeconds = 5 })
-                .Execute(trainDataView, numFolds,
+            var experiment = mlContext.Auto()
+                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = groupIdColumnName, MaxExperimentTimeInSeconds = 5 });
+            CrossValidationExperimentResult<RankingMetrics>[] experimentResults =
+            {
+                experiment.Execute(trainDataView, numFolds,
                     new ColumnInformation()
                     {
                         LabelColumnName = labelColumnName,
                         GroupIdColumnName = groupIdColumnName
-                    });
-
-            CrossValidationRunDetail<RankingMetrics> bestRun = experimentResult.BestRun;
-            Assert.True(experimentResult.RunDetails.Count() > 0);
-            var enumerator = bestRun.Results.GetEnumerator();
-            while (enumerator.MoveNext())
+                    }),
+                experiment.Execute(trainDataView, numFolds, labelColumnName, groupIdColumnName)
+            };
+            for (int i = 0; i < experimentResults.Length; i++)
             {
-                var model = enumerator.Current;
-                Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .4);
-                Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > 19);   
+                CrossValidationRunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
+                Assert.True(experimentResults[i].RunDetails.Count() > 0);
+                var enumerator = bestRun.Results.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    var model = enumerator.Current;
+                    Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .4);
+                    Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > 19);
+                }
             }
         }
 

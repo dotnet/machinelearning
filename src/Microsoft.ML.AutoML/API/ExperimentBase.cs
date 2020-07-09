@@ -157,7 +157,10 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, string labelColumnName = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
-            var columnInformation = new ColumnInformation() { LabelColumnName = labelColumnName };
+            var columnInformation = (_task == TaskKind.Ranking) ?
+                new ColumnInformation() { LabelColumnName = labelColumnName, GroupIdColumnName = DefaultColumnNames.GroupId } :
+                new ColumnInformation() { LabelColumnName = labelColumnName};
+
             return Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
         }
 
@@ -245,7 +248,14 @@ namespace Microsoft.ML.AutoML
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null,
             Progress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
-            var columnInformation = new ColumnInformation()
+            var columnInformation = (_task == TaskKind.Ranking) ?
+            new ColumnInformation()
+            {
+                LabelColumnName = labelColumnName,
+                GroupIdColumnName = samplingKeyColumn ??  DefaultColumnNames.GroupId
+            }
+            :
+            new ColumnInformation()
             {
                 LabelColumnName = labelColumnName,
                 SamplingKeyColumnName = samplingKeyColumn
