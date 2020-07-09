@@ -125,7 +125,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             string labelColumnName = "Label";
             string scoreColumnName = "Score";
-            string groupIdColumnName = "CustomGroupId";
+            string groupIdColumnName = "GroupId";
             string featuresColumnVectorNameA = "FeatureVectorA";
             string featuresColumnVectorNameB = "FeatureVectorB";
             var mlContext = new MLContext(1);
@@ -138,18 +138,18 @@ namespace Microsoft.ML.AutoML.Test
 
             // STEP 2: Run AutoML experiment
             var experiment = mlContext.Auto()
-                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = groupIdColumnName, MaxExperimentTimeInSeconds = 5 });
+                .CreateRankingExperiment(5);
 
             ExperimentResult<RankingMetrics>[] experimentResults =
             {
                 experiment.Execute(trainDataView, labelColumnName, groupIdColumnName),
-                //experiment.Execute(trainDataView, testDataView),
+                experiment.Execute(trainDataView, testDataView),
                 experiment.Execute(trainDataView, testDataView,
-                    new ColumnInformation()
-                    {
-                        LabelColumnName = labelColumnName,
-                        GroupIdColumnName = groupIdColumnName,
-                    })
+                new ColumnInformation()
+                {
+                    LabelColumnName = labelColumnName,
+                    GroupIdColumnName = groupIdColumnName,
+                })
             };
 
             for (int i = 0; i < experimentResults.Length; i++)
@@ -179,10 +179,10 @@ namespace Microsoft.ML.AutoML.Test
             var mlContext = new MLContext(1);
             var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName,
                 featuresColumnVectorNameA, featuresColumnVectorNameB));
-            var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
+            var trainDataView = reader.Load(DatasetUtil.GetMLSRDataset());
 
             var experiment = mlContext.Auto()
-                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = groupIdColumnName, MaxExperimentTimeInSeconds = 5 });
+                .CreateRankingExperiment(5);
             CrossValidationExperimentResult<RankingMetrics>[] experimentResults =
             {
                 experiment.Execute(trainDataView, numFolds,

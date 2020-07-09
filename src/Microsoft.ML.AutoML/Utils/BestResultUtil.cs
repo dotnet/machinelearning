@@ -35,9 +35,10 @@ namespace Microsoft.ML.AutoML
         }
 
         public static RunDetail<RankingMetrics> GetBestRun(IEnumerable<RunDetail<RankingMetrics>> results,
-            RankingMetric metric, string groupIdColumnName)
+            RankingMetric metric)
         {
-            var metricsAgent = new RankingMetricsAgent(null, metric, groupIdColumnName);
+            var metricsAgent = new RankingMetricsAgent(null, metric);
+
             var metricInfo = new OptimizingMetricInfo(metric);
             return GetBestRun(results, metricsAgent, metricInfo.IsMaximizing);
         }
