@@ -60,6 +60,7 @@ namespace Microsoft.ML.AutoML
 
         /// <summary>
         /// The dataset column to use as a group ID for computation.
+        /// If a SamplingKeyColumnName is provided, then it should be the same as this column.
         /// </summary>
         public string GroupIdColumnName { get; set; }
 

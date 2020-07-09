@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML
         public ICollection<RankingTrainer> Trainers { get; }
         public RankingExperimentSettings()
         {
-            GroupIdColumnName = "GroupId";
+            GroupIdColumnName = DefaultColumnNames.GroupId;
             OptimizingMetric = RankingMetric.Ndcg;
             Trainers = Enum.GetValues(typeof(RankingTrainer)).OfType<RankingTrainer>().ToList();
         }
@@ -77,7 +77,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="metric">Metric to consider when selecting the best run.</param>
         /// <param name="groupIdColumnName">Name for the GroupId column.</param>
         /// <returns>The best experiment run.</returns>
-        public static RunDetail<RankingMetrics> Best(this IEnumerable<RunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, string groupIdColumnName = "GroupId")
+        public static RunDetail<RankingMetrics> Best(this IEnumerable<RunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, string groupIdColumnName = DefaultColumnNames.GroupId)
         {
             var metricsAgent = new RankingMetricsAgent(null, metric, groupIdColumnName);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
@@ -91,7 +91,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="metric">Metric to consider when selecting the best run.</param>
         /// <param name="groupIdColumnName">Name for the GroupId column.</param>
         /// <returns>The best experiment run.</returns>
-        public static CrossValidationRunDetail<RankingMetrics> Best(this IEnumerable<CrossValidationRunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, string groupIdColumnName = "GroupId")
+        public static CrossValidationRunDetail<RankingMetrics> Best(this IEnumerable<CrossValidationRunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, string groupIdColumnName = DefaultColumnNames.GroupId)
         {
             var metricsAgent = new RankingMetricsAgent(null, metric, groupIdColumnName);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
