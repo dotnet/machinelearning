@@ -1306,7 +1306,7 @@ namespace Microsoft.ML.Calibrators
             node = ctx.CreateNode(opType, new[] { subNodeOutput, binSizeVar }, new[] { divNodeOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Cast";
-            var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastOutput");
+            var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "castOutput");
             node = ctx.CreateNode(opType, divNodeOutput, castOutput, ctx.GetNodeName(opType), "");
             var toTypeInt = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
             node.AddAttribute("to", toTypeInt);
@@ -1318,7 +1318,7 @@ namespace Microsoft.ML.Calibrators
             node = ctx.CreateNode(opType, new[] { castOutput, zeroVar, numBinsMinusOneVar }, new[] { binIndexOutput }, ctx.GetNodeName(opType), "");
 
             opType = "GatherElements";
-            var binProbabilitiesVar = ctx.AddInitializer(_binProbs, new long[] { _binProbs.Length, 1 }, "binProbabilities");
+            var binProbabilitiesVar = ctx.AddInitializer(_binProbs, new long[] { _binProbs.Length, 1 }, "BinProbabilities");
             node = ctx.CreateNode(opType, new[] { binProbabilitiesVar, binIndexOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
 
             return true;
@@ -2129,7 +2129,104 @@ namespace Microsoft.ML.Calibrators
             const int minimumOpSetVersion = 9;
             ctx.CheckOpSetVersion(minimumOpSetVersion, "IsotonicCalibrator");
 
-            // TO DO: Complete ONNX conversion.
+            var minsLengthVar = ctx.AddInitializer(Mins.Length, "MinsLength");
+            var minToReturnVar = ctx.AddInitializer((float)1e-15, "MinToReturn");
+            var maxToReturnVar = ctx.AddInitializer((float)(1 - 1e-15), "MaxToReturn");
+            var minsVar = ctx.AddInitializer(Mins, new long[] { Mins.Length, 1 }, "Mins");
+            var maxesVar = ctx.AddInitializer(Maxes, new long[] { Maxes.Length, 1 }, "Maxes");
+            var valuesVar = ctx.AddInitializer(Values, new long[] { Values.Length, 1 }, "Values");
+
+            //The isotonic regression optimization problem is defined by:
+            //  min(sum(w_i, (y[i] - y_[i])^2))
+            //  subject to y_[i] <= y_[j] whenever X[i] <= X[j] (non-decreasing)
+            //  and min(y_) = y_min, max(y_) = y_max
+            //  where:
+            //    *y[i] are inputs(real numbers)
+            //    *y_[i] are fitted
+            //    *X specifies the order.If X is non-decreasing then y_ is non-decreasing.
+            //    *w[i] are optional strictly positive weights(default to 1.0)
+
+            string opType = "PlaceHolder";
+            var node = ctx.CreateNode(opType, new[] { "PlaceHolder" }, new[] { "PlaceHolder" }, ctx.GetNodeName(opType), "");
+
+            // Goal: Given output, calculate prob
+
+            // 1st, implement if-then-else logic for (p = Mins.Length):
+            //     If p == 0, Return 0
+            //     If score < Mins[0], Return prob = Values[0]
+            //     If score > Maxes[p-1], Return prob = Values[0]
+            //     Else, continue
+
+            // To-do
+
+            // 2nd, calculate pos, which is the index of the given score in the sorted Maxes
+
+            // To-do
+
+            // 3rd, calculate (score - Maxes[pos - 1]) / (Mins[pos] - Maxes[pos - 1])
+            // score: outputNames[0]
+
+            // placeholders for pos and pos-1, will be calculated above
+            var posVar = ctx.AddInitializer(1, "Pos");
+            var posMinusOneVar = ctx.AddInitializer(0, "PosMinusOne");
+
+            opType = "GatherElements";
+            var maxesPosMinusOneOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "maxesPosMinusOneOutput");
+            node = ctx.CreateNode(opType, new[] { maxesVar, posMinusOneVar }, new[] { maxesPosMinusOneOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "GatherElements";
+            var minsPosOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "maxesPosMinusOneOutput");
+            node = ctx.CreateNode(opType, new[] { minsVar, posVar }, new[] { minsPosOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Sub";
+            var subNode1Output = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeUpperOutput");
+            node = ctx.CreateNode(opType, new[] { outputNames[0], maxesPosMinusOneOutput }, new[] { subNode1Output }, ctx.GetNodeName(opType), "");
+
+            opType = "Sub";
+            var subNode2Output = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeLowerOutput");
+            node = ctx.CreateNode(opType, new[] { minsPosOutput, maxesPosMinusOneOutput }, new[] { subNode2Output }, ctx.GetNodeName(opType), "");
+
+            opType = "Div";
+            var tNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "divNodeOutput");
+            node = ctx.CreateNode(opType, new[] { subNode1Output, subNode2Output }, new[] { tNodeOutput }, ctx.GetNodeName(opType), "");
+
+            // 4th, if score >= Mins[pos], then prob = Values[pos]
+
+            // To-do
+
+            // 5th, calculate and return prob = Values[pos - 1] + t * (Values[pos] - Values[pos - 1]);
+
+            opType = "GatherElements";
+            var valuesPosMinusOneOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "valuesPosMinusOneOutput");
+            node = ctx.CreateNode(opType, new[] { valuesVar, posMinusOneVar }, new[] { valuesPosMinusOneOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "GatherElements";
+            var valuesPosOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "valuesPosOutput");
+            node = ctx.CreateNode(opType, new[] { valuesVar, posVar }, new[] { valuesPosOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Sub";
+            var subNode3Output = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeLowerOutput");
+            node = ctx.CreateNode(opType, new[] { valuesPosOutput, valuesPosMinusOneOutput }, new[] { subNode3Output }, ctx.GetNodeName(opType), "");
+
+            opType = "Mul";
+            var mulNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeLowerOutput");
+            node = ctx.CreateNode(opType, new[] { tNodeOutput, subNode3Output }, new[] { mulNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Add";
+            var probabilityNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeLowerOutput");
+            node = ctx.CreateNode(opType, new[] { valuesPosMinusOneOutput, mulNodeOutput }, new[] { probabilityNodeOutput }, ctx.GetNodeName(opType), "");
+
+            // 6th, continue with logic
+            // if (prob < MinToReturn)
+            //    return MinToReturn;
+            // if (prob > MaxToReturn)
+            //    return MaxToReturn;
+            // return prob
+
+            // To-do
+            opType = "Clip";
+            node = ctx.CreateNode(opType, new[] { probabilityNodeOutput, probabilityNodeOutput, probabilityNodeOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
+
             return true;
 		}
 	}
