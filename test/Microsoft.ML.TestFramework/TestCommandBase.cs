@@ -1386,7 +1386,7 @@ namespace Microsoft.ML.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandDefaultLearners()
         {
-            string pathData = GetDataPath("breast-cancer.txt");
+            string pathData = GetDataPath(TestDatasets.breastCancer.trainFilename);
             TestCore("train", pathData, "", "seed=1 norm=Warn");
 
             _step++;
@@ -1527,7 +1527,7 @@ namespace Microsoft.ML.RunTests
         public void CommandTrainScoreEvaluateUncalibratedBinary()
         {
             // First run a training.
-            string pathData = GetDataPath("breast-cancer.txt");
+            string pathData = GetDataPath(TestDatasets.breastCancer.trainFilename);
             OutputPath trainModel = ModelPath();
             TestCore("train", pathData, "loader=TextLoader xf[norm]=MinMax{col=Features}", "tr=ap{shuf=-} cali={}");
 
@@ -1983,7 +1983,7 @@ namespace Microsoft.ML.RunTests
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
             const string extraArgs = "xf=minmax{col=Features} tr=ffm{d=7 shuf- iters=3 norm-}";
-            string data = GetDataPath("breast-cancer.txt");
+            string data = GetDataPath(TestDatasets.breastCancer.trainFilename);
             OutputPath model = ModelPath();
 
             TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
@@ -1999,7 +1999,7 @@ namespace Microsoft.ML.RunTests
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";
             const string extraArgs = "tr=ffm{d=7 shuf- iters=3} col[Feature]=FieldA col[Feature]=FieldB col[Feature]=FieldC col[Feature]=FieldD";
-            string data = GetDataPath("breast-cancer.txt");
+            string data = GetDataPath(TestDatasets.breastCancer.trainFilename);
             OutputPath model = ModelPath();
 
             TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision: 5);
@@ -2068,7 +2068,7 @@ namespace Microsoft.ML.RunTests
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
             const string extraArgs = "xf=minmax{col=Features} tr=ffm{d=5 shuf- iters=2 norm-}";
-            string data = GetDataPath("breast-cancer.txt");
+            string data = GetDataPath(TestDatasets.breastCancer.trainFilename);
             OutputPath model = ModelPath();
 
             TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
@@ -2098,7 +2098,7 @@ namespace Microsoft.ML.RunTests
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";
             const string extraArgs = "tr=ffm{d=5 shuf- iters=2} col[Feature]=FieldA col[Feature]=FieldB col[Feature]=FieldC col[Feature]=FieldD";
-            string data = GetDataPath("breast-cancer.txt");
+            string data = GetDataPath(TestDatasets.breastCancer.trainFilename);
             OutputPath model = ModelPath();
 
             TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);

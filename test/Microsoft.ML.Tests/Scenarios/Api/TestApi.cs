@@ -11,6 +11,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -170,7 +171,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void TrainAveragedPerceptronWithCache()
         {
             var mlContext = new MLContext(0);
-            var dataFile = GetDataPath("breast-cancer.txt");
+            var dataFile = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var loader = TextLoader.Create(mlContext, new TextLoader.Options(), new MultiFileSource(dataFile));
             var globalCounter = 0;
             IDataView xf = LambdaTransform.CreateFilter<object, object>(mlContext, loader,
@@ -264,7 +265,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         private List<BreastCancerExample> ReadBreastCancerExamples()
         {
-            var dataFile = GetDataPath("breast-cancer.txt");
+            var dataFile = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             // read the data programmatically into memory
             var data = File.ReadAllLines(dataFile)

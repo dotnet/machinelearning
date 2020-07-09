@@ -6,6 +6,7 @@ using Microsoft.ML;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OnlineLinearWorkout()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var regressionData = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.Single, 0),
