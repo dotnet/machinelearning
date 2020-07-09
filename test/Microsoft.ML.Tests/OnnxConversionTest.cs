@@ -309,7 +309,7 @@ namespace Microsoft.ML.Tests
 
             var pipelineSoloCalibrator = mlContext.BinaryClassification.Calibrators
                 .Platt();
-            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-WithPlattCalibrator-Solo.onnx";
+            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-SoloCalibrator.onnx";
 
             TestPipeline(pipelineSoloCalibrator, dataSoloCalibrator,onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Tests
 
             var pipelineSoloCalibratorNonStandard = mlContext.BinaryClassification.Calibrators
                 .Platt(scoreColumnName: "ScoreX");
-            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-WithPlattCalibrator-Solo-NonStandard.onnx";
+            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
 
             TestPipeline(pipelineSoloCalibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Tests
 
             var pipelineSoloCalibrator = mlContext.BinaryClassification.Calibrators
                 .Platt(slope: -1f, offset: -0.05f);
-            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-WithFixedPlattCalibrator-Solo.onnx";
+            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-SoloCalibrator.onnx";
 
             TestPipeline(pipelineSoloCalibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Tests
 
             var pipelineSoloCalibratorNonStandard = mlContext.BinaryClassification.Calibrators
                 .Platt(scoreColumnName: "ScoreX", slope: -1f, offset: -0.05f);
-            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-WithFixedPlattCalibrator-Solo-NonStandard.onnx";
+            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
 
             TestPipeline(pipelineSoloCalibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
@@ -379,7 +379,7 @@ namespace Microsoft.ML.Tests
 
             var pipelineSoloCalibrator = mlContext.BinaryClassification.Calibrators
                 .Naive();
-            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-WithNaiveCalibrator-Solo.onnx";
+            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-SoloCalibrator.onnx";
 
             TestPipeline(pipelineSoloCalibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Tests
 
             var pipelineSoloCalibratorNonStandard = mlContext.BinaryClassification.Calibrators
                 .Naive(scoreColumnName: "ScoreX");
-            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-WithNaiveCalibrator-Solo-NonStandard.onnx";
+            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
 
             TestPipeline(pipelineSoloCalibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Tests
 
             var pipelineSoloCalibrator = mlContext.BinaryClassification.Calibrators
                 .Isotonic();
-            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-WithIsotonicCalibrator-Solo.onnx";
+            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-SoloCalibrator.onnx";
 
             TestPipeline(pipelineSoloCalibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Tests
 
             var pipelineSoloCalibratorNonStandard = mlContext.BinaryClassification.Calibrators
                 .Isotonic(scoreColumnName: "ScoreX");
-            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-WithIsotonicCalibrator-Solo-NonStandard.onnx";
+            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
 
             TestPipeline(pipelineSoloCalibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 

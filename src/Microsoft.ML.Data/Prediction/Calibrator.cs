@@ -1295,37 +1295,32 @@ namespace Microsoft.ML.Calibrators
             const int minimumOpSetVersion = 9;
             ctx.CheckOpSetVersion(minimumOpSetVersion, "NaiveCalibrator");
 
-            var binProbabilities = ctx.AddInitializer(_binProbs, new long[] { _binProbs.Length, 1 }, "binProbabilities");
-
             string opType = "Sub";
-            var minVar = ctx.AddInitializer((float)(Min), "Min");
-            var subNodeOutput = ctx.AddIntermediateVariable(null, "subNodeOutput", true);
+            var minVar = ctx.AddInitializer(Min, "Min");
+            var subNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeOutput");
             var node = ctx.CreateNode(opType, new[] { outputNames[0], minVar }, new[] { subNodeOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Div";
-            var binSizeVar = ctx.AddInitializer((float)(BinSize), "BinSize");
-            var binIndexOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int32, "binIndexOutput", true);
-            node = ctx.CreateNode(opType, new[] { subNodeOutput, binSizeVar }, new[] { binIndexOutput }, ctx.GetNodeName(opType), "");
+            var binSizeVar = ctx.AddInitializer(BinSize, "BinSize");
+            var divNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "binIndexOutput");
+            node = ctx.CreateNode(opType, new[] { subNodeOutput, binSizeVar }, new[] { divNodeOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Cast";
-            var castOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "CastOutput");
-            var castNode = ctx.CreateNode(opType, binIndexOutput, castOutput, ctx.GetNodeName(opType), "");
-            var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
-            castNode.AddAttribute("to", t);
+            var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastOutput");
+            node = ctx.CreateNode(opType, divNodeOutput, castOutput, ctx.GetNodeName(opType), "");
+            var toTypeInt = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
+            node.AddAttribute("to", toTypeInt);
 
-            opType = "Not";
-            var notOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsBinIndexZero");
-            ctx.CreateNode(opType, castOutput, notOutput, ctx.GetNodeName(opType), "");
+            opType = "Clip";
+            var zeroVar = ctx.AddInitializer(0, "Zero");
+            var numBinsMinusOneVar = ctx.AddInitializer(_binProbs.Length-1, "NumBinsMinusOne");
+            var binIndexOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "binIndexOutput");
+            node = ctx.CreateNode(opType, new[] { castOutput, zeroVar, numBinsMinusOneVar }, new[] { binIndexOutput }, ctx.GetNodeName(opType), "");
 
-            opType = "Cast";
-            var castIsBinIndexToInt = ctx.AddIntermediateVariable(NumberDataViewType.Int32, "IsBinIndexAsInt");
-            var castIsBinIndexToIntNode = ctx.CreateNode(opType, notOutput, castIsBinIndexToInt, ctx.GetNodeName(opType), "");
-            var t1 = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int32).ToType();
-            castIsBinIndexToIntNode.AddAttribute("to", t1);
+            opType = "GatherElements";
+            var binProbabilitiesVar = ctx.AddInitializer(_binProbs, new long[] { _binProbs.Length, 1 }, "binProbabilities");
+            node = ctx.CreateNode(opType, new[] { binProbabilitiesVar, binIndexOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
 
-            var numBinsVar = ctx.AddInitializer((int)(BinSize), "NumBins");
-
-            // TO DO: Complete ONNX conversion.
             return true;
         }
     }
