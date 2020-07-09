@@ -2113,7 +2113,7 @@ namespace Microsoft.ML.Calibrators
             float t = (score - Maxes[pos - 1]) / (Mins[pos] - Maxes[pos - 1]);
             return Values[pos - 1] + t * (Values[pos] - Values[pos - 1]);
         }
-	}
+    }
 
     internal static class Calibrate
     {
