@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
@@ -54,13 +55,17 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         [Fact]
-        public void AutoFitRankingCVTest()
+        public void RankingCVTest()
         {
             string labelColumnName = "Label";
             string groupIdColumnName = "GroupId";
             string featuresColumnVectorNameA = "FeatureVectorA";
             string featuresColumnVectorNameB = "FeatureVectorB";
             int numFolds = 3;
+
+            // LightGBM is not supported on x86 machines
+            if (!Environment.Is64BitProcess)
+                return;
 
             var mlContext = new MLContext(1);
             var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "FeatureVectorA", "FeatureVectorB" }).Append(
