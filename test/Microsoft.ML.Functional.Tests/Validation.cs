@@ -63,15 +63,12 @@ namespace Microsoft.ML.Functional.Tests
             string featuresColumnVectorNameB = "FeatureVectorB";
             int numFolds = 3;
 
-            // LightGBM is not supported on x86 machines
-            if (!Environment.Is64BitProcess)
-                return;
-
             var mlContext = new MLContext(1);
             var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "FeatureVectorA", "FeatureVectorB" }).Append(
                 mlContext.Transforms.Conversion.Hash("GroupId", "GroupId"));
 
-            var trainer = mlContext.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options() { RowGroupColumnName = "GroupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
+            var trainer = mlContext.Ranking.Trainers.FastTree(new FastTreeRankingTrainer.Options()
+            { RowGroupColumnName = "GroupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
             var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Separators = new[] { '\t' },
