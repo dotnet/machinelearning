@@ -25,6 +25,7 @@
 - Use Channel Instead of BufferBlock ([#5123](https://github.com/dotnet/machinelearning/pull/5123)). (Thanks **@jwood803**)
 - Support specifying command timeout while using the database loader ([#5288](https://github.com/dotnet/machinelearning/pull/5288))
 - Added cross entropy support to validation training, edited metric reporting ([#5255](https://github.com/dotnet/machinelearning/pull/5255))
+- Allow TextLoader to load empty float/double fields as NaN instead of 0 ([#5198](https://github.com/dotnet/machinelearning/pull/5198))
   
 
 ## **Bug Fixes**
@@ -37,22 +38,21 @@
 - Ensured Sanitized Column Names are Unique in AutoML CLI ([#5177](https://github.com/dotnet/machinelearning/pull/5177))
 - Ensure that the graph is set to be the current graph when scoring with multiple models ([#5149](https://github.com/dotnet/machinelearning/pull/5149))
 - Uniform onnx conversion method when using non-default column names ([#5146](https://github.com/dotnet/machinelearning/pull/5146))
-- Fixed multiple issures related to splitting data. ([#5227](https://github.com/dotnet/machinelearning/pull/5227))
+- Fixed multiple issues related to splitting data. ([#5227](https://github.com/dotnet/machinelearning/pull/5227))
 - Changed default NGram length from 1 to 2. ([#5248](https://github.com/dotnet/machinelearning/pull/5248))
 - Improve exception msg by adding column name ([#5232](https://github.com/dotnet/machinelearning/pull/5232))
 - Use model schema type instead of class definition schema ([#5228](https://github.com/dotnet/machinelearning/pull/5228))
 - Use GetRandomFileName when creating random temp folder to avoid conflict ([#5229](https://github.com/dotnet/machinelearning/pull/5229))
 - Filter anomalies according to boundaries under AnomalyAndMargin mode ([#5212](https://github.com/dotnet/machinelearning/pull/5212))
 - Improve error message when defining custom type for variables ([#5114](https://github.com/dotnet/machinelearning/pull/5114))
-- Allow TextLoader to load empty float/double fields as NaN instead of 0 ([#5198](https://github.com/dotnet/machinelearning/pull/5198))
 - Fixed OnnxTransformer output column mapping. ([#5192](https://github.com/dotnet/machinelearning/pull/5192))
 - Fixed version format of built packages ([#5197](https://github.com/dotnet/machinelearning/pull/5197))
 - Improvements to "Invalid TValue" error message ([#5189](https://github.com/dotnet/machinelearning/pull/5189))
 
 ## **Test updates**
-- Test fix using breastcancel dataset and test cleanup ([#5292](https://github.com/dotnet/machinelearning/pull/5292))
-- New code coverage ([#5169](https://github.com/dotnet/machinelearning/pull/5169))
 - Refactor of OnnxConversionTests.cs ([#5185](https://github.com/dotnet/machinelearning/pull/5185))
+- New code coverage ([#5169](https://github.com/dotnet/machinelearning/pull/5169))
+- Test fix using breastcancel dataset and test cleanup ([#5292](https://github.com/dotnet/machinelearning/pull/5292))
 
 ## **Documentation Updates**
 - Updated ORT version info for OnnxScoringEstimator ([#5175](https://github.com/dotnet/machinelearning/pull/5175))
