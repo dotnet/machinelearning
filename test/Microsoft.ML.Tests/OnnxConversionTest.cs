@@ -299,7 +299,7 @@ namespace Microsoft.ML.Tests
             foreach (var estimator in estimators)
             {
                 var pipelineEstimators = initialPipeline.Append(estimator).Append(calibrator);
-                var onnxFileName = $"{estimator}-With{calibrator}.onnx";
+                var onnxFileName = $"{estimator}-With-{calibrator}.onnx";
                 TestPipeline(pipelineEstimators, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
             }
 
