@@ -7,6 +7,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -75,7 +76,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [Fact(Skip ="Takes too much time, ~10 minutes.")]
+        [Fact(Skip = "Takes too much time, ~10 minutes.")]
         public void AutoFitImageClassification()
         {
             // This test executes the code path that model builder code will take to get a model using image 
@@ -124,7 +125,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             string labelColumnName = "Label";
             string scoreColumnName = "Score";
-            string groupIdColumnName = "CustomGroupId";
+            string groupIdColumnName = "GroupId";
             string featuresColumnVectorNameA = "FeatureVectorA";
             string featuresColumnVectorNameB = "FeatureVectorB";
             var mlContext = new MLContext(1);
@@ -134,26 +135,83 @@ namespace Microsoft.ML.AutoML.Test
             var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
             var testDataView = mlContext.Data.TakeRows(trainDataView, 500);
             trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
+
             // STEP 2: Run AutoML experiment
-            ExperimentResult<RankingMetrics> experimentResult = mlContext.Auto()
-                .CreateRankingExperiment(new RankingExperimentSettings() { GroupIdColumnName = "CustomGroupId", MaxExperimentTimeInSeconds = 5})
-                .Execute(trainDataView, testDataView,
+            var experiment = mlContext.Auto()
+                .CreateRankingExperiment(5);
+
+            ExperimentResult<RankingMetrics>[] experimentResults =
+            {
+                experiment.Execute(trainDataView, labelColumnName, groupIdColumnName),
+                experiment.Execute(trainDataView, testDataView),
+                experiment.Execute(trainDataView, testDataView,
+                new ColumnInformation()
+                {
+                    LabelColumnName = labelColumnName,
+                    GroupIdColumnName = groupIdColumnName,
+                }),
+                experiment.Execute(trainDataView, testDataView,
+                new ColumnInformation()
+                {
+                    LabelColumnName = labelColumnName,
+                    GroupIdColumnName = groupIdColumnName,
+                    SamplingKeyColumnName = groupIdColumnName
+                })
+            };
+
+            for (int i = 0; i < experimentResults.Length; i++)
+            {
+                RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
+                Assert.True(experimentResults[i].RunDetails.Count() > 0);
+                Assert.NotNull(bestRun.ValidationMetrics);
+                Assert.True(experimentResults[i].RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .4));
+                Assert.True(experimentResults[i].RunDetails.Max(i => i.ValidationMetrics.DiscountedCumulativeGains.Max() > 20));
+                var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
+                var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
+                "Features", scoreColumnName };
+                foreach (var col in outputSchema)
+                    Assert.True(col.Name == expectedOutputNames[col.Index]);
+            }
+        }
+
+        [LightGBMFact]
+        public void AutoFitRankingCVTest()
+        {
+            string labelColumnName = "Label";
+            string groupIdColumnName = "GroupIdCustom";
+            string featuresColumnVectorNameA = "FeatureVectorA";
+            string featuresColumnVectorNameB = "FeatureVectorB";
+            uint numFolds = 3;
+
+            var mlContext = new MLContext(1);
+            var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName,
+                featuresColumnVectorNameA, featuresColumnVectorNameB));
+            var trainDataView = reader.Load(DatasetUtil.GetMLSRDataset());
+
+            var experiment = mlContext.Auto()
+                .CreateRankingExperiment(5);
+            CrossValidationExperimentResult<RankingMetrics>[] experimentResults =
+            {
+                experiment.Execute(trainDataView, numFolds,
                     new ColumnInformation()
                     {
                         LabelColumnName = labelColumnName,
                         GroupIdColumnName = groupIdColumnName
-                    });
-
-            RunDetail<RankingMetrics> bestRun = experimentResult.BestRun;
-            Assert.True(experimentResult.RunDetails.Count() > 0);
-            Assert.NotNull(bestRun.ValidationMetrics);
-            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .5));
-            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.DiscountedCumulativeGains.Max() > 34));
-            var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
-            var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
-                "Features", scoreColumnName };
-            foreach (var col in outputSchema)
-                Assert.True(col.Name == expectedOutputNames[col.Index]);
+                    }),
+                experiment.Execute(trainDataView, numFolds, labelColumnName, groupIdColumnName)
+            };
+            for (int i = 0; i < experimentResults.Length; i++)
+            {
+                CrossValidationRunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
+                Assert.True(experimentResults[i].RunDetails.Count() > 0);
+                var enumerator = bestRun.Results.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    var model = enumerator.Current;
+                    Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .4);
+                    Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > 19);
+                }
+            }
         }
 
         [Fact]
@@ -240,7 +298,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var models = new[] { modelFull, modelTrainTest, modelCV };
 
-            foreach(var model in models)
+            foreach (var model in models)
             {
                 var resFull = model.Transform(dataFull);
                 var resTrainTest = model.Transform(dataTrainTest.TrainSet);

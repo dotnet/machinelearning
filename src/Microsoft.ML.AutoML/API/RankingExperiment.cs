@@ -20,12 +20,6 @@ namespace Microsoft.ML.AutoML
         public RankingMetric OptimizingMetric { get; set; }
 
         /// <summary>
-        /// Name for the GroupId column.
-        /// </summary>
-        /// <value>The default value is GroupId.</value>
-        public string GroupIdColumnName { get; set; }
-
-        /// <summary>
         /// Collection of trainers the AutoML experiment can leverage.
         /// </summary>
         /// <value>
@@ -34,7 +28,6 @@ namespace Microsoft.ML.AutoML
         public ICollection<RankingTrainer> Trainers { get; }
         public RankingExperimentSettings()
         {
-            GroupIdColumnName = "GroupId";
             OptimizingMetric = RankingMetric.Ndcg;
             Trainers = Enum.GetValues(typeof(RankingTrainer)).OfType<RankingTrainer>().ToList();
         }
@@ -75,11 +68,10 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="results">Enumeration of AutoML experiment run results.</param>
         /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <param name="groupIdColumnName">Name for the GroupId column.</param>
         /// <returns>The best experiment run.</returns>
-        public static RunDetail<RankingMetrics> Best(this IEnumerable<RunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, string groupIdColumnName = "GroupId")
+        public static RunDetail<RankingMetrics> Best(this IEnumerable<RunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg)
         {
-            var metricsAgent = new RankingMetricsAgent(null, metric, groupIdColumnName);
+            var metricsAgent = new RankingMetricsAgent(null, metric);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
             return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
@@ -89,11 +81,10 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="results">Enumeration of AutoML experiment cross validation run results.</param>
         /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <param name="groupIdColumnName">Name for the GroupId column.</param>
         /// <returns>The best experiment run.</returns>
-        public static CrossValidationRunDetail<RankingMetrics> Best(this IEnumerable<CrossValidationRunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, string groupIdColumnName = "GroupId")
+        public static CrossValidationRunDetail<RankingMetrics> Best(this IEnumerable<CrossValidationRunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg)
         {
-            var metricsAgent = new RankingMetricsAgent(null, metric, groupIdColumnName);
+            var metricsAgent = new RankingMetricsAgent(null, metric);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
             return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
@@ -112,7 +103,7 @@ namespace Microsoft.ML.AutoML
     {
         internal RankingExperiment(MLContext context, RankingExperimentSettings settings)
             : base(context,
-                  new RankingMetricsAgent(context, settings.OptimizingMetric, settings.GroupIdColumnName),
+                  new RankingMetricsAgent(context, settings.OptimizingMetric),
                   new OptimizingMetricInfo(settings.OptimizingMetric),
                   settings,
                   TaskKind.Ranking,
