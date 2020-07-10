@@ -1291,6 +1291,8 @@ namespace Microsoft.ML.Calibrators
             _host.CheckValue(ctx, nameof(ctx));
             _host.CheckValue(outputNames, nameof(outputNames));
             _host.Check(Utils.Size(outputNames) == 2);
+            // outputNames[0] refers to the name of the Score column, which is the input of this graph
+            // outputNames[1] refers to the name of the Probability column, which is the final output of this graph
 
             const int minimumOpSetVersion = 9;
             ctx.CheckOpSetVersion(minimumOpSetVersion, "NaiveCalibrator");
@@ -1308,7 +1310,7 @@ namespace Microsoft.ML.Calibrators
             opType = "Cast";
             var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "castOutput");
             node = ctx.CreateNode(opType, divNodeOutput, castOutput, ctx.GetNodeName(opType), "");
-            var toTypeInt = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
+            var toTypeInt = typeof(long);
             node.AddAttribute("to", toTypeInt);
 
             opType = "Clip";

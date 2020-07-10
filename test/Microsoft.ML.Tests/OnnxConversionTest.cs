@@ -291,107 +291,57 @@ namespace Microsoft.ML.Tests
             return (mlContext, dataView, estimators, initialPipeline);
         }
 
-        [Fact]
-        public void PlattCalibratorOnnxConversionTest()
+        private void CommonCalibratorOnnxConversionTest(MLContext mlContext, IDataView dataView,
+            List<IEstimator<ITransformer>> estimators, EstimatorChain<NormalizingTransformer> initialPipeline,
+            IEstimator<ITransformer> calibrator, IEstimator<ITransformer> calibratorNonStandard)
         {
             // Step 1: Test calibrator with binary prediction trainer
-            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
             foreach (var estimator in estimators)
             {
-                var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Platt());
-                var onnxFileName = $"{estimator}-WithPlattCalibrator.onnx";
-
-                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
+                var pipelineEstimators = initialPipeline.Append(estimator).Append(calibrator);
+                var onnxFileName = $"{estimator}-With{calibrator}.onnx";
+                TestPipeline(pipelineEstimators, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
             }
 
             // Step 2: Test calibrator without any binary prediction trainer
             IDataView dataSoloCalibrator = mlContext.Data.LoadFromEnumerable(GetCalibratorTestData());
-
-            var pipelineSoloCalibrator = mlContext.BinaryClassification.Calibrators
-                .Platt();
-            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-SoloCalibrator.onnx";
-
-            TestPipeline(pipelineSoloCalibrator, dataSoloCalibrator,onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
+            var onnxFileNameSoloCalibrator = $"{calibrator}-SoloCalibrator.onnx";
+            TestPipeline(calibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
             // Step 3: Test calibrator with a non-default Score column name and without any binary prediction trainer
             IDataView dataSoloCalibratorNonStandard = mlContext.Data.LoadFromEnumerable(GetCalibratorTestDataNonStandard());
-
-            var pipelineSoloCalibratorNonStandard = mlContext.BinaryClassification.Calibrators
-                .Platt(scoreColumnName: "ScoreX");
-            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
-
-            TestPipeline(pipelineSoloCalibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
+            var onnxFileNameSoloCalibratorNonStandard = $"{calibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
+            TestPipeline(calibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
             Done();
+        }
+
+        [Fact]
+        public void PlattCalibratorOnnxConversionTest()
+        {
+            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
+            CommonCalibratorOnnxConversionTest(mlContext, dataView, estimators, initialPipeline,
+                mlContext.BinaryClassification.Calibrators.Platt(),
+                mlContext.BinaryClassification.Calibrators.Platt(scoreColumnName: "ScoreX"));
         }
 
         [Fact]
         public void FixedPlattCalibratorOnnxConversionTest()
         {
             // Below, FixedPlattCalibrator is utilized by defining slope and offset in Platt's constructor with sample values.
-            // Step 1: Test calibrator with binary prediction trainer
             var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
-            foreach (var estimator in estimators)
-            {
-                var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f));
-                var onnxFileName = $"{estimator}-WithFixedPlattCalibrator.onnx";
-
-                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
-            }
-
-            // Step 2: Test calibrator without any binary prediction trainer
-            IDataView dataSoloCalibrator = mlContext.Data.LoadFromEnumerable(GetCalibratorTestData());
-
-            var pipelineSoloCalibrator = mlContext.BinaryClassification.Calibrators
-                .Platt(slope: -1f, offset: -0.05f);
-            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-SoloCalibrator.onnx";
-
-            TestPipeline(pipelineSoloCalibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
-
-            // Step 3: Test calibrator with a non-default Score column name and without any binary prediction trainer
-            IDataView dataSoloCalibratorNonStandard = mlContext.Data.LoadFromEnumerable(GetCalibratorTestDataNonStandard());
-
-            var pipelineSoloCalibratorNonStandard = mlContext.BinaryClassification.Calibrators
-                .Platt(scoreColumnName: "ScoreX", slope: -1f, offset: -0.05f);
-            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
-
-            TestPipeline(pipelineSoloCalibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
-
-            Done();
+            CommonCalibratorOnnxConversionTest(mlContext, dataView, estimators, initialPipeline,
+                mlContext.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f),
+                mlContext.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f, scoreColumnName: "ScoreX"));
         }
 
         [Fact]
         public void NaiveCalibratorOnnxConversionTest()
         {
-            // Step 1: Test calibrator with binary prediction trainer
             var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
-            foreach (var estimator in estimators)
-            {
-                var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Naive());
-                var onnxFileName = $"{estimator}-WithNaiveCalibrator.onnx";
-
-                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
-            }
-
-            // Step 2: Test calibrator without any binary prediction trainer
-            IDataView dataSoloCalibrator = mlContext.Data.LoadFromEnumerable(GetCalibratorTestData());
-
-            var pipelineSoloCalibrator = mlContext.BinaryClassification.Calibrators
-                .Naive();
-            var onnxFileNameSoloCalibrator = $"{pipelineSoloCalibrator}-SoloCalibrator.onnx";
-
-            TestPipeline(pipelineSoloCalibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
-
-            // Step 3: Test calibrator with a non-default Score column name and without any binary prediction trainer
-            IDataView dataSoloCalibratorNonStandard = mlContext.Data.LoadFromEnumerable(GetCalibratorTestDataNonStandard());
-
-            var pipelineSoloCalibratorNonStandard = mlContext.BinaryClassification.Calibrators
-                .Naive(scoreColumnName: "ScoreX");
-            var onnxFileNameSoloCalibratorNonStandard = $"{pipelineSoloCalibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
-
-            TestPipeline(pipelineSoloCalibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
-
-            Done();
+            CommonCalibratorOnnxConversionTest(mlContext, dataView, estimators, initialPipeline,
+                mlContext.BinaryClassification.Calibrators.Naive(),
+                mlContext.BinaryClassification.Calibrators.Naive(scoreColumnName: "ScoreX"));
         }
 
         class CalibratorInput
