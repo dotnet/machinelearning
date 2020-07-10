@@ -685,7 +685,7 @@ namespace Microsoft.ML
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">The label column (for evaluation).</param>
         /// <param name="rowGroupColumnName">The name of the groupId column in <paramref name="data"/>, which is used to group rows.
-        /// This column will automatically be used as SamplingKeyColumn when splitting the data for Cross Validation, 
+        /// This column will automatically be used as SamplingKeyColumn when splitting the data for Cross Validation,
         /// as this is required by the ranking algorithms
         /// If <see langword="null"/> no row grouping will be performed. </param>
         /// <param name="seed">  Seed for the random number generator used to select rows for cross-validation folds.</param>
