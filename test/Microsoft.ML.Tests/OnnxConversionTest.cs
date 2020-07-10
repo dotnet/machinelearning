@@ -394,31 +394,31 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        class ModelInput
+        class CalibratorInput
         {
             public bool Label { get; set; }
             public float Score { get; set; }
         }
 
-        class ModelInputNonStandard
+        class CalibratorInputNonStandard
         {
             public bool Label { get; set; }
             public float ScoreX { get; set; }
         }
 
-        static IEnumerable<ModelInput> GetCalibratorTestData()
+        static IEnumerable<CalibratorInput> GetCalibratorTestData()
         {
             for (int i = 0; i < 100; i++)
             {
-                yield return new ModelInput { Score = i, Label = i % 2 == 0 };
+                yield return new CalibratorInput { Score = i, Label = i % 2 == 0 };
             }
         }
 
-        static IEnumerable<ModelInputNonStandard> GetCalibratorTestDataNonStandard()
+        static IEnumerable<CalibratorInputNonStandard> GetCalibratorTestDataNonStandard()
         {
             for (int i = 0; i < 100; i++)
             {
-                yield return new ModelInputNonStandard { ScoreX = i, Label = i % 2 == 0 };
+                yield return new CalibratorInputNonStandard { ScoreX = i, Label = i % 2 == 0 };
             }
         }
 
