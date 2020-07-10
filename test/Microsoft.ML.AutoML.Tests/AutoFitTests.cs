@@ -76,7 +76,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [Fact(Skip ="Takes too much time, ~10 minutes.")]
+        [Fact(Skip = "Takes too much time, ~10 minutes.")]
         public void AutoFitImageClassification()
         {
             // This test executes the code path that model builder code will take to get a model using image 
@@ -149,6 +149,13 @@ namespace Microsoft.ML.AutoML.Test
                 {
                     LabelColumnName = labelColumnName,
                     GroupIdColumnName = groupIdColumnName,
+                }),
+                experiment.Execute(trainDataView, testDataView,
+                new ColumnInformation()
+                {
+                    LabelColumnName = labelColumnName,
+                    GroupIdColumnName = groupIdColumnName,
+                    SamplingKeyColumnName = groupIdColumnName
                 })
             };
 
@@ -291,7 +298,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var models = new[] { modelFull, modelTrainTest, modelCV };
 
-            foreach(var model in models)
+            foreach (var model in models)
             {
                 var resFull = model.Transform(dataFull);
                 var resTrainTest = model.Transform(dataTrainTest.TrainSet);

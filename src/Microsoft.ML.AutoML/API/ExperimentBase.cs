@@ -73,7 +73,8 @@ namespace Microsoft.ML.AutoML
                 columnInformation = new ColumnInformation()
                 {
                     LabelColumnName = labelColumnName,
-                    GroupIdColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId
+                    SamplingKeyColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId,
+                    GroupIdColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId // For ranking, we want to enforce having the same column as samplingKeyColum and GroupIdColumn
                 };
             }
             else
@@ -131,7 +132,7 @@ namespace Microsoft.ML.AutoML
         private string GetSamplingKey(string groupIdColumnName, string samplingKeyColumnName)
         {
             UserInputValidationUtil.ValidateSamplingKey(samplingKeyColumnName, groupIdColumnName, _task);
-            if ( _task == TaskKind.Ranking)
+            if (_task == TaskKind.Ranking)
                 return groupIdColumnName ?? DefaultColumnNames.GroupId;
             return samplingKeyColumnName;
         }
@@ -159,7 +160,7 @@ namespace Microsoft.ML.AutoML
         {
             var columnInformation = (_task == TaskKind.Ranking) ?
                 new ColumnInformation() { LabelColumnName = labelColumnName, GroupIdColumnName = DefaultColumnNames.GroupId } :
-                new ColumnInformation() { LabelColumnName = labelColumnName};
+                new ColumnInformation() { LabelColumnName = labelColumnName };
 
             return Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
         }
@@ -252,7 +253,8 @@ namespace Microsoft.ML.AutoML
             new ColumnInformation()
             {
                 LabelColumnName = labelColumnName,
-                GroupIdColumnName = samplingKeyColumn ??  DefaultColumnNames.GroupId
+                SamplingKeyColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId,
+                GroupIdColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId // For ranking, we want to enforce having the same column as samplingKeyColum and GroupIdColumn
             }
             :
             new ColumnInformation()
