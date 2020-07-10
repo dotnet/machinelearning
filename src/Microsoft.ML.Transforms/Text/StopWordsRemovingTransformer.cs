@@ -459,20 +459,20 @@ namespace Microsoft.ML.Transforms.Text
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 var opType = "Squeeze";
-                var squeezeOutput = ctx.AddIntermediateVariable(null, "SqueezeOutput", true);
+                var squeezeOutput = ctx.AddIntermediateVariable(_types[iinfo], "SqueezeOutput", true);
                 var node = ctx.CreateNode(opType, srcVariableName, squeezeOutput, ctx.GetNodeName(opType), "");
                 node.AddAttribute("axes", new long[] { 0 });
 
                 opType = "StringNormalizer";
-                var stringNormalizerOutput = ctx.AddIntermediateVariable(null, "StringNormalizerOutput", true);
+                var stringNormalizerOutput = ctx.AddIntermediateVariable(_types[iinfo], "StringNormalizerOutput", true);
                 node = ctx.CreateNode(opType, squeezeOutput, stringNormalizerOutput, ctx.GetNodeName(opType), "");
 
                 var langToUse = _parent._columns[iinfo].Language;
                 var lang = default(ReadOnlyMemory<char>);
                 UpdateLanguage(ref langToUse, null, ref lang);
 
-                var words = StopWords[(int)0].Select(item => Convert.ToString(item.Value));
-                node.AddAttribute("stopwords", StopWords[(int)0].Select(item => Convert.ToString(item.Value)));
+                var words = StopWords[iinfo].Select(item => Convert.ToString(item.Value));
+                node.AddAttribute("stopwords", StopWords[iinfo].Select(item => Convert.ToString(item.Value)));
 
                 opType = "Unsqueeze";
                 squeezeOutput = ctx.AddIntermediateVariable(_types[iinfo], "SqueezeOutput");
@@ -1150,12 +1150,12 @@ namespace Microsoft.ML.Transforms.Text
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 var opType = "Squeeze";
-                var squeezeOutput = ctx.AddIntermediateVariable(null, "SqueezeOutput", true);
+                var squeezeOutput = ctx.AddIntermediateVariable(_types[iinfo], "SqueezeOutput", true);
                 var node = ctx.CreateNode(opType, srcVariableName, squeezeOutput, ctx.GetNodeName(opType), "");
                 node.AddAttribute("axes", new long[] { 0 });
 
                 opType = "StringNormalizer";
-                var stringNormalizerOutput = ctx.AddIntermediateVariable(null, "StringNormalizerOutput", true);
+                var stringNormalizerOutput = ctx.AddIntermediateVariable(_types[iinfo], "StringNormalizerOutput", true);
                 node = ctx.CreateNode(opType, squeezeOutput, stringNormalizerOutput, ctx.GetNodeName(opType), "");
                 var words = _parent._stopWordsMap.ToList();
                 node.AddAttribute("stopwords", words.Select(item => Convert.ToString(item.Value)));
