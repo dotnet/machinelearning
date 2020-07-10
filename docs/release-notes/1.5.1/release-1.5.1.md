@@ -57,6 +57,7 @@
 ## **Documentation Updates**
 - Updated ORT version info for OnnxScoringEstimator ([#5175](https://github.com/dotnet/machinelearning/pull/5175))
 - Updated OnnxTransformer docs ([#5296](https://github.com/dotnet/machinelearning/pull/5296))
+- Improve VectorTypeAttribute(dims) docs ([#5301](https://github.com/dotnet/machinelearning/pull/5301))
 
 ## **Breaking Changes**
 - None
