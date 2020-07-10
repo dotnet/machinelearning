@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void SdcaWorkout()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.Single, 0),

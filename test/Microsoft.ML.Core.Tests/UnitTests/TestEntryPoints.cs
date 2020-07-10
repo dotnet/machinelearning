@@ -43,7 +43,7 @@ namespace Microsoft.ML.RunTests
 
         private IDataView GetBreastCancerDataView()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             return EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
@@ -63,13 +63,13 @@ namespace Microsoft.ML.RunTests
 
         private IDataView GetBreastCancerDataviewWithTextColumns()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             return EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
-                    HasHeader = true,
+                    HasHeader = false,
                     Columns = new[]
                     {
                         new TextLoader.Column("Label", DataKind.Single, 0),
@@ -556,7 +556,7 @@ namespace Microsoft.ML.RunTests
             JObject graph = JObject.Parse(inputGraph);
             var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             runner.SetInput("file1", inputFile);
 
@@ -574,7 +574,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointExecGraphCommand()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var modelPath = DeleteOutputPath("model.zip");
 
             string inputGraph = string.Format(@"
@@ -2281,7 +2281,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointParseColumns()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var outputPath = DeleteOutputPath("data.idv");
 
             string inputGraph = string.Format(@"
@@ -2332,7 +2332,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointCountFeatures()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var outputPath = DeleteOutputPath("data.idv");
             string inputGraph = string.Format(@"
                 {{
@@ -2377,7 +2377,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointMutualSelectFeatures()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var outputPath = DeleteOutputPath("data.idv");
             string inputGraph = string.Format(@"
                 {{
@@ -2593,7 +2593,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointEvaluateBinary()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var warningsPath = DeleteOutputPath("warnings.idv");
             var overallMetricsPath = DeleteOutputPath("overall.idv");
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
@@ -2781,7 +2781,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointPcaTransform()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Label:0 col=Features:1-9",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Label:0 col=Features:1-9",
                 new[]
                 {
                     "Transforms.PcaCalculator",
@@ -2904,7 +2904,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointBootstrap()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Label:R4:0 col=Features:R4:1-9",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Label:R4:0 col=Features:R4:1-9",
                 new[]
                 {
                     "Transforms.ApproximateBootstrapSampler"
@@ -2918,7 +2918,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointConvert()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=LT:TX:0 col=LB:BL:0 col=FT:TX:1-9 col=LN:0 col=FN:1-9 col=Key:U2[0-9]:2",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=LT:TX:0 col=LB:BL:0 col=FT:TX:1-9 col=LN:0 col=FN:1-9 col=Key:U2[0-9]:2",
                 new[]
                 {
                     "Transforms.ColumnTypeConverter",
@@ -2959,7 +2959,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointGroupingOperations()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=G1:TX:0 col=G2:R4:0 col=G3:U4[0-100]:1 col=V1:R4:2 col=V2:TX:3 col=V3:U2[0-10]:4 col=V4:I4:5",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=G1:TX:0 col=G2:R4:0 col=G3:U4[0-100]:1 col=V1:R4:2 col=V2:TX:3 col=V3:U2[0-10]:4 col=V4:I4:5",
                 new[]
                 {
                     "Transforms.CombinerByContiguousGroupId",
@@ -2976,7 +2976,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointNAFilter()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Features:R4:1-9 header+",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Features:R4:1-9 header+",
                 new[]
                 {
                     "Transforms.MissingValuesRowDropper"
@@ -2986,7 +2986,7 @@ namespace Microsoft.ML.RunTests
                     @"'Column': [ 'Features' ]",
                 });
 
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Features:R4:1-9 header+",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Features:R4:1-9 header+",
                 new[]
                 {
                     "Transforms.MissingValuesRowDropper"
@@ -3001,7 +3001,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointGcnTransform()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=FV1:2-3 col=FV2:3-4 col=FV3:4-5 col=FV4:7-9 col=Label:0",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=FV1:2-3 col=FV2:3-4 col=FV3:4-5 col=FV4:7-9 col=Label:0",
                 new[]
                 {
                     "Transforms.LpNormalizer",
@@ -3049,7 +3049,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointGenerateNumber()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Label:0",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Label:0",
                 new[]
                 {
                     "Transforms.RandomNumberGenerator",
@@ -3079,7 +3079,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointRangeFilter()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Filter:R4:3",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Filter:R4:3",
                 new[]
                 {
                     "Transforms.RowRangeFilter",
@@ -3101,7 +3101,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointSkipTakeFilter()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Filter:R4:3",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Filter:R4:3",
                 new[]
                 {
                     "Transforms.RowSkipAndTakeFilter",
@@ -3452,7 +3452,7 @@ namespace Microsoft.ML.RunTests
             JObject graph = JObject.Parse(inputGraph);
             var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             runner.SetInput("file", inputFile);
 
@@ -3547,7 +3547,7 @@ namespace Microsoft.ML.RunTests
             JObject graph = JObject.Parse(inputGraph);
             var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             runner.SetInput("file", inputFile);
 
@@ -3652,7 +3652,7 @@ namespace Microsoft.ML.RunTests
             JObject graph = JObject.Parse(inputGraph);
             var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             runner.SetInput("file", inputFile);
 
@@ -3813,7 +3813,7 @@ namespace Microsoft.ML.RunTests
             JObject graph = JObject.Parse(inputGraph);
             var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             runner.SetInput("file", inputFile);
 
@@ -4004,7 +4004,7 @@ namespace Microsoft.ML.RunTests
             JObject graph = JObject.Parse(inputGraph);
             var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             runner.SetInput("file", inputFile);
 
@@ -4094,7 +4094,7 @@ namespace Microsoft.ML.RunTests
             var nodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
             var runner = new GraphRunner(Env, nodes);
 
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             runner.SetInput("file", inputFile);
 
@@ -4594,7 +4594,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointPercentileThreshold()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Input:R4:1",
                 new[]
                 {
                     "TimeSeriesProcessingEntryPoints.PercentileThresholdTransform"
@@ -4611,7 +4611,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointPValue()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Input:R4:1",
                 new[]
                 {
                     "TimeSeriesProcessingEntryPoints.PValueTransform"
@@ -4627,7 +4627,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointSlidingWindow()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Input:R4:1",
                 new[]
                 {
                     "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
@@ -4659,7 +4659,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointHashJoinCountTable()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var countsModel = DeleteOutputPath("CountTable-trained-counts.zip");
 
             var data = ML.Data.LoadFromTextFile(dataPath, new[]
@@ -4671,7 +4671,7 @@ namespace Microsoft.ML.RunTests
             var transformer = estimator.Fit(data);
             ML.Model.Save(transformer, data.Schema, countsModel);
 
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
+            TestEntryPointPipelineRoutine(GetDataPath(TestDatasets.breastCancer.trainFilename), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
                 new[]
                 {
                     "Transforms.HashConverter",
@@ -4701,7 +4701,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointCountTargetEncoding()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var countsModel = DeleteOutputPath("cte-trained-counts.zip");
 
             var data = ML.Data.LoadFromTextFile(dataPath, new[]

@@ -8,6 +8,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void DropSlotsTransform()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarFloat", DataKind.Single, 1),
                 new TextLoader.Column("ScalarDouble", DataKind.Double, 1),
@@ -101,7 +102,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void CountFeatureSelectionWorkout()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarFloat", DataKind.Single, 6),
@@ -143,7 +144,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCountSelectOldSavingAndLoading()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.UInt32, new[]{ new TextLoader.Range(0) }, new KeyCount(3)),
                 new TextLoader.Column("VectorFloat", DataKind.Single, 1, 4)
@@ -165,7 +166,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void MutualInformationSelectionWorkout()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.UInt32, new[] { new TextLoader.Range(0) }, new KeyCount(3)),
                 new TextLoader.Column("ScalarFloat", DataKind.Single, 6),
@@ -203,7 +204,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestMutualInformationOldSavingAndLoading()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.UInt32, new[]{ new TextLoader.Range(0) }, new KeyCount(3)),
                 new TextLoader.Column("VectorFloat", DataKind.Single, 1, 4)
@@ -225,7 +226,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestFeatureSelectionWithBadInput()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("BadLabel", DataKind.UInt32, 0),
                 new TextLoader.Column("Label", DataKind.Single, 0),

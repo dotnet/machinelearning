@@ -870,7 +870,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestNormalizeBackCompatibility()
         {
-            var dataFile = GetDataPath("breast-cancer.txt");
+            var dataFile = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = TextLoader.Create(ML, new TextLoader.Options(), new MultiFileSource(dataFile));
             string chooseModelPath = GetDataPath("backcompat/ap_with_norm.zip");
             using (FileStream fs = File.OpenRead(chooseModelPath))
