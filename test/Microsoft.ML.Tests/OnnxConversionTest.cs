@@ -138,11 +138,11 @@ namespace Microsoft.ML.Tests
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = mlContext.Data.LoadFromTextFile<BreastCancerFeatureVector>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.NormalizeMinMax("Features").
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansTrainer.Options
@@ -208,9 +208,9 @@ namespace Microsoft.ML.Tests
         public void BinaryClassificationTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: false);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.BinaryClassification.Trainers.AveragedPerceptron(),
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void CommandLineOnnxConversionTest()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             string modelPath = GetOutputPath("ModelWithLessIO.zip");
             var trainingPathArgs = $"data={dataPath} out={modelPath}";
             var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numberOfThreads=1 numberOfLeaves=8 numberOfTrees=3} seed=1";
@@ -608,10 +608,10 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features").
                 Append(mlContext.Transforms.NormalizeMinMax("Features")).
@@ -752,7 +752,7 @@ namespace Microsoft.ML.Tests
         public void ConcatenateOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("VectorDouble2", DataKind.Double, 1),
@@ -772,10 +772,10 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
@@ -985,7 +985,7 @@ namespace Microsoft.ML.Tests
         public void OneHotHashEncodingOnnxConversionTest()
         {
             var mlContext = new MLContext();
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
             var pipeline = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
@@ -1373,7 +1373,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", dataKind, 0),
@@ -1417,8 +1417,8 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath, separatorChar: '\t', hasHeader: true);
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath, separatorChar: '\t', hasHeader: false);
 
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
@@ -1572,7 +1572,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Scalar", dataKind, 6),
@@ -1611,7 +1611,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.Boolean, 0),
@@ -1658,9 +1658,9 @@ namespace Microsoft.ML.Tests
         public void NonDefaultColNamesBinaryClassificationOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassificationNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassificationNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: false);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector"),
@@ -1697,8 +1697,8 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExampleNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExampleNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: false);
 
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
@@ -1747,7 +1747,7 @@ namespace Microsoft.ML.Tests
         public void OneHotHashEncodingOnnxConversionWithCustomOpSetVersionTest()
         {
             var mlContext = new MLContext();
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
             var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{

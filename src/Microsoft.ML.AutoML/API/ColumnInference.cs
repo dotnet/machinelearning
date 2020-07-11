@@ -59,7 +59,8 @@ namespace Microsoft.ML.AutoML
         public string UserIdColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use as a group ID for computation.
+        /// The dataset column to use as a group ID for computation in a Ranking Task.
+        /// If a SamplingKeyColumnName is provided, then it should be the same as this column.
         /// </summary>
         public string GroupIdColumnName { get; set; }
 

@@ -1,0 +1,4 @@
+WeightedEnsemble
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/bp	/nm	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.996325	0.973646	0.958506	0.966527	0.9819	0.977477	0.110238	0.881972	0.9625	0.992721	AvgPer	3	WeightedEnsemble	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=WeightedEnsemble{bp=AvgPer nm=3 tp=-} dout=%Output% loader=Text{col=Label:BL:0 col=Features:R4:1-9} data=%Data% out=%Output% seed=1	/bp:AvgPer;/nm:3	
+

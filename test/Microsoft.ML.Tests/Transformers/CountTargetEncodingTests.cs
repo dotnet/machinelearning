@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,7 +21,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCountTargetEncodingEstimator()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarString", DataKind.String, 1),
                 new TextLoader.Column("VectorString", DataKind.String, 1, 9),
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestSaveAndLoadExternalCounts()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] { new TextLoader.Column("Label", DataKind.Single, 0),
                 new TextLoader.Column("Text", DataKind.String, 1,9)});
             var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestSaveAndLoadExternalCountsMultipleColumns()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarString", DataKind.String, 1),
                 new TextLoader.Column("VectorString", DataKind.String, 1, 9),
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCountTargetEncodingWithNoise()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarString", DataKind.String, 1),
                 new TextLoader.Column("VectorString", DataKind.String, 2, 9),
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCountTargetEncodingEstimatorWithBuilders()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarString", DataKind.String, 1),
                 new TextLoader.Column("VectorString", DataKind.String, 1, 9),

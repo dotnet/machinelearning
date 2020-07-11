@@ -773,7 +773,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestWordBagInPipeline()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.Boolean, 0),
                 new TextLoader.Column("Features", DataKind.String, 1, 9)

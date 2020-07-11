@@ -398,6 +398,7 @@ namespace Microsoft.ML
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
         /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// Note that when performing a Ranking Experiment, the <paramref name="samplingKeyColumnName"/> must be the GroupId column.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
         /// <example>
@@ -444,6 +445,7 @@ namespace Microsoft.ML
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// Note that when performing a Ranking Experiment, the <paramref name="samplingKeyColumnName"/> must be the GroupId column.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <example>

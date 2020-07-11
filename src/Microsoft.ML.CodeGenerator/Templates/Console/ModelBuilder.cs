@@ -417,7 +417,7 @@ if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){
 
         public static void PrintRankingFoldsAverageMetrics(IEnumerable<TrainCatalogBase.CrossValidationResult<RankingMetrics>> crossValidationResults)
         {
-            var max = (crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? metrics.NormalizedDiscountedCumulativeGains.Count-1 : 9;
+            var max = (crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count-1 : 9;
             var NDCG = crossValidationResults.Select(r => r.Metrics.NormalizedDiscountedCumulativeGains[max]);
             var DCG = crossValidationResults.Select(r => r.Metrics.DiscountedCumulativeGains[max]);
             Console.WriteLine($""*************************************************************************************************************"");

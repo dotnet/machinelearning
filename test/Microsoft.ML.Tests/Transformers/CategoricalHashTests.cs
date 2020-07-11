@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void CategoricalHash()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarString", DataKind.String, 1),
                 new TextLoader.Column("VectorString", DataKind.String, 1, 4),
