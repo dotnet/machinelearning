@@ -974,8 +974,8 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext();
             string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
-            var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
-            var pipeline = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
+            var pipeline = mlContext.Transforms.Categorical.OneHotHashEncoding(new[]{
                     new OneHotHashEncodingEstimator.ColumnOptions("Output", "F3", useOrderedHashing:false),
                 });
             var onnxFileName = "OneHotHashEncoding.onnx";
@@ -1340,6 +1340,54 @@ namespace Microsoft.ML.Tests
                         Assert.Equal(mlNetSlotNames[j].ToString(), onnxSlotNames[j].ToString());
                 }
             }
+            Done();
+        }
+
+        [Fact]
+        public void CustomStopWordsRemovingEstimatorOnnxTest()
+        {
+            var mlContext = new MLContext();
+
+            var pipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text")
+                .Append(mlContext.Transforms.Text.RemoveStopWords(
+                "WordsWithoutStopWords", "Words", stopwords:
+                new[] { "cat", "sat", "on" }));
+
+            var samples = new List<TextData>()
+            {
+                new TextData(){ Text = "cat sat on mat" },
+                new TextData(){ Text = "mat not fit cat" },
+                new TextData(){ Text = "a cat think mat bad" },
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+            var onnxFileName = $"CustomStopWordsRemovingEstimator.onnx";
+
+            TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("WordsWithoutStopWords")});
+
+            Done();
+        }
+
+        [Fact]
+        public void StopWordsRemovingEstimatorOnnxTest()
+        {
+            var mlContext = new MLContext();
+
+            var pipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text")
+                .Append(mlContext.Transforms.Text.RemoveDefaultStopWords(
+                "WordsWithoutStopWords", "Words", language:
+                StopWordsRemovingEstimator.Language.English));
+
+            var samples = new List<TextData>()
+            {
+                new TextData(){ Text = "a go cat sat on mat" },
+                new TextData(){ Text = "a mat not fit go cat" },
+                new TextData(){ Text = "cat think mat bad a" },
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+            var onnxFileName = $"StopWordsRemovingEstimator.onnx";
+
+            TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("WordsWithoutStopWords") });
+
             Done();
         }
 
