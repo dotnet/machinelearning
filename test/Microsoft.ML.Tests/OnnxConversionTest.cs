@@ -291,10 +291,11 @@ namespace Microsoft.ML.Tests
             return (mlContext, dataView, estimators, initialPipeline);
         }
 
-        private void CommonCalibratorOnnxConversionTest(MLContext mlContext, IDataView dataView,
-            List<IEstimator<ITransformer>> estimators, EstimatorChain<NormalizingTransformer> initialPipeline,
-            IEstimator<ITransformer> calibrator, IEstimator<ITransformer> calibratorNonStandard)
+        private void CommonCalibratorOnnxConversionTest(IEstimator<ITransformer> calibrator, IEstimator<ITransformer> calibratorNonStandard)
         {
+            // Initialize variables needed for the ONNX conversion test
+            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
+
             // Step 1: Test calibrator with binary prediction trainer
             foreach (var estimator in estimators)
             {
@@ -319,29 +320,23 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void PlattCalibratorOnnxConversionTest()
         {
-            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
-            CommonCalibratorOnnxConversionTest(mlContext, dataView, estimators, initialPipeline,
-                mlContext.BinaryClassification.Calibrators.Platt(),
-                mlContext.BinaryClassification.Calibrators.Platt(scoreColumnName: "ScoreX"));
+            CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Platt(),
+                ML.BinaryClassification.Calibrators.Platt(scoreColumnName: "ScoreX"));
         }
 
         [Fact]
         public void FixedPlattCalibratorOnnxConversionTest()
         {
             // Below, FixedPlattCalibrator is utilized by defining slope and offset in Platt's constructor with sample values.
-            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
-            CommonCalibratorOnnxConversionTest(mlContext, dataView, estimators, initialPipeline,
-                mlContext.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f),
-                mlContext.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f, scoreColumnName: "ScoreX"));
+            CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f),
+                ML.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f, scoreColumnName: "ScoreX"));
         }
 
         [Fact]
         public void NaiveCalibratorOnnxConversionTest()
         {
-            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
-            CommonCalibratorOnnxConversionTest(mlContext, dataView, estimators, initialPipeline,
-                mlContext.BinaryClassification.Calibrators.Naive(),
-                mlContext.BinaryClassification.Calibrators.Naive(scoreColumnName: "ScoreX"));
+            CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Naive(),
+                ML.BinaryClassification.Calibrators.Naive(scoreColumnName: "ScoreX"));
         }
 
         class CalibratorInput
