@@ -261,40 +261,39 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        private (MLContext, IDataView, List<IEstimator<ITransformer>>, EstimatorChain<NormalizingTransformer>) GetEstimatorsForOnnxConversionTests()
+        private (IDataView, List<IEstimator<ITransformer>>, EstimatorChain<NormalizingTransformer>) GetEstimatorsForOnnxConversionTests()
         {
-            var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = ML.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
-                mlContext.BinaryClassification.Trainers.AveragedPerceptron(),
-                mlContext.BinaryClassification.Trainers.FastForest(),
-                mlContext.BinaryClassification.Trainers.FastTree(),
-                mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(),
-                mlContext.BinaryClassification.Trainers.LinearSvm(),
-                mlContext.BinaryClassification.Trainers.Prior(),
-                mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(),
-                mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(),
-                mlContext.BinaryClassification.Trainers.SgdCalibrated(),
-                mlContext.BinaryClassification.Trainers.SgdNonCalibrated(),
-                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
+                ML.BinaryClassification.Trainers.AveragedPerceptron(),
+                ML.BinaryClassification.Trainers.FastForest(),
+                ML.BinaryClassification.Trainers.FastTree(),
+                ML.BinaryClassification.Trainers.LbfgsLogisticRegression(),
+                ML.BinaryClassification.Trainers.LinearSvm(),
+                ML.BinaryClassification.Trainers.Prior(),
+                ML.BinaryClassification.Trainers.SdcaLogisticRegression(),
+                ML.BinaryClassification.Trainers.SdcaNonCalibrated(),
+                ML.BinaryClassification.Trainers.SgdCalibrated(),
+                ML.BinaryClassification.Trainers.SgdNonCalibrated(),
+                ML.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
             };
             if (Environment.Is64BitProcess)
             {
-                estimators.Add(mlContext.BinaryClassification.Trainers.LightGbm());
+                estimators.Add(ML.BinaryClassification.Trainers.LightGbm());
             }
 
-            var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features").
-                Append(mlContext.Transforms.NormalizeMinMax("Features"));
-            return (mlContext, dataView, estimators, initialPipeline);
+            var initialPipeline = ML.Transforms.ReplaceMissingValues("Features").
+                Append(ML.Transforms.NormalizeMinMax("Features"));
+            return (dataView, estimators, initialPipeline);
         }
 
         private void CommonCalibratorOnnxConversionTest(IEstimator<ITransformer> calibrator, IEstimator<ITransformer> calibratorNonStandard)
         {
             // Initialize variables needed for the ONNX conversion test
-            var (mlContext, dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
+            var (dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
 
             // Step 1: Test calibrator with binary prediction trainer
             foreach (var estimator in estimators)
@@ -305,12 +304,12 @@ namespace Microsoft.ML.Tests
             }
 
             // Step 2: Test calibrator without any binary prediction trainer
-            IDataView dataSoloCalibrator = mlContext.Data.LoadFromEnumerable(GetCalibratorTestData());
+            IDataView dataSoloCalibrator = ML.Data.LoadFromEnumerable(GetCalibratorTestData());
             var onnxFileNameSoloCalibrator = $"{calibrator}-SoloCalibrator.onnx";
             TestPipeline(calibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
             // Step 3: Test calibrator with a non-default Score column name and without any binary prediction trainer
-            IDataView dataSoloCalibratorNonStandard = mlContext.Data.LoadFromEnumerable(GetCalibratorTestDataNonStandard());
+            IDataView dataSoloCalibratorNonStandard = ML.Data.LoadFromEnumerable(GetCalibratorTestDataNonStandard());
             var onnxFileNameSoloCalibratorNonStandard = $"{calibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
             TestPipeline(calibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
 
