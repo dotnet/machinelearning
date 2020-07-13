@@ -2138,6 +2138,8 @@ namespace Microsoft.ML.Calibrators
             var minsVar = ctx.AddInitializer(Mins, new long[] { Mins.Length, 1 }, "Mins");
             var maxesVar = ctx.AddInitializer(Maxes, new long[] { Maxes.Length, 1 }, "Maxes");
             var valuesVar = ctx.AddInitializer(Values, new long[] { Values.Length, 1 }, "Values");
+            var minsZeroVar = ctx.AddInitializer(Mins[0], "MinsZero");
+            var maxesPMinusOneVar = ctx.AddInitializer(Maxes[Mins.Length - 1], "MaxesPMinusOne");
             var zeroVar = ctx.AddInitializer(0, "Zero");
             var oneVar = ctx.AddInitializer(1, "One");
 
@@ -2159,20 +2161,10 @@ namespace Microsoft.ML.Calibrators
             //     If score > Maxes[p-1], Return prob = Values[p-1]
             //     Else, continue
 
-            // Get Mins[0]
-            string opType = "GatherElements";
-            var minsZeroOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "minsZeroOutput");
-            OnnxNode node = ctx.CreateNode(opType, new[] { minsVar, zeroVar }, new[] { minsZeroOutput }, ctx.GetNodeName(opType), "");
-
-            // Get Maxes[p-1] = Maxes[Mins.Length-1]
-            opType = "GatherElements";
-            var maxesPMinusOneOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "maxesPMinusOneOutput");
-            node = ctx.CreateNode(opType, new[] { maxesVar, minsLengthMinusOneVar }, new[] { maxesPMinusOneOutput }, ctx.GetNodeName(opType), "");
-
             // Get Values[0]
-            opType = "GatherElements";
+            string opType = "GatherElements";
             var valuesZeroOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "valuesZeroOutput");
-            node = ctx.CreateNode(opType, new[] { valuesVar, zeroVar }, new[] { valuesZeroOutput }, ctx.GetNodeName(opType), "");
+            OnnxNode node = ctx.CreateNode(opType, new[] { valuesVar, zeroVar }, new[] { valuesZeroOutput }, ctx.GetNodeName(opType), "");
 
             // Get Values[p-1] = Values[Mins.Length-1]
             opType = "GatherElements";
@@ -2185,11 +2177,11 @@ namespace Microsoft.ML.Calibrators
 
             opType = "Less";
             var scoreLessThenMinsZeroOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "scoreLessThenMinsZeroOutput");
-            node = ctx.CreateNode(opType, new[] { outputNames[0], minsZeroOutput }, new[] { scoreLessThenMinsZeroOutput }, ctx.GetNodeName(opType), "");
+            node = ctx.CreateNode(opType, new[] { outputNames[0], minsZeroVar }, new[] { scoreLessThenMinsZeroOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Greater";
             var scoreGreaterThenMaxesPMinusOneOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "scoreGreaterThenMaxesPMinusOneOutput");
-            node = ctx.CreateNode(opType, new[] { outputNames[0], maxesPMinusOneOutput }, new[] { scoreGreaterThenMaxesPMinusOneOutput }, ctx.GetNodeName(opType), "");
+            node = ctx.CreateNode(opType, new[] { outputNames[0], maxesPMinusOneVar }, new[] { scoreGreaterThenMaxesPMinusOneOutput }, ctx.GetNodeName(opType), "");
 
             // Implement if statements
             // To-do

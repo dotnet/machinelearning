@@ -338,6 +338,13 @@ namespace Microsoft.ML.Tests
                 ML.BinaryClassification.Calibrators.Naive(scoreColumnName: "ScoreX"));
         }
 
+        [Fact]
+        public void IsotonicCalibratorOnnxConversionTest()
+        {
+            CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Isotonic(),
+                ML.BinaryClassification.Calibrators.Naive(scoreColumnName: "ScoreX"));
+        }
+
         class CalibratorInput
         {
             public bool Label { get; set; }
