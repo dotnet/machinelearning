@@ -80,7 +80,9 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Mark member with expected dimensions of array.
+        /// Mark member with expected dimensions of array. Notice that this attribute is expected to be added to one dimensional arrays,
+        /// and it shouldn't be added to multidimensional arrays. Internally, ML.NET will use the shape information provided as the
+        /// "dimensions" param of this constructor, to use it as a multidimensional array.
         /// </summary>
         /// <param name="dimensions">Dimensions of array. All values should be non-negative.
         /// A zero value indicates that the vector type is considered to have unknown length along that dimension.</param>

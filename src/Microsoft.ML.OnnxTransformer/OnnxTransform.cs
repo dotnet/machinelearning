@@ -36,6 +36,8 @@ namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting an <see cref="OnnxScoringEstimator"/>.
+    /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+    /// and how to run it on a GPU.
     /// </summary>
     public sealed class OnnxTransformer : RowToRowTransformerBase
     {
@@ -719,6 +721,9 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.3.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.3.0 (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
+    /// To create this estimator use the following APIs:
+    /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
+    ///
     /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
     /// Models are scored on CPU if the project references Microsoft.ML.OnnxRuntime and on the GPU if the project references Microsoft.ML.OnnxRuntime.Gpu.
     /// Every project using the OnnxScoringEstimator must reference one of the above two packages.
@@ -726,7 +731,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// To run on a GPU, use the
     /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
     /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.1 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 7.6.5](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#default-gpu-cuda)).
-    /// Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
+    /// When creating the estimator through [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*), set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1. If the GPU device isn't found but 'fallbackToCpu = true' then the estimator will run on the CPU. If the GPU device isn't found but 'fallbackToCpu = false' then the estimator will throw an exception
     ///
     /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
     ///
@@ -734,10 +739,6 @@ namespace Microsoft.ML.Transforms.Onnx
     /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.
     /// Refer to [ONNX](http://onnx.ai) for more information.
     ///
-    /// To create this estimator use the following:
-    /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
-    ///
-    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

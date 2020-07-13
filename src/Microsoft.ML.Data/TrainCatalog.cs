@@ -674,6 +674,31 @@ namespace Microsoft.ML
             var eval = new RankingEvaluator(Environment, options ?? new RankingEvaluatorOptions() { });
             return eval.Evaluate(data, labelColumnName, rowGroupColumnName, scoreColumnName);
         }
+
+        /// <summary>
+        /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
+        /// and respecting <paramref name="rowGroupColumnName"/>if provided.
+        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
+        /// </summary>
+        /// <param name="data">The data to run cross-validation on.</param>
+        /// <param name="estimator">The estimator to fit.</param>
+        /// <param name="numberOfFolds">Number of cross-validation folds.</param>
+        /// <param name="labelColumnName">The label column (for evaluation).</param>
+        /// <param name="rowGroupColumnName">The name of the groupId column in <paramref name="data"/>, which is used to group rows.
+        /// This column will automatically be used as SamplingKeyColumn when splitting the data for Cross Validation,
+        /// as this is required by the ranking algorithms
+        /// If <see langword="null"/> no row grouping will be performed. </param>
+        /// <param name="seed">  Seed for the random number generator used to select rows for cross-validation folds.</param>
+        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
+        public IReadOnlyList<CrossValidationResult<RankingMetrics>> CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
+            string rowGroupColumnName = DefaultColumnNames.GroupId, int ? seed = null)
+        {
+            Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
+            var result = CrossValidateTrain(data, estimator, numberOfFolds, rowGroupColumnName, seed);
+            return result.Select(x => new CrossValidationResult<RankingMetrics>(x.Model,
+                Evaluate(x.Scores, labelColumnName, rowGroupColumnName), x.Scores, x.Fold)).ToArray();
+        }
     }
 
     /// <summary>

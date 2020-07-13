@@ -1158,7 +1158,7 @@ namespace Microsoft.ML.Calibrators
     /// <summary>
     /// The naive binning-based calibrator.
     /// </summary>
-    public sealed class NaiveCalibrator : ICalibrator, ICanSaveInBinaryFormat
+    public sealed class NaiveCalibrator : ICalibrator, ICanSaveInBinaryFormat, ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "NaiveCaliExec";
         internal const string RegistrationName = "NaiveCalibrator";
@@ -1173,6 +1173,12 @@ namespace Microsoft.ML.Calibrators
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(NaiveCalibrator).Assembly.FullName);
         }
+
+        /// <summary>
+        /// Bool required by the interface ISingleCanSaveOnnx, returns true if
+        /// and only if calibrator can be exported in ONNX.
+        /// </summary>
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         private readonly IHost _host;
 
@@ -1280,6 +1286,45 @@ namespace Microsoft.ML.Calibrators
             return binIdx;
         }
 
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            _host.CheckValue(ctx, nameof(ctx));
+            _host.CheckValue(outputNames, nameof(outputNames));
+            _host.Check(Utils.Size(outputNames) == 2);
+            // outputNames[0] refers to the name of the Score column, which is the input of this graph
+            // outputNames[1] refers to the name of the Probability column, which is the final output of this graph
+
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "NaiveCalibrator");
+
+            string opType = "Sub";
+            var minVar = ctx.AddInitializer(Min, "Min");
+            var subNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeOutput");
+            var node = ctx.CreateNode(opType, new[] { outputNames[0], minVar }, new[] { subNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Div";
+            var binSizeVar = ctx.AddInitializer(BinSize, "BinSize");
+            var divNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "binIndexOutput");
+            node = ctx.CreateNode(opType, new[] { subNodeOutput, binSizeVar }, new[] { divNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Cast";
+            var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "castOutput");
+            node = ctx.CreateNode(opType, divNodeOutput, castOutput, ctx.GetNodeName(opType), "");
+            var toTypeInt = typeof(long);
+            node.AddAttribute("to", toTypeInt);
+
+            opType = "Clip";
+            var zeroVar = ctx.AddInitializer(0, "Zero");
+            var numBinsMinusOneVar = ctx.AddInitializer(_binProbs.Length-1, "NumBinsMinusOne");
+            var binIndexOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "binIndexOutput");
+            node = ctx.CreateNode(opType, new[] { castOutput, zeroVar, numBinsMinusOneVar }, new[] { binIndexOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "GatherElements";
+            var binProbabilitiesVar = ctx.AddInitializer(_binProbs, new long[] { _binProbs.Length, 1 }, "BinProbabilities");
+            node = ctx.CreateNode(opType, new[] { binProbabilitiesVar, binIndexOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
+
+            return true;
+        }
     }
 
     /// <summary>

@@ -57,6 +57,14 @@ namespace Microsoft.ML.AutoML
             }
         }
 
+        public static void ValidateSamplingKey(string samplingKeyColumnName, string groupIdColumnName, TaskKind task)
+        {
+            if (task == TaskKind.Ranking && samplingKeyColumnName != null && samplingKeyColumnName != groupIdColumnName)
+            {
+                throw new ArgumentException($"If provided, {nameof(samplingKeyColumnName)} must be the same as {nameof(groupIdColumnName)} for Ranking Experiments", samplingKeyColumnName);
+            }
+        }
+
         private static void ValidateTrainData(IDataView trainData, ColumnInformation columnInformation)
         {
             if (trainData == null)
