@@ -2986,6 +2986,11 @@ namespace Microsoft.ML.RunTests
                         'Source': 'LB'
                       },
                       {
+                        'Name': 'Label3',
+                        'Source': 'LB',
+                        'Type': 'TX'
+                      },
+                      {
                         'Name': 'Feat',
                         'Source': 'FT',
                         'Type': 'R4'
