@@ -29,6 +29,9 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(NormalizeTransform.BinNormalizerSummary, typeof(IDataTransform), typeof(NormalizeTransform), typeof(NormalizeTransform.BinArguments), typeof(SignatureDataTransform),
     NormalizeTransform.BinNormalizerUserName, "BinNormalizer", NormalizeTransform.BinNormalizerShortName)]
 
+[assembly: LoadableClass(NormalizeTransform.RobustScalingNormalizerSummary, typeof(IDataTransform), typeof(NormalizeTransform), typeof(NormalizeTransform.RobustScalingArguments), typeof(SignatureDataTransform),
+    NormalizeTransform.RobustScalingNormalizerUserName, "RobustScalingNormalizer", NormalizeTransform.RobustScalingNormalizerShortName)]
+
 [assembly: LoadableClass(typeof(NormalizeTransform.AffineColumnFunction), null, typeof(SignatureLoadColumnFunction),
     "Affine Normalizer", AffineNormSerializationUtils.LoaderSignature)]
 
@@ -266,18 +269,22 @@ namespace Microsoft.ML.Transforms
         internal const string BinNormalizerSummary = "The values are assigned into equidensity bins and a value is mapped to its bin_number/number_of_bins.";
         internal const string SupervisedBinNormalizerSummary = "Similar to BinNormalizer, but calculates bins based on correlation with the label column, not equi-density. "
             + "The new value is bin_number / number_of_bins.";
+        internal const string RobustScalingNormalizerSummary = "Optionally centers the data and scales based on the range of data and the quantile min and max values provided. "
+            + "This method is more robust to outliers.";
 
         internal const string MinMaxNormalizerUserName = "Min-Max Normalizer";
         internal const string MeanVarNormalizerUserName = "MeanVar Normalizer";
         internal const string LogMeanVarNormalizerUserName = "LogMeanVar Normalizer";
         internal const string BinNormalizerUserName = "Binning Normalizer";
         internal const string SupervisedBinNormalizerUserName = "Supervised Binning Normalizer";
+        internal const string RobustScalingNormalizerUserName = "Robust Scaling Normalizer";
 
         internal const string MinMaxNormalizerShortName = "MinMax";
         internal const string MeanVarNormalizerShortName = "MeanVar";
         internal const string LogMeanVarNormalizerShortName = "LogMeanVar";
         internal const string BinNormalizerShortName = "Bin";
         internal const string SupervisedBinNormalizerShortName = "SupBin";
+        internal const string RobustScalingNormalizerShortName = "RobScal";
 
         /// <summary>
         /// A helper method to create a MinMax normalizer.
@@ -368,6 +375,28 @@ namespace Microsoft.ML.Transforms
                     col.MaximumExampleCount ?? args.MaximumExampleCount,
                     col.EnsureZeroUntouched ?? args.EnsureZeroUntouched,
                     col.NumBins ?? args.NumBins))
+                .ToArray();
+            var normalizer = new NormalizingEstimator(env, columns);
+            return normalizer.Fit(input).MakeDataTransform(input);
+        }
+
+        /// <summary>
+        /// Factory method corresponding to SignatureDataTransform.
+        /// </summary>
+        internal static IDataTransform Create(IHostEnvironment env, RobustScalingArguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(args.Columns, nameof(args.Columns));
+
+            var columns = args.Columns
+                .Select(col => new NormalizingEstimator.RobustScalingColumnOptions(
+                    col.Name,
+                    col.Source ?? col.Name,
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
+                    args.CenterData,
+                    args.QuantileMin,
+                    args.QuantileMax))
                 .ToArray();
             var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
