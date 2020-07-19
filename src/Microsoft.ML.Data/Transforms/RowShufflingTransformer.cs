@@ -634,7 +634,9 @@ namespace Microsoft.ML.Transforms
                 while (_liveCount < _poolRows && !_doneConsuming)
                 {
                     // We are under capacity. Try to get some more.
-                    while (_toConsumeChannel.Reader.WaitToReadAsync().GetAwaiter().GetResult())
+                    var waitToReadAwaiter = _toConsumeChannel.Reader.WaitToReadAsync().GetAwaiter();
+
+                    while (waitToReadAwaiter.IsCompleted && waitToReadAwaiter.GetResult())
                     {
                         var hasReadItem = _toConsumeChannel.Reader.TryRead(out int got);
                         if (hasReadItem)
