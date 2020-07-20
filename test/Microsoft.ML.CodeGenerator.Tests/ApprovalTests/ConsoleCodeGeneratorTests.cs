@@ -888,11 +888,9 @@ namespace mlnet.Tests
                     { "outputColumnNames", "output1" },
                     { "inputColumnNames", "input1"},
                 });
-            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 onnxPipeLineNode,
-                labelMapPipelineNode,
             });
 
             // construct column inference
