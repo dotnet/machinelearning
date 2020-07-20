@@ -61,7 +61,7 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        public RegressionMetrics EvaluateMetrics(IDataView data, string labelColumn)
+        public RegressionMetrics EvaluateMetrics(IDataView data, string labelColumn, string groupIdColumn)
         {
             return _mlContext.Regression.Evaluate(data, labelColumn);
         }

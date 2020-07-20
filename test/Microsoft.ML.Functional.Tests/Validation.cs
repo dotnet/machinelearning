@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -49,6 +52,43 @@ namespace Microsoft.ML.Functional.Tests
             // And validate the metrics.
             foreach (var result in cvResult)
                 Common.AssertMetrics(result.Metrics);
+        }
+
+        [Fact]
+        public void RankingCVTest()
+        {
+            string labelColumnName = "Label";
+            string groupIdColumnName = "GroupId";
+            string featuresColumnVectorNameA = "FeatureVectorA";
+            string featuresColumnVectorNameB = "FeatureVectorB";
+            int numFolds = 3;
+
+            var mlContext = new MLContext(1);
+            var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "FeatureVectorA", "FeatureVectorB" }).Append(
+                mlContext.Transforms.Conversion.Hash("GroupId", "GroupId"));
+
+            var trainer = mlContext.Ranking.Trainers.FastTree(new FastTreeRankingTrainer.Options()
+            { RowGroupColumnName = "GroupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
+            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
+            {
+                Separators = new[] { '\t' },
+                HasHeader = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column(labelColumnName, DataKind.Single, 0),
+                    new TextLoader.Column(groupIdColumnName, DataKind.Int32, 1),
+                    new TextLoader.Column(featuresColumnVectorNameA, DataKind.Single, 2, 9),
+                    new TextLoader.Column(featuresColumnVectorNameB, DataKind.Single, 10, 137)
+                }
+            });
+            var trainDataView = reader.Load(TestCommon.GetDataPath(DataDir, "MSLRWeb1K-tiny.tsv"));
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
+            var result = mlContext.Ranking.CrossValidate(trainDataView, trainingPipeline, numberOfFolds: numFolds);
+            for (int i = 0; i < numFolds; i++)
+            {
+                Assert.True(result[i].Metrics.NormalizedDiscountedCumulativeGains.Max() > .4);
+                Assert.True(result[i].Metrics.DiscountedCumulativeGains.Max() > 16);
+            }
         }
 
         /// <summary>

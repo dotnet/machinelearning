@@ -158,7 +158,7 @@ namespace Microsoft.ML.AutoML
         }
 
         private static IDictionary<string, object> BuildLightGbmPipelineNodeProps(IEnumerable<SweepableParam> sweepParams,
-            string labelColumn, string weightColumn, string groupColumn = null)
+            string labelColumn, string weightColumn, string groupColumn)
         {
             Dictionary<string, object> props = null;
             if (sweepParams == null || !sweepParams.Any())

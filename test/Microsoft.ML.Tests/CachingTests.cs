@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
@@ -58,6 +59,22 @@ namespace Microsoft.ML.Tests
             pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 
             Assert.True(trainData.All(x => x.AccessCount == 1));
+        }
+
+        [Fact]
+        public void CacheOnEmptyEstimatorChainTest()
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => CacheOnEmptyEstimatorChain());
+            Assert.Contains("Current estimator chain has no estimator, can't append cache checkpoint.", ex.Message, 
+                StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private void CacheOnEmptyEstimatorChain()
+        {
+            new EstimatorChain<ITransformer>().AppendCacheCheckpoint(ML)
+                .Append(ML.Transforms.CopyColumns("F1", "Features"))
+                .Append(ML.Transforms.NormalizeMinMax("Norm1", "F1"))
+                .Append(ML.Transforms.NormalizeMeanVariance("Norm2", "F1"));
         }
 
         [Fact]

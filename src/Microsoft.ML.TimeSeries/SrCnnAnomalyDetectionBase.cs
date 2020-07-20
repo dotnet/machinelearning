@@ -174,13 +174,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     // Step 1: Get backadd wave
                     List<Single> backAddList = BackAdd(data);
 
-                    // Step 2: FFT transformation
+                    // Step 2: FftTransform transformation
                     int length = backAddList.Count;
                     float[] fftRe = new float[length];
                     float[] fftIm = new float[length];
                     FftUtils.ComputeForwardFft(backAddList.ToArray(), Enumerable.Repeat(0.0f, length).ToArray(), fftRe, fftIm, length);
 
-                    // Step 3: Calculate mags of FFT
+                    // Step 3: Calculate mags of FftTransform
                     List<Single> magList = new List<Single>();
                     for (int i = 0; i < length; ++i)
                     {

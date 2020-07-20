@@ -15,6 +15,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
@@ -343,13 +344,15 @@ namespace Microsoft.ML.Transforms.Text
             return assembly.GetManifestResourceStream($"{assembly.GetName().Name}.Text.StopWords.{lang.ToString()}.txt");
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : MapperBase, ISaveAsOnnx
         {
             private readonly DataViewType[] _types;
             private readonly StopWordsRemovingTransformer _parent;
             private readonly int[] _languageColumns;
             private readonly bool?[] _resourcesExist;
             private readonly Dictionary<int, int> _colMapNewToOld;
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public Mapper(StopWordsRemovingTransformer parent, DataViewSchema inputSchema)
              : base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
@@ -438,6 +441,45 @@ namespace Microsoft.ML.Transforms.Text
                 return del;
             }
 
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    var srcVariableName = ctx.GetVariableName(_parent.ColumnPairs[i].inputColumnName);
+                    if (!ctx.ContainsColumn(srcVariableName))
+                        continue;
+                    var dstVariableName = ctx.AddIntermediateVariable(_types[i], _parent.ColumnPairs[i].outputColumnName);
+                    SaveAsOnnxCore(ctx, i, srcVariableName, dstVariableName);
+                }
+            }
+
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+            {
+                var opType = "Squeeze";
+                var squeezeOutput = ctx.AddIntermediateVariable(_types[iinfo], "SqueezeOutput", true);
+                var node = ctx.CreateNode(opType, srcVariableName, squeezeOutput, ctx.GetNodeName(opType), "");
+                node.AddAttribute("axes", new long[] { 0 });
+
+                opType = "StringNormalizer";
+                var stringNormalizerOutput = ctx.AddIntermediateVariable(_types[iinfo], "StringNormalizerOutput", true);
+                node = ctx.CreateNode(opType, squeezeOutput, stringNormalizerOutput, ctx.GetNodeName(opType), "");
+
+                var langToUse = _parent._columns[iinfo].Language;
+                var lang = default(ReadOnlyMemory<char>);
+                UpdateLanguage(ref langToUse, null, ref lang);
+
+                var words = StopWords[iinfo].Select(item => Convert.ToString(item.Value));
+                node.AddAttribute("stopwords", StopWords[iinfo].Select(item => Convert.ToString(item.Value)));
+
+                opType = "Unsqueeze";
+                squeezeOutput = ctx.AddIntermediateVariable(_types[iinfo], "SqueezeOutput");
+                node = ctx.CreateNode(opType, stringNormalizerOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                node.AddAttribute("axes", new long[] { 0 });
+            }
+
             private void UpdateLanguage(ref StopWordsRemovingEstimator.Language langToUse, ValueGetter<ReadOnlyMemory<char>> getLang, ref ReadOnlyMemory<char> langTxt)
             {
                 if (getLang != null)
@@ -490,7 +532,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
     /// | Output column data type | Variable-sized vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
-    /// | Exportable to ONNX | No |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer> creates a new column, named as specified in the output column name parameter,
     /// and fills it with a vector of words containing all of the words in the input column **except the predefined list of stopwords for the specified language.
@@ -1016,10 +1058,12 @@ namespace Microsoft.ML.Transforms.Text
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly DataViewType[] _types;
             private readonly CustomStopWordsRemovingTransformer _parent;
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public Mapper(CustomStopWordsRemovingTransformer parent, DataViewSchema inputSchema)
              : base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -1084,6 +1128,43 @@ namespace Microsoft.ML.Transforms.Text
 
                 return del;
             }
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    var srcVariableName = ctx.GetVariableName(_parent.ColumnPairs[i].inputColumnName);
+                    if (!ctx.ContainsColumn(srcVariableName))
+                        continue;
+                    var dstVariableName = ctx.AddIntermediateVariable(_types[i], _parent.ColumnPairs[i].outputColumnName);
+
+                    SaveAsOnnxCore(ctx, i, srcVariableName, dstVariableName);
+                }
+            }
+
+            // Note: Since StringNormalizer only accepts inputs of shape [C] or [1,C], we temporarily squeeze the
+            // batch dimension which may exceed 1
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+            {
+                var opType = "Squeeze";
+                var squeezeOutput = ctx.AddIntermediateVariable(_types[iinfo], "SqueezeOutput", true);
+                var node = ctx.CreateNode(opType, srcVariableName, squeezeOutput, ctx.GetNodeName(opType), "");
+                node.AddAttribute("axes", new long[] { 0 });
+
+                opType = "StringNormalizer";
+                var stringNormalizerOutput = ctx.AddIntermediateVariable(_types[iinfo], "StringNormalizerOutput", true);
+                node = ctx.CreateNode(opType, squeezeOutput, stringNormalizerOutput, ctx.GetNodeName(opType), "");
+                var words = _parent._stopWordsMap.ToList();
+                node.AddAttribute("stopwords", words.Select(item => Convert.ToString(item.Value)));
+
+                opType = "Unsqueeze";
+                squeezeOutput = ctx.AddIntermediateVariable(_types[iinfo], "SqueezeOutput");
+                node = ctx.CreateNode(opType, stringNormalizerOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                node.AddAttribute("axes", new long[] { 0 });
+            }
         }
     }
 
@@ -1098,7 +1179,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
     /// | Output column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
-    /// | Exportable to ONNX | No |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer> creates a new column, named as specified by the output column name parameter, and
     /// fills it with a vector of words containing all of the words in the input column except those given by the stopwords parameter.

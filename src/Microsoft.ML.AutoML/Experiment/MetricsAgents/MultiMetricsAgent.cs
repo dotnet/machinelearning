@@ -66,7 +66,7 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        public MulticlassClassificationMetrics EvaluateMetrics(IDataView data, string labelColumn)
+        public MulticlassClassificationMetrics EvaluateMetrics(IDataView data, string labelColumn, string groupIdColumn)
         {
             return _mlContext.MulticlassClassification.Evaluate(data, labelColumn);
         }

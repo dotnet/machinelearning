@@ -28,6 +28,22 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisLightGbm()
         {
+            DatabaseSource dbs = GetIrisDatabaseSource("SELECT * FROM {0}");
+            IrisLightGbmImpl(dbs);
+        }
+
+        [LightGBMFact]
+        public void IrisLightGbmWithTimeout()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) //sqlite does not have built-in command for sleep
+                return;
+            DatabaseSource dbs = GetIrisDatabaseSource("WAITFOR DELAY '00:00:01'; SELECT * FROM {0}", 1);
+            var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => IrisLightGbmImpl(dbs));
+            Assert.Contains("Timeout", ex.InnerException.Message);
+        }
+
+        private void IrisLightGbmImpl(DatabaseSource dbs)
+        {
             var mlContext = new MLContext(seed: 1);
 
             var loaderColumns = new DatabaseLoader.Column[]
@@ -41,7 +57,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
-            var trainingData = loader.Load(GetIrisDatabaseSource("SELECT * FROM {0}"));
+            var trainingData = loader.Load(dbs);
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -211,18 +227,20 @@ namespace Microsoft.ML.Tests
         /// SQLite database is used on Linux and MacOS builds.
         /// </summary>
         /// <returns>Return the appropiate Iris DatabaseSource according to build OS.</returns>
-        private DatabaseSource GetIrisDatabaseSource(string command)
+        private DatabaseSource GetIrisDatabaseSource(string command, int commandTimeoutInSeconds = 30)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return new DatabaseSource(
                     SqlClientFactory.Instance,
                     GetMSSQLConnectionString(TestDatasets.irisDb.name),
-                    String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""));
+                    String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""),
+                    commandTimeoutInSeconds);
             else
                 return new DatabaseSource(
                     SQLiteFactory.Instance,
                     GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
-                    String.Format(command, TestDatasets.irisDbSQLite.trainFilename));
+                    String.Format(command, TestDatasets.irisDbSQLite.trainFilename),
+                    commandTimeoutInSeconds);
         }
 
         private string GetMSSQLConnectionString(string databaseName)

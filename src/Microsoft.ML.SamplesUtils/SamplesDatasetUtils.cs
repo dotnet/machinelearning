@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using Microsoft.ML.Data;
 
@@ -262,12 +263,38 @@ namespace Microsoft.ML.SamplesUtils
             return data;
         }
 
+        public class FloatLabelFloatFeatureVectorUlongGroupIdSample
+        {
+            public float Label;
+
+            [VectorType(_simpleBinaryClassSampleFeatureLength)]
+            public float[] Features;
+
+            [KeyType(ulong.MaxValue - 1)]
+            public ulong GroupId;
+        }
+
         public class FloatLabelFloatFeatureVectorSample
         {
             public float Label;
 
             [VectorType(_simpleBinaryClassSampleFeatureLength)]
             public float[] Features;
+        }
+
+        public static IEnumerable<FloatLabelFloatFeatureVectorUlongGroupIdSample> GenerateFloatLabelFloatFeatureVectorUlongGroupIdSamples(int exampleCount, double naRate = 0, ulong minGroupId = 1, ulong maxGroupId = 5)
+        {
+            var data = new List<FloatLabelFloatFeatureVectorUlongGroupIdSample>();
+            var rnd = new Random(0);
+            var intermediate = GenerateFloatLabelFloatFeatureVectorSamples(exampleCount, naRate).ToList();
+
+            for (int i = 0; i < exampleCount; ++i)
+            {
+                var sample = new FloatLabelFloatFeatureVectorUlongGroupIdSample() { Label = intermediate[i].Label, Features = intermediate[i].Features, GroupId = (ulong)rnd.Next((int)minGroupId, (int)maxGroupId) };
+                data.Add(sample);
+            }
+
+            return data;
         }
 
         public static IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount, double naRate = 0)

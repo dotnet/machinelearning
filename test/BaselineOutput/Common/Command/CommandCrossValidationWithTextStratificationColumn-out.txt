@@ -1,5 +1,4 @@
 maml.exe CV tr=lr{l1=1.0 l2=0.1 ot=1e-3 nt=1} strat=Strat threads=- norm=Warn loader=text{col=Features:R4:9-14 col=Label:R4:0 col=Strat:TX:1 header+} data=%Data% out=%Output%
-Hashing the stratification column
 Warning: A normalizer is needed for this trainer. Either add a normalizing transform or use the 'norm=Auto', 'norm=Yes' or 'norm=No' options.
 Beginning optimization
 num vars: 7

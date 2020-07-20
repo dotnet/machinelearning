@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
@@ -301,6 +302,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public Options()
             {
                 EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt1; // Use L1 by default.
+                RowGroupColumnName = DefaultColumnNames.GroupId; // Use GroupId as default for ranking options.
             }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
