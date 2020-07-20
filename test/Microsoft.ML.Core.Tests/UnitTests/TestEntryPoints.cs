@@ -2330,6 +2330,56 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
+        public void RobustScalerNormalizerEntryPoint()
+        {
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var outputPath = DeleteOutputPath("data.idv");
+
+            string inputGraph = string.Format(@"
+                {{
+                  'Nodes': [
+                    {{
+                      'Name': 'Data.CustomTextLoader',
+                      'Inputs': {{
+                        'InputFile': '$file1'
+                      }},
+                      'Outputs': {{
+                        'Data': '$data1'
+                      }}
+                    }},
+                    {{
+                      'Name': 'Transforms.RobustScalingNormalizer',
+                      'Inputs': {{
+                        'Data': '$data1',
+                        'Column': [
+                          {{
+                            'Name': 'Features',
+                            'Source': 'Features'
+                          }}
+                        ]
+                      }},
+                      'Outputs': {{
+                        'OutputData': '$data2'
+                      }}
+                    }}
+                  ],
+                  'Inputs' : {{
+                    'file1' : '{0}'
+                  }},
+                  'Outputs' : {{
+                    'data2' : '{1}'
+                  }}
+                }}", EscapePath(dataPath), EscapePath(outputPath));
+
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+        }
+
+        [Fact]
         public void EntryPointCountFeatures()
         {
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
@@ -2934,6 +2984,11 @@ namespace Microsoft.ML.RunTests
                       {
                         'Name': 'Label2',
                         'Source': 'LB'
+                      },
+                      {
+                        'Name': 'Label3',
+                        'Source': 'LB',
+                        'Type': 'TX'
                       },
                       {
                         'Name': 'Feat',
