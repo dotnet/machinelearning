@@ -902,6 +902,9 @@ namespace Microsoft.ML.Data
                 Host.CheckValue(ctx, nameof(ctx));
                 Contracts.Assert(CanSaveOnnx(ctx));
 
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
                 {
                     var colInfo = _parent._columns[iinfo];

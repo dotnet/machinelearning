@@ -15,6 +15,7 @@ namespace Microsoft.ML.AutoML
             SuggestedPipeline pipeline,
             IDataView trainData,
             IDataView validData,
+            string groupId,
             string labelColumn,
             IMetricsAgent<TMetrics> metricsAgent,
             ITransformer preprocessorTransform,
@@ -28,7 +29,7 @@ namespace Microsoft.ML.AutoML
                 var model = estimator.Fit(trainData);
 
                 var scoredData = model.Transform(validData);
-                var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn);
+                var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn, groupId);
                 var score = metricsAgent.GetScore(metrics);
 
                 if (preprocessorTransform != null)

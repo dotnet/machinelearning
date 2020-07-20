@@ -405,6 +405,9 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(Utils.Size(outputs) >= 3);
 
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
             string scoreVarName = outputs[1];
             string probVarName = outputs[2];
             var prob = ctx.AddInitializer(_prob, "probability");

@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName);
                 if (originalColumn.Kind == SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", originalColumn.Name, "Vector", "Scalar");
-                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(originalColumn.ItemType, out _))
+                if (!Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate(originalColumn.ItemType, out _))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", originalColumn.Name, "Single, Double or Key", originalColumn.ItemType.ToString());
                 var col = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.VariableVector, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Annotations);
                 resultDic[outputColumnName] = col;
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms
                     var srcCol = inputSchema[_srcCols[i]];
                     if (!(srcCol.Type is VectorDataViewType))
                         throw _parent.Host.Except($"Column '{srcCol.Name}' is not a vector column");
-                    if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(srcCol.Type.GetItemType(), out _isNAs[i]))
+                    if (!Data.Conversion.Conversions.DefaultInstance.TryGetIsNAPredicate(srcCol.Type.GetItemType(), out _isNAs[i]))
                         throw _parent.Host.Except($"Column '{srcCol.Name}' is of type {srcCol.Type.GetItemType()}, which does not support missing values");
                     _srcTypes[i] = srcCol.Type;
                     _types[i] = new VectorDataViewType((PrimitiveDataViewType)srcCol.Type.GetItemType());

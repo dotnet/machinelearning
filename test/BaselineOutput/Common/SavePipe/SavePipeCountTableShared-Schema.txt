@@ -1,0 +1,25 @@
+---- BoundLoader ----
+3 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: Single
+---- HashJoiningTransform ----
+5 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: Single
+  Hash1: Key<UInt32, 0-16383>
+  Hash2: Key<UInt32, 0-16383>
+---- RowToRowMapperTransform ----
+7 columns:
+  Text: Vector<String, 9>
+  OneText: String
+  Label: Single
+  Hash1: Key<UInt32, 0-16383>
+  Hash2: Key<UInt32, 0-16383>
+  Hash1c: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'Hash1_Class000_Count', [1] 'Hash1_Class001_Count', [2] 'Hash1_Class000_LogOdds', [3] 'Hash1_IsBackoff'
+  Hash2c: Vector<Single, 1, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
+      [0] 'Hash2_Class000_Count', [1] 'Hash2_Class001_Count', [2] 'Hash2_Class000_LogOdds', [3] 'Hash2_IsBackoff'

@@ -139,6 +139,8 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly HashingEstimator.ColumnOptions[] _columns;
+        [BestFriend]
+        internal IReadOnlyCollection<HashingEstimator.ColumnOptions> Columns => _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorDataViewType[] _kvTypes;
         private readonly bool _nonOnnxExportableVersion;
@@ -556,20 +558,19 @@ namespace Microsoft.ML.Transforms
                         return 0;
                     hash = Hashing.MurmurRound(hash, FloatUtils.GetBits(value == 0 ? 0 : value));
                 }
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
         private readonly struct HashDouble : IHasher<double>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-
             public uint HashCoreOld(uint seed, uint mask, in double value)
             {
                 if (double.IsNaN(value))
                     return 0;
 
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -578,7 +579,7 @@ namespace Microsoft.ML.Transforms
                 if (double.IsNaN(value))
                     return 0;
 
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(double)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(double)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -589,17 +590,19 @@ namespace Microsoft.ML.Transforms
                 {
                     if (double.IsNaN(value))
                         return 0;
-                    hash = HashRound(hash, value);
+                    hash = HashRound(hash, value, false);
                 }
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(double)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, double value)
+            private uint HashRound(uint seed, double value, bool old)
             {
                 ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
                 var hi = Utils.GetHi(v);
+                if (old && hi == 0)
+                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
@@ -648,7 +651,7 @@ namespace Microsoft.ML.Transforms
                         return 0;
                     hash = Hashing.MurmurRound(hash, value);
                 }
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -672,7 +675,7 @@ namespace Microsoft.ML.Transforms
                         return 0;
                     hash = Hashing.MurmurRound(hash, value);
                 }
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -696,7 +699,7 @@ namespace Microsoft.ML.Transforms
                         return 0;
                     hash = Hashing.MurmurRound(hash, value);
                 }
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -707,7 +710,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (value == 0)
                     return 0;
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -715,7 +718,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (value == 0)
                     return 0;
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -726,17 +729,17 @@ namespace Microsoft.ML.Transforms
                 {
                     if (value == 0)
                         return 0;
-                    hash = HashRound(hash, value);
+                    hash = HashRound(hash, value, false);
                 }
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, ulong value)
+            private uint HashRound(uint seed, ulong value, bool old)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
-                if (hi == 0)
+                if (old && hi == 0)
                     return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
@@ -758,7 +761,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = Hashing.MurmurRound(hash, value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -778,7 +781,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = Hashing.MurmurRound(hash, value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -798,7 +801,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = Hashing.MurmurRound(hash, value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -807,13 +810,13 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCoreOld(uint seed, uint mask, in ulong value)
             {
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ulong value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(ulong)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -821,15 +824,17 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(hash, value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                    hash = HashRound(hash, value, false);
+                return (Hashing.MixHash(hash, values.Length * sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, ulong value)
+            private uint HashRound(uint seed, ulong value, bool old)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
+                if (old && hi == 0)
+                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
@@ -839,13 +844,13 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCoreOld(uint seed, uint mask, in DataViewRowId value)
             {
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in DataViewRowId value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), 2 * sizeof(ulong)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -853,18 +858,18 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(hash, value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                    hash = HashRound(hash, value, false);
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, DataViewRowId value)
+            private uint HashRound(uint seed, DataViewRowId value, bool old)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Low));
                 var hi = Utils.GetHi(value.Low);
-                if (hi != 0)
+                if (old && hi != 0)
                     hash = Hashing.MurmurRound(hash, hi);
-                if (value.High != 0)
+                if (old && value.High != 0)
                 {
                     hash = Hashing.MurmurRound(hash, Utils.GetLo(value.High));
                     hi = Utils.GetHi(value.High);
@@ -891,7 +896,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = Hashing.MurmurRound(hash, value ? 1u : 0u);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -911,7 +916,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = Hashing.MurmurRound(hash, (uint)value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -931,7 +936,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = Hashing.MurmurRound(hash, (uint)value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -951,7 +956,7 @@ namespace Microsoft.ML.Transforms
                 var hash = seed;
                 foreach (var value in values.DenseValues())
                     hash = Hashing.MurmurRound(hash, (uint)value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                return (Hashing.MixHash(hash, values.Length * sizeof(uint)) & mask) + 1;
             }
         }
 
@@ -960,13 +965,13 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCoreOld(uint seed, uint mask, in long value)
             {
-                return (Hashing.MixHash(HashRound(seed, value)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, true)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in long value)
             {
-                return (Hashing.MixHash(HashRound(seed, value), sizeof(long)) & mask) + 1;
+                return (Hashing.MixHash(HashRound(seed, value, false), sizeof(long)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -974,15 +979,17 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(hash, value);
-                return (Hashing.MixHash(hash, sizeof(uint)) & mask) + 1;
+                    hash = HashRound(hash, value, false);
+                return (Hashing.MixHash(hash, values.Length * sizeof(long)) & mask) + 1;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private uint HashRound(uint seed, long value)
+            private uint HashRound(uint seed, long value, bool old)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
                 var hi = Utils.GetHi((ulong)value);
+                if (old && hi == 0)
+                    return hash;
                 return Hashing.MurmurRound(hash, hi);
             }
         }
@@ -1348,39 +1355,54 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariable, string dstVariable)
             {
+                const int minimumOpSetVersion = 11;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 string castOutput;
+                string isGreaterThanZeroOutput = "";
                 OnnxNode castNode;
                 OnnxNode murmurNode;
+                OnnxNode isZeroNode;
 
-                var srcType = _srcTypes[iinfo].GetItemType();
-                if (srcType is KeyDataViewType)
-                    return false;
+                var srcType = _srcTypes[iinfo].GetItemType().RawType;
                 if (_parent._columns[iinfo].Combine)
                     return false;
 
                 var opType = "MurmurHash3";
                 string murmurOutput = ctx.AddIntermediateVariable(_dstTypes[iinfo], "MurmurOutput");
 
-                // Numeric input types are limited to those supported by the Onnxruntime MurmurHash operator, which currently only supports
-                // uints and ints. Thus, ulongs, longs, doubles and floats are not supported.
-                if (srcType == NumberDataViewType.UInt16 || srcType == NumberDataViewType.Int16 ||
-                    srcType == NumberDataViewType.SByte || srcType == NumberDataViewType.Byte ||
-                    srcType == BooleanDataViewType.Instance)
+                // Get zero value indeces
+                if (_srcTypes[iinfo] is KeyDataViewType)
+                {
+                    var optType2 = "Cast";
+                    castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastOutput", true);
+                    isZeroNode = ctx.CreateNode(optType2, srcVariable, castOutput, ctx.GetNodeName(optType2), "");
+                    isZeroNode.AddAttribute("to", NumberDataViewType.Int64.RawType);
+
+                    var zero = ctx.AddInitializer(0);
+                    var isGreaterThanZeroOutputBool = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "isGreaterThanZeroOutputBool");
+                    optType2 = "Greater";
+                    ctx.CreateNode(optType2, new[] { castOutput, zero }, new[] { isGreaterThanZeroOutputBool }, ctx.GetNodeName(optType2), "");
+
+                    isGreaterThanZeroOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "isGreaterThanZeroOutput");
+                    optType2 = "Cast";
+                    isZeroNode = ctx.CreateNode(optType2, isGreaterThanZeroOutputBool, isGreaterThanZeroOutput, ctx.GetNodeName(optType2), "");
+                    isZeroNode.AddAttribute("to", NumberDataViewType.Int64.RawType);
+                }
+
+                // Since these numeric types are not supported by Onnxruntime, we cast them to UInt32.
+                if (srcType == typeof(ushort) || srcType == typeof(short) ||
+                    srcType == typeof(sbyte) || srcType == typeof(byte) ||
+                    srcType == typeof(bool))
                 {
                     castOutput = ctx.AddIntermediateVariable(NumberDataViewType.UInt32, "CastOutput", true);
                     castNode = ctx.CreateNode("Cast", srcVariable, castOutput, ctx.GetNodeName(opType), "");
                     castNode.AddAttribute("to", NumberDataViewType.UInt32.RawType);
                     murmurNode = ctx.CreateNode(opType, castOutput, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
-                else if (srcType == NumberDataViewType.UInt32 || srcType == NumberDataViewType.Int32 || srcType == NumberDataViewType.UInt64 ||
-                         srcType == NumberDataViewType.Int64 || srcType == NumberDataViewType.Single || srcType == NumberDataViewType.Double || srcType == TextDataViewType.Instance)
-
-                {
-                    murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
-                }
                 else
                 {
-                    return false;
+                    murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
                 }
 
                 murmurNode.AddAttribute("positive", 1);
@@ -1417,10 +1439,17 @@ namespace Microsoft.ML.Transforms
                 string one = ctx.AddInitializer(1);
                 ctx.CreateNode(opType, new[] { castOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
 
-                opType = "Cast";
-                var castNodeFinal = ctx.CreateNode(opType, addOutput, dstVariable, ctx.GetNodeName(opType), "");
-                castNodeFinal.AddAttribute("to", _dstTypes[iinfo].GetItemType().RawType);
+                string mulOutput = ctx.AddIntermediateVariable(vectorShape, "MulOutput");
+                if (_srcTypes[iinfo] is KeyDataViewType)
+                {
+                    opType = "Mul";
+                    ctx.CreateNode(opType, new[] { isGreaterThanZeroOutput, addOutput }, new[] { mulOutput }, ctx.GetNodeName(opType), "");
+                }
 
+                opType = "Cast";
+                var input = (_srcTypes[iinfo] is KeyDataViewType) ? mulOutput: addOutput;
+                var castNodeFinal = ctx.CreateNode(opType, input, dstVariable, ctx.GetNodeName(opType), "");
+                castNodeFinal.AddAttribute("to", _dstTypes[iinfo].GetItemType().RawType);
                 return true;
             }
 
@@ -1735,8 +1764,10 @@ namespace Microsoft.ML.Transforms
     public sealed class HashingEstimator : IEstimator<HashingTransformer>
     {
         internal const int NumBitsMin = 1;
+        [BestFriend]
         internal const int NumBitsLim = 32;
 
+        [BestFriend]
         internal static class Defaults
         {
             public const int NumberOfBits = NumBitsLim - 1;

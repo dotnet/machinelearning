@@ -64,7 +64,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void KeyToValue()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarString", DataKind.String, 0),
                 new TextLoader.Column("VectorString", DataKind.String, 1, 4),

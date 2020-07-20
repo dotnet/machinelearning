@@ -732,6 +732,9 @@ namespace Microsoft.ML.Transforms
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 var outputToInputMap = _mapper.OutputToInputMap;
                 for(int i = 0; i < outputToInputMap.Length; i++)
                 {

@@ -182,14 +182,23 @@ namespace Microsoft.ML.Functional.Tests
 
             // Define the pipeline.
             var pipeline = mlContext.Transforms.Text.ProduceWordBags("SentimentBag", "SentimentText")
-                .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "SentimentBag", numberOfTopics: numTopics, maximumNumberOfIterations: 10));
+                .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "SentimentBag", 
+                numberOfTopics: numTopics, maximumNumberOfIterations: 10));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
 
             // Get the trained LDA model.
-            // TODO #2197: Get the topics and summaries from the model.
             var ldaTransform = model.LastTransformer;
+
+            // Get the topics and summaries from the model.
+            var ldaDetails = ldaTransform.GetLdaDetails(0);
+            Assert.False(ldaDetails.ItemScoresPerTopic == null && ldaDetails.WordScoresPerTopic == null);
+            if(ldaDetails.ItemScoresPerTopic != null)
+                Assert.Equal(numTopics, ldaDetails.ItemScoresPerTopic.Count);
+            if (ldaDetails.WordScoresPerTopic != null)
+                Assert.Equal(numTopics, ldaDetails.WordScoresPerTopic.Count);
+
 
             // Transform the data.
             var transformedData = model.Transform(data);

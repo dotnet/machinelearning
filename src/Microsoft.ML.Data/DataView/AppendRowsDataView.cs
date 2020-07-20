@@ -190,9 +190,12 @@ namespace Microsoft.ML.Data
             {
                 Ch.CheckParam(column.Index <= Getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
 
-                if (!(Getters[column.Index] is ValueGetter<TValue>))
-                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}'");
-                return Getters[column.Index] as ValueGetter<TValue>;
+                var originGetter = Getters[column.Index];
+                var getter = originGetter as ValueGetter<TValue>;
+                if (getter == null)
+                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                        $"expected type: '{originGetter.GetType().GetGenericArguments().First()}'.");
+                return getter;
             }
 
             /// <summary>

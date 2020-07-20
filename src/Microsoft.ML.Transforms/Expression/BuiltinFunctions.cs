@@ -844,21 +844,21 @@ namespace Microsoft.ML.Transforms
         public static BL ToBL(TX a)
         {
             BL res = default(BL);
-            Conversions.Instance.Convert(in a, ref res);
+            Conversions.DefaultInstance.Convert(in a, ref res);
             return res;
         }
 
         public static I4 ToI4(TX a)
         {
             I4 res = default(I4);
-            Conversions.Instance.Convert(in a, ref res);
+            Conversions.DefaultInstance.Convert(in a, ref res);
             return res;
         }
 
         public static I8 ToI8(TX a)
         {
             I8 res = default(I8);
-            Conversions.Instance.Convert(in a, ref res);
+            Conversions.DefaultInstance.Convert(in a, ref res);
             return res;
         }
 
@@ -880,7 +880,7 @@ namespace Microsoft.ML.Transforms
         public static R4 ToR4(TX a)
         {
             R4 res = default(R4);
-            Conversions.Instance.Convert(in a, ref res);
+            Conversions.DefaultInstance.Convert(in a, ref res);
             return res;
         }
 
@@ -902,7 +902,7 @@ namespace Microsoft.ML.Transforms
         public static R8 ToR8(TX a)
         {
             R8 res = default(R8);
-            Conversions.Instance.Convert(in a, ref res);
+            Conversions.DefaultInstance.Convert(in a, ref res);
             return res;
         }
 

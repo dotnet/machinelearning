@@ -71,6 +71,13 @@ namespace Microsoft.ML.Data
                 var schemaDefinitionCol = schemaDefinition.FirstOrDefault(c => c.ColumnName == name);
                 if (schemaDefinitionCol == null)
                     throw env.Except($"Type should contain a member named {name}");
+
+                //Always use column type from model as this type can be more specific.
+                //This can be corner case:
+                //For example, we can load an model whose schema contains Vector<Single, 38>
+                //and define this field in input class as float[] without specific array length.
+                schemaDefinitionCol.ColumnType = col.Type;
+
                 var annotations = col.Annotations;
                 if (annotations != null)
                 {
@@ -427,7 +434,8 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(getter);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Host.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", column, typeof(TValue));
+                    throw Host.Except($"Invalid TValue in GetGetter for column #{column}: '{typeof(TValue)}', " +
+                        $"expected type: '{getter.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
         }

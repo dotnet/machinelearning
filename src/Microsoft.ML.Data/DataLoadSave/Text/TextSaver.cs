@@ -123,7 +123,7 @@ namespace Microsoft.ML.Data.IO
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else
-                    Conv = Conversions.Instance.GetStringConversion<T>(type);
+                    Conv = Conversions.DefaultInstance.GetStringConversion<T>(type);
 
                 var d = default(T);
                 Conv(in d, ref Sb);

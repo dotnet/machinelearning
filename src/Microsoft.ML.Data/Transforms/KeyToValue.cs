@@ -323,16 +323,16 @@ namespace Microsoft.ML.Transforms
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
                     DataViewType outputItemType = TypeOutput.GetItemType();
-                    _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(outputItemType, out _naMapsToDefault);
+                    _na = Data.Conversion.Conversions.DefaultInstance.GetNAOrDefault<TValue>(outputItemType, out _naMapsToDefault);
 
                     if (_naMapsToDefault)
                     {
                         // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
-                        _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(outputItemType);
+                        _isDefault = Data.Conversion.Conversions.DefaultInstance.GetIsDefaultPredicate<TValue>(outputItemType);
                     }
 
                     bool identity;
-                    _convertToUInt = Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberDataViewType.UInt32, out identity);
+                    _convertToUInt = Data.Conversion.Conversions.DefaultInstance.GetStandardConversion<TKey, UInt32>(typeKey, NumberDataViewType.UInt32, out identity);
                 }
 
                 private void MapKey(in TKey src, ref TValue dst)
@@ -500,6 +500,9 @@ namespace Microsoft.ML.Transforms
 
                 public override bool SaveOnnx(OnnxContext ctx, string srcVariableName, string dstVariableName)
                 {
+                    const int minimumOpSetVersion = 9;
+                    ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                     string opType;
 
                     // Onnx expects the input keys to be int64s. But the input data can come from an ML.NET node that
