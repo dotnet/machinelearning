@@ -27,10 +27,8 @@ namespace <#= Namespace #>.ConsoleApp
 <#if(!string.IsNullOrEmpty(TestPath)){ #>
         private static string TEST_DATA_FILEPATH = @"<#= TestPath #>";
 <# } #>
-        private static string MODEL_FILEPATH = @"<#= MLNetModelpath #>";
-<# if(HasOnnxModel) {#>
-		private static string ONNX_MODEL = @"../../../../<#= Namespace #>.Model/bestModel.onnx";
-<# } #>
+        private static string MODEL_FILE = ConsumeModel.MLNetModelPath;
+
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
@@ -70,7 +68,7 @@ namespace <#= Namespace #>.ConsoleApp
 
 <#}#>
             // Save model
-            SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
+            SaveModel(mlContext, mlModel, MODEL_FILE, trainingDataView.Schema);
         }
 
         public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
@@ -367,5 +365,5 @@ public bool CacheBeforeTrainer {get;set;}
 public IList<string> PostTrainerTransforms {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public bool HasOnnxModel {get;set;} = false;
-public string MLNetModelpath {get; set;}
+public string MLNetModelName {get; set;}
 #>

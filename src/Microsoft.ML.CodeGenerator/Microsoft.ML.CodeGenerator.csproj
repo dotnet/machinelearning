@@ -26,21 +26,13 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>AzureModelBuilder.cs</LastGenOutput>
     </None>
-    <None Update="Templates\Azure\Model\AzureAttachImageConsumeModel.tt">
+    <None Update="Templates\Azure\Model\AzureImageModelOutputClass.tt">
+      <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AzureAttachImageConsumeModel.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Azure\Model\ImageLabelMapping.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>ImageLabelMapping.cs</LastGenOutput>
     </None>
     <None Update="Templates\Azure\Model\OnnxModelOutputClass.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>OnnxModelOutputClass.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Azure\Model\NormalizeMapping.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>NormalizeMapping.cs</LastGenOutput>
+      <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
     </None>
     <None Update="Templates\Azure\Model\LabelMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
@@ -88,25 +80,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AzureModelBuilder.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Azure\Model\AzureAttachImageConsumeModel.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AzureAttachImageConsumeModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Azure\Model\ImageLabelMapping.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ImageLabelMapping.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Azure\Model\OnnxModelOutputClass.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
+    <Compile Update="Templates\Azure\Model\OnnxModelOutputClass - Copy.cs">
       <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Azure\Model\NormalizeMapping.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>NormalizeMapping.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\AzureImageModelOutputClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureImageModelOutputClass.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Azure\Model\LabelMapping.cs">
       <DesignTime>True</DesignTime>

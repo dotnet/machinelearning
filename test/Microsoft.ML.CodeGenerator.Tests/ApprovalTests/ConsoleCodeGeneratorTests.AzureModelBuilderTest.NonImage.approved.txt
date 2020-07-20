@@ -11,8 +11,8 @@ namespace test.ConsoleApp
     public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"/path/to/file";
-        private static string MLNET_MODEL = @"/path/to/MLNet";
-        private static string ONNX_MODEL = @"/path/to/onnxModel";
+        private static string MLNET_MODEL = ConsumeModel.MLNetModelPath;
+        private static string ONNX_MODEL = ConsumeModel.OnnxModelPath;
 
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
@@ -45,10 +45,7 @@ namespace test.ConsoleApp
             // Data process configuration with pipeline data transformations to:
             // 1. Score using provided onnx model
             // 2. Map scores to labels to make model output easier to understand and use
-            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL)
-                                      .Append(mlContext.Transforms.CustomMapping<LabelMappingInput, LabelMappingOutput>(
-                                          (input, output) => LabelMapping.Mapping(input, output),
-                                          contractName: nameof(LabelMapping)));
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL);
             return pipeline;
         }
 
