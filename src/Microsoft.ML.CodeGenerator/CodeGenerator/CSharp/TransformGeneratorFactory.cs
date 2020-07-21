@@ -20,13 +20,11 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         ApplyOnnxModel = 0,
         ResizeImage = 1,
         ExtractPixel = 2,
-        NormalizeMapping = 3,
-        LabelMapping = 4,
-        ObjectDetectionLabelMapping = 5,
-        ReshapeTransformer = 6,
-        ObjectDetectionResizeImage = 7,
-        ObjectDetectionExtractPixel = 8,
-        ApplyObjectDetectionModel = 9,
+        ObjectDetectionLabelMapping = 3,
+        ReshapeTransformer = 4,
+        ObjectDetectionResizeImage = 5,
+        ObjectDetectionExtractPixel = 6,
+        ApplyObjectDetectionModel = 7,
 
     }
     internal static class TransformGeneratorFactory
@@ -52,6 +50,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         break;
                     case EstimatorName.KeyToValueMapping:
                         result = new KeyToValueMapping(node);
+                        break;
+                    case EstimatorName.Hashing:
+                        result = new Hashing(node);
                         break;
                     case EstimatorName.MissingValueIndicating:
                         result = new MissingValueIndicator(node);
@@ -91,17 +92,11 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     case SpecialTransformer.ExtractPixel:
                         result = new PixelExtract(node);
                         break;
-                    case SpecialTransformer.NormalizeMapping:
-                        result = new CustomNormalizeMapping(node);
-                        break;
                     case SpecialTransformer.ResizeImage:
                         result = new ImageResizing(node);
                         break;
                     case SpecialTransformer.ApplyOnnxModel:
                         result = new ApplyOnnxModel(node);
-                        break;
-                    case SpecialTransformer.LabelMapping:
-                        result = new CustomLabelMapping(node);
                         break;
                     case SpecialTransformer.ObjectDetectionLabelMapping:
                         result = new CustomObjectDetectionLabelMapping(node);

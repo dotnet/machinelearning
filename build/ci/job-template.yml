@@ -16,9 +16,9 @@ jobs:
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
       timeoutInMinutes: 30
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
-      timeoutInMinutes: 75
+      timeoutInMinutes: 90
     ${{ if eq(parameters.codeCoverage, 'true') }}:
-      timeoutInMinutes: 100
+      timeoutInMinutes: 120
     cancelTimeoutInMinutes: 10
     variables:
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
@@ -181,36 +181,6 @@ jobs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
-    - ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.buildScript, 'build.cmd')) }}:
-      - powershell: |
-                  $taskListOutput = & TaskList /FI "IMAGENAME eq dotnet.exe" | Out-String
-                  if ($taskListOutput.Contains("dotnet.exe"))
-                  {
-                      Write-Output "Killing dotnet.exe processes..."
-                      & taskkill /IM dotnet.exe /F
-                  }
-
-                  if (Test-Path .\packages\)
-                  {
-                      Write-Output "Removing nuget cache dir..."
-                      Remove-Item -Force -Recurse .\packages\
-                  }
-
-                  if (Test-Path .\test\data\external\)
-                  {
-                      Write-Output "Removing external test data..."
-                      Remove-Item -Force -Recurse .\test\data\external\
-                  }
-
-                  mkdir .\tmp\
-                  Move-Item .\bin\obj\packages .\tmp\
-                  Write-Output "Removing bin dir..."
-                  Remove-Item -Force -Recurse .\bin\
-                  mkdir .\bin\obj\
-                  Move-Item .\tmp\packages\ .\bin\obj\
-                  Remove-Item -Force -Recurse .\tmp\
-                  Write-Output "Done cleaning up binary folder..."
-        displayName: Clean up test data
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - script: ${{ parameters.buildScript }} -buildPackages
         displayName: Build Packages

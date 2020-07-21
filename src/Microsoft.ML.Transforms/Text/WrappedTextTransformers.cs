@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public Options()
             {
-                NgramLength = 1;
+                NgramLength = 2;
                 SkipLength = NgramExtractingEstimator.Defaults.SkipLength;
                 UseAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths;
                 MaximumNgramsCount = new int[] { NgramExtractingEstimator.Defaults.MaximumNgramsCount };

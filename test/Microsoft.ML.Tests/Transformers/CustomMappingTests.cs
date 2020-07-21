@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -164,7 +165,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestStatefulCustomMappingTransformer()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var source = new MultiFileSource(dataPath);
             var loader = ML.Data.CreateTextLoader(new[] {
                 new TextLoader.Column("Features", DataKind.Single, 1, 9),
@@ -189,7 +190,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCustomFilter()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var source = new MultiFileSource(dataPath);
             var loader = ML.Data.CreateTextLoader(new[] {
                 new TextLoader.Column("Float4", DataKind.Single, 1, 4),

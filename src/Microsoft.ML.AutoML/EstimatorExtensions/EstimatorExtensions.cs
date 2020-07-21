@@ -71,6 +71,27 @@ namespace Microsoft.ML.AutoML
         }
     }
 
+    internal class HashingExtension : IEstimatorExtension
+    {
+        public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
+        {
+            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
+        }
+
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
+        {
+            var pipelineNode = new PipelineNode(EstimatorName.Hashing.ToString(),
+                PipelineNodeType.Transform, inColumn, outColumn);
+            var estimator = CreateInstance(context, inColumn, outColumn);
+            return new SuggestedTransform(pipelineNode, estimator);
+        }
+
+        private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
+        {
+            return context.Transforms.Conversion.Hash(outColumn, inColumn);
+        }
+    }
+
     internal class MissingValueIndicatingExtension : IEstimatorExtension
     {
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)

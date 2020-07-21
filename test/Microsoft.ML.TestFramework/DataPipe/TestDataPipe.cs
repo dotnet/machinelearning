@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -1047,6 +1049,18 @@ namespace Microsoft.ML.RunTests
                     "loader=Text{col=F1V:Num:0-2}",
                     "xf=Lda{col={name=Result src=F1V numtopic=3 alphasum=3 ns=3 reset=+ t=1} summary=+}",
                 }, forceDense: true);
+
+            // topic summary text file saved inside the model.zip file.
+            string name = TestName + ".zip";
+            string modelPath = GetOutputPath("SavePipe", name);
+            using (var file = Env.OpenInputFile(modelPath))
+            using (var strm = file.OpenReadStream())
+            using (var zip = new ZipArchive(strm, ZipArchiveMode.Read))
+            {
+                var entry = zip.Entries.First(source => source.Name == "word_topic_summary-Result.txt");
+                Assert.True(entry != null);
+            }
+
             Done();
         }
 
@@ -1478,7 +1492,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void SavePipeCountTargetEncodingLoadModel()
         {
-            var inputData = GetDataPath("breast-cancer.txt");
+            var inputData = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var initialCountsModel = DeleteOutputPath("CTE", "initialCounts.zip");
             var outputData = DeleteOutputPath("CTE", "countsData.txt");
             var loaderArg = "loader=Text{col=Text:TX:1-2 col=OneText:TX:1 col=Label:0}";

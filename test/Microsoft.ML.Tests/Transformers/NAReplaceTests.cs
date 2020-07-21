@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void NAReplace()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarFloat", DataKind.Single, 1),
                 new TextLoader.Column("ScalarDouble", DataKind.Double, 1),

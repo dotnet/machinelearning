@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="StablePackageVersion" />
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="StablePackageVersion" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.2.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -13,6 +14,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="bestModel.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="bestModelMap.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

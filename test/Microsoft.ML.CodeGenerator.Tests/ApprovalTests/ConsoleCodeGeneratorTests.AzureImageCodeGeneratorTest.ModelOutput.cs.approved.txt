@@ -2,15 +2,36 @@
 
 using System;
 using Microsoft.ML.Data;
+using System.Linq;
 
 namespace CodeGenTest.Model
 {
     public class ModelOutput
     {
-        // ColumnName attribute is used to change the column name from
-        // its default value, which is the name of the field.
-        [ColumnName("PredictedLabel")]
-        public String Prediction { get; set; }
-        public float[] Score { get; set; }
+        [ColumnName("output1")]
+        public float[] Output1 { get; set; }
+
+        public string[] ClassificationLabels = new string[] { };
+
+        public string Prediction
+        {
+            get
+            {
+                var maxScore = this.Score.Max();
+                var maxIndex = Array.IndexOf(this.Score, maxScore);
+                return this.ClassificationLabels[maxIndex];
+            }
+        }
+
+        public float[] Score
+        {
+            get
+            {
+                var exp = this.Output1.Select(x => (float)Math.Exp(x));
+                var exp_sum = exp.Sum();
+                return exp.Select(x => x / exp_sum).ToArray();
+            }
+        }
     }
 }
+

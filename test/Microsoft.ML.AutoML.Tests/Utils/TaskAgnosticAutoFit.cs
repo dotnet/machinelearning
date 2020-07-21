@@ -13,7 +13,8 @@ namespace Microsoft.ML.AutoML.Test
     {
         Classification = 1,
         Regression = 2,
-        Recommendation = 3
+        Recommendation = 3,
+        Ranking = 4
     }
 
     /// <summary>

@@ -22,6 +22,7 @@ namespace Microsoft.ML.AutoML
         private const string SamplingKeyColumnPurposeName = "sampling key";
         private const string UserIdColumnPurposeName = "user ID";
         private const string ItemIdColumnPurposeName = "item ID";
+        private const string GroupIdColumnPurposeName = "group ID";
 
         public static void ValidateExperimentExecuteArgs(IDataView trainData, ColumnInformation columnInformation,
             IDataView validationData, TaskKind task)
@@ -56,6 +57,14 @@ namespace Microsoft.ML.AutoML
             }
         }
 
+        public static void ValidateSamplingKey(string samplingKeyColumnName, string groupIdColumnName, TaskKind task)
+        {
+            if (task == TaskKind.Ranking && samplingKeyColumnName != null && samplingKeyColumnName != groupIdColumnName)
+            {
+                throw new ArgumentException($"If provided, {nameof(samplingKeyColumnName)} must be the same as {nameof(groupIdColumnName)} for Ranking Experiments", samplingKeyColumnName);
+            }
+        }
+
         private static void ValidateTrainData(IDataView trainData, ColumnInformation columnInformation)
         {
             if (trainData == null)
@@ -77,7 +86,8 @@ namespace Microsoft.ML.AutoML
 
                 if ((column.Name != columnInformation.LabelColumnName &&
                     column.Name != columnInformation.UserIdColumnName &&
-                    column.Name != columnInformation.ItemIdColumnName)
+                    column.Name != columnInformation.ItemIdColumnName &&
+                    column.Name != columnInformation.GroupIdColumnName)
                     &&
                         column.Type.GetItemType() != BooleanDataViewType.Instance &&
                         column.Type.GetItemType() != NumberDataViewType.Single &&
@@ -99,6 +109,7 @@ namespace Microsoft.ML.AutoML
             ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumnName, SamplingKeyColumnPurposeName);
             ValidateTrainDataColumn(trainData, columnInformation.UserIdColumnName, UserIdColumnPurposeName);
             ValidateTrainDataColumn(trainData, columnInformation.ItemIdColumnName, ItemIdColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.GroupIdColumnName, GroupIdColumnPurposeName);
             ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumnNames, CategoricalColumnPurposeName,
                 new DataViewType[] { NumberDataViewType.Single, TextDataViewType.Instance });
             ValidateTrainDataColumns(trainData, columnInformation.NumericColumnNames, NumericColumnPurposeName,
@@ -279,6 +290,8 @@ namespace Microsoft.ML.AutoML
                     return null;
                 case TaskKind.Regression:
                 case TaskKind.Recommendation:
+                    return new DataViewType[] { NumberDataViewType.Single };
+                case TaskKind.Ranking:
                     return new DataViewType[] { NumberDataViewType.Single };
                 default:
                     throw new NotSupportedException($"Unsupported task type: {task}");

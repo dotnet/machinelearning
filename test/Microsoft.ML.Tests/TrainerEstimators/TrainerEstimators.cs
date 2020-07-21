@@ -197,7 +197,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
-                            new TextLoader.Column("SentimentText", DataKind.String, 1)
+                            new TextLoader.Column("SentimentText", DataKind.String, 1),
+                            new TextLoader.Column("LoggedIn", DataKind.Boolean, 2)
                         }
                     }).Load(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
@@ -214,7 +215,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         private (IEstimator<ITransformer>, IDataView) GetOneHotBinaryClassificationPipeline()
         {
             var (pipeline, data) = GetBinaryClassificationPipeline();
-            var oneHotPipeline = pipeline.Append(ML.Transforms.Categorical.OneHotEncoding("Features"));
+            var oneHotPipeline = pipeline.Append(ML.Transforms.Categorical.OneHotEncoding("LoggedIn"));
+            oneHotPipeline.Append(ML.Transforms.Concatenate("Features", "Features", "LoggedIn"));
 
             return (oneHotPipeline, data);
         }

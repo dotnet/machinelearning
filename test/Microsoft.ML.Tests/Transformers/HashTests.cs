@@ -11,6 +11,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -352,7 +353,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestBackCompatNoCombineOption()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[]
             {
                 new TextLoader.Column("Features", DataKind.Single, 1, 9)

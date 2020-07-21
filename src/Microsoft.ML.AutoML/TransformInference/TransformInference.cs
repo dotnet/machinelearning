@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.AutoML
 {
@@ -156,6 +157,9 @@ namespace Microsoft.ML.AutoML
 
             // For image columns, use image transforms.
             yield return new Experts.Image(context);
+
+            // For groupId columns, use GroupId transforms.
+            yield return new Experts.GroupId(context);
         }
 
         internal static class Experts
@@ -205,6 +209,28 @@ namespace Microsoft.ML.AutoML
                             column.Purpose == ColumnPurpose.ItemId)
                         {
                             yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
+                        }
+                    }
+                }
+            }
+
+            internal sealed class GroupId : TransformInferenceExpertBase
+            {
+                public GroupId(MLContext context) : base(context)
+                {
+                }
+
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
+                {
+                    if (task != TaskKind.Ranking)
+                    {
+                        yield break;
+                    }
+                    foreach (var column in columns)
+                    {
+                        if (column.Purpose == ColumnPurpose.GroupId && !column.Type.IsKey())
+                        {
+                            yield return HashingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
                         }
                     }
                 }
@@ -419,6 +445,10 @@ namespace Microsoft.ML.AutoML
             // remove column with 'Label' purpose
             var labelColumnName = intermediateCols.FirstOrDefault(c => c.Purpose == ColumnPurpose.Label)?.ColumnName;
             concatColNames.Remove(labelColumnName);
+
+            // remove column with 'GroupId' purpose
+            var groupColumnName = intermediateCols.FirstOrDefault(c => c.Purpose == ColumnPurpose.GroupId)?.ColumnName;
+            concatColNames.RemoveAll(s => s == groupColumnName);
 
             intermediateCols = intermediateCols.Where(c => c.Purpose == ColumnPurpose.NumericFeature ||
                 c.Purpose == ColumnPurpose.CategoricalFeature || c.Purpose == ColumnPurpose.TextFeature ||
