@@ -11,8 +11,8 @@ namespace CodeGenTest.ConsoleApp
     public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"/path/to/dataset";
-        private static string MLNET_MODEL = @"/path/to/model";
-        private static string ONNX_MODEL = @"/path/to/onnxModel";
+        private static string MLNET_MODEL = ConsumeModel.MLNetModelPath;
+        private static string ONNX_MODEL = ConsumeModel.OnnxModelPath;
 
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.

@@ -34,13 +34,13 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>AzureModelBuilder.cs</LastGenOutput>
     </None>
-    <None Update="Templates\Azure\Model\AzureImageModelOutputClass.tt">
-      <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
+    <None Update="Templates\Azure\Model\AzureObjectDetectionModelOutputClass.tt">
+      <LastGenOutput>AzureObjectDetectionModelOutputClass.cs</LastGenOutput>
       <Generator>TextTemplatingFilePreprocessor</Generator>
     </None>
-    <None Update="Templates\Azure\Model\OnnxModelOutputClass.tt">
+    <None Update="Templates\Azure\Model\AzureImageModelOutputClass.tt">
+      <LastGenOutput>AzureObjectDetectionModelOutput.cs</LastGenOutput>
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
     </None>
     <None Update="Templates\Azure\Model\LabelMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
@@ -49,10 +49,6 @@
     <None Update="Templates\Azure\Model\ObjectDetectionOnnxMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ObjectDetectionOnnxMapping.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Azure\Model\OnnxModelOutputClass.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>OnnxModelOutputClass.cs</LastGenOutput>
     </None>
     <None Update="Templates\Azure\Model\ReshapeTransformer.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
@@ -100,6 +96,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AzureModelBuilder.tt</DependentUpon>
     </Compile>
+    <Compile Update="Templates\Azure\Model\AzureImageModelOutputClass - Copy.cs">
+      <DependentUpon>AzureImageModelOutputClass.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Templates\Azure\Model\ObjectDetectionOnnxMapping.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -110,20 +111,15 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Update="Templates\Azure\Model\AzureImageModelOutputClass.cs">
+    <Compile Update="Templates\Azure\Model\AzureObjectDetectionModelOutputClass.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>AzureImageModelOutputClass.tt</DependentUpon>
+      <DependentUpon>AzureObjectDetectionModelOutputClass.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Azure\Model\LabelMapping.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LabelMapping.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Azure\Model\OnnxModelOutputClass.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Azure\Model\ReshapeTransformer.cs">
       <DesignTime>True</DesignTime>

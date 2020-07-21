@@ -227,6 +227,7 @@ namespace mlnet.Tests
                 OnnxModelName = @"/path/to/onnxModel",
                 OnnxRuntimePacakgeVersion = "1.2.3",
                 IsAzureAttach = true,
+                IsObjectDetection = false,
                 IsImage = true,
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
@@ -251,19 +252,21 @@ namespace mlnet.Tests
             var setting = new CodeGeneratorSettings()
             {
                 TrainDataset = @"/path/to/dataset",
-                ModelPath = @"/path/to/model",
-                MlTask = TaskKind.MulticlassClassification,
+                ModelName = @"/path/to/model",
+                MlTask = TaskKind.ObjectDetection,
                 OutputName = @"CodeGenTest",
                 OutputBaseDir = @"/path/to/codegen",
                 LabelName = "Label",
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "stableversion",
                 UnstablePackageVersion = "unstableversion",
-                OnnxModelPath = @"/path/to/onnxModel",
+                OnnxModelName = @"/path/to/onnxModel",
+                OnnxRuntimePacakgeVersion = @"1.2.3",
                 IsAzureAttach = true,
                 IsImage = false,
                 IsObjectDetection = true,
                 ClassificationLabel = new string[] { "label1", "label2", "label3" },
+                ObjectLabel = new string[] { "label1", "label2", "label3" },
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
             //codeGen.GenerateOutput(); // use this to see output in project.
@@ -301,6 +304,7 @@ namespace mlnet.Tests
                 OnnxRuntimePacakgeVersion = "1.2.3",
                 IsAzureAttach = true,
                 IsImage = false,
+                IsObjectDetection = false,
                 OnnxInputMapping = mapping,
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);

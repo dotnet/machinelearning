@@ -18,7 +18,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.Azure.Model
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal partial class AzureImageModelOutputClass : AzureImageModelOutputClassBase
+    internal partial class AzureObjectDetectionModelOutputClass : AzureObjectDetectionModelOutputClassBase
     {
         /// <summary>
         /// Create the template output
@@ -30,41 +30,41 @@ CLI_Annotation();
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
-            this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\nusing System.Linq;\r\n\r\nnamespace ");
+            this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\nusing System.Collections.Generic;\r\nusi" +
+                    "ng System.Linq;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n        [ColumnName(\"output1\")]\r\n" +
-                    "        public float[] Output1 { get; set; }\r\n\r\n        public string[] Classifi" +
-                    "cationLabels = new string[]{");
+            this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n        public string[] Classific" +
+                    "ationLabels = new string[]{");
 foreach(var label in Labels){
             this.Write("\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(label));
             this.Write("\",");
 }
-            this.Write(@"};
-
-        public string Prediction
-        {
-            get
-            {
-                var maxScore = this.Score.Max();
-                var maxIndex = Array.IndexOf(this.Score, maxScore);
-                return this.ClassificationLabels[maxIndex];
-            }
-        }
-
-        public float[] Score
-        {
-            get
-            {
-                var exp = this.Output1.Select(x => (float)Math.Exp(x));
-                var exp_sum = exp.Sum();
-                return exp.Select(x => x / exp_sum).ToArray();
-            }
-        }
-    }
-}
-
-");
+            this.Write("};\r\n\r\n        [ColumnName(\"boxes\")]\r\n        public float[] Boxes { get; set; }\r\n" +
+                    "\r\n        [ColumnName(\"PredictedLabels\")]\r\n        public string[] Labels { get;" +
+                    " set; }\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Scores { get; " +
+                    "set; }\r\n\r\n        private BoundingBox[] BoundingBoxes\r\n        {\r\n            ge" +
+                    "t\r\n            {\r\n                var boundingBoxes = new List<BoundingBox>();\r\n" +
+                    "\r\n                boundingBoxes = Enumerable.Range(0, this.Labels.Length)\r\n     " +
+                    "                     .Select((index) =>\r\n                          {\r\n          " +
+                    "                    var boxes = this.Boxes;\r\n                              var s" +
+                    "cores = this.Scores;\r\n                              var labels = this.Labels;\r\n\r" +
+                    "\n                              return new BoundingBox()\r\n                       " +
+                    "       {\r\n                                  Left = boxes[index * 4],\r\n          " +
+                    "                        Top = boxes[(index * 4) + 1],\r\n                         " +
+                    "         Right = boxes[(index * 4) + 2],\r\n                                  Bott" +
+                    "om = boxes[(index * 4) + 3],\r\n                                  Score = scores[i" +
+                    "ndex],\r\n                                  Label = labels[index].ToString(),\r\n   " +
+                    "                           };\r\n                          }).ToList();\r\n         " +
+                    "       return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n        publ" +
+                    "ic override string ToString()\r\n        {\r\n            return string.Join(\"\\n\", B" +
+                    "oundingBoxes.Select(x => x.ToString()));\r\n        }\r\n    }\r\n\r\n    public class B" +
+                    "oundingBox\r\n    {\r\n        public float Top;\r\n\r\n        public float Left;\r\n\r\n  " +
+                    "      public float Right;\r\n\r\n        public float Bottom;\r\n\r\n        public stri" +
+                    "ng Label;\r\n\r\n        public float Score;\r\n\r\n        public override string ToStr" +
+                    "ing()\r\n        {\r\n            return $\"Top: {this.Top}, Left: {this.Left}, Right" +
+                    ": {this.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this.Score}\"" +
+                    ";\r\n        }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
@@ -99,7 +99,7 @@ this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal class AzureImageModelOutputClassBase
+    internal class AzureObjectDetectionModelOutputClassBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

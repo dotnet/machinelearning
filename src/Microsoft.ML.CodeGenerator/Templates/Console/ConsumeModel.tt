@@ -24,7 +24,7 @@ namespace <#= Namespace #>.Model
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
         public static string MLNetModelPath = Path.GetFullPath("<#= MLNetModelName #>");
-<#if(IsAzureImage){ #> 
+<#if(IsAzureImage || IsAzureObjectDetection){ #> 
         public static string OnnxModelPath = Path.GetFullPath("<#= OnnxModelName #>");
 <#} #>
 
@@ -40,12 +40,11 @@ namespace <#= Namespace #>.Model
         {
             // Create new MLContext
             MLContext mlContext = new MLContext();
-<#if(HasReshapeTransformer){ #> 
+<#if(IsAzureObjectDetection){ #> 
 			// Register ReshapeTransformer to calculate probabilities for each Label.
             mlContext.ComponentCatalog.RegisterAssembly(typeof(ReshapeTransformer).Assembly);
-<#} #>
-<#if(HasObjectDetectionLabelMapping){ #> 
-			// Register ObjectDetectionMapping to map predicted labels to correct string.
+		
+            // Register ObjectDetectionMapping to map predicted labels to correct string.
             mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionLabelMapping).Assembly);
 <#} #>
 
@@ -60,8 +59,7 @@ namespace <#= Namespace #>.Model
 <#+
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
-public bool HasReshapeTransformer {get; set;}=false;
-public bool HasObjectDetectionLabelMapping {get; set;}=false;
+public bool IsAzureObjectDetection {get; set;}=false;
 public bool IsAzureImage {get; set;}=false;
 public string MLNetModelName {get; set;}
 public string OnnxModelName {get; set;}

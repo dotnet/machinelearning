@@ -44,7 +44,7 @@ MB_Annotation();
         public static string MLNetModelPath = Path.GetFullPath(""");
             this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelName));
             this.Write("\");\r\n");
-if(IsAzureImage){ 
+if(IsAzureImage || IsAzureObjectDetection){ 
             this.Write(" \r\n        public static string OnnxModelPath = Path.GetFullPath(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(OnnxModelName));
             this.Write("\");\r\n");
@@ -63,15 +63,14 @@ if(IsAzureImage){
             // Create new MLContext
             MLContext mlContext = new MLContext();
 ");
-if(HasReshapeTransformer){ 
-            this.Write(" \r\n\t\t\t// Register ReshapeTransformer to calculate probabilities for each Label.\r\n" +
-                    "            mlContext.ComponentCatalog.RegisterAssembly(typeof(ReshapeTransforme" +
-                    "r).Assembly);\r\n");
-} 
-if(HasObjectDetectionLabelMapping){ 
-            this.Write(" \r\n\t\t\t// Register ObjectDetectionMapping to map predicted labels to correct strin" +
-                    "g.\r\n            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetecti" +
-                    "onLabelMapping).Assembly);\r\n");
+if(IsAzureObjectDetection){ 
+            this.Write(@" 
+			// Register ReshapeTransformer to calculate probabilities for each Label.
+            mlContext.ComponentCatalog.RegisterAssembly(typeof(ReshapeTransformer).Assembly);
+		
+            // Register ObjectDetectionMapping to map predicted labels to correct string.
+            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionLabelMapping).Assembly);
+");
 } 
             this.Write(@"
             // Load model & create prediction engine
@@ -88,8 +87,7 @@ if(HasObjectDetectionLabelMapping){
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
-public bool HasReshapeTransformer {get; set;}=false;
-public bool HasObjectDetectionLabelMapping {get; set;}=false;
+public bool IsAzureObjectDetection {get; set;}=false;
 public bool IsAzureImage {get; set;}=false;
 public string MLNetModelName {get; set;}
 public string OnnxModelName {get; set;}
