@@ -423,7 +423,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             return $"ExtractPixels({outputColumn}, {inputColumn})";
         }
     }
-    
+
     internal class ObjectDetectionPixelExtract : TransformGeneratorBase
     {
         public ObjectDetectionPixelExtract(PipelineNode node) : base(node) { }
