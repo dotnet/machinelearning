@@ -216,7 +216,7 @@ namespace mlnet.Tests
             var setting = new CodeGeneratorSettings()
             {
                 TrainDataset = @"/path/to/dataset",
-                ModelPath = @"/path/to/model",
+                ModelName = @"/path/to/model",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"CodeGenTest",
                 OutputBaseDir = @"/path/to/codegen",
@@ -224,10 +224,10 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "stableversion",
                 UnstablePackageVersion = "unstableversion",
-                OnnxModelPath = @"/path/to/onnxModel",
+                OnnxModelName = @"/path/to/onnxModel",
+                OnnxRuntimePacakgeVersion = "1.2.3",
                 IsAzureAttach = true,
                 IsImage = true,
-                ClassificationLabel = new string[] {"label1", "label2", "label3"},
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
             foreach (var project in codeGen.ToSolution())
@@ -251,7 +251,7 @@ namespace mlnet.Tests
             var setting = new CodeGeneratorSettings()
             {
                 TrainDataset = @"\path\to\file",
-                ModelPath = @"\path\to\model",
+                ModelName = @"\path\to\model",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"test",
                 OutputBaseDir = @"\path\to\test",
@@ -259,7 +259,8 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "StablePackageVersion",
                 UnstablePackageVersion = "UnstablePackageVersion",
-                OnnxModelPath = @"\path\to\onnx",
+                OnnxModelName = @"\path\to\onnx",
+                OnnxRuntimePacakgeVersion = "1.2.3",
                 IsAzureAttach = true,
                 IsImage = false,
                 OnnxInputMapping = mapping,
@@ -665,12 +666,7 @@ namespace mlnet.Tests
         private (Pipeline, ColumnInferenceResults) GetMockedAzureImagePipelineAndInference()
         {
             // construct pipeline
-            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
-                new Dictionary<string, object>()
-                {
-                    { "outputColumnNames", "output1" },
-                    { "inputColumnNames", "input1"},
-                });
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, string.Empty, string.Empty);
             var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImageSource", "ImageSource_featurized");
             var resizeImageNode = new PipelineNode(
                 nameof(SpecialTransformer.ResizeImage),
@@ -682,17 +678,13 @@ namespace mlnet.Tests
                     { "imageWidth", 224 },
                     { "imageHeight", 224 },
                 });
-            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "ImageSource_featurized");
-            var normalizePipeline = new PipelineNode(nameof(SpecialTransformer.NormalizeMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
-            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "input1");
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 loadImageNode,
                 resizeImageNode,
                 extractPixelsNode,
-                normalizePipeline,
                 onnxPipeLineNode,
-                labelMapPipelineNode,
             });
 
             // construct column inference
@@ -720,17 +712,10 @@ namespace mlnet.Tests
         private (Pipeline, ColumnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping>) GetMockedAzurePipelineAndInference()
         {
             // construct pipeline
-            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
-                new Dictionary<string, object>()
-                {
-                    { "outputColumnNames", "output1" },
-                    { "inputColumnNames", "input1"},
-                });
-            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, string.Empty, string.Empty);
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 onnxPipeLineNode,
-                labelMapPipelineNode,
             });
 
             // construct column inference
@@ -903,11 +888,9 @@ namespace mlnet.Tests
                     { "outputColumnNames", "output1" },
                     { "inputColumnNames", "input1"},
                 });
-            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 onnxPipeLineNode,
-                labelMapPipelineNode,
             });
 
             // construct column inference
@@ -1058,9 +1041,10 @@ namespace mlnet.Tests
                 TrainDataset = "x:\\dummypath\\dummy_train.csv",
                 TestDataset = "x:\\dummypath\\dummy_test.csv",
                 LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip",
+                ModelName = "x:\\models\\model.zip",
                 StablePackageVersion = StablePackageVersion,
-                UnstablePackageVersion = UnstablePackageVersion
+                UnstablePackageVersion = UnstablePackageVersion,
+                OnnxRuntimePacakgeVersion = "1.2.3",
             };
         }
     }

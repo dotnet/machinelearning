@@ -407,33 +407,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public override string GenerateTransformer()
         {
-            return @"ExtractPixels(""ImageSource_featurized"", ""ImageSource_featurized"")";
-        }
-    }
-
-    internal class CustomNormalizeMapping : TransformGeneratorBase
-    {
-        public CustomNormalizeMapping(PipelineNode node) : base(node) { }
-        internal override string MethodName => "NormalizeMapping";
-
-        public override string GenerateTransformer()
-        {
-            return @"CustomMapping<NormalizeInput, NormalizeOutput>(
-                                          (input, output) => NormalizeMapping.Mapping(input, output),
-                                          contractName: nameof(NormalizeMapping))";
-        }
-    }
-
-    internal class CustomLabelMapping : TransformGeneratorBase
-    {
-        public CustomLabelMapping(PipelineNode node) : base(node) { }
-        internal override string MethodName => "LabelMapping";
-
-        public override string GenerateTransformer()
-        {
-            return @"CustomMapping<LabelMappingInput, LabelMappingOutput>(
-                                          (input, output) => LabelMapping.Mapping(input, output),
-                                          contractName: nameof(LabelMapping))";
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"input columns for the suggested transform: {MethodName} is not exactly one.");
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} it not exactly one.");
+            return $"ExtractPixels({outputColumn}, {inputColumn})";
         }
     }
 

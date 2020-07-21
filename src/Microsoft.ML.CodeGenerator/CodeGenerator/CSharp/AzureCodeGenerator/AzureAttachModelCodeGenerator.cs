@@ -26,11 +26,9 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 
         public ICSharpFile ModelInputClass { get; private set; }
         public ICSharpFile ModelOutputClass { get; private set; }
-        public ICSharpFile NormalizeMapping { get; private set; }
         public ICSharpFile ModelProject { get; private set; }
         public ICSharpFile ConsumeModel { get; private set; }
         public ICSharpFile LabelMapping { get; private set; }
-        public ICSharpFile ImageLabelMapping { get; private set; }
         public string Name { get; set; }
 
         public AzureAttachModelCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
@@ -57,24 +55,13 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 
             ModelOutputClass = new CSharpCodeFile()
             {
-                File = new ModelOutputClass()
+                File = new AzureImageModelOutputClass()
                 {
                     Namespace = _nameSpaceValue,
                     Target = _settings.Target,
-                    TaskType = _settings.MlTask.ToString(),
-                    PredictionLabelType = labelTypeCsharp.Name,
+                    Labels = _settings.ClassificationLabel,
                 }.TransformText(),
                 Name = "ModelOutput.cs",
-            };
-
-            NormalizeMapping = new CSharpCodeFile()
-            {
-                File = new NormalizeMapping()
-                {
-                    Target = _settings.Target,
-                    Namespace = _nameSpaceValue,
-                }.TransformText(),
-                Name = "NormalizeMapping.cs",
             };
 
             ModelProject = new CSharpProjectFile()
@@ -90,6 +77,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     IncludeRecommenderPackage = false,
                     StablePackageVersion = _settings.StablePackageVersion,
                     UnstablePackageVersion = _settings.UnstablePackageVersion,
+                    OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
                     Target = _settings.Target,
                 }.TransformText(),
                 Name = $"{ _settings.OutputName }.Model.csproj",
@@ -108,26 +96,15 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 Name = "LabelMapping.cs",
             };
 
-            ImageLabelMapping = new CSharpCodeFile()
-            {
-                File = new ImageLabelMapping()
-                {
-                    Target = _settings.Target,
-                    Namespace = _nameSpaceValue,
-                    Labels = _settings.ClassificationLabel,
-                }.TransformText(),
-                Name = "LabelMapping.cs",
-            };
-
             ConsumeModel = new CSharpCodeFile()
             {
                 File = new ConsumeModel()
                 {
                     Namespace = _nameSpaceValue,
                     Target = _settings.Target,
-                    HasLabelMapping = true,
-                    HasNormalizeMapping = _settings.IsImage,
-                    MLNetModelpath = _settings.ModelPath,
+                    MLNetModelName = _settings.ModelName,
+                    OnnxModelName = _settings.OnnxModelName,
+                    IsAzureImage = _settings.IsAzureAttach && _settings.IsImage,
                 }.TransformText(),
                 Name = "ConsumeModel.cs",
             };
@@ -144,8 +121,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     ModelOutputClass,
                     ConsumeModel,
                     ModelProject,
-                    NormalizeMapping,
-                    ImageLabelMapping,
                 };
             }
             else

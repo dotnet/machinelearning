@@ -48,15 +48,9 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TestPath));
             this.Write("\";\r\n");
  } 
-            this.Write("        private static string MODEL_FILEPATH = @\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelpath));
-            this.Write("\";\r\n");
- if(HasOnnxModel) {
-            this.Write("\t\tprivate static string ONNX_MODEL = @\"../../../../");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model/bestModel.onnx\";\r\n");
- } 
-            this.Write(@"        // Create MLContext to be shared across the model creation workflow objects 
+            this.Write(@"        private static string MODEL_FILE = ConsumeModel.MLNetModelPath;
+
+        // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
 
@@ -102,9 +96,9 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write("            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, ml" +
                     "Model, testDataView);\r\n\r\n");
 }
-            this.Write("            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILEPA" +
-                    "TH, trainingDataView.Schema);\r\n        }\r\n\r\n        public static IEstimator<ITr" +
-                    "ansformer> BuildTrainingPipeline(MLContext mlContext)\r\n        {\r\n");
+            this.Write("            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILE, " +
+                    "trainingDataView.Schema);\r\n        }\r\n\r\n        public static IEstimator<ITransf" +
+                    "ormer> BuildTrainingPipeline(MLContext mlContext)\r\n        {\r\n");
  if(PreTrainerTransforms.Count >0 ) {
             this.Write("            // Data process configuration with pipeline data transformations \r\n  " +
                     "          var dataProcessPipeline = ");
@@ -452,7 +446,7 @@ public bool CacheBeforeTrainer {get;set;}
 public IList<string> PostTrainerTransforms {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public bool HasOnnxModel {get;set;} = false;
-public string MLNetModelpath {get; set;}
+public string MLNetModelName {get; set;}
 
 
 void CLI_Annotation()

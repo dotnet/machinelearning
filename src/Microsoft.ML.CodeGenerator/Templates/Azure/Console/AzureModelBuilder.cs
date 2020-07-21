@@ -39,11 +39,9 @@ MB_Annotation();
             this.Write(".ConsoleApp\r\n{\r\n    public static class ModelBuilder\r\n    {\r\n        private stat" +
                     "ic string TRAIN_DATA_FILEPATH = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(Path));
-            this.Write("\";\r\n        private static string MLNET_MODEL = @\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelpath));
-            this.Write("\";\r\n\t\tprivate static string ONNX_MODEL = @\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(OnnxModelPath));
             this.Write(@""";
+        private static string MLNET_MODEL = ConsumeModel.MLNetModelPath;
+		private static string ONNX_MODEL = ConsumeModel.OnnxModelPath;
        
 	    // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
