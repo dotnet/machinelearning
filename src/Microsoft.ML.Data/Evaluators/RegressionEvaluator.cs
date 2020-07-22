@@ -102,6 +102,10 @@ namespace Microsoft.ML.Data
                 {
                     get
                     {
+                        // RSquared value cannot be well-defined with less than two samples.
+                        // Return NaN instead of -Infinity.
+                        if ((TotalLabelSquaredW - TotalLabelW * TotalLabelW / SumWeights) == 0)
+                            return double.NaN;
                         return SumWeights > 0 ? 1 - TotalL2Loss / (TotalLabelSquaredW - TotalLabelW * TotalLabelW / SumWeights) : 0;
                     }
                 }
