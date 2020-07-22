@@ -31,8 +31,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
         public ICSharpFile ConsumeModel { get; private set; }
         public ICSharpFile LabelMapping { get; private set; }
         public ICSharpFile ImageLabelMapping { get; private set; }
-        public ICSharpFile ObjectDetectionLabelMapping { get; private set; }
-        public ICSharpFile ReshapeTransformerMap { get; private set; }
         public ICSharpFile ObjectDetectionConsumeModel { get; private set; }
         public string Name { get; set; }
 
@@ -113,28 +111,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 Name = "LabelMapping.cs",
             };
 
-            // Tevin: added
-            ObjectDetectionLabelMapping = new CSharpCodeFile()
-            {
-                File = new ObjectDetectionOnnxMapping()
-                {
-                    Target = _settings.Target,
-                    Namespace = _nameSpaceValue,
-                    ImportLabels = _settings.ClassificationLabel,
-                }.TransformText(),
-                Name = "ObjectDetectionLabelMapping.cs",
-            };
-
-            ReshapeTransformerMap = new CSharpCodeFile()
-            {
-                File = new ReshapeTransformer()
-                {
-                    Target = _settings.Target,
-                    Namespace = _nameSpaceValue,
-                }.TransformText(),
-                Name = "ReshapeTransformer.cs",
-            };
-
             ConsumeModel = new CSharpCodeFile()
             {
                 File = new ConsumeModel()
@@ -170,8 +146,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     AzureObjectDetectionModelOutputClass,
                     ConsumeModel,
                     ModelProject,
-                    ReshapeTransformerMap,
-                    ObjectDetectionLabelMapping,
                 };
             }
             else

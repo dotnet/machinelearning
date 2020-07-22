@@ -62,17 +62,7 @@ if(IsAzureImage || IsAzureObjectDetection){
         {
             // Create new MLContext
             MLContext mlContext = new MLContext();
-");
-if(IsAzureObjectDetection){ 
-            this.Write(@" 
-			// Register ReshapeTransformer to calculate probabilities for each Label.
-            mlContext.ComponentCatalog.RegisterAssembly(typeof(ReshapeTransformer).Assembly);
-		
-            // Register ObjectDetectionMapping to map predicted labels to correct string.
-            mlContext.ComponentCatalog.RegisterAssembly(typeof(ObjectDetectionLabelMapping).Assembly);
-");
-} 
-            this.Write(@"
+
             // Load model & create prediction engine
             ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);

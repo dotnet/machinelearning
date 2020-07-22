@@ -12,14 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Templates\Azure\Model\ReshapeTransformer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ReshapeTransformer.tt</DependentUpon>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
@@ -39,20 +31,12 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
     </None>
     <None Update="Templates\Azure\Model\AzureImageModelOutputClass.tt">
-      <LastGenOutput>AzureObjectDetectionModelOutput.cs</LastGenOutput>
+      <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
       <Generator>TextTemplatingFilePreprocessor</Generator>
     </None>
     <None Update="Templates\Azure\Model\LabelMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>LabelMapping.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Azure\Model\ObjectDetectionOnnxMapping.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>ObjectDetectionOnnxMapping.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Azure\Model\ReshapeTransformer.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>ReshapeTransformer.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\Annotation.ttinclude">
     </None>
@@ -101,10 +85,10 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Update="Templates\Azure\Model\ObjectDetectionOnnxMapping.cs">
+    <Compile Update="Templates\Azure\Model\AzureImageModelOutputClass.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>ObjectDetectionOnnxMapping.tt</DependentUpon>
+      <DependentUpon>AzureImageModelOutputClass.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Azure\Model\OnnxModelOutputClass - Copy.cs">
       <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
@@ -120,11 +104,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LabelMapping.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Azure\Model\ReshapeTransformer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ReshapeTransformer.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Console\ConsumeModel.cs">
       <DesignTime>True</DesignTime>

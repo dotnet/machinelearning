@@ -20,13 +20,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         ApplyOnnxModel = 0,
         ResizeImage = 1,
         ExtractPixel = 2,
-        ObjectDetectionLabelMapping = 3,
-        ReshapeTransformer = 4,
-        ObjectDetectionResizeImage = 5,
-        ObjectDetectionExtractPixel = 6,
-        ApplyObjectDetectionModel = 7,
-
+        ObjectDetectionResizeImage = 3,
     }
+
     internal static class TransformGeneratorFactory
     {
         internal static ITransformGenerator GetInstance(PipelineNode node)
@@ -98,20 +94,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     case SpecialTransformer.ApplyOnnxModel:
                         result = new ApplyOnnxModel(node);
                         break;
-                    case SpecialTransformer.ObjectDetectionLabelMapping:
-                        result = new CustomObjectDetectionLabelMapping(node);
-                        break;
-                    case SpecialTransformer.ObjectDetectionExtractPixel:
-                        result = new ObjectDetectionPixelExtract(node);
-                        break;
                     case SpecialTransformer.ObjectDetectionResizeImage:
                         result = new ObjectDetectionImageResizing(node);
-                        break;
-                    case SpecialTransformer.ApplyObjectDetectionModel:
-                        result = new ApplyObjectDetectionOnnxModel(node);
-                        break;
-                    case SpecialTransformer.ReshapeTransformer:
-                        result = new CustomReshapeTransformer(node);
                         break;
                     default:
                         return null;

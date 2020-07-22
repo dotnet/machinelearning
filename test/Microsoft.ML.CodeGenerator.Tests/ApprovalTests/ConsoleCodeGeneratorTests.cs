@@ -665,38 +665,29 @@ namespace mlnet.Tests
         private (Pipeline, ColumnInferenceResults) GetMockedAzureObjectDetectionPipelineAndInference(string onnxModelPath)
         {
             var onnxPipeLineNode = new PipelineNode(
-                nameof(SpecialTransformer.ApplyObjectDetectionModel),
+                nameof(SpecialTransformer.ApplyOnnxModel),
                 PipelineNodeType.Transform,
-                new[] { "input" },
-                new[] { "boxes", "labels", "scores" },
-                new Dictionary<string, object>()
-                {
-                    { "outputColumnNames", new List<string>() { "boxes", "labels", "scores" } },
-                    { "inputColumnNames", "input" },
-                    { "modelFile", "awesomeModel.onnx" },   // it doesn't matter what modelFile is
-                });
+                new string[] { },
+                new string[] { },
+                null);
             var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImagePath", "input");
             var resizeImageNode = new PipelineNode(
                 nameof(SpecialTransformer.ObjectDetectionResizeImage),
                 PipelineNodeType.Transform,
-                onnxModelPath,
-                onnxModelPath,
+                "input",
+                "input",
                 new Dictionary<string, object>()
                 {
                     { "imageWidth", 800 },
                     { "imageHeight", 600 },
                 });
-            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ObjectDetectionExtractPixel), PipelineNodeType.Transform, onnxModelPath, onnxModelPath);
-            var normalizeMapping = new PipelineNode(nameof(SpecialTransformer.ReshapeTransformer), PipelineNodeType.Transform, string.Empty, string.Empty);
-            var labelMapping = new PipelineNode(nameof(SpecialTransformer.ObjectDetectionLabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "input", "input");
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 loadImageNode,
                 resizeImageNode,
                 extractPixelsNode,
-                normalizeMapping,
                 onnxPipeLineNode,
-                labelMapping,
             });
 
             var textLoaderArgs = new TextLoader.Options()

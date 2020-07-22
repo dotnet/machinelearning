@@ -9,13 +9,13 @@ namespace CodeGenTest.Model
 {
     public class ModelOutput
     {
-        public string[] ClassificationLabels = new string[] { "label1", "label2", "label3", };
+        public string[] ObjectTags = new string[] { "label1", "label2", "label3", };
 
         [ColumnName("boxes")]
         public float[] Boxes { get; set; }
 
-        [ColumnName("PredictedLabels")]
-        public string[] Labels { get; set; }
+        [ColumnName("labels")]
+        public long[] Labels { get; set; }
 
         [ColumnName("scores")]
         public float[] Scores { get; set; }
@@ -40,7 +40,7 @@ namespace CodeGenTest.Model
                                   Right = boxes[(index * 4) + 2],
                                   Bottom = boxes[(index * 4) + 3],
                                   Score = scores[index],
-                                  Label = labels[index].ToString(),
+                                  Label = this.ObjectTags[labels[index]],
                               };
                           }).ToList();
                 return boundingBoxes.ToArray();

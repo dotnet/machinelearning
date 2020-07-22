@@ -33,38 +33,38 @@ MB_Annotation();
             this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\nusing System.Collections.Generic;\r\nusi" +
                     "ng System.Linq;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n        public string[] Classific" +
-                    "ationLabels = new string[]{");
+            this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n        public string[] ObjectTag" +
+                    "s = new string[]{");
 foreach(var label in Labels){
             this.Write("\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(label));
             this.Write("\",");
 }
             this.Write("};\r\n\r\n        [ColumnName(\"boxes\")]\r\n        public float[] Boxes { get; set; }\r\n" +
-                    "\r\n        [ColumnName(\"PredictedLabels\")]\r\n        public string[] Labels { get;" +
-                    " set; }\r\n\r\n        [ColumnName(\"scores\")]\r\n        public float[] Scores { get; " +
-                    "set; }\r\n\r\n        private BoundingBox[] BoundingBoxes\r\n        {\r\n            ge" +
-                    "t\r\n            {\r\n                var boundingBoxes = new List<BoundingBox>();\r\n" +
-                    "\r\n                boundingBoxes = Enumerable.Range(0, this.Labels.Length)\r\n     " +
-                    "                     .Select((index) =>\r\n                          {\r\n          " +
-                    "                    var boxes = this.Boxes;\r\n                              var s" +
-                    "cores = this.Scores;\r\n                              var labels = this.Labels;\r\n\r" +
-                    "\n                              return new BoundingBox()\r\n                       " +
-                    "       {\r\n                                  Left = boxes[index * 4],\r\n          " +
-                    "                        Top = boxes[(index * 4) + 1],\r\n                         " +
-                    "         Right = boxes[(index * 4) + 2],\r\n                                  Bott" +
-                    "om = boxes[(index * 4) + 3],\r\n                                  Score = scores[i" +
-                    "ndex],\r\n                                  Label = labels[index].ToString(),\r\n   " +
-                    "                           };\r\n                          }).ToList();\r\n         " +
-                    "       return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n        publ" +
-                    "ic override string ToString()\r\n        {\r\n            return string.Join(\"\\n\", B" +
-                    "oundingBoxes.Select(x => x.ToString()));\r\n        }\r\n    }\r\n\r\n    public class B" +
-                    "oundingBox\r\n    {\r\n        public float Top;\r\n\r\n        public float Left;\r\n\r\n  " +
-                    "      public float Right;\r\n\r\n        public float Bottom;\r\n\r\n        public stri" +
-                    "ng Label;\r\n\r\n        public float Score;\r\n\r\n        public override string ToStr" +
-                    "ing()\r\n        {\r\n            return $\"Top: {this.Top}, Left: {this.Left}, Right" +
-                    ": {this.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this.Score}\"" +
-                    ";\r\n        }\r\n    }\r\n}\r\n");
+                    "\r\n        [ColumnName(\"labels\")]\r\n        public long[] Labels { get; set; }\r\n\r\n" +
+                    "        [ColumnName(\"scores\")]\r\n        public float[] Scores { get; set; }\r\n\r\n " +
+                    "       private BoundingBox[] BoundingBoxes\r\n        {\r\n            get\r\n        " +
+                    "    {\r\n                var boundingBoxes = new List<BoundingBox>();\r\n\r\n         " +
+                    "       boundingBoxes = Enumerable.Range(0, this.Labels.Length)\r\n                " +
+                    "          .Select((index) =>\r\n                          {\r\n                     " +
+                    "         var boxes = this.Boxes;\r\n                              var scores = thi" +
+                    "s.Scores;\r\n                              var labels = this.Labels;\r\n\r\n          " +
+                    "                    return new BoundingBox()\r\n                              {\r\n " +
+                    "                                 Left = boxes[index * 4],\r\n                     " +
+                    "             Top = boxes[(index * 4) + 1],\r\n                                  Ri" +
+                    "ght = boxes[(index * 4) + 2],\r\n                                  Bottom = boxes[" +
+                    "(index * 4) + 3],\r\n                                  Score = scores[index],\r\n   " +
+                    "                               Label = this.ObjectTags[labels[index]],\r\n        " +
+                    "                      };\r\n                          }).ToList();\r\n              " +
+                    "  return boundingBoxes.ToArray();\r\n            }\r\n        }\r\n\r\n        public ov" +
+                    "erride string ToString()\r\n        {\r\n            return string.Join(\"\\n\", Boundi" +
+                    "ngBoxes.Select(x => x.ToString()));\r\n        }\r\n    }\r\n\r\n    public class Boundi" +
+                    "ngBox\r\n    {\r\n        public float Top;\r\n\r\n        public float Left;\r\n\r\n       " +
+                    " public float Right;\r\n\r\n        public float Bottom;\r\n\r\n        public string La" +
+                    "bel;\r\n\r\n        public float Score;\r\n\r\n        public override string ToString()" +
+                    "\r\n        {\r\n            return $\"Top: {this.Top}, Left: {this.Left}, Right: {th" +
+                    "is.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this.Score}\";\r\n  " +
+                    "      }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 

@@ -424,57 +424,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
-    internal class ObjectDetectionPixelExtract : TransformGeneratorBase
-    {
-        public ObjectDetectionPixelExtract(PipelineNode node) : base(node) { }
-        internal override string MethodName => "ExtractPixels";
-
-        public override string GenerateTransformer()
-        {
-            return @"ExtractPixels(outputColumnName: ""input"", inputColumnName: ""input"")";
-        }
-    }
-
-    // Tevin: added to include OD label mapping
-    internal class CustomObjectDetectionLabelMapping: TransformGeneratorBase
-    {
-        public CustomObjectDetectionLabelMapping(PipelineNode node) : base(node) { }
-        internal override string MethodName => "ObjectDetectionLabelMapping";
-
-        public override string GenerateTransformer()
-        {
-            return @"CustomMapping<ObjectDetectionLabelMappingInput, ObjectDetectionLabelMappingOutput>(
-                                          (input, output) => ObjectDetectionLabelMapping.Mapping(input, output),
-                                          contractName: nameof(ObjectDetectionLabelMapping))";
-        }
-    }
-
-    // Tevin: added to have the reshaper for OD
-    internal class CustomReshapeTransformer : TransformGeneratorBase
-    {
-        public CustomReshapeTransformer(PipelineNode node) : base(node) { }
-        internal override string MethodName => "ReshapeTransformer";
-
-        public override string GenerateTransformer()
-        {
-            return @"CustomMapping<Input, Output>(
-                                          (input, output) => ReshapeTransformer.Mapping(input, output),
-                                          contractName: nameof(ReshapeTransformer))";
-        }
-    }
-
-    // Tevin: added to have correct ApplyOnnxModel
-    internal class ApplyObjectDetectionOnnxModel : TransformGeneratorBase
-    {
-        public ApplyObjectDetectionOnnxModel(PipelineNode node) : base(node) { }
-        internal override string MethodName => "ApplyOnnxModel";
-
-        public override string GenerateTransformer()
-        {
-            return @"ApplyOnnxModel(modelFile: ONNX_MODEL, outputColumnNames: new[] { ""boxes"",""labels"", ""scores"" }, inputColumnNames: new[] { ""input"" })";
-        }
-    }
-
     internal class ApplyOnnxModel : TransformGeneratorBase
     {
         public ApplyOnnxModel(PipelineNode node) : base(node) { }

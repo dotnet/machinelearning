@@ -18,13 +18,13 @@ namespace <#= Namespace #>.Model
 {
     public class ModelOutput
     {
-        public string[] ClassificationLabels = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
+        public string[] ObjectTags = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
 
         [ColumnName("boxes")]
         public float[] Boxes { get; set; }
 
-        [ColumnName("PredictedLabels")]
-        public string[] Labels { get; set; }
+        [ColumnName("labels")]
+        public long[] Labels { get; set; }
 
         [ColumnName("scores")]
         public float[] Scores { get; set; }
@@ -49,7 +49,7 @@ namespace <#= Namespace #>.Model
                                   Right = boxes[(index * 4) + 2],
                                   Bottom = boxes[(index * 4) + 3],
                                   Score = scores[index],
-                                  Label = labels[index].ToString(),
+                                  Label = this.ObjectTags[labels[index]],
                               };
                           }).ToList();
                 return boundingBoxes.ToArray();
