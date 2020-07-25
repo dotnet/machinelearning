@@ -12,6 +12,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.ML.TrainCatalogBase;
 
 namespace Microsoft.ML.Functional.Tests
 {
@@ -137,6 +138,28 @@ namespace Microsoft.ML.Functional.Tests
 
             Common.AssertMetrics(trainMetrics);
             Common.AssertMetrics(validMetrics);
+        }
+
+        /// <summary>
+        /// Test cross validation R^2 metric to return NaN when given fewer data
+        /// than needed to infer metric calculation. R^2 is NaN when given folds
+        /// with less than 2 rows of training data.
+        /// </summary>
+        [Fact]
+        public void TestCrossValidationResultsWithNotEnoughData()
+        {
+            var mlContext = new MLContext(1);
+            // Get data and set up sample regression pipeline.
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename), hasHeader: true);
+            var dataFirstTenRows = mlContext.Data.TakeRows(data, 10);
+            var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .Append(mlContext.Regression.Trainers.OnlineGradientDescent());
+
+            // Check that NaN is returned with fold given less than 2 rows of training data.
+            // With dataset of 10 rows, number of folds will be 6.
+            var cvResults = mlContext.Regression.CrossValidate(dataFirstTenRows, pipeline, numberOfFolds: 6);
+            foreach (CrossValidationResult<RegressionMetrics> result in cvResults)
+                Assert.Equal(double.NaN, result.Metrics.RSquared);
         }
     }
 }
