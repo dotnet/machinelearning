@@ -110,8 +110,7 @@ namespace Microsoft.ML.Data
                                 return double.NaN;
                             return 1 - TotalL2Loss / (TotalLabelSquaredW - TotalLabelW * TotalLabelW / SumWeights);
                         }
-                        else
-                            return 0;
+                        return 0;
                     }
                 }
 
