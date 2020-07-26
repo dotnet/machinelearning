@@ -12,7 +12,6 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.ML.TrainCatalogBase;
 
 namespace Microsoft.ML.Functional.Tests
 {
@@ -151,15 +150,21 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(1);
             // Get data and set up sample regression pipeline.
             var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename), hasHeader: true);
-            var dataFirstTenRows = mlContext.Data.TakeRows(data, 10);
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .Append(mlContext.Regression.Trainers.OnlineGradientDescent());
+            // Train model with full dataset
+            var model = pipeline.Fit(data);
 
-            // Check that NaN is returned with fold given less than 2 rows of training data.
-            // With dataset of 10 rows, number of folds will be 6.
-            var cvResults = mlContext.Regression.CrossValidate(dataFirstTenRows, pipeline, numberOfFolds: 6);
-            foreach (CrossValidationResult<RegressionMetrics> result in cvResults)
-                Assert.Equal(double.NaN, result.Metrics.RSquared);
+            // Check that R^2 is NaN when given 1 row of scoring data.
+            var scoredDataOneRow = model.Transform(mlContext.Data.TakeRows(data, 1));
+            var evalResultOneRow = mlContext.Regression.Evaluate(scoredDataOneRow);
+            Assert.Equal(double.NaN, evalResultOneRow.RSquared);
+
+            // Check that R^2 is 0 when given 0 rows of scoring data.
+            // Obtain empty IDataView with Iris schema as there are no rows of data with labels between -2 and -1.
+            var scoredDataZeroRows = mlContext.Data.FilterRowsByColumn(scoredDataOneRow, "Label", lowerBound: -2, upperBound: -1);
+            var evalResultZeroRows = mlContext.Regression.Evaluate(scoredDataZeroRows);
+            Assert.Equal(0, evalResultZeroRows.RSquared);
         }
     }
 }
