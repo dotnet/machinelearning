@@ -11,10 +11,28 @@
     <PackageReleaseNotes>Initial preview of robust and extensible types and algorithms for manipulating structured data that supports aggregations, statistical funtions, sorting, grouping, joins, merges, handling missing values and more. </PackageReleaseNotes>
     <PackageTags>ML.NET ML Machine Learning Data Science DataFrame Preparation DataView Analytics Exploration</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Documentation warnings -->
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <!-- 
+      1591: Documentation warnings
+      NU5100: Warning that gets triggered because a .dll is not placed under lib folder on package. This is by design as we want MDAI to be under interactive-extensions folder.
+       -->
+    <NoWarn>$(NoWarn);1591;NU5100</NoWarn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddMDAIToInteractiveExtensionsFolder</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
-  
+
+  <!-- The following properties are set to package M.D.A.Interactive with the M.D.A nuget package. If M.D.A.I undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
+  <Target Name="AddMDAIToInteractiveExtensionsFolder">
+    <MSBuild Projects="./../Microsoft.Data.Analysis.Interactive/Microsoft.Data.Analysis.Interactive.csproj"
+             Targets="_GetBuildOutputFilesWithTfm"
+             Properties="TargetFramework=netcoreapp3.1"> <!-- Manually hardcoding the TargetFramework to netcoreapp3.1 as that is the one that MDAI targets -->
+      <Output TaskParameter="TargetOutputs" ItemName="_ItemsToIncludeForInteractive" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_ItemsToIncludeForInteractive Update="@(_ItemsToIncludeForInteractive)" PackagePath="interactive-extensions/dotnet" />
+      <TfmSpecificPackageFile Include="@(_ItemsToIncludeForInteractive)" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
     <None Include="Converters.cs">
       <DesignTime>True</DesignTime>
@@ -30,7 +48,7 @@
 
   <ItemGroup>
     <PackageReference Include="Apache.Arrow" Version="0.14.1" />
-    <PackageReference Include="System.Memory" Version="4.5.2" />
+    <PackageReference Include="System.Memory" Version="4.5.3" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
     <PackageReference Include="System.Buffers" Version="4.5.0" />
     <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
