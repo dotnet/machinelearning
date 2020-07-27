@@ -143,6 +143,13 @@ phases:
   # Build both native and managed assets. 
   - script: ./build.cmd -$(BuildConfig)
     displayName: Build
+
+  - task: ComponentGovernanceComponentDetection@0
+    inputs:
+      scanType: 'LogOnly'
+      verbosity: 'Verbose'
+      alertWarningLevel: 'High'
+
   
   - task: MSBuild@1
     displayName: Sign Windows_x64 Binaries
