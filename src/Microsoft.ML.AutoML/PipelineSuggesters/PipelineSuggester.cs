@@ -30,10 +30,10 @@ namespace Microsoft.ML.AutoML
             TaskKind task,
             bool isMaximizingMetric,
             CacheBeforeTrainer cacheBeforeTrainer,
-            IEnumerable<TrainerName> trainerWhitelist = null)
+            IEnumerable<TrainerName> trainerAllowList = null)
         {
             var availableTrainers = RecipeInference.AllowedTrainers(context, task,
-                ColumnInformationUtil.BuildColumnInfo(columns), trainerWhitelist);
+                ColumnInformationUtil.BuildColumnInfo(columns), trainerAllowList);
             var transforms = TransformInferenceApi.InferTransforms(context, task, columns).ToList();
             var transformsPostTrainer = TransformInferenceApi.InferTransformsPostTrainer(context, task, columns).ToList();
 

@@ -26,14 +26,14 @@ namespace Microsoft.ML.AutoML
 
         private readonly IChannel _logger;
         private readonly TaskKind _task;
-        private readonly IEnumerable<TrainerName> _trainerWhitelist;
+        private readonly IEnumerable<TrainerName> _trainerAllowList;
 
         internal ExperimentBase(MLContext context,
             IMetricsAgent<TMetrics> metricsAgent,
             OptimizingMetricInfo optimizingMetricInfo,
             TExperimentSettings settings,
             TaskKind task,
-            IEnumerable<TrainerName> trainerWhitelist)
+            IEnumerable<TrainerName> trainerAllowList)
         {
             Context = context;
             MetricsAgent = metricsAgent;
@@ -41,7 +41,7 @@ namespace Microsoft.ML.AutoML
             Settings = settings;
             _logger = ((IChannelProvider)context).Start("AutoML");
             _task = task;
-            _trainerWhitelist = trainerWhitelist;
+            _trainerAllowList = trainerAllowList;
         }
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace Microsoft.ML.AutoML
 
             // Execute experiment & get all pipelines run
             var experiment = new Experiment<CrossValidationRunDetail<TMetrics>, TMetrics>(Context, _task, OptimizingMetricInfo, progressHandler,
-                Settings, MetricsAgent, _trainerWhitelist, columns, runner, _logger);
+                Settings, MetricsAgent, _trainerAllowList, columns, runner, _logger);
             var runDetails = experiment.Execute();
 
             var bestRun = GetBestCrossValRun(runDetails);
@@ -347,7 +347,7 @@ namespace Microsoft.ML.AutoML
         {
             // Execute experiment & get all pipelines run
             var experiment = new Experiment<RunDetail<TMetrics>, TMetrics>(Context, _task, OptimizingMetricInfo, progressHandler,
-                Settings, MetricsAgent, _trainerWhitelist, columns, runner, _logger);
+                Settings, MetricsAgent, _trainerAllowList, columns, runner, _logger);
             var runDetails = experiment.Execute();
 
             var bestRun = GetBestRun(runDetails);
