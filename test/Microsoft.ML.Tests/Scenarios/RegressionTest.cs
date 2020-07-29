@@ -1,4 +1,9 @@
-﻿using Xunit;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Tests;
+using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -9,8 +14,13 @@ namespace Microsoft.ML.Scenarios
         {
             var context = new MLContext();
 
-            IDataView taxiData = Microsoft.ML.SamplesUtils.DatasetUtils.LoadTaxiFareDataset(context);
-            var splitData = context.Data.TrainTestSplit(taxiData, testFraction: 0.2);
+            string taxiDataPath = GetDataPath("taxi-fare-train.csv");
+
+            var taxiData =
+                context.Data.LoadFromTextFile<FeatureContributionTests.TaxiTrip>(taxiDataPath, hasHeader: true,
+                    separatorChar: ',');
+
+            var splitData = context.Data.TrainTestSplit(taxiData, testFraction: 0.1);
 
             IDataView trainingDataView = context.Data.FilterRowsByColumn(splitData.TrainSet, "FareAmount", lowerBound: 1, upperBound: 150);
 
@@ -33,7 +43,7 @@ namespace Microsoft.ML.Scenarios
 
             var metrics = context.Regression.Evaluate(predictions);
 
-            Assert.True(metrics.RSquared > .9);
+            Assert.True(metrics.RSquared > .8);
             Assert.True(metrics.RootMeanSquaredError > 2);
         }
     }
