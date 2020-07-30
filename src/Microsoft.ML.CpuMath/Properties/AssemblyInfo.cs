@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Internal.CpuMath.Core;
+
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.CpuMath.PerformanceTests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Internal.CpuMath" + InternalPublicKey.Value)]
