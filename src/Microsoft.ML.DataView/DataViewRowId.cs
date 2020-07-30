@@ -34,6 +34,16 @@ namespace Microsoft.ML.Data
             High = high;
         }
 
+        public static bool operator ==(DataViewRowId left, DataViewRowId right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(DataViewRowId left, DataViewRowId right)
+        {
+            return !(left == right);
+        }
+
         public override string ToString()
         {
             // Since H1 are the low order bits, they are printed second.
@@ -190,6 +200,7 @@ namespace Microsoft.ML.Data
 
             return new DataViewRowId(h1, h2);
         }
+
         #endregion
     }
 }
