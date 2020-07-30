@@ -100,7 +100,7 @@
   <PropertyGroup>
     <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">8.0</LangVersion>
     <LangVersion Condition="'$(MSBuildProjectExtension)'=='.fsproj'">4.7</LangVersion>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   
   <PropertyGroup>
