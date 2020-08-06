@@ -41,28 +41,19 @@ namespace Microsoft.ML.Transforms
         private static string RegistrationName { get { return string.Format(RegistrationNameTemplate, typeof(TSrc).FullName, typeof(TDst).FullName); } }
 
         /// <summary>
-        /// Create a filter transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are
-        /// not null.
+        /// Create a filter transform
         /// </summary>
         /// <param name="env">The host environment</param>
         /// <param name="source">The dataview upon which we construct the transform</param>
         /// <param name="filterFunc">The function by which we transform source to destination columns and decide whether
         /// to keep the row.</param>
         /// <param name="initStateAction">The function that is called once per cursor to initialize state. Can be null.</param>
-        /// <param name="saveAction">An action that allows us to save state to the serialization stream. May be
-        /// null simultaneously with <paramref name="loadFunc"/>.</param>
-        /// <param name="loadFunc">A function that given the serialization stream and a data view, returns
-        /// an <see cref="ITransformTemplate"/>. The intent is, this returned object should itself be a
-        /// <see cref="CustomMappingTransformer{TSrc,TDst}"/>, but this is not strictly necessary. This delegate should be
-        /// a static non-lambda method that this assembly can legally call. May be null simultaneously with
-        /// <paramref name="saveAction"/>.</param>
         /// <param name="inputSchemaDefinition">The schema definition overrides for <typeparamref name="TSrc"/></param>
         /// <param name="outputSchemaDefinition">The schema definition overrides for <typeparamref name="TDst"/></param>
         public StatefulFilterTransform(IHostEnvironment env, IDataView source, Func<TSrc, TDst, TState, bool> filterFunc,
             Action<TState> initStateAction,
-            Action<BinaryWriter> saveAction, LambdaTransform.LoadDelegate loadFunc,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(env, RegistrationName, saveAction, loadFunc)
+            : base(env, RegistrationName)
         {
             Host.AssertValue(source, "source");
             Host.AssertValue(filterFunc, "filterFunc");

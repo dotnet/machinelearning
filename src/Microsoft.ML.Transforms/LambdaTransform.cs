@@ -125,7 +125,7 @@ namespace Microsoft.ML.Transforms
                 {
                     mapAction(src, dst, state);
                     return true;
-                }, initStateAction, null, null, inputSchemaDefinition, outputSchemaDefinition);
+                }, initStateAction, inputSchemaDefinition, outputSchemaDefinition);
         }
 
         /// <summary>
@@ -159,52 +159,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValueOrNull(inputSchemaDefinition);
 
             return new StatefulFilterTransform<TSrc, object, TState>(env, source,
-                (src, dst, state) => filterFunc(src, state), initStateAction, null, null, inputSchemaDefinition);
-        }
-
-        /// <summary>
-        /// This creates a filter transform that can 'accept' or 'decline' any row of the data based on the contents of the row
-        /// or state of the cursor.
-        /// This is a 'stateful savable' version of the filter: the filter function is guaranteed to be invoked once per
-        /// every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the
-        /// filter function every time; save and load routines must be provided.
-        /// If <typeparamref name="TSrc"/> or <typeparamref name="TState"/> implement the <see cref="IDisposable" /> interface, they will be disposed after use.
-        /// </summary>
-        /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the
-        /// input <see cref="IDataView"/>.</typeparam>
-        /// <typeparam name="TState">The type of the state object to allocate per cursor.</typeparam>
-        /// <param name="env">The host environment to use.</param>
-        /// <param name="source">The input data to apply transformation to.</param>
-        /// <param name="filterFunc">The user-defined function that determines whether to keep the row or discard it. First parameter
-        /// is the current row's contents, the second parameter is the cursor-specific state object.</param>
-        /// <param name="initStateAction">The function that is called once per cursor to initialize state. Can be null.</param>
-        /// <param name="saveAction">An action that allows us to save state to the serialization stream</param>
-        /// <param name="loadFunc">A function that given the serialization stream and a data view, returns
-        /// an <see cref="ITransformTemplate"/>. The intent is, this returned object should itself be the same
-        /// as if we had recreated it using this method, but this is impossible to enforce. This transform
-        /// will do its best to save a description of this method through assembly qualified names of the defining
-        /// class, method name, and generic type parameters (if any), and then recover this same method on load,
-        /// so it should be a static non-lambda method that this assembly can legally call.</param>
-        /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
-        /// inferred from the <typeparamref name="TSrc"/> type.</param>
-        /// <returns></returns>
-        public static ITransformTemplate CreateFilter<TSrc, TState>(IHostEnvironment env, IDataView source,
-            Func<TSrc, TState, bool> filterFunc, Action<TState> initStateAction,
-            Action<BinaryWriter> saveAction, LoadDelegate loadFunc,
-            SchemaDefinition inputSchemaDefinition = null)
-            where TSrc : class, new()
-            where TState : class, new()
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(source, nameof(source));
-            env.CheckValue(filterFunc, nameof(filterFunc));
-            env.CheckValue(initStateAction, nameof(initStateAction));
-            env.CheckValue(saveAction, nameof(saveAction));
-            env.CheckValue(loadFunc, nameof(loadFunc));
-            env.CheckValueOrNull(inputSchemaDefinition);
-
-            return new StatefulFilterTransform<TSrc, object, TState>(env, source,
-                (src, dst, state) => filterFunc(src, state), initStateAction, saveAction, loadFunc, inputSchemaDefinition);
+                (src, dst, state) => filterFunc(src, state), initStateAction, inputSchemaDefinition);
         }
     }
 
@@ -219,32 +174,12 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     internal abstract class LambdaTransformBase : ICanSaveModel
     {
-        private readonly Action<BinaryWriter> _saveAction;
-        private readonly byte[] _loadFuncBytes;
         protected readonly IHost Host;
-        protected LambdaTransformBase(IHostEnvironment env, string name, Action<BinaryWriter> saveAction, LambdaTransform.LoadDelegate loadFunc)
+        protected LambdaTransformBase(IHostEnvironment env, string name)
         {
             Contracts.AssertValue(env);
             env.AssertNonWhiteSpace(name);
             Host = env.Register(name);
-
-            Host.Assert((saveAction == null) == (loadFunc == null));
-
-            if (saveAction != null)
-            {
-                _saveAction = saveAction;
-                // First, verify as best we can, that we can recover the function, by attempting to do it once.
-                _loadFuncBytes = SerializableLambdaTransform.GetSerializedStaticDelegate(loadFunc);
-                Exception error;
-                var recoveredLoadFunc = SerializableLambdaTransform.DeserializeStaticDelegateOrNull(Host, _loadFuncBytes, out error);
-                if (recoveredLoadFunc == null)
-                {
-                    Host.AssertValue(error);
-                    throw Host.Except(error, "Load function does not appear recoverable");
-                }
-            }
-
-            AssertConsistentSerializable();
         }
 
         /// <summary>
@@ -255,10 +190,6 @@ namespace Microsoft.ML.Transforms
             Contracts.AssertValue(env);
             env.AssertNonWhiteSpace(name);
             Host = env.Register(name);
-            _saveAction = source._saveAction;
-            _loadFuncBytes = source._loadFuncBytes;
-
-            AssertConsistentSerializable();
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -266,39 +197,11 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(CanSave(), "Cannot save this transform as it was not specified as being savable");
             ctx.CheckAtModel();
-            ctx.SetVersionInfo(SerializableLambdaTransform.GetVersionInfo());
-
-            // *** Binary format ***
-            // int: Number of bytes the load method was serialized to
-            // byte[n]: The serialized load method info
-            // <arbitrary>: Arbitrary bytes saved by the save action
-
-            Host.AssertNonEmpty(_loadFuncBytes);
-            ctx.Writer.WriteByteArray(_loadFuncBytes);
-
-            using (var ms = new MemoryStream())
-            {
-                using (var writer = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true))
-                    _saveAction(writer);
-                ctx.Writer.WriteByteArray(ms.ToArray());
-            }
         }
 
         private bool CanSave()
         {
-            return _saveAction != null;
-        }
-
-        [Conditional("DEBUG")]
-        private void AssertConsistentSerializable()
-        {
-#if DEBUG
-            // This class can be either serializable, or not. Some fields should
-            // be null iff the transform is not savable.
-            bool canSave = CanSave();
-            Host.Assert(canSave == (_saveAction != null));
-            Host.Assert(canSave == (_loadFuncBytes != null));
-#endif
+            return false;
         }
     }
 }
