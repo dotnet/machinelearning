@@ -22,11 +22,12 @@ namespace Microsoft.ML.Transforms
     /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="IDataView"/>.</typeparam>
     /// <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
     /// <typeparam name="TState">The type that describes per-cursor state.</typeparam>
-    internal sealed class StatefulFilterTransform<TSrc, TDst, TState> : LambdaTransformBase, ITransformTemplate
+    internal sealed class StatefulFilterTransform<TSrc, TDst, TState> : IDataTransform
         where TSrc : class, new()
         where TDst : class, new()
         where TState : class, new()
     {
+        private readonly IHost _host;
         private const string RegistrationNameTemplate = "StatefulFilterTransform<{0}, {1}>";
         private readonly IDataView _source;
         private readonly Func<TSrc, TDst, TState, bool> _filterFunc;
@@ -53,19 +54,19 @@ namespace Microsoft.ML.Transforms
         public StatefulFilterTransform(IHostEnvironment env, IDataView source, Func<TSrc, TDst, TState, bool> filterFunc,
             Action<TState> initStateAction,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(env, RegistrationName)
         {
-            Host.AssertValue(source, "source");
-            Host.AssertValue(filterFunc, "filterFunc");
-            Host.AssertValueOrNull(initStateAction);
-            Host.AssertValueOrNull(inputSchemaDefinition);
-            Host.AssertValueOrNull(outputSchemaDefinition);
+            _host = env.Register(RegistrationName);
+            _host.AssertValue(source, "source");
+            _host.AssertValue(filterFunc, "filterFunc");
+            _host.AssertValueOrNull(initStateAction);
+            _host.AssertValueOrNull(inputSchemaDefinition);
+            _host.AssertValueOrNull(outputSchemaDefinition);
 
             _source = source;
             _filterFunc = filterFunc;
             _initStateAction = initStateAction;
             _inputSchemaDefinition = inputSchemaDefinition;
-            _typedSource = TypedCursorable<TSrc>.Create(Host, Source, false, inputSchemaDefinition);
+            _typedSource = TypedCursorable<TSrc>.Create(_host, Source, false, inputSchemaDefinition);
 
             var outSchema = InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
             _addedSchema = outSchema;
@@ -76,13 +77,12 @@ namespace Microsoft.ML.Transforms
         /// The 'reapply' constructor.
         /// </summary>
         private StatefulFilterTransform(IHostEnvironment env, StatefulFilterTransform<TSrc, TDst, TState> transform, IDataView newSource)
-            : base(env, RegistrationName, transform)
         {
-            Host.AssertValue(transform);
-            Host.AssertValue(newSource);
+            _host.AssertValue(transform);
+            _host.AssertValue(newSource);
             _source = newSource;
             _filterFunc = transform._filterFunc;
-            _typedSource = TypedCursorable<TSrc>.Create(Host, newSource, false, transform._inputSchemaDefinition);
+            _typedSource = TypedCursorable<TSrc>.Create(_host, newSource, false, transform._inputSchemaDefinition);
 
             _addedSchema = transform._addedSchema;
             _bindings = new ColumnBindings(newSource.Schema, DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
-            Host.CheckValueOrNull(rand);
+            _host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInputs = _bindings.GetActiveInput(predicate);
@@ -122,14 +122,12 @@ namespace Microsoft.ML.Transforms
             return new[] { GetRowCursor(columnsNeeded, rand) };
         }
 
-        public IDataView Source => _source;
-
-        IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
+        public void Save(ModelSaveContext ctx)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(newSource, nameof(newSource));
-            return new StatefulFilterTransform<TSrc, TDst, TState>(env, this, newSource);
+            throw new NotImplementedException();
         }
+
+        public IDataView Source => _source;
 
         private sealed class Cursor : RootCursorBase
         {
@@ -148,7 +146,7 @@ namespace Microsoft.ML.Transforms
             public override long Batch => _input.Batch;
 
             public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, IEnumerable<DataViewSchema.Column> columnsNeeded)
-                : base(parent.Host)
+                : base(parent._host)
             {
                 Ch.AssertValue(input);
                 Ch.AssertValue(columnsNeeded);
@@ -160,13 +158,13 @@ namespace Microsoft.ML.Transforms
                 _dst = new TDst();
                 _state = new TState();
 
-                CursorChannelAttribute.TrySetCursorChannel(_parent.Host, _src, Ch);
-                CursorChannelAttribute.TrySetCursorChannel(_parent.Host, _dst, Ch);
-                CursorChannelAttribute.TrySetCursorChannel(_parent.Host, _state, Ch);
+                CursorChannelAttribute.TrySetCursorChannel(_parent._host, _src, Ch);
+                CursorChannelAttribute.TrySetCursorChannel(_parent._host, _dst, Ch);
+                CursorChannelAttribute.TrySetCursorChannel(_parent._host, _state, Ch);
 
                 parent._initStateAction?.Invoke(_state);
 
-                var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent.Host, _parent._addedSchema);
+                var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent._host, _parent._addedSchema);
                 appendedDataView.SetCurrentRowObject(_dst);
 
                 var columnNames = columnsNeeded.Select(c => c.Name);

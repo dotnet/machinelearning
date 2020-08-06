@@ -24,17 +24,6 @@ namespace Microsoft.ML.Transforms
     [BestFriend]
     internal static class LambdaTransform
     {
-        /// <summary>
-        /// A delegate type to create a persistent transform, utilized by the creation functions
-        /// as a callback to reconstitute a transform from binary data.
-        /// </summary>
-        /// <param name="reader">The binary stream from which the load is persisted</param>
-        /// <param name="env">The host environment</param>
-        /// <param name="input">The dataview this transform should be persisted on</param>
-        /// <returns>A transform of the input data, as parameterized by the binary input
-        /// stream</returns>
-        internal delegate ITransformTemplate LoadDelegate(BinaryReader reader, IHostEnvironment env, IDataView input);
-
         internal const string LoaderSignature = "CustomTransformer";
 
         private static VersionInfo GetVersionInfo()
@@ -106,7 +95,7 @@ namespace Microsoft.ML.Transforms
         /// inferred from the <typeparamref name="TSrc"/> type.</param>
         /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is
         /// inferred from the <typeparamref name="TDst"/> type.</param>
-        public static ITransformTemplate CreateMap<TSrc, TDst, TState>(IHostEnvironment env, IDataView source,
+        public static IDataTransform CreateMap<TSrc, TDst, TState>(IHostEnvironment env, IDataView source,
             Action<TSrc, TDst, TState> mapAction, Action<TState> initStateAction,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class, new()
@@ -147,7 +136,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
         /// inferred from the <typeparamref name="TSrc"/> type.</param>
         /// <returns></returns>
-        public static ITransformTemplate CreateFilter<TSrc, TState>(IHostEnvironment env, IDataView source,
+        public static IDataTransform CreateFilter<TSrc, TState>(IHostEnvironment env, IDataView source,
             Func<TSrc, TState, bool> filterFunc, Action<TState> initStateAction, SchemaDefinition inputSchemaDefinition = null)
             where TSrc : class, new()
             where TState : class, new()
@@ -160,48 +149,6 @@ namespace Microsoft.ML.Transforms
 
             return new StatefulFilterTransform<TSrc, object, TState>(env, source,
                 (src, dst, state) => filterFunc(src, state), initStateAction, inputSchemaDefinition);
-        }
-    }
-
-    /// <summary>
-    /// Defines common ancestor for various flavors of lambda-based user-defined transforms that may or may not be
-    /// serializable.
-    ///
-    /// In order for the transform to be serializable, the user should specify a save and load delegate.
-    /// Specifically, for this the user has to provide the following things:
-    ///  * a custom save action that serializes the transform 'state' to the binary writer.
-    ///  * a custom load action that de-serializes the transform from the binary reader. This must be a public static method of a public class.
-    /// </summary>
-    internal abstract class LambdaTransformBase : ICanSaveModel
-    {
-        protected readonly IHost Host;
-        protected LambdaTransformBase(IHostEnvironment env, string name)
-        {
-            Contracts.AssertValue(env);
-            env.AssertNonWhiteSpace(name);
-            Host = env.Register(name);
-        }
-
-        /// <summary>
-        /// The 'reapply' constructor.
-        /// </summary>
-        protected LambdaTransformBase(IHostEnvironment env, string name, LambdaTransformBase source)
-        {
-            Contracts.AssertValue(env);
-            env.AssertNonWhiteSpace(name);
-            Host = env.Register(name);
-        }
-
-        void ICanSaveModel.Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            Host.Check(CanSave(), "Cannot save this transform as it was not specified as being savable");
-            ctx.CheckAtModel();
-        }
-
-        private bool CanSave()
-        {
-            return false;
         }
     }
 }
