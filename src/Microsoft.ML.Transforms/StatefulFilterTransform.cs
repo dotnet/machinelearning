@@ -22,7 +22,7 @@ namespace Microsoft.ML.Transforms
     /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="IDataView"/>.</typeparam>
     /// <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
     /// <typeparam name="TState">The type that describes per-cursor state.</typeparam>
-    internal sealed class StatefulFilterTransform<TSrc, TDst, TState> : IDataTransform
+    internal sealed class StatefulFilterTransform<TSrc, TDst, TState> : IDataView
         where TSrc : class, new()
         where TDst : class, new()
         where TState : class, new()
@@ -120,11 +120,6 @@ namespace Microsoft.ML.Transforms
             // This transform is stateful, its contract is to allocate exactly one state object per cursor and call the filter function
             // on every row in sequence. Therefore, parallel cursoring is not possible.
             return new[] { GetRowCursor(columnsNeeded, rand) };
-        }
-
-        public void Save(ModelSaveContext ctx)
-        {
-            throw new NotImplementedException();
         }
 
         public IDataView Source => _source;

@@ -468,7 +468,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             private readonly IStatefulRowMapper _mapper;
             private readonly SequentialTransformerBase<TInput, TOutput, TState> _parent;
-            private readonly IDataTransform _transform;
+            private readonly IDataView _transform;
             private readonly ColumnBindings _bindings;
 
             private MetadataDispatcher Metadata { get; }
@@ -489,7 +489,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void CloneStateInMapper() => _mapper.CloneState();
 
-            private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName,
+            private static IDataView CreateLambdaTransform(IHost host, IDataView input, string inputColumnName,
                 string outputColumnName, string forecastingConfidenceIntervalMinOutputColumnName,
                 string forecastingConfidenceIntervalMaxOutputColumnName, Action<TState> initFunction, bool hasBuffer, DataViewType outputColTypeOverride)
             {

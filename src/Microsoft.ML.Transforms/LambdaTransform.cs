@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms
         /// inferred from the <typeparamref name="TSrc"/> type.</param>
         /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is
         /// inferred from the <typeparamref name="TDst"/> type.</param>
-        public static IDataTransform CreateMap<TSrc, TDst, TState>(IHostEnvironment env, IDataView source,
+        public static IDataView CreateMap<TSrc, TDst, TState>(IHostEnvironment env, IDataView source,
             Action<TSrc, TDst, TState> mapAction, Action<TState> initStateAction,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class, new()
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
         /// inferred from the <typeparamref name="TSrc"/> type.</param>
         /// <returns></returns>
-        public static IDataTransform CreateFilter<TSrc, TState>(IHostEnvironment env, IDataView source,
+        public static IDataView CreateFilter<TSrc, TState>(IHostEnvironment env, IDataView source,
             Func<TSrc, TState, bool> filterFunc, Action<TState> initStateAction, SchemaDefinition inputSchemaDefinition = null)
             where TSrc : class, new()
             where TState : class, new()
