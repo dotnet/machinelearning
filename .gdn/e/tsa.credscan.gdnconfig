@@ -1,0 +1,23 @@
+{
+  "tools": [
+    {
+      "tool": {
+        "name": "CredScan",
+        "version": "1.0.26.1"
+      },
+      "arguments": {
+        "TargetDirectory": ".\\",
+        "OutputType": "pre",
+        "SearcherPath": "$(InstallDirectory)\\tools\\Searchers\\buildsearchers.xml",
+        "SuppressAsError": false,
+        "SuppressionPath": null,
+        "BatchSize": null,
+        "ExitCodeVerbosity": 1,
+        "OutputFile": null,
+        "ScanCompression": false,
+        "Triage": false,
+        "Verbose": false
+      }
+    }
+  ]
+}

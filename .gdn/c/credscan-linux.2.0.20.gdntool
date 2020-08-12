@@ -1,0 +1,168 @@
+﻿{
+  "fileVersion": "1.4",
+  "name": "CredScan",
+  "fullName": "Credential Scanner",
+  "alternativeName": "CredentialScanner",
+  "toolVersion": "2.0.20",
+  "shortDescription": "A regular expression tool for finding credentials.",
+  "longDescription": "",
+  "links": {
+    "gettingStarted": "aka.ms/credscan"
+  },
+  "executablePath": "lib/netcoreapp2.1/CredentialScanner.dll",
+  "launcher": "NetCore",
+  "successfulExitCodes": [ 0, 2, 4, 6 ],
+  "errorExitCodes": {
+    "1": "Partial scan completed with warnings.",
+    "3": "Partial scan completed with credential matches and warnings.",
+    "5": "Partial scan completed with application warnings and credential matches",
+    "7": "Partial scan completed with application warnings, suppressed warnings, and credential matches",
+    "-1000": "Argument Exception.",
+    "-1100": "Invalid configuration.",
+    "-1500": "Configuration Exception.",
+    "-1600": "IO Exception.",
+    "-9000": "Unexpected Exception."
+  },
+  "errorHelperMessage": "Unexpected exit code. Please check https://microsoft.sharepoint.com/teams/CESecEngineering/CredScan/CredScan%20Wiki/Tool%20Exit%20Code.aspx for more information.",
+  "packages": [
+    {
+      "type": "nuget",
+      "name": "Microsoft.Security.CredScan.Client",
+      "version": "2.0.20",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "TargetDirectory",
+      "displayName": "Target Directory",
+      "key": "I",
+      "argumentType": "keyValue",
+      "required": true,
+      "isGlob": false,
+      "default": "$(Credscan.DefaultTargetDirectory)",
+      "shortDescription": "Specifies the target directory or the tsv file to scan."
+    },
+    {
+      "id": "SearcherPath",
+      "displayName": "Searcher Path",
+      "key": "S",
+      "argumentType": "multiKeyValue",
+      "multipleSeparator": ",",
+      "multipleKeyValueType": "concat",
+      "default": "$(Credscan.DefaultSearcherPath)",
+      "isGlob": true,
+      "shortDescription": "Specifies one or more full path name of the searcher definition XML or Json files separated by comma."
+    },
+    {
+      "id": "OutputFile",
+      "displayName": "Output File",
+      "key": "O",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the full path name of the output file."
+    },
+    {
+      "id": "OutputType",
+      "displayName": "Output Type",
+      "key": "f",
+      "argumentType": "keyValue",
+      "default": "pre",
+      "shortDescription": "Specifies the output file format.",
+      "longDescription": "Specifies the output file format. Available options: tsv, csv or pre (format for the SDL PREfast template). [Default='pre']"
+    },
+    {
+      "id": "BatchSize",
+      "displayName": "Batch Size",
+      "key": "b",
+      "argumentType": "keyValue",
+      "shortDescription": "Specify the number of concurrent threads to be used to run Credential Scanner."
+    },
+    {
+      "id": "SuppressAsError",
+      "displayName": "Suppress As Error",
+      "key": "e",
+      "argumentType": "keyValue",
+      "default": "true",
+      "shortDescription": "Suppressed matches will be output to [-O]-matches.[-f] rather than the default suppressed output file [-O]-suppressed.[-f] [Default='False']"
+    },
+    {
+      "id": "SuppressionsPath",
+      "displayName": "Suppressions Path",
+      "key": "Sp",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the full path name of the suppressions json file. [Default='[-I]/CredScanSuppressions.json']",
+      "versions": ""
+    },
+    {
+      "id": "Triage",
+      "displayName": "Triage",
+      "key": "t",
+      "argumentType": "switch",
+      "shortDescription": "Show matching details for triaging. [Default='False']"
+    },
+    {
+      "id": "Verbose",
+      "displayName": "Verbose",
+      "key": "v",
+      "argumentType": "switch",
+      "shortDescription": "Output verbose information. [Default='False']"
+    },
+    {
+      "id": "ConfigOverrides",
+      "displayName": "Config Overrides",
+      "key": "Co",
+      "argumentType": "multiKeyValue",
+      "multipleSeparator": ";",
+      "multipleKeyValueType": "concat",
+      "shortDescription": "Specifies a list of CredentialScanner.config appSettings overrides (e.g. FollowDirectorySymLink=true or RegexMatchTimeoutInSeconds=60') ."
+    },
+    {
+      "id": "DebugMode",
+      "displayName": "Debug Mode",
+      "key": "Db",
+      "argumentType": "switch",
+      "shortDescription": "Run in debug mode (i.e. allows folder-level suppression). [Default='False']"
+    },
+    {
+      "id": "FolderSuppression",
+      "displayName": "Folder Suppression",
+      "key": "Fs",
+      "argumentType": "switch",
+      "shortDescription": "Enable folder-level suppression (only takes effect in debug mode). [Default='False']"
+    },
+    {
+      "id": "Help",
+      "displayName": "Help",
+      "key": "?",
+      "argumentType": "switch",
+      "shortDescription": "Outputs command line help information for the CredScan CLI."
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "-",
+    "aliasPrefix": "-",
+    "helpArgumentId": "Help",
+    "targetArgumentId": "TargetDirectory",
+    "outputArgumentId": "OutputFile"
+  },
+  "outputExtension": "xml",
+  "outputTypeString": "NamePattern",
+  "outputNamePattern": "{0}-matches.xml",
+  "supportsBugFiling": true,
+  "bugFilingFilter": "file|**\\*.xml",
+  "presetVariables": {
+    "Credscan.DefaultTargetDirectory": "./",
+    "Credscan.DefaultSearcherPath": "$(InstallDirectory)/lib/net461/ConfigFiles/FileSystemProvider.json"
+  },
+  "converterInfo": {
+    "logFileConverters": {
+      "prefast": {
+        "converterName": "CredScanPreFastConverter"
+      },
+      "tsvAndCsv": {
+        "converterName": "CredScanCharSepValConverter"
+      }
+    }
+  }
+}

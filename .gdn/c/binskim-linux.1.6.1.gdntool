@@ -1,0 +1,139 @@
+{
+  "fileVersion": "0",
+  "name": "BinSkim",
+  "fullName": "BinSkim",
+  "toolVersion": "1.6.1",
+  "shortDescription": "A portable executable scanner that validates compiler/linker settings and other security-relevant binary characteristics.",
+  "longDescription": "",
+  "links": [
+    {
+      "name": "GitHub",
+      "uri": "https://github.com/Microsoft/binskim"
+    },
+    {
+      "name": "ReadMe",
+      "uri": "https://github.com/Microsoft/binskim/blob/master/README.md"
+    }
+  ],
+  "executablePath": "tools/netcoreapp2.0/linux-x64/BinSkim",
+  "packages": [
+    {
+      "master": true,
+      "version": "1.6.1",
+      "type": "nuget",
+      "name": "Microsoft.CodeAnalysis.BinSkim",
+      "sources": [
+        {
+          "name": "nuget.org",
+          "value": "https://api.nuget.org/v3/index.json"
+        }
+      ]
+    }
+  ],
+  "arguments": [
+    {
+      "id": "Function",
+      "displayName": "Function",
+      "argumentType": "verb",
+      "default": "analyze",
+      "required": true,
+      "sortOrder": -1
+    },
+    {
+      "id": "Target",
+      "displayName": "Target",
+      "argumentType": "positional",
+      "default": "$(BinSkim.DefaultTargetPattern)",
+      "isGlob": true,
+      "batchGlobResults": true,
+      "required": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "Output",
+      "displayName": "Output",
+      "key": "output",
+      "argumentType": "keyValue"
+    },
+    {
+      "id": "SymbolsPath",
+      "displayName": "Symbols Path",
+      "key": "sympath",
+      "argumentType": "keyValue"
+    },
+    {
+      "id": "ConfigPath",
+      "displayName": "Configuration Path",
+      "key": "config",
+      "argumentType": "keyValue",
+      "default": "default"
+    },
+    {
+      "id": "PluginPath",
+      "displayName": "Plugin Path",
+      "key": "plug-in",
+      "argumentType": "keyValue"
+    },
+    {
+      "id": "Recurse",
+      "displayName": "Recurse",
+      "key": "recurse",
+      "argumentType": "switch",
+      "default": true
+    },
+    {
+      "id": "Verbose",
+      "displayName": "Verbose",
+      "key": "verbose",
+      "argumentType": "switch",
+      "default": false
+    },
+    {
+      "id": "Hashes",
+      "displayName": "Hashes",
+      "key": "hashes",
+      "argumentType": "switch",
+      "default": true
+    },
+    {
+      "id": "Statistics",
+      "displayName": "Statistics",
+      "key": "statistics",
+      "argumentType": "switch",
+      "default": true
+    },
+    {
+      "id": "Environment",
+      "displayName": "Environment",
+      "argumentType": "switch",
+      "key": "environment",
+      "default": false
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "--",
+    "aliasPrefix": "-",
+    "helpArgumentId": "Help",
+    "targetArgumentId": "Target",
+    "outputArgumentId": "Output"
+  },
+  "outputExtension": "sarif",
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+    "1": "BinSkim failed. Verify the target(s) to be scanned. BinSkim targets must be a specific filename, or a pattern with a wildcard like *.dll, dir/*.dll, or dir/*"
+  },
+  "errorHelperMessage": "Please refer to https://github.com/Microsoft/binskim#command-line-documentation for more info.",
+  "supportsBugFiling": true,
+  "bugFilingFilter": "file|**/*.sarif",
+  "presetVariables": {
+    "BinSkim.DefaultTargetPattern": "**.dll;**.exe;-|.gdn/**;"
+  },
+  "converterInfo": {
+    "logFileConverters": {
+      "sarif": {
+        "converterName": "SarifV1ToSarifV2Converter"
+      }
+    }
+  }
+}

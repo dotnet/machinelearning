@@ -1,0 +1,294 @@
+{
+  "fileVersion": "1.3.0",
+  "name": "ApiScan",
+  "fullName": "ApiScan",
+  "toolVersion": "3.0.28804",
+  "shortDescription": "A command line utility/wrapper for running the ApiScan tool.",
+  "longDescription": "This is a command line utility/wrapper for running the ApiScan tool. Refer to https://aka.ms/apiscan/aadauth for info on necessary setup. See the APIScan Docs (at https://aka.ms/apiscan) for more information.",
+  "links": [
+    {
+      "name": "APIScan Docs",
+      "uri": "https://aka.ms/apiscan"
+    }
+  ],
+  "launcher": "NetCore",
+  "launcherArguments": "",
+  "executablePath": "tools\\Microsoft.Guardian.ApiScan.Cli.dll",
+  "packages": [
+    {
+      "master": true,
+      "type": "nuget",
+      "name": "Microsoft.Security.CodeAnalysis.ApiScan.Cli",
+      "version": "1.3.0",
+      "sources": [
+        {
+          "name": "MSCA.Plugins"
+        }
+      ]
+    },
+    {
+      "type": "nuget",
+      "name": "VisualCppTools.MicrosoftInternal.APIScan.x64",
+      "version": "3.0.28804",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "Function",
+      "displayName": "Function",
+      "argumentType": "verb",
+      "default": "analyze",
+      "required": true,
+      "shortDescription": "The command line verb to run for APIScan.",
+      "sortOrder": -1
+    },
+    {
+      "id": "TargetMode",
+      "displayName": "Target Mode",
+      "key": "target-mode",
+      "argumentType": "keyValue",
+      "default": "binarysym",
+      "shortDescription": "The type of analysis targets to scan. \"Binaries & Symbols\" maps to \"binarysym\". \"MPD Files\" maps to \"mpd\".",
+      "required": false
+    },
+    {
+      "id": "SoftwareFolder",
+      "displayName": "Software Folder",
+      "key": "software-folder",
+      "argumentType": "keyValue",
+      "isGlob": true,
+      "batchGlobResults": true,
+      "default": "$(ApiScan.DefaultSoftwareFolder)",
+      "shortDescription": "The folder(s) containing the software you want APIScan to process. Multiple paths can be specified by separating them with a semicolon \";\" character.",
+      "required": true
+    },
+    {
+      "id": "MPDFolder",
+      "displayName": "MPD Folder",
+      "key": "mpd-folder",
+      "argumentType": "keyValue",
+      "shortDescription": "The folder(s) containing MPD files for all of the binaries within your software set. Multiple paths can be specified by separating them with a semicolon \";\" character."
+    },
+    {
+      "id": "SoftwareName",
+      "displayName": "Software Name",
+      "key": "software-name",
+      "argumentType": "keyValue",
+      "shortDescription": "The name of the software you want APIScan to process.",
+      "default": "$(ApiScan.DefaultSoftwareName)",
+      "required": true
+    },
+    {
+      "id": "SoftwareVersion",
+      "displayName": "Software Version",
+      "key": "software-version",
+      "argumentType": "keyValue",
+      "shortDescription": "The Version of the software you want APIScan to process.",
+      "default": "$(ApiScan.DefaultSoftwareVersion)",
+      "required": true
+    },
+    {
+      "id": "SoftwareBuild",
+      "displayName": "Software Build",
+      "key": "software-build",
+      "argumentType": "keyValue",
+      "shortDescription": "The build of the software you want APIScan to process.",
+      "default": "$(ApiScan.DefaultSoftwareBuild)",
+      "required": true
+    },
+    {
+      "id": "OutputFolder",
+      "displayName": "Output Folder",
+      "key": "output-folder",
+      "argumentType": "keyValue",
+      "shortDescription": "An additional output folder to copy APIScan's raw results to.",
+      "required": false
+    },
+    {
+      "id": "SymbolsFolder",
+      "displayName": "Symbols Folder",
+      "key": "symbols-folder",
+      "argumentType": "keyValue",
+      "default": "SRV*http://symweb",
+      "shortDescription": "Path to symbols folder. Defaults to the symbol server. If the symbols are in a different location, please specify. Please check out https://APIScan for more details.",
+      "required": false
+    },
+    {
+      "id": "Mode",
+      "displayName": "Mode",
+      "key": "mode",
+      "argumentType": "keyValue",
+      "default": "pre-release",
+      "shortDescription": "The release category of software being build: release or pre-release",
+      "required": false
+    },
+    {
+      "id": "NoCopySymbols",
+      "displayName": "No Copy Symbols",
+      "key": "no-copy-symbols",
+      "argumentType": "switch",
+      "shortDescription": "If provided, symbols are not copied from the \"symbolsFolder\" and \"preBbtSymbolsFolder\" folders to APIScan's local working folder, which is located within the output folder you specified.",
+      "default": false
+    },
+    {
+      "id": "NoCopyBinaries",
+      "displayName": "No Copy Binaries",
+      "key": "no-copy-binaries",
+      "argumentType": "switch",
+      "shortDescription": "If provided, files are not copied from your \"binariesFolder\" or \"mpdFolder\" to APIScan's working folder, which is located within the output folder you specified.",
+      "default": false
+    },
+    {
+      "id": "NoDecompress",
+      "displayName": "No Decompress",
+      "key": "no-decompress",
+      "argumentType": "switch",
+      "shortDescription": "If provided, no decompression of files occurs. Only use this option if no compressed files are present in your software folder, or if you have already extracted all of the compressed files into the input folders you specified.",
+      "default": false
+    },
+    {
+      "id": "ExclusionList",
+      "displayName": "Exclusion List",
+      "key": "exclusion-list",
+      "argumentType": "keyValue",
+      "shortDescription": "Path to an xml file that contains the exclusion list",
+      "required": false
+    },
+    {
+      "id": "Email",
+      "displayName": "Email",
+      "key": "email",
+      "argumentType": "keyValue",
+      "shortDescription": "Email of a contact person. Defaults to: <current user>@microsoft.com",
+      "required": false
+    },
+    {
+      "id": "PreBbtBinariesFolder",
+      "displayName": "Pre-BBT Binaries Folder",
+      "key": "pre-bbt-binaries-folder",
+      "argumentType": "keyValue",
+      "shortDescription": "A root folder containing unoptimized binaries. Multiple paths can be specified by separating them with a semicolon \";\" character.",
+      "required": false
+    },
+    {
+      "id": "PreBbtSymbolsFolder",
+      "displayName": "Pre-BBT Symbols Folder",
+      "key": "pre-bbt-symbols-folder",
+      "argumentType": "keyValue",
+      "shortDescription": "The root folder containing symbols for the unoptimized binaries. Multiple paths can be specified by separating them with a semicolon \";\" character.",
+      "required": false
+    },
+    {
+      "id": "IsLargeApp",
+      "displayName": "Is Large App",
+      "key": "is-large-app",
+      "argumentType": "switch",
+      "shortDescription": "If checked, MaX API will compute a smaller call graph, which will consume less memory. However, source location information will not be available.",
+      "default": false
+    },
+    {
+      "id": "AnalyzerTimeout",
+      "displayName": "Analyzer Timeout",
+      "key": "analyzer-timeout",
+      "argumentType": "keyValue",
+      "default": "00:00:00",
+      "shortDescription": "This option specifies a timeout period for the analysis of an individual binary file. If this option is set to \"00:00:00\", the timeout mechanism will be disabled, and the file will be allowed to be analyzed to completion.",
+      "required": false
+    },
+    {
+      "id": "PreserveTempFiles",
+      "displayName": "Preserve Temporary Files",
+      "key": "preserve-temp-files",
+      "argumentType": "switch",
+      "shortDescription": "If provided, does not delete APIScan's TEMP files folder in the results folder. These files may be useful for diagnosing issues. Due to the folder's large size, this folder is removed by default to keep the size of the analysis logs drops folder low.",
+      "default": false
+    },
+    {
+      "id": "VerbosityLevel",
+      "displayName": "Verbosity Level",
+      "key": "verbosity-level",
+      "argumentType": "keyValue",
+      "shortDescription": "The verbosity level of APIScan. If silent is chosen, it will eliminate excessive logging.",
+      "required": false
+    },
+    {
+      "id": "ToolVersion",
+      "displayName": "Tool Version",
+      "key": "tool-version",
+      "argumentType": "keyValue",
+      "default": "latest",
+      "shortDescription": "The version of APIScan to run.",
+      "required": false
+    },
+    {
+      "id": "LoggerLevel",
+      "displayName": "Logger Level",
+      "key": "logger-level",
+      "argumentType": "keyValue",
+      "default": "Verbose",
+      "shortDescription": "The logger level of the APIScan plugin in Guardian.",
+      "required": false
+    },
+    {
+      "id": "LoggerPipeline",
+      "displayName": "Logger Pipeline",
+      "key": "logger-pipeline",
+      "argumentType": "switch",
+      "shortDescription": "If provided, the logger uses Azure DevOps Pipeline format.",
+      "default": false
+    },
+    {
+      "id": "TelemetryEnvironment",
+      "displayName": "Telemetry Environment",
+      "key": "telemetry-environment",
+      "argumentType": "keyValue",
+      "default": "Standalone",
+      "shortDescription": "The telemetry environment name: Standalone or Pipeline.",
+      "required": false
+    },
+    {
+      "id": "SettingsFile",
+      "displayName": "Settings File",
+      "key": "settings-file",
+      "argumentType": "keyValue",
+      "shortDescription": "Path to the settings file to use. This will override all other global or local settings.",
+      "required": false
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "--",
+    "aliasPrefix": "-",
+    "outputArgumentId": "OutputFolder"
+  },
+  "outputExtension": "sarif",
+  "outputTypeString": "Folder",
+  "successfulExitCodes": [ 0, 1, 16, 17, 32, 33, 48, 49 ],
+  "errorExitCodes": {
+    "2": "APIScan run was cancelled.",
+    "64": "APIScan run failed.",
+    "65": "APIScan version check failed."
+  },
+  "errorHelperMessage": "Please refer to https://microsoft.sharepoint.com/teams/apiscan/APIScan%20User%20Wiki/apiscan_error_code_reference.aspx and https://microsoft.sharepoint.com/teams/apiscan/Content/Home.aspx for more info.",
+  "supportsBugFiling": false,
+  "bugFilingFilter": "file|**\\Result.sarif",
+  "presetVariables": {
+    "ApiScan.DefaultSoftwareFolder": "dir|$(WorkingDirectory)\\*;-|.gdn;-|.git",
+    "ApiScan.DefaultSoftwareName": "SoftwareName",
+    "ApiScan.DefaultSoftwareVersion": "1.0.0",
+    "ApiScan.DefaultSoftwareBuild": "SoftwareBuild"
+  },
+  "applicability": [
+    {
+      "conditions": [
+        {
+          "type": "GlobPattern",
+          "criteriaArguments": {
+            "fileFilter": "f|**\\*.dll;f|**\\*.exe;f|**\\*.sys;-|.gdn\\**;"
+          }
+        }
+      ]
+    }
+  ]
+}
