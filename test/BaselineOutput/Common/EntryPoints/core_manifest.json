@@ -23843,7 +23843,7 @@
               }
             ]
           },
-          "Desc": "A dictionary of whitelisted terms.",
+          "Desc": "A dictionary of allowed terms.",
           "Aliases": [
             "dict"
           ],
