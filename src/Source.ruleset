@@ -6,6 +6,9 @@
   </Localization>
   <Include Path="Sdl.Required.Warning.ruleset" Action="Default" />
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+    <!-- Some of the rules below were desabled as explained on https://github.com/dotnet/machinelearning/issues/5334 -->
+    <!-- It might be good to have a second look and reenable them, making the appropiate changes on ML.NET to comply by them in the future-->
+    <!-- In particular the ones marked as "Might fix" -->
     <!-- <Rule Id="CA1001" Action="Warning" /> Disable. Don't Fix -->
     <Rule Id="CA1009" Action="Warning" />
     <Rule Id="CA1016" Action="Warning" />
