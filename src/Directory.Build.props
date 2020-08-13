@@ -44,6 +44,7 @@
     </ProjectReference>
     <PackageReference Condition="'$(UseStyleCopAnalyzer)' != 'false' and '$(MSBuildProjectExtension)' == '.csproj'"
       Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0-beta2.final" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
