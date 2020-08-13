@@ -1,0 +1,7 @@
+{
+  "files": { },
+  "folders": { },
+  "overwriteLogs": true,
+  "telemetryFlushTimeout": 10,
+  "variables": { }
+}

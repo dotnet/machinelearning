@@ -1,0 +1,100 @@
+﻿{
+  "fileVersion": "1",
+  "name": "CodeInspector",
+  "fullName": "CodeInspector",
+  "alternativeName": "CodeInspector",
+  "toolVersion": "1.0.9",
+  "shortDescription": "A regular expression tool for identifying code features.",
+  "longDescription": "A regular expression tool for identifying code features for use with 1CS.",
+  "links": {
+    "gettingStarted": "aka.ms/appinspector"
+  },
+  "executablePath": "CodeInspector.exe",
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+    "3": "Critical Error"
+  },
+  "packages": [
+    {
+      "type": "nuget",
+      "name": "Microsoft.CST.CodeInspector",
+      "version": "1.0.9",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "Command",
+      "displayName": "Command",
+      "argumentType": "verb",
+      "default": "analyze",
+      "required": true,
+      "shortDescription": "Specifies the command to run."
+    },
+    {
+      "id": "TargetDirectory",
+      "displayName": "Target Directory",
+      "key": "s",
+      "argumentType": "keyValue",
+      "required": true,
+      "isGlob": false,
+      "default": "$(CodeInspector.DefaultTargetDirectory)",
+      "shortDescription": "Specifies the target directory or file to scan."
+    },
+    {
+      "id": "ProductId",
+      "displayName": "Product Id (ServiceTree)",
+      "key": "p",
+      "argumentType": "keyValue",
+      "required": true,
+      "isGlob": false,
+      "default": "100000000",
+      "shortDescription": "Associates the scan with a product id in service tree"
+    },
+    {
+      "id": "ExcludeFilters",
+      "displayName": "Exclude Filters",
+      "key": "k",
+      "argumentType": "keyValue",
+      "required": false,
+      "isGlob": false,
+      "default": "sample,example,test,docs,.vs,.git,.gdn",
+      "shortDescription": "Excludes matching folders or files from scan"
+    },
+    {
+      "id": "NoKustoUpload",
+      "displayName": "No Kusto Upload of Results",
+      "key": "u",
+      "argumentType": "switch",
+      "required": false,
+      "isGlob": false,
+      "default": false,
+      "shortDescription": "Runs analysis for features but does not update central record"
+    },
+    {
+      "id": "OuputLogPath",
+      "displayName": "Location of output log file",
+      "key": "l",
+      "argumentType": "keyValue",
+      "required": false,
+      "isGlob": false,
+      "shortDescription": "Runs analysis for features but does not update central record"
+    }
+  ],
+  "outputExtension": "txt",
+  "outputTypeString": "File",
+  "presetVariables": {
+    "CodeInspector.DefaultTargetDirectory": ".\\"
+  },
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "-",
+    "aliasPrefix": "-",
+    "targetArgumentId": "TargetDirectory",
+    "outputArgumentId": "OuputLogPath"
+  },
+  "supportsBugFiling": false,
+  "converterInfo": {
+    "convertExpected": false
+  }
+}

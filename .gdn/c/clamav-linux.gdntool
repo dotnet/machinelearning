@@ -1,0 +1,693 @@
+{
+  "fileVersion": "0",
+  "name": "clamav",
+  "fullName": "Clam AntiVirus Scanner",
+  "toolVersion": "0.99.4",
+  "shortDescription": "ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats.",
+  "longDescription": "",
+  "links": [
+    {
+      "name": "ToolWebSite",
+      "uri": "https://www.clamav.net"
+    },
+    {
+      "name": "ToolCLI",
+      "uri": "https://linux.die.net/man/1/clamscan"
+    }
+  ],
+  "executablePath": "/usr/bin/clamscan",
+  "packages": [
+    {
+      "type": "apt-get",
+      "name": "clamav"
+    }
+  ],
+  "arguments": [
+    {
+      "id": "Help",
+      "displayName": "Help",
+      "key": "help",
+      "argumentType": "switch",
+      "shortDescription": "Print help info."
+    },
+    {
+      "id": "Version",
+      "displayName": "Version",
+      "key": "version",
+      "argumentType": "switch",
+      "shortDescription": "Print version number."
+    },
+    {
+      "id": "Verbose",
+      "displayName": "Verbose",
+      "key": "verbose",
+      "argumentType": "switch",
+      "shortDescription": "Be verbose."
+    },
+    {
+      "id": "ArchiveVerbose",
+      "displayName": "Archive Verbose",
+      "key": "archive-verbose",
+      "argumentType": "switch",
+      "shortDescription": "Show filenames inside scanned archives."
+    },
+    {
+      "id": "Debug",
+      "displayName": "Debug",
+      "key": "debug",
+      "argumentType": "switch",
+      "shortDescription": "Enable libclamav's debug messages."
+    },
+    {
+      "id": "Quiet",
+      "displayName": "Quiet",
+      "key": "quiet",
+      "argumentType": "switch",
+      "shortDescription": "Only output error messages."
+    },
+    {
+      "id": "Stdout",
+      "displayName": "Stdout",
+      "key": "stdout",
+      "argumentType": "switch",
+      "default": true,
+      "shortDescription": "Write to stdout instead of stderr."
+    },
+    {
+      "id": "NoSummary",
+      "displayName": "No Summary",
+      "key": "no-summary",
+      "argumentType": "switch",
+      "shortDescription": "Disable summary at end of scanning."
+    },
+    {
+      "id": "Infected",
+      "displayName": "Infected",
+      "key": "infected",
+      "argumentType": "switch",
+      "default": true,
+      "shortDescription": "Only print infected files."
+    },
+    {
+      "id": "SuppressOkResults",
+      "displayName": "Suppress Ok Results",
+      "key": "suppress-ok-results",
+      "argumentType": "switch",
+      "shortDescription": "Skip printing OK files."
+    },
+    {
+      "id": "Bell",
+      "displayName": "Bell",
+      "key": "bell",
+      "argumentType": "switch",
+      "shortDescription": "Sound bell on virus detection."
+    },
+    {
+      "id": "TempDir",
+      "displayName": "Temp Directory",
+      "key": "tempdir",
+      "argumentType": "keyValue",
+      "shortDescription": "Create temporary files in the specified temporary directory."
+    },
+    {
+      "id": "LeaveTemps",
+      "displayName": "Leave Temporary Files",
+      "key": "leave-temps",
+      "argumentType": "keyValue",
+      "shortDescription": "Decide whether to remove temporary files. Valid options: yes | no."
+    },
+    {
+      "id": "Database",
+      "displayName": "Database",
+      "key": "database",
+      "argumentType": "keyValue",
+      "shortDescription": "Valid value is a file path or directory path. It loads virus database from the specified file or loads all supported db files from the specified directory."
+    },
+    {
+      "id": "OfficialDbOnly",
+      "displayName": "Official DB Only",
+      "key": "official-db-only",
+      "argumentType": "keyValue",
+      "shortDescription": "Only load official signatures. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "Output",
+      "displayName": "Output",
+      "key": "log",
+      "argumentType": "keyValue",
+      "shortDescription": "Save scan report to the specified file.",
+      "default": "clamscan.log"
+    },
+    {
+      "id": "Recursive",
+      "displayName": "Recursive",
+      "key": "recursive",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan subdirectories recursively. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "AllMatch",
+      "displayName": "All Match",
+      "key": "allmatch",
+      "argumentType": "keyValue",
+      "shortDescription": "Continue scanning within file after finding a match. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "CrossFS",
+      "displayName": "Cross Filesystems",
+      "key": "cross-fs",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan files and directories on other filesystems. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "FollowDirSymlinks",
+      "displayName": "Follow Directory Symlinks",
+      "key": "follow-dir-symlinks",
+      "argumentType": "keyValue",
+      "shortDescription": "Follow directory symlinks (0 = never, 1 = direct, 2 = always).",
+      "default": "2"
+    },
+    {
+      "id": "FollowFileSymlinks",
+      "displayName": "Follow File Symlinks",
+      "key": "follow-file-symlinks",
+      "argumentType": "keyValue",
+      "shortDescription": "Follow file symlinks (0 = never, 1 = direct, 2 = always).",
+      "default": "2"
+    },
+    {
+      "id": "FileList",
+      "displayName": "File List",
+      "key": "file-list",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan files from the specified file path name."
+    },
+    {
+      "id": "Remove",
+      "displayName": "Remove",
+      "key": "remove",
+      "argumentType": "keyValue",
+      "shortDescription": "Remove infected files. Be careful! Valid options: yes | no. Defaults to no."
+    },
+    {
+      "id": "Move",
+      "displayName": "Move",
+      "key": "move",
+      "argumentType": "keyValue",
+      "shortDescription": "Move infected files into the specified directory."
+    },
+    {
+      "id": "Copy",
+      "displayName": "Copy",
+      "key": "copy",
+      "argumentType": "keyValue",
+      "shortDescription": "Copy infected files into the specified directory."
+    },
+    {
+      "id": "Exclude",
+      "displayName": "Exclude",
+      "key": "exclude",
+      "argumentType": "keyValue",
+      "shortDescription": "Don't scan file names matching the provided REGEX."
+    },
+    {
+      "id": "ExcludeDir",
+      "displayName": "Exclude Directories",
+      "key": "exclude-dir",
+      "argumentType": "keyValue",
+      "shortDescription": "Don't scan directories matching the provided REGEX."
+    },
+    {
+      "id": "Include",
+      "displayName": "Include",
+      "key": "include",
+      "argumentType": "keyValue",
+      "shortDescription": "Only scan file names matching the provided REGEX."
+    },
+    {
+      "id": "IncludeDir",
+      "displayName": "Include Directories",
+      "key": "include-dir",
+      "argumentType": "keyValue",
+      "shortDescription": "Only scan directories matching the provided REGEX."
+    },
+    {
+      "id": "Bytecode",
+      "displayName": "Bytecode",
+      "key": "bytecode",
+      "argumentType": "keyValue",
+      "shortDescription": "Load bytecode from the database. Valid options: yes | no. Defaults to yes."
+    },
+    {
+      "id": "BytecodeUnsigned",
+      "displayName": "Bytecode Unsigned",
+      "key": "bytecode-unsigned",
+      "argumentType": "keyValue",
+      "shortDescription": "Load unsigned bytecode. Valid options: yes | no. Defaults to no."
+    },
+    {
+      "id": "BytecodeTimeout",
+      "displayName": "Bytecode Timeout",
+      "key": "bytecode-timeout",
+      "argumentType": "keyValue",
+      "shortDescription": "Set bytecode timeout (in milliseconds)."
+    },
+    {
+      "id": "Statistics",
+      "displayName": "Statistics",
+      "key": "statistics",
+      "argumentType": "keyValue",
+      "shortDescription": "Collect and print execution statistics. Valid options: none | bytecode | pcre. Defaults to none."
+    },
+    {
+      "id": "DetectPossiblyUnwantedApplications",
+      "displayName": "Detect Possibly Unwanted Applications",
+      "key": "detect-pua",
+      "argumentType": "keyValue",
+      "shortDescription": "Detect Possibly Unwanted Applications. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ExcludePossiblyUnwantedApplications",
+      "displayName": "Exclude Possibly Unwanted Applications",
+      "key": "exclude-pua",
+      "argumentType": "keyValue",
+      "shortDescription": "Skip PUA sigs of the specified category."
+    },
+    {
+      "id": "IncludePossiblyUnwantedApplications",
+      "displayName": "Include Possibly Unwanted Applications",
+      "key": "include-pua",
+      "argumentType": "keyValue",
+      "shortDescription": "Load PUA sigs of the specified category."
+    },
+    {
+      "id": "DetectStructured",
+      "displayName": "Detect Structured",
+      "key": "detect-structured",
+      "argumentType": "keyValue",
+      "shortDescription": "Detect structured data (SSN, Credit Card). Valid options: yes | no. Defaults to no."
+    },
+    {
+      "id": "StructuredSsnFormat",
+      "displayName": "Structured SSN Format",
+      "key": "structured-ssn-format",
+      "argumentType": "keyValue",
+      "shortDescription": "SSN format (0=normal,1=stripped,2=both)."
+    },
+    {
+      "id": "StructuredSsnCount",
+      "displayName": "Structured SSN Count",
+      "key": "structured-ssn-count",
+      "argumentType": "keyValue",
+      "shortDescription": "Min SSN count to generate a detect."
+    },
+    {
+      "id": "StructuredCcCount",
+      "displayName": "Structured CC Count",
+      "key": "structured-cc-count",
+      "argumentType": "keyValue",
+      "shortDescription": "Min CC count to generate a detect."
+    },
+    {
+      "id": "ScanMail",
+      "displayName": "Scan Mail",
+      "key": "scan-mail",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan mail files. Valid options: yes | no. Defaults to yes."
+    },
+    {
+      "id": "PhishingSigs",
+      "displayName": "Phishing Signatures",
+      "key": "phishing-sigs",
+      "argumentType": "keyValue",
+      "shortDescription": "Signature-based phishing detection. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "PhishingScanUrls",
+      "displayName": "Phishing Scan Urls",
+      "key": "phishing-scan-urls",
+      "argumentType": "keyValue",
+      "shortDescription": "URL-based phishing detection. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "HeuristicScanPrecedence",
+      "displayName": "Heuristic Scan Precedence",
+      "key": "heuristic-scan-precedence",
+      "argumentType": "keyValue",
+      "shortDescription": "Stop scanning as soon as a heuristic match is found. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "PhishingSsl",
+      "displayName": "Phishing SSL",
+      "key": "phishing-ssl",
+      "argumentType": "keyValue",
+      "shortDescription": "Always block SSL mismatches in URLs (phishing module). Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "PhishingCloak",
+      "displayName": "Phishing Cloak",
+      "key": "phishing-cloak",
+      "argumentType": "keyValue",
+      "shortDescription": "Always block cloaked URLs (phishing module). Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "PartitionIntersection",
+      "displayName": "Partition Intersection",
+      "key": "partition-intersection",
+      "argumentType": "keyValue",
+      "shortDescription": "Detect partition intersections in raw disk images using heuristics. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "AlgorithmicDetection",
+      "displayName": "Algorithmic Detection",
+      "key": "algorithmic-detection",
+      "argumentType": "keyValue",
+      "shortDescription": "Algorithmic detection. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanPE",
+      "displayName": "Scan PE",
+      "key": "scan-pe",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan PE files. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanElf",
+      "displayName": "Scan ELF",
+      "key": "scan-elf",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan ELF files. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanOle2",
+      "displayName": "Scan OLE2",
+      "key": "scan-ole2",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan OLE2 containers. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanPdf",
+      "displayName": "Scan PDF",
+      "key": "scan-pdf",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan PDF files. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanSwf",
+      "displayName": "Scan SWF",
+      "key": "scan-swf",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan SWF files. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanHtml",
+      "displayName": "Scan HTML",
+      "key": "scan-html",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan HTML files. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanXmlDocs",
+      "displayName": "Scan XML Docs",
+      "key": "scan-xmldocs",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan xml-based document files. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanHwp3",
+      "displayName": "Scan HWP3",
+      "key": "scan-hwp3",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan HWP3 files. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "ScanArchive",
+      "displayName": "Scan Archive",
+      "key": "scan-archive",
+      "argumentType": "keyValue",
+      "shortDescription": "Scan archive files (supported by libclamav). Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "DetectBroken",
+      "displayName": "Detect Broken Executables",
+      "key": "detect-broken",
+      "argumentType": "keyValue",
+      "shortDescription": "Try to detect broken executable files. Valid options: yes | no.",
+      "default": "no"
+    },
+    {
+      "id": "BlockEncrypted",
+      "displayName": "Block Encrypted Archives",
+      "key": "block-encrypted",
+      "argumentType": "keyValue",
+      "shortDescription": "Block encrypted archives. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "BlockMacros",
+      "displayName": "Block Macros",
+      "key": "block-macros",
+      "argumentType": "keyValue",
+      "shortDescription": "Block OLE2 files with VBA macros. Valid options: yes | no.",
+      "default": "yes"
+    },
+    {
+      "id": "NoCerts",
+      "displayName": "No Certs",
+      "key": "nocerts",
+      "argumentType": "switch",
+      "shortDescription": "Disable authenticode certificate chain verification in PE files."
+    },
+    {
+      "id": "DumpCerts",
+      "displayName": "Dump Certs",
+      "key": "dumpcerts",
+      "argumentType": "switch",
+      "shortDescription": "Dump authenticode certificate chain in PE files."
+    },
+    {
+      "id": "MaxFileSize",
+      "displayName": "Max File Size",
+      "key": "max-filesize",
+      "argumentType": "keyValue",
+      "shortDescription": "Files larger than this will be skipped and assumed clean.",
+      "default": "100m"
+    },
+    {
+      "id": "MaxScanSize",
+      "displayName": "Max Scan Size",
+      "key": "max-scansize",
+      "argumentType": "keyValue",
+      "shortDescription": "The maximum amount of data to scan for each container file.",
+      "default": "1024m"
+    },
+    {
+      "id": "MaxFiles",
+      "displayName": "Max Files",
+      "key": "max-files",
+      "argumentType": "keyValue",
+      "shortDescription": "The maximum number of files to scan for each container file.",
+      "default": "10000"
+    },
+    {
+      "id": "MaxRecursion",
+      "displayName": "Max Recursion",
+      "key": "max-recursion",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum archive recursion level for container file.",
+      "default": "64"
+    },
+    {
+      "id": "MaxDirRecursion",
+      "displayName": "Max Directory Recursion",
+      "key": "max-dir-recursion",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum directory recursion level.",
+      "default": "64"
+    },
+    {
+      "id": "MaxEmbeddedPE",
+      "displayName": "Max Embedded PE",
+      "key": "max-embeddedpe",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum size file to check for embedded PE.",
+      "default": "100m"
+    },
+    {
+      "id": "MaxHtmlNormalize",
+      "displayName": "Max HTML Normalize",
+      "key": "max-htmlnormalize",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum size of HTML file to normalize.",
+      "default": "100m"
+    },
+    {
+      "id": "MaxHtmlNoTags",
+      "displayName": "Max HTML No Tags",
+      "key": "max-htmlnotags",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum size of normalized HTML file to scan.",
+      "default": "100m"
+    },
+    {
+      "id": "MaxScriptNormalize",
+      "displayName": "Max Script Normalize",
+      "key": "max-scriptnormalize",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum size of script file to normalize.",
+      "default": "100m"
+    },
+    {
+      "id": "MaxZipTypercg",
+      "displayName": "Max Zip Type rcg",
+      "key": "max-ziptypercg",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum size zip to type reanalyze.",
+      "default": "10m"
+    },
+    {
+      "id": "MaxPartitions",
+      "displayName": "Max Partitions",
+      "key": "max-partitions",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum number of partitions in disk image to be scanned.",
+      "default": "64"
+    },
+    {
+      "id": "MaxIconsPE",
+      "displayName": "Max Icons PE",
+      "key": "max-iconspe",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum number of icons in PE file to be scanned.",
+      "default": "256"
+    },
+    {
+      "id": "MaxRecHWP3",
+      "displayName": "Max Recursive HWP3",
+      "key": "max-rechwp3",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum recursive calls to HWP3 parsing function.",
+      "default": "32"
+    },
+    {
+      "id": "PcreMatchLimit",
+      "displayName": "PCRE Match Limit",
+      "key": "pcre-match-limit",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum calls to the PCRE match function.",
+      "default": "16000"
+    },
+    {
+      "id": "PcreRecMatchLimit",
+      "displayName": "PCRE Recursive Match Limit",
+      "key": "pcre-recmatch-limit",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum recursive calls to the PCRE match function."
+    },
+    {
+      "id": "PcreMaxFileSize",
+      "displayName": "PCRE Max File Size",
+      "key": "pcre-max-filesize",
+      "argumentType": "keyValue",
+      "shortDescription": "Maximum size file to perform PCRE subsig matching.",
+      "default": "100m"
+    },
+    {
+      "id": "EnableStats",
+      "displayName": "Enable Stats",
+      "key": "enable-stats",
+      "argumentType": "switch",
+      "shortDescription": "Enable statistical reporting of malware."
+    },
+    {
+      "id": "DisablePeStats",
+      "displayName": "Disable PE Stats",
+      "key": "disable-pe-stats",
+      "argumentType": "switch",
+      "default": true,
+      "shortDescription": "Disable submission of individual PE sections in stats submissions."
+    },
+    {
+      "id": "StatsTimeout",
+      "displayName": "Stats Timeout",
+      "key": "stats-timeout",
+      "argumentType": "keyValue",
+      "shortDescription": "Number of seconds to wait for waiting a response back from the stats server."
+    },
+    {
+      "id": "StatsHostId",
+      "displayName": "Stats Host ID",
+      "key": "stats-host-id",
+      "argumentType": "keyValue",
+      "shortDescription": "Set the Host ID used when submitting statistical info."
+    },
+    {
+      "id": "DisableCache",
+      "displayName": "Disable Cache",
+      "key": "disable-cache",
+      "argumentType": "switch",
+      "shortDescription": "Disable caching and cache checks for hash sums of scanned files."
+    },
+    {
+      "id": "Target",
+      "displayName": "Target",
+      "argumentType": "positional",
+      "default": "./",
+      "required": true,
+      "sortOrder": 1
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": "=",
+    "argumentPrefix": "--",
+    "aliasPrefix": "-",
+    "helpArgumentId": "Help",
+    "targetArgumentId": "Target",
+    "outputArgumentId": "Output"
+  },
+  "outputExtension": "log",
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+    "1": "Malware found.",
+    "2": "No malware was found but some error(s) occured."
+  },
+  "errorHelperMessage": "Please refer to https://www.clamav.net/documents for more info.",
+  "supportsBugFiling": false,
+  "applicability": [
+    {
+      "conditions": [
+        {
+          "type": "Always"
+        }
+      ]
+    }
+  ],
+  "converterInfo": {
+    "logFileConverters": {
+      "clamav": {
+        "converterName": "ClamAVConverter"
+      }
+    }
+  }
+}

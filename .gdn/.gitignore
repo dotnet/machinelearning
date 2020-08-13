@@ -1,0 +1,7 @@
+﻿## Ignore Guardian internal files
+.r/
+i/
+p/
+
+## Ignore Guardian Local settings
+LocalSettings.gdn.json
