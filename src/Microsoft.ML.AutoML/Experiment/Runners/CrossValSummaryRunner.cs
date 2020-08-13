@@ -158,7 +158,7 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// return the index of value from <paramref name="values"/> that closest to <paramref name="average"/>. If <paramref name="average"/> is non, +/- inf, the first, max/min value's index will be return.
+        /// return the index of value from <paramref name="values"/> that closest to <paramref name="average"/>. If <paramref name="average"/> is NaN, +/- inf, the first, max/min value's index will be return.
         /// </summary>
         private static int GetIndexClosestToAverage(IEnumerable<double> values, double average)
         {
@@ -171,7 +171,7 @@ namespace Microsoft.ML.AutoML
             if (double.IsPositiveInfinity(average))
                 return values.ToList().IndexOf(values.Max());
 
-            // Return the max value's index if average is positive inf.
+            // Return the min value's index if average is negative inf.
             if (double.IsNegativeInfinity(average))
                 return values.ToList().IndexOf(values.Min());
 
