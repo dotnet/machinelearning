@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
     /// and how to run it on a GPU.
     /// </summary>
-    public sealed class OnnxTransformer : RowToRowTransformerBase
+    public sealed class OnnxTransformer : RowToRowTransformerBase, IDisposable
     {
         /// <summary>
         /// A class used for capturing shape information from command line.
@@ -351,6 +351,15 @@ namespace Microsoft.ML.Transforms.Onnx
         internal int MapDataViewColumnToOnnxOutputTensor(int iinfo)
         {
             return Model.ModelInfo.OutputNames.IndexOf(Outputs[iinfo]);
+        }
+
+        private bool _isDisposed;
+        public void Dispose()
+        {
+            if (_isDisposed)
+                return;
+            Model?.Dispose();
+            _isDisposed = true;
         }
 
         private sealed class Mapper : MapperBase
