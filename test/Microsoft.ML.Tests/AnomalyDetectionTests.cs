@@ -174,10 +174,10 @@ namespace Microsoft.ML.Tests
         }
 
 
-        /// <summary>
-        /// Help function used to execute trainers defined in <see cref="RandomizedPcaInMemory"/>.
-        /// </summary>
-        private static void ExecuteRandomizedPcaTrainerChangeThreshold(MLContext mlContext, Trainers.RandomizedPcaTrainer trainer)
+            /// <summary>
+            /// Help function used to execute trainers defined in <see cref="RandomizedPcaInMemory"/>.
+            /// </summary>
+            private static void ExecuteRandomizedPcaTrainerChangeThreshold(MLContext mlContext, Trainers.RandomizedPcaTrainer trainer)
         {
             var samples = new List<DataPoint>()
             {
@@ -250,6 +250,45 @@ namespace Microsoft.ML.Tests
 
             var model = trainer.Fit(trainData);
             return model.Transform(testData);
+        }
+
+        /// <summary>
+        /// Check that when PCA created invalid eigenvectors with NaNs a readable exception message is thrown.
+        /// </summary>
+        [Fact]
+
+        public void PcaTrainerInvalidEigenvectorsException()
+        {
+            var mlContext = new MLContext(seed: 0);
+
+            var trainer = mlContext.AnomalyDetection.Trainers.RandomizedPca(
+                featureColumnName: nameof(DataPoint.Features), rank: 3);
+
+            var samples = new List<DataPoint>()
+            {
+                new DataPoint(){ Features = new float[3] {1, 0, 2} },
+                new DataPoint(){ Features = new float[3] {2, 0, 4} },
+                new DataPoint(){ Features = new float[3] {4, 0, 8} },
+                new DataPoint(){ Features = new float[3] {8, 0, 16} }
+            };
+
+            var data = mlContext.Data.LoadFromEnumerable(samples);
+
+            bool exceptionThrown = false;
+            try
+            {
+                // Since we provided a dataset where all rows are linearly dependent,
+                // the PCA algorithm will likely fail when extracting 3 eigenvectors
+                // and produce eigenvectors with NaN.
+                var model = trainer.Fit(data);
+            }
+            catch(ArgumentOutOfRangeException ex)
+            {
+                exceptionThrown = true;
+                Assert.Contains("The learnt eigenvectors contained NaN values", ex.Message);
+            }
+
+            Assert.True(exceptionThrown);
         }
     }
 }
