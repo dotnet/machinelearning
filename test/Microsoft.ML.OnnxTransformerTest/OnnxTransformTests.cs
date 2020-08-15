@@ -259,6 +259,8 @@ namespace Microsoft.ML.Tests
                 }
                 Assert.Equal(4, numRows);
             }
+            (model as IDisposable)?.Dispose();
+            File.Delete(tempPath);
         }
 
         [OnnxFact]
