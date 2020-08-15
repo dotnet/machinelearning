@@ -744,6 +744,9 @@ namespace Microsoft.ML.Transforms.Onnx
     ///
     /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
     ///
+    /// Internally, OnnxTransformer (the return value of OnnxScoringEstimator.Fit()) holds a reference to an inference session which points to unmanaged memory owned by OnnxRuntime.dll.
+    /// Whenever there is a call to [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*) in a pipeline, it is advised to cast the return value of the Fit() call to IDisposable and call Dispose() to ensure that there are no memory leaks.
+    ///
     /// OnnxRuntime works on Windows, MacOS and Ubuntu 16.04 Linux 64-bit platforms.
     /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.
     /// Refer to [ONNX](http://onnx.ai) for more information.
