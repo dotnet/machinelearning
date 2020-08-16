@@ -817,6 +817,7 @@ namespace Microsoft.ML.Tests
                     CompareResults("Score", "Score", transformedData, onnxResult, isRightColumnOnnxScalar: true);
                     CompareResults("Probability", "Probability", transformedData, onnxResult, isRightColumnOnnxScalar: true);
                     CompareResults("PredictedLabel", "PredictedLabel", transformedData, onnxResult, isRightColumnOnnxScalar: true);
+                    (onnxTransformer as IDisposable)?.Dispose();
                 }
                 CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             }
@@ -976,6 +977,7 @@ namespace Microsoft.ML.Tests
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
                     CompareResults("pca", "pca", transformedData, onnxResult);
+                    (onnxTransformer as IDisposable)?.Dispose();
                 }
             }
             Done();
@@ -1351,6 +1353,7 @@ namespace Microsoft.ML.Tests
                     var onnxSlotNames = onnxSlots.DenseValues().ToList();
                     for (int j = 0; j < mlNetSlots.Length; j++)
                         Assert.Equal(mlNetSlotNames[j].ToString(), onnxSlotNames[j].ToString());
+                    (onnxTransformer as IDisposable)?.Dispose();
                 }
             }
             Done();
@@ -1456,6 +1459,7 @@ namespace Microsoft.ML.Tests
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
                 CompareResults("Label", "Label", outputData, onnxResult, isRightColumnOnnxScalar: true);
+                (onnxTransformer as IDisposable)?.Dispose();
             }
             Done();
         }
@@ -1586,7 +1590,8 @@ namespace Microsoft.ML.Tests
             {
                 // Step 5: Apply Onnx Model
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
-                var onnxResult = onnxEstimator.Fit(reloadedData).Transform(reloadedData);
+                var onnxTransformer = onnxEstimator.Fit(reloadedData);
+                var onnxResult = onnxTransformer.Transform(reloadedData);
 
                 // Step 6: Compare results to an onnx model created using the mappedData IDataView
                 // Notice that this ONNX model would actually include the steps to do the ValueToKeyTransformer mapping,
@@ -1598,7 +1603,8 @@ namespace Microsoft.ML.Tests
                 using (FileStream stream = new FileStream(onnxModelPath2, FileMode.Create))
                     mlContext.Model.ConvertToOnnx(model, mappedData, stream);
                 var onnxEstimator2 = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath2);
-                var onnxResult2 = onnxEstimator2.Fit(originalData).Transform(originalData);
+                var onnxTransformer2 = onnxEstimator2.Fit(originalData);
+                var onnxResult2 = onnxTransformer2.Transform(originalData);
 
                 var stdSuffix = ".output";
                 foreach (var name in outputNames)
@@ -1607,6 +1613,8 @@ namespace Microsoft.ML.Tests
                     var colName = name.Replace(stdSuffix, "");
                     CompareResults(colName, colName, onnxResult, onnxResult2);
                 }
+                (onnxTransformer as IDisposable)?.Dispose();
+                (onnxTransformer2 as IDisposable)?.Dispose();
             }
 
             Done();
@@ -2035,6 +2043,7 @@ namespace Microsoft.ML.Tests
                 {
                     CompareResults(column.Name, column.Name, transformedData, onnxResult, column.Precision, true);
                 }
+                (onnxTransformer as IDisposable)?.Dispose();
             }
         }
 
