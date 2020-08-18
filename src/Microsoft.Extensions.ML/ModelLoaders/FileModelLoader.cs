@@ -105,13 +105,37 @@ namespace Microsoft.Extensions.ML
             return _model;
         }
 
+        public bool IsFileLocked(string filePath)
+        {
+            try
+            {
+                using (File.Open(filePath, FileMode.Open)) { }
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         //internal virtual for testing purposes.
         internal virtual void LoadModel()
         {
+            int waitCount = 0;
+            int maxWaitCount = 100;
+
             //Sleep to avoid some file system locking issues
-            //TODO: The same thing occurs in configuration reload
-            //we should make sure the sleeps are the same.
-            Thread.Sleep(50);
+            while (IsFileLocked(_filePath))
+            {
+                Thread.Sleep(50);
+                waitCount++;
+
+                if(waitCount >= maxWaitCount)
+                {
+                    throw new IOException($"Model file {_filePath} still got locked after 5 seconds, fail to reload.");
+                }
+            }
             using (var fileStream = File.OpenRead(_filePath))
             {
                 _model = _context.Model.Load(fileStream, out _);
