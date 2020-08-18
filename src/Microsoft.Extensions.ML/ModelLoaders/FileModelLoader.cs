@@ -105,40 +105,39 @@ namespace Microsoft.Extensions.ML
             return _model;
         }
 
-        public bool IsFileLocked(string filePath)
+        private FileStream WaitForFile(string fullPath, FileMode mode, FileAccess access, FileShare share)
         {
-            try
+            for (int numTries = 0; numTries < 100; numTries++)
             {
-                using (File.Open(filePath, FileMode.Open)) { }
-            }
-            catch (IOException)
-            {
-                return true;
+                FileStream fs = null;
+                try
+                {
+                    fs = new FileStream(fullPath, mode, access, share);
+                    return fs;
+                }
+                catch (IOException)
+                {
+                    if (fs != null)
+                    {
+                        fs.Dispose();
+                    }
+                    Thread.Sleep(50);
+                }
             }
 
-            return false;
+            return null;
         }
 
         //internal virtual for testing purposes.
         internal virtual void LoadModel()
         {
-            int waitCount = 0;
-            int maxWaitCount = 100;
+            var fs = WaitForFile(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (fs == null)
+                throw new IOException($"Model file {_filePath} still got locked after 5 seconds, fail to reload.");
 
-            //Sleep to avoid some file system locking issues
-            while (IsFileLocked(_filePath))
+            using (fs)
             {
-                Thread.Sleep(50);
-                waitCount++;
-
-                if(waitCount >= maxWaitCount)
-                {
-                    throw new IOException($"Model file {_filePath} still got locked after 5 seconds, fail to reload.");
-                }
-            }
-            using (var fileStream = File.OpenRead(_filePath))
-            {
-                _model = _context.Model.Load(fileStream, out _);
+                _model = _context.Model.Load(fs, out _);
             }
         }
 
