@@ -144,7 +144,7 @@ namespace Microsoft.ML.TimeSeries
             {
                 foreach (KeyValuePair<string, Object> item in Dimension)
                 {
-                    if (!other.Dimension[item.Key].Equals(item.Value))
+                    if (!Object.Equals(other.Dimension[item.Key], item.Value))
                     {
                         return false;
                     }
@@ -217,7 +217,7 @@ namespace Microsoft.ML.TimeSeries
         {
             foreach (KeyValuePair<string, Object> item in Dimension)
             {
-                if (!other.Dimension[item.Key].Equals(item.Value))
+                if (!Object.Equals(other.Dimension[item.Key], item.Value))
                 {
                     return false;
                 }
