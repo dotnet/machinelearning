@@ -40,7 +40,7 @@ namespace Microsoft.ML.TimeSeries
             dst.Items = new List<RootCauseItem>();
 
             DimensionInfo dimensionInfo = SeparateDimension(src.AnomalyDimension, src.AggregateSymbol);
-            Tuple<PointTree, PointTree, Dictionary<Dictionary<string, Object>, TimeSeriesPoint>> pointInfo = GetPointsInfo(src, dimensionInfo);
+            Tuple<PointTree, PointTree, Dictionary<Dictionary<string, object>, TimeSeriesPoint>> pointInfo = GetPointsInfo(src, dimensionInfo);
             PointTree pointTree = pointInfo.Item1;
             PointTree anomalyTree = pointInfo.Item2;
             Dictionary<Dictionary<string, Object>, TimeSeriesPoint> dimPointMapping = pointInfo.Item3;
@@ -69,7 +69,7 @@ namespace Microsoft.ML.TimeSeries
             foreach (KeyValuePair<string, Object> entry in dimensions)
             {
                 string key = entry.Key;
-                if (Object.Equals(aggSymbol, entry.Value))
+                if (object.Equals(aggSymbol, entry.Value))
                 {
                     info.AggDims.Add(key);
                 }
@@ -82,12 +82,12 @@ namespace Microsoft.ML.TimeSeries
             return info;
         }
 
-        private Tuple<PointTree, PointTree, Dictionary<Dictionary<string, Object>, TimeSeriesPoint>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo)
+        private Tuple<PointTree, PointTree, Dictionary<Dictionary<string, object>, TimeSeriesPoint>> GetPointsInfo(RootCauseLocalizationInput src, DimensionInfo dimensionInfo)
         {
             PointTree pointTree = new PointTree();
             PointTree anomalyTree = new PointTree();
             DimensionComparer dc = new DimensionComparer();
-            Dictionary<Dictionary<string, Object>, TimeSeriesPoint> dimPointMapping = new Dictionary<Dictionary<string, Object>, TimeSeriesPoint>(dc);
+            Dictionary<Dictionary<string, object>, TimeSeriesPoint> dimPointMapping = new Dictionary<Dictionary<string, object>, TimeSeriesPoint>(dc);
 
             List<TimeSeriesPoint> totalPoints = GetTotalPointsForAnomalyTimestamp(src);
             Dictionary<string, Object> subDim = GetSubDim(src.AnomalyDimension, dimensionInfo.DetailDims);
@@ -118,7 +118,7 @@ namespace Microsoft.ML.TimeSeries
 
         protected Dictionary<string, Object> GetSubDim(Dictionary<string, Object> dimension, List<string> keyList)
         {
-            return new Dictionary<string, Object>(keyList.Select(dim => new KeyValuePair<string, Object>(dim, dimension[dim])).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+            return new Dictionary<string, object>(keyList.Select(dim => new KeyValuePair<string, object>(dim, dimension[dim])).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
         }
 
         private List<RootCauseItem> LocalizeRootCauseByDimension(PointTree anomalyTree, PointTree pointTree, Dictionary<string, Object> anomalyDimension, List<string> aggDims)
@@ -691,7 +691,7 @@ namespace Microsoft.ML.TimeSeries
         {
             foreach (var item in smallDictionary)
             {
-                if (!bigDictionary.ContainsKey(item.Key) || !Object.Equals(bigDictionary[item.Key], smallDictionary[item.Key]))
+                if (!bigDictionary.ContainsKey(item.Key) || !object.Equals(bigDictionary[item.Key], smallDictionary[item.Key]))
                 {
                     return false;
                 }
@@ -702,7 +702,7 @@ namespace Microsoft.ML.TimeSeries
 
         private bool IsAggregationDimension(Object val, Object aggSymbol)
         {
-            return Object.Equals(val, aggSymbol);
+            return object.Equals(val, aggSymbol);
         }
     }
 
@@ -743,7 +743,7 @@ namespace Microsoft.ML.TimeSeries
             PointDis = new Dictionary<string, int>();
         }
 
-        public int CompareTo(Object obj)
+        public int CompareTo(object obj)
         {
             if (obj == null) return 1;
 
@@ -767,9 +767,9 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    internal class DimensionComparer : EqualityComparer<Dictionary<string, Object>>
+    internal class DimensionComparer : EqualityComparer<Dictionary<string, object>>
     {
-        public override bool Equals(Dictionary<string, Object> x, Dictionary<string, Object> y)
+        public override bool Equals(Dictionary<string, object> x, Dictionary<string, object> y)
         {
             if (x == null && y == null)
             {
@@ -793,7 +793,7 @@ namespace Microsoft.ML.TimeSeries
             }
             foreach (var pair in x)
             {
-                if (!Object.Equals(pair.Value, y[pair.Key]))
+                if (!object.Equals(pair.Value, y[pair.Key]))
                 {
                     return false;
                 }
@@ -801,10 +801,10 @@ namespace Microsoft.ML.TimeSeries
             return true;
         }
 
-        public override int GetHashCode(Dictionary<string, Object> obj)
+        public override int GetHashCode(Dictionary<string, object> obj)
         {
             int code = 0;
-            foreach (KeyValuePair<string, Object> pair in obj)
+            foreach (KeyValuePair<string, object> pair in obj)
                 code = code ^ pair.GetHashCode();
             return code;
         }
