@@ -76,6 +76,29 @@ namespace Microsoft.Extensions.ML
             Assert.True(changed.WaitOne(AsyncTestHelper.UnexpectedTimeout), "FileLoader ChangeToken didn't fire before the allotted time.");
         }
 
+        [Fact]
+        public void fail_reload_model_file_lock()
+        {
+            var ex = Assert.ThrowsAny<IOException>(() => reload_model_fs_null());
+            Assert.Equal($"Model file {"testdata.txt"} still got locked after 5 seconds, fail to reload.", ex.Message);          
+        }
+
+        private void reload_model_fs_null()
+        {
+            var services = new ServiceCollection()
+                .AddOptions()
+                .AddLogging();
+            var sp = services.BuildServiceProvider();
+
+            var loaderUnderTest = ActivatorUtilities.CreateInstance<FileLoaderMockEmptyFileStream>(sp);
+
+            loaderUnderTest.Start("testdata.txt", true);
+            using AutoResetEvent changed = new AutoResetEvent(false);
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
+                        () => loaderUnderTest.GetReloadToken(),
+                        () => changed.Set());
+            File.WriteAllText("testdata.txt", "test");
+        }
 
         private class FileLoaderMock : FileModelLoader
         {
@@ -86,6 +109,19 @@ namespace Microsoft.Extensions.ML
 
             internal override void LoadModel()
             {
+            }
+        }
+
+        private class FileLoaderMockEmptyFileStream : FileModelLoader
+        {
+            public FileLoaderMockEmptyFileStream(IOptions<MLOptions> contextOptions, ILogger<FileModelLoader> logger)
+                : base(contextOptions, logger)
+            {
+            }
+
+            internal override FileStream WaitForFile(string fullPath, FileMode mode, FileAccess access, FileShare share)
+            {
+                return null;
             }
         }
 

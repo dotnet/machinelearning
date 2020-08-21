@@ -105,7 +105,7 @@ namespace Microsoft.Extensions.ML
             return _model;
         }
 
-        private FileStream WaitForFile(string fullPath, FileMode mode, FileAccess access, FileShare share)
+        internal virtual FileStream WaitForFile(string fullPath, FileMode mode, FileAccess access, FileShare share)
         {
             for (int numTries = 0; numTries < 100; numTries++)
             {
