@@ -98,9 +98,8 @@ namespace Microsoft.ML.Tests
         }
 
         private static Object _rootCauseAggSymbol = "##SUM##";
-        private static Object _rootCauseAggSymbolForIntDimValue = 0;
-        private static Object _rootCauseAggSymbolForNullDimValue = null;
-        private static Object _rootCauseAggSymbolForDiffDimValueType = "0";
+        private static int _rootCauseAggSymbolForIntDimValue = 0;
+        private static string _rootCauseAggSymbolForDiffDimValueType = "0";
 
 
         [Fact]
@@ -695,22 +694,29 @@ namespace Microsoft.ML.Tests
         public void RootCauseLocalizationForNullDimValue()
         {
             // Create an root cause localizatiom input
-            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension("UK", _rootCauseAggSymbolForNullDimValue), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints(_rootCauseAggSymbolForNullDimValue)) }, AggregateType.Sum, _rootCauseAggSymbolForNullDimValue);
+            object rootCauseAggSymbolForNullDimValue = null;
+            List<MetricSlice> slice = new List<MetricSlice> 
+            { 
+                new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints(rootCauseAggSymbolForNullDimValue)) 
+            };
+            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension("UK", rootCauseAggSymbolForNullDimValue), slice, AggregateType.Sum, rootCauseAggSymbolForNullDimValue);
 
             var ml = new MLContext(1);
             RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
 
             Assert.NotNull(rootCause);
-            Assert.Equal(1, (int)rootCause.Items.Count);
-            Assert.Equal(3, (int)rootCause.Items[0].Dimension.Count);
+            Assert.Single(rootCause.Items);
+            Assert.Equal(3, rootCause.Items[0].Dimension.Count);
             Assert.Equal(AnomalyDirection.Up, rootCause.Items[0].Direction);
-            Assert.Equal(1, (int)rootCause.Items[0].Path.Count);
+            Assert.Single(rootCause.Items[0].Path);
             Assert.Equal("DataCenter", rootCause.Items[0].Path[0]);
 
-            Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
-            expectedDim.Add("Country", "UK");
-            expectedDim.Add("DeviceType", _rootCauseAggSymbolForNullDimValue);
-            expectedDim.Add("DataCenter", "DC1");
+            Dictionary<string, object> expectedDim = new Dictionary<string, object> 
+            {
+                {"Country", "UK" },
+                {"DeviceType", rootCauseAggSymbolForNullDimValue },
+                {"DataCenter", "DC1" }
+            };
 
             foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
             {
@@ -718,7 +724,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        private static List<TimeSeriesPoint> GetRootCauseLocalizationPoints(Object aggSymbol)
+        private static List<TimeSeriesPoint> GetRootCauseLocalizationPoints(object aggSymbol)
         {
             List<TimeSeriesPoint> points = new List<TimeSeriesPoint>();
 
@@ -779,7 +785,7 @@ namespace Microsoft.ML.Tests
             return points;
         }
 
-        private static Dictionary<string, Object> GetRootCauseAnomalyDimension(Object val, Object aggSymbol)
+        private static Dictionary<string, Object> GetRootCauseAnomalyDimension(object val, object aggSymbol)
         {
             Dictionary<string, Object> dim = new Dictionary<string, Object>();
             dim.Add("Country", val);
@@ -798,22 +804,28 @@ namespace Microsoft.ML.Tests
         public void RootCauseLocalizationForIntDimValue()
         {
             // Create an root cause localizatiom input
-            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension(10, _rootCauseAggSymbolForIntDimValue), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPointsForIntDimValue()) }, AggregateType.Sum, _rootCauseAggSymbolForIntDimValue);
+            List<MetricSlice> slice = new List<MetricSlice>
+            {
+                new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPointsForIntDimValue())
+            };
+            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension(10, _rootCauseAggSymbolForIntDimValue), slice, AggregateType.Sum, _rootCauseAggSymbolForIntDimValue);
 
             var ml = new MLContext(1);
             RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
 
             Assert.NotNull(rootCause);
-            Assert.Equal(1, (int)rootCause.Items.Count);
-            Assert.Equal(3, (int)rootCause.Items[0].Dimension.Count);
+            Assert.Single(rootCause.Items);
+            Assert.Equal(3, rootCause.Items[0].Dimension.Count);
             Assert.Equal(AnomalyDirection.Up, rootCause.Items[0].Direction);
-            Assert.Equal(1, (int)rootCause.Items[0].Path.Count);
+            Assert.Single(rootCause.Items[0].Path);
             Assert.Equal("DataCenter", rootCause.Items[0].Path[0]);
 
-            Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
-            expectedDim.Add("Country", 10);
-            expectedDim.Add("DeviceType", _rootCauseAggSymbolForIntDimValue);
-            expectedDim.Add("DataCenter", 30);
+            Dictionary<string, int> expectedDim = new Dictionary<string, int>
+            {
+                {"Country", 10 },
+                {"DeviceType", _rootCauseAggSymbolForIntDimValue },
+                {"DataCenter", 30 }
+            };
 
             foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
             {
@@ -825,17 +837,21 @@ namespace Microsoft.ML.Tests
         public void RootCauseLocalizationForDiffDimValueType()
         {
             // Create an root cause localizatiom input
-            Dictionary<string, Object> expectedDim = GetRootCauseAnomalyDimension(10, _rootCauseAggSymbolForIntDimValue);
-            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), expectedDim, new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPointsForIntDimValue()) }, AggregateType.Sum, _rootCauseAggSymbolForDiffDimValueType);
+            Dictionary<string, object> expectedDim = GetRootCauseAnomalyDimension(10, _rootCauseAggSymbolForIntDimValue);
+            List<MetricSlice> slice = new List<MetricSlice> 
+            { 
+                new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPointsForIntDimValue()) 
+            };
+            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), expectedDim, slice, AggregateType.Sum, _rootCauseAggSymbolForDiffDimValueType);
 
             var ml = new MLContext(1);
             RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
 
             Assert.NotNull(rootCause);
-            Assert.Equal(1, (int)rootCause.Items.Count);
-            Assert.Equal(3, (int)rootCause.Items[0].Dimension.Count);
+            Assert.Single(rootCause.Items);
+            Assert.Equal(3, rootCause.Items[0].Dimension.Count);
             Assert.Equal(AnomalyDirection.Up, rootCause.Items[0].Direction);
-            Assert.Equal(0, (int)rootCause.Items[0].Path.Count);
+            Assert.Empty(rootCause.Items[0].Path);
 
             foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
             {
@@ -847,55 +863,55 @@ namespace Microsoft.ML.Tests
         {
             List<TimeSeriesPoint> points = new List<TimeSeriesPoint>();
 
-            Dictionary<string, Object> dic1 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic1 = new Dictionary<string, object>();
             dic1.Add("Country", 10);
             dic1.Add("DeviceType", 20);
             dic1.Add("DataCenter", 30);
             points.Add(new TimeSeriesPoint(200, 100, true, dic1));
 
-            Dictionary<string, Object> dic2 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic2 = new Dictionary<string, object>();
             dic2.Add("Country", 10);
             dic2.Add("DeviceType", 21);
             dic2.Add("DataCenter", 30);
             points.Add(new TimeSeriesPoint(1000, 100, true, dic2));
 
-            Dictionary<string, Object> dic3 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic3 = new Dictionary<string, object>();
             dic3.Add("Country", 10);
             dic3.Add("DeviceType", _rootCauseAggSymbolForIntDimValue);
             dic3.Add("DataCenter", 30);
             points.Add(new TimeSeriesPoint(1200, 200, true, dic3));
 
-            Dictionary<string, Object> dic4 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic4 = new Dictionary<string, object>();
             dic4.Add("Country", 10);
             dic4.Add("DeviceType", 20);
             dic4.Add("DataCenter", 31);
             points.Add(new TimeSeriesPoint(100, 100, false, dic4));
 
-            Dictionary<string, Object> dic5 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic5 = new Dictionary<string, object>();
             dic5.Add("Country", 10);
             dic5.Add("DeviceType", 21);
             dic5.Add("DataCenter", 31);
             points.Add(new TimeSeriesPoint(200, 200, false, dic5));
 
-            Dictionary<string, Object> dic6 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic6 = new Dictionary<string, object>();
             dic6.Add("Country", 10);
             dic6.Add("DeviceType", _rootCauseAggSymbolForIntDimValue);
             dic6.Add("DataCenter", 31);
             points.Add(new TimeSeriesPoint(300, 300, false, dic6));
 
-            Dictionary<string, Object> dic7 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic7 = new Dictionary<string, object>();
             dic7.Add("Country", 10);
             dic7.Add("DeviceType", _rootCauseAggSymbolForIntDimValue);
             dic7.Add("DataCenter", _rootCauseAggSymbolForIntDimValue);
             points.Add(new TimeSeriesPoint(1500, 500, true, dic7));
 
-            Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic8 = new Dictionary<string, object>();
             dic8.Add("Country", 10);
             dic8.Add("DeviceType", 20);
             dic8.Add("DataCenter", _rootCauseAggSymbolForIntDimValue);
             points.Add(new TimeSeriesPoint(300, 200, true, dic8));
 
-            Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
+            Dictionary<string, object> dic9 = new Dictionary<string, object>();
             dic9.Add("Country", 10);
             dic9.Add("DeviceType", 21);
             dic9.Add("DataCenter", _rootCauseAggSymbolForIntDimValue);
@@ -903,6 +919,5 @@ namespace Microsoft.ML.Tests
 
             return points;
         }
-
     }
 }
