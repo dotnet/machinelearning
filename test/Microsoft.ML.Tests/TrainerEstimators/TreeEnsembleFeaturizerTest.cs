@@ -538,7 +538,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestFastTreeRankingFeaturizationInPipeline()
         {
             int dataPointCount = 200;
-            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorUlongGroupIdSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
             dataView = ML.Data.Cache(dataView);
 

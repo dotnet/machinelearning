@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TimeSeries;
@@ -618,8 +619,7 @@ namespace Microsoft.ML.Tests
             var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName,
                 threshold: 0.35, batchSize: batchSize, sensitivity: 90.0, mode);
 
-            // Getting the data of the newly created column as an IEnumerable of
-            // SrCnnAnomalyDetection.
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
                 outputDataView, reuseRowObject: false);
 
@@ -663,6 +663,98 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        [Theory, CombinatorialData]
+        public void TestSrCnnAnomalyDetectorWithSeasonalData(
+            [CombinatorialValues(SrCnnDeseasonalityMode.Stl, SrCnnDeseasonalityMode.Mean, SrCnnDeseasonalityMode.Median)] SrCnnDeseasonalityMode mode)
+        {
+            var ml = new MLContext(1);
+            IDataView dataView;
+            var dataPath = GetDataPath("Timeseries", "period_no_anomaly.csv");
+
+            // Load data from file into the dataView
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+
+            // Setup the detection arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
+            // Do batch anomaly detection
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                Threshold = 0.3,
+                BatchSize = -1,
+                Sensitivity = 53.0,
+                DetectMode = SrCnnDetectMode.AnomalyAndMargin,
+                Period = 288,
+                DeseasonalityMode = mode
+            };
+
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, options);
+
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                outputDataView, reuseRowObject: false);
+
+            foreach (var prediction in predictionColumn)
+            {
+                Assert.Equal(7, prediction.Prediction.Length);
+                Assert.Equal(0, prediction.Prediction[0]);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void TestSrCnnAnomalyDetectorWithSeasonalAnomalyData(
+            [CombinatorialValues(SrCnnDeseasonalityMode.Stl, SrCnnDeseasonalityMode.Mean, SrCnnDeseasonalityMode.Median)] SrCnnDeseasonalityMode mode
+        )
+        {
+            var ml = new MLContext(1);
+            IDataView dataView;
+            var dataPath = GetDataPath("Timeseries", "period_anomaly.csv");
+
+            // Load data from file into the dataView
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+
+            // Setup the detection arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
+            // Do batch anomaly detection
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                Threshold = 0.23,
+                BatchSize = -1,
+                Sensitivity = 53.0,
+                DetectMode = SrCnnDetectMode.AnomalyAndMargin,
+                Period = 288,
+                DeseasonalityMode = mode
+            };
+
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, options);
+
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                outputDataView, reuseRowObject: false);
+
+            var anomalyStartIndex = 2988;
+            var anomalyEndIndex = 3095;
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                Assert.Equal(7, prediction.Prediction.Length);
+                if (anomalyStartIndex <= k && k <= anomalyEndIndex)
+                {
+                    Assert.Equal(1, prediction.Prediction[0]);
+                }
+                else
+                {
+                    Assert.Equal(0, prediction.Prediction[0]);
+                }
+
+                ++k;
+            }
+        }
+
         [Fact]
         public void RootCauseLocalization()
         {
@@ -685,6 +777,51 @@ namespace Microsoft.ML.Tests
             expectedDim.Add("DataCenter", "DC1");
 
             foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
+            {
+                Assert.Equal(expectedDim[pair.Key], pair.Value);
+            }
+        }
+
+        [Fact]
+        public void MultiDimensionalRootCauseLocalization()
+        {
+            // Create an root cause localizatiom input
+            var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension("UK", _rootCauseAggSymbol), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints(_rootCauseAggSymbol)) }, AggregateType.Sum, _rootCauseAggSymbol);
+
+            var ml = new MLContext(1);
+            List<RootCause> preparedCauses = ml.AnomalyDetection.LocalizeRootCauses(rootCauseLocalizationInput);
+
+            Assert.NotNull(preparedCauses);
+            Assert.Equal(2, preparedCauses.Count);
+
+            Assert.Equal(1, (int)preparedCauses[0].Items.Count);
+            Assert.Equal(3, (int)preparedCauses[0].Items[0].Dimension.Count);
+            Assert.Equal(AnomalyDirection.Up, preparedCauses[0].Items[0].Direction);
+            Assert.Equal(1, (int)preparedCauses[0].Items[0].Path.Count);
+            Assert.Equal("DataCenter", preparedCauses[0].Items[0].Path[0]);
+
+            Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
+            expectedDim.Add("Country", "UK");
+            expectedDim.Add("DeviceType", _rootCauseAggSymbol);
+            expectedDim.Add("DataCenter", "DC1");
+
+            foreach (KeyValuePair<string, object> pair in preparedCauses[0].Items[0].Dimension)
+            {
+                Assert.Equal(expectedDim[pair.Key], pair.Value);
+            }
+
+            Assert.Equal(1, (int)preparedCauses[1].Items.Count);
+            Assert.Equal(3, (int)preparedCauses[1].Items[0].Dimension.Count);
+            Assert.Equal(AnomalyDirection.Up, preparedCauses[1].Items[0].Direction);
+            Assert.Equal(1, (int)preparedCauses[1].Items[0].Path.Count);
+            Assert.Equal("DeviceType", preparedCauses[1].Items[0].Path[0]);
+
+            expectedDim = new Dictionary<string, Object>();
+            expectedDim.Add("Country", "UK");
+            expectedDim.Add("DeviceType", "Mobile");
+            expectedDim.Add("DataCenter", _rootCauseAggSymbol);
+
+            foreach (KeyValuePair<string, object> pair in preparedCauses[1].Items[0].Dimension)
             {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
             }
@@ -722,6 +859,29 @@ namespace Microsoft.ML.Tests
             {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
             }
+        }
+
+        [Theory]
+        [InlineData(-1, 6)]
+        [InlineData(60, 6)]
+        [InlineData(20, -1)]
+        public void TestDetectSeasonality(int seasonalityWindowSize, int expectedPeriod)
+        {
+            // Create a detect seasonality input: y = sin(2 * Pi + x)
+            var input = Enumerable.Range(0, 100).Select(x =>
+                new TimeSeriesDataDouble()
+                {
+                    Value = Math.Sin(2 * Math.PI + x),
+                });
+            foreach (var data in input)
+                Console.WriteLine(data.Value);
+            var mlContext = new MLContext();
+
+            var dataView = mlContext.Data.LoadFromEnumerable(input);
+            SeasonalityDetector seasonalityDetector = new SeasonalityDetector();
+
+            int period = mlContext.AnomalyDetection.DetectSeasonality(dataView, nameof(TimeSeriesDataDouble.Value), seasonalityWindowSize);
+            Assert.Equal(expectedPeriod, period);
         }
 
         private static List<TimeSeriesPoint> GetRootCauseLocalizationPoints(object aggSymbol)
@@ -768,19 +928,37 @@ namespace Microsoft.ML.Tests
             dic7.Add("Country", "UK");
             dic7.Add("DeviceType", aggSymbol);
             dic7.Add("DataCenter", aggSymbol);
-            points.Add(new TimeSeriesPoint(1500, 500, true, dic7));
+            points.Add(new TimeSeriesPoint(1800, 850, true, dic7));
 
             Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
             dic8.Add("Country", "UK");
             dic8.Add("DeviceType", "Laptop");
             dic8.Add("DataCenter", aggSymbol);
-            points.Add(new TimeSeriesPoint(300, 200, true, dic8));
+            points.Add(new TimeSeriesPoint(500, 450, false, dic8));
 
             Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
             dic9.Add("Country", "UK");
             dic9.Add("DeviceType", "Mobile");
             dic9.Add("DataCenter", aggSymbol);
-            points.Add(new TimeSeriesPoint(1200, 300, true, dic9));
+            points.Add(new TimeSeriesPoint(1300, 400, true, dic9));
+
+            Dictionary<string, Object> dic10 = new Dictionary<string, Object>();
+            dic10.Add("Country", "UK");
+            dic10.Add("DeviceType", "Mobile");
+            dic10.Add("DataCenter", "DC3");
+            points.Add(new TimeSeriesPoint(100, 100, false, dic10));
+
+            Dictionary<string, Object> dic11 = new Dictionary<string, Object>();
+            dic11.Add("Country", "UK");
+            dic11.Add("DeviceType", "Laptop");
+            dic11.Add("DataCenter", "DC3");
+            points.Add(new TimeSeriesPoint(200, 250, false, dic11));
+
+            Dictionary<string, Object> dic12 = new Dictionary<string, Object>();
+            dic12.Add("Country", "UK");
+            dic12.Add("DeviceType", aggSymbol);
+            dic12.Add("DataCenter", "DC3");
+            points.Add(new TimeSeriesPoint(300, 350, false, dic12));
 
             return points;
         }
@@ -847,16 +1025,7 @@ namespace Microsoft.ML.Tests
             var ml = new MLContext(1);
             RootCause rootCause = ml.AnomalyDetection.LocalizeRootCause(rootCauseLocalizationInput);
 
-            Assert.NotNull(rootCause);
-            Assert.Single(rootCause.Items);
-            Assert.Equal(3, rootCause.Items[0].Dimension.Count);
-            Assert.Equal(AnomalyDirection.Up, rootCause.Items[0].Direction);
-            Assert.Empty(rootCause.Items[0].Path);
-
-            foreach (KeyValuePair<string, object> pair in rootCause.Items[0].Dimension)
-            {
-                Assert.Equal(expectedDim[pair.Key], pair.Value);
-            }
+            Assert.Null(rootCause);
         }
 
         private static List<TimeSeriesPoint> GetRootCauseLocalizationPointsForIntDimValue()
@@ -903,19 +1072,37 @@ namespace Microsoft.ML.Tests
             dic7.Add("Country", 10);
             dic7.Add("DeviceType", _rootCauseAggSymbolForIntDimValue);
             dic7.Add("DataCenter", _rootCauseAggSymbolForIntDimValue);
-            points.Add(new TimeSeriesPoint(1500, 500, true, dic7));
+            points.Add(new TimeSeriesPoint(1800, 850, true, dic7));
 
             Dictionary<string, object> dic8 = new Dictionary<string, object>();
             dic8.Add("Country", 10);
             dic8.Add("DeviceType", 20);
             dic8.Add("DataCenter", _rootCauseAggSymbolForIntDimValue);
-            points.Add(new TimeSeriesPoint(300, 200, true, dic8));
+            points.Add(new TimeSeriesPoint(500, 450, false, dic8));
 
             Dictionary<string, object> dic9 = new Dictionary<string, object>();
             dic9.Add("Country", 10);
             dic9.Add("DeviceType", 21);
             dic9.Add("DataCenter", _rootCauseAggSymbolForIntDimValue);
-            points.Add(new TimeSeriesPoint(1200, 300, true, dic9));
+            points.Add(new TimeSeriesPoint(1300, 400, true, dic9));
+
+            Dictionary<string, object> dic10 = new Dictionary<string, object>();
+            dic10.Add("Country", 10);
+            dic10.Add("DeviceType", 21);
+            dic10.Add("DataCenter", 32);
+            points.Add(new TimeSeriesPoint(100, 100, false, dic10));
+
+            Dictionary<string, object> dic11 = new Dictionary<string, object>();
+            dic11.Add("Country", 10);
+            dic11.Add("DeviceType", 20);
+            dic11.Add("DataCenter", 32);
+            points.Add(new TimeSeriesPoint(200, 250, false, dic11));
+
+            Dictionary<string, object> dic12 = new Dictionary<string, object>();
+            dic12.Add("Country", 10);
+            dic12.Add("DeviceType", _rootCauseAggSymbolForIntDimValue);
+            dic12.Add("DataCenter", 32);
+            points.Add(new TimeSeriesPoint(300, 350, false, dic12));
 
             return points;
         }

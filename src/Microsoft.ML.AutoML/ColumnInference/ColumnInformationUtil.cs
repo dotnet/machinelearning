@@ -21,6 +21,11 @@ namespace Microsoft.ML.AutoML
                 return ColumnPurpose.Weight;
             }
 
+            if (columnName == columnInfo.GroupIdColumnName)
+            {
+                return ColumnPurpose.GroupId;
+            }
+
             if (columnName == columnInfo.SamplingKeyColumnName)
             {
                 return ColumnPurpose.SamplingKey;
@@ -49,11 +54,6 @@ namespace Microsoft.ML.AutoML
             if (columnName == columnInfo.UserIdColumnName)
             {
                 return ColumnPurpose.UserId;
-            }
-
-            if (columnName == columnInfo.GroupIdColumnName)
-            {
-                return ColumnPurpose.GroupId;
             }
 
             if (columnName == columnInfo.ItemIdColumnName)

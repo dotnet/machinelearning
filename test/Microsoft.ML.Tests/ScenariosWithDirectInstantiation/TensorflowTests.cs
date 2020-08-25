@@ -1489,7 +1489,6 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
-
             TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
         }
 
@@ -1521,6 +1520,8 @@ namespace Microsoft.ML.Scenarios
             var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
                 workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, _finalImagesFolderName);
 
+            float[] crossEntropyTraining = new float[epoch];
+            float[] crossEntropyValidation = new float[epoch];
             var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
@@ -1532,7 +1533,30 @@ namespace Microsoft.ML.Scenarios
                 Epoch = epoch,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metric) => Console.WriteLine(metric),
+                MetricsCallback = (metric) =>
+                {
+                    if (metric.Train != null)
+                    {
+                        // Check that cross validation rates during both the training and validation phases are decreasing and are sensible
+                        if (metric.Train.DatasetUsed == ImageClassificationTrainer.ImageClassificationMetrics.Dataset.Train)
+                        {
+                            // Save cross entropy values in training phase
+                            crossEntropyTraining[metric.Train.Epoch] = metric.Train.CrossEntropy;
+                            // Check that cross entropy values over each epoch-per-decay are decreasing in training phase
+                            if (metric.Train.Epoch > 0)
+                                Assert.True(crossEntropyTraining[metric.Train.Epoch - 1] > crossEntropyTraining[metric.Train.Epoch]);
+                        }
+                        else
+                        {
+                            // Save cross entropy values in validation phase
+                            crossEntropyValidation[metric.Train.Epoch] = metric.Train.CrossEntropy;
+                            // Check that cross entropy values over each epoch-per-decay are decreasing in validation phase
+                            if (metric.Train.Epoch > 0)
+                                Assert.True(crossEntropyValidation[metric.Train.Epoch - 1] > crossEntropyValidation[metric.Train.Epoch]);
+                        }
+                    }
+                    Console.WriteLine(metric);
+                },
                 ValidationSet = validationSet,
                 WorkspacePath = workspacePath,
                 TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
@@ -1899,6 +1923,41 @@ namespace Microsoft.ML.Scenarios
             string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);
             return tempDirectory;
+        }
+
+        [TensorFlowFact]
+        public void TensorflowPlaceholderShapeInferenceTest()
+        {
+            //frozen_model_variadic_input_shape.pb is modified by frozen_model.pb 
+            //the shape of placeholder is changed from [?, w, h, c] to [?, ?, ?, c]
+            string modelLocation = "cifar_model/frozen_model_variadic_input_shape.pb";
+
+            int imageHeight = 32;
+            int imageWidth = 32;
+            string dataFile = GetDataPath("images/images.tsv");
+            string imageFolder = Path.GetDirectoryName(dataFile);
+
+            IDataView data = _mlContext.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
+
+            Tensorflow.TensorShape[] tfInputShape;
+
+            using (var tfModel = _mlContext.Model.LoadTensorFlowModel(modelLocation))
+            {
+                var pipeline = _mlContext.Transforms.LoadImages("Input", imageFolder, "imagePath")
+                    .Append(_mlContext.Transforms.ResizeImages("Input", imageHeight, imageWidth))
+                    .Append(_mlContext.Transforms.ExtractPixels("Input", interleavePixelColors: true))
+                    .Append(tfModel.ScoreTensorFlowModel("Output", "Input"));
+
+                var transformer = pipeline.Fit(data);
+
+                tfInputShape = transformer.LastTransformer.TFInputShapes;
+            }
+
+            Assert.Equal(imageHeight, tfInputShape.ElementAt(0)[1].dims[0]);
+            Assert.Equal(imageWidth, tfInputShape.ElementAt(0)[2].dims[0]);
         }
     }
 }

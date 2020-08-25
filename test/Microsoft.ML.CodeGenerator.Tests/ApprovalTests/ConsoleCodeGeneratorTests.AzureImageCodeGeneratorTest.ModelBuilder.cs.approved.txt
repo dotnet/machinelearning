@@ -11,8 +11,8 @@ namespace CodeGenTest.ConsoleApp
     public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"/path/to/dataset";
-        private static string MLNET_MODEL = @"/path/to/model";
-        private static string ONNX_MODEL = @"/path/to/onnxModel";
+        private static string MLNET_MODEL = ConsumeModel.MLNetModelPath;
+        private static string ONNX_MODEL = ConsumeModel.OnnxModelPath;
 
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
@@ -47,14 +47,8 @@ namespace CodeGenTest.ConsoleApp
             // 2. Map scores to labels to make model output easier to understand and use
             var pipeline = mlContext.Transforms.LoadImages("ImageSource_featurized", null, "ImageSource")
                                       .Append(mlContext.Transforms.ResizeImages("ImageSource_featurized", 224, 224, "ImageSource_featurized"))
-                                      .Append(mlContext.Transforms.ExtractPixels("ImageSource_featurized", "ImageSource_featurized"))
-                                      .Append(mlContext.Transforms.CustomMapping<NormalizeInput, NormalizeOutput>(
-                                          (input, output) => NormalizeMapping.Mapping(input, output),
-                                          contractName: nameof(NormalizeMapping)))
-                                      .Append(mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL))
-                                      .Append(mlContext.Transforms.CustomMapping<LabelMappingInput, LabelMappingOutput>(
-                                          (input, output) => LabelMapping.Mapping(input, output),
-                                          contractName: nameof(LabelMapping)));
+                                      .Append(mlContext.Transforms.ExtractPixels("input1", "ImageSource_featurized"))
+                                      .Append(mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL));
             return pipeline;
         }
 

@@ -57,9 +57,9 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        public RankingMetrics EvaluateMetrics(IDataView data, string labelColumn)
+        public RankingMetrics EvaluateMetrics(IDataView data, string labelColumn, string groupIdColumn)
         {
-            return _mlContext.Ranking.Evaluate(data, labelColumn);
+            return _mlContext.Ranking.Evaluate(data, labelColumn, groupIdColumn);
         }
     }
 }

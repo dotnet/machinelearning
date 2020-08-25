@@ -1,0 +1,337 @@
+{
+  "fileVersion": "1.1.2",
+  "name": "PoliCheck",
+  "fullName": "PoliCheck",
+  "toolVersion": "5.9.4",
+  "shortDescription": "A tool to scan text elements for sensitive terms in over 100 languages.",
+  "longDescription": "PoliCheck is used to scan code, code comments, and content, including web pages. Words may be sensitive for legal, cultural, or geopolitical reasons. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+  "links": {
+    "gettingStarted": "https://aka.ms/PoliCheck"
+  },
+  "executablePath": "tools\\PoliCheck.exe",
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+    "255": "The tool crashed. Please contact the tool owner for support."
+  },
+  "packages": [
+    {
+      "type": "nuget",
+      "name": "Microsoft.StaticAnalysis.PoliCheck",
+      "version": "5.9.4",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "Target",
+      "displayName": "Target",
+      "key": "F",
+      "argumentType": "keyValue",
+      "required": false,
+      "default": ".",
+      "shortDescription": "Specifies the scan type and target. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -200
+    },
+    {
+      "id": "ListFile",
+      "displayName": "List File",
+      "key": "FL",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies a list-file, list all target files to be scanned in a .txt file. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -200
+    },
+    {
+      "id": "TaskFile",
+      "displayName": "Task Definition File",
+      "key": "Task",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies a task definition file for tool scanning. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -200
+    },
+    {
+      "id": "ScanDatabase",
+      "displayName": "Scan Database Connection String",
+      "key": "dbscan",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies the connection string that is used to connect to a database to be scanned. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -200
+    },
+    {
+      "id": "ScanWebURL",
+      "displayName": "Scan Web URL",
+      "key": "W",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies the web target URL to be scanned. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -200
+    },
+    {
+      "id": "ScanRegistry",
+      "displayName": "Scan Registry",
+      "key": "R",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies the registry path to be scanned. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -200
+    },
+    {
+      "id": "ImportExceptions",
+      "displayName": "Import Exceptions",
+      "key": "ImportEx",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies the results file to be imported as exceptions. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -200
+    },
+    {
+      "id": "ExceptionNumber",
+      "displayName": "Exception Number",
+      "key": "EX",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies exception number (used with /ImportEx). Example: PoliCheck.exe /ImportEx:\"<Source Result File Path>\" [/rule:\"<Target Rule.mdb path>\"] /Ex:\"0|1|2\". See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -150
+    },
+    {
+      "id": "TermTables",
+      "displayName": "Term Tables",
+      "key": "T",
+      "argumentType": "multiKeyValue",
+      "required": false,
+      "multipleSeparator": ",",
+      "multipleKeyValueType": "concat",
+      "default": [ "9" ],
+      "shortDescription": "Selects the PoliCheck term table(s) to use. If multiple term tables, they are comma delimited (Example: 9,C:\\Personaltable\\Test.mdb). See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -100
+    },
+    {
+      "id": "Keywords",
+      "displayName": "Keywords",
+      "key": "K",
+      "argumentType": "multiKeyValue",
+      "required": false,
+      "multipleSeparator": ",",
+      "multipleKeyValueType": "concat",
+      "shortDescription": "Keyword search, comma delimited. Matches will be included in the log file with severity 15. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -100
+    },
+    {
+      "id": "LocaleCode",
+      "displayName": "Locale Code",
+      "key": "L",
+      "argumentType": "multiKeyValue",
+      "required": false,
+      "multipleSeparator": ",",
+      "multipleKeyValueType": "concat",
+      "shortDescription": "Uses locale code, comma delimited. Example: LocaleCode1,LocaleCode2. See https://aka.ms/PoliCheck for documentation on the command line parameters.",
+      "sortOrder": -100
+    },
+    {
+      "id": "ExcludeGlobalTermTable",
+      "displayName": "Exclude Global TermTable",
+      "key": "EXGT",
+      "argumentType": "switch",
+      "required": false,
+      "default": false,
+      "shortDescription": "Specifies the exclusion of global termtable for scan using Personal termtables and Keywords. By default the global termtable is included in the scan. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "OutputFile",
+      "displayName": "Output File",
+      "key": "O",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies the output file name. Valid formats are: *.xls, *.xlsx, *.xml. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "CommentScanning",
+      "displayName": "Comment Scanning",
+      "key": "FC",
+      "argumentType": "keyValue",
+      "required": false,
+      "default": "0",
+      "shortDescription": "To enable or disable source code comment scanning. By default, source code comment scanning is disabled. 0: disable; 1: enable. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "SubfolderScanning",
+      "displayName": "Subfolder Scanning",
+      "key": "XS",
+      "argumentType": "keyValue",
+      "required": false,
+      "default": "1",
+      "shortDescription": "To enable or disable sub folder(s) scanning. By default, sub folders scanning is enabled. 0: disable; 1: enable. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "ContextStringLength",
+      "displayName": "Context String Length",
+      "key": "CTGLEN",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Length of the context string in result (Range 100 - 400). Default is 200. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "Severity",
+      "displayName": "Severity",
+      "key": "SEV",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "By default, Sev 1 and Sev 2 are considered. Please note that only 1, 1|2, 1|2|3, 1|2|3|4 severity combinations are supported in PoliCheck. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "PersonalExclusions",
+      "displayName": "Personal Exclusions",
+      "key": "PE",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "To enable Personal Exclusions. 0-Disable all exclusions; 1-Enable Exclusions; 2-Enable Context Exception; 3-Enable File and Context Exception; 4-Enable File Exception. By default all exclusions are disabled. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "UserExclusionPath",
+      "displayName": "User Exclusion Path",
+      "key": "UEPATH",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Path to a custom user exclusions file. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "HistoryManagement",
+      "displayName": "History Management",
+      "key": "HMENABLE",
+      "argumentType": "keyValue",
+      "required": false,
+      "default": "0",
+      "shortDescription": "Enables or disables History Management. 0-History Management disabled; 1-History Management enabled. By default, History Management is disabled. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "HistoryPath",
+      "displayName": "History Path",
+      "key": "HPATH",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies the History Path, which is an absolute file path or absolute folder path. Note: /HPATH and /HVER are invalid if History Management is disabled. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "HistoryVersion",
+      "displayName": "History Version",
+      "key": "HVER",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies the History Version. Note: /HPATH and /HVER are invalid if History Management is disabled. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "RulesDatabasePath",
+      "displayName": "Rules Database Path",
+      "key": "RulesDBPath",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Path to a custom Rules database file. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "OptionsRule",
+      "displayName": "Options Rule",
+      "key": "Rule",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Database Path: Optional parameter to be used with /importEx, Database path specifies the Database where exceptions need to be imported. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "ExclusionClassNames",
+      "displayName": "Exclusion Class Names",
+      "key": "XCLASS",
+      "argumentType": "multiKeyValue",
+      "required": false,
+      "shortDescription": "Specifies Exclusion Classname(s). <classname> Exclude all terms whose term class is classname. Multiple term classes should be provided as a list. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "TaskName",
+      "displayName": "Task Name",
+      "key": "TASKNAME",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies name for the task. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "WorkingDirectory",
+      "displayName": "Working Directory",
+      "key": "WORKINGDIRECTORY",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "<absolute folder path> to the working directory. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "FileTypeSettings",
+      "displayName": "File Type Settings",
+      "key": "FTPATH",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Path to a custom File Type Settings file. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "RecursionLevel",
+      "displayName": "URL Recursion Level",
+      "key": "D",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies the recursion level to crawl the target url. The value should be between 0-100. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "BaselineInputs",
+      "displayName": "Baseline Inputs",
+      "key": "B1",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "To do baseline for the inputs - Term Name and LCID. Input should be in comma separated value as TermName,LCID. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "BaselineXmlFile",
+      "displayName": "Baseline Xml File",
+      "key": "B2",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "To do baseline for the input XML file. <file> Specifies the input file. Valid format is *.xml. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "BaselineTermId",
+      "displayName": "Baseline Term Id",
+      "key": "B3",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "To do baseline for the Term Id. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "ResultsFile",
+      "displayName": "Results File",
+      "key": "OCDB",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Custom Database Baseline. Specify the result file. Valid format is *.xml. See https://aka.ms/PoliCheck for documentation on the command line parameters."
+    },
+    {
+      "id": "Help",
+      "displayName": "Help",
+      "key": "?",
+      "argumentType": "switch",
+      "shortDescription": "Specifies details about the command line arguments for this tool."
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": ":",
+    "argumentPrefix": "/",
+    "aliasPrefix": "/",
+    "helpArgumentId": "Help",
+    "outputArgumentId": "OutputFile"
+  },
+  "outputExtension": "xml",
+  "supportsBugFiling": true,
+  "bugFilingFilter": "file|**\\*.xml",
+  "converterInfo": {
+    "logFileConverters": {
+      "policheck": {
+        "converterName": "PoliCheckConverter"
+      }
+    }
+  }
+}

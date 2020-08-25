@@ -1,0 +1,120 @@
+{
+  "fileVersion": "1",
+  "name": "CodeInspector",
+  "fullName": "CodeInspector",
+  "alternativeName": "CodeInspector",
+  "toolVersion": "1.0.12",
+  "shortDescription": "A regular expression tool for identifying code features.",
+  "longDescription": "A regular expression tool for identifying code features for use in 1CS assessments SDL tasks identification.",
+  "links": {
+    "gettingStarted": "aka.ms/appinspector"
+  },
+  "executablePath": "CodeInspector.exe",
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+    "1": "Argument exception.",
+    "2": "Log config or access fail.",
+    "3": "Success but with no matches.",
+    "4": "Scan failure detected for source.",
+    "5": "Network error preventing remote connection.",
+    "6": "Network error preventing scan upload.",
+    "7": "Unexpected exception."
+  },
+  "errorHelperMessage": "Unexpected exit code. Please check https://aka.ms/CodeInspector for more information.",
+  "packages": [
+    {
+      "type": "nuget",
+      "name": "Microsoft.CST.CodeInspector",
+      "version": "1.0.12",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "Command",
+      "displayName": "Command",
+      "argumentType": "verb",
+      "default": "analyze",
+      "required": true,
+      "shortDescription": "Specifies the command to run."
+    },
+    {
+      "id": "TargetDirectory",
+      "displayName": "Target Directory",
+      "key": "s",
+      "argumentType": "keyValue",
+      "required": true,
+      "default": "$(CodeInspector.DefaultTargetDirectory)",
+      "shortDescription": "Specifies the target directory or file to scan."
+    },
+    {
+      "id": "ProductId",
+      "displayName": "Product Id (ServiceTree)",
+      "key": "p",
+      "argumentType": "keyValue",
+      "required": true,
+      "default": "100000000",
+      "shortDescription": "Associates the scan with a product id in service tree"
+    },
+    {
+      "id": "ExcludeFilters",
+      "displayName": "Exclude Filters",
+      "key": "k",
+      "argumentType": "keyValue",
+      "required": false,
+      "default": "sample,example,test,docs,.vs,.git,.gdn",
+      "shortDescription": "Excludes matching folders or files from scan"
+    },
+    {
+      "id": "NoKustoUpload",
+      "displayName": "No Kusto Upload of Results",
+      "key": "u",
+      "argumentType": "switch",
+      "required": false,
+      "default": false,
+      "shortDescription": "Runs analysis but does not update central record"
+    },
+    {
+      "id": "OuputLogPath",
+      "displayName": "Output Log Path",
+      "key": "l",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies log file path if not default"
+    },
+    {
+      "id": "LogLevel",
+      "displayName": "Log level",
+      "key": "v",
+      "argumentType": "keyValue",
+      "required": false,
+      "default": "Info",
+      "shortDescription": "Log file level [Off|Fatal|Error|Warning|Info|Debug|Trace]"
+    }
+  ],
+  "outputExtension": "txt",
+  "outputTypeString": "File",
+  "presetVariables": {
+    "CodeInspector.DefaultTargetDirectory": ".\\"
+  },
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "-",
+    "aliasPrefix": "-",
+    "targetArgumentId": "TargetDirectory",
+    "outputArgumentId": "OuputLogPath"
+  },
+  "supportsBugFiling": false,
+  "applicability": [
+    {
+      "conditions": [
+        {
+          "type": "Always"
+        }
+      ]
+    }
+  ],
+  "converterInfo": {
+    "convertExpected": false
+  }
+}

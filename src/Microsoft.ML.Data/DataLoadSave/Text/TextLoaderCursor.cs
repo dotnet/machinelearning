@@ -826,7 +826,7 @@ namespace Microsoft.ML.Data
                     foreach (var batch in state.GetBatches())
                     {
                         // If the collation of rows happened correctly, this should have a precise value.
-                        Contracts.Assert(batch.Total == _total + 1);
+                        Contracts.Assert(batch.Total == _total + 1, $"batch.Total:{batch.Total} while _total + 1:{_total + 1}.");
                         _total = batch.Total - 1;
                         for (int irow = batch.IrowMin; irow < batch.IrowLim; irow++)
                         {

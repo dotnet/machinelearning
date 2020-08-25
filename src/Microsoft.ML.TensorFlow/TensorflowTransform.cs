@@ -529,6 +529,18 @@ namespace Microsoft.ML.Transforms
                         if (typeValueCount % valCount != 0)
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
+                        // This cover the 2-variable senario e.g. [?, ?, ?, C] where we can assume typeDims provides the information of [W, H, C]
+                        // The shape will become [?, W, H, C]
+                        var originalShapeDims = originalShape.dims;
+                        var originalShapeNdim = originalShape.ndim;
+                        if (numOfUnkDim == 3 && colTypeDims.Length == 3 && originalShapeNdim == numOfUnkDim + 1 && originalShapeDims[1] == -1)
+                        {
+                            originalShapeDims[1] = colTypeDims[0];
+                            originalShapeDims[2] = colTypeDims[1];
+                            valCount *= originalShapeDims[1] * originalShapeDims[2];
+                            numOfUnkDim -= 2;
+                        }
+
                         // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
                         // in a single value for the unknown shapes. For example, if the shape is [?,?,3], then there should exist a value
                         // d such that d*d*3 is equal to the length of the input column.
@@ -537,8 +549,6 @@ namespace Microsoft.ML.Transforms
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
                         // Fill in the unknown dimensions.
-                        var originalShapeNdim = originalShape.ndim;
-                        var originalShapeDims = originalShape.dims;
                         var l = new int[originalShapeNdim];
                         for (int ishape = 0; ishape < originalShapeNdim; ishape++)
                             l[ishape] = originalShapeDims[ishape] == -1 ? (int)d : originalShapeDims[ishape];

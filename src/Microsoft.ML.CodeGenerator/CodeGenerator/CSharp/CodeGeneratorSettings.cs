@@ -15,13 +15,27 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             // Set default value
             Target = GenerateTarget.Cli;
+            OnnxInputMapping = new Dictionary<string, ColumnMapping>();
+            ClassificationLabel = new string[] { };
         }
 
         public string LabelName { get; set; }
 
-        public string ModelPath { get; set; }
+        /// <summary>
+        /// mlnet model name
+        /// </summary>
+        public string ModelName { get; set; }
 
-        public string OnnxModelPath { get; set; }
+        /// <summary>
+        /// onnx model name
+        /// </summary>
+        public string OnnxModelName { get; set; }
+
+        /// <summary>
+        /// classification label
+        /// for Azure image only
+        /// </summary>
+        public string[] ClassificationLabel { get; set; }
 
         public string OutputName { get; set; }
 
@@ -37,19 +51,13 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public string UnstablePackageVersion { get; set; }
 
+        public string OnnxRuntimePacakgeVersion { get; set; }
+
         public bool IsAzureAttach { get; set; }
 
         public bool IsImage { get; set; }
 
-        /// <summary>
-        /// classification label
-        /// for Azure image only
-        /// </summary>
-#pragma warning disable MSML_NoInstanceInitializers // No initializers on instance fields or properties
-        public string[] ClassificationLabel { get; set; } = new string[] { };
-
-        public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; } = new Dictionary<string, ColumnMapping>();
-#pragma warning restore MSML_NoInstanceInitializers // No initializers on instance fields or properties
+        public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; }
 
         internal TaskKind MlTask { get; set; }
 

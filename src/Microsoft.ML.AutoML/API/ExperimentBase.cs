@@ -26,14 +26,14 @@ namespace Microsoft.ML.AutoML
 
         private readonly IChannel _logger;
         private readonly TaskKind _task;
-        private readonly IEnumerable<TrainerName> _trainerWhitelist;
+        private readonly IEnumerable<TrainerName> _trainerAllowList;
 
         internal ExperimentBase(MLContext context,
             IMetricsAgent<TMetrics> metricsAgent,
             OptimizingMetricInfo optimizingMetricInfo,
             TExperimentSettings settings,
             TaskKind task,
-            IEnumerable<TrainerName> trainerWhitelist)
+            IEnumerable<TrainerName> trainerAllowList)
         {
             Context = context;
             MetricsAgent = metricsAgent;
@@ -41,7 +41,7 @@ namespace Microsoft.ML.AutoML
             Settings = settings;
             _logger = ((IChannelProvider)context).Start("AutoML");
             _task = task;
-            _trainerWhitelist = trainerWhitelist;
+            _trainerAllowList = trainerAllowList;
         }
 
         /// <summary>
@@ -67,11 +67,24 @@ namespace Microsoft.ML.AutoML
         public ExperimentResult<TMetrics> Execute(IDataView trainData, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
-            var columnInformation = new ColumnInformation()
+            ColumnInformation columnInformation;
+            if (_task == TaskKind.Ranking)
             {
-                LabelColumnName = labelColumnName,
-                SamplingKeyColumnName = samplingKeyColumn
-            };
+                columnInformation = new ColumnInformation()
+                {
+                    LabelColumnName = labelColumnName,
+                    SamplingKeyColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId,
+                    GroupIdColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId // For ranking, we want to enforce having the same column as samplingKeyColum and GroupIdColumn
+                };
+            }
+            else
+            {
+                columnInformation = new ColumnInformation()
+                {
+                    LabelColumnName = labelColumnName,
+                    SamplingKeyColumnName = samplingKeyColumn
+                };
+            }
             return Execute(trainData, columnInformation, preFeaturizer, progressHandler);
         }
 
@@ -102,17 +115,26 @@ namespace Microsoft.ML.AutoML
             const int crossValRowCountThreshold = 15000;
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
+            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName);
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
-                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName);
+                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, samplingKeyColumnName);
                 return ExecuteCrossValSummary(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
             }
             else
             {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
+                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, samplingKeyColumnName);
                 return ExecuteTrainValidate(splitResult.trainData, columnInformation, splitResult.validationData, preFeaturizer, progressHandler);
             }
+        }
+
+        private string GetSamplingKey(string groupIdColumnName, string samplingKeyColumnName)
+        {
+            UserInputValidationUtil.ValidateSamplingKey(samplingKeyColumnName, groupIdColumnName, _task);
+            if (_task == TaskKind.Ranking)
+                return groupIdColumnName ?? DefaultColumnNames.GroupId;
+            return samplingKeyColumnName;
         }
 
         /// <summary>
@@ -136,7 +158,10 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, string labelColumnName = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
-            var columnInformation = new ColumnInformation() { LabelColumnName = labelColumnName };
+            var columnInformation = (_task == TaskKind.Ranking) ?
+                new ColumnInformation() { LabelColumnName = labelColumnName, GroupIdColumnName = DefaultColumnNames.GroupId } :
+                new ColumnInformation() { LabelColumnName = labelColumnName };
+
             return Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
         }
 
@@ -194,7 +219,8 @@ namespace Microsoft.ML.AutoML
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
-            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumnName);
+            var samplingKeyColumnName = GetSamplingKey(columnInformation?.GroupIdColumnName, columnInformation?.SamplingKeyColumnName);
+            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, samplingKeyColumnName);
             return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
         }
 
@@ -223,7 +249,15 @@ namespace Microsoft.ML.AutoML
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null,
             Progress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
-            var columnInformation = new ColumnInformation()
+            var columnInformation = (_task == TaskKind.Ranking) ?
+            new ColumnInformation()
+            {
+                LabelColumnName = labelColumnName,
+                SamplingKeyColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId,
+                GroupIdColumnName = samplingKeyColumn ?? DefaultColumnNames.GroupId // For ranking, we want to enforce having the same column as samplingKeyColum and GroupIdColumn
+            }
+            :
+            new ColumnInformation()
             {
                 LabelColumnName = labelColumnName,
                 SamplingKeyColumnName = samplingKeyColumn
@@ -253,7 +287,7 @@ namespace Microsoft.ML.AutoML
                 validationData = preprocessorTransform.Transform(validationData);
             }
 
-            var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumnName, MetricsAgent,
+            var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.GroupIdColumnName, columnInfo.LabelColumnName, MetricsAgent,
                 preFeaturizer, preprocessorTransform, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainData, columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
@@ -273,12 +307,12 @@ namespace Microsoft.ML.AutoML
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
 
             var runner = new CrossValRunner<TMetrics>(Context, trainDatasets, validationDatasets, MetricsAgent, preFeaturizer,
-                preprocessorTransforms, columnInfo.LabelColumnName, _logger);
+                preprocessorTransforms, columnInfo.GroupIdColumnName, columnInfo.LabelColumnName, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
 
             // Execute experiment & get all pipelines run
             var experiment = new Experiment<CrossValidationRunDetail<TMetrics>, TMetrics>(Context, _task, OptimizingMetricInfo, progressHandler,
-                Settings, MetricsAgent, _trainerWhitelist, columns, runner, _logger);
+                Settings, MetricsAgent, _trainerAllowList, columns, runner, _logger);
             var runDetails = experiment.Execute();
 
             var bestRun = GetBestCrossValRun(runDetails);
@@ -300,7 +334,7 @@ namespace Microsoft.ML.AutoML
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
 
             var runner = new CrossValSummaryRunner<TMetrics>(Context, trainDatasets, validationDatasets, MetricsAgent, preFeaturizer,
-                preprocessorTransforms, columnInfo.LabelColumnName, OptimizingMetricInfo, _logger);
+                preprocessorTransforms, columnInfo.GroupIdColumnName, columnInfo.LabelColumnName, OptimizingMetricInfo, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
@@ -313,7 +347,7 @@ namespace Microsoft.ML.AutoML
         {
             // Execute experiment & get all pipelines run
             var experiment = new Experiment<RunDetail<TMetrics>, TMetrics>(Context, _task, OptimizingMetricInfo, progressHandler,
-                Settings, MetricsAgent, _trainerWhitelist, columns, runner, _logger);
+                Settings, MetricsAgent, _trainerAllowList, columns, runner, _logger);
             var runDetails = experiment.Execute();
 
             var bestRun = GetBestRun(runDetails);

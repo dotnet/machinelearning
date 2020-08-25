@@ -15,6 +15,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the input column.
         /// Input/output columns are determined based on the input/output columns of the provided ONNX model.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
         /// </summary>
         /// <remarks>
         /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
@@ -40,6 +42,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the input column.
         /// Input/output columns are determined based on the input/output columns of the provided ONNX model.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
         /// </summary>
         /// <remarks>
         /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
@@ -47,7 +51,10 @@ namespace Microsoft.ML
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
-        /// <param name="shapeDictionary">ONNX shape should be used to over those loaded from <paramref name="modelFile"/>.</param>
+        /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelFile"/>.
+        /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
+        /// is particullarly useful for working with variable dimension inputs and outputs.
+        /// </param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <example>
@@ -67,6 +74,8 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">The output column resulting from the transformation.</param>
@@ -92,12 +101,17 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">The output column resulting from the transformation.</param>
         /// <param name="inputColumnName">The input column.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
-        /// <param name="shapeDictionary">ONNX shape should be used to over those loaded from <paramref name="modelFile"/>.</param>
+        /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelFile"/>.
+        /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
+        /// is particullarly useful for working with variable dimension inputs and outputs.
+        /// </param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <example>
@@ -119,6 +133,8 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
@@ -137,12 +153,17 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
         /// <param name="inputColumnNames">The input columns.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
-        /// <param name="shapeDictionary">ONNX shape should be used to over those loaded from <paramref name="modelFile"/>.</param>
+        /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelFile"/>.
+        /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
+        /// is particullarly useful for working with variable dimension inputs and outputs.
+        /// </param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,

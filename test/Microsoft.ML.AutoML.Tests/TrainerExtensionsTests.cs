@@ -399,18 +399,18 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
-        public void AllowedTrainersWhitelistNullTest()
+        public void AllowedTrainersAllowListNullTest()
         {
             var trainers = RecipeInference.AllowedTrainers(new MLContext(1), TaskKind.BinaryClassification, new ColumnInformation(), null);
             Assert.True(trainers.Any());
         }
 
         [Fact]
-        public void AllowedTrainersWhitelistTest()
+        public void AllowedTrainersAllowListTest()
         {
-            var whitelist = new[] { TrainerName.AveragedPerceptronBinary, TrainerName.FastForestBinary };
-            var trainers = RecipeInference.AllowedTrainers(new MLContext(1), TaskKind.BinaryClassification, new ColumnInformation(), whitelist);
-            Assert.Equal(whitelist.Count(), trainers.Count());
+            var allowList = new[] { TrainerName.AveragedPerceptronBinary, TrainerName.FastForestBinary };
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(1), TaskKind.BinaryClassification, new ColumnInformation(), allowList);
+            Assert.Equal(allowList.Count(), trainers.Count());
         }
     }
 }

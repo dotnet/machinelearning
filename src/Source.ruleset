@@ -4,16 +4,20 @@
     <Name Resource="MinimumRecommendedRules_Name" />
     <Description Resource="MinimumRecommendedRules_Description" />
   </Localization>
+  <Include Path="Sdl.Required.Warning.ruleset" Action="Default" />
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
-    <Rule Id="CA1001" Action="Warning" />
+    <!-- Some of the rules below were desabled as explained on https://github.com/dotnet/machinelearning/issues/5334 -->
+    <!-- It might be good to have a second look and reenable them, making the appropiate changes on ML.NET to comply by them in the future-->
+    <!-- In particular the ones marked as "Might fix" -->
+    <!-- <Rule Id="CA1001" Action="Warning" /> Disable. Don't Fix -->
     <Rule Id="CA1009" Action="Warning" />
     <Rule Id="CA1016" Action="Warning" />
-    <Rule Id="CA1033" Action="Warning" />
+    <!-- <Rule Id="CA1033" Action="Warning" /> Disable. Don't Fix -->
     <Rule Id="CA1049" Action="Warning" />
-    <Rule Id="CA1060" Action="Warning" />
+    <!-- <Rule Id="CA1060" Action="Warning" /> Disable. Might Fix -->
     <Rule Id="CA1061" Action="Warning" />
-    <Rule Id="CA1063" Action="Warning" />
-    <Rule Id="CA1065" Action="Warning" />
+    <!-- <Rule Id="CA1063" Action="Warning" /> Disable. Don't Fix -->
+    <!-- <Rule Id="CA1065" Action="Warning" /> Disable. Might Fix -->
     <Rule Id="CA1301" Action="Warning" />
     <Rule Id="CA1400" Action="Warning" />
     <Rule Id="CA1401" Action="Warning" />
@@ -25,9 +29,9 @@
     <Rule Id="CA1821" Action="Warning" />
     <Rule Id="CA1900" Action="Warning" />
     <Rule Id="CA1901" Action="Warning" />
-    <Rule Id="CA2002" Action="Warning" />
-    <Rule Id="CA2100" Action="Warning" />
-    <Rule Id="CA2101" Action="Warning" />
+    <!-- <Rule Id="CA2002" Action="Warning" /> Disable. Might Fix -->
+    <!-- <Rule Id="CA2100" Action="Warning" /> Should we disable this? It seems security related but not included on the Sdl.Required.Warning.ruleset -->
+    <!-- <Rule Id="CA2101" Action="Warning" /> Disable. Might Fix -->
     <Rule Id="CA2108" Action="Warning" />
     <Rule Id="CA2111" Action="Warning" />
     <Rule Id="CA2112" Action="Warning" />
@@ -53,12 +57,12 @@
     <Rule Id="CA2202" Action="Warning" />
     <Rule Id="CA2207" Action="Warning" />
     <Rule Id="CA2212" Action="Warning" />
-    <Rule Id="CA2213" Action="Warning" />
-    <Rule Id="CA2214" Action="Warning" />
+    <!-- <Rule Id="CA2213" Action="Warning" /> Disable. Don't fix -->
+    <!-- <Rule Id="CA2214" Action="Warning" /> Disable. Don't Fix -->
     <Rule Id="CA2216" Action="Warning" />
     <Rule Id="CA2220" Action="Warning" />
     <Rule Id="CA2229" Action="Warning" />
-    <Rule Id="CA2231" Action="Warning" />
+    <!-- <Rule Id="CA2231" Action="Warning" /> Disable. Might fix -->
     <Rule Id="CA2232" Action="Warning" />
     <Rule Id="CA2235" Action="Warning" />
     <Rule Id="CA2236" Action="Warning" />

@@ -124,6 +124,18 @@ namespace Microsoft.ML.Data
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
+        [TlcModule.EntryPoint(Name = "Transforms.RobustScalingNormalizer", Desc = NormalizeTransform.RobustScalingNormalizerSummary, UserName = NormalizeTransform.RobustScalingNormalizerUserName, ShortName = NormalizeTransform.RobustScalingNormalizerShortName)]
+        public static CommonOutputs.TransformOutput RobustScaling(IHostEnvironment env, NormalizeTransform.RobustScalingArguments input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("RobustScaling");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+
+            var xf = NormalizeTransform.Create(host, input, input.Data);
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
+        }
+
         [TlcModule.EntryPoint(Name = "Transforms.ConditionalNormalizer", Desc = "Normalize the columns only if needed", UserName = "Normalize If Needed")]
         public static CommonOutputs.MacroOutput<CommonOutputs.TransformOutput> IfNeeded(
             IHostEnvironment env,

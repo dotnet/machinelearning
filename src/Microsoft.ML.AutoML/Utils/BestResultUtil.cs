@@ -38,6 +38,7 @@ namespace Microsoft.ML.AutoML
             RankingMetric metric)
         {
             var metricsAgent = new RankingMetricsAgent(null, metric);
+
             var metricInfo = new OptimizingMetricInfo(metric);
             return GetBestRun(results, metricsAgent, metricInfo.IsMaximizing);
         }

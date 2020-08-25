@@ -11,7 +11,6 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using TestNamespace.Model;
-using Microsoft.ML.Trainers.LightGbm;
 
 namespace TestNamespace.ConsoleApp
 {
@@ -19,7 +18,8 @@ namespace TestNamespace.ConsoleApp
     {
         private static string TRAIN_DATA_FILEPATH = @"x:\dummypath\dummy_train.csv";
         private static string TEST_DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
-        private static string MODEL_FILEPATH = @"x:\models\model.zip";
+        private static string MODEL_FILE = ConsumeModel.MLNetModelPath;
+
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
@@ -50,7 +50,7 @@ namespace TestNamespace.ConsoleApp
             EvaluateModel(mlContext, mlModel, testDataView);
 
             // Save model
-            SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
+            SaveModel(mlContext, mlModel, MODEL_FILE, trainingDataView.Schema);
         }
 
         public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
@@ -58,7 +58,7 @@ namespace TestNamespace.ConsoleApp
             // Data process configuration with pipeline data transformations 
             var dataProcessPipeline = mlContext.Transforms.Conversion.Hash("GroupId", "GroupId");
             // Set the training algorithm 
-            var trainer = mlContext.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options() { rowGroupColumnName = "GroupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
+            var trainer = mlContext.Ranking.Trainers.LightGbm(rowGroupColumnName: "GroupId", labelColumnName: "Label", featureColumnName: "Features");
 
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
@@ -115,7 +115,7 @@ namespace TestNamespace.ConsoleApp
 
         public static void PrintRankingFoldsAverageMetrics(IEnumerable<TrainCatalogBase.CrossValidationResult<RankingMetrics>> crossValidationResults)
         {
-            var max = (crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? metrics.NormalizedDiscountedCumulativeGains.Count - 1 : 9;
+            var max = (crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count - 1 : 9;
             var NDCG = crossValidationResults.Select(r => r.Metrics.NormalizedDiscountedCumulativeGains[max]);
             var DCG = crossValidationResults.Select(r => r.Metrics.DiscountedCumulativeGains[max]);
             Console.WriteLine($"*************************************************************************************************************");

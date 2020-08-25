@@ -24,6 +24,7 @@
 <#}#>
 <# if (IncludeOnnxModel){ #>
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="<#= OnnxRuntimePackageVersion #>" />
 <#}#>
 <# if (IncludeImageClassificationPackage){ #>
     <PackageReference Include="Microsoft.ML.Vision" Version="<#= StablePackageVersion #>" />
@@ -40,6 +41,9 @@
     </None>
 <# if (IncludeOnnxModel){ #>
     <None Update="bestModel.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="bestModelMap.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 <#}#>
@@ -63,5 +67,6 @@ public bool IncludeOnnxModel {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
+public string OnnxRuntimePackageVersion {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 #>

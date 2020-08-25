@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "tools": {
+    "credscan>>0>>202008111757": {
+      "tool": {
+        "driver": {
+          "name": "credscan",
+          "fullName": "Credential Scanner"
+        }
+      }
+    }
+  }
+}

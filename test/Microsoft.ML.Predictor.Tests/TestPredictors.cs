@@ -622,7 +622,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TestTreeEnsembleCombiner()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var fastTrees = new PredictorModel[3];
@@ -752,7 +752,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TestEnsembleCombiner()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
@@ -798,7 +798,7 @@ namespace Microsoft.ML.RunTests
         [LightGBMFact]
         public void TestMulticlassEnsembleCombiner()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
@@ -2240,7 +2240,7 @@ output Out [3] from H all;
         public void EnsemblesStackingCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=5 oc=Stacking{bp=ap} tp=-"), "WE-StackingAP");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 4, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 

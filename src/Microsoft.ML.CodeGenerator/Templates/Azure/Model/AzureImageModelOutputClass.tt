@@ -1,0 +1,51 @@
+﻿<#@ template language="C#" linePragmas="false" visibility="internal"#>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="..\..\Console\Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
+
+using System;
+using Microsoft.ML.Data;
+using System.Linq;
+
+namespace <#= Namespace #>.Model
+{
+    public class ModelOutput
+    {
+        [ColumnName("output1")]
+        public float[] Output1 { get; set; }
+
+        public string[] ClassificationLabels = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
+
+        public string Prediction
+        {
+            get
+            {
+                var maxScore = this.Score.Max();
+                var maxIndex = Array.IndexOf(this.Score, maxScore);
+                return this.ClassificationLabels[maxIndex];
+            }
+        }
+
+        public float[] Score
+        {
+            get
+            {
+                var exp = this.Output1.Select(x => (float)Math.Exp(x));
+                var exp_sum = exp.Sum();
+                return exp.Select(x => x / exp_sum).ToArray();
+            }
+        }
+    }
+}
+
+<#+
+public string Namespace {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
+public string[] Labels {get; set;} = new string[0];
+#>
