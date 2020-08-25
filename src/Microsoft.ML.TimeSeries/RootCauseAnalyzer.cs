@@ -78,7 +78,7 @@ namespace Microsoft.ML.TimeSeries
             foreach (KeyValuePair<string, Object> entry in dimensions)
             {
                 string key = entry.Key;
-                if (aggSymbol.Equals(entry.Value))
+                if (object.Equals(aggSymbol, entry.Value))
                 {
                     info.AggDims.Add(key);
                 }
@@ -723,7 +723,7 @@ namespace Microsoft.ML.TimeSeries
         {
             foreach (var item in smallDictionary)
             {
-                if (!bigDictionary.ContainsKey(item.Key) || !bigDictionary[item.Key].Equals(smallDictionary[item.Key]))
+                if (!bigDictionary.ContainsKey(item.Key) || !object.Equals(bigDictionary[item.Key], smallDictionary[item.Key]))
                 {
                     return false;
                 }
@@ -734,7 +734,7 @@ namespace Microsoft.ML.TimeSeries
 
         private bool IsAggregationDimension(Object val, Object aggSymbol)
         {
-            return Convert.ToString(val).Equals(aggSymbol);
+            return object.Equals(val, aggSymbol);
         }
     }
 
@@ -827,7 +827,7 @@ namespace Microsoft.ML.TimeSeries
             }
             foreach (var pair in x)
             {
-                if (!pair.Value.Equals(y[pair.Key]))
+                if (!object.Equals(pair.Value, y[pair.Key]))
                 {
                     return false;
                 }
