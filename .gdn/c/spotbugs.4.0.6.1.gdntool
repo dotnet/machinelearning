@@ -1,0 +1,415 @@
+{
+  "fileVersion": "1.0.0",
+  "name": "SpotBugs",
+  "fullName": "SpotBugs",
+  "toolVersion": "4.0.6.1",
+  "shortDescription": "SpotBugs is a program to find bugs in Java programs.",
+  "longDescription": "SpotBugs is a program to find bugs in Java programs. It looks for instances of 'bug patterns' - code instances that are likely to be errors.",
+  "links": [
+    {
+      "name": "Github",
+      "uri": "https://github.com/spotbugs/spotbugs"
+    },
+    {
+      "name": "Spotbugs Manual",
+      "uri": "https://spotbugs.readthedocs.io/en/latest/index.html"
+    }
+  ],
+  "launcher": "Java",
+  "launcherArguments": "-jar",
+  "executablePath": "tools\\lib\\spotbugs.jar",
+  "packages": [
+    {
+      "name": "Microsoft.Guardian.SpotBugsRedist",
+      "version": "4.0.6.1",
+      "master": true,
+      "type": "nuget",
+      "sources": []
+    },
+    {
+      "name": "Microsoft.Guardian.FindSecBugsRedist",
+      "version": "1.10.1",
+      "type": "nuget",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "UserInterface",
+      "displayName": "User Interface",
+      "default": "-textui",
+      "argumentType": "Verb",
+      "shortDescription": "The first command line option chooses the SpotBugs user interface to execute. -textui runs the command line user interface.",
+      "sortOrder": -5
+    },
+    {
+      "id": "OutputFile",
+      "displayName": "Output File",
+      "key": "output",
+      "argumentType": "KeyValue",
+      "shortDescription": "Produce the output in the specified file.",
+      "sortOrder": -1,
+      "commandLineOptions": {
+        "keyValueSeparator": " "
+      }
+    },
+    {
+      "id": "AuxClassPath",
+      "displayName": "Auxillary Class Path",
+      "key": "auxclasspath",
+      "default": "$(DefaultMavenDependencyPath)",
+      "argumentType": "KeyValue",
+      "shortDescription": "Set the auxiliary classpath for analysis.",
+      "longDescription": "This classpath should include all jar files and directories containing classes that are part of the program being analyzed but you do not want to have analyzed for bugs.",
+      "commandLineOptions": {
+        "keyValueSeparator": " "
+      }
+    },
+    {
+      "id": "AuxClassPathFile",
+      "displayName": "Auxillary Class Path From File",
+      "key": "auxclasspathFromFile",
+      "argumentType": "KeyValue",
+      "shortDescription": "A text file containing the auxiliary classpaths for analysis, each line adds new entry to the auxiliary classpath for analysis.",
+      "longDescription": "This classpath should include all jar files and directories containing classes that are part of the program being analyzed but you do not want to have analyzed for bugs.",
+      "commandLineOptions": {
+        "keyValueSeparator": " "
+      }
+    },
+    {
+      "id": "TargetClassPath",
+      "displayName": "Target Path",
+      "argumentType": "positional",
+      "multiple": true,
+      "isGlob": true,
+      "batchGlobResults": false,
+      "multipleKeyValueType": "List",
+      "multipleSeparator": ",",
+      "default": "$(DefaultTargetClassPath)",
+      "shortDescription": "The path to files to scan.",
+      "sortOrder": 10
+    },
+    {
+      "id": "TargetClassPathFile",
+      "displayName": "Target Paths From File",
+      "key": "analyzeFromFile",
+      "argumentType": "keyValue",
+      "shortDescription": "A path to a file, containing a newline separated list files to scan.",
+      "sortOrder": 5,
+      "commandLineOptions": {
+        "keyValueSeparator": " "
+      }
+    },
+    {
+      "id": "Effort",
+      "displayName": "Analysis Effort Level",
+      "key": "effort",
+      "argumentType": "KeyValue",
+      "shortDescription": "More effort may require more memory and take more time to complete, but will find more bugs.",
+      "longDescription": "The -effort:min disables several analyses that increase precision but also increase memory consumption. You may want to try this option if you find that SpotBugs with the -effort:less still runs out of memory, or takes an unusually long time to complete its analysis. The -effort:less disables some analyses that increase precision but also increase memory consumption. You may want to try this option if you find that SpotBugs with the -effort:more/-effort:default runs out of memory, or takes an unusually long time to complete its analysis. The -effort:more runs several analyses to find bugs, this is the -effort:default. The -effort:max enable analyses which increase precision and find more bugs, but which may require more memory and take more time to complete.",
+      "default": "max"
+    },
+    {
+      "id": "Project",
+      "displayName": "Project File",
+      "key": "project",
+      "argumentType": "KeyValue",
+      "shortDescription": "Specify a project to be analyzed.",
+      "longDescription": "The project file you specify should be one that was created using the GUI interface. It will typically end in the extension .fb or .fbp."
+    },
+    {
+      "id": "PluginList",
+      "displayName": "Plugin Jar Files",
+      "key": "pluginList",
+      "alias": "k",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "list",
+      "multipleSeparator": ",",
+      "default": "$(DefaultPluginPath)"
+    },
+    {
+      "id": "XmlReport",
+      "displayName": "Xml Output Messages",
+      "key": "xml",
+      "default": "withMessages",
+      "argumentType": "KeyValue",
+      "shortDescription": "Produce the bug reports as XML with messages."
+    },
+    {
+      "id": "HtmlReport",
+      "displayName": "HTML Output",
+      "key": "html",
+      "argumentType": "Switch",
+      "shortDescription": "Produce the bug reports as HTML."
+    },
+    {
+      "id": "EmacsReport",
+      "displayName": "Emacs Output",
+      "key": "emax",
+      "argumentType": "Switch",
+      "shortDescription": "Produce the bug reports in Emacs format."
+    },
+    {
+      "id": "XdocsReport",
+      "displayName": "xdoc XML Output",
+      "key": "xdocs",
+      "argumentType": "Switch",
+      "shortDescription": "Produce the bug reports in xdoc XML format for use with Apache Maven."
+    },
+
+    {
+      "id": "HomeDirectory",
+      "displayName": "Home Directory",
+      "key": "home",
+      "argumentType": "KeyValue",
+      "shortDescription": "Specify SpotBugs home directory."
+    },
+    {
+      "id": "AdjustExperimental",
+      "displayName": "Adjust Experimental",
+      "key": "adjustExperimental",
+      "argumentType": "Switch",
+      "shortDescription": "Lower priority of experimental Bug Patterns."
+    },
+    {
+      "id": "WorkHard",
+      "displayName": "Work Hard",
+      "key": "adjustExperimental",
+      "argumentType": "Switch",
+      "shortDescription": "Ensure analysis effort is at least ‘default’."
+    },
+    {
+      "id": "SortByClass",
+      "displayName": "Sort By Class",
+      "key": "sortByClass",
+      "argumentType": "Switch",
+      "shortDescription": "Sort reported bug instances by class name."
+    },
+    {
+      "id": "IncludeFilterFile",
+      "displayName": "Include Filter File",
+      "key": "include",
+      "argumentType": "KeyValue",
+      "shortDescription": "Only report bug instances that match the filter specified by filterFile.xml."
+    },
+    {
+      "id": "ExcludeFilterFile",
+      "displayName": "Exclude Filter File",
+      "key": "exclude",
+      "argumentType": "KeyValue",
+      "shortDescription": "Report all bug instances except those matching the filter specified by filterFile.xml."
+    },
+    {
+      "id": "ClassRestriction",
+      "displayName": "Class Restriction",
+      "key": "onlyAnalyze",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "List",
+      "multipleSeparator": ",",
+      "batchGlobResults": true,
+      "shortDescription": "Restrict analysis to find bugs to given comma-separated list of classes and packages.",
+      "longDescription": "Classes should be specified using their full classnames (including package), and packages should be specified in the same way they would in a Java import statement to import all classes in the package (i.e., add .* to the full name of the package). Replace .* with .- to also analyze all subpackages."
+    },
+    {
+      "id": "Relaxed",
+      "displayName": "Relaxed Reporting",
+      "key": "relaxed",
+      "argumentType": "Switch",
+      "shortDescription": "For many detectors, this option suppresses the heuristics used to avoid reporting false positives."
+    },
+    {
+      "id": "TimestampNow",
+      "displayName": "Timestamp Now",
+      "key": "timestampNow",
+      "argumentType": "Switch",
+      "shortDescription": "Set timestamp of results to be current time."
+    },
+    {
+      "id": "Quiet",
+      "displayName": "Quiet",
+      "key": "quiet",
+      "argumentType": "Switch",
+      "shortDescription": "Suppress error messages"
+    },
+    {
+      "id": "LongBugCodes",
+      "displayName": "Long Bug Codes",
+      "key": "longBugCodes",
+      "argumentType": "Switch",
+      "shortDescription": "Report long bug codes."
+    },
+    {
+      "id": "ShowProgress",
+      "displayName": "Show Progress",
+      "key": "progress",
+      "argumentType": "Switch",
+      "shortDescription": "Display progress in terminal window."
+    },
+    {
+      "id": "ReleaseName",
+      "displayName": "Release Name",
+      "key": "release",
+      "argumentType": "KeyValue",
+      "shortDescription": "Set the release name of the analyzed application."
+    },
+    {
+      "id": "MaxRank",
+      "displayName": "Max Rank",
+      "key": "maxRank",
+      "argumentType": "KeyValue",
+      "shortDescription": "Only report issues with a bug rank at least as scary as that provided."
+    },
+    {
+      "id": "DontCombineWarnings",
+      "displayName": "Don't Combine Warnings",
+      "key": "dontCombineWarnings",
+      "argumentType": "Switch",
+      "shortDescription": "Don’t combine warnings that differ only in line number.",
+      "default": true
+    },
+    {
+      "id": "SourceInfo",
+      "displayName": "Source Information File",
+      "argumentType": "KeyValue",
+      "key": "sourceInfo",
+      "shortDescription": "Specify source info file (line numbers for fields/classes)."
+    },
+    {
+      "id": "ProjectName",
+      "displayName": "Project Name",
+      "key": "projectName",
+      "argumentType": "KeyValue",
+      "shortDescription": "Descriptive name of project."
+    },
+    {
+      "id": "BugCategories",
+      "displayName": "Bug Categories",
+      "key": "bugCategories",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "List",
+      "multipleSeparator": ",",
+      "shortDescription": "Only report bugs in given categories."
+    },
+    {
+      "id": "ExcludeBugs",
+      "displayName": "Bug Exclude File",
+      "key": "excludeBugs",
+      "argumentType": "KeyValue",
+      "shortDescription": "Exclude bugs that are also reported in the baseline xml output."
+    },
+    {
+      "id": "ApplySuppression",
+      "displayName": "Apply Suppression",
+      "key": "applySuppresion",
+      "argumentType": "Switch",
+      "shortDescription": "Exclude any bugs that match suppression filter loaded from fbp file."
+    },
+    {
+      "id": "OnlyVisitors",
+      "displayName": "Only Visitors",
+      "key": "visitors",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "List",
+      "multipleSeparator": ",",
+      "sortOrder": 1,
+      "shortDescription": "Run only named visitors. Set to $(SecurityVisitors) to *exclusively* run security checks."
+    },
+    {
+      "id": "OmitVisitors",
+      "displayName": "Omit Visitors",
+      "key": "omitVisitors",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "List",
+      "multipleSeparator": ",",
+      "shortDescription": "Omit named visitors"
+    },
+    {
+      "id": "ChooseVisitors",
+      "displayName": "Choose Visitors",
+      "key": "chooseVisitors",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "List",
+      "multipleSeparator": ",",
+      "shortDescription": "Selectively enable/disable detectors <+v1,-v2,...>."
+    },
+    {
+      "id": "ChoosePlugins",
+      "displayName": "Choose Plugins",
+      "key": "choosePlugins",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "List",
+      "shortDescription": "Selectively enable/disable plugins <+p1,-p2,...>."
+    },
+    {
+      "id": "AdjustPriority",
+      "displayName": "Adjust Visitor Priorities",
+      "key": "adjustPriority",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "List",
+      "multipleSeparator": ",",
+      "shortDescription": "Selectively raise/lower priority of warnings for given visitor(s); <v1=(raise|lower)[,…]>"
+    },
+    {
+      "id": "SourcePath",
+      "displayName": "Source Path",
+      "key": "sourcepath",
+      "argumentType": "KeyValue",
+      "shortDescription": "Set source path for analyzed classes."
+    },
+    {
+      "id": "NoClassOk",
+      "displayName": "No Class Ok",
+      "key": "noClassOk",
+      "argumentType": "Switch",
+      "shortDescription": "Output empty warning file if no classes are specified."
+    },
+    {
+      "id": "BugReporters",
+      "displayName": "Bug Reporters",
+      "key": "bugReporters",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "List",
+      "multipleSeparator": ",",
+      "shortDescription": "Bug reporter decorators to explicitly enable/disable."
+    }
+  ],
+  "outputExtension": "xml",
+  "outputTypeString": "File",
+  "commandLineOptions": {
+    "keyValueSeparator": ":",
+    "argumentPrefix": "-",
+    "aliasPrefix": "-",
+    "targetArgumentId": "TargetClassPath",
+    "outputArgumentId": "OutputFile"
+  },
+  "successfulExitCodes": [
+    0
+  ],
+  "errorExitCodes": {
+  },
+  "errorHelperMessage": "An unexpected tool error has occured.",
+  "presetVariables": {
+    "DefaultMavenDependencyPath": "$(USERPROFILE)\\.m2\\",
+    "DefaultTargetClassPath": "**.jar;-|.gdn\\**;",
+    "DefaultPluginPath": "$(Packages.Microsoft.Guardian.FindSecBugsRedist)\\tools\\findsecbugs.jar",
+    "SecurityVisitors": "CookieFlagsDetector,PathTraversalDetector,CommandInjectionDetector,WeakTrustManagerDetector,WeakMessageDigestDetector,WeakTLSDetector,ReDosDetector,XxeDetector,TransformerFactoryDetector,XmlStreamReaderDetector,XPathInjectionDetector,SpringCsrfProtectionDisabledDetector,SpringCsrfUnrestrictedRequestMappingDetector,SqlInjectionDetector,AndroidSqlInjectionDetector,HazelcastSymmetricEncryptionDetector,NullCipherDetector,UnencryptedSocketDetector,UnencryptedServerSocketDetector,DesUsageDetector,TDesUsageDetector,RsaNoPaddingDetector,ConstantPasswordDetector,GoogleApiKeyDetector,HardcodePasswordInMapDetector,IntuitiveHardcodePasswordDetector,HardcodedPasswordEqualsDetector,HashUnsafeEqualsDetector,KotlinHardcodedPasswordEqualsDetector,StrutsValidatorFormDetector,XSSRequestWrapperDetector,InsufficientKeySizeBlowfishDetector,InsufficientKeySizeRsaDetector,UnvalidatedRedirectDetector,XssJspDetector,XssServletDetector,JspIncludeDetector,JspSpringEvalDetector,JstlOutDetector,XslTransformJspDetector,StdXmlTransformDetector,XmlDecoderDetector,StaticIvDetector,CipherWithNoIntegrityDetector,ScriptInjectionDetector,OgnlInjectionDetector,SpelViewDetector,CrlfLogInjectionDetector,ExternalConfigurationControlDetector,WorldWritableDetector,GeolocationDetector,WebViewJavascriptInterfaceDetector,ObjectDeserializationDetector,UnsafeJacksonDeserializationDetector,TrustBoundaryViolationAttributeDetector,TrustBoundaryViolationValueDetector,PlayUnvalidatedRedirectDetector,SslDisablerDetector,ScalaSensitiveDataExposureDetector,SSRFDetector,XssMvcApiDetector,XssTwirlDetector,LdapInjectionDetector,LdapEntryPoisoningDetector,PermissiveCORSDetector,UrlRewritingDetector,InsecureSmtpSslDetector,AwsQueryInjectionDetector,BeanInjectionDetector,FileDisclosureDetector,FormatStringManipulationDetector,HttpParameterPollutionDetector,SmtpHeaderInjectionDetector,SpringUnvalidatedRedirectDetector,PotentialValueTracker,JstlExpressionWhiteLister,ErrorMessageExposureDetector,KotlinHardcodePasswordInMapDetector,EnabledExtensionsInApacheXmlRpcDetector,WicketXssComponentDetector",
+    "SdlRequiredVisitors": "$(SecurityVisitors)",
+    "SdlRecommendedVisitors": "$(SecurityVisitors)"
+  },
+  "converterInfo": {
+    "logFileConverters": {
+      "spotbugs": {
+        "converterName": "SpotBugsConverter"
+      }
+    }
+  }
+}

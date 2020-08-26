@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "Column containing the transformed text tokens.", ShortName = "tokens,showtext,showTransformedText", SortOrder = 9)]
             public string OutputTokensColumnName;
 
-            [Argument(ArgumentType.Multiple, HelpText = "A dictionary of whitelisted terms.", ShortName = "dict", NullName = "<None>", SortOrder = 10, Hide = true)]
+            [Argument(ArgumentType.Multiple, HelpText = "A dictionary of allowed terms.", ShortName = "dict", NullName = "<None>", SortOrder = 10, Hide = true)]
             internal TermLoaderArguments Dictionary;
 
             [TGUI(Label = "Word Gram Extractor")]

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -14,7 +15,7 @@ namespace Microsoft.Extensions.ML
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds a <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> to the service collection.
+        /// Adds a <see cref="PredictionEnginePool{TData, TPrediction}"/> and required config services to the service collection.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection "/> to add services to.
@@ -27,19 +28,60 @@ namespace Microsoft.Extensions.ML
             where TData : class
             where TPrediction : class, new()
         {
-            services.AddPredictionEngineServices<TData, TPrediction>();
-            return new PredictionEnginePoolBuilder<TData, TPrediction>(services);
+            return services.AddPredictionEnginePool<TData, TPrediction>(() =>
+                services.AddSingleton<PredictionEnginePool<TData, TPrediction>>());
         }
 
-        internal static IServiceCollection AddPredictionEngineServices<TData, TPrediction>(
-            this IServiceCollection services)
+        /// <summary>
+        /// Adds a <see cref="PredictionEnginePool{TData, TPrediction}"/> and required config services to the service collection.
+        /// </summary>
+        /// <param name="services">
+        /// The <see cref="IServiceCollection "/> to add services to.
+        /// </param>
+        /// <param name="implementationFactory">
+        /// The factory that creates the <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
+        /// </param>
+        /// <returns>
+        /// The <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> that was added to the collection.
+        /// </returns>
+        public static PredictionEnginePoolBuilder<TData, TPrediction> AddPredictionEnginePool<TData, TPrediction>(
+            this IServiceCollection services,
+            Func<IServiceProvider, PredictionEnginePool<TData, TPrediction>> implementationFactory)
             where TData : class
             where TPrediction : class, new()
         {
-            services.AddLogging();
-            services.AddOptions();
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<MLOptions>, PostMLContextOptionsConfiguration>());
-            services.AddSingleton<PredictionEnginePool<TData, TPrediction>, PredictionEnginePool<TData, TPrediction>>();
+            return services.AddPredictionEnginePool<TData, TPrediction>(() =>
+                services.AddSingleton(implementationFactory));
+        }
+
+        private static PredictionEnginePoolBuilder<TData, TPrediction> AddPredictionEnginePool<TData, TPrediction>(
+            this IServiceCollection services,
+            Action callback)
+            where TData : class
+            where TPrediction : class, new()
+        {
+            services.AddRequiredPredictionEnginePoolServices();
+            callback();
+
+            return new PredictionEnginePoolBuilder<TData, TPrediction>(services);
+        }
+
+        /// <summary>
+        /// Adds only the required config services for <see cref="PredictionEnginePool{TData, TPrediction}"/> to the service collection.
+        /// </summary>
+        /// <param name="services">
+        /// The <see cref="IServiceCollection "/> to add services to.
+        /// </param>
+        /// <returns>
+        /// A reference to this instance after the operation has completed.
+        /// </returns>
+        public static IServiceCollection AddRequiredPredictionEnginePoolServices(this IServiceCollection services)
+        {
+            services
+                .AddLogging()
+                .AddOptions()
+                .TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<MLOptions>, PostMLContextOptionsConfiguration>());
+
             return services;
         }
     }

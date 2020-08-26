@@ -138,5 +138,33 @@ namespace Microsoft.ML.Functional.Tests
             Common.AssertMetrics(trainMetrics);
             Common.AssertMetrics(validMetrics);
         }
+
+        /// <summary>
+        /// Test cross validation R^2 metric to return NaN when given fewer data
+        /// than needed to infer metric calculation. R^2 is NaN when given folds
+        /// with less than 2 rows of training data.
+        /// </summary>
+        [Fact]
+        public void TestCrossValidationResultsWithNotEnoughData()
+        {
+            var mlContext = new MLContext(1);
+            // Get data and set up sample regression pipeline.
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename), hasHeader: true);
+            var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .Append(mlContext.Regression.Trainers.OnlineGradientDescent());
+            // Train model with full dataset
+            var model = pipeline.Fit(data);
+
+            // Check that R^2 is NaN when given 1 row of scoring data.
+            var scoredDataOneRow = model.Transform(mlContext.Data.TakeRows(data, 1));
+            var evalResultOneRow = mlContext.Regression.Evaluate(scoredDataOneRow);
+            Assert.Equal(double.NaN, evalResultOneRow.RSquared);
+
+            // Check that R^2 is 0 when given 0 rows of scoring data.
+            // Obtain empty IDataView with Iris schema as there are no rows of data with labels between -2 and -1.
+            var scoredDataZeroRows = mlContext.Data.FilterRowsByColumn(scoredDataOneRow, "Label", lowerBound: -2, upperBound: -1);
+            var evalResultZeroRows = mlContext.Regression.Evaluate(scoredDataZeroRows);
+            Assert.Equal(0, evalResultZeroRows.RSquared);
+        }
     }
 }

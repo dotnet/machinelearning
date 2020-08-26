@@ -157,12 +157,23 @@ namespace Microsoft.ML.AutoML
             return newResults.Average(r => r);
         }
 
+        /// <summary>
+        /// return the index of value from <paramref name="values"/> that closest to <paramref name="average"/>. If <paramref name="average"/> is NaN, +/- inf, the first, max/min value's index will be return.
+        /// </summary>
         private static int GetIndexClosestToAverage(IEnumerable<double> values, double average)
         {
             // Average will be NaN iff all values are NaN.
             // Return the first index in this case.
             if (double.IsNaN(average))
                 return 0;
+
+            // Return the max value's index if average is positive inf.
+            if (double.IsPositiveInfinity(average))
+                return values.ToList().IndexOf(values.Max());
+
+            // Return the min value's index if average is negative inf.
+            if (double.IsNegativeInfinity(average))
+                return values.ToList().IndexOf(values.Min());
 
             int avgFoldIndex = -1;
             var smallestDistFromAvg = double.PositiveInfinity;
