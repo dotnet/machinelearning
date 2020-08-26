@@ -407,7 +407,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public override string GenerateTransformer()
         {
-            return @"ResizeImages(outputColumnName: ""input"", imageWidth: 800, imageHeight: 600, inputColumnName: ""input"")";
+            return @"ResizeImages(outputColumnName: ""ImageSource_featurized"", imageWidth: 800, imageHeight: 600, inputColumnName: ""ImageSource_featurized"")";
         }
     }
 
