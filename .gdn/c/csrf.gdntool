@@ -1,0 +1,115 @@
+{
+  "fileVersion": "1.0.0",
+  "name": "CSRF",
+  "shortDescription": "Run Cross Site Request Forgery scanner",
+  "longDescription": "Looks for missing common anti-CSRF mitigations in ASP.NET Core MVC and ASP.NET MVC",
+  "toolVersion": "1.10.7",
+  "arguments": [
+    {
+      "id": "enabledPlugins",
+      "argumentType": "MultiPositional",
+      "default": [ "/plugins:CSRF:enabled=true" ],
+      "displayName": "Enabled Plugins",
+      "required": true
+    },
+    {
+      "id": "targetDirectory",
+      "argumentType": "KeyValue",
+      "key": "targetDirectory",
+      "displayName": "Target Directory",
+      "default": "$(WorkingDirectory)",
+      "shortDescription": "Absolute path to the directory to scan",
+      "required": true
+    },
+    {
+      "id": "outputDirectory",
+      "argumentType": "KeyValue",
+      "displayName": "Output Directory",
+      "shortDescription": "Absolute path to the directory to write output files",
+      "key": "outputDirectory"
+    },
+    {
+      "id": "analyzeMvcApiControllers",
+      "argumentType": "KeyValue",
+      "displayName": "Analyze MVC API controllers",
+      "shortDescription": "Flag to analyze ASP.NET Core/non-Core MVC API controllers for missing [ValidateAntiForgeryToken] attributes",
+      "key": "plugins:CSRF:options:analyzeMvcApiControllers",
+      "default": "false",
+      "required": false
+    },
+    {
+      "id": "excludePassesFromLog",
+      "argumentType": "KeyValue",
+      "displayName": "Exclude Passes From Log",
+      "shortDescription": "Log only errors and warnings",
+      "key": "excludePassesFromLog",
+      "required": false
+    },
+    {
+      "id": "failIfNoTargetsFound",
+      "argumentType": "KeyValue",
+      "displayName": "Fail If No Targets Are Found",
+      "shortDescription": "Pass or Fail when there are no files matching the 'File filter to scan' input glob pattern",
+      "key": "failIfNoTargetsFound",
+      "required": false
+    }
+  ],
+  "commandLineOptions": {
+    "argumentPrefix": "/",
+    "keyValueSeparator": "=",
+    "outputArgumentId": "outputDirectory",
+    "targetArgumentId": "targetDirectory",
+    "targetType": "directory"
+  },
+  "errorExitCodes": {
+    "255": "An unexpected exception occurred",
+    "254": "No available target files were found and the tool was set to fail under this condition"
+  },
+  "executablePath": "tools\\Phalanx.dll",
+  "fullName": "Phalanx",
+  "launcher": "NetCore",
+  "launcherArguments": null,
+  "links": [
+    {
+      "name": "Phalanx project",
+      "uri": "https://dev.azure.com/SecurityIntegration/Phalanx"
+    }
+  ],
+  "outputExtension": "sarif",
+  "outputPathSuffixSeparator": null,
+  "outputTypeString": "Folder",
+  "supportsBugFiling": true,
+  "bugFilingFilter": "file|**\\*.sarif",
+  "packages": [
+    {
+      "name": "Phalanx",
+      "version": "1.10.7",
+      "type": "nuget",
+      "master": true,
+      "sources": [
+        {
+          "name": "Phalanx"
+        }
+      ]
+    }
+  ],
+  "successfulExitCodes": [
+    0,
+    1
+  ],
+  "applicability": [
+    {
+      "conditions": [
+        {
+          "type": "GlobPattern",
+          "criteriaArguments": {
+            "fileFilter": "f|**\\*.cshtml;-|.gdn\\**;"
+          }
+        }
+      ]
+    }
+  ],
+  "converterInfo": {
+    "convertExpected": false
+  }
+}

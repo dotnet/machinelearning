@@ -1,0 +1,122 @@
+{
+  "fileVersion": "1.1.0",
+  "name": "CodeSign",
+  "alternativeName": "CodeSignValidation",
+  "shortDescription": "Run Code Signature Validation",
+  "longDescription": "Validate files contain valid code signatures",
+  "toolVersion": "1.9.1",
+  "arguments": [
+    {
+      "id": "enabledPlugins",
+      "argumentType": "MultiPositional",
+      "default": [ "/plugins:CodeSignValidation:enabled=true" ],
+      "displayName": "Enabled Plugins",
+      "required": true
+    },
+    {
+      "id": "targetFiles",
+      "argumentType": "KeyValue",
+      "displayName": "File filter to scan",
+      "key": "plugins:CodeSignValidation:options:targetFiles",
+      "shortDescription": "Glob pattern to select which files to target",
+      "longDescription": "Defaults to all files ending in .dll, .exe, .sys, .ps1, .ps1xml, .psc1, .psd1, .cdxml, .mof, .vbs, .js, and .wsf, excluding those ending in .nd.dll or those in the .gdn folder",
+      "required": false
+    },
+    {
+      "id": "policyFile",
+      "argumentType": "KeyValue",
+      "displayName": "CI Policy Path",
+      "key": "plugins:CodeSignValidation:options:policyFile",
+      "shortDescription": "Path to the CSV policy to use",
+      "longDescription": "Defaults to the include Azure Security Pack policy. Relative paths are resolved based on the location of the CSV plugin folder.",
+      "required": false
+    },
+    {
+      "id": "catalogPath",
+      "argumentType": "KeyValue",
+      "displayName": "Catalog Path",
+      "key": "plugins:CodeSignValidation:options:catalogPath",
+      "shortDescription": "Absolute path to a directory containing .cat files for signature validation",
+      "value": "",
+      "required": false
+    },
+    {
+      "id": "targetDirectory",
+      "argumentType": "KeyValue",
+      "key": "targetDirectory",
+      "displayName": "Target Directory",
+      "default": "$(WorkingDirectory)",
+      "shortDescription": "Absolute path to the directory to scan",
+      "required": true
+    },
+    {
+      "id": "outputDirectory",
+      "argumentType": "KeyValue",
+      "displayName": "Output Directory",
+      "shortDescription": "Absolute path to the directory to write output files",
+      "key": "outputDirectory"
+    },
+    {
+      "id": "excludePassesFromLog",
+      "argumentType": "KeyValue",
+      "displayName": "Exclude Passes From Log",
+      "shortDescription": "Log only errors and warnings",
+      "key": "excludePassesFromLog",
+      "required": false
+    },
+    {
+      "id": "failIfNoTargetsFound",
+      "argumentType": "KeyValue",
+      "displayName": "Fail If No Targets Are Found",
+      "shortDescription": "Pass or Fail when there are no files matching the 'File filter to scan' input glob pattern",
+      "key": "failIfNoTargetsFound",
+      "required": false
+    }
+  ],
+  "commandLineOptions": {
+    "argumentPrefix": "/",
+    "keyValueSeparator": "=",
+    "outputArgumentId": "outputDirectory",
+    "targetArgumentId": "targetDirectory",
+    "targetType": "directory"
+  },
+  "errorExitCodes": {
+    "255": "An unexpected exception occurred",
+    "254": "No available target files were found and the tool was set to fail under this condition"
+  },
+  "executablePath": "tools\\Phalanx.dll",
+  "fullName": "Phalanx",
+  "launcher": "NetCore",
+  "launcherArguments": null,
+  "links": [
+    {
+      "name": "Phalanx project",
+      "uri": "https://dev.azure.com/SecurityIntegration/Phalanx"
+    }
+  ],
+  "outputExtension": "sarif",
+  "outputPathSuffixSeparator": null,
+  "outputTypeString": "Folder",
+  "supportsBugFiling": true,
+  "bugFilingFilter": "file|**\\*.sarif",
+  "packages": [
+    {
+      "name": "Phalanx",
+      "version": "1.9.1",
+      "type": "nuget",
+      "master": true,
+      "sources": [
+        {
+          "name": "Phalanx"
+        }
+      ]
+    }
+  ],
+  "successfulExitCodes": [
+    0,
+    1
+  ],
+  "converterInfo": {
+    "convertExpected": false
+  }
+}

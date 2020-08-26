@@ -1,0 +1,32 @@
+{
+  "fileVersion": "1.0.0",
+  "tools": [
+    {
+      "tool": {
+        "name": "BinSkim",
+        "version": "1.6.0"
+      },
+      "arguments": {
+        "Function": "analyze",
+        "Target": "$(BinSkim.DefaultTargetPattern)",
+        "ConfigPath": "default",
+        "Recurse": true,
+        "Verbose": false,
+        "Hashes": true,
+        "Statistics": true,
+        "Environment": false
+      }
+    },
+    {
+      "tool": {
+        "name": "CredScan",
+        "version": "2.0.20"
+      },
+      "arguments": {
+        "TargetDirectory": "$(Credscan.DefaultTargetDirectory)",
+        "OutputType": "pre",
+        "SuppressAsError": true
+      }
+    }
+  ]
+}

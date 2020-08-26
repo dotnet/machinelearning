@@ -218,7 +218,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <summary>
         /// The inner stateful Lambda Transform object.
         /// </summary>
-        private readonly IDataTransform _transform;
+        private readonly IDataView _transform;
 
         /// <summary>
         /// The window size for buffering.
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         protected string InputColumnName;
         protected string OutputColumnName;
 
-        private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string outputColumnName, string inputColumnName,
+        private static IDataView CreateLambdaTransform(IHost host, IDataView input, string outputColumnName, string inputColumnName,
             Action<TState> initFunction, bool hasBuffer, DataViewType outputColTypeOverride)
         {
             var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));

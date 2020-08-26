@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
     /// and how to run it on a GPU.
     /// </summary>
-    public sealed class OnnxTransformer : RowToRowTransformerBase
+    public sealed class OnnxTransformer : RowToRowTransformerBase, IDisposable
     {
         /// <summary>
         /// A class used for capturing shape information from command line.
@@ -351,6 +351,15 @@ namespace Microsoft.ML.Transforms.Onnx
         internal int MapDataViewColumnToOnnxOutputTensor(int iinfo)
         {
             return Model.ModelInfo.OutputNames.IndexOf(Outputs[iinfo]);
+        }
+
+        private bool _isDisposed;
+        public void Dispose()
+        {
+            if (_isDisposed)
+                return;
+            Model?.Dispose();
+            _isDisposed = true;
         }
 
         private sealed class Mapper : MapperBase
@@ -734,6 +743,9 @@ namespace Microsoft.ML.Transforms.Onnx
     /// When creating the estimator through [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*), set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1. If the GPU device isn't found but 'fallbackToCpu = true' then the estimator will run on the CPU. If the GPU device isn't found but 'fallbackToCpu = false' then the estimator will throw an exception
     ///
     /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
+    ///
+    /// Internally, OnnxTransformer (the return value of OnnxScoringEstimator.Fit()) holds a reference to an inference session which points to unmanaged memory owned by OnnxRuntime.dll.
+    /// Whenever there is a call to [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*) in a pipeline, it is advised to cast the return value of the Fit() call to IDisposable and call Dispose() to ensure that there are no memory leaks.
     ///
     /// OnnxRuntime works on Windows, MacOS and Ubuntu 16.04 Linux 64-bit platforms.
     /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.

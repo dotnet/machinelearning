@@ -147,6 +147,7 @@ namespace Microsoft.ML.RunTests
             // Schema verification between estimator and transformer.
             var scoredTrainSchemaShape = SchemaShape.Create(transformer.GetOutputSchema(validFitInput.Schema));
             CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
+            (loadedTransformer as IDisposable)?.Dispose();
         }
 
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)

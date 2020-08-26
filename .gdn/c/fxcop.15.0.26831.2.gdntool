@@ -1,0 +1,286 @@
+{
+  "fileVersion": "0.1",
+  "name": "FxCop",
+  "fullName": "FxCop",
+  "alternativeName": "CodeAnalysis",
+  "toolVersion": "15.0.26831.2",
+  "shortDescription": "A tool that analyzes managed code assemblies.",
+  "longDescription": "FxCop is an application that analyzes managed code assemblies (code that targets the .NET Framework common language runtime) and reports information about the assemblies, such as possible design, localization, performance, and security improvements.",
+  "links": {
+    "gettingStarted": "https://aka.ms/fxcop"
+  },
+  "executablePath": "tools\\FxCopCmd.exe",
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+    "1": "A fatal error occurred. Some of the possible conditions that are considered fatal errors: 1) The analysis could not be performed because of insufficient input. 2) The analysis threw an exception that is not handled by FxCopCmd. 3) The specified project file could not be found or is corrupted. 4) The output option was not specified or the file could not be written.",
+    "3": "A fatal error and some rule exceptions occurred. Some of the possible conditions that are considered fatal errors: 1) The analysis could not be performed because of insufficient input. 2) The analysis threw an exception that is not handled by FxCopCmd. 3) The specified project file could not be found or is corrupted. 4) The output option was not specified or the file could not be written.",
+    "4": "Project load error occurred.",
+    "8": "Assembly load error occurred.",
+    "9": "An analysis error (possibly assembly load error) occurred.",
+    "16": "Rule library load error occurred.",
+    "32": "Import report load error occurred.",
+    "64": "Output error occurred.",
+    "128": "Command line switch error occurred. Please correct the wrong switch(es) by referring to https://msdn.microsoft.com/en-us/library/bb429449(v=vs.80).aspx.",
+    "256": "Initialization error occurred.",
+    "512": "Assembly references error occurred.",
+    "521": "An analysis error (possibly assembly load error and/or assembly references error) occurred."
+  },
+  "packages": [
+    {
+      "type": "nuget",
+      "name": "Microsoft.CodeAnalysis.FxCop",
+      "version": "15.0.26831.2",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "Help",
+      "displayName": "Help",
+      "key": "?",
+      "argumentType": "switch",
+      "shortDescription": "Displays a summary of FxCopCmd options. Other options that appear with /? are ignored."
+    },
+    {
+      "id": "Target",
+      "displayName": "Target",
+      "key": "file",
+      "argumentType": "keyValue",
+      "quoteEncapsulated": true,
+      "default": "**.dll;**.exe;-|.gdn\\**;",
+      "isGlob": true,
+      "batchGlobResults": true,
+      "required": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "OutputFile",
+      "displayName": "Output File",
+      "key": "out",
+      "argumentType": "keyValue",
+      "quoteEncapsulated": true,
+      "shortDescription": "Specifies the file name for the analysis report."
+    },
+    {
+      "id": "AssemblyDependencyFolders",
+      "displayName": "Assembly Dependency Folders",
+      "key": "directory",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "required": false,
+      "default": [
+      ],
+      "shortDescription": "Specifies an additional directory to search for assembly dependencies."
+    },
+    {
+      "id": "ForceOutput",
+      "displayName": "Force Output",
+      "key": "forceOutput",
+      "alias": "fo",
+      "argumentType": "switch",
+      "shortDescription": "Forces output even when there are no results.",
+      "default": true
+    },
+    {
+      "id": "FxCopProjectFile",
+      "displayName": "FxCop Project File",
+      "key": "project",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "required": false,
+      "isGlob": true,
+      "default": "$(fxcop.DefaultProjectFile)",
+      "shortDescription": "Specifies one path to a FxCop project file(which contains rulesets to use). Defaults to the Recommended ruleset. Cannot appear multiple times."
+    },
+    {
+      "id": "Ruleset",
+      "displayName": "Ruleset",
+      "key": "ruleset",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "required": false,
+      "shortDescription": "Specifies one(string) or more(array) paths a ruleset file."
+    },
+    {
+      "id": "CustomRuleAssemblies",
+      "displayName": "Custom Rule Assemblies",
+      "key": "rule",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "required": false,
+      "default": [
+      ],
+      "shortDescription": "Specifies one(string) or more(array) paths to a rule assembly file."
+    },
+    {
+      "id": "CustomDictionary",
+      "displayName": "Custom Dictionary",
+      "key": "dictionary",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Specifies a file path to a custom dictionary used by spelling rules."
+    },
+    {
+      "id": "ReferenceAssemblies",
+      "displayName": "Reference Assemblies",
+      "key": "reference",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "required": false,
+      "default": [
+      ],
+      "shortDescription": "A list of reference assemblies required for analysis."
+    },
+    {
+      "id": "PlatformAssembliesFolder",
+      "displayName": "Platform Assemblies Folder",
+      "key": "platform",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Location of platform assemblies."
+    },
+    {
+      "id": "Types",
+      "displayName": "Types",
+      "key": "types",
+      "argumentType": "multiKeyValue",
+      "multipleSeparator": ",",
+      "multipleKeyValueType": "concat",
+      "required": false,
+      "shortDescription": "Specifies one(string) or more(comma-separated string) of the types to analyze. This option disables analysis of assemblies, namespaces, and resources; only the specified types and their members are included in the analysis. You can use the wildcard character '*' at the end of the name to select multiple types."
+    },
+    {
+      "id": "Timeout",
+      "displayName": "Timeout",
+      "key": "timeout",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Override timeout for analysis deadlock detection. Analysis will be aborted when analysis of a single item by a single rule exceeds the specified amount of time. Specify a value of 0 to disable deadlock detection."
+    },
+    {
+      "id": "CustomRules",
+      "displayName": "Custom Rules",
+      "key": "ruleid",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "required": false,
+      "default": [
+      ],
+      "shortDescription": "A list of rules to explicitly enable/disable. Expects the format \"<+/-><Category>#<CheckId>\". Use '+' to explicitly enable or '-' to disable a rule.See the [documentation](https://docs.microsoft.com/en-us/visualstudio/code-quality/ca0061) for more details."
+    },
+    {
+      "id": "SearchGac",
+      "displayName": "Search Global Assembly Cache",
+      "key": "searchgac",
+      "argumentType": "switch",
+      "default": true,
+      "shortDescription": "Search Global Assembly Cache for missing references."
+    },
+    {
+      "id": "IgnoreInvalidTargets",
+      "displayName": "Ignore Invalid Targets",
+      "key": "ignoreinvalidtargets",
+      "argumentType": "switch",
+      "shortDescription": "Silently ignore invalid target files."
+    },
+    {
+      "id": "IgnoreGeneratedCode",
+      "displayName": "Ignore Generated Code",
+      "key": "ignoregeneratedcode",
+      "argumentType": "switch",
+      "shortDescription": "Suppress analysis results against generated code."
+    },
+    {
+      "id": "AspNetOnly",
+      "displayName": "ASP.NET Only",
+      "key": "aspnet",
+      "argumentType": "switch",
+      "shortDescription": "Analyze only ASP.NET-generated binaries and honor global suppressions in App_Code.dll for all assemblies under analysis."
+    },
+    {
+      "id": "FailOnMissingRules",
+      "displayName": "Fail On Missing Rules",
+      "key": "failonmissingrules",
+      "argumentType": "switch",
+      "shortDescription": "Treat missing rules or rule sets as an error and halt execution."
+    },
+    {
+      "id": "OverrideRuleVisibilities",
+      "displayName": "Override Rule Visibilities",
+      "key": "overriderulevisibilities",
+      "argumentType": "switch",
+      "shortDescription": "Run all overridable rules against all targets."
+    },
+    {
+      "id": "ReportMissingIndirectAssemblies",
+      "displayName": "Report Missing Indirect Assemblies",
+      "key": "reportmissingindirectassemblies",
+      "argumentType": "switch",
+      "shortDescription": "Report a non-zero error code if any of the indirectly referenced assemblies of the target analysis assembly are missing."
+    },
+    {
+      "id": "DoNotSearchPlatformDirectories",
+      "displayName": "Do Not Search Platform Directories",
+      "key": "donotsearchplatformdirectories",
+      "argumentType": "switch",
+      "shortDescription": "Do not search platform directories."
+    },
+    {
+      "id": "Console",
+      "displayName": "Console",
+      "key": "console",
+      "argumentType": "switch",
+      "shortDescription": "Directs analysis output to the console.including file and line number information.By default, the XSL file FxCopConsoleOutput.xsl is applied to the output before it is displayed."
+    },
+    {
+      "id": "ConsoleXsl",
+      "displayName": "Console XSL",
+      "key": "consoleXsl",
+      "argumentType": "keyValue",
+      "required": false,
+      "shortDescription": "Apply specified XSL to console output."
+    },
+    {
+      "id": "Quiet",
+      "displayName": "Quiet",
+      "key": "quiet",
+      "argumentType": "switch",
+      "shortDescription": "Suppress all console output other than the reporting implied by /console or /consolexsl."
+    },
+    {
+      "id": "Verbose",
+      "displayName": "Verbose",
+      "key": "verbose",
+      "argumentType": "switch",
+      "shortDescription": "Outputs verbose information during analysis."
+    },
+    {
+      "id": "Summary",
+      "displayName": "Summary",
+      "key": "summary",
+      "argumentType": "switch",
+      "shortDescription": "Includes a summary report that has the informational messages returned by FxCopCmd. The summary shows the number of items found, how many items were new, and the running time for the analysis."
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": ":",
+    "argumentPrefix": "/",
+    "aliasPrefix": "/",
+    "helpArgumentId": "Help",
+    "targetArgumentId": "Target",
+    "outputArgumentId": "OutputFile"
+  },
+  "outputExtension": "xml",
+  "supportsBugFiling": true,
+  "bugFilingFilter": "file|**\\*.xml",
+  "presetVariables": {
+    "fxcop.DefaultProjectFile": "**tools\\Sdl\\Sdl7.0.fxcop"
+  },
+  "converterInfo": {
+    "logFileConverters": {
+      "fxcop": {
+        "converterName": "FXCopConverter"
+      }
+    }
+  }
+}

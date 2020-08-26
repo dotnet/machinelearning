@@ -1,0 +1,259 @@
+{
+  "fileVersion": "1.1.0",
+  "name": "Flawfinder",
+  "fullName": "Flawfinder",
+  "toolVersion": "2.0.11",
+  "shortDescription": "A command line utility/wrapper for running the Flawfinder tool.",
+  "longDescription": "This is a command line utility/wrapper for running the Flawfinder tool. Refer to https://dwheeler.com/flawfinder/ for info on necessary setup. See the Flawfinder Docs (at https://dwheeler.com/flawfinder/flawfinder.pdf) for more information.",
+  "links": [
+    {
+      "name": "Flawfinder Docs",
+      "uri": "https://dwheeler.com/flawfinder/flawfinder.pdf"
+    }
+  ],
+  "executablePath": "tools\\flawfinder.exe",
+  "packages": [
+    {
+      "name": "Microsoft.Guardian.FlawfinderRedist",
+      "version": "2.0.11.1",
+      "type": "nuget",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "Help",
+      "displayName": "Help",
+      "key": "help",
+      "alias": "h",
+      "argumentType": "Switch",
+      "shortDescription": "Show usage (help) information."
+    },
+    {
+      "id": "Target",
+      "displayName": "Target",
+      "argumentType": "positional",
+      "key": "targets",
+      "sortOrder": 1,
+      "required": true,
+      "default": "$(DefaultFlawfinderTargets)",
+      "multiple": true,
+      "multipleKeyValueType": "list",
+      "multipleSeparator": " ",
+      "isGlob": true,
+      "batchGlobResults": false,
+      "shortDescription": "source file(s) or directory(s) to be tested"
+    },
+    {
+      "id": "OutputFile",
+      "argumentType": "KeyValue",
+      "displayName": "Output File",
+      "shortDescription": "write report to filename",
+      "key": ">",
+      "commandLineOptions" : {
+        "argumentPrefix": " "      
+      },
+      "sortOrder": 500
+    },
+    {
+      "id": "Version",
+      "displayName": "Version", 
+      "key": "version",
+      "argumentType": "switch",
+      "shortDescription": "Shows (just) the version number and exits."
+    },
+    {
+      "id": "FollowDotDir",
+      "displayName": "Follow dot directories",
+      "key": "followdotdir",
+      "argumentType": "Switch",
+      "shortDescription": "Enter directories whose names begin with \".\""
+    },
+    {
+      "id": "AllowLink",
+      "displayName": "Allows symbolic links",
+      "key": "allowlink",
+      "argumentType": "Switch",
+      "shortDescription": "Allow the use of symbolic links; normally symbolic links are skipped."
+    },
+    {
+      "id": "Patch",
+      "displayName": "Patch",
+      "key": "patch",
+      "alias": "P",
+      "argumentType": "keyValue",
+      "shortDescription": "Examine the selected files or directories, but only report hits in lines that are added or modified as described in the given patch file."
+    },
+    {
+      "id": "Inputs",
+      "displayName": "Inputs",
+      "key": "inputs",
+      "alias": "I",
+      "argumentType": "Switch",
+      "shortDescription": "Show only functions that obtain data from outside the program."
+    },
+    {
+      "id": "MinLevel",
+      "displayName": "Minimum Risk Level",
+      "key": "minlevel",
+      "alias": "m",
+      "argumentType": "keyValue",
+      "default": "1",
+      "shortDescription": "Set minimum risk level to X for inclusion in hitlist."
+    },
+    {
+      "id": "FalsePositive",
+      "displayName": "False Positive",
+      "key": "falsepositive",
+      "alias": "F",
+      "argumentType": "Switch",
+      "shortDescription": "Do not include hits that are likely to be false positives."
+    },
+    {
+      "id": "NeverIgnore",
+      "displayName": "Never Ignore",
+      "key": "neverignore",
+      "alias": "n",
+      "argumentType": "Switch",
+      "shortDescription": "Never ignore security issues, even if they have an ignore directive in a comment."
+    },
+    {
+      "id": "RegExp",
+      "displayName": "Regular Expression",
+      "key": "regexp",
+      "alias": "e",
+      "argumentType": "keyValue",
+      "shortDescription": "Only report hits with text that matches the regular expression pattern"
+    },
+    {
+      "id": "Columns",
+      "displayName": "Columns",
+      "key": "columns",
+      "alias": "C",
+      "argumentType": "Switch",
+      "shortDescription": "Show the column number (as well as the file name and line number) of each hit."
+    },
+    {
+      "id": "Context",
+      "displayName": "Context",
+      "key": "context",
+      "alias": "c",
+      "argumentType": "Switch",
+      "shortDescription": "Show context, i.e., the line having the \"hit\"/potential flaw. "
+    },
+    {
+      "id": "CSV",
+      "displayName": "CSV",
+      "key": "csv",
+      "argumentType": "Switch",
+      "shortDescription": "Generate output in comma-separated-value (CSV) format.",
+      "default": true,
+      "required": true
+    },
+    {
+      "id": "Dataonly",
+      "displayName": "Dataonly",
+      "key": "dataonly",
+      "alias": "D",
+      "argumentType": "Switch",
+      "shortDescription": "Don't display the header and footer"
+    },
+    {
+      "id": "HTML",
+      "displayName": "HTML Output",
+      "key": "html",
+      "alias": "h",
+      "argumentType": "Switch",
+      "shortDescription": "Format the output as HTML instead of as simple text"
+    },
+    {
+      "id": "Immediate",
+      "displayName": "Immediate",
+      "key": "immediate",
+      "alias": "i",
+      "argumentType": "Switch",
+      "shortDescription": "Immediately display hits (don't just wait until the end)."
+    },
+    {
+      "id": "Singleline",
+      "displayName": "Singleline output",
+      "key": "singleline",
+      "alias": "S",
+      "argumentType": "Switch",
+      "shortDescription": "Display as single line of text output for each hit."
+    },
+    {
+      "id": "OmitTime",
+      "displayName": "Omit Time",
+      "key": "omittime",
+      "argumentType": "Switch",
+      "shortDescription": "Omit timing information."
+    },
+    {
+      "id": "Quiet",
+      "displayName": "Quiet Output",
+      "key": "quiet",
+      "alias": "Q",
+      "argumentType": "Switch",
+      "shortDescription": "Don't display status information while the analysis is going on."
+    },
+    {
+      "id": "SaveHitlist",
+      "displayName": "Save Hitlist",
+      "key": "savehitlist",
+      "argumentType": "keyValue",
+      "shortDescription": "Save all resulting hits (the \"hitlist\") to given filename"
+    },
+    {
+      "id": "LoadHitlist",
+      "displayName": "Load Hitlist",
+      "key": "loadhitlist",
+      "argumentType": "keyValue",
+      "shortDescription": "Load the hitlist from given filename instead of analyzing source programs."
+    },
+    {
+      "id": "DiffHitlist",
+      "displayName": "Difference Hitlist",
+      "key": "diffhitlist",
+      "argumentType": "keyValue",
+      "shortDescription": "Show only hits (loaded or analyzed) not in given filename."
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "--",
+    "aliasPrefix": "-",
+    "targetArgumentId": "Target",
+    "outputArgumentId": "OutputFile",
+    "helpArgumentId": "Help"
+  },
+  "redirectOutputToFile": "true",
+  "outputExtension": "csv",
+  "outputTypeString": "File",
+  "successfulExitCodes": [ 0 ],
+  "errorHelperMessage": "Please refer to https://dwheeler.com/flawfinder/ for more info.",
+  "supportsBugFiling": false,
+  "bugFilingFilter": "file|**\\FileMap.sarif;**\\UserErrors.csv",
+  "presetVariables": {
+    "DefaultFlawfinderTargets": "f|**\\*.c;f|**\\*.h;f|**\\*.CPP;f|**\\*.cxx;f|**\\*.hpp;-|.gdn\\**;"
+  },
+  "applicability": [
+    {
+      "conditions": [
+        {
+          "type": "GlobPattern",
+          "criteriaArguments": {
+            "fileFilter": "f|**\\*.c;f|**\\*.h;f|**\\*.CPP;f|**\\*.cxx;f|**\\*.hpp;-|.gdn\\**;"
+          }
+        }
+      ]
+    }
+  ],
+  "converterInfo": {
+    "logFileConverters": {
+      "tsvAndCsv": {
+        "converterName": "FlawfinderCharSepValConverter"
+      }
+    }
+  }
+}

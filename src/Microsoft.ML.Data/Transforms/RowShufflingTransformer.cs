@@ -634,23 +634,25 @@ namespace Microsoft.ML.Transforms
                 while (_liveCount < _poolRows && !_doneConsuming)
                 {
                     // We are under capacity. Try to get some more.
-                    while (_toConsumeChannel.Reader.WaitToReadAsync().GetAwaiter().GetResult())
+                    var hasReadItem = _toConsumeChannel.Reader.TryRead(out int got);
+                    if (hasReadItem)
                     {
-                        var hasReadItem = _toConsumeChannel.Reader.TryRead(out int got);
-                        if (hasReadItem)
+                        if (got == 0)
                         {
-                            if (got == 0)
-                            {
-                                // We've reached the end of the Channel. There's no reason
-                                // to attempt further communication with the producer.
-                                // Check whether something horrible happened.
-                                if (_producerTaskException != null)
-                                    throw Ch.Except(_producerTaskException, "Shuffle input cursor reader failed with an exception");
-                                _doneConsuming = true;
-                                break;
-                            }
-                            _liveCount += got;
+                            // We've reached the end of the Channel. There's no reason
+                            // to attempt further communication with the producer.
+                            // Check whether something horrible happened.
+                            if (_producerTaskException != null)
+                                throw Ch.Except(_producerTaskException, "Shuffle input cursor reader failed with an exception");
+                            _doneConsuming = true;
+                            break;
                         }
+                        _liveCount += got;
+                    }
+                    else
+                    {
+                        // Sleeping for one millisecond to stop the thread from spinning while waiting for the producer.
+                        Thread.Sleep(1);
                     }
                 }
                 if (_liveCount == 0)

@@ -1,0 +1,170 @@
+{
+  "fileVersion": "1.1.0",
+  "name": "RoslynAnalyzers",
+  "fullName": "RoslynAnalyzers",
+  "alternativeName": "Roslyn",
+  "toolVersion": "0.0.1",
+  "shortDescription": "A command line utility for running Microsoft Roslyn Analyzers on C# and VB.",
+  "longDescription": "This is a command line utility for running Microsoft Roslyn Analyzers on .NET Framework, .NET Core, and .NET Standard projects in C# and/or VB. It must be run on a local machine (or build agent) with MSBuild toolset (including csc.exe compiler for C# and/or vbc.exe compiler for VB) installed.",
+  "links": {
+    "gettingStarted": "https://docs.microsoft.com/en-us/visualstudio/extensibility/getting-started-with-roslyn-analyzers?view=vs-2017"
+  },
+  "executablePath": "tools\\gdn-roslynanalyzers.cmd",
+  "packages": [
+    {
+      "type": "nuget",
+      "name": "Microsoft.Guardian.RoslynAnalyzers.Cli",
+      "version": "0.0.1",
+      "master": true,
+      "sources": [
+        {
+          "name": "MSCA.Plugins"
+        }
+      ]
+    },
+    {
+      "type": "nuget",
+      "name": "Microsoft.CodeAnalysis.FxCopAnalyzers",
+      "version": "2.9.10",
+      "sources": []
+    },
+    {
+      "type": "nuget",
+      "name": "Microsoft.Internal.Analyzers",
+      "version": "2.6.1",
+      "sources": []
+    },
+    {
+      "type": "nuget",
+      "name": "Microsoft.Internal.Analyzers.Rulesets",
+      "version": "1.0.26",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "CopyLogsOnly",
+      "displayName": "Copy Logs Only",
+      "key": "copy-logs-only",
+      "argumentType": "switch",
+      "shortDescription": "Indicates whether to only copy the Roslyn analysis results. [Default=false]",
+      "longDescription": "Indicates whether to only copy the Roslyn analysis results that are already available in the location specified by the log-root-directory parameter."
+    },
+    {
+      "id": "LogRootDirectory",
+      "displayName": "Log Root Directory",
+      "key": "log-root-directory",
+      "argumentType": "keyValue",
+      "shortDescription": "The path to the root directory where the Roslyn analysis results are located.",
+      "longDescription": "The path to the root directory where the Roslyn analysis results are located. Defaults to the sources-directory parameter. If the path is relative, it is relative to sources-directory."
+    },
+    {
+      "id": "OutputDirectory",
+      "displayName": "Output Directory",
+      "key": "output-directory",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the output directory for copying Roslyn analysis results to. If the path is relative, it is relative to the directory where Microsoft Guardian Roslyn Plugin is running."
+    },
+    {
+      "id": "SourcesDirectory",
+      "displayName": "Sources Directory",
+      "key": "sources-directory",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the sources directory from where to run Roslyn analysis."
+    },
+    {
+      "id": "MSBuildVersion",
+      "displayName": "MSBuild Version",
+      "key": "msbuild-version",
+      "argumentType": "keyValue",
+      "shortDescription": "The MSBuild toolset version. Currently, only 15.0 is supported."
+    },
+    {
+      "id": "CodeAnalysisAssemblyVersion",
+      "displayName": "Code Analysis Assembly Version",
+      "key": "code-analysis-assembly-version",
+      "argumentType": "keyValue",
+      "shortDescription": "The version of the Roslyn assembly Microsoft.CodeAnalysis.dll."
+    },
+    {
+      "id": "SetupCommandlines",
+      "displayName": "Setup Commandlines",
+      "key": "setup-commandlines",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the commandlines (delimited by #) necessary to set up the build environment."
+    },
+    {
+      "id": "BuildArchitecture",
+      "displayName": "Build Architecture",
+      "key": "build-architecture",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the build architecture. Valid values: x86 | amd64."
+    },
+    {
+      "id": "BuildCommandlines",
+      "displayName": "Build Commandlines",
+      "key": "build-commandlines",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the commandlines (delimited by #) to build projects and/or solutions."
+    },
+    {
+      "id": "InternalAnalyzersRootDirectory",
+      "displayName": "Internal Analyzers Root Directory",
+      "key": "internal-analyzers-root-directory",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the path to the Microsoft.Internal.Analyzers NuGet package installation directory.",
+      "longDescription": "Specifies the path to the Microsoft.Internal.Analyzers NuGet package installation directory. If the path is relative, it is relative to the Guardian install folder."
+    },
+    {
+      "id": "FxCopAnalyzersRootDirectory",
+      "displayName": "FxCop Analyzers Root Directory",
+      "key": "fxcop-analyzers-root-directory",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the path to the Microsoft.CodeAnalysis.FxCopAnalyzers NuGet package installation directory.",
+      "longDescription": "Specifies the path to the Microsoft.CodeAnalysis.FxCopAnalyzers NuGet package installation directory. If the path is relative, it is relative to the Guardian install folder."
+    },
+    {
+      "id": "RulesetPath",
+      "displayName": "Ruleset Path",
+      "key": "ruleset-path",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the path to a custom ruleset.",
+      "longDescription": "Specifies the path to a custom ruleset. If the path is relative, it is relative to the sources directory."
+    },
+    {
+      "id": "CompilerWarningsSuppressionFilePath",
+      "displayName": "Compiler Warnings Suppression File Path",
+      "key": "compiler-warnings-suppression-file-path",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the path to a compiler warnings suppression file.",
+      "longDescription": "Specifies the path to a compiler warnings suppression file. If the path is relative, it is relative to the sources-directory."
+    },
+    {
+      "id": "LoggerLevel",
+      "displayName": "Logger Level",
+      "key": "logger-level",
+      "argumentType": "keyValue",
+      "default": "Standard"
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "--",
+    "aliasPrefix": "-",
+    "outputArgumentId": "OutputDirectory"
+  },
+  "outputExtension": "sarif",
+  "outputTypeString": "Folder",
+  "supportsBugFiling": false,
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+  },
+  "errorHelperMessage": "",
+  "converterInfo": {
+    "logFileConverters": {
+      "sarif": {
+        "converterName": "SarifV1ToSarifV2Converter"
+      }
+    }
+  }
+}
