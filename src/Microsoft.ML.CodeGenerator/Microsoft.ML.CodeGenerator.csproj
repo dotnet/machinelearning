@@ -34,10 +34,6 @@
       <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
       <Generator>TextTemplatingFilePreprocessor</Generator>
     </None>
-    <None Update="Templates\Azure\Model\LabelMapping.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>LabelMapping.cs</LastGenOutput>
-    </None>
     <None Update="Templates\Console\Annotation.ttinclude">
     </None>
     <None Update="Templates\Console\ConsumeModel.tt">
@@ -99,11 +95,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AzureObjectDetectionModelOutputClass.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Azure\Model\LabelMapping.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>LabelMapping.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Console\ConsumeModel.cs">
       <DesignTime>True</DesignTime>

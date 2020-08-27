@@ -98,19 +98,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 Name = $"{ _settings.OutputName }.Model.csproj",
             };
 
-            LabelMapping = new CSharpCodeFile()
-            {
-                File = new LabelMapping()
-                {
-                    Target = _settings.Target,
-                    Namespace = _nameSpaceValue,
-                    LabelMappingInputLabelType = typeof(Int64).Name,
-                    PredictionLabelType = labelTypeCsharp.Name,
-                    TaskType = _settings.MlTask.ToString(),
-                }.TransformText(),
-                Name = "LabelMapping.cs",
-            };
-
             ConsumeModel = new CSharpCodeFile()
             {
                 File = new ConsumeModel()
@@ -156,7 +143,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     AzureImageModelOutputClass,
                     ConsumeModel,
                     ModelProject,
-                    LabelMapping,
                 };
             }
             project.Name = Name;
