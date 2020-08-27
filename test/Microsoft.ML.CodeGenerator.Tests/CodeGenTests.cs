@@ -90,34 +90,29 @@ namespace mlnet.Tests
         }
 
         [Fact]
-        public void ClassLabelGenerationBasicTest()
+        public void ClassLabelGenerationTest()
         {
-            var columns = new TextLoader.Column[]
+            Assert.Equal(CodeGenTestData.inputColumns.Count, CodeGenTestData.expectedLabels.Count);
+            for (int i = 0; i < CodeGenTestData.inputColumns.Count; i++)
             {
-                new TextLoader.Column(){ Name = "Label", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Boolean },
-            };
-
-            var result = new ColumnInferenceResults()
-            {
-                TextLoaderOptions = new TextLoader.Options()
+                var result = new ColumnInferenceResults()
                 {
-                    Columns = columns,
-                    AllowQuoting = false,
-                    AllowSparse = false,
-                    Separators = new[] { ',' },
-                    HasHeader = true,
-                    TrimWhitespace = true
-                },
-                ColumnInformation = new ColumnInformation()
-            };
+                    TextLoaderOptions = new TextLoader.Options()
+                    {
+                        Columns = CodeGenTestData.inputColumns[i],
+                        AllowQuoting = false,
+                        AllowSparse = false,
+                        Separators = new[] { ',' },
+                        HasHeader = true,
+                        TrimWhitespace = true
+                    },
+                    ColumnInformation = new ColumnInformation()
+                };
 
-            CodeGenerator codeGenerator = new CodeGenerator(null, result, null);
-            var actual = codeGenerator.GenerateClassLabels();
-            var expected1 = "[ColumnName(\"Label\"), LoadColumn(0)]";
-            var expected2 = "public bool Label{get; set;}";
-
-            Assert.Equal(expected1, actual[0]);
-            Assert.Equal(expected2, actual[1]);
+                CodeGenerator codeGenerator = new CodeGenerator(null, result, null);
+                var actualLabels = codeGenerator.GenerateClassLabels();
+                Assert.Equal(actualLabels, CodeGenTestData.expectedLabels[i]);
+            }
         }
 
         [Fact]
@@ -140,5 +135,144 @@ namespace mlnet.Tests
         }
 
 
+    }
+    public class CodeGenTestData
+    {
+        public static List<TextLoader.Column[]> inputColumns = new List<TextLoader.Column[]>
+        {
+            new TextLoader.Column[]
+            {
+                new TextLoader.Column(){ Name = "Label", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Boolean },
+            },
+            new TextLoader.Column[]
+            {
+                new TextLoader.Column(){ Name = "id", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Single },
+                new TextLoader.Column(){ Name = "country", Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.Single },
+                new TextLoader.Column(){ Name = "Country", Source = new TextLoader.Range[]{new TextLoader.Range(2) }, DataKind = DataKind.String }
+            },
+            new TextLoader.Column[]
+            {
+                new TextLoader.Column(){ Name = "id", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Int32 },
+                new TextLoader.Column(){ Name = "shape", Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.Int32 },
+                new TextLoader.Column(){ Name = "Shape", Source = new TextLoader.Range[]{new TextLoader.Range(2) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "color", Source = new TextLoader.Range[]{new TextLoader.Range(3) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "price", Source = new TextLoader.Range[]{new TextLoader.Range(4) }, DataKind = DataKind.Double },
+            },
+            new TextLoader.Column[]
+            {
+                new TextLoader.Column(){ Name = "vin", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "make", Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "model", Source = new TextLoader.Range[]{new TextLoader.Range(2) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "color", Source = new TextLoader.Range[]{new TextLoader.Range(3) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "MSRP", Source = new TextLoader.Range[]{new TextLoader.Range(4) }, DataKind = DataKind.Single },
+                new TextLoader.Column(){ Name = "engine size", Source = new TextLoader.Range[]{new TextLoader.Range(5) }, DataKind = DataKind.Double },
+                new TextLoader.Column(){ Name = "isElectric", Source = new TextLoader.Range[]{new TextLoader.Range(6) }, DataKind = DataKind.Boolean },
+            },
+            new TextLoader.Column[]
+            {
+                new TextLoader.Column(){ Name = "var_text", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "var_text", Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "var_num", Source = new TextLoader.Range[]{new TextLoader.Range(2) }, DataKind = DataKind.Int32 },
+                new TextLoader.Column(){ Name = "var_num", Source = new TextLoader.Range[]{new TextLoader.Range(3) }, DataKind = DataKind.Int32 },
+                new TextLoader.Column(){ Name = "var_num", Source = new TextLoader.Range[]{new TextLoader.Range(4) }, DataKind = DataKind.Int32 },
+                new TextLoader.Column(){ Name = "var_text", Source = new TextLoader.Range[]{new TextLoader.Range(5) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "var_num", Source = new TextLoader.Range[]{new TextLoader.Range(6) }, DataKind = DataKind.Int32 },
+                new TextLoader.Column(){ Name = "var_text", Source = new TextLoader.Range[]{new TextLoader.Range(7) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = "var_num", Source = new TextLoader.Range[]{new TextLoader.Range(8) }, DataKind = DataKind.Double },
+            }
+        };
+        public static List<List<string>> expectedLabels = new List<List<string>>
+        {
+            new List<string>
+            {
+                "[ColumnName(\"Label\"), LoadColumn(0)]",
+                "public bool Label{get; set;}",
+                "\r\n"
+            },
+            new List<string>
+            {
+                "[ColumnName(\"id\"), LoadColumn(0)]",
+                "public float Id_col_0{get; set;}",
+                "\r\n",
+                "[ColumnName(\"country\"), LoadColumn(1)]",
+                "public float Country_col_1{get; set;}",
+                "\r\n",
+                "[ColumnName(\"Country\"), LoadColumn(2)]",
+                "public string Country_col_2{get; set;}",
+                "\r\n"
+            },
+            new List<string>
+            {
+                "[ColumnName(\"id\"), LoadColumn(0)]",
+                "public int Id_col_0{get; set;}",
+                "\r\n",
+                "[ColumnName(\"shape\"), LoadColumn(1)]",
+                "public int Shape_col_1{get; set;}",
+                "\r\n",
+                "[ColumnName(\"Shape\"), LoadColumn(2)]",
+                "public string Shape_col_2{get; set;}",
+                "\r\n",
+                "[ColumnName(\"color\"), LoadColumn(3)]",
+                "public string Color_col_3{get; set;}",
+                "\r\n",
+                "[ColumnName(\"price\"), LoadColumn(4)]",
+                "public double Price_col_4{get; set;}",
+                "\r\n"
+            },
+            new List<string>
+            {
+                "[ColumnName(\"vin\"), LoadColumn(0)]",
+                "public string Vin{get; set;}",
+                "\r\n",
+                "[ColumnName(\"make\"), LoadColumn(1)]",
+                "public string Make{get; set;}",
+                "\r\n",
+                "[ColumnName(\"model\"), LoadColumn(2)]",
+                "public string Model{get; set;}",
+                "\r\n",
+                "[ColumnName(\"color\"), LoadColumn(3)]",
+                "public string Color{get; set;}",
+                "\r\n",
+                "[ColumnName(\"MSRP\"), LoadColumn(4)]",
+                "public float MSRP{get; set;}",
+                "\r\n",
+                "[ColumnName(\"engine size\"), LoadColumn(5)]",
+                "public double Engine_size{get; set;}",
+                "\r\n",
+                "[ColumnName(\"isElectric\"), LoadColumn(6)]",
+                "public bool IsElectric{get; set;}",
+                "\r\n"
+            },
+            new List<string>
+            {
+                "[ColumnName(\"var_text\"), LoadColumn(0)]",
+                "public string Var_text_col_0{get; set;}",
+                "\r\n",
+                "[ColumnName(\"var_text\"), LoadColumn(1)]",
+                "public string Var_text_col_1{get; set;}",
+                "\r\n",
+                "[ColumnName(\"var_num\"), LoadColumn(2)]",
+                "public int Var_num_col_2{get; set;}",
+                "\r\n",
+                "[ColumnName(\"var_num\"), LoadColumn(3)]",
+                "public int Var_num_col_3{get; set;}",
+                "\r\n",
+                "[ColumnName(\"var_num\"), LoadColumn(4)]",
+                "public int Var_num_col_4{get; set;}",
+                "\r\n",
+                "[ColumnName(\"var_text\"), LoadColumn(5)]",
+                "public string Var_text_col_5{get; set;}",
+                "\r\n",
+                "[ColumnName(\"var_num\"), LoadColumn(6)]",
+                "public int Var_num_col_6{get; set;}",
+                "\r\n",
+                "[ColumnName(\"var_text\"), LoadColumn(7)]",
+                "public string Var_text_col_7{get; set;}",
+                "\r\n",
+                "[ColumnName(\"var_num\"), LoadColumn(8)]",
+                "public double Var_num_col_8{get; set;}",
+                "\r\n"
+            }
+        };
     }
 }

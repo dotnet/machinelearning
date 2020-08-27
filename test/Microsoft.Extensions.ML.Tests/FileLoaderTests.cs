@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -72,7 +73,7 @@ namespace Microsoft.Extensions.ML
 
             File.WriteAllText("testdata.txt", "test");
 
-            Assert.True(changed.WaitOne(2000), "FileLoader ChangeToken didn't fire before the allotted time.");
+            Assert.True(changed.WaitOne(AsyncTestHelper.UnexpectedTimeout), "FileLoader ChangeToken didn't fire before the allotted time.");
         }
 
 

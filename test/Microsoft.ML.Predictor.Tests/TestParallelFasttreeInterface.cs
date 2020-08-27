@@ -6,6 +6,7 @@ using System;
 using Microsoft.ML;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 using Xunit.Abstractions;
@@ -177,7 +178,7 @@ namespace Microsoft.ML.RunTests
         [TestCategory("ParallelFasttree")]
         public void CheckFastTreeParallelInterface()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var outRoot = @"..\Common\CheckInterface";
             var modelOutPath = DeleteOutputPath(outRoot, "codegen-model.zip");
 

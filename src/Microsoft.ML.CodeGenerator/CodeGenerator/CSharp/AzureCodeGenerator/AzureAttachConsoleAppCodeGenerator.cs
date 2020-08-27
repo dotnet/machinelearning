@@ -54,8 +54,8 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
                     Namespace = _nameSpaceValue,
                     Target = _settings.Target,
-                    OnnxModelPath = _settings.OnnxModelPath,
-                    MLNetModelpath = _settings.ModelPath,
+                    OnnxModelPath = _settings.OnnxModelName,
+                    MLNetModelpath = _settings.ModelName,
                 }.TransformText(),
                 Name = "ModelBuilder.cs",
             };
@@ -75,6 +75,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     IncludeRecommenderPackage = false,
                     StablePackageVersion = _settings.StablePackageVersion,
                     UnstablePackageVersion = _settings.UnstablePackageVersion,
+                    OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
                 }.TransformText(),
                 Name = $"{_settings.OutputName}.ConsoleApp.csproj",
             };

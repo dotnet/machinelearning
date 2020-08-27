@@ -20,8 +20,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         ApplyOnnxModel = 0,
         ResizeImage = 1,
         ExtractPixel = 2,
-        NormalizeMapping = 3,
-        LabelMapping = 4,
     }
     internal static class TransformGeneratorFactory
     {
@@ -88,17 +86,11 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     case SpecialTransformer.ExtractPixel:
                         result = new PixelExtract(node);
                         break;
-                    case SpecialTransformer.NormalizeMapping:
-                        result = new CustomNormalizeMapping(node);
-                        break;
                     case SpecialTransformer.ResizeImage:
                         result = new ImageResizing(node);
                         break;
                     case SpecialTransformer.ApplyOnnxModel:
                         result = new ApplyOnnxModel(node);
-                        break;
-                    case SpecialTransformer.LabelMapping:
-                        result = new CustomLabelMapping(node);
                         break;
                     default:
                         return null;

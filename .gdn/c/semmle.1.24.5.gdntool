@@ -1,0 +1,199 @@
+{
+  "fileVersion": "1.0.0",
+  "name": "Semmle",
+  "fullName": "Semmle",
+  "alternativeName": "Semmle",
+  "toolVersion": "1.24.5",
+  "shortDescription": "A static analysis tool treating source code as data, which allows deep and complex analysis rules to be written as Semmle query language.",
+  "longDescription": "",
+  "links": {
+    "gettingStarted": "https://help.semmle.com"
+  },
+  "launcher": "PowerShell",
+  "launcherArguments": "-File",
+  "executablePath": "odasa\\Guardian\\AnalyzeWithQL.ps1",
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+    "1": "Semmle run failed."
+  },
+  "packages": [
+    {
+      "type": "nuget",
+      "name": "microsoft.semmle",
+      "version": "1.24.5",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "SourceCodeDirectory",
+      "displayName": "Source Code Directory",
+      "key": "SourceCodeDirectory",
+      "argumentType": "keyValue",
+      "required": true,
+      "default": "$(WorkingDirectory)",
+      "shortDescription": "The root of the source code for the project to scan."
+    },
+    {
+      "id": "Language",
+      "displayName": "Language",
+      "key": "Language",
+      "argumentType": "keyValue",
+      "required": true,
+      "default": "$(LanguageToScan)",
+      "shortDescription": "The language for which analysis is to be run.",
+      "longDescription": "The language for which analysis is to be run. The supported languages are csharp, cpp, javascript, java, and python. Each instance of Semmle can analyze projects from a single language. To analyze multiple languages, add an instance of Semmle per language."
+    },
+    {
+      "id": "TypeScript",
+      "displayName": "Include TypeScript Files",
+      "key": "TypeScript",
+      "argumentType": "switch",
+      "default": "false",
+      "shortDescription": "Enables TypeScript analysis if JavaScript project is being analyzed."
+    },
+    {
+      "id": "IncludeNodeModules",
+      "displayName": "Include the node_modules Directories For Analysis",
+      "key": "IncludeNodeModules",
+      "argumentType": "switch",
+      "default": "true",
+      "shortDescription": "Includes JavaScript/TypeScript files in node_modules directories for analysis if JavaScript project is being analyzed."
+    },
+    {
+      "id": "BuildCommands",
+      "displayName": "Build Commands",
+      "key": "BuildCommands",
+      "argumentType": "keyValue",
+      "escapeQuotes": false,
+      "default": "\\\"$(VisualStudioInstallDirectory)\\Common7\\Tools\\VsMSBuildCmd.bat\\\" && MSBuild.exe /t:Clean#\\\"$(VisualStudioInstallDirectory)\\Common7\\Tools\\VsMSBuildCmd.bat\\\" && MSBuild.exe",
+      "shortDescription": "The commands to run for build cleanup before building the snapshot and the build commands for building the snapshot.",
+      "longDescription": "The commands to run for build cleanup before building the snapshot and the build commands for building the snapshot. Multiple commands are delimited by # or new line. Example: <Full path to VsMSBuildCmd.bat>#MSBuild.exe [Path to a project/solution file]"
+    },
+    {
+      "id": "Suite",
+      "displayName": "Query Suite",
+      "key": "Suite",
+      "argumentType": "keyValue",
+      "required": true,
+      "default": "$(SuiteSDLRecommended)",
+      "shortDescription": "The path to a query suite file containing the list of queries to run against the snapshot.",
+      "longDescription": "The path to a query suite file containing the list of queries to run against the snapshot. Can be the pre-defined $(SuiteSDLRecommended), $(SuiteSDLRequired), or provide a full path to your own suite for a SPECIFIC language."
+    },
+    {
+      "id": "ResultsDirectory",
+      "displayName": "Results Directory",
+      "key": "ResultsDirectory",
+      "argumentType": "keyValue",
+      "default": "$(GuardianRawResultsDirectory)\\Semmle\\$(Language)",
+      "shortDescription": "The directory in which to store the SARIF results file."
+    },
+    {
+      "id": "ProjectName",
+      "displayName": "Project Name",
+      "key": "ProjectName",
+      "argumentType": "keyValue",
+      "required": true,
+      "default": "$(ProjectNameValue)",
+      "shortDescription": "The name of project to create.",
+      "longDescription": "The name of project to create. User's choice. Any string ID works. Example: repo_branch name (or just repo)."
+    },
+    {
+      "id": "ProjectDirectory",
+      "displayName": "Project Directory",
+      "key": "ProjectDirectory",
+      "argumentType": "keyValue",
+      "required": true,
+      "default": "$(TEMP)\\Semmle\\Projects\\$(ProjectNameValue)",
+      "shortDescription": "The directory in which to store the created projects."
+    },
+    {
+      "id": "SnapshotName",
+      "displayName": "Snapshot Name",
+      "key": "SnapshotName",
+      "argumentType": "keyValue",
+      "shortDescription": "The name of snapshot to create."
+    },
+    {
+      "id": "MakeOutputPathsUnique",
+      "displayName": "Make Output Paths Unique",
+      "key": "MakeOutputPathsUnique",
+      "argumentType": "switch",
+      "default": "true",
+      "shortDescription": "Ensures that the project directory and results file paths are unique."
+    },
+    {
+      "id": "Force",
+      "displayName": "Forces Overwriting Existing Output Paths",
+      "key": "Force",
+      "argumentType": "switch",
+      "default": "true",
+      "shortDescription": "Forces overwriting any existing output paths."
+    },
+    {
+      "id": "QLInstallationPath",
+      "displayName": "QL Installation Path",
+      "key": "QLInstallationPath",
+      "argumentType": "keyValue",
+      "required": false,
+      "default": "$(InstallDirectory)\\odasa",
+      "shortDescription": "The directory in which the Semmle QL tools are installed.",
+      "longDescription": "The directory in which the Semmle QL tools are installed. If not specified, the tools are found at the path specified by the ODASA_HOME environment variable, or by looking for odasa.exe on the path."
+    },
+    {
+      "id": "Timeout",
+      "displayName": "Timeout (in Seconds)",
+      "key": "Timeout",
+      "argumentType": "keyValue",
+      "default": "1800",
+      "shortDescription": "The timeout for each individual query in a ruleset."
+    },
+    {
+      "id": "RAM",
+      "displayName": "RAM Limit (in MB)",
+      "key": "RAM",
+      "argumentType": "keyValue",
+      "default": "16384",
+      "shortDescription": "The amount of RAM to use for analysis."
+    },
+    {
+      "id": "AddAntivirusExclusion",
+      "displayName": "Exclude Antivirus Directory",
+      "key": "AddAntivirusExclusion",
+      "argumentType": "keyValue",
+      "default": "$(TEMP)",
+      "shortDescription": "The directory to be added to the Antivirus exclusion list."
+    },
+    {
+      "id": "AllowAntivirusScanning",
+      "displayName": "Allow Build Even If Antivirus Scanning Enabled",
+      "key": "AllowAntivirusScanning",
+      "argumentType": "switch",
+      "default": "false",
+      "shortDescription": "Allow build even if real-time antivirus scanning is enabled for the project directory (not recommended)."
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "-",
+    "aliasPrefix": "-",
+    "targetArgumentId": "SourceCodeDirectory"
+  },
+  "outputExtension": "sarif",
+  "outputTypeString": "Folder",
+  "supportsBugFiling": false,
+  "presetVariables": {
+    "LanguageToScan": "csharp",
+    "VisualStudioInstallDirectory": "%ProgramFiles(x86)%\\Microsoft Visual Studio\\2019\\Enterprise",
+    "SuiteSDLRequired": "$(InstallDirectory)\\odasa\\microsoft-queries\\suites\\$(Language)\\sdl\\sdl-required",
+    "SuiteSDLRecommended": "$(InstallDirectory)\\odasa\\microsoft-queries\\suites\\$(Language)\\sdl\\sdl-recommended",
+    "ProjectNameValue": "$(NewGuid)"
+  },
+  "converterInfo": {
+    "logFileConverters": {
+      "sarif": {
+        "converterName": "SarifV1ToSarifV2Converter"
+      }
+    }
+  }
+}

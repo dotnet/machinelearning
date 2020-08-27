@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
@@ -1001,158 +1000,6 @@ namespace Microsoft.ML.ResultProcessor
             return new KeyValuePair<int, Dictionary<string, float>>(foldIdx, valuesDict);
         }
 
-        /// <summary>
-        /// Makes a deep clone of the list of PredictorResultList Object
-        /// </summary>
-        /// <param name="predictorResultList">List of PredictorResult Object</param>
-        /// <returns>A new instance of List of PredictorResult</returns>
-        public static List<PredictorResult> ClonePredictorResultList(List<PredictorResult> predictorResultList)
-        {
-            MemoryStream ms = new MemoryStream();
-            Save(predictorResultList, ms);              //save the object in Memory stream
-            ms.Seek(0, SeekOrigin.Begin);
-            return Load(ms) as List<PredictorResult>;   // load the object from memory stream
-        }
-
-        /// <summary>
-        /// Makes a deep clone of the list of PredictorResult Object
-        /// </summary>
-        /// <param name="predictorItem"></param>
-        /// <returns></returns>
-        public static PredictorResult ClonePredictorResult(PredictorResult predictorItem)
-        {
-            MemoryStream ms = new MemoryStream();
-            Save(predictorItem, ms);              //save the object in Memory stream
-            ms.Seek(0, SeekOrigin.Begin);
-            return Load(ms) as PredictorResult;
-        }
-
-        /// <summary>
-        /// Save the List of Predictor object in Memory
-        /// </summary>
-        /// <param name="predictor">List of PredictorResult Object</param>
-        /// <param name="stream">Memory stream object</param>
-        private static void Save(List<PredictorResult> predictor, Stream stream)
-        {
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(stream, predictor);
-            if (stream is MemoryStream)
-                stream.Flush();
-            else
-                stream.Close();
-        }
-
-        /// <summary>
-        /// Save the List of Predictor object in Memory
-        /// </summary>
-        /// <param name="predictor">List of PredictorResult Object</param>
-        /// <param name="stream">Memory stream object</param>
-        private static void Save(PredictorResult predictor, Stream stream)
-        {
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(stream, predictor);
-            if (stream is MemoryStream)
-                stream.Flush();
-            else
-                stream.Close();
-        }
-
-#if TLCFULLBUILD
-        /// <summary>
-        /// Create a experiment visualization object from experiment result.
-        /// </summary>
-        private static Experiment CreateVisualizationExperiment(ExperimentItemResult result, int index)
-        {
-            var experiment = new ML.Runtime.ExperimentVisualization.Experiment
-            {
-                Key = index.ToString(),
-                CompareGroup = string.IsNullOrEmpty(result.CustomizedTag) ? result.TrainerKind : result.CustomizedTag,
-                Trainer = new ML.Runtime.ExperimentVisualization.Trainer
-                {
-                    Name = result.TrainerKind,
-                    ParameterSets = new List<ML.Runtime.ExperimentVisualization.Item>()
-                },
-                DataSet = new ML.Runtime.ExperimentVisualization.DataSet { File = result.Datafile },
-                TestDataSet = new ML.Runtime.ExperimentVisualization.DataSet { File = result.TestDatafile },
-                Tool = "TLC",
-                RawCommandLine = result.Commandline,
-                Results = new List<ML.Runtime.ExperimentVisualization.ExperimentResult>()
-            };
-
-            // Propagate metrics to the report. 
-            ML.Runtime.ExperimentVisualization.ExperimentResult metrics = new ML.Runtime.ExperimentVisualization.ExperimentResult
-            {
-                Metrics = new List<ML.Runtime.ExperimentVisualization.MetricValue>(),
-                Build = "TLC"
-            };
-            foreach (KeyValuePair<string, ResultMetric> resultEntity in result.Results)
-            {
-                metrics.Metrics.Add(new ML.Runtime.ExperimentVisualization.MetricValue
-                {
-                    Name = resultEntity.Key,
-                    Value = resultEntity.Value.MetricValue,
-                    StandardDeviation = resultEntity.Value.Deviation
-                });
-            }
-
-            metrics.Metrics.Add(new ML.Runtime.ExperimentVisualization.MetricValue
-            {
-                Name = "Time Elapsed(s)",
-                Value = result.Time
-            });
-
-            metrics.Metrics.Add(new ML.Runtime.ExperimentVisualization.MetricValue
-            {
-                Name = "Physical Memory Usage(MB)",
-                Value = result.PhysicalMemory
-            });
-
-            metrics.Metrics.Add(new ML.Runtime.ExperimentVisualization.MetricValue
-            {
-                Name = "Virtual Memory Usage(MB)",
-                Value = result.VirtualMemory
-            });
-
-            // Propagate experiment arguments to the report. 
-            foreach (KeyValuePair<string, string> setting in result.Settings)
-            {
-                string val;
-                if (result.Settings.TryGetValue(setting.Key, out val))
-                {
-                    experiment.Trainer.ParameterSets.Add(new ML.Runtime.ExperimentVisualization.Item
-                    {
-                        Name = setting.Key.Substring(1),
-                        Value = val
-                    });
-                    double doubleVal;
-                    if (Double.TryParse(val, out doubleVal))
-                    {
-                        metrics.Metrics.Add(new ML.Runtime.ExperimentVisualization.MetricValue
-                        {
-                            Name = setting.Key,
-                            Value = doubleVal
-                        });
-                    }
-                }
-            }
-
-            experiment.Results.Add(metrics);
-
-            return experiment;
-        }
-#endif
-
-        /// <summary>
-        /// Deserialize a predictor, returning as an object
-        /// </summary>
-        private static object Load(Stream stream)
-        {
-            BinaryFormatter bf = new BinaryFormatter();
-            object o = bf.Deserialize(stream);
-            stream.Close();
-            return o;
-        }
-
         public static int Main(string[] args)
         {
             string currentDirectory = Path.GetDirectoryName(typeof(ResultProcessor).Module.FullyQualifiedName);
@@ -1160,7 +1007,7 @@ namespace Microsoft.ML.ResultProcessor
 #pragma warning disable CS0618 // The result processor is an internal command line processing utility anyway, so this is, while not great, OK.
             using (AssemblyLoadingUtils.CreateAssemblyRegistrar(env, currentDirectory))
 #pragma warning restore CS0618
-                return Main(env, args);
+            return Main(env, args);
         }
 
         public static int Main(IHostEnvironment env, string[] args)

@@ -19,7 +19,7 @@ namespace Microsoft.ML.AutoML
         private readonly IProgress<TRunDetail> _progressCallback;
         private readonly ExperimentSettings _experimentSettings;
         private readonly IMetricsAgent<TMetrics> _metricsAgent;
-        private readonly IEnumerable<TrainerName> _trainerWhitelist;
+        private readonly IEnumerable<TrainerName> _trainerAllowList;
         private readonly DirectoryInfo _modelDirectory;
         private readonly DatasetColumnInfo[] _datasetColumnInfo;
         private readonly IRunner<TRunDetail> _runner;
@@ -32,7 +32,7 @@ namespace Microsoft.ML.AutoML
             IProgress<TRunDetail> progressCallback,
             ExperimentSettings experimentSettings,
             IMetricsAgent<TMetrics> metricsAgent,
-            IEnumerable<TrainerName> trainerWhitelist,
+            IEnumerable<TrainerName> trainerAllowList,
             DatasetColumnInfo[] datasetColumnInfo,
             IRunner<TRunDetail> runner,
             IChannel logger)
@@ -44,7 +44,7 @@ namespace Microsoft.ML.AutoML
             _progressCallback = progressCallback;
             _experimentSettings = experimentSettings;
             _metricsAgent = metricsAgent;
-            _trainerWhitelist = trainerWhitelist;
+            _trainerAllowList = trainerAllowList;
             _modelDirectory = GetModelDirectory(_experimentSettings.CacheDirectory);
             _datasetColumnInfo = datasetColumnInfo;
             _runner = runner;
@@ -63,7 +63,7 @@ namespace Microsoft.ML.AutoML
                 // get next pipeline
                 var getPipelineStopwatch = Stopwatch.StartNew();
                 var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task,
-                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerWhitelist);
+                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerAllowList);
 
                 var pipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
 

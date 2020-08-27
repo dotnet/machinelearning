@@ -105,16 +105,39 @@ namespace Microsoft.Extensions.ML
             return _model;
         }
 
+        private FileStream WaitForFile(string fullPath, FileMode mode, FileAccess access, FileShare share)
+        {
+            for (int numTries = 0; numTries < 100; numTries++)
+            {
+                FileStream fs = null;
+                try
+                {
+                    fs = new FileStream(fullPath, mode, access, share);
+                    return fs;
+                }
+                catch (IOException)
+                {
+                    if (fs != null)
+                    {
+                        fs.Dispose();
+                    }
+                    Thread.Sleep(50);
+                }
+            }
+
+            return null;
+        }
+
         //internal virtual for testing purposes.
         internal virtual void LoadModel()
         {
-            //Sleep to avoid some file system locking issues
-            //TODO: The same thing occurs in configuration reload
-            //we should make sure the sleeps are the same.
-            Thread.Sleep(50);
-            using (var fileStream = File.OpenRead(_filePath))
+            var fs = WaitForFile(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (fs == null)
+                throw new IOException($"Model file {_filePath} still got locked after 5 seconds, fail to reload.");
+
+            using (fs)
             {
-                _model = _context.Model.Load(fileStream, out _);
+                _model = _context.Model.Load(fs, out _);
             }
         }
 

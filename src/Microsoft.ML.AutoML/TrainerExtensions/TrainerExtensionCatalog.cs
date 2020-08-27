@@ -61,7 +61,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public static IEnumerable<ITrainerExtension> GetTrainers(TaskKind task,
-            IEnumerable<TrainerName> whitelist, ColumnInformation columnInfo)
+            IEnumerable<TrainerName> allowList, ColumnInformation columnInfo)
         {
             IEnumerable<ITrainerExtension> trainers;
             if (task == TaskKind.BinaryClassification)
@@ -101,10 +101,10 @@ namespace Microsoft.ML.AutoML
                 throw new NotSupportedException($"unsupported machine learning task type {task}");
             }
 
-            if (whitelist != null)
+            if (allowList != null)
             {
-                whitelist = new HashSet<TrainerName>(whitelist);
-                trainers = trainers.Where(t => whitelist.Contains(GetTrainerName(t)));
+                allowList = new HashSet<TrainerName>(allowList);
+                trainers = trainers.Where(t => allowList.Contains(GetTrainerName(t)));
             }
 
             return trainers;

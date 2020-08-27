@@ -31,7 +31,7 @@ CLI_Annotation();
 MB_Annotation();
  } 
             this.Write("\r\nusing System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Sys" +
-                    "tem.Text;\r\nusing Microsoft.ML;\r\nusing ");
+                    "tem.Text;\r\nusing System.IO;\r\nusing Microsoft.ML;\r\nusing ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -41,6 +41,15 @@ MB_Annotation();
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
+        public static string MLNetModelPath = Path.GetFullPath(""");
+            this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelName));
+            this.Write("\");\r\n");
+if(IsAzureImage){ 
+            this.Write(" \r\n        public static string OnnxModelPath = Path.GetFullPath(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(OnnxModelName));
+            this.Write("\");\r\n");
+} 
+            this.Write(@"
         // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app
         public static ModelOutput Predict(ModelInput input)
@@ -53,22 +62,9 @@ MB_Annotation();
         {
             // Create new MLContext
             MLContext mlContext = new MLContext();
-");
-if(HasNormalizeMapping){ 
-            this.Write(" \r\n\t\t\t// Register NormalizeMapping to calculate probabilities for each Label.\r\n  " +
-                    "          mlContext.ComponentCatalog.RegisterAssembly(typeof(NormalizeMapping).A" +
-                    "ssembly);\r\n");
-} 
-if(HasLabelMapping){ 
-            this.Write(" \r\n\t\t\t// Register LabelMapping to map predicted Labels to their corresponding pro" +
-                    "babilities (likelihood of specified Labels)\r\n            mlContext.ComponentCata" +
-                    "log.RegisterAssembly(typeof(LabelMapping).Assembly);\r\n");
-} 
-            this.Write("\r\n            // Load model & create prediction engine\r\n            string modelP" +
-                    "ath = @\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelpath));
-            this.Write(@""";
-            ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
+
+            // Load model & create prediction engine
+            ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
             
             return predEngine;
@@ -81,9 +77,9 @@ if(HasLabelMapping){
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
-public bool HasNormalizeMapping {get; set;}=false;
-public bool HasLabelMapping {get; set;}=false;
-public string MLNetModelpath {get; set;}
+public bool IsAzureImage {get; set;}=false;
+public string MLNetModelName {get; set;}
+public string OnnxModelName {get; set;}
 
 
 void CLI_Annotation()

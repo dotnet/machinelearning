@@ -1,0 +1,303 @@
+﻿{
+  "fileVersion": "0.1",
+  "name": "ESLint",
+  "fullName": "ESLint",
+  "toolVersion": "7.1.0",
+  "shortDescription": "An extensible open source JavaScript linting utility used to find problematic patterns or code that doesn’t adhere to certain guidelines",
+  "longDescription": "",
+  "links": [
+    {
+      "name": "Homepage",
+      "uri": "https://eslint.org/"
+    }
+  ],
+  "executablePath": "eslint.cmd",
+  "packages": [
+    {
+      "master": true,
+      "type": "npm",
+      "name": "eslint",
+      "version": "7.1.0",
+      "peerDependencies": [
+        {
+          "name": "typescript",
+          "version": "3.9.3"
+        },
+        {
+          "name": "eslint-config-sdl",
+          "version": "1.0.2"
+        },
+        {
+          "name": "eslint-plugin-react",
+          "version": "7.20.0"
+        },
+        {
+          "name": "eslint-plugin-security",
+          "version": "1.4.0"
+        },
+        {
+          "name": "@typescript-eslint/typescript-estree",
+          "version": "3.1.0"
+        },
+        {
+          "name": "@typescript-eslint/parser",
+          "version": "3.1.0"
+        },
+        {
+          "name": "@typescript-eslint/eslint-plugin",
+          "version": "3.1.0"
+        },
+        {
+          "name": "@microsoft/eslint-formatter-sarif",
+          "version": "2.1.5"
+        }
+      ]
+    }
+  ],
+  "arguments": [
+    {
+      "id": "DisableDefaultConfigurationFile",
+      "displayName": "Disable the default configuration",
+      "key": "no-eslintrc",
+      "argumentType": "switch",
+      "shortDescription": "Disables use of configuration from .eslintrc.* and package.json files. Default: true",
+      "default": true
+    },
+    {
+      "id": "ConfigurationFile",
+      "displayName": "Configuration File",
+      "key": "config",
+      "alias": "c",
+      "argumentType": "keyValue",
+      "shortDescription": "Specify an additional configuration file for ESLint. This file will override existing configurations.",
+      "default": "$(InstallDirectory)/node_modules/eslint-config-sdl/sdl-required.json"
+    },
+    {
+      "id": "Environments",
+      "displayName": "Environments",
+      "key": "env",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "list",
+      "multipleSeparator": ",",
+      "shortDescription": "Specify environments, e.g.: --env browser,node. See: https://eslint.org/docs/user-guide/configuring#specifying-environments"
+    },
+    {
+      "id": "Extensions",
+      "displayName": "Extensions",
+      "key": "ext",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "shortDescription": "Specifies file extensions to scan.",
+      "default": [ ".js", ".ts" ]
+    },
+    {
+      "id": "Globals",
+      "displayName": "Autofix",
+      "key": "global",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "list",
+      "multipleSeparator": ",",
+      "shortDescription": "Specify global variables,so that they will not be flagged as undefined by the no-undef rule. Any specified global variables are assumed to be read-only by default, but appending :true to a variable’s name ensures that no-undef will also allow writes. E.g.: --global require,exports:true"
+    },
+    {
+      "id": "Parser",
+      "displayName": "Parser",
+      "key": "parser",
+      "argumentType": "keyValue",
+      "shortDescription": "Specify a parser to be used by ESLint. When using the SDL required/recommended config, @typescript-eslint/parser will be the default."
+    },
+    {
+      "id": "ParserOptions",
+      "displayName": "Parser Options",
+      "key": "parser-options",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "list",
+      "multipleSeparator": ",",
+      "shortDescription": "Specify parser options to be used by ESLint. Note that the available parser options are determined by the parser being used. E.g.: --parser-options=ecmaVersion:7",
+      "commandLineOptions": {
+        "keyValueSeparator": "="
+      }
+    },
+    {
+      "id": "AdditionalRulesDirectories",
+      "displayName": "Additional Rules Directories",
+      "key": "rulesdir",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "shortDescription": "Specify other directories from which to load rules files."
+    },
+    {
+      "id": "Plugins",
+      "displayName": "Plugins",
+      "key": "plugin",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "shortDescription": "Specifies plugins to load. You can omit the prefix eslint-plugin- fom the plugin name. Plugins must be installed using npm before being used."
+    },
+    {
+      "id": "Rules",
+      "displayName": "Rules",
+      "key": "rule",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "shortDescription": "Specify additional rules. These will be merged with any rules specified using other options."
+    },
+    {
+      "id": "Fix",
+      "displayName": "Fix",
+      "key": "fix",
+      "argumentType": "switch",
+      "shortDescription": "Instructs ESLint to try to fix as many issues as possible. The fixes are made to the actual files themselves and only the remaining unfixed issues are output."
+    },
+    {
+      "id": "FixDryRun",
+      "displayName": "Fix Dry Run",
+      "key": "fix-dry-run",
+      "argumentType": "switch",
+      "shortDescription": "Same as --fix, but instead of fixing the files, output the fixes."
+    },
+    {
+      "id": "FixTypes",
+      "displayName": "Fix Types",
+      "key": "debug",
+      "argumentType": "keyValue",
+      "shortDescription": "Specify the types of fixes to apply. Choose from: problem, suggestion, layout. Multiple allowed, comma separated."
+    },
+    {
+      "id": "ExclusionsFilePath",
+      "displayName": "Exclusions File Path",
+      "key": "ignore-path",
+      "argumentType": "keyValue",
+      "shortDescription": "Specify the file to use as your .eslintignore. By default, ESLint looks in the current working directory for .eslintignore. You can override this behavior by providing a path to a different file."
+    },
+    {
+      "id": "DisableExclusions",
+      "displayName": "Disable Exclusions",
+      "key": "no-ignore",
+      "argumentType": "switch",
+      "shortDescription": "Disables excluding of files from .eslintignore, --ignore-path and --ignore-pattern."
+    },
+    {
+      "id": "ExclusionPatterns",
+      "displayName": "Exclusion Patterns",
+      "key": "ignore-pattern",
+      "argumentType": "multiKeyValue",
+      "multipleKeyValueType": "multiple",
+      "shortDescription": "This option allows you to specify patterns of files to ignore (in addition to those in .eslintignore). You can repeat the option to provide multiple patterns.E.g. eslint --ignore-pattern '/lib/' --ignore-pattern '/src/vendor/*' .",
+      "default": "*.d.ts"
+    },
+    {
+      "id": "Quiet",
+      "displayName": "Quiet",
+      "key": "quiet",
+      "argumentType": "switch",
+      "shortDescription": "Disable reporting on warnings."
+    },
+    {
+      "id": "MaxWarnings",
+      "displayName": "MaxWarnings",
+      "key": "max-warnings",
+      "argumentType": "keyValue",
+      "shortDescription": "Specify a warning threshold, which can be used to force ESLint to exit with an error status if there are too many warning-level rule violations in your project."
+    },
+    {
+      "id": "OutputFile",
+      "displayName": "Output File",
+      "key": "output-file",
+      "alias": "o",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the path of the output file."
+    },
+    {
+      "id": "OutputFormat",
+      "displayName": "Output Format",
+      "key": "format",
+      "alias": "f",
+      "argumentType": "keyValue",
+      "shortDescription": "Specifies the output format. Default: json.",
+      "default": "$(InstallDirectory)/node_modules/@microsoft/eslint-formatter-sarif/sarif.js"
+    },
+    {
+      "id": "DisableInlineConfig",
+      "displayName": "Disable Inline Config",
+      "key": "no-inline-config",
+      "argumentType": "switch",
+      "shortDescription": "This option prevents all inline comments like /*eslint-disable*/ or /*global foo*/ from having any effect."
+    },
+    {
+      "id": "ReportUnusedDisableDirectives",
+      "displayName": "Report Unused Disable Directives",
+      "key": "report-unused-disable-directives",
+      "argumentType": "switch",
+      "shortDescription": "This option causes ESLint to report directive comments like // eslint-disable-line when no errors would have been reported on that line anyway."
+    },
+    {
+      "id": "Cache",
+      "displayName": "Cache",
+      "key": "cache",
+      "argumentType": "switch",
+      "shortDescription": "Only check changed files - default: false."
+    },
+    {
+      "id": "CacheLocation",
+      "displayName": "Cache Location",
+      "key": "cache-location",
+      "argumentType": "keyValue",
+      "shortDescription": "Path to the cache file or directory"
+    },
+    {
+      "id": "Debug",
+      "displayName": "Debug",
+      "key": "debug",
+      "argumentType": "switch",
+      "shortDescription": "Outputs debugging information to the console."
+    },
+    {
+      "id": "Help",
+      "displayName": "Help",
+      "key": "help",
+      "alias": "h",
+      "argumentType": "switch"
+    },
+    {
+      "id": "Targets",
+      "displayName": "Targets",
+      "argumentType": "MultiPositional",
+      "multipleKeyValueType": "list",
+      "multipleSeparator": " ",
+      "shortDescription": "Specifies the target files, directories or globs, as a space separated list.",
+      "sortOrder": 999,
+      "default": [ "**/*.js", "**/*.ts" ]
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "--",
+    "aliasPrefix": "-",
+    "helpArgumentId": "Help",
+    "targetArgumentId": "Targets",
+    "outputArgumentId": "OutputFile"
+  },
+  "outputExtension": "sarif",
+  "successfulExitCodes": [ 0, 1 ],
+  "errorExitCodes": {
+    "2": "Linting was unsuccessful due to a configuration problem or an internal error."
+  },
+  "errorHelperMessage": "Please refer to https://eslint.org/docs/user-guide/command-line-interfacefor more info.",
+  "supportsBugFiling": false,
+  "applicability": [
+    {
+      "conditions": [
+        {
+          "type": "GlobPattern",
+          "criteriaArguments": {
+            "fileFilter": "f|**/*.ts;f|**/*.js;-|.gdn/**;"
+          }
+        }
+      ]
+    }
+  ],
+  "converterInfo": {
+    "convertExpected": false
+  }
+}

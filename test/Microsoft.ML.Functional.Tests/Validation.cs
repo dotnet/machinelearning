@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -49,6 +52,43 @@ namespace Microsoft.ML.Functional.Tests
             // And validate the metrics.
             foreach (var result in cvResult)
                 Common.AssertMetrics(result.Metrics);
+        }
+
+        [Fact]
+        public void RankingCVTest()
+        {
+            string labelColumnName = "Label";
+            string groupIdColumnName = "GroupId";
+            string featuresColumnVectorNameA = "FeatureVectorA";
+            string featuresColumnVectorNameB = "FeatureVectorB";
+            int numFolds = 3;
+
+            var mlContext = new MLContext(1);
+            var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "FeatureVectorA", "FeatureVectorB" }).Append(
+                mlContext.Transforms.Conversion.Hash("GroupId", "GroupId"));
+
+            var trainer = mlContext.Ranking.Trainers.FastTree(new FastTreeRankingTrainer.Options()
+            { RowGroupColumnName = "GroupId", LabelColumnName = "Label", FeatureColumnName = "Features" });
+            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
+            {
+                Separators = new[] { '\t' },
+                HasHeader = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column(labelColumnName, DataKind.Single, 0),
+                    new TextLoader.Column(groupIdColumnName, DataKind.Int32, 1),
+                    new TextLoader.Column(featuresColumnVectorNameA, DataKind.Single, 2, 9),
+                    new TextLoader.Column(featuresColumnVectorNameB, DataKind.Single, 10, 137)
+                }
+            });
+            var trainDataView = reader.Load(TestCommon.GetDataPath(DataDir, "MSLRWeb1K-tiny.tsv"));
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
+            var result = mlContext.Ranking.CrossValidate(trainDataView, trainingPipeline, numberOfFolds: numFolds);
+            for (int i = 0; i < numFolds; i++)
+            {
+                Assert.True(result[i].Metrics.NormalizedDiscountedCumulativeGains.Max() > .4);
+                Assert.True(result[i].Metrics.DiscountedCumulativeGains.Max() > 16);
+            }
         }
 
         /// <summary>
@@ -97,6 +137,34 @@ namespace Microsoft.ML.Functional.Tests
 
             Common.AssertMetrics(trainMetrics);
             Common.AssertMetrics(validMetrics);
+        }
+
+        /// <summary>
+        /// Test cross validation R^2 metric to return NaN when given fewer data
+        /// than needed to infer metric calculation. R^2 is NaN when given folds
+        /// with less than 2 rows of training data.
+        /// </summary>
+        [Fact]
+        public void TestCrossValidationResultsWithNotEnoughData()
+        {
+            var mlContext = new MLContext(1);
+            // Get data and set up sample regression pipeline.
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename), hasHeader: true);
+            var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .Append(mlContext.Regression.Trainers.OnlineGradientDescent());
+            // Train model with full dataset
+            var model = pipeline.Fit(data);
+
+            // Check that R^2 is NaN when given 1 row of scoring data.
+            var scoredDataOneRow = model.Transform(mlContext.Data.TakeRows(data, 1));
+            var evalResultOneRow = mlContext.Regression.Evaluate(scoredDataOneRow);
+            Assert.Equal(double.NaN, evalResultOneRow.RSquared);
+
+            // Check that R^2 is 0 when given 0 rows of scoring data.
+            // Obtain empty IDataView with Iris schema as there are no rows of data with labels between -2 and -1.
+            var scoredDataZeroRows = mlContext.Data.FilterRowsByColumn(scoredDataOneRow, "Label", lowerBound: -2, upperBound: -1);
+            var evalResultZeroRows = mlContext.Regression.Evaluate(scoredDataZeroRows);
+            Assert.Equal(0, evalResultZeroRows.RSquared);
         }
     }
 }

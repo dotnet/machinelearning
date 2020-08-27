@@ -9,6 +9,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
@@ -90,7 +91,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void NAIndicatorFileOutput()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarFloat", DataKind.Single, 1),
                 new TextLoader.Column("ScalarDouble", DataKind.Double, 1),

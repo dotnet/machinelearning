@@ -50,71 +50,18 @@ namespace Microsoft.ML.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
 
             var data = input.Data;
-            var stratCol = SplitUtils.CreateStratificationColumn(host, ref data, input.StratificationColumn);
+            var splitCol = DataOperationsCatalog.CreateSplitColumn(env, ref data, input.StratificationColumn);
 
             IDataView trainData = new RangeFilter(host,
-                new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = false }, data);
-            trainData = ColumnSelectingTransformer.CreateDrop(host, trainData, stratCol);
+                new RangeFilter.Options { Column = splitCol, Min = 0, Max = input.Fraction, Complement = false }, data);
+            trainData = ColumnSelectingTransformer.CreateDrop(host, trainData, splitCol);
 
             IDataView testData = new RangeFilter(host,
-                new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = true }, data);
-            testData = ColumnSelectingTransformer.CreateDrop(host, testData, stratCol);
+                new RangeFilter.Options { Column = splitCol, Min = 0, Max = input.Fraction, Complement = true }, data);
+            testData = ColumnSelectingTransformer.CreateDrop(host, testData, splitCol);
 
             return new Output() { TrainData = trainData, TestData = testData };
         }
 
-    }
-
-    internal static class SplitUtils
-    {
-        public static string CreateStratificationColumn(IHost host, ref IDataView data, string stratificationColumn = null)
-        {
-            host.CheckValue(data, nameof(data));
-            host.CheckValueOrNull(stratificationColumn);
-
-            // Pick a unique name for the stratificationColumn.
-            const string stratColName = "StratificationKey";
-            string stratCol = data.Schema.GetTempColumnName(stratColName);
-
-            // Construct the stratification column. If user-provided stratification column exists, use HashJoin
-            // of it to construct the strat column, otherwise generate a random number and use it.
-            if (stratificationColumn == null)
-            {
-                data = new GenerateNumberTransform(host,
-                    new GenerateNumberTransform.Options
-                    {
-                        Columns = new[] { new GenerateNumberTransform.Column { Name = stratCol } }
-                    }, data);
-            }
-            else
-            {
-                var col = data.Schema.GetColumnOrNull(stratificationColumn);
-                if (col == null)
-                    throw host.ExceptSchemaMismatch(nameof(stratificationColumn), "Stratification", stratificationColumn);
-
-                var type = col.Value.Type;
-                if (!RangeFilter.IsValidRangeFilterColumnType(host, type))
-                {
-                    // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
-                    var itemType = type.GetItemType();
-                    if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
-                        data = new TypeConvertingTransformer(host, stratificationColumn, DataKind.Int64, stratificationColumn).Transform(data);
-
-                    var columnOptions = new HashingEstimator.ColumnOptions(stratCol, stratificationColumn, 30, combine: true);
-                    data = new HashingEstimator(host, columnOptions).Fit(data).Transform(data);
-                }
-                else
-                {
-                    if (data.Schema[stratificationColumn].IsNormalized() || (type != NumberDataViewType.Single && type != NumberDataViewType.Double))
-                        return stratificationColumn;
-
-                    data = new NormalizingEstimator(host,
-                        new NormalizingEstimator.MinMaxColumnOptions(stratCol, stratificationColumn, ensureZeroUntouched: true))
-                        .Fit(data).Transform(data);
-                }
-            }
-
-            return stratCol;
-        }
     }
 }

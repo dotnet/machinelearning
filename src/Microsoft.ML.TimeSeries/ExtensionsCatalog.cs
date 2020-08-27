@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TimeSeries;
@@ -176,7 +177,36 @@ namespace Microsoft.ML
         /// </example>
         public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, string outputColumnName, string inputColumnName,
             double threshold = 0.3, int batchSize = 1024, double sensitivity = 99, SrCnnDetectMode detectMode = SrCnnDetectMode.AnomalyOnly)
-            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, inputColumnName, outputColumnName, threshold, batchSize, sensitivity, detectMode);
+        {
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                Threshold = threshold,
+                BatchSize = batchSize,
+                Sensitivity = sensitivity,
+                DetectMode = detectMode,
+            };
+
+            return DetectEntireAnomalyBySrCnn(catalog, input, outputColumnName, inputColumnName, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="SrCnnEntireAnomalyDetector"/>, which detects timeseries anomalies for entire input using SRCNN algorithm.
+        /// </summary>
+        /// <param name="catalog">The AnomalyDetectionCatalog.</param>
+        /// <param name="input">Input DataView.</param>
+        /// <param name="outputColumnName">Name of the column resulting from data processing of <paramref name="inputColumnName"/>.
+        /// The column data is a vector of <see cref="System.Double"/>. The length of this vector varies depending on <paramref name="options.DetectMode"/>.</param>
+        /// <param name="inputColumnName">Name of column to process. The column data must be <see cref="System.Double"/>.</param>
+        /// <param name="options">Defines the settings of the load operation.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectEntireAnomalyBySrCnn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectEntireAnomalyBySrCnn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static IDataView DetectEntireAnomalyBySrCnn(this AnomalyDetectionCatalog catalog, IDataView input, string outputColumnName, string inputColumnName, SrCnnEntireAnomalyDetectorOptions options)
+            => new SrCnnEntireAnomalyDetector(CatalogUtils.GetEnvironment(catalog), input, outputColumnName, inputColumnName, options);
 
         /// <summary>
         /// Create <see cref="RootCause"/>, which localizes root causes using decision tree algorithm.
@@ -198,6 +228,35 @@ namespace Microsoft.ML
         /// </example>
         public static RootCause LocalizeRootCause(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.3, double rootCauseThreshold = 0.95)
         {
+            List<RootCause> causes = LocalizeRootCauses(catalog, src, beta, rootCauseThreshold);
+            if (causes?.Count > 0)
+            {
+                return causes[0];
+            }
+            else
+            {
+                return null;
+            }
+
+        }
+
+        /// <summary>
+        /// Outputs an ordered list of <see cref="RootCause"/>s. The order corresponds to which prepared cause is most likely to be the root cause.
+        /// </summary>
+        /// <param name="catalog">The anomaly detection catalog.</param>
+        /// <param name="src">Root cause's input. The data is an instance of <see cref="Microsoft.ML.TimeSeries.RootCauseLocalizationInput"/>.</param>
+        /// <param name="beta">Beta is a weight parameter for user to choose. It is used when score is calculated for each root cause item. The range of beta should be in [0,1]. For a larger beta, root cause point which has a large difference between value and expected value will get a high score. On the contrary, for a small beta, root cause items which has a high relative change will get a high score.</param>
+        /// <param name="rootCauseThreshold">A threshold to determine whether the point should be root cause. The range of this threshold should be in [0,1].
+        /// If the point's delta is equal to or larger than rootCauseThreshold multiplied by anomaly dimension point's delta, this point is treated as a root cause. Different threshold will turn out different results. Users can choose the delta according to their data and requirments.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LocalizeRootCauseMultipleDimensions](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/LocalizeRootCauseMultipleDimensions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static List<RootCause> LocalizeRootCauses(this AnomalyDetectionCatalog catalog, RootCauseLocalizationInput src, double beta = 0.5, double rootCauseThreshold = 0.95)
+        {
             IHostEnvironment host = CatalogUtils.GetEnvironment(catalog);
 
             //check the root cause input
@@ -205,12 +264,11 @@ namespace Microsoft.ML
 
             //check parameters
             host.CheckUserArg(beta >= 0 && beta <= 1, nameof(beta), "Must be in [0,1]");
-            host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(beta), "Must be in [0,1]");
+            host.CheckUserArg(rootCauseThreshold >= 0 && rootCauseThreshold <= 1, nameof(rootCauseThreshold), "Must be in [0,1]");
 
-            //find out the root cause
+            //find out the possible causes
             RootCauseAnalyzer analyzer = new RootCauseAnalyzer(src, beta, rootCauseThreshold);
-            RootCause dst = analyzer.Analyze();
-            return dst;
+            return analyzer.AnalyzePossibleCauses();
         }
 
         /// <summary>

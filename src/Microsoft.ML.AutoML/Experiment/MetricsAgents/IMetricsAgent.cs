@@ -10,6 +10,7 @@ namespace Microsoft.ML.AutoML
 
         bool IsModelPerfect(double score);
 
-        T EvaluateMetrics(IDataView data, string labelColumn);
+        // GroupId is a parameter used only in RankingMetricsAgent
+        T EvaluateMetrics(IDataView data, string labelColumn, string groupId);
     }
 }

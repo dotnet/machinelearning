@@ -14,6 +14,17 @@ namespace Microsoft.ML.TimeSeries
         /// A List for root cause item. Instance of the item should be <see cref="RootCauseItem"/>.
         /// </summary>
         public List<RootCauseItem> Items { get; set; }
+
+        /// <summary>
+        /// The gain for the potential root cause
+        /// </summary>
+        public double Gain { get; set; }
+
+        /// <summary>
+        /// The gain ratio for the potential root cause
+        /// </summary>
+        public double GainRatio { get; set; }
+
         public RootCause()
         {
             Items = new List<RootCauseItem>();
@@ -144,7 +155,7 @@ namespace Microsoft.ML.TimeSeries
             {
                 foreach (KeyValuePair<string, Object> item in Dimension)
                 {
-                    if (!other.Dimension[item.Key].Equals(item.Value))
+                    if (!object.Equals(other.Dimension[item.Key], item.Value))
                     {
                         return false;
                     }
@@ -217,7 +228,7 @@ namespace Microsoft.ML.TimeSeries
         {
             foreach (KeyValuePair<string, Object> item in Dimension)
             {
-                if (!other.Dimension[item.Key].Equals(item.Value))
+                if (!object.Equals(other.Dimension[item.Key], item.Value))
                 {
                     return false;
                 }

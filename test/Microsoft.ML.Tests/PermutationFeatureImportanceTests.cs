@@ -9,6 +9,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -309,7 +310,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBinaryClassificationWithoutCalibrator()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var ff = ML.BinaryClassification.Trainers.FastForest();
             var data = ML.Data.LoadFromTextFile(dataPath,
                             new[] { new TextLoader.Column("Label", DataKind.Boolean, 0),

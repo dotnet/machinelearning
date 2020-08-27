@@ -138,11 +138,11 @@ namespace Microsoft.ML.Tests
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = mlContext.Data.LoadFromTextFile<BreastCancerFeatureVector>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.NormalizeMinMax("Features").
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansTrainer.Options
@@ -208,9 +208,9 @@ namespace Microsoft.ML.Tests
         public void BinaryClassificationTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: false);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.BinaryClassification.Trainers.AveragedPerceptron(),
@@ -261,73 +261,109 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void PlattCalibratorOnnxConversionTest()
+        private (IDataView, List<IEstimator<ITransformer>>, EstimatorChain<NormalizingTransformer>) GetEstimatorsForOnnxConversionTests()
         {
-            var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = ML.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
-                mlContext.BinaryClassification.Trainers.AveragedPerceptron(),
-                mlContext.BinaryClassification.Trainers.FastForest(),
-                mlContext.BinaryClassification.Trainers.FastTree(),
-                mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(),
-                mlContext.BinaryClassification.Trainers.LinearSvm(),
-                mlContext.BinaryClassification.Trainers.Prior(),
-                mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(),
-                mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(),
-                mlContext.BinaryClassification.Trainers.SgdCalibrated(),
-                mlContext.BinaryClassification.Trainers.SgdNonCalibrated(),
-                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
+                ML.BinaryClassification.Trainers.AveragedPerceptron(),
+                ML.BinaryClassification.Trainers.FastForest(),
+                ML.BinaryClassification.Trainers.FastTree(),
+                ML.BinaryClassification.Trainers.LbfgsLogisticRegression(),
+                ML.BinaryClassification.Trainers.LinearSvm(),
+                ML.BinaryClassification.Trainers.Prior(),
+                ML.BinaryClassification.Trainers.SdcaLogisticRegression(),
+                ML.BinaryClassification.Trainers.SdcaNonCalibrated(),
+                ML.BinaryClassification.Trainers.SgdCalibrated(),
+                ML.BinaryClassification.Trainers.SgdNonCalibrated(),
+                ML.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
             };
             if (Environment.Is64BitProcess)
             {
-                estimators.Add(mlContext.BinaryClassification.Trainers.LightGbm());
+                estimators.Add(ML.BinaryClassification.Trainers.LightGbm());
             }
 
-            var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features").
-                Append(mlContext.Transforms.NormalizeMinMax("Features"));
+            var initialPipeline = ML.Transforms.ReplaceMissingValues("Features").
+                Append(ML.Transforms.NormalizeMinMax("Features"));
+            return (dataView, estimators, initialPipeline);
+        }
+
+        private void CommonCalibratorOnnxConversionTest(IEstimator<ITransformer> calibrator, IEstimator<ITransformer> calibratorNonStandard)
+        {
+            // Initialize variables needed for the ONNX conversion test
+            var (dataView, estimators, initialPipeline) = GetEstimatorsForOnnxConversionTests();
+
+            // Step 1: Test calibrator with binary prediction trainer
             foreach (var estimator in estimators)
             {
-                var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Platt());
-                var onnxFileName = $"{estimator}-WithPlattCalibrator.onnx";
-
-                TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
+                var pipelineEstimators = initialPipeline.Append(estimator).Append(calibrator);
+                var onnxFileName = $"{estimator}-With-{calibrator}.onnx";
+                TestPipeline(pipelineEstimators, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 3), new ColumnComparison("PredictedLabel"), new ColumnComparison("Probability", 3) });
             }
+
+            // Step 2: Test calibrator without any binary prediction trainer
+            IDataView dataSoloCalibrator = ML.Data.LoadFromEnumerable(GetCalibratorTestData());
+            var onnxFileNameSoloCalibrator = $"{calibrator}-SoloCalibrator.onnx";
+            TestPipeline(calibrator, dataSoloCalibrator, onnxFileNameSoloCalibrator, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
+
+            // Step 3: Test calibrator with a non-default Score column name and without any binary prediction trainer
+            IDataView dataSoloCalibratorNonStandard = ML.Data.LoadFromEnumerable(GetCalibratorTestDataNonStandard());
+            var onnxFileNameSoloCalibratorNonStandard = $"{calibratorNonStandard}-SoloCalibrator-NonStandard.onnx";
+            TestPipeline(calibratorNonStandard, dataSoloCalibratorNonStandard, onnxFileNameSoloCalibratorNonStandard, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
+
             Done();
         }
 
-        class PlattModelInput
+        [Fact]
+        public void PlattCalibratorOnnxConversionTest()
+        {
+            CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Platt(),
+                ML.BinaryClassification.Calibrators.Platt(scoreColumnName: "ScoreX"));
+        }
+
+        [Fact]
+        public void FixedPlattCalibratorOnnxConversionTest()
+        {
+            // Below, FixedPlattCalibrator is utilized by defining slope and offset in Platt's constructor with sample values.
+            CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f),
+                ML.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f, scoreColumnName: "ScoreX"));
+        }
+
+        [Fact]
+        public void NaiveCalibratorOnnxConversionTest()
+        {
+            CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Naive(),
+                ML.BinaryClassification.Calibrators.Naive(scoreColumnName: "ScoreX"));
+        }
+
+        class CalibratorInput
         {
             public bool Label { get; set; }
             public float Score { get; set; }
         }
 
-        static IEnumerable<PlattModelInput> PlattGetData()
+        class CalibratorInputNonStandard
+        {
+            public bool Label { get; set; }
+            public float ScoreX { get; set; }
+        }
+
+        static IEnumerable<CalibratorInput> GetCalibratorTestData()
         {
             for (int i = 0; i < 100; i++)
             {
-                yield return new PlattModelInput { Score = i, Label = i % 2 == 0 };
+                yield return new CalibratorInput { Score = i, Label = i % 2 == 0 };
             }
         }
 
-        [Fact]
-        public void PlattCalibratorOnnxConversionTest2()
+        static IEnumerable<CalibratorInputNonStandard> GetCalibratorTestDataNonStandard()
         {
-            // Test PlattCalibrator without any binary prediction trainer
-            var mlContext = new MLContext(seed: 0);
-
-            IDataView data = mlContext.Data.LoadFromEnumerable(PlattGetData());
-
-            var pipeline = mlContext.BinaryClassification.Calibrators
-                .Platt();
-            var onnxFileName = $"{pipeline}.onnx";
-
-            TestPipeline(pipeline, data, onnxFileName, new ColumnComparison[] { new ColumnComparison("Probability", 3) });
-
-            Done();
+            for (int i = 0; i < 100; i++)
+            {
+                yield return new CalibratorInputNonStandard { ScoreX = i, Label = i % 2 == 0 };
+            }
         }
 
         [Fact]
@@ -385,7 +421,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void CommandLineOnnxConversionTest()
         {
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             string modelPath = GetOutputPath("ModelWithLessIO.zip");
             var trainingPathArgs = $"data={dataPath} out={modelPath}";
             var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numberOfThreads=1 numberOfLeaves=8 numberOfTrees=3} seed=1";
@@ -572,10 +608,10 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features").
                 Append(mlContext.Transforms.NormalizeMinMax("Features")).
@@ -716,7 +752,7 @@ namespace Microsoft.ML.Tests
         public void ConcatenateOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("VectorDouble2", DataKind.Double, 1),
@@ -736,10 +772,10 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
                 separatorChar: '\t',
-                hasHeader: true);
+                hasHeader: false);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
@@ -781,6 +817,7 @@ namespace Microsoft.ML.Tests
                     CompareResults("Score", "Score", transformedData, onnxResult, isRightColumnOnnxScalar: true);
                     CompareResults("Probability", "Probability", transformedData, onnxResult, isRightColumnOnnxScalar: true);
                     CompareResults("PredictedLabel", "PredictedLabel", transformedData, onnxResult, isRightColumnOnnxScalar: true);
+                    (onnxTransformer as IDisposable)?.Dispose();
                 }
                 CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             }
@@ -940,6 +977,7 @@ namespace Microsoft.ML.Tests
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
                     CompareResults("pca", "pca", transformedData, onnxResult);
+                    (onnxTransformer as IDisposable)?.Dispose();
                 }
             }
             Done();
@@ -949,10 +987,10 @@ namespace Microsoft.ML.Tests
         public void OneHotHashEncodingOnnxConversionTest()
         {
             var mlContext = new MLContext();
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
-            var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
-            var pipeline = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
+            var pipeline = mlContext.Transforms.Categorical.OneHotHashEncoding(new[]{
                     new OneHotHashEncodingEstimator.ColumnOptions("Output", "F3", useOrderedHashing:false),
                 });
             var onnxFileName = "OneHotHashEncoding.onnx";
@@ -1315,8 +1353,57 @@ namespace Microsoft.ML.Tests
                     var onnxSlotNames = onnxSlots.DenseValues().ToList();
                     for (int j = 0; j < mlNetSlots.Length; j++)
                         Assert.Equal(mlNetSlotNames[j].ToString(), onnxSlotNames[j].ToString());
+                    (onnxTransformer as IDisposable)?.Dispose();
                 }
             }
+            Done();
+        }
+
+        [Fact]
+        public void CustomStopWordsRemovingEstimatorOnnxTest()
+        {
+            var mlContext = new MLContext();
+
+            var pipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text")
+                .Append(mlContext.Transforms.Text.RemoveStopWords(
+                "WordsWithoutStopWords", "Words", stopwords:
+                new[] { "cat", "sat", "on" }));
+
+            var samples = new List<TextData>()
+            {
+                new TextData(){ Text = "cat sat on mat" },
+                new TextData(){ Text = "mat not fit cat" },
+                new TextData(){ Text = "a cat think mat bad" },
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+            var onnxFileName = $"CustomStopWordsRemovingEstimator.onnx";
+
+            TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("WordsWithoutStopWords")});
+
+            Done();
+        }
+
+        [Fact]
+        public void StopWordsRemovingEstimatorOnnxTest()
+        {
+            var mlContext = new MLContext();
+
+            var pipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text")
+                .Append(mlContext.Transforms.Text.RemoveDefaultStopWords(
+                "WordsWithoutStopWords", "Words", language:
+                StopWordsRemovingEstimator.Language.English));
+
+            var samples = new List<TextData>()
+            {
+                new TextData(){ Text = "a go cat sat on mat" },
+                new TextData(){ Text = "a mat not fit go cat" },
+                new TextData(){ Text = "cat think mat bad a" },
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+            var onnxFileName = $"StopWordsRemovingEstimator.onnx";
+
+            TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("WordsWithoutStopWords") });
+
             Done();
         }
 
@@ -1337,7 +1424,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", dataKind, 0),
@@ -1372,6 +1459,7 @@ namespace Microsoft.ML.Tests
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
                 CompareResults("Label", "Label", outputData, onnxResult, isRightColumnOnnxScalar: true);
+                (onnxTransformer as IDisposable)?.Dispose();
             }
             Done();
         }
@@ -1381,8 +1469,8 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath, separatorChar: '\t', hasHeader: true);
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath, separatorChar: '\t', hasHeader: false);
 
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
@@ -1502,7 +1590,8 @@ namespace Microsoft.ML.Tests
             {
                 // Step 5: Apply Onnx Model
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
-                var onnxResult = onnxEstimator.Fit(reloadedData).Transform(reloadedData);
+                var onnxTransformer = onnxEstimator.Fit(reloadedData);
+                var onnxResult = onnxTransformer.Transform(reloadedData);
 
                 // Step 6: Compare results to an onnx model created using the mappedData IDataView
                 // Notice that this ONNX model would actually include the steps to do the ValueToKeyTransformer mapping,
@@ -1514,7 +1603,8 @@ namespace Microsoft.ML.Tests
                 using (FileStream stream = new FileStream(onnxModelPath2, FileMode.Create))
                     mlContext.Model.ConvertToOnnx(model, mappedData, stream);
                 var onnxEstimator2 = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath2);
-                var onnxResult2 = onnxEstimator2.Fit(originalData).Transform(originalData);
+                var onnxTransformer2 = onnxEstimator2.Fit(originalData);
+                var onnxResult2 = onnxTransformer2.Transform(originalData);
 
                 var stdSuffix = ".output";
                 foreach (var name in outputNames)
@@ -1523,6 +1613,8 @@ namespace Microsoft.ML.Tests
                     var colName = name.Replace(stdSuffix, "");
                     CompareResults(colName, colName, onnxResult, onnxResult2);
                 }
+                (onnxTransformer as IDisposable)?.Dispose();
+                (onnxTransformer2 as IDisposable)?.Dispose();
             }
 
             Done();
@@ -1536,7 +1628,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = mlContext.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Scalar", dataKind, 6),
@@ -1575,7 +1667,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.Boolean, 0),
@@ -1622,9 +1714,9 @@ namespace Microsoft.ML.Tests
         public void NonDefaultColNamesBinaryClassificationOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassificationNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassificationNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: false);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "MyFeatureVector"),
@@ -1661,8 +1753,8 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExampleNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: true);
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExampleNonDefaultColNames>(dataPath, separatorChar: '\t', hasHeader: false);
 
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
@@ -1711,7 +1803,7 @@ namespace Microsoft.ML.Tests
         public void OneHotHashEncodingOnnxConversionWithCustomOpSetVersionTest()
         {
             var mlContext = new MLContext();
-            string dataPath = GetDataPath("breast-cancer.txt");
+            string dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             var dataView = ML.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath);
             var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
@@ -1951,6 +2043,7 @@ namespace Microsoft.ML.Tests
                 {
                     CompareResults(column.Name, column.Name, transformedData, onnxResult, column.Precision, true);
                 }
+                (onnxTransformer as IDisposable)?.Dispose();
             }
         }
 

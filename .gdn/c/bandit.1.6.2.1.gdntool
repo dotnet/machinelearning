@@ -1,0 +1,257 @@
+{
+  "fileVersion": "1.0.1",
+  "name": "Bandit",
+  "fullName": "Bandit",
+  "toolVersion": "1.6.2.1",
+  "shortDescription": "Security oriented static analyser for python code.",
+  "longDescription": "Bandit is a tool designed to find common security issues in Python code. To do this, Bandit processes each file, builds an AST from it, and runs appropriate plugins against the AST nodes. Once Bandit has finished scanning all the files, it generates a report.",
+  "links": [
+    {
+      "name": "Github",
+      "uri": "https://github.com/PyCQA/bandit"
+    },
+    {
+      "name": "Developer Documentation",
+      "uri": "https://bandit.readthedocs.io/en/latest/"
+    }
+  ],
+  "executablePath": "tools\\bandit_runner.exe",
+  "packages": [
+    {
+      "name": "Microsoft.Guardian.BanditRedist",
+      "version": "1.6.2.1",
+      "type": "nuget",
+      "sources": []
+    }
+  ],
+  "arguments": [
+    {
+      "id": "OutputFile",
+      "displayName": "Output File",
+      "key": "output",
+      "alias": "o",
+      "argumentType": "KeyValue",
+      "shortDescription": "write report to filename"
+    },
+    {
+      "id": "Recursive",
+      "displayName": "Recurse",
+      "key": "recursive",
+      "alias": "r",
+      "argumentType": "switch",
+      "shortDescription": "find and process files in subdirectories."
+    },
+    {
+      "id": "Target",
+      "displayName": "Target",
+      "argumentType": "positional",
+      "key": "targets",
+      "sortOrder": 1,
+      "required": true,
+      "default": "$(DefaultBanditTargets)",
+      "multiple": true,
+      "multipleKeyValueType": "list",
+      "multipleSeparator": " ",
+      "isGlob": true,
+      "batchGlobResults": false,
+      "shortDescription": "source file(s) or directory(s) to be tested"
+    },
+    {
+      "id": "Aggregate",
+      "displayName": "Aggregate",
+      "key": "aggregate",
+      "alias": "a",
+      "argumentType": "keyValue",
+      "shortDescription": "aggregate output by vulnerability (default) or by filename (file or vuln)"
+    },
+    {
+      "id": "ContextLines",
+      "displayName": "Context Lines",
+      "key": "number",
+      "alias": "n",
+      "argumentType": "KeyValue",
+      "shortDescription": "maximum number of code lines to output for each issue"
+    },
+    {
+      "id": "ConfigFile",
+      "displayName": "Configuration File",
+      "key": "configfile",
+      "alias": "c",
+      "argumentType": "KeyValue",
+      "shortDescription": "optional config file to use for selecting plugins and overriding defaults"
+    },
+    {
+      "id": "Profile",
+      "displayName": "Profile",
+      "key": "profile",
+      "alias": "p",
+      "argumentType": "KeyValue",
+      "shortDescription": "optional config file to use for selecting plugins and overriding defaults"
+    },
+    {
+      "id": "Tests",
+      "displayName": "Test IDs",
+      "key": "tests",
+      "alias": "t",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "concat",
+      "multipleSeparator": ",",
+      "default": [
+        "B102",
+        "B110",
+        "B112",
+        "B303",
+        "B304",
+        "B312",
+        "B321",
+        "B324",
+        "B413",
+        "B501",
+        "B502",
+        "B503",
+        "B504",
+        "B505"
+      ],
+      "shortDescription": "list of test IDs to run"
+    },
+    {
+      "id": "SkippedTests",
+      "displayName": "Skipped Test IDs",
+      "key": "skip",
+      "alias": "s",
+      "argumentType": "KeyValue",
+      "multiple": true,
+      "multipleKeyValueType": "concat",
+      "multipleSeparator": ",",
+      "shortDescription": "list of test IDs to skip"
+    },
+    {
+      "id": "SeverityLevel",
+      "displayName": "Severity Level",
+      "key": "level",
+      "alias": "l",
+      "argumentType": "keyValue",
+      "shortDescription": "report only issues of a given severity level or higher. (LOW, MEDIUM, or HIGH, default LOW)"
+    },
+    {
+      "id": "ConfidenceLevel",
+      "displayName": "Confidence Level",
+      "key": "confidence",
+      "alias": "i",
+      "argumentType": "keyValue",
+      "shortDescription": "report only issues of a given confidence level or higher. (LOW, MEDIUM, or HIGH, default LOW)"
+    },
+    {
+      "id": "Format",
+      "displayName": "Format",
+      "key": "format",
+      "alias": "f",
+      "argumentType": "keyValue",
+      "default": "sarif",
+      "shortDescription": "the output format of the log file. Guardian supports the 'sarif' output format. Other formats that cannot be imported for post processing by Guardian are: csv,custom,html,json,screen,txt,xml,yaml"
+    },
+    {
+      "id": "MessageTemplate",
+      "displayName": "Custom Format Template",
+      "key": "msg-template",
+      "argumentType": "keyValue",
+      "shortDescription": "Specify output format (only usable with --format custom)"
+    },
+    {
+      "id": "Verbose",
+      "displayName": "Verbose",
+      "key": "verbose",
+      "alias": "v",
+      "argumentType": "Switch",
+      "shortDescription": "output extra information like excluded and included files"
+    },
+    {
+      "id": "Debug",
+      "displayName": "Debug Mode",
+      "key": "debug",
+      "alias": "d",
+      "argumentType": "Switch",
+      "shortDescription": "turn on debug mode"
+    },
+    {
+      "id": "Quiet",
+      "displayName": "Quiet",
+      "key": "quiet",
+      "alias": "q",
+      "argumentType": "Switch",
+      "shortDescription": "only show output in the case of an error"
+    },
+    {
+      "id": "IgnoreNosec",
+      "displayName": "Ignore NoSec Comments",
+      "key": "ignore-nosec",
+      "argumentType": "Switch",
+      "shortDescription": "do not skip lines with # nosec comments"
+    },
+    {
+      "id": "ExcludedPaths",
+      "displayName": "Excluded Paths",
+      "key": "exclude",
+      "alias": "x",
+      "multiple": true,
+      "multipleSeparator": ",",
+      "argumentType": "keyValue",
+      "shortDescription": "comma-separated list of paths (glob patterns supported to exclude from scan)"
+    },
+    {
+      "id": "Baseline",
+      "displayName": "Baseline Path",
+      "key": "baseline",
+      "alias": "b",
+      "argumentType": "keyValue",
+      "shortDescription": "path of a baseline report to compare against (only JSON-formatted files are accepted)"
+    },
+    {
+      "id": "IniPath",
+      "displayName": "Ini Path",
+      "key": "ini",
+      "argumentType": "keyValue",
+      "shortDescription": "path to a .bandit file that supplies command line arguments"
+    },
+    {
+      "id": "Help",
+      "displayName": "Help",
+      "key": "help",
+      "alias": "h",
+      "argumentType": "switch",
+      "shortDescription": "show a help message and exit."
+    },
+    {
+      "id": "Version",
+      "displayName": "Version",
+      "key": "version",
+      "argumentType": "switch",
+      "shortDescription": "show program's version number and exit"
+    }
+  ],
+  "outputExtension": "sarif",
+  "outputTypeString": "File",
+  "commandLineOptions": {
+    "keyValueSeparator": "=",
+    "argumentPrefix": "--",
+    "aliasPrefix": "-",
+    "targetArgumentId": "Target",
+    "outputArgumentId": "OutputFile",
+    "helpArgumentId": "Help"
+  },
+  "successfulExitCodes": [
+    0,
+    1
+  ],
+  "errorExitCodes": {
+    "2": "Bandit could not run successfully with the given arguments."
+  },
+  "errorHelperMessage": "Bandit failed to run, see https://github.com/PyCQA/bandit for help.",
+  "presetVariables": {
+    "DefaultBanditTargets": "f|**\\*.py;-|.gdn\\**"
+  },
+  "converterInfo": {
+    "convertExpected": false
+  }
+}

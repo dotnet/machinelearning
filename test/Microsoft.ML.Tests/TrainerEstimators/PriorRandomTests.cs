@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             return new TextLoader(Env,
                     new TextLoader.Options()
                     {
-                        HasHeader = true,
+                        HasHeader = false,
                         Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.Boolean, 0),

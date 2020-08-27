@@ -1,0 +1,41 @@
+//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+
+using System;
+using Microsoft.ML.Data;
+using System.Linq;
+
+namespace Namespace.Model
+{
+    public class ModelOutput
+    {
+        [ColumnName("output1")]
+        public float[] Output1 { get; set; }
+
+        public string[] ClassificationLabels = new string[]{"str1","str2","str3",};
+
+        public string Prediction
+        {
+            get
+            {
+                var maxScore = this.Score.Max();
+                var maxIndex = Array.IndexOf(this.Score, maxScore);
+                return this.ClassificationLabels[maxIndex];
+            }
+        }
+
+        public float[] Score
+        {
+            get
+            {
+                var exp = this.Output1.Select(x => (float)Math.Exp(x));
+                var exp_sum = exp.Sum();
+                return exp.Select(x => x / exp_sum).ToArray();
+            }
+        }
+    }
+}
+
