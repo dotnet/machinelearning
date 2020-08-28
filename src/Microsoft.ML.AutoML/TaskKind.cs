@@ -10,6 +10,7 @@ namespace Microsoft.ML.AutoML
         MulticlassClassification,
         Regression,
         Recommendation,
+        ObjectDetection,
         Ranking
     }
 }

@@ -17,6 +17,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             Target = GenerateTarget.Cli;
             OnnxInputMapping = new Dictionary<string, ColumnMapping>();
             ClassificationLabel = new string[] { };
+            ObjectLabel = new string[] { };
         }
 
         public string LabelName { get; set; }
@@ -37,6 +38,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         /// </summary>
         public string[] ClassificationLabel { get; set; }
 
+        public string[] ObjectLabel { get; set; }
+
         public string OutputName { get; set; }
 
         public string OutputBaseDir { get; set; }
@@ -56,6 +59,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         public bool IsAzureAttach { get; set; }
 
         public bool IsImage { get; set; }
+
+        public bool IsObjectDetection { get; set; }
 
         public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; }
 

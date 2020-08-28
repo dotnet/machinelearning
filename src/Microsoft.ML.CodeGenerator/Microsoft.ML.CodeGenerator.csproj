@@ -26,17 +26,13 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>AzureModelBuilder.cs</LastGenOutput>
     </None>
+    <None Update="Templates\Azure\Model\AzureObjectDetectionModelOutputClass.tt">
+      <LastGenOutput>AzureObjectDetectionModelOutputClass.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+    </None>
     <None Update="Templates\Azure\Model\AzureImageModelOutputClass.tt">
       <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
       <Generator>TextTemplatingFilePreprocessor</Generator>
-    </None>
-    <None Update="Templates\Azure\Model\OnnxModelOutputClass.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Azure\Model\LabelMapping.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>LabelMapping.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\Annotation.ttinclude">
     </None>
@@ -80,8 +76,8 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AzureModelBuilder.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Azure\Model\OnnxModelOutputClass - Copy.cs">
-      <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
+    <Compile Update="Templates\Azure\Model\AzureImageModelOutputClass - Copy.cs">
+      <DependentUpon>AzureImageModelOutputClass.tt</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
@@ -90,10 +86,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AzureImageModelOutputClass.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Azure\Model\LabelMapping.cs">
+    <Compile Update="Templates\Azure\Model\OnnxModelOutputClass - Copy.cs">
+      <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>LabelMapping.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\AzureObjectDetectionModelOutputClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureObjectDetectionModelOutputClass.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Console\ConsumeModel.cs">
       <DesignTime>True</DesignTime>

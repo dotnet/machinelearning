@@ -227,13 +227,54 @@ namespace mlnet.Tests
                 OnnxModelName = @"/path/to/onnxModel",
                 OnnxRuntimePacakgeVersion = "1.2.3",
                 IsAzureAttach = true,
+                IsObjectDetection = false,
                 IsImage = true,
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
             foreach (var project in codeGen.ToSolution())
             {
-                foreach(var projectFile in project)
+                foreach (var projectFile in project)
                 {
+                    NamerFactory.AdditionalInformation = projectFile.Name;
+                    Approvals.Verify(((ICSharpFile)projectFile).File);
+                }
+            }
+        }
+
+
+        // Tevin: added to test OD codeGen working
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void AzureObjectDetectionCodeGeneratorTest()
+        {
+            (var pipeline, var columnInference) = GetMockedAzureObjectDetectionPipelineAndInference(@"/path/to/onnxModel");
+            var setting = new CodeGeneratorSettings()
+            {
+                TrainDataset = @"/path/to/dataset",
+                ModelName = @"/path/to/model",
+                MlTask = TaskKind.ObjectDetection,
+                OutputName = @"CodeGenTest",
+                OutputBaseDir = @"/path/to/codegen",
+                LabelName = "Label",
+                Target = GenerateTarget.ModelBuilder,
+                StablePackageVersion = "stableversion",
+                UnstablePackageVersion = "unstableversion",
+                OnnxModelName = @"/path/to/onnxModel",
+                OnnxRuntimePacakgeVersion = @"1.2.3",
+                IsAzureAttach = true,
+                IsImage = false,
+                IsObjectDetection = true,
+                ClassificationLabel = new string[] { "label1", "label2", "label3" },
+                ObjectLabel = new string[] { "label1", "label2", "label3" },
+            };
+            var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
+            //codeGen.GenerateOutput(); // use this to see output in project.
+            foreach (var project in codeGen.ToSolution())
+            {
+                foreach (var projectFile in project)
+                {
+
                     NamerFactory.AdditionalInformation = projectFile.Name;
                     Approvals.Verify(((ICSharpFile)projectFile).File);
                 }
@@ -263,6 +304,7 @@ namespace mlnet.Tests
                 OnnxRuntimePacakgeVersion = "1.2.3",
                 IsAzureAttach = true,
                 IsImage = false,
+                IsObjectDetection = false,
                 OnnxInputMapping = mapping,
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
@@ -618,6 +660,55 @@ namespace mlnet.Tests
                 };
             }
             return (_mockedPipeline, _columnInference);
+        }
+
+        private (Pipeline, ColumnInferenceResults) GetMockedAzureObjectDetectionPipelineAndInference(string onnxModelPath)
+        {
+            var onnxPipeLineNode = new PipelineNode(
+                nameof(SpecialTransformer.ApplyOnnxModel),
+                PipelineNodeType.Transform,
+                new string[] { },
+                new string[] { },
+                null);
+            var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImagePath", "input");
+            var resizeImageNode = new PipelineNode(
+                nameof(SpecialTransformer.ObjectDetectionResizeImage),
+                PipelineNodeType.Transform,
+                "input",
+                "input",
+                new Dictionary<string, object>()
+                {
+                    { "imageWidth", 800 },
+                    { "imageHeight", 600 },
+                });
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "input", "input");
+            var bestPipeLine = new Pipeline(new PipelineNode[]
+            {
+                loadImageNode,
+                resizeImageNode,
+                extractPixelsNode,
+                onnxPipeLineNode,
+            });
+
+            var textLoaderArgs = new TextLoader.Options()
+            {
+                Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("ImagePath", DataKind.String, 1), // 0?
+                    },
+                AllowQuoting = true,
+                AllowSparse = true,
+                HasHeader = true,
+                Separators = new[] { '\t' }
+            };
+
+            var columnInference = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = textLoaderArgs,
+                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+            };
+
+            return (bestPipeLine, columnInference);
         }
 
         private (Pipeline, ColumnInferenceResults) GetMockedRankingPipelineAndInference()

@@ -1,42 +1,25 @@
-﻿<#@ template language="C#" linePragmas="false" visibility="internal" #>
-<#@ assembly name="System.Core" #>
-<#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Text" #>
-<#@ import namespace="System.Collections.Generic" #>
-<#@ include file="Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
-<#CLI_Annotation();#>
-<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
-<#MB_Annotation();#>
-<# } #>
+//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
 
 using System;
 using Microsoft.ML.Data;
-<#if(IsObjectDetection){ #>
 using System.Collections.Generic;
 using System.Linq;
-<# }#>
 
-namespace  <#= Namespace #>.Model
+namespace Namespace.Model
 {
     public class ModelOutput
     {
-<#if("BinaryClassification".Equals(TaskType)){ #>
-        // ColumnName attribute is used to change the column name from
-        // its default value, which is the name of the field.
-        [ColumnName("PredictedLabel")]
-        public bool Prediction { get; set; }
-<# } if("MulticlassClassification".Equals(TaskType) && !IsObjectDetection){ #>
-        // ColumnName attribute is used to change the column name from
-        // its default value, which is the name of the field.
-        [ColumnName("PredictedLabel")]
-        public <#= PredictionLabelType#> Prediction { get; set; }
-<# }#>
-<#if(IsObjectDetection){ #>
+        public string[] ObjectTags = new string[]{"str1","str2","str3",};
+
         [ColumnName("boxes")]
         public float[] Boxes { get; set; }
 
-        [ColumnName("PredictedLabels")]
-        public string[] Labels { get; set; }
+        [ColumnName("labels")]
+        public long[] Labels { get; set; }
 
         [ColumnName("scores")]
         public float[] Scores { get; set; }
@@ -61,7 +44,7 @@ namespace  <#= Namespace #>.Model
                                   Right = boxes[(index * 4) + 2],
                                   Bottom = boxes[(index * 4) + 3],
                                   Score = scores[index],
-                                  Label = labels[index].ToString(),
+                                  Label = this.ObjectTags[labels[index]],
                               };
                           }).ToList();
                 return boundingBoxes.ToArray();
@@ -92,17 +75,5 @@ namespace  <#= Namespace #>.Model
         {
             return $"Top: {this.Top}, Left: {this.Left}, Right: {this.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this.Score}";
         }
-<#} else if("MulticlassClassification".Equals(TaskType)){ #>
-        public float[] Score { get; set; }
-<#}else{ #>
-        public float Score { get; set; }
-<#}#>
     }
 }
-<#+
-public string TaskType {get;set;}
-public string PredictionLabelType {get;set;}
-public string Namespace {get;set;}
-public bool IsObjectDetection {get;set;}
-internal CSharp.GenerateTarget Target {get;set;}
-#>

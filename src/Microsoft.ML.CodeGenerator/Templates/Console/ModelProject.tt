@@ -26,6 +26,8 @@
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="<#= OnnxRuntimePackageVersion #>" />
 <#}#>
+<# if (IncludeOnnxRuntime){ #>
+<#}#>
 <# if (IncludeImageClassificationPackage){ #>
     <PackageReference Include="Microsoft.ML.Vision" Version="<#= StablePackageVersion #>" />
 	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
@@ -41,9 +43,6 @@
     </None>
 <# if (IncludeOnnxModel){ #>
     <None Update="bestModel.onnx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="bestModelMap.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 <#}#>
@@ -64,6 +63,7 @@ public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
 public bool IncludeOnnxModel {get; set;}
+public bool IncludeOnnxRuntime {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}

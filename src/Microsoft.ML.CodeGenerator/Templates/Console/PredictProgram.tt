@@ -35,7 +35,9 @@ namespace <#= Namespace #>.ConsoleApp
 			// Make a single prediction on the sample data and print results
 			var predictionResult = ConsumeModel.Predict(sampleData);
 
+ <#if(!IsObjectDetection){ #>
 			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...\n\n");
+<#} #>
 <# if(SampleData != null) {#>
 <#foreach(var kv in SampleData){#>
 			Console.WriteLine($"<#= kv.Key #>: {sampleData.<#= kv.Key #>}");
@@ -45,8 +47,11 @@ namespace <#= Namespace #>.ConsoleApp
 			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}\n\n");
 <#} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){#>
 			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}\n\n");
-<#} else if("MulticlassClassification".Equals(TaskType)){#>
+<#} else if("MulticlassClassification".Equals(TaskType) && !IsObjectDetection){#>
 			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]\n\n");
+<#} else if(IsObjectDetection){#>
+			Console.WriteLine("\n\nPredicted Boxes:\n");
+            Console.WriteLine(predictionResult);
 <#} #>
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
@@ -61,6 +66,7 @@ public char Separator {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
+public bool IsObjectDetection {get; set;}
 public IList<string> Features {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public IDictionary<string, string> SampleData {get;set;}
