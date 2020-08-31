@@ -50,7 +50,7 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(yValues, nameof(yValues));
 
             if (xValues.Count < MinTimeSeriesLength || yValues.Count < MinTimeSeriesLength)
-                throw Contracts.Except("input data structure cannot be 0-length: lowess");
+                throw Contracts.Except(string.Format("input time series length for Loess is below {0}", MinTimeSeriesLength));
 
             if (xValues.Count != yValues.Count)
                 throw Contracts.Except("the x-axis length should be equal to y-axis length!: lowess");
