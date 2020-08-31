@@ -49,16 +49,16 @@
 - Fixed version format of built packages ([#5197](https://github.com/dotnet/machinelearning/pull/5197))
 - Improvements to "Invalid TValue" error message ([#5189](https://github.com/dotnet/machinelearning/pull/5189))
 - Added IDisposable to OnnxTransformer and fixed memory leaks ([#5348](https://github.com/dotnet/machinelearning/pull/5348))
-- Fixes #4392 Add AddPredictionEnginePool overload for implementation factory ([#4393](https://github.com/dotnet/machinelearning/pull/4393))
+- Fixes [#4392](https://github.com/dotnet/machinelearning/issues/4392). Added AddPredictionEnginePool overload for implementation factory ([#4393](https://github.com/dotnet/machinelearning/pull/4393))
 - Updated codegen to make it work with mlnet 1.5  ([#5173](https://github.com/dotnet/machinelearning/pull/5173))
 - Updated codegen to support object detection scenario. ([#5216](https://github.com/dotnet/machinelearning/pull/5216))
-- Fix issue #5350, check file lock before reload model ([#5351](https://github.com/dotnet/machinelearning/pull/5351))
-- AutoML.Net filter infinity value when calculate average score ([#5345](https://github.com/dotnet/machinelearning/pull/5345))
+- Fix issue [#5350](https://github.com/dotnet/machinelearning/issues/5350), check file lock before reload model ([#5351](https://github.com/dotnet/machinelearning/pull/5351))
+- Improve handling of infinity values in AutoML.NET when calculating average CV metrics ([#5345](https://github.com/dotnet/machinelearning/pull/5345))
 - Throw when PCA generates invalid eigenvectors ([#5349](https://github.com/dotnet/machinelearning/pull/5349))
 - RobustScalingNormalizer entrypoint added ([#5310](https://github.com/dotnet/machinelearning/pull/5310))
 - Replace whitelist terminology to allow list ([#5328](https://github.com/dotnet/machinelearning/pull/5328)) (Thanks [**@LetticiaNicoli**](https://github.com/LetticiaNicoli))
-- Fixes #5352 issues caused by equality with non-string values for root cause localization  ([#5354](https://github.com/dotnet/machinelearning/pull/5354))
-- Aded catch in R^2 calculation for case with few samples ([#5319](https://github.com/dotnet/machinelearning/pull/5319))
+- Fixes ([#5352](https://github.com/dotnet/machinelearning/issues/5352)) issues caused by equality with non-string values for root cause localization  ([#5354](https://github.com/dotnet/machinelearning/pull/5354))
+- Added catch in R^2 calculation for case with few samples ([#5319](https://github.com/dotnet/machinelearning/pull/5319))
 
 
 ## **Test updates**
