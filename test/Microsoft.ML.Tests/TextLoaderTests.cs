@@ -585,7 +585,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.StartsWith("File or directory does not exist at path: fakefile.txt", ex.Message);
         }
 
-        [Fact]
+        [Fact, TestCategory("RunSpecificTest")]
         public void LoadMultipleFilesWithLoadFromTextFile()
         {
             var mlContext = new MLContext(seed: 1);
