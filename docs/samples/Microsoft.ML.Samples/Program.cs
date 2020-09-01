@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using Microsoft.ML.Data;
 using Samples.Dynamic;
 
 namespace Microsoft.ML.Samples
@@ -11,23 +10,23 @@ namespace Microsoft.ML.Samples
 
         internal static void RunAll(string name = null)
         {
-            var mlContext = new MLContext();
+            int samples = 0;
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (name == null || name.Equals(type.Name))
+                {
+                    var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 
-            var loader = mlContext.Data.CreateTextLoader<ModelInput>();
+                    if (sample != null)
+                    {
+                        Console.WriteLine(type.Name);
+                        sample.Invoke(null, null);
+                        samples++;
+                    }
+                }
+            }
 
-            //THIS WORK
-            var d = loader.Load("./xyz/*");
-
-            //THIS DOESN'T
-            var data = mlContext.Data.LoadFromTextFile<ModelInput>("./xyz/*");
-        }
-
-        public class ModelInput
-        {
-            [LoadColumn(0)]
-            public bool Label { get; set; }
-            [LoadColumn(1)]
-            public string Workclass { get; set; }
+            Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
     }
 }
