@@ -102,7 +102,6 @@ namespace Microsoft.ML.TestFramework
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
-            Console.WriteLine(String.Format("Debug String: {0}", Path.Combine(DataDir, name)));
             return Path.GetFullPath(Path.Combine(DataDir, name));
         }
         public static string GetDataPath(string subDir, string name)

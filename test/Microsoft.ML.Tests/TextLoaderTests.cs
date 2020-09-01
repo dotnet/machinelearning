@@ -585,12 +585,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.StartsWith("File or directory does not exist at path: fakefile.txt", ex.Message);
         }
 
-        [Fact, TestCategory("RunSpecificTest")]
+        [Fact]
         public void LoadMultipleFilesWithLoadFromTextFile()
         {
             var mlContext = new MLContext(seed: 1);
             // Folder 'Tiny/' contains 2 files: tiny1.txt, tiny2.txt
-            var directoryName = GetDataPath("Tiny/*");
+            var directoryName = GetDataPath(Path.Combine("Tiny", "*"));
             Assert.True(Directory.GetFiles(directoryName.Remove(directoryName.Length - 1)).Length == 2);
 
             var data = mlContext.Data.LoadFromTextFile(directoryName);
