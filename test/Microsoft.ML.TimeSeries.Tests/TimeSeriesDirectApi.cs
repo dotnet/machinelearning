@@ -666,13 +666,10 @@ namespace Microsoft.ML.Tests
                             Assert.Equal(5.00, prediction.Prediction[4], 2);
                             Assert.Equal(5.01, prediction.Prediction[5], 2);
                             Assert.Equal(4.99, prediction.Prediction[6], 2);
-                            Assert.True(prediction.Prediction[5] > data[k].Value || data[k].Value > prediction.Prediction[6]);
                         }
                         else
                         {
                             Assert.Equal(0, prediction.Prediction[0]);
-                            Assert.True(prediction.Prediction[5] <= data[k].Value);
-                            Assert.True(data[k].Value <= prediction.Prediction[6]);
                         }
                         break;
                 }
@@ -729,8 +726,8 @@ namespace Microsoft.ML.Tests
             {
                 Assert.Equal(7, prediction.Prediction.Length);
                 Assert.Equal(0, prediction.Prediction[0]);
-                Assert.True(prediction.Prediction[5] <= data[index].Value);
-                Assert.True(data[index].Value <= prediction.Prediction[6]);
+                Assert.True(prediction.Prediction[6] <= data[index].Value);
+                Assert.True(data[index].Value <= prediction.Prediction[5]);
                 ++index;
             }
         }
@@ -789,13 +786,13 @@ namespace Microsoft.ML.Tests
                 if (anomalyStartIndex <= k && k <= anomalyEndIndex)
                 {
                     Assert.Equal(1, prediction.Prediction[0]);
-                    Assert.True(prediction.Prediction[5] > data[k].Value || data[k].Value > prediction.Prediction[6]);
+                    Assert.True(prediction.Prediction[6] > data[k].Value || data[k].Value > prediction.Prediction[5]);
                 }
                 else
                 {
                     Assert.Equal(0, prediction.Prediction[0]);
-                    Assert.True(prediction.Prediction[5] <= data[k].Value);
-                    Assert.True(data[k].Value <= prediction.Prediction[6]);
+                    Assert.True(prediction.Prediction[6] <= data[k].Value);
+                    Assert.True(data[k].Value <= prediction.Prediction[5]);
                 }
 
                 ++k;
