@@ -590,14 +590,15 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var mlContext = new MLContext(seed: 1);
             // Folder 'Tiny/' contains 2 files: tiny1.txt, tiny2.txt
-            var directoryName = GetDataPath(Path.Combine("Tiny", "*"));
-            Assert.True(Directory.GetFiles(directoryName.Remove(directoryName.Length - 1)).Length == 2);
+            var directoryName = GetDataPath("Tiny");
+            Assert.True(Directory.GetFiles(directoryName).Length == 2);
+            var combinedPath = Path.Combine(directoryName, "*");
 
-            var data = mlContext.Data.LoadFromTextFile(directoryName);
+            var data = mlContext.Data.LoadFromTextFile(combinedPath);
             Assert.NotNull(data.Schema.GetColumnOrNull("Label"));
             Assert.NotNull(data.Schema.GetColumnOrNull("Features"));
 
-            var data2 = mlContext.Data.LoadFromTextFile<Input>(directoryName);
+            var data2 = mlContext.Data.LoadFromTextFile<Input>(combinedPath);
             Assert.NotNull(data2.Schema.GetColumnOrNull("String1"));
             Assert.NotNull(data2.Schema.GetColumnOrNull("Number1"));
         }
