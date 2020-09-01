@@ -666,6 +666,7 @@ namespace Microsoft.ML.Tests
                             Assert.Equal(5.00, prediction.Prediction[4], 2);
                             Assert.Equal(5.01, prediction.Prediction[5], 2);
                             Assert.Equal(4.99, prediction.Prediction[6], 2);
+                            Assert.True(prediction.Prediction[6] > data[k].Value || data[k].Value > prediction.Prediction[5]);
                         }
                         else
                         {
