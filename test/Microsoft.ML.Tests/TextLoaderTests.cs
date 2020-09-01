@@ -582,7 +582,25 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var mlContext = new MLContext(seed: 1);
             var ex = Assert.Throws<ArgumentOutOfRangeException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
-            Assert.StartsWith("File does not exist at path: fakefile.txt", ex.Message);
+            Assert.StartsWith("File or directory does not exist at path: fakefile.txt", ex.Message);
+        }
+
+        [Fact]
+        public void LoadMultipleFilesWithLoadFromTextFile()
+        {
+            var mlContext = new MLContext(seed: 1);
+            // Folder 'Tiny/' contains 2 files: tiny1.txt, tiny2.txt
+            var directoryName = GetDataPath("Tiny");
+            Assert.True(Directory.GetFiles(directoryName).Length == 2);
+            var combinedPath = Path.Combine(directoryName, "*");
+
+            var data = mlContext.Data.LoadFromTextFile(combinedPath);
+            Assert.NotNull(data.Schema.GetColumnOrNull("Label"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Features"));
+
+            var data2 = mlContext.Data.LoadFromTextFile<Input>(combinedPath);
+            Assert.NotNull(data2.Schema.GetColumnOrNull("String1"));
+            Assert.NotNull(data2.Schema.GetColumnOrNull("Number1"));
         }
 
         [Fact]
