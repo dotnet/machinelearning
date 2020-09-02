@@ -499,7 +499,39 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <inheritdoc/>
-        public override DataFrameColumn FillNulls(object value, bool inPlace = false) => throw new NotSupportedException();
+        public ArrowStringDataFrameColumn FillNulls(string value, bool inPlace = false) 
+        {
+            if (value == null)
+            {
+                throw new ArgumentException(nameof(value));
+            }
+            if (inPlace)
+            {
+                /* For now throw an exception if inPlace = true. Need to investigate if Apache Arrow
+                 * format supports filling nulls for variable length arrays
+                 */
+                throw new NotSupportedException();
+            }
+
+            ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
+            for (long i = 0; i < Length; i++)
+            {
+                ret.Append(IsValid(i) ? GetBytes(i) : Encoding.UTF8.GetBytes(value));
+            }
+            return ret;
+        }
+
+        protected override DataFrameColumn FillNullsImplementation(object value, bool inPlace)
+        {
+            if (value is string valueString)
+            {
+                return FillNulls(valueString, inPlace);
+            }
+            else
+            {
+                throw new ArgumentException(String.Format(Strings.MismatchedValueType, typeof(string)), nameof(value));
+            }
+        }
 
         public override DataFrameColumn Clamp<U>(U min, U max, bool inPlace = false) => throw new NotSupportedException();
 

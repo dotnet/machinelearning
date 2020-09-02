@@ -1760,6 +1760,20 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(0, strColumn.NullCount);
             Assert.Equal("foo", strColumn[0]);
             Assert.Equal("foo", strColumn[1]);
+
+            // ArrowStringColumn (not inplace)
+            ArrowStringDataFrameColumn arrowColumn = CreateArrowStringColumn(3);
+            Assert.Equal(3, arrowColumn.Length);
+            Assert.Equal(1, arrowColumn.NullCount);
+            Assert.Equal(null, arrowColumn[1]);
+            ArrowStringDataFrameColumn arrowColumnFilled = arrowColumn.FillNulls("foo");
+            Assert.Equal(3, arrowColumn.Length);
+            Assert.Equal(1, arrowColumn.NullCount);
+            Assert.Equal(3, arrowColumnFilled.Length);
+            Assert.Equal(0, arrowColumnFilled.NullCount);
+            Assert.Equal("foo", arrowColumnFilled[1]);
+            Assert.Equal(arrowColumn[0], arrowColumnFilled[0]);
+            Assert.Equal(arrowColumn[2], arrowColumnFilled[2]);
         }
 
         [Fact]
