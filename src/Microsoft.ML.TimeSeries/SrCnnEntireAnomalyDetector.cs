@@ -742,7 +742,7 @@ namespace Microsoft.ML.TimeSeries
                     if (results[i][0] == 0)
                     {
                         double margin = results[i][5] - results[i][3];
-                        results[i][3] = results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][0], _units[i]);
+                        results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][3], _units[i]);
                         results[i][5] = results[i][3] + margin;
                         results[i][6] = results[i][3] - margin;
                     }
@@ -776,7 +776,7 @@ namespace Microsoft.ML.TimeSeries
                     //Step 13: Update Expected Value, LowerBound and UpperBound for not anomaly points.
                     if (results[i][0] == 0)
                     {
-                        results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][0], _units[i]);
+                        results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][3], _units[i]);
                         results[i][5] = results[i][3] + margin;
                         results[i][6] = results[i][3] - margin;
                     }
