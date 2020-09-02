@@ -133,7 +133,7 @@ namespace Microsoft.Data.Analysis
         /// <param name="columnName"></param>
         public int IndexOf(string columnName)
         {
-            if (_columnNameToIndexDictionary.TryGetValue(columnName, out int columnIndex))
+            if (columnName != null && _columnNameToIndexDictionary.TryGetValue(columnName, out int columnIndex))
             {
                 return columnIndex;
             }

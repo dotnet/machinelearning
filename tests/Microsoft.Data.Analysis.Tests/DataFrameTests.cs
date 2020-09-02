@@ -200,10 +200,11 @@ namespace Microsoft.Data.Analysis.Tests
             var row = dataFrame.Rows[4];
             Assert.Equal(14, (int)row[1]);
 
-            var column = dataFrame.Columns["Int2"] as Int32DataFrameColumn;
+            var column = dataFrame["Int2"] as Int32DataFrameColumn;
             Assert.Equal(1000, (int)column[2]);
 
-            Assert.Throws<ArgumentException>(() => dataFrame.Columns["Int5"]);
+            Assert.Throws<ArgumentException>(() => dataFrame["Int5"]);
+            Assert.Throws<ArgumentException>(() => dataFrame[(string)null]);
         }
 
         [Fact]
@@ -645,7 +646,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             DataFrame df = MakeDataFrameWithTwoColumns(10);
 
-            df.Columns["Int3"] = df.Columns["Int1"] * 2 + df.Columns["Int2"];
+            df["Int3"] = df.Columns["Int1"] * 2 + df.Columns["Int2"];
             Assert.Equal(16, df.Columns["Int3"][2]);
         }
 
@@ -653,7 +654,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestComputations()
         {
             DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);
-            df.Columns["Int"][0] = -10;
+            df["Int"][0] = -10;
             Assert.Equal(-10, df.Columns["Int"][0]);
 
             DataFrameColumn absColumn = df.Columns["Int"].Abs();

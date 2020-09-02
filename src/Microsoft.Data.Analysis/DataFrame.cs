@@ -148,6 +148,18 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
+        /// An indexer based on <see cref="DataFrameColumn.Name"/>
+        /// </summary>
+        /// <param name="columnName">The name of a <see cref="DataFrameColumn"/></param>
+        /// <returns>A <see cref="DataFrameColumn"/> if it exists.</returns>
+        /// <exception cref="ArgumentException">Throws if <paramref name="columnName"/> is not present in this <see cref="DataFrame"/></exception>
+        public DataFrameColumn this[string columnName]
+        {
+            get => Columns[columnName];
+            set => Columns[columnName] = value;
+        }
+
+        /// <summary>
         /// Returns the first <paramref name="numberOfRows"/> rows
         /// </summary>
         /// <param name="numberOfRows"></param>
