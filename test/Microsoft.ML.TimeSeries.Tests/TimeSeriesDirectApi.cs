@@ -586,28 +586,20 @@ namespace Microsoft.ML.Tests
             [CombinatorialValues(-1, 24, 26, 512)] int batchSize)
         {
             var ml = new MLContext(1);
-            var data = new List<TimeSeriesDataDouble>();
-
             IDataView dataView;
+            List<TimeSeriesDataDouble> data;
+
             if (loadDataFromFile)
             {
                 var dataPath = GetDataPath("Timeseries", "anomaly_detection.csv");
 
                 // Load data from file into the dataView
-                StreamReader readFile = new StreamReader(dataPath);
-                string line;
-                readFile.ReadLine();
-                while ((line = readFile.ReadLine()) != null)
-                {
-                    data.Add(new TimeSeriesDataDouble { Value = Double.Parse(line) });
-                }
-                readFile.Close();
-
-                // Convert data to IDataView.
-                dataView = ml.Data.LoadFromEnumerable(data);
+                dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+                data = ml.Data.CreateEnumerable<TimeSeriesDataDouble>(dataView, reuseRowObject: false).ToList();
             }
             else
             {
+                data = new List<TimeSeriesDataDouble>();
                 // Generate sample series data with an anomaly
                 for (int index = 0; index < 20; index++)
                 {
@@ -636,6 +628,7 @@ namespace Microsoft.ML.Tests
                 outputDataView, reuseRowObject: false);
 
             int k = 0;
+            
             foreach (var prediction in predictionColumn)
             {
                 switch (mode)
@@ -684,22 +677,13 @@ namespace Microsoft.ML.Tests
         {
             var ml = new MLContext(1);
             IDataView dataView;
-            var data = new List<TimeSeriesDataDouble>();
+            List<TimeSeriesDataDouble> data;
 
             var dataPath = GetDataPath("Timeseries", "period_no_anomaly.csv");
 
             // Load data from file into the dataView
-            StreamReader readFile = new StreamReader(dataPath);
-            string line;
-            readFile.ReadLine();
-            while ((line = readFile.ReadLine()) != null)
-            {
-                data.Add(new TimeSeriesDataDouble { Value = Double.Parse(line) });
-            }
-            readFile.Close();
-
-            // Convert data to IDataView.
-            dataView = ml.Data.LoadFromEnumerable(data);
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+            data = ml.Data.CreateEnumerable<TimeSeriesDataDouble>(dataView, reuseRowObject: false).ToList();
 
             // Setup the detection arguments
             string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
@@ -740,21 +724,13 @@ namespace Microsoft.ML.Tests
         {
             var ml = new MLContext(1);
             IDataView dataView;
-            var data = new List<TimeSeriesDataDouble>();
+            List<TimeSeriesDataDouble> data;
+
             var dataPath = GetDataPath("Timeseries", "period_anomaly.csv");
 
             // Load data from file into the dataView
-            StreamReader readFile = new StreamReader(dataPath);
-            string line;
-            readFile.ReadLine();
-            while ((line = readFile.ReadLine()) != null)
-            {
-                data.Add(new TimeSeriesDataDouble { Value = Double.Parse(line) });
-            }
-            readFile.Close();
-
-            // Convert data to IDataView.
-            dataView = ml.Data.LoadFromEnumerable(data);
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+            data = ml.Data.CreateEnumerable<TimeSeriesDataDouble>(dataView, reuseRowObject: false).ToList();
 
             // Setup the detection arguments
             string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
