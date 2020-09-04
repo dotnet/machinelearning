@@ -158,11 +158,14 @@ namespace Microsoft.ML.AutoML
             throw new NotImplementedException($"Metric {typeof(TMetrics)} not implemented");
         }
 
-        private static double[] GetAverageOfNonNaNScoresInNestedEnumerable(IEnumerable<IEnumerable <double>> results)
+        private static double[] GetAverageOfNonNaNScoresInNestedEnumerable(IEnumerable<IEnumerable<double>> results)
         {
             double[] arr = new double[results.ElementAt(0).Count()];
             for (int i = 0; i < arr.Length; i++)
+            {
+                Contracts.Assert(arr.Length == results.ElementAt(i).Count());
                 arr[i] = GetAverageOfNonNaNScores(results.Select(x => x.ElementAt(i)));
+            }
             return arr;
         }
 
