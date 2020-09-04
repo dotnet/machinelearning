@@ -157,6 +157,7 @@ namespace Microsoft.ML.AutoML.Test
 
             ExperimentResult<RankingMetrics>[] experimentResults =
             {
+                experiment.Execute(trainDataView, labelColumnName, groupIdColumnName),
                 experiment.Execute(trainDataView, testDataView),
                 experiment.Execute(trainDataView, testDataView,
                 new ColumnInformation()
@@ -172,10 +173,11 @@ namespace Microsoft.ML.AutoML.Test
                     SamplingKeyColumnName = groupIdColumnName
                 })
             };
-            if (isUsingTrainValidateRunner)
-                experimentResults.Append(experiment.Execute(trainDataView, labelColumnName, groupIdColumnName));
 
-            for (int i = 0; i < experimentResults.Length; i++)
+            // Skip first experiment during cross validation testing as no test
+            // dataset is provided
+            int startIndex = isUsingTrainValidateRunner ? 0 : 1;
+            for (int i = startIndex; i < experimentResults.Length; i++)
             {
                 RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
                 Assert.True(experimentResults[i].RunDetails.Count() > 0);
