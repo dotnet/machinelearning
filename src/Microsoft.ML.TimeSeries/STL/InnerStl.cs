@@ -26,6 +26,11 @@ namespace Microsoft.ML.TimeSeries
         private double[] _deseasonSeries;
 
         /// <summary>
+        /// The minimum length of a valid time series. A time series with length equals 2 is so trivial and meaningless less than 2.
+        /// </summary>
+        public const int MinTimeSeriesLength = 3;
+
+        /// <summary>
         /// The smoothing parameter for the seasonal component.
         /// This parameter should be odd, and at least 7.
         /// </summary>
@@ -114,8 +119,8 @@ namespace Microsoft.ML.TimeSeries
             Contracts.CheckValue(yValues, nameof(yValues));
             Contracts.CheckParam(np > 0, nameof(np));
 
-            if (yValues.Count == 0)
-                throw Contracts.Except("input data structure cannot be 0-length: innerSTL");
+            if (yValues.Count < MinTimeSeriesLength)
+                throw Contracts.Except(string.Format("input time series length for InnerStl is below {0}", MinTimeSeriesLength));
 
             int length = yValues.Count;
             Array.Resize(ref _seasonalComponent, length);
