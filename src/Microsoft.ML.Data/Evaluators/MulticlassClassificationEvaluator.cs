@@ -41,6 +41,7 @@ namespace Microsoft.ML.Data
         public const string AccuracyMicro = "Accuracy(micro-avg)";
         public const string AccuracyMacro = "Accuracy(macro-avg)";
         public const string TopKAccuracy = "Top K accuracy";
+        public const string AllTopKAccuracy = "Top K accuracy(All K)";
         public const string PerClassLogLoss = "Per class log-loss";
         public const string LogLoss = "Log-loss";
         public const string LogLossReduction = "Log-loss reduction";
@@ -60,7 +61,6 @@ namespace Microsoft.ML.Data
         internal const string LoadName = "MultiClassClassifierEvaluator";
 
         private readonly int? _outputTopKAcc;
-        private readonly bool _names;
 
         public MulticlassClassificationEvaluator(IHostEnvironment env, Arguments args)
             : base(env, LoadName)
@@ -68,7 +68,6 @@ namespace Microsoft.ML.Data
             Host.AssertValue(args, "args");
             Host.CheckUserArg(args.OutputTopKAcc == null || args.OutputTopKAcc > 0, nameof(args.OutputTopKAcc));
             _outputTopKAcc = args.OutputTopKAcc;
-            _names = args.Names;
         }
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
@@ -147,6 +146,7 @@ namespace Microsoft.ML.Data
             var logLoss = new List<double>();
             var logLossRed = new List<double>();
             var topKAcc = new List<double>();
+            var allTopK = new List<double[]>();
             var perClassLogLoss = new List<double[]>();
             var counts = new List<double[]>();
             var weights = new List<double[]>();
@@ -172,6 +172,7 @@ namespace Microsoft.ML.Data
                     logLossRed.Add(agg.UnweightedCounters.Reduction);
                     if (agg.UnweightedCounters.OutputTopKAcc > 0)
                         topKAcc.Add(agg.UnweightedCounters.TopKAccuracy);
+                    allTopK.Add(agg.UnweightedCounters.AllTopKAccuracy);
                     perClassLogLoss.Add(agg.UnweightedCounters.PerClassLogLoss);
 
                     confStratCol.AddRange(agg.UnweightedCounters.ConfusionTable.Select(x => stratColKey));
@@ -189,6 +190,7 @@ namespace Microsoft.ML.Data
                         logLossRed.Add(agg.WeightedCounters.Reduction);
                         if (agg.WeightedCounters.OutputTopKAcc > 0)
                             topKAcc.Add(agg.WeightedCounters.TopKAccuracy);
+                        allTopK.Add(agg.WeightedCounters.AllTopKAccuracy);
                         perClassLogLoss.Add(agg.WeightedCounters.PerClassLogLoss);
                         weights.AddRange(agg.WeightedCounters.ConfusionTable);
                     }
@@ -211,6 +213,7 @@ namespace Microsoft.ML.Data
                     overallDvBldr.AddColumn(LogLossReduction, NumberDataViewType.Double, logLossRed.ToArray());
                     if (aggregator.UnweightedCounters.OutputTopKAcc > 0)
                         overallDvBldr.AddColumn(TopKAccuracy, NumberDataViewType.Double, topKAcc.ToArray());
+                    overallDvBldr.AddColumn(AllTopKAccuracy, NumberDataViewType.Double, allTopK.ToArray());
                     overallDvBldr.AddColumn(PerClassLogLoss, aggregator.GetSlotNames, NumberDataViewType.Double, perClassLogLoss.ToArray());
 
                     var confDvBldr = new ArrayDataViewBuilder(Host);
@@ -246,9 +249,11 @@ namespace Microsoft.ML.Data
                 private double _totalLogLoss;
                 private double _numInstances;
                 private double _numCorrect;
-                private double _numCorrectTopK;
+                private int _numUnknownClassInstances;
                 private readonly double[] _sumWeightsOfClass;
                 private readonly double[] _totalPerClassLogLoss;
+                private readonly long[] _seenRanks;
+
                 public readonly double[][] ConfusionTable;
 
                 public double MicroAvgAccuracy { get { return _numInstances > 0 ? _numCorrect / _numInstances : 0; } }
@@ -291,7 +296,8 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public double TopKAccuracy { get { return _numInstances > 0 ? _numCorrectTopK / _numInstances : 0; } }
+                public double TopKAccuracy => !(OutputTopKAcc is null) ? AllTopKAccuracy[OutputTopKAcc.Value] : 0d;
+                public double[] AllTopKAccuracy => CumulativeSum(_seenRanks.Select(l => l / (double)(_numInstances - _numUnknownClassInstances))).ToArray();
 
                 // The per class average log loss is calculated by dividing the weighted sum of the log loss of examples
                 // in each class by the total weight of examples in that class.
@@ -316,14 +322,12 @@ namespace Microsoft.ML.Data
                     ConfusionTable = new double[numClasses][];
                     for (int i = 0; i < ConfusionTable.Length; i++)
                         ConfusionTable[i] = new double[numClasses];
+
+                    _seenRanks = new long[numClasses + 1];
                 }
 
-                public void Update(int[] indices, double loglossCurr, int label, float weight)
+                public void Update(int seenRank, int assigned, double loglossCurr, int label, float weight)
                 {
-                    Contracts.Assert(Utils.Size(indices) == _numClasses);
-
-                    int assigned = indices[0];
-
                     _numInstances += weight;
 
                     if (label < _numClasses)
@@ -334,23 +338,34 @@ namespace Microsoft.ML.Data
                     if (label < _numClasses)
                         _totalPerClassLogLoss[label] += loglossCurr * weight;
 
-                    if (assigned == label)
+                    _seenRanks[seenRank]++;
+
+                    if (seenRank == 0) //prediction matched label
                     {
                         _numCorrect += weight;
                         ConfusionTable[label][label] += weight;
-                        _numCorrectTopK += weight;
                     }
                     else if (label < _numClasses)
                     {
-                        if (OutputTopKAcc > 0)
-                        {
-                            int idx = Array.IndexOf(indices, label);
-                            if (0 <= idx && idx < OutputTopKAcc)
-                                _numCorrectTopK += weight;
-                        }
                         ConfusionTable[label][assigned] += weight;
                     }
+                    else
+                    {
+                        _numUnknownClassInstances++;
+                    }
                 }
+
+                private static IEnumerable<double> CumulativeSum(IEnumerable<double> s)
+                {
+                    double sum = 0;
+                    ;
+                    foreach (var x in s)
+                    {
+                        sum += x;
+                        yield return sum;
+                    }
+                }
+
             }
 
             private ValueGetter<float> _labelGetter;
@@ -359,7 +374,6 @@ namespace Microsoft.ML.Data
 
             private VBuffer<float> _scores;
             private readonly float[] _scoresArr;
-            private int[] _indicesArr;
 
             private const float Epsilon = (float)1e-15;
 
@@ -380,6 +394,7 @@ namespace Microsoft.ML.Data
                 Host.Assert(Utils.Size(classNames) == scoreVectorSize);
 
                 _scoresArr = new float[scoreVectorSize];
+
                 UnweightedCounters = new Counters(scoreVectorSize, outputTopKAcc);
                 Weighted = weighted;
                 WeightedCounters = Weighted ? new Counters(scoreVectorSize, outputTopKAcc) : null;
@@ -400,6 +415,7 @@ namespace Microsoft.ML.Data
 
                 if (schema.Weight.HasValue)
                     _weightGetter = row.GetGetter<float>(schema.Weight.Value);
+
             }
 
             public override void ProcessRow()
@@ -437,15 +453,11 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                // Sort classes by prediction strength.
-                // Use stable OrderBy instead of Sort(), which may give different results on different machines.
-                if (Utils.Size(_indicesArr) < _scoresArr.Length)
-                    _indicesArr = new int[_scoresArr.Length];
-                int j = 0;
-                foreach (var index in Enumerable.Range(0, _scoresArr.Length).OrderByDescending(i => _scoresArr[i]))
-                    _indicesArr[j++] = index;
-
                 var intLabel = (int)label;
+
+                var assigned = Array.IndexOf(_scoresArr, _scoresArr.Max()); //perf could be improved
+
+                var wasKnownLabel = true;
 
                 // log-loss
                 double logloss;
@@ -461,11 +473,21 @@ namespace Microsoft.ML.Data
                     // Penalize logloss if the label was not seen during training
                     logloss = -Math.Log(Epsilon);
                     _numUnknownClassInstances++;
+                    wasKnownLabel = false;
                 }
 
-                UnweightedCounters.Update(_indicesArr, logloss, intLabel, 1);
+                // Get the probability that the CORRECT label has: (best case is that it's the highest probability):
+                var correctProba = !wasKnownLabel ? 0 : _scoresArr[intLabel];
+
+                // Find the rank of the *correct* label (in Scores[]). If 0 => Good, correct. And the lower the better.
+                // The rank will be from 0 to N. (Not N-1).
+                // Problem: What if we have probabilities that are equal to the correct prediction (eg, .6 .1 .1 .1 .1).
+                // This actually happens a lot with some models. Here we assign the worst rank in the case of a tie (so 4 in this example)
+                var correctRankWorstCase = !wasKnownLabel ? _scoresArr.Length : _scoresArr.Count(score => score >= correctProba) - 1;
+
+                UnweightedCounters.Update(correctRankWorstCase, assigned, logloss, intLabel, 1);
                 if (WeightedCounters != null)
-                    WeightedCounters.Update(_indicesArr, logloss, intLabel, weight);
+                    WeightedCounters.Update(correctRankWorstCase, assigned, logloss, intLabel, weight);
             }
 
             protected override List<string> GetWarningsCore()
@@ -909,6 +931,7 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < metrics.Length; i++)
             {
                 var idv = metrics[i];
+                idv = DropAllTopKColumn(idv);
                 if (!_outputPerClass)
                     idv = DropPerClassColumn(idv);
 
@@ -960,6 +983,15 @@ namespace Microsoft.ML.Data
             if (input.Schema.TryGetColumnIndex(MulticlassClassificationEvaluator.PerClassLogLoss, out int perClassCol))
             {
                 input = ColumnSelectingTransformer.CreateDrop(Host, input, MulticlassClassificationEvaluator.PerClassLogLoss);
+            }
+            return input;
+        }
+
+        private IDataView DropAllTopKColumn(IDataView input)
+        {
+            if (input.Schema.TryGetColumnIndex(MulticlassClassificationEvaluator.AllTopKAccuracy, out int AllTopKCol))
+            {
+                input = ColumnSelectingTransformer.CreateDrop(Host, input, MulticlassClassificationEvaluator.AllTopKAccuracy);
             }
             return input;
         }

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
@@ -82,6 +83,11 @@ namespace Microsoft.ML.Data
         public int TopKPredictionCount { get; }
 
         /// <summary>
+        /// Returns the top K for all K from 1 to the number of classes
+        /// </summary>
+        public IReadOnlyList<double> TopKAccuracyForAllK { get; }
+
+        /// <summary>
         /// Gets the log-loss of the classifier for each class. Log-loss measures the performance of a classifier
         /// with respect to how much the predicted probabilities diverge from the true class label. Lower
         /// log-loss indicates a better model. A perfect model, which predicts a probability of 1 for the
@@ -114,9 +120,10 @@ namespace Microsoft.ML.Data
             MacroAccuracy = FetchDouble(MulticlassClassificationEvaluator.AccuracyMacro);
             LogLoss = FetchDouble(MulticlassClassificationEvaluator.LogLoss);
             LogLossReduction = FetchDouble(MulticlassClassificationEvaluator.LogLossReduction);
+            TopKAccuracyForAllK = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.AllTopKAccuracy).DenseValues().ToImmutableArray();
             TopKPredictionCount = topKPredictionCount;
             if (topKPredictionCount > 0)
-                TopKAccuracy = FetchDouble(MulticlassClassificationEvaluator.TopKAccuracy);
+                TopKAccuracy = TopKAccuracyForAllK[topKPredictionCount-1];
 
             var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
             PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();
