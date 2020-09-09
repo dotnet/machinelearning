@@ -46,7 +46,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Create testing data. Use different random seed to make it different
             // from training data.
             var testData = mlContext.Data
-                .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123, greatestLabel: 4));
+                .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -57,7 +57,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 reuseRowObject: false).ToList();
 
             // Look at 5 predictions
-            foreach (var p in predictions.Take(100))
+            foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, " + 
                     $"Prediction: {p.PredictedLabel}");
 
@@ -70,7 +70,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification
-                .Evaluate(transformedTestData, topKPredictionCount:3);
+                .Evaluate(transformedTestData);
 
             PrintMetrics(metrics);
             
@@ -93,7 +93,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         // Generates random uniform doubles in [-0.5, 0.5)
         // range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0, int greatestLabel = 4)
+            int seed=0)
 
         {
             var random = new Random(seed);
@@ -101,10 +101,10 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             for (int i = 0; i < count; i++)
             {
                 // Generate Labels that are integers 1, 2 or 3
-                var label = random.Next(1, greatestLabel);
+                var label = random.Next(1, 4);
                 yield return new DataPoint
                 {
-                    Label = label.ToString() + "@",
+                    Label = (uint)label,
                     // Create random features that are correlated with the label.
                     // The feature values are slightly increased by adding a
                     // constant multiple of label.
@@ -119,7 +119,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         // such examples.
         private class DataPoint
         {
-            public string Label { get; set; }
+            public uint Label { get; set; }
             [VectorType(20)]
             public float[] Features { get; set; }
         }
@@ -141,11 +141,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
             Console.WriteLine(
                 $"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
-
-            for (int k=0; k < metrics.TopKAccuracyForAllK.Count(); k++)
-            {
-                Console.WriteLine($"Top {k} Accuracy: {metrics.TopKAccuracyForAllK[k]:F2}");
-            }
 
             Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
