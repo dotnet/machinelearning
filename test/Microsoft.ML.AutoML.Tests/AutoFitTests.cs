@@ -134,7 +134,7 @@ namespace Microsoft.ML.AutoML.Test
             AutoFitRankingCVTestTemplate(false, 0.31, 15);
         }
 
-        private void AutoFitRankingTestTemplate(bool isUsingTrainValidateRunner, double maxNdcgBaseline, double maxDcgBaseline)
+        private void AutoFitRankingTestTemplate(bool isUsingTrainValidateRunner, double minExpectedNdcg, double minExpectedDcg)
         {
             string labelColumnName = "Label";
             string scoreColumnName = "Score";
@@ -182,8 +182,8 @@ namespace Microsoft.ML.AutoML.Test
                 RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
                 Assert.True(experimentResults[i].RunDetails.Count() > 0);
                 Assert.NotNull(bestRun.ValidationMetrics);
-                Assert.True(bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Last() > maxNdcgBaseline);
-                Assert.True(bestRun.ValidationMetrics.DiscountedCumulativeGains.Last() > maxDcgBaseline);
+                Assert.True(bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Last() > minExpectedNdcg);
+                Assert.True(bestRun.ValidationMetrics.DiscountedCumulativeGains.Last() > minExpectedDcg);
                 var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
                 var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
                 "Features", scoreColumnName };
@@ -192,7 +192,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        private void AutoFitRankingCVTestTemplate(bool isUsingTrainValidateRunner, double maxNdcgBaseline, double maxDcgBaseline)
+        private void AutoFitRankingCVTestTemplate(bool isUsingTrainValidateRunner, double minExpectedNdcg, double minExpectedDcg)
         {
             string labelColumnName = "Label";
             string groupIdColumnName = "GroupIdCustom";
@@ -227,8 +227,8 @@ namespace Microsoft.ML.AutoML.Test
                 while (enumerator.MoveNext())
                 {
                     var model = enumerator.Current;
-                    Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > maxNdcgBaseline);
-                    Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > maxDcgBaseline);
+                    Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > minExpectedNdcg);
+                    Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > minExpectedDcg);
                 }
             }
         }
