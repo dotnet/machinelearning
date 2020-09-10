@@ -144,7 +144,29 @@ namespace Microsoft.ML.AutoML
                 return result as TMetrics;
             }
 
+            if (typeof(TMetrics) == typeof(RankingMetrics))
+            {
+                var newMetrics = metrics.Select(x => x as RankingMetrics);
+                Contracts.Assert(newMetrics != null);
+
+                var result = new RankingMetrics(
+                    dcg: GetAverageOfNonNaNScoresInNestedEnumerable(newMetrics.Select(x => x.DiscountedCumulativeGains)),
+                    ndcg: GetAverageOfNonNaNScoresInNestedEnumerable(newMetrics.Select(x => x.NormalizedDiscountedCumulativeGains)));
+                return result as TMetrics;
+            }
+
             throw new NotImplementedException($"Metric {typeof(TMetrics)} not implemented");
+        }
+
+        private static double[] GetAverageOfNonNaNScoresInNestedEnumerable(IEnumerable<IEnumerable<double>> results)
+        {
+            double[] arr = new double[results.ElementAt(0).Count()];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                Contracts.Assert(arr.Length == results.ElementAt(i).Count());
+                arr[i] = GetAverageOfNonNaNScores(results.Select(x => x.ElementAt(i)));
+            }
+            return arr;
         }
 
         private static double GetAverageOfNonNaNScores(IEnumerable<double> results)
