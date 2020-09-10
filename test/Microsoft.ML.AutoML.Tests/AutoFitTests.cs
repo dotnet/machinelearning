@@ -123,19 +123,6 @@ namespace Microsoft.ML.AutoML.Test
         [LightGBMFact]
         public void AutoFitRankingTest()
         {
-            // Testing Ranking with both TrainValidateRunner and CrossValSummaryRunner
-            // with corresponding baseline metrics. The metrics of Ranking with
-            // CrossValSummaryRunner is lower due to the 10 cross validation folds
-            // and due to the fact that CrossValSummaryRunner is used only when
-            // fewer than <1500 rows of training data is given.
-            AutoFitRankingTestTemplate(true, 0.4, 20);
-            AutoFitRankingTestTemplate(false, 0.4, 28);
-            AutoFitRankingCVTestTemplate(true, 0.4, 19);
-            AutoFitRankingCVTestTemplate(false, 0.31, 15);
-        }
-
-        private void AutoFitRankingTestTemplate(bool isUsingTrainValidateRunner, double maxNdcgBaseline, double maxDcgBaseline)
-        {
             string labelColumnName = "Label";
             string scoreColumnName = "Score";
             string groupIdColumnName = "GroupId";
@@ -148,8 +135,6 @@ namespace Microsoft.ML.AutoML.Test
             var trainDataView = reader.Load(new MultiFileSource(DatasetUtil.GetMLSRDataset()));
             var testDataView = mlContext.Data.TakeRows(trainDataView, 500);
             trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
-            if (!isUsingTrainValidateRunner)
-                trainDataView = mlContext.Data.TakeRows(trainDataView, 1499);
 
             // STEP 2: Run AutoML experiment
             var experiment = mlContext.Auto()
@@ -174,16 +159,13 @@ namespace Microsoft.ML.AutoML.Test
                 })
             };
 
-            // Skip first experiment during cross validation testing as no test
-            // dataset is provided
-            int startIndex = isUsingTrainValidateRunner ? 0 : 1;
-            for (int i = startIndex; i < experimentResults.Length; i++)
+            for (int i = 0; i < experimentResults.Length; i++)
             {
                 RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
                 Assert.True(experimentResults[i].RunDetails.Count() > 0);
                 Assert.NotNull(bestRun.ValidationMetrics);
-                Assert.True(bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Last() > maxNdcgBaseline);
-                Assert.True(bestRun.ValidationMetrics.DiscountedCumulativeGains.Last() > maxDcgBaseline);
+                Assert.True(bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Last() > 0.4);
+                Assert.True(bestRun.ValidationMetrics.DiscountedCumulativeGains.Last() > 20);
                 var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
                 var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
                 "Features", scoreColumnName };
@@ -192,7 +174,8 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        private void AutoFitRankingCVTestTemplate(bool isUsingTrainValidateRunner, double maxNdcgBaseline, double maxDcgBaseline)
+        [LightGBMFact]
+        public void AutoFitRankingCVTest()
         {
             string labelColumnName = "Label";
             string groupIdColumnName = "GroupIdCustom";
@@ -204,8 +187,9 @@ namespace Microsoft.ML.AutoML.Test
             var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName,
                 featuresColumnVectorNameA, featuresColumnVectorNameB));
             var trainDataView = reader.Load(DatasetUtil.GetMLSRDataset());
-            if (!isUsingTrainValidateRunner)
-                trainDataView = mlContext.Data.TakeRows(trainDataView, 1499);
+            // Take less than 1500 rows of data to satisfy CrossValSummaryRunner's
+            // limit.
+            trainDataView = mlContext.Data.TakeRows(trainDataView, 1499);
 
             var experiment = mlContext.Auto()
                 .CreateRankingExperiment(5);
@@ -227,8 +211,8 @@ namespace Microsoft.ML.AutoML.Test
                 while (enumerator.MoveNext())
                 {
                     var model = enumerator.Current;
-                    Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > maxNdcgBaseline);
-                    Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > maxDcgBaseline);
+                    Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > 0.31);
+                    Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > 15);
                 }
             }
         }
