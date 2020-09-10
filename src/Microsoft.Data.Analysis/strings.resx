@@ -141,6 +141,9 @@
   <data name="ExceedsNumberOfColumns" xml:space="preserve">
     <value>Parameter.Count exceeds the number of columns({0}) in the DataFrame </value>
   </data>
+  <data name="ExceedsNumberOfRows" xml:space="preserve">
+    <value>Parameter.Count exceeds the number of rows({0}) in the DataFrame </value>
+  </data>
   <data name="ExpectedEitherGuessRowsOrDataTypes" xml:space="preserve">
     <value>Expected either {0} or {1} to be provided</value>
   </data>

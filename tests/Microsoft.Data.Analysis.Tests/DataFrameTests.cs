@@ -1561,9 +1561,20 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestSample()
         {
             DataFrame df = MakeDataFrameWithAllColumnTypes(10);
-            DataFrame sampled = df.Sample(3);
-            Assert.Equal(3, sampled.Rows.Count);
+            DataFrame sampled = df.Sample(7);
+            Assert.Equal(7, sampled.Rows.Count);
             Assert.Equal(df.Columns.Count, sampled.Columns.Count);
+
+            // all sampled rows should be unique.
+            HashSet<int?> uniqueRowValues = new HashSet<int?>();
+            foreach(int? value in sampled.Columns["Int"])
+            {
+                uniqueRowValues.Add(value);
+            }
+            Assert.Equal(uniqueRowValues.Count, sampled.Rows.Count);
+
+            // should throw exception as sample size is greater than dataframe rows
+            Assert.Throws<ArgumentException>(()=> df.Sample(13));
         }
 
         [Fact]

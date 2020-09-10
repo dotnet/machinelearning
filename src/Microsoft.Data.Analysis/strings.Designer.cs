@@ -133,6 +133,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter.Count exceeds the number of rows({0}) in the DataFrame .
+        /// </summary>
+        internal static string ExceedsNumberOfRows {
+            get {
+                return ResourceManager.GetString("ExceedsNumberOfRows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected either {0} or {1} to be provided.
         /// </summary>
         internal static string ExpectedEitherGuessRowsOrDataTypes {
