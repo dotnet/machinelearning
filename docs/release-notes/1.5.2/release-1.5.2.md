@@ -59,6 +59,7 @@
 - Replace whitelist terminology to allow list ([#5328](https://github.com/dotnet/machinelearning/pull/5328)) (Thanks [**@LetticiaNicoli**](https://github.com/LetticiaNicoli))
 - Fixes ([#5352](https://github.com/dotnet/machinelearning/issues/5352)) issues caused by equality with non-string values for root cause localization  ([#5354](https://github.com/dotnet/machinelearning/pull/5354))
 - Added catch in R^2 calculation for case with few samples ([#5319](https://github.com/dotnet/machinelearning/pull/5319))
+- Added support for RankingMetrics with CrossValSummaryRunner ([#5386](https://github.com/dotnet/machinelearning/pull/5386))
 
 
 ## **Test updates**
