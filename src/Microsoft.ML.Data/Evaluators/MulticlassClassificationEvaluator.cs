@@ -213,8 +213,12 @@ namespace Microsoft.ML.Data
                     overallDvBldr.AddColumn(LogLossReduction, NumberDataViewType.Double, logLossRed.ToArray());
                     if (aggregator.UnweightedCounters.OutputTopKAcc > 0)
                         overallDvBldr.AddColumn(TopKAccuracy, NumberDataViewType.Double, topKAcc.ToArray());
-                    overallDvBldr.AddColumn(AllTopKAccuracy, NumberDataViewType.Double, allTopK.ToArray());
                     overallDvBldr.AddColumn(PerClassLogLoss, aggregator.GetSlotNames, NumberDataViewType.Double, perClassLogLoss.ToArray());
+
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKSlotNames =
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                            dst = new VBuffer<ReadOnlyMemory<char>>(allTopK.First().Length, Enumerable.Range(1,allTopK.First().Length).Select(i=>new ReadOnlyMemory<char>(($"K={i.ToString()}").ToCharArray())).ToArray());
+                    overallDvBldr.AddColumn(AllTopKAccuracy, getKSlotNames, NumberDataViewType.Double, allTopK.ToArray());
 
                     var confDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
