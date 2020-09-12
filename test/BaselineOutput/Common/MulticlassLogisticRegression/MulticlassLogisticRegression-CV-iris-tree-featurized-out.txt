@@ -39,6 +39,10 @@ Accuracy(micro-avg): 0.924051
 Accuracy(macro-avg): 0.932540
 Log-loss:           0.330649
 Log-loss reduction: 0.695959
+Top K accuracy(All K)K=1: 0.924051
+Top K accuracy(All K)K=2: 1.000000
+Top K accuracy(All K)K=3: 1.000000
+Top K accuracy(All K)K=4: 1.000000
 
 Confusion table
           ||========================
@@ -53,6 +57,10 @@ Accuracy(micro-avg): 0.957746
 Accuracy(macro-avg): 0.953030
 Log-loss:           0.157832
 Log-loss reduction: 0.854620
+Top K accuracy(All K)K=1: 0.957746
+Top K accuracy(All K)K=2: 1.000000
+Top K accuracy(All K)K=3: 1.000000
+Top K accuracy(All K)K=4: 1.000000
 
 OVERALL RESULTS
 ---------------------------------------

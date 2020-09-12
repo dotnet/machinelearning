@@ -14,6 +14,9 @@ Accuracy(micro-avg): 0.655222
 Accuracy(macro-avg): 0.500000
 Log-loss:           34.538776
 Log-loss reduction: -52.618809
+Top K accuracy(All K)K=1: 0.655222
+Top K accuracy(All K)K=2: 1.000000
+Top K accuracy(All K)K=3: 1.000000
 
 OVERALL RESULTS
 ---------------------------------------
