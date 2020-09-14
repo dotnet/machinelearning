@@ -164,8 +164,8 @@ namespace Microsoft.ML.AutoML.Test
                 RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
                 Assert.True(experimentResults[i].RunDetails.Count() > 0);
                 Assert.NotNull(bestRun.ValidationMetrics);
-                Assert.True(experimentResults[i].RunDetails.Max(i => i.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .4));
-                Assert.True(experimentResults[i].RunDetails.Max(i => i.ValidationMetrics.DiscountedCumulativeGains.Max() > 20));
+                Assert.True(bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Last() > 0.4);
+                Assert.True(bestRun.ValidationMetrics.DiscountedCumulativeGains.Last() > 20);
                 var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
                 var expectedOutputNames = new string[] { labelColumnName, groupIdColumnName, groupIdColumnName, featuresColumnVectorNameA, featuresColumnVectorNameB,
                 "Features", scoreColumnName };
@@ -187,6 +187,9 @@ namespace Microsoft.ML.AutoML.Test
             var reader = new TextLoader(mlContext, GetLoaderArgsRank(labelColumnName, groupIdColumnName,
                 featuresColumnVectorNameA, featuresColumnVectorNameB));
             var trainDataView = reader.Load(DatasetUtil.GetMLSRDataset());
+            // Take less than 1500 rows of data to satisfy CrossValSummaryRunner's
+            // limit.
+            trainDataView = mlContext.Data.TakeRows(trainDataView, 1499);
 
             var experiment = mlContext.Auto()
                 .CreateRankingExperiment(5);
@@ -208,8 +211,8 @@ namespace Microsoft.ML.AutoML.Test
                 while (enumerator.MoveNext())
                 {
                     var model = enumerator.Current;
-                    Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > .4);
-                    Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > 19);
+                    Assert.True(model.ValidationMetrics.NormalizedDiscountedCumulativeGains.Max() > 0.31);
+                    Assert.True(model.ValidationMetrics.DiscountedCumulativeGains.Max() > 15);
                 }
             }
         }

@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="stableversion" />
@@ -9,14 +10,8 @@
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="stableversion" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.2.3" />
   </ItemGroup>
-
   <ItemGroup>
-    <None Update="MLModel.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="bestModel.onnx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\CodeGenTest.Model\CodeGenTest.Model.csproj" />
   </ItemGroup>
 
   <ItemGroup>

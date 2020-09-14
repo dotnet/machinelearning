@@ -400,6 +400,17 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
+    internal class ObjectDetectionImageResizing : TransformGeneratorBase
+    {
+        public ObjectDetectionImageResizing(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ResizeImages";
+
+        public override string GenerateTransformer()
+        {
+            return @"ResizeImages(outputColumnName: ""ImageSource_featurized"", imageWidth: 800, imageHeight: 600, inputColumnName: ""ImageSource_featurized"")";
+        }
+    }
+
     internal class PixelExtract : TransformGeneratorBase
     {
         public PixelExtract(PipelineNode node) : base(node) { }

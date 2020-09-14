@@ -20,7 +20,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         ApplyOnnxModel = 0,
         ResizeImage = 1,
         ExtractPixel = 2,
+        ObjectDetectionResizeImage = 3,
     }
+
     internal static class TransformGeneratorFactory
     {
         internal static ITransformGenerator GetInstance(PipelineNode node)
@@ -78,7 +80,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 }
             }
 
-            // For AzureAttach
+            // For  the AzureAttach
             if (Enum.TryParse(node.Name, out SpecialTransformer transformer))
             {
                 switch (transformer)
@@ -91,6 +93,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         break;
                     case SpecialTransformer.ApplyOnnxModel:
                         result = new ApplyOnnxModel(node);
+                        break;
+                    case SpecialTransformer.ObjectDetectionResizeImage:
+                        result = new ObjectDetectionImageResizing(node);
                         break;
                     default:
                         return null;

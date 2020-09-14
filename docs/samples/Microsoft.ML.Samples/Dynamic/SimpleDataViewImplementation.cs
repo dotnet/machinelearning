@@ -146,6 +146,13 @@ namespace Samples.Dynamic
         private sealed class InputObjectDataView : IDataView
         {
             private readonly IEnumerable<InputObject> _data;
+            public IEnumerable<InputObject> Data
+            {
+                get
+                {
+                    return _data;
+                }
+            }
             public DataViewSchema Schema { get; }
             public bool CanShuffle => false;
 
@@ -249,7 +256,7 @@ namespace Samples.Dynamic
                 {
                     Schema = parent.Schema;
                     _position = -1;
-                    _enumerator = parent._data.GetEnumerator();
+                    _enumerator = parent.Data.GetEnumerator();
                     _getters = new Delegate[]
                     {
                         wantsLabel ?

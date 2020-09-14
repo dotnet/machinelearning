@@ -53,12 +53,14 @@ MB_Annotation();
             this.Write("            ModelInput sampleData = new ModelInput();\r\n");
 }
             this.Write("\r\n\t\t\t// Make a single prediction on the sample data and print results\r\n\t\t\tvar pre" +
-                    "dictionResult = ConsumeModel.Predict(sampleData);\r\n\r\n\t\t\tConsole.WriteLine(\"Using" +
-                    " model to make single prediction -- Comparing actual ");
+                    "dictionResult = ConsumeModel.Predict(sampleData);\r\n\r\n ");
+if(!IsObjectDetection){ 
+            this.Write("\t\t\tConsole.WriteLine(\"Using model to make single prediction -- Comparing actual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" with predicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" from sample data...\\n\\n\");\r\n");
+} 
  if(SampleData != null) {
 foreach(var kv in SampleData){
             this.Write("\t\t\tConsole.WriteLine($\"");
@@ -76,12 +78,15 @@ if("BinaryClassification".Equals(TaskType) ){
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {predictionResult.Score}\\n\\n\");\r\n");
-} else if("MulticlassClassification".Equals(TaskType)){
+} else if("MulticlassClassification".Equals(TaskType) && !IsObjectDetection){
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" value {predictionResult.Prediction} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\\n\\n\");\r\n");
+} else if(IsObjectDetection){
+            this.Write("\t\t\tConsole.WriteLine(\"\\n\\nPredicted Boxes:\\n\");\r\n            Console.WriteLine(pr" +
+                    "edictionResult);\r\n");
 } 
             this.Write("            Console.WriteLine(\"=============== End of process, hit any key to fin" +
                     "ish ===============\");\r\n            Console.ReadKey();\r\n        }\r\n    }\r\n}\r\n");
@@ -95,6 +100,7 @@ public char Separator {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
+public bool IsObjectDetection {get; set;}
 public IList<string> Features {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public IDictionary<string, string> SampleData {get;set;}

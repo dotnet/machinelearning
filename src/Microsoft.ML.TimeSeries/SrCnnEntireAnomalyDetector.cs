@@ -349,6 +349,7 @@ namespace Microsoft.ML.TimeSeries
             private static readonly int _judgementWindowSize = 40;
             private static readonly double _eps = 1e-8;
             private static readonly double _deanomalyThreshold = 0.35;
+            private static readonly double _boundSensitivity = 70.0;
 
             // A fixed lookup table which returns factor using sensitivity as index.
             // Since Margin = BoundaryUnit * factor, this factor is calculated to make sure Margin == Boundary when sensitivity is 50,
@@ -732,12 +733,20 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
 
-                //Step 11: Update Anomaly Score
+                //Step 11: Update Anomaly Score, Expected Value and Boundaries
                 for (int i = 0; i < results.Length; ++i)
                 {
                     results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
-                }
 
+                    // adjust the expected value if the point is not anomaly
+                    if (results[i][0] == 0)
+                    {
+                        double margin = results[i][5] - results[i][3];
+                        results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][3], _units[i]);
+                        results[i][5] = results[i][3] + margin;
+                        results[i][6] = results[i][3] - margin;
+                    }
+                }
             }
 
             private void GetMargin(double[] values, double[][] results, double sensitivity)
@@ -763,7 +772,22 @@ namespace Microsoft.ML.TimeSeries
 
                     //Step 12: Update IsAnomaly
                     results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || values[i] > results[i][5]) ? 1 : 0;
+
+                    //Step 13: Update Expected Value, LowerBound and UpperBound for not anomaly points.
+                    if (results[i][0] == 0)
+                    {
+                        results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][3], _units[i]);
+                        results[i][5] = results[i][3] + margin;
+                        results[i][6] = results[i][3] - margin;
+                    }
                 }
+            }
+
+            // Adjust the expected value so that it is within the bound margin of value
+            private double AdjustExpectedValueBasedOnBound(double value, double expectedValue, double unit)
+            {
+                var boundMargin = CalculateMargin(unit, _boundSensitivity);
+                return Math.Max(Math.Min(expectedValue, value + boundMargin), value - boundMargin);
             }
 
             private int[] GetAnomalyIndex(double[] scores)

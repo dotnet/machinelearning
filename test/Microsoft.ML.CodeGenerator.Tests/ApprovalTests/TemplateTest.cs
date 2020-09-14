@@ -44,12 +44,13 @@ namespace Microsoft.ML.CodeGenerator.Tests
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void TestConsumeModel_NonAzureImage()
+        public void TestConsumeModel_NotAzureImage_NotObjectDetection()
         {
             var consumeModel = new ConsumeModel()
             {
                 Namespace = "Namespace",
                 IsAzureImage = false,
+                IsAzureObjectDetection = false,
                 MLNetModelName = @"mlmodel.zip",
             };
 
@@ -65,6 +66,24 @@ namespace Microsoft.ML.CodeGenerator.Tests
             {
                 Namespace = "Namespace",
                 IsAzureImage = true,
+                IsAzureObjectDetection = false,
+                MLNetModelName = @"mlmodel.zip",
+                OnnxModelName = "onnx.onnx"
+            };
+
+            Approvals.Verify(consumeModel.TransformText());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestConsumeModel_AzureObjectDetection()
+        {
+            var consumeModel = new ConsumeModel()
+            {
+                Namespace = "Namespace",
+                IsAzureImage = false,
+                IsAzureObjectDetection = true,
                 MLNetModelName = @"mlmodel.zip",
                 OnnxModelName = "onnx.onnx"
             };
@@ -78,6 +97,21 @@ namespace Microsoft.ML.CodeGenerator.Tests
         public void TestAzureImageModelOutputClass_WithLabel()
         {
             var azureImageOutput = new AzureImageModelOutputClass
+            {
+                Namespace = "Namespace",
+                Labels = new string[] { "str1", "str2", "str3" },
+                Target = CSharp.GenerateTarget.Cli
+            };
+
+            Approvals.Verify(azureImageOutput.TransformText());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestAzureObjectDetectionModelOutputClass_WithLabel()
+        {
+            var azureImageOutput = new AzureObjectDetectionModelOutputClass
             {
                 Namespace = "Namespace",
                 Labels = new string[] { "str1", "str2", "str3" },

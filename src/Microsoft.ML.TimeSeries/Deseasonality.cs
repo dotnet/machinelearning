@@ -104,10 +104,12 @@ namespace Microsoft.ML.TimeSeries
     internal sealed class StlDeseasonality : IDeseasonality
     {
         private readonly InnerStl _stl;
+        private readonly IDeseasonality _backupFunc;
 
         public StlDeseasonality()
         {
             _stl = new InnerStl(true);
+            _backupFunc = new MedianDeseasonality();
         }
 
         public void Deseasonality(ref double[] values, int period, ref double[] results)
@@ -120,12 +122,10 @@ namespace Microsoft.ML.TimeSeries
                     results[i] = _stl.Residual[i];
                 }
             }
+            // invoke the back up deseasonality method if stl decompose fails.
             else
             {
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    results[i] = values[i];
-                }
+                _backupFunc.Deseasonality(ref values, period, ref results);
             }
         }
     }

@@ -44,7 +44,7 @@ MB_Annotation();
         public static string MLNetModelPath = Path.GetFullPath(""");
             this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelName));
             this.Write("\");\r\n");
-if(IsAzureImage){ 
+if(IsAzureImage || IsAzureObjectDetection){ 
             this.Write(" \r\n        public static string OnnxModelPath = Path.GetFullPath(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(OnnxModelName));
             this.Write("\");\r\n");
@@ -77,6 +77,7 @@ if(IsAzureImage){
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public bool IsAzureObjectDetection {get; set;}=false;
 public bool IsAzureImage {get; set;}=false;
 public string MLNetModelName {get; set;}
 public string OnnxModelName {get; set;}

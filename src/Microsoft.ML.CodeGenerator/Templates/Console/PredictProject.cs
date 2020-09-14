@@ -58,6 +58,8 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write(this.ToStringHelper.ToStringWithCulture(OnnxRuntimePackageVersion));
             this.Write("\" />\r\n");
 }
+ if (IncludeOnnxRuntime){ 
+}
  if (IncludeResNet18Package){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.DnnImageFeaturizer.ResNet18\" Version=" +
                     "\"0.15.1\" />\r\n");
@@ -94,6 +96,7 @@ public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
 public bool IncludeOnnxPackage {get; set;}
+public bool IncludeOnnxRuntime {get; set;}
 public bool IncludeResNet18Package {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}

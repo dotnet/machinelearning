@@ -1,7 +1,7 @@
-# [ML.NET](http://dot.net/ml) 1.5.1
+# [ML.NET](http://dot.net/ml) 1.5.2
 
 ## **New Features**
-- **New API and algorithms for time series data**. In this release ML.NET introduces new capabilities for working with time series data. 
+- **New API and algorithms for time series data**. In this release ML.NET introduces new capabilities for working with time series data.
   - Detecting seasonality in time series  ([#5231](https://github.com/dotnet/machinelearning/pull/5231))
   - Removing seasonality from time series prior to anomaly detection ([#5202](https://github.com/dotnet/machinelearning/pull/5202))
   - Threshold for root cause analysis ([#5218](https://github.com/dotnet/machinelearning/pull/5218))
@@ -22,11 +22,11 @@
   - ReplaceMissingValues now supports `Mode` as a replacement method. ([#5205](https://github.com/dotnet/machinelearning/pull/5205))
   - Added in standard conversions to convert types to string ([#5106](https://github.com/dotnet/machinelearning/pull/5106))
 - Output topic summary to model file for LDATransformer ([#5260](https://github.com/dotnet/machinelearning/pull/5260))
-- Use Channel Instead of BufferBlock ([#5123](https://github.com/dotnet/machinelearning/pull/5123)). (Thanks **@jwood803**)
+- Use Channel Instead of BufferBlock ([#5123](https://github.com/dotnet/machinelearning/pull/5123), [#5313](https://github.com/dotnet/machinelearning/pull/5313)). (Thanks [**@jwood803**](https://github.com/jwood803))
 - Support specifying command timeout while using the database loader ([#5288](https://github.com/dotnet/machinelearning/pull/5288))
 - Added cross entropy support to validation training, edited metric reporting ([#5255](https://github.com/dotnet/machinelearning/pull/5255))
 - Allow TextLoader to load empty float/double fields as NaN instead of 0 ([#5198](https://github.com/dotnet/machinelearning/pull/5198))
-  
+
 
 ## **Bug Fixes**
 - Changed default value of RowGroupColumnName from null to GroupId ([#5290](https://github.com/dotnet/machinelearning/pull/5290))
@@ -48,6 +48,19 @@
 - Fixed OnnxTransformer output column mapping. ([#5192](https://github.com/dotnet/machinelearning/pull/5192))
 - Fixed version format of built packages ([#5197](https://github.com/dotnet/machinelearning/pull/5197))
 - Improvements to "Invalid TValue" error message ([#5189](https://github.com/dotnet/machinelearning/pull/5189))
+- Added IDisposable to OnnxTransformer and fixed memory leaks ([#5348](https://github.com/dotnet/machinelearning/pull/5348))
+- Fixes [#4392](https://github.com/dotnet/machinelearning/issues/4392). Added AddPredictionEnginePool overload for implementation factory ([#4393](https://github.com/dotnet/machinelearning/pull/4393))
+- Updated codegen to make it work with mlnet 1.5  ([#5173](https://github.com/dotnet/machinelearning/pull/5173))
+- Updated codegen to support object detection scenario. ([#5216](https://github.com/dotnet/machinelearning/pull/5216))
+- Fix issue [#5350](https://github.com/dotnet/machinelearning/issues/5350), check file lock before reload model ([#5351](https://github.com/dotnet/machinelearning/pull/5351))
+- Improve handling of infinity values in AutoML.NET when calculating average CV metrics ([#5345](https://github.com/dotnet/machinelearning/pull/5345))
+- Throw when PCA generates invalid eigenvectors ([#5349](https://github.com/dotnet/machinelearning/pull/5349))
+- RobustScalingNormalizer entrypoint added ([#5310](https://github.com/dotnet/machinelearning/pull/5310))
+- Replace whitelist terminology to allow list ([#5328](https://github.com/dotnet/machinelearning/pull/5328)) (Thanks [**@LetticiaNicoli**](https://github.com/LetticiaNicoli))
+- Fixes ([#5352](https://github.com/dotnet/machinelearning/issues/5352)) issues caused by equality with non-string values for root cause localization  ([#5354](https://github.com/dotnet/machinelearning/pull/5354))
+- Added catch in R^2 calculation for case with few samples ([#5319](https://github.com/dotnet/machinelearning/pull/5319))
+- Added support for RankingMetrics with CrossValSummaryRunner ([#5386](https://github.com/dotnet/machinelearning/pull/5386))
+
 
 ## **Test updates**
 - Refactor of OnnxConversionTests.cs ([#5185](https://github.com/dotnet/machinelearning/pull/5185))
@@ -61,5 +74,3 @@
 
 ## **Breaking Changes**
 - None
-
-

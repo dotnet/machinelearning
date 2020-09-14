@@ -63,7 +63,7 @@ namespace Microsoft.ML
         /// results.
         /// </summary>
         /// <typeparam name="TRow">The user-defined item type.</typeparam>
-        /// <param name="data">The enumerable data containing type <typeparamref name="TRow"/> to convert to an<see cref="IDataView"/>.</param>
+        /// <param name="data">The enumerable data containing type <typeparamref name="TRow"/> to convert to a <see cref="IDataView"/>.</param>
         /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
         /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
         /// <returns>The constructed <see cref="IDataView"/>.</returns>
