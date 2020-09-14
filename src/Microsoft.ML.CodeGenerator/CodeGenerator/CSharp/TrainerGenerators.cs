@@ -570,9 +570,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 sb.Append(trainerGenerator.GenerateTrainer());
                 sb.Append(",");
                 sb.Append("labelColumnName:");
-                sb.Append("\"");
                 sb.Append(_node.SerializedProperties["LabelColumnName"]);
-                sb.Append("\"");
                 sb.Append(")");
                 return sb.ToString();
             }
@@ -598,8 +596,14 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             {
                 get
                 {
-                    return
-                    new Dictionary<string, string>();
+                    return new Dictionary<string, string>()
+                    {
+                        { "LabelColumnName","labelColumnName" },
+                        { "FeatureColumnName","featureColumnName" },
+                        { "ScoreColumnName","scoreColumnName" },
+                        { "PredictedLabelColumnName","predictedLabelColumnName" },
+                        { "ValidationSet","validationSet" }
+                    };
                 }
             }
         }

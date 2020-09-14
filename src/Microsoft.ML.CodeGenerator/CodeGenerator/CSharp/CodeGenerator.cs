@@ -16,6 +16,7 @@ using Microsoft.ML.CodeGenerator.Templates.Azure.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
 using Microsoft.ML.Data;
+using Newtonsoft.Json;
 
 namespace Microsoft.ML.CodeGenerator.CSharp
 {
@@ -105,7 +106,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 PipelineNode currentNode = node;
                 if (currentNode.Name == TrainerName.Ova.ToString())
                 {
-                    currentNode = (PipelineNode)currentNode.Properties["BinaryTrainer"];
+                    currentNode = JsonConvert.DeserializeObject<PipelineNode>(currentNode.SerializedProperties["BinaryTrainer"]);
                 }
 
                 if (_lightGbmTrainers.Contains(currentNode.Name))

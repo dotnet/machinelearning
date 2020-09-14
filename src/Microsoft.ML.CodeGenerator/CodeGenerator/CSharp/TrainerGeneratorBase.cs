@@ -41,26 +41,17 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             _arguments = new Dictionary<string, string>();
             if (NamedParameters != null)
             {
-                _hasAdvancedSettings = node.Properties.Keys.Any(t => !NamedParameters.ContainsKey(t));
-            }
-            _seperator = _hasAdvancedSettings ? "=" : ":";
-            if (!node.Properties.ContainsKey("LabelColumnName"))
-            {
-                node.Properties.Add("LabelColumnName", "Label");
-            }
-            if (IncludeFeatureColumnName)
-            {
-                node.Properties.Add("FeatureColumnName", "Features");
+                _hasAdvancedSettings = node.SerializedProperties.Keys.Any(t => !NamedParameters.ContainsKey(t));
             }
 
+            _seperator = _hasAdvancedSettings ? "=" : ":";
             foreach (var kv in node.SerializedProperties)
             {
                 //For Nullable values.
                 if (kv.Value == null)
                     continue;
-                var value = kv.Value;
-                Type type = kv.Value.GetType();
 
+                var value = kv.Value;
                 if (NamedParameters != null && NamedParameters.Count > 0)
                 {
                     _arguments.Add(_hasAdvancedSettings ? kv.Key : NamedParameters[kv.Key], value);
@@ -69,8 +60,32 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 {
                     _arguments.Add(kv.Key, value);
                 }
-
             }
+
+            if (!node.SerializedProperties.ContainsKey("LabelColumnName"))
+            {
+                if (NamedParameters != null)
+                {
+                    _arguments.Add(_hasAdvancedSettings ? "LabelColumnName" : NamedParameters["LabelColumnName"], "\"Label\"");
+                }
+                else
+                {
+                    _arguments.Add("LabelColumnName", "\"Label\"");
+                }
+            }
+
+            if (IncludeFeatureColumnName)
+            {
+                if (NamedParameters != null)
+                {
+                    _arguments.Add(_hasAdvancedSettings ? "FeatureColumnName" : NamedParameters["FeatureColumnName"], "\"Features\"");
+                }
+                else
+                {
+                    _arguments.Add("FeatureColumnName", "\"Features\"");
+                }
+            }
+
         }
 
         internal static string BuildComplexParameter(string paramName, IDictionary<string, string> arguments, string seperator)

@@ -10,6 +10,7 @@ using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -282,7 +283,6 @@ namespace mlnet.Tests
         [Fact]
         public void MatrixFactorizationBasicTest()
         {
-            var context = new MLContext();
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("MatrixFactorization", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -375,15 +375,14 @@ namespace mlnet.Tests
         [Fact]
         public void OlsRegressionAdvancedParameterTest()
         {
-
-            var context = new MLContext();
-
             var elementProperties = new Dictionary<string, object>()
             {
                 {"L2Regularization", 0.1f },
             };
             PipelineNode node = new PipelineNode("OlsRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            var json = JsonConvert.SerializeObject(pipeline);
+            pipeline = JsonConvert.DeserializeObject<Pipeline>(json);
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
@@ -776,7 +775,7 @@ namespace mlnet.Tests
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "ImageClassification(LabelColumnName:\"Label\",FeatureColumnName:\"Features\")";
+            string expectedTrainerString = "ImageClassification(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.Equal(expectedTrainerString, actual.Item1);
             Assert.Null(actual.Item2);
         }
