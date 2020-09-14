@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.ML.AutoML;
+using Newtonsoft.Json;
 
 namespace Microsoft.ML.CodeGenerator.CSharp
 {
@@ -563,13 +564,14 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 sb.Append(MethodName);
                 sb.Append("(");
                 sb.Append("mlContext.BinaryClassification.Trainers."); // This is dependent on the name of the MLContext object in template.
-                var trainerGenerator = TrainerGeneratorFactory.GetInstance((PipelineNode)_node.Properties["BinaryTrainer"]);
+                var binaryNode = JsonConvert.DeserializeObject<PipelineNode>(_node.SerializedProperties["BinaryTrainer"]);
+                var trainerGenerator = TrainerGeneratorFactory.GetInstance(binaryNode);
                 _binaryTrainerUsings = trainerGenerator.GenerateUsings();
                 sb.Append(trainerGenerator.GenerateTrainer());
                 sb.Append(",");
                 sb.Append("labelColumnName:");
                 sb.Append("\"");
-                sb.Append(_node.Properties["LabelColumnName"]);
+                sb.Append(_node.SerializedProperties["LabelColumnName"]);
                 sb.Append("\"");
                 sb.Append(")");
                 return sb.ToString();

@@ -29,16 +29,11 @@ namespace Microsoft.ML.AutoML.Test
             // get next pipeline
             var pipeline = PipelineSuggester.GetNextPipeline(context, new List<PipelineScore>(), columns, TaskKind.BinaryClassification);
 
-            // serialize & deserialize pipeline
-            var serialized = JsonConvert.SerializeObject(pipeline);
-            Console.WriteLine(serialized);
-            var deserialized = JsonConvert.DeserializeObject<Pipeline>(serialized);
-
             // run pipeline
-            var estimator = deserialized.ToEstimator(context);
+            var estimator = pipeline.ToEstimator(context);
             var scoredData = estimator.Fit(uciAdult).Transform(uciAdult);
             var score = context.BinaryClassification.EvaluateNonCalibrated(scoredData).Accuracy;
-            var result = new PipelineScore(deserialized, score, true);
+            var result = new PipelineScore(pipeline, score, true);
 
             Assert.NotNull(result);
         }

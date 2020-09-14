@@ -1,0 +1,25 @@
+[
+  {
+    "Name": "TextFeaturizing",
+    "NodeType": 0,
+    "InColumns": [
+      "Text"
+    ],
+    "OutColumns": [
+      "Text_tf"
+    ],
+    "SerializedProperties": {}
+  },
+  {
+    "Name": "ColumnConcatenating",
+    "NodeType": 0,
+    "InColumns": [
+      "Text_tf",
+      "Features"
+    ],
+    "OutColumns": [
+      "Features"
+    ],
+    "SerializedProperties": {}
+  }
+]

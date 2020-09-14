@@ -1,0 +1,13 @@
+[
+  {
+    "Name": "ValueToKeyMapping",
+    "NodeType": 0,
+    "InColumns": [
+      "CustomLabel"
+    ],
+    "OutColumns": [
+      "CustomLabel"
+    ],
+    "SerializedProperties": {}
+  }
+]

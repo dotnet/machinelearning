@@ -1,0 +1,14 @@
+{
+  "Name": "FastTreeRanking",
+  "NodeType": 1,
+  "InColumns": [
+    "Features"
+  ],
+  "OutColumns": [
+    "Score"
+  ],
+  "SerializedProperties": {
+    "LabelColumnName": "\"L\"",
+    "RowGroupColumnName": "\"GId\""
+  }
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "Name": "ColumnConcatenating",
+    "NodeType": 0,
+    "InColumns": [
+      "Numeric2"
+    ],
+    "OutColumns": [
+      "Features"
+    ],
+    "SerializedProperties": {}
+  }
+]

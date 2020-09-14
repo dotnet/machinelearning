@@ -1,0 +1,49 @@
+[
+  {
+    "Name": "MissingValueIndicating",
+    "NodeType": 0,
+    "InColumns": [
+      "Missing"
+    ],
+    "OutColumns": [
+      "Missing_MissingIndicator1"
+    ],
+    "SerializedProperties": {}
+  },
+  {
+    "Name": "TypeConverting",
+    "NodeType": 0,
+    "InColumns": [
+      "Missing_MissingIndicator1"
+    ],
+    "OutColumns": [
+      "Missing_MissingIndicator1"
+    ],
+    "SerializedProperties": {}
+  },
+  {
+    "Name": "MissingValueReplacing",
+    "NodeType": 0,
+    "InColumns": [
+      "Missing"
+    ],
+    "OutColumns": [
+      "Missing"
+    ],
+    "SerializedProperties": {}
+  },
+  {
+    "Name": "ColumnConcatenating",
+    "NodeType": 0,
+    "InColumns": [
+      "Missing_MissingIndicator1",
+      "Missing",
+      "Missing_MissingIndicator",
+      "Missing_MissingIndicator0"
+    ],
+    "OutColumns": [
+      "Features"
+    ],
+    "SerializedProperties": {}
+  }
+]

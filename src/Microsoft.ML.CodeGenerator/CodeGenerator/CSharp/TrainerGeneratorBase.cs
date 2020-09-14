@@ -16,7 +16,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
     /// </summary>
     internal abstract class TrainerGeneratorBase : ITrainerGenerator
     {
-        private Dictionary<string, object> _arguments;
+        private Dictionary<string, string> _arguments;
         private bool _hasAdvancedSettings;
         private string _seperator;
         protected virtual bool IncludeFeatureColumnName => true;
@@ -38,7 +38,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         private void Initialize(PipelineNode node)
         {
-            _arguments = new Dictionary<string, object>();
+            _arguments = new Dictionary<string, string>();
             if (NamedParameters != null)
             {
                 _hasAdvancedSettings = node.Properties.Keys.Any(t => !NamedParameters.ContainsKey(t));
@@ -53,61 +53,13 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 node.Properties.Add("FeatureColumnName", "Features");
             }
 
-            foreach (var kv in node.Properties)
+            foreach (var kv in node.SerializedProperties)
             {
-                object value = null;
-
                 //For Nullable values.
                 if (kv.Value == null)
                     continue;
+                var value = kv.Value;
                 Type type = kv.Value.GetType();
-                if (type == typeof(bool))
-                {
-                    //True to true
-                    value = ((bool)kv.Value).ToString(CultureInfo.InvariantCulture).ToLowerInvariant();
-                }
-                if (type == typeof(float))
-                {
-                    //0.0 to 0.0f
-                    value = ((float)kv.Value).ToString(CultureInfo.InvariantCulture) + "f";
-                }
-
-                if (type == typeof(int))
-                {
-                    value = ((int)kv.Value).ToString(CultureInfo.InvariantCulture);
-                }
-
-                if (type == typeof(double))
-                {
-                    value = ((double)kv.Value).ToString(CultureInfo.InvariantCulture);
-                }
-
-                if (type == typeof(long))
-                {
-                    value = ((long)kv.Value).ToString(CultureInfo.InvariantCulture);
-                }
-
-                if (type == typeof(string))
-                {
-                    var val = kv.Value.ToString();
-                    if (val == "<Auto>")
-                        continue; // This is temporary fix and needs to be fixed in AutoML SDK
-
-                    // string to "string"
-                    value = "\"" + val + "\"";
-                }
-
-                if (type.IsEnum)
-                {
-                    //example: "MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression"
-                    value = $"{type.ReflectedType.Name}.{type.Name}.{kv.Value.ToString()}";
-                }
-
-                if (type == typeof(CustomProperty))
-                {
-                    value = kv.Value;
-                }
-                //more special cases to handle
 
                 if (NamedParameters != null && NamedParameters.Count > 0)
                 {
@@ -121,7 +73,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             }
         }
 
-        internal static string BuildComplexParameter(string paramName, IDictionary<string, object> arguments, string seperator)
+        internal static string BuildComplexParameter(string paramName, IDictionary<string, string> arguments, string seperator)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("new ");
@@ -132,7 +84,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             return sb.ToString();
         }
 
-        internal static string AppendArguments(IDictionary<string, object> arguments, string seperator)
+        internal static string AppendArguments(IDictionary<string, string> arguments, string seperator)
         {
             if (arguments.Count == 0)
                 return string.Empty;
@@ -142,10 +94,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             {
                 sb.Append(kv.Key);
                 sb.Append(seperator);
-                if (kv.Value.GetType() == typeof(CustomProperty))
-                    sb.Append(BuildComplexParameter(((CustomProperty)kv.Value).Name, ((CustomProperty)kv.Value).Properties, "="));
-                else
-                    sb.Append(kv.Value.ToString());
+                sb.Append(kv.Value);
                 sb.Append(",");
             }
             sb.Remove(sb.Length - 1, 1); //remove the last ,

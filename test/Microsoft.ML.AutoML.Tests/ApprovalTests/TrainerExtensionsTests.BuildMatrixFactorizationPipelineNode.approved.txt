@@ -1,0 +1,20 @@
+{
+  "Name": "MatrixFactorization",
+  "NodeType": 1,
+  "InColumns": [
+    "Features"
+  ],
+  "OutColumns": [
+    "Score"
+  ],
+  "SerializedProperties": {
+    "NumberOfIterations": "20",
+    "LearningRate": "0.01f",
+    "ApproximationRank": "16",
+    "Lambda": "0.05f",
+    "LossFunction": "MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass",
+    "Alpha": "0.01f",
+    "C": "0.0001f",
+    "LabelColumnName": "\"Label\""
+  }
+}

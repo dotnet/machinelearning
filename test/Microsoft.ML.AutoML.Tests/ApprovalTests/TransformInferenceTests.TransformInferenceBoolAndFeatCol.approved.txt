@@ -1,0 +1,25 @@
+[
+  {
+    "Name": "TypeConverting",
+    "NodeType": 0,
+    "InColumns": [
+      "Bool"
+    ],
+    "OutColumns": [
+      "Bool"
+    ],
+    "SerializedProperties": {}
+  },
+  {
+    "Name": "ColumnConcatenating",
+    "NodeType": 0,
+    "InColumns": [
+      "Bool",
+      "Features"
+    ],
+    "OutColumns": [
+      "Features"
+    ],
+    "SerializedProperties": {}
+  }
+]

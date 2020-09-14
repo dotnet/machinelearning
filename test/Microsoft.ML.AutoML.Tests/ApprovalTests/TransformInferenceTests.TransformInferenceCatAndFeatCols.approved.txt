@@ -1,0 +1,37 @@
+[
+  {
+    "Name": "OneHotEncoding",
+    "NodeType": 0,
+    "InColumns": [
+      "Categorical1"
+    ],
+    "OutColumns": [
+      "Categorical1"
+    ],
+    "SerializedProperties": {}
+  },
+  {
+    "Name": "OneHotHashEncoding",
+    "NodeType": 0,
+    "InColumns": [
+      "LargeCat1"
+    ],
+    "OutColumns": [
+      "LargeCat1"
+    ],
+    "SerializedProperties": {}
+  },
+  {
+    "Name": "ColumnConcatenating",
+    "NodeType": 0,
+    "InColumns": [
+      "Categorical1",
+      "LargeCat1",
+      "Features"
+    ],
+    "OutColumns": [
+      "Features"
+    ],
+    "SerializedProperties": {}
+  }
+]

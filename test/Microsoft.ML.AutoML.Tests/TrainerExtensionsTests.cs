@@ -5,8 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ApprovalTests;
+using ApprovalTests.Namers;
+using ApprovalTests.Reporters;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -61,6 +65,8 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildMatrixFactorizationPipelineNode()
         {
             var sweepParams = SweepableParams.BuildMatrixFactorizationParams();
@@ -70,33 +76,12 @@ namespace Microsoft.ML.AutoML.Test
             }
 
             var pipelineNode = new MatrixFactorizationExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
-
-            var expectedJson = @"{
-  ""Name"": ""MatrixFactorization"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
-  ""Properties"": {
-    ""NumberOfIterations"": 20,
-    ""LearningRate"": 0.01,
-    ""ApproximationRank"": 16,
-    ""Lambda"": 0.05,
-    ""LossFunction"": ""SquareLossOneClass"",
-    ""Alpha"": 0.01,
-    ""C"": 0.0001,
-    ""LabelColumnName"": ""Label"",
-    ""MatrixColumnIndexColumnName"": null,
-    ""MatrixRowIndexColumnName"": null
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+            Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildLightGbmPipelineNode()
         {
             var sweepParams = SweepableParams.BuildLightGbmParams();
@@ -106,42 +91,12 @@ namespace Microsoft.ML.AutoML.Test
             }
 
             var pipelineNode = new LightGbmBinaryExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
-
-            var expectedJson = @"{
-  ""Name"": ""LightGbmBinary"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
-  ""Properties"": {
-    ""NumberOfIterations"": 20,
-    ""LearningRate"": 1,
-    ""NumberOfLeaves"": 1,
-    ""MinimumExampleCountPerLeaf"": 10,
-    ""UseCategoricalSplit"": false,
-    ""HandleMissingValue"": false,
-    ""UseZeroAsMissingValue"": false,
-    ""MinimumExampleCountPerGroup"": 50,
-    ""MaximumCategoricalSplitPointCount"": 16,
-    ""CategoricalSmoothing"": 10,
-    ""L2CategoricalRegularization"": 0.5,
-    ""Booster"": {
-      ""Name"": ""GradientBooster.Options"",
-      ""Properties"": {
-        ""L2Regularization"": 0.5,
-        ""L1Regularization"": 0.5
-      }
-    },
-    ""LabelColumnName"": ""Label""
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+            Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildSdcaPipelineNode()
         {
             var sweepParams = SweepableParams.BuildSdcaParams();
@@ -151,51 +106,23 @@ namespace Microsoft.ML.AutoML.Test
             }
 
             var pipelineNode = new SdcaLogisticRegressionBinaryExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
-            var expectedJson = @"{
-  ""Name"": ""SdcaLogisticRegressionBinary"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
-  ""Properties"": {
-    ""L2Regularization"": 1E-07,
-    ""L1Regularization"": 0.0,
-    ""ConvergenceTolerance"": 0.01,
-    ""MaximumNumberOfIterations"": 10,
-    ""Shuffle"": true,
-    ""BiasLearningRate"": 0.01,
-    ""LabelColumnName"": ""Label""
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+            Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildLightGbmPipelineNodeDefaultParams()
         {
             var pipelineNode = new LightGbmBinaryExtension().CreatePipelineNode(
                 new List<SweepableParam>(), 
                 new ColumnInformation());
-            var expectedJson = @"{
-  ""Name"": ""LightGbmBinary"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
-  ""Properties"": {
-    ""LabelColumnName"": ""Label""
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+            Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildPipelineNodeWithCustomColumns()
         {
             var columnInfo = new ColumnInformation()
@@ -210,77 +137,30 @@ namespace Microsoft.ML.AutoML.Test
             }
 
             var pipelineNode = new FastForestBinaryExtension().CreatePipelineNode(sweepParams, columnInfo);
-            var expectedJson = @"{
-  ""Name"": ""FastForestBinary"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
-  ""Properties"": {
-    ""NumberOfLeaves"": 1,
-    ""MinimumExampleCountPerLeaf"": 10,
-    ""NumberOfTrees"": 100,
-    ""LabelColumnName"": ""L"",
-    ""ExampleWeightColumnName"": ""W""
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+            Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildDefaultAveragedPerceptronPipelineNode()
         {
             var pipelineNode = new AveragedPerceptronBinaryExtension().CreatePipelineNode(null, new ColumnInformation() { LabelColumnName = "L" });
-            var expectedJson = @"{
-  ""Name"": ""AveragedPerceptronBinary"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
-  ""Properties"": {
-    ""LabelColumnName"": ""L"",
-    ""NumberOfIterations"": 10
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+            Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildOvaPipelineNode()
         {
             var pipelineNode = new FastForestOvaExtension().CreatePipelineNode(null, new ColumnInformation());
-            var expectedJson = @"{
-  ""Name"": ""Ova"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": null,
-  ""OutColumns"": null,
-  ""Properties"": {
-    ""LabelColumnName"": ""Label"",
-    ""BinaryTrainer"": {
-      ""Name"": ""FastForestBinary"",
-      ""NodeType"": ""Trainer"",
-      ""InColumns"": [
-        ""Features""
-      ],
-      ""OutColumns"": [
-        ""Score""
-      ],
-      ""Properties"": {
-        ""LabelColumnName"": ""Label""
-      }
-    }
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+            Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildFastTreeRankingPipelineNode()
         {
             var columnInfo = new ColumnInformation()
@@ -289,24 +169,11 @@ namespace Microsoft.ML.AutoML.Test
                 GroupIdColumnName = "GId"
             };
             var pipelineNode = new FastTreeRankingExtension().CreatePipelineNode(null, columnInfo);
-            var expectedJson = @"{
-  ""Name"": ""FastTreeRanking"",
-  ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
-  ""Properties"": {
-    ""LabelColumnName"": ""L"",
-    ""RowGroupColumnName"": ""GId""
-  }
-}";
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+            Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 
         [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildParameterSetLightGbm()
         {
             var props = new Dictionary<string, object>()

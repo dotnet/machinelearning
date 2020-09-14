@@ -1,0 +1,19 @@
+{
+  "Name": "SdcaLogisticRegressionBinary",
+  "NodeType": 1,
+  "InColumns": [
+    "Features"
+  ],
+  "OutColumns": [
+    "Score"
+  ],
+  "SerializedProperties": {
+    "L2Regularization": "1E-07f",
+    "L1Regularization": "0f",
+    "ConvergenceTolerance": "0.01f",
+    "MaximumNumberOfIterations": "10",
+    "Shuffle": "true",
+    "BiasLearningRate": "0.01f",
+    "LabelColumnName": "\"Label\""
+  }
+}

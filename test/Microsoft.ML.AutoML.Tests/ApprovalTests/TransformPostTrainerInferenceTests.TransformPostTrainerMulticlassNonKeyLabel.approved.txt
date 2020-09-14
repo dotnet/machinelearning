@@ -1,0 +1,13 @@
+[
+  {
+    "Name": "KeyToValueMapping",
+    "NodeType": 0,
+    "InColumns": [
+      "PredictedLabel"
+    ],
+    "OutColumns": [
+      "PredictedLabel"
+    ],
+    "SerializedProperties": {}
+  }
+]

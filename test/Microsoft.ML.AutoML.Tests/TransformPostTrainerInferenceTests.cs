@@ -4,10 +4,15 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using ApprovalTests.Namers;
+using ApprovalTests;
+using ApprovalTests.Reporters;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
+using FluentAssertions;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -19,58 +24,51 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void TransformPostTrainerMulticlassNonKeyLabel()
         {
-            TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
+            var json = TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
                 new[]
                 {
                     new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     new DatasetColumnInfo("Label", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
-                }, @"[
-  {
-    ""Name"": ""KeyToValueMapping"",
-    ""NodeType"": ""Transform"",
-    ""InColumns"": [
-      ""PredictedLabel""
-    ],
-    ""OutColumns"": [
-      ""PredictedLabel""
-    ],
-    ""Properties"": {}
-  }
-]");
+                });
+            Approvals.Verify(json);
         }
 
         [Fact]
         public void TransformPostTrainerBinaryLabel()
         {
-            TransformPostTrainerInferenceTestCore(TaskKind.BinaryClassification,
+            var json = TransformPostTrainerInferenceTestCore(TaskKind.BinaryClassification,
                 new[]
                 {
                     new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     new DatasetColumnInfo("Label", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
-                }, @"[]");
+                });
+            json.Should().Be("[]");
         }
 
         [Fact]
         public void TransformPostTrainerMulticlassKeyLabel()
         {
-            TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
+            var json = TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
                 new[]
                 {
                     new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     new DatasetColumnInfo("Label", new KeyDataViewType(typeof(uint), 3), ColumnPurpose.Label, new ColumnDimensions(null, null)),
-                }, @"[]");
+                });
+
+            json.Should().Be("[]");
         }
 
-        private static void TransformPostTrainerInferenceTestCore(
+        private static string TransformPostTrainerInferenceTestCore(
             TaskKind task,
-            DatasetColumnInfo[] columns,
-            string expectedJson)
+            DatasetColumnInfo[] columns)
         {
-            var transforms = TransformInferenceApi.InferTransformsPostTrainer (new MLContext(1), task, columns);
+            var transforms = TransformInferenceApi.InferTransformsPostTrainer(new MLContext(1), task, columns);
             var pipelineNodes = transforms.Select(t => t.PipelineNode);
-            Util.AssertObjectMatchesJson(expectedJson, pipelineNodes);
+            return JsonConvert.SerializeObject(pipelineNodes, Formatting.Indented);
         }
     }
 }

@@ -1,0 +1,17 @@
+{
+  "Name": "FastForestBinary",
+  "NodeType": 1,
+  "InColumns": [
+    "Features"
+  ],
+  "OutColumns": [
+    "Score"
+  ],
+  "SerializedProperties": {
+    "NumberOfLeaves": "1",
+    "MinimumExampleCountPerLeaf": "10",
+    "NumberOfTrees": "100",
+    "LabelColumnName": "\"L\"",
+    "ExampleWeightColumnName": "\"W\""
+  }
+}
