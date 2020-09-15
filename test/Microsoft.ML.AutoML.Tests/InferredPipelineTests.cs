@@ -3,7 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
+using ApprovalTests;
+using ApprovalTests.Namers;
+using ApprovalTests.Reporters;
 using Microsoft.ML.TestFramework;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -65,6 +70,20 @@ namespace Microsoft.ML.AutoML.Test
             inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
             inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
             Assert.NotEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        public void InferedPipeline_should_be_serializable()
+        {
+            var pipelinejson = Path.Combine("TestData", "inferedPipeline.json");
+            using (var stream = new StreamReader(pipelinejson))
+            {
+                var json = stream.ReadToEnd();
+                var pipeline = JsonConvert.DeserializeObject<Pipeline>(json);
+                Approvals.Verify(JsonConvert.SerializeObject(pipeline, Formatting.Indented));
+            }
         }
     }
 }

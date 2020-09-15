@@ -1,0 +1,70 @@
+{
+  "Nodes": [
+    {
+      "Name": "ValueToKeyMapping",
+      "NodeType": 0,
+      "InColumns": [
+        "Sentiment"
+      ],
+      "OutColumns": [
+        "Sentiment"
+      ],
+      "SerializedProperties": {}
+    },
+    {
+      "Name": "TextFeaturizing",
+      "NodeType": 0,
+      "InColumns": [
+        "SentimentText"
+      ],
+      "OutColumns": [
+        "SentimentText_tf"
+      ],
+      "SerializedProperties": {}
+    },
+    {
+      "Name": "ColumnCopying",
+      "NodeType": 0,
+      "InColumns": [
+        "SentimentText_tf"
+      ],
+      "OutColumns": [
+        "Features"
+      ],
+      "SerializedProperties": {}
+    },
+    {
+      "Name": "Normalizing",
+      "NodeType": 0,
+      "InColumns": [
+        "Features"
+      ],
+      "OutColumns": [
+        "Features"
+      ],
+      "SerializedProperties": {}
+    },
+    {
+      "Name": "Ova",
+      "NodeType": 1,
+      "InColumns": null,
+      "OutColumns": null,
+      "SerializedProperties": {
+        "LabelColumnName": "\"Sentiment\"",
+        "BinaryTrainer": "{\"Name\":\"AveragedPerceptronBinary\",\"NodeType\":1,\"InColumns\":[\"Features\"],\"OutColumns\":[\"Score\"],\"SerializedProperties\":{\"LabelColumnName\":\"\\\"Sentiment\\\"\",\"NumberOfIterations\":\"10\"}}"
+      }
+    },
+    {
+      "Name": "KeyToValueMapping",
+      "NodeType": 0,
+      "InColumns": [
+        "PredictedLabel"
+      ],
+      "OutColumns": [
+        "PredictedLabel"
+      ],
+      "SerializedProperties": {}
+    }
+  ],
+  "CacheBeforeTrainer": true
+}
