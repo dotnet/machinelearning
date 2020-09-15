@@ -59,7 +59,7 @@ namespace TestNamespace.ConsoleApp
             var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" })
                                       .AppendCacheCheckpoint(mlContext);
             // Set the training algorithm 
-            var trainer = mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.FastForest(labelColumnName: "Label", featureColumnName: "Features"), labelColumnName: "Label");
+            var trainer = mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.FastForest(labelColumnName: @"Label", featureColumnName: "Features"), labelColumnName: @"Label");
 
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 

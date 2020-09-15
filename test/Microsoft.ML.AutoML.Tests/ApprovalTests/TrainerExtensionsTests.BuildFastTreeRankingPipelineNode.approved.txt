@@ -8,7 +8,7 @@
     "Score"
   ],
   "SerializedProperties": {
-    "LabelColumnName": "\"L\"",
-    "RowGroupColumnName": "\"GId\""
+    "LabelColumnName": "@\"L\"",
+    "RowGroupColumnName": "@\"GId\""
   }
 }

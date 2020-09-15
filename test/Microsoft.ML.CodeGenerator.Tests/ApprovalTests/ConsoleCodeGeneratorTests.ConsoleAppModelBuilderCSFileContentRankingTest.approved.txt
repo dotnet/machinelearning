@@ -58,7 +58,7 @@ namespace TestNamespace.ConsoleApp
             // Data process configuration with pipeline data transformations 
             var dataProcessPipeline = mlContext.Transforms.Conversion.Hash("GroupId", "GroupId");
             // Set the training algorithm 
-            var trainer = mlContext.Ranking.Trainers.LightGbm(rowGroupColumnName: "GroupId", labelColumnName: "Label", featureColumnName: "Features");
+            var trainer = mlContext.Ranking.Trainers.LightGbm(rowGroupColumnName: @"GroupId", labelColumnName: @"Label", featureColumnName: "Features");
 
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 

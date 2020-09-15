@@ -20,6 +20,6 @@
     "CategoricalSmoothing": "10",
     "L2CategoricalRegularization": "0.5",
     "Booster": "new GradientBooster.Options(){L2Regularization=0.5,L1Regularization=0.5}",
-    "LabelColumnName": "\"Label\""
+    "LabelColumnName": "@\"Label\""
   }
 }

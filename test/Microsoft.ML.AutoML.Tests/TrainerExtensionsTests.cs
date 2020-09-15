@@ -145,7 +145,7 @@ namespace Microsoft.ML.AutoML.Test
         [UseApprovalSubdirectory("ApprovalTests")]
         public void BuildDefaultAveragedPerceptronPipelineNode()
         {
-            var pipelineNode = new AveragedPerceptronBinaryExtension().CreatePipelineNode(null, new ColumnInformation() { LabelColumnName = "L" });
+            var pipelineNode = new AveragedPerceptronBinaryExtension().CreatePipelineNode(null, new ColumnInformation() { LabelColumnName = "ticky\"label\"" });
             Approvals.Verify(JsonConvert.SerializeObject(pipelineNode, Formatting.Indented));
         }
 

@@ -11,7 +11,7 @@
     "NumberOfLeaves": "1",
     "MinimumExampleCountPerLeaf": "10",
     "NumberOfTrees": "100",
-    "LabelColumnName": "\"L\"",
-    "ExampleWeightColumnName": "\"W\""
+    "LabelColumnName": "@\"L\"",
+    "ExampleWeightColumnName": "@\"W\""
   }
 }

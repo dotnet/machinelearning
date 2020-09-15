@@ -15,6 +15,6 @@
     "LossFunction": "MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass",
     "Alpha": "0.01f",
     "C": "0.0001f",
-    "LabelColumnName": "\"Label\""
+    "LabelColumnName": "@\"Label\""
   }
 }

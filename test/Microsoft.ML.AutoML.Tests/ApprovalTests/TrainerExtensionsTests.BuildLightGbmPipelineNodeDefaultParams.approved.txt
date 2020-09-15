@@ -8,6 +8,6 @@
     "Score"
   ],
   "SerializedProperties": {
-    "LabelColumnName": "\"Label\""
+    "LabelColumnName": "@\"Label\""
   }
 }

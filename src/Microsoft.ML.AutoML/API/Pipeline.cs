@@ -126,9 +126,8 @@ namespace Microsoft.ML.AutoML
                         var val = kv.Value.ToString();
                         if (val == "<Auto>")
                             continue; // This is temporary fix and needs to be fixed in AutoML SDK
-
-                        // string to "string"
-                        res[kv.Key] = $"\"{val}\"";
+                        // string to @"string"
+                        res[kv.Key] = $"@\"{val.Replace("\"","\"\"")}\"";
                     }
 
                     if (type == typeof(PipelineNode))

@@ -59,7 +59,7 @@ namespace TestNamespace.ConsoleApp
             var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" })
                                       .AppendCacheCheckpoint(mlContext);
             // Set the training algorithm 
-            var trainer = mlContext.Regression.Trainers.LightGbm(labelColumnName: "Label", featureColumnName: "Features");
+            var trainer = mlContext.Regression.Trainers.LightGbm(labelColumnName: @"Label", featureColumnName: "Features");
 
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 

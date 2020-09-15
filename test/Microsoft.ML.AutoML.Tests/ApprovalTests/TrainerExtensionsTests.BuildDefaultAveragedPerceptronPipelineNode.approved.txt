@@ -8,7 +8,7 @@
     "Score"
   ],
   "SerializedProperties": {
-    "LabelColumnName": "\"L\"",
+    "LabelColumnName": "@\"ticky\"\"label\"\"\"",
     "NumberOfIterations": "10"
   }
 }
