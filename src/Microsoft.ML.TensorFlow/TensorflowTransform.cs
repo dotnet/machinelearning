@@ -20,6 +20,7 @@ using NumSharp;
 using Tensorflow;
 using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 using static Tensorflow.Binding;
+using Utils = Microsoft.ML.Internal.Utilities.Utils;
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer),
     typeof(TensorFlowEstimator.Options), typeof(SignatureDataTransform), TensorFlowTransformer.UserName, TensorFlowTransformer.ShortName)]
@@ -344,7 +345,7 @@ namespace Microsoft.ML.Transforms
                 new ObjectDisposedException(nameof(graph));
 
             var cstatus = status == null ? new Status() : status;
-            var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus);
+            var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus.Handle);
 
             cstatus.Check();
 
@@ -352,7 +353,7 @@ namespace Microsoft.ML.Transforms
                 return new TensorShape(new int[0]);
 
             var dims = new long[n];
-            c_api.TF_GraphGetTensorShape(graph, output, dims, dims.Length, cstatus);
+            c_api.TF_GraphGetTensorShape(graph, output, dims, dims.Length, cstatus.Handle);
             cstatus.Check();
             return new TensorShape(dims.Select(x => (int)x).ToArray());
         }
@@ -430,7 +431,7 @@ namespace Microsoft.ML.Transforms
                 var buffer = Session.graph.ToGraphDef(status);
                 ctx.SaveBinaryStream("TFModel", w =>
                 {
-                    w.WriteByteArray(buffer.MemoryBlock.ToArray());
+                    w.WriteByteArray(buffer.DangerousMemoryBlock.ToArray());
                 });
             }
 
@@ -837,7 +838,7 @@ namespace Microsoft.ML.Transforms
                         bytes[i] = Encoding.UTF8.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
                     }
 
-                    return new Tensor(bytes, _tfShape.dims.Select(x => (long)x).ToArray());
+                    return new Tensor(new NDArray(bytes, _tfShape));
                 }
 
                 return new Tensor(new NDArray(data, _tfShape));

@@ -14,6 +14,7 @@ using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Transforms;
 using Tensorflow;
 using static Tensorflow.Binding;
+using Utils = Microsoft.ML.Internal.Utilities.Utils;
 
 namespace Microsoft.ML.TensorFlow
 {
@@ -491,7 +492,7 @@ namespace Microsoft.ML.TensorFlow
                     {
                         c_api.TF_SessionRun(_session, null, _inputs, _inputValues,
                              _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
-                            _operations.Length, IntPtr.Zero, _status);
+                            _operations.Length, IntPtr.Zero, _status.Handle);
                     }
                     catch (Exception ex)
                     {
