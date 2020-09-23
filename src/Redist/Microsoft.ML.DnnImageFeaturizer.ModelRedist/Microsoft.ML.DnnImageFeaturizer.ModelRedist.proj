@@ -1,14 +1,12 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
-  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <Import Project="Sdk.props" Sdk="Microsoft.Build.Traversal" />
 
   <PropertyGroup>
-    <ModelPlacementDir>$(ObjDir)DnnImageModels</ModelPlacementDir>
+    <ModelPlacementDir>$(ArtifactsObjDir)DnnImageModels</ModelPlacementDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -120,5 +118,7 @@
 
   <Target Name="Build"
           DependsOnTargets="CopyDnnModelFiles" />
+  
+  <Target Name="Pack" />
 
 </Project>
