@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.DotNet.Arcade.Sdk">
+  
+  <Import Project="Sdk.props" Sdk="Microsoft.Build.Traversal" />
+  
+  <Target Name="Build"
+          DependsOnTargets="GenerateNativeVersionFile">
+
+    <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
+    <Message Text="$(MSBuildProjectDirectory)\build.cmd" Importance="High"/>
+    <Exec Command="&quot;$(MSBuildProjectDirectory)\build.cmd&quot;" />
+
+  </Target>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.Build.Traversal" />
+
+</Project>

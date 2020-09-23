@@ -5,7 +5,7 @@ set(CMAKE_INSTALL_PREFIX $ENV{__CMakeBinDir})
 set(RESOURCES)
 
 # Include 'bin/obj' dir since it contains _version.h
-include_directories("${CMAKE_BINARY_DIR}/../../")
+include_directories("$ENV{__IntermediatesDir}")
 
 if(WIN32)
     # There seems to be a bug in the latest VS2019
@@ -72,7 +72,7 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} /DEBUG /OPT:REF /OPT:ICF")
     set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} /NODEFAULTLIB:libucrt.lib /DEFAULTLIB:ucrt.lib")
     set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} /NODEFAULTLIB:libucrt.lib /DEFAULTLIB:ucrt.lib")
-    list(APPEND RESOURCES ${CMAKE_SOURCE_DIR}/../../Tools/NativeVersion.rc)
+    list(APPEND RESOURCES $ENV{__IntermediatesDir}/NativeVersion.rc)
 else()
     add_compile_options(-Wno-unused-local-typedef)
     add_compile_options(-fPIC)
