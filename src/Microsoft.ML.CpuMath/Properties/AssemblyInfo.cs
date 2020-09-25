@@ -5,13 +5,13 @@
 using System.Runtime.CompilerServices;
 using Microsoft.ML.Internal.CpuMath.Core;
 
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.CpuMath.PerformanceTests" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.CpuMath.PerformanceTests" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Internal.CpuMath" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.Internal.MklMath" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "LibSvmWrapper" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.NeuralNetworks" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.RServerScoring.NeuralNetworks" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.AutoML" + PublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Tests" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Tests" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "RunTests" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "SseTests" + InternalPublicKey.Value)]
