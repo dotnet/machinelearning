@@ -3,7 +3,7 @@
     "dotnet": "5.0.100-rc.1.20452.10"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "5.0.0-dev",
+    "Microsoft.DotNet.Arcade.Sdk": "5.0.0-beta.20461.7",
     "Microsoft.DotNet.Helix.Sdk": "5.0.0-beta.20461.7",
     "Microsoft.Build.Traversal": "2.1.1",
     "Microsoft.SourceLink.GitHub": "1.1.0-beta-20206-02",
