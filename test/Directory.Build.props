@@ -22,7 +22,6 @@
   <PropertyGroup>
     <VSTestLogger>trx</VSTestLogger>
     <VSTestResultsDirectory>$(OutputPath)</VSTestResultsDirectory>
-    <StrongNameKeyId>Test</StrongNameKeyId>
     <CopyLocalLockFileAssemblies Condition="'$(TargetFramework)' == 'netcoreapp3.1'">false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   
