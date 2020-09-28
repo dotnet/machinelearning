@@ -1079,7 +1079,7 @@ namespace Microsoft.ML.Transforms
                         bytes[i] = Encoding.UTF8.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
                     }
 
-                    return new Tensor(new NDArray(bytes, _tfShape));
+                    return new Tensor(bytes);
                 }
 
                 return new Tensor(new NDArray(data, _tfShape));
@@ -1162,7 +1162,7 @@ namespace Microsoft.ML.Transforms
                         bytes[i] = Encoding.UTF8.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
                     }
 
-                    return new Tensor(new NDArray(bytes, _tfShape));
+                    return new Tensor(bytes);
                 }
 
                 return new Tensor(new NDArray(data, _tfShape));

@@ -760,7 +760,7 @@ namespace Microsoft.ML.Vision
         {
             int length = buffer.Length;
             var size = c_api.TF_StringEncodedSize((ulong)length);
-            var handle = c_api.TF_AllocateTensor(TF_DataType.TF_STRING, new long[0], 0, ((ulong)size + 8));
+            var handle = c_api.TF_AllocateTensor(TF_DataType.TF_STRING, Array.Empty<long>(), 0, ((ulong)size + 8));
 
             IntPtr tensor = c_api.TF_TensorData(handle);
             Marshal.WriteInt64(tensor, 0);
@@ -1445,14 +1445,15 @@ namespace Microsoft.ML.Vision
             ctx.Writer.Write(_imagePreprocessorTensorOutput);
             ctx.Writer.Write(_graphInputTensor);
             ctx.Writer.Write(_graphOutputTensor);
-
-            Status status = new Status();
-            var buffer = _session.graph.ToGraphDef(status);
-            ctx.SaveBinaryStream("TFModel", w =>
+            using(var status = new Status())
+            using(var buffer = _session.graph.ToGraphDef(status))
             {
-                w.WriteByteArray(buffer.DangerousMemoryBlock.ToArray());
-            });
-            status.Check(true);
+                ctx.SaveBinaryStream("TFModel", w =>
+                {
+                    w.WriteByteArray(buffer.DangerousMemoryBlock.ToArray());
+                });
+                status.Check(true);
+            }
         }
 
         private class Classifier

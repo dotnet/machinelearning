@@ -281,6 +281,7 @@ namespace Microsoft.ML.Transforms
             _addBatchDimensionInput = addBatchDimensionInput;
             Inputs = inputColumnNames;
             Outputs = outputColumnNames;
+            tf.compat.v1.disable_eager_execution();
 
             (TFOutputTypes, OutputTypes, TFOutputOperations) = GetOutputInfo(Host, Session, Outputs);
             (TFInputTypes, TFInputShapes, TFInputOperations) = GetInputInfo(Host, Session, Inputs, batchSize);
@@ -427,12 +428,14 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
             if (isFrozen)
             {
-                Status status = new Status();
-                var buffer = Session.graph.ToGraphDef(status);
-                ctx.SaveBinaryStream("TFModel", w =>
+                using (var status = new Status())
+                using (var buffer = Session.graph.ToGraphDef(status))
                 {
-                    w.WriteByteArray(buffer.DangerousMemoryBlock.ToArray());
-                });
+                    ctx.SaveBinaryStream("TFModel", w =>
+                    {
+                        w.WriteByteArray(buffer.DangerousMemoryBlock.ToArray());
+                    });
+                }
             }
 
             Host.AssertNonEmpty(Inputs);
@@ -838,7 +841,7 @@ namespace Microsoft.ML.Transforms
                         bytes[i] = Encoding.UTF8.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
                     }
 
-                    return new Tensor(new NDArray(bytes, _tfShape));
+                    return new Tensor(bytes);
                 }
 
                 return new Tensor(new NDArray(data, _tfShape));
