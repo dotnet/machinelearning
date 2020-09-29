@@ -24,7 +24,7 @@
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
     <TensorFlowVersion>2.3.0</TensorFlowVersion>
     <TensorFlowMajorVersion>1</TensorFlowMajorVersion>
-    <TensorflowDotNETVersion>0.20.0</TensorflowDotNETVersion>
+    <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
   </PropertyGroup>
 
   <!-- Model Builder Dependencies -->

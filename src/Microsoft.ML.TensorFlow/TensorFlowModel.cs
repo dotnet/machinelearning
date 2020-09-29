@@ -6,6 +6,7 @@ using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
 using Tensorflow;
+using static Tensorflow.Binding;
 
 namespace Microsoft.ML.Transforms
 {

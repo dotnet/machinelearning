@@ -1073,13 +1073,13 @@ namespace Microsoft.ML.Transforms
                     return new Tensor((double[])(object)data, _dims, TF_DataType.TF_DOUBLE);
                 else if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 {
-                    byte[][] bytes = new byte[_bufferedData.Length][];
-                    for (int i = 0; i < bytes.Length; i++)
+                    string[] strings = new string[data.Length];
+                    for (int i = 0; i < strings.Length; i++)
                     {
-                        bytes[i] = Encoding.UTF8.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
+                        strings[i] = new string(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
                     }
 
-                    return new Tensor(bytes);
+                    return new Tensor(strings);
                 }
 
                 return new Tensor(new NDArray(data, _tfShape));
@@ -1156,13 +1156,13 @@ namespace Microsoft.ML.Transforms
                     return new Tensor((double[])(object)data, _dims, TF_DataType.TF_DOUBLE);
                 else if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 {
-                    byte[][] bytes = new byte[_vBuffer.Length][];
-                    for (int i = 0; i < bytes.Length; i++)
+                    string[] strings = new string[_vBuffer.Length];
+                    for (int i = 0; i < strings.Length; i++)
                     {
-                        bytes[i] = Encoding.UTF8.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
+                        strings[i] = new string(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
                     }
 
-                    return new Tensor(bytes);
+                    return new Tensor(strings);
                 }
 
                 return new Tensor(new NDArray(data, _tfShape));
