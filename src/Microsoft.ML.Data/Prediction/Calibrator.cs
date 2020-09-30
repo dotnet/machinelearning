@@ -837,8 +837,9 @@ namespace Microsoft.ML.Calibrators
     [BestFriend]
     internal static class CalibratorUtils
     {
-        // maximum number of rows passed to the calibrator.
-        private const int _maxCalibrationExamples = 1000000;
+        // Maximum number of rows to process when training the Calibrator.
+        // If 0, we'll actually process the whole dataset.
+        private const int _maxCalibrationExamples = 0;
 
         private static bool NeedCalibration(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
             ITrainer trainer, IPredictor predictor, RoleMappedSchema schema)
@@ -988,6 +989,10 @@ namespace Microsoft.ML.Calibrators
                     caliTrainer.ProcessTrainingExample(score, label > 0, weight);
 
                     if (maxRows > 0 && ++num >= maxRows)
+                        // If maxRows was 0, we'll process all of the rows in the dataset
+                        // Notice that depending on the calibrator, "processing" might mean
+                        // randomly choosing some of the "processed" rows
+                        // to actually train the calibrator.
                         break;
                 }
             }
