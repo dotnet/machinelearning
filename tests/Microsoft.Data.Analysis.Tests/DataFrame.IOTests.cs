@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Apache.Arrow;
 using Xunit;
@@ -602,6 +604,161 @@ CMT,1,1,null";
             Assert.Null(df[1, 1]);
             Assert.Null(df[2, 2]);
             Assert.Null(df[5, 3]);
+        }
+
+        [Fact]
+        public void TestWriteCsvWithHeader()
+        {
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame dataFrame = MakeDataFrameWithAllColumnTypes(10, true);
+
+            DataFrame.WriteCsv(dataFrame, csvStream);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame readIn = DataFrame.LoadCsv(csvStream);
+
+            Assert.Equal(dataFrame.Rows.Count, readIn.Rows.Count);
+            Assert.Equal(dataFrame.Columns.Count, readIn.Columns.Count);
+            Assert.Equal(1F, readIn[1, 0]);
+            Assert.Equal(1F, readIn[1, 1]);
+            Assert.Equal(1F, readIn[1, 2]);
+            Assert.Equal(1F, readIn[1, 3]);
+            Assert.Equal(1F, readIn[1, 4]);
+            Assert.Equal(1F, readIn[1, 5]);
+            Assert.Equal(1F, readIn[1, 6]);
+            Assert.Equal(1F, readIn[1, 7]);
+            Assert.Equal(1F, readIn[1, 8]);
+            Assert.Equal(1F, readIn[1, 9]);
+            Assert.Equal(1F, readIn[1, 10]);
+        }
+
+        [Fact]
+        public void TestWriteCsvWithCultureInfoRomanianAndSemiColon()
+        {
+            DataFrame dataFrame = MakeDataFrameWithNumericColumns(10, true);
+            dataFrame[1, 1] = 1.1M;
+            dataFrame[1, 2] = 1.2D;
+            dataFrame[1, 3] = 1.3F;
+
+            using MemoryStream csvStream = new MemoryStream();
+            var cultureInfo = new CultureInfo("ro-RO");
+            var separator = ';';
+            DataFrame.WriteCsv(dataFrame, csvStream, separator: separator, cultureInfo: cultureInfo);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame readIn = DataFrame.LoadCsv(csvStream, separator: separator);
+
+            Assert.Equal(dataFrame.Rows.Count, readIn.Rows.Count);
+            Assert.Equal(dataFrame.Columns.Count, readIn.Columns.Count);
+            Assert.Equal(1F, readIn[1, 0]);
+
+            // LoadCsv does not support culture info, therefore decimal point comma (,) is seen as thousand separator and is ignored when read
+            Assert.Equal(11F, readIn[1, 1]);
+            Assert.Equal(12F, readIn[1, 2]);
+            Assert.Equal(129999992F, readIn[1, 3]);
+
+            Assert.Equal(1F, readIn[1, 4]);
+            Assert.Equal(1F, readIn[1, 5]);
+            Assert.Equal(1F, readIn[1, 6]);
+            Assert.Equal(1F, readIn[1, 7]);
+            Assert.Equal(1F, readIn[1, 8]);
+            Assert.Equal(1F, readIn[1, 9]);
+            Assert.Equal(1F, readIn[1, 10]);
+        }
+
+        [Fact]
+        public void TestWriteCsvWithCultureInfo()
+        {
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame dataFrame = MakeDataFrameWithNumericColumns(10, true);
+            dataFrame[1, 1] = 1.1M;
+            dataFrame[1, 2] = 1.2D;
+            dataFrame[1, 3] = 1.3F;
+
+            var cultureInfo = new CultureInfo("en-US");
+            DataFrame.WriteCsv(dataFrame, csvStream, cultureInfo: cultureInfo);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame readIn = DataFrame.LoadCsv(csvStream);
+
+            Assert.Equal(dataFrame.Rows.Count, readIn.Rows.Count);
+            Assert.Equal(dataFrame.Columns.Count, readIn.Columns.Count);
+            Assert.Equal(1F, readIn[1, 0]);
+            Assert.Equal(1.1F, readIn[1, 1]);
+            Assert.Equal(1.2F, readIn[1, 2]);
+            Assert.Equal(1.3F, readIn[1, 3]);
+            Assert.Equal(1F, readIn[1, 4]);
+            Assert.Equal(1F, readIn[1, 5]);
+            Assert.Equal(1F, readIn[1, 6]);
+            Assert.Equal(1F, readIn[1, 7]);
+            Assert.Equal(1F, readIn[1, 8]);
+            Assert.Equal(1F, readIn[1, 9]);
+            Assert.Equal(1F, readIn[1, 10]);
+        }
+
+        [Fact]
+        public void TestWriteCsvWithCultureInfoRomanianAndComma()
+        {
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame dataFrame = MakeDataFrameWithNumericColumns(10, true);
+
+            var cultureInfo = new CultureInfo("ro-RO");
+            var separator = cultureInfo.NumberFormat.NumberDecimalSeparator.First();
+
+            Assert.Throws<ArgumentException>(() => DataFrame.WriteCsv(dataFrame, csvStream, separator: separator, cultureInfo: cultureInfo));
+        }
+
+        [Fact]
+        public void TestWriteCsvWithNoHeader()
+        {
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame dataFrame = MakeDataFrameWithAllColumnTypes(10, true);
+
+            DataFrame.WriteCsv(dataFrame, csvStream, header: false);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame readIn = DataFrame.LoadCsv(csvStream, header: false);
+
+            Assert.Equal(dataFrame.Rows.Count, readIn.Rows.Count);
+            Assert.Equal(dataFrame.Columns.Count, readIn.Columns.Count);
+            Assert.Equal(1F, readIn[1, 0]);
+            Assert.Equal(1F, readIn[1, 1]);
+            Assert.Equal(1F, readIn[1, 2]);
+            Assert.Equal(1F, readIn[1, 3]);
+            Assert.Equal(1F, readIn[1, 4]);
+            Assert.Equal(1F, readIn[1, 5]);
+            Assert.Equal(1F, readIn[1, 6]);
+            Assert.Equal(1F, readIn[1, 7]);
+            Assert.Equal(1F, readIn[1, 8]);
+            Assert.Equal(1F, readIn[1, 9]);
+            Assert.Equal(1F, readIn[1, 10]);
+        }
+
+        [Fact]
+        public void TestWriteCsvWithSemicolonSeparator()
+        {
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame dataFrame = MakeDataFrameWithAllColumnTypes(10, true);
+
+            var separator = ';';
+            DataFrame.WriteCsv(dataFrame, csvStream, separator: separator);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame readIn = DataFrame.LoadCsv(csvStream, separator: separator);
+
+            Assert.Equal(dataFrame.Rows.Count, readIn.Rows.Count);
+            Assert.Equal(dataFrame.Columns.Count, readIn.Columns.Count);
+            Assert.Equal(1F, readIn[1, 0]);
+            Assert.Equal(1F, readIn[1, 1]);
+            Assert.Equal(1F, readIn[1, 2]);
+            Assert.Equal(1F, readIn[1, 3]);
+            Assert.Equal(1F, readIn[1, 4]);
+            Assert.Equal(1F, readIn[1, 5]);
+            Assert.Equal(1F, readIn[1, 6]);
+            Assert.Equal(1F, readIn[1, 7]);
+            Assert.Equal(1F, readIn[1, 8]);
+            Assert.Equal(1F, readIn[1, 9]);
+            Assert.Equal(1F, readIn[1, 10]);
         }
     }
 }
