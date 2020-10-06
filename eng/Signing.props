@@ -1,0 +1,6 @@
+<Project>
+    <ItemGroup>
+        <!-- <StrongNameSignInfo Include="$(RepoRoot)\Tools\Open.snk" PublicKeyToken="cc7b13ffcd2ddd51" CertificateName="Microsoft400" />
+        <StrongNameSignInfo Include="$(RepoRoot)\Tools\Test.snk" PublicKeyToken="9d77cc7ad39b68eb" CertificateName="Microsoft400" /> -->
+    </ItemGroup
+</Project>
