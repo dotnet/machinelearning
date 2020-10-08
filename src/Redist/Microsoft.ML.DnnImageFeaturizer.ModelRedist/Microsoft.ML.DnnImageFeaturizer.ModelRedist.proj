@@ -11,14 +11,14 @@
 
   <ItemGroup>
     <ModelFiles Include="$(ModelPlacementDir)\AlexNetPrepOnnx\AlexNetPreprocess.onnx"
-    Url="https://aka.ms/mlnet-resources/image/AlexNetPrepOnnx/AlexNetPreprocess.onnx "
+    Url="https://aka.ms/mlnet-resources/image/AlexNetPrepOnnx/AlexNetPreprocess.onnx"
     DestinationFile="$(ModelPlacementDir)\AlexNetPrepOnnx\AlexNetPreprocess.onnx"
     DestinationDir="$(ModelPlacementDir)\AlexNetPrepOnnx" />
   </ItemGroup>
 
   <ItemGroup>
     <ModelFiles Include="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
-    Url="https://aka.ms/mlnet-resources/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
+    Url="https://aka.ms/mlnet-resources/image/ResNetPrepOnnx/ResNetPreprocess.onnx"
     DestinationFile="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
     DestinationDir="$(ModelPlacementDir)\ResNetPrepOnnx" />
   </ItemGroup>
