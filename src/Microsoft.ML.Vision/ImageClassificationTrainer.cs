@@ -530,6 +530,7 @@ namespace Microsoft.ML.Vision
             Host.CheckNonEmpty(options.LabelColumnName, nameof(options.LabelColumnName));
             Host.CheckNonEmpty(options.ScoreColumnName, nameof(options.ScoreColumnName));
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
+            tf.compat.v1.disable_eager_execution();
 
             if (string.IsNullOrEmpty(options.WorkspacePath))
             {
