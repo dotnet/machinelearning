@@ -19,6 +19,9 @@ namespace Microsoft.ML.Tests
 {
     public class OnnxSequenceTypeWithAttributesTest : BaseTestBaseline
     {
+        private const bool _fallbackToCpu = true;
+        private static int? _gpuDeviceId = null;
+
         public class OutputObj
         {
             [ColumnName("output")]
@@ -42,7 +45,9 @@ namespace Microsoft.ML.Tests
 
             var pipeline = ctx.Transforms.ApplyOnnxModel(
                                 modelFile: onnxModelFilePath,
-                                outputColumnNames: new[] { "output" }, inputColumnNames: new[] { "input" });
+                                outputColumnNames: new[] { "output" }, inputColumnNames: new[] { "input" },
+                                gpuDeviceId: _gpuDeviceId,
+                                fallbackToCpu: _fallbackToCpu);
 
             var model = pipeline.Fit(dataView);
             return ctx.Model.CreatePredictionEngine<FloatInput, OutputObj>(model);
@@ -79,7 +84,9 @@ namespace Microsoft.ML.Tests
 
             var pipeline = ctx.Transforms.ApplyOnnxModel(
                                 modelFile: onnxModelFilePath,
-                                outputColumnNames: new[] { "output" }, inputColumnNames: new[] { "input" });
+                                outputColumnNames: new[] { "output" }, inputColumnNames: new[] { "input" },
+                                gpuDeviceId: _gpuDeviceId,
+                                fallbackToCpu: _fallbackToCpu);
 
             var model = pipeline.Fit(dataView);
             return ctx.Model.CreatePredictionEngine<FloatInput, WrongOutputObj>(model);
