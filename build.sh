@@ -10,5 +10,4 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-chmod u+x eng/common/build.sh
 "$DIR/eng/common/build.sh" --restore --build --pack --warnAsError false
