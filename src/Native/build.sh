@@ -25,8 +25,8 @@ RootRepo="$DIR/../.."
 __build_arch=
 __strip_argument=
 __configuration=Debug
-__rootBinPath="$RootRepo/bin"
-__baseIntermediateOutputPath="$__rootBinPath/obj"
+__rootBinPath="$RootRepo/artifacts/bin"
+__baseIntermediateOutputPath="$RootRepo/artifacts/obj"
 __versionSourceFile="$__baseIntermediateOutputPath/version.c"
 __mkllibpath=""
 __mkllibrpath=""
@@ -65,11 +65,13 @@ done
 
 __cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath} -DMKL_LIB_RPATH=${__mkllibrpath}"
 
-__IntermediatesDir="$__baseIntermediateOutputPath/$__build_arch.$__configuration/Native"
-__BinDir="$__rootBinPath/$__build_arch.$__configuration/Native"
+__IntermediatesDir="$__baseIntermediateOutputPath/Native/$__build_arch.$__configuration"
+__BinDir="$__rootBinPath/Native/$__build_arch.$__configuration"
 
 mkdir -p "$__BinDir"
 mkdir -p "$__IntermediatesDir"
+
+export __IntermediatesDir=$__IntermediatesDir
 
 # Set up the environment to be used for building with clang.
 if command -v "clang-3.5" > /dev/null 2>&1; then
