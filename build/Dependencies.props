@@ -22,7 +22,7 @@
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
-    <TensorFlowVersion>2.3.0</TensorFlowVersion>
+    <TensorFlowVersion>2.3.1</TensorFlowVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
   </PropertyGroup>
