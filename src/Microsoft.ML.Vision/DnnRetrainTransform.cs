@@ -1041,11 +1041,12 @@ namespace Microsoft.ML.Transforms
                 }
                 else
                 {
-                    var tensor = TensorFlowUtils.CastDataAndReturnAsTensor(_denseData, _tfShape)
+                    var tensor = TensorFlowUtils.CastDataAndReturnAsTensor(_bufferedData, _tfShape);
                     _position = 0;
                     return tensor;
                 }
             }
+        }
 
         private class TensorValueGetterVec<T> : ITensorValueGetter
         {
