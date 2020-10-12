@@ -1102,7 +1102,7 @@ namespace Microsoft.ML.Transforms
             public Tensor GetBufferedBatchTensor()
             {
                 _position = 0;
-                var tensor = TensorFlowUtils.CastDataAndReturnAsTensor(_denseData, _tfShape);
+                var tensor = TensorFlowUtils.CastDataAndReturnAsTensor(_bufferedData, _tfShape);
                 _bufferedData = new T[_bufferedDataSize];
                 return tensor;
             }
