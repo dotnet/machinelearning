@@ -31,7 +31,7 @@ namespace Microsoft.ML.AutoML
         /// Maximum truncation level for computing (N)DCG
         /// </summary>
         /// <value>
-        /// The default value is 3.
+        /// The default value is 10.
         /// </value>
         public int DcgTruncationLevel { get; set; }
 
@@ -39,7 +39,7 @@ namespace Microsoft.ML.AutoML
         {
             OptimizingMetric = RankingMetric.Ndcg;
             Trainers = Enum.GetValues(typeof(RankingTrainer)).OfType<RankingTrainer>().ToList();
-            DcgTruncationLevel = 3;
+            DcgTruncationLevel = 10;
         }
     }
     public enum RankingMetric
