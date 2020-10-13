@@ -439,7 +439,15 @@ namespace Microsoft.ML.TensorFlow
             else if (typeof(T) == typeof(double))
                 return new Tensor((double[])(object)data, dims, TF_DataType.TF_DOUBLE);
             else if (typeof(T) == typeof(ReadOnlyMemory<char>))
-                return new Tensor(data.Select(x => x.ToString()).ToArray());
+            {
+                string[] strings = new string[data.Length];
+                for (int i = 0; i < strings.Length; i++)
+                {
+                    strings[i] = data[i].ToString();
+                }
+
+                return new Tensor(strings);
+            }
 
             return new Tensor(new NDArray(data, tfShape));
         }
