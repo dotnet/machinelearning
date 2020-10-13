@@ -530,6 +530,7 @@ namespace Microsoft.ML.Vision
             Host.CheckNonEmpty(options.LabelColumnName, nameof(options.LabelColumnName));
             Host.CheckNonEmpty(options.ScoreColumnName, nameof(options.ScoreColumnName));
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
+            tf.compat.v1.disable_eager_execution();
 
             if (string.IsNullOrEmpty(options.WorkspacePath))
             {
@@ -752,15 +753,15 @@ namespace Microsoft.ML.Vision
             var decodedImage4d = tf.expand_dims(decodedImageAsFloat, 0);
             var resizeShape = tf.stack(new int[] { inputDim.Item1, inputDim.Item2 });
             var resizeShapeAsInt = tf.cast(resizeShape, dtype: tf.int32);
-            var resizedImage = tf.image.resize_bilinear(decodedImage4d, resizeShapeAsInt, false, "ResizeTensor");
+            var resizedImage = tf.image.resize_bilinear(decodedImage4d, resizeShapeAsInt, false, name: "ResizeTensor");
             return (jpegData, resizedImage);
         }
 
         private static Tensor EncodeByteAsString(VBuffer<byte> buffer)
         {
             int length = buffer.Length;
-            var size = c_api.TF_StringEncodedSize((UIntPtr)length);
-            var handle = c_api.TF_AllocateTensor(TF_DataType.TF_STRING, IntPtr.Zero, 0, (UIntPtr)((ulong)size + 8));
+            var size = c_api.TF_StringEncodedSize((ulong)length);
+            var handle = c_api.TF_AllocateTensor(TF_DataType.TF_STRING, Array.Empty<long>(), 0, ((ulong)size + 8));
 
             IntPtr tensor = c_api.TF_TensorData(handle);
             Marshal.WriteInt64(tensor, 0);
@@ -769,7 +770,7 @@ namespace Microsoft.ML.Vision
             unsafe
             {
                 fixed (byte* src = buffer.GetValues())
-                    c_api.TF_StringEncode(src, (UIntPtr)length, (sbyte*)(tensor + sizeof(Int64)), size, status);
+                    c_api.TF_StringEncode(src, (ulong)length, (byte*)(tensor + sizeof(Int64)), size, status.Handle);
             }
 
             status.Check(true);
@@ -1213,7 +1214,7 @@ namespace Microsoft.ML.Vision
             sess.Dispose();
         }
 
-        private void VariableSummaries(RefVariable var)
+        private void VariableSummaries(ResourceVariable var)
         {
             tf_with(tf.name_scope("summaries"), delegate
             {
@@ -1256,7 +1257,7 @@ namespace Microsoft.ML.Vision
             Tensor logits = null;
             tf_with(tf.name_scope(layerName), scope =>
             {
-                RefVariable layerWeights = null;
+                ResourceVariable layerWeights = null;
                 tf_with(tf.name_scope("weights"), delegate
                 {
                     var initialValue = tf.truncated_normal(new int[] { bottleneck_tensor_size, classCount },
@@ -1266,7 +1267,7 @@ namespace Microsoft.ML.Vision
                     VariableSummaries(layerWeights);
                 });
 
-                RefVariable layerBiases = null;
+                ResourceVariable layerBiases = null;
                 tf_with(tf.name_scope("biases"), delegate
                 {
                     TensorShape shape = new TensorShape(classCount);
@@ -1445,14 +1446,15 @@ namespace Microsoft.ML.Vision
             ctx.Writer.Write(_imagePreprocessorTensorOutput);
             ctx.Writer.Write(_graphInputTensor);
             ctx.Writer.Write(_graphOutputTensor);
-
-            Status status = new Status();
-            var buffer = _session.graph.ToGraphDef(status);
-            ctx.SaveBinaryStream("TFModel", w =>
+            using(var status = new Status())
+            using(var buffer = _session.graph.ToGraphDef(status))
             {
-                w.WriteByteArray(buffer.MemoryBlock.ToArray());
-            });
-            status.Check(true);
+                ctx.SaveBinaryStream("TFModel", w =>
+                {
+                    w.WriteByteArray(buffer.DangerousMemoryBlock.ToArray());
+                });
+                status.Check(true);
+            }
         }
 
         private class Classifier

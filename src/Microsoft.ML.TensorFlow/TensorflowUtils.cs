@@ -12,8 +12,10 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Transforms;
+using NumSharp;
 using Tensorflow;
 using static Tensorflow.Binding;
+using Utils = Microsoft.ML.Internal.Utilities.Utils;
 
 namespace Microsoft.ML.TensorFlow
 {
@@ -410,6 +412,46 @@ namespace Microsoft.ML.TensorFlow
             }
         }
 
+        internal static Tensor CastDataAndReturnAsTensor<T>(T[] data, TensorShape tfShape)
+        {
+            var dims = tfShape.dims.Select(x => (long)x).ToArray();
+
+            if (typeof(T) == typeof(sbyte))
+                return new Tensor((sbyte[])(object)data, dims, TF_DataType.TF_INT8);
+            else if (typeof(T) == typeof(long))
+                return new Tensor((long[])(object)data, dims, TF_DataType.TF_INT64);
+            else if (typeof(T) == typeof(Int32))
+                return new Tensor((Int32[])(object)data, dims, TF_DataType.TF_INT32);
+            else if (typeof(T) == typeof(Int16))
+                return new Tensor((Int16[])(object)data, dims, TF_DataType.TF_INT16);
+            else if (typeof(T) == typeof(byte))
+                return new Tensor((byte[])(object)data, dims, TF_DataType.TF_UINT8);
+            else if (typeof(T) == typeof(ulong))
+                return new Tensor((ulong[])(object)data, dims, TF_DataType.TF_UINT64);
+            else if (typeof(T) == typeof(UInt32))
+                return new Tensor((UInt32[])(object)data, dims, TF_DataType.TF_UINT32);
+            else if (typeof(T) == typeof(UInt16))
+                return new Tensor((UInt16[])(object)data, dims, TF_DataType.TF_UINT16);
+            else if (typeof(T) == typeof(bool))
+                return new Tensor((bool[])(object)data, dims, TF_DataType.TF_BOOL);
+            else if (typeof(T) == typeof(float))
+                return new Tensor((float[])(object)data, dims, TF_DataType.TF_FLOAT);
+            else if (typeof(T) == typeof(double))
+                return new Tensor((double[])(object)data, dims, TF_DataType.TF_DOUBLE);
+            else if (typeof(T) == typeof(ReadOnlyMemory<char>))
+            {
+                string[] strings = new string[data.Length];
+                for (int i = 0; i < strings.Length; i++)
+                {
+                    strings[i] = data[i].ToString();
+                }
+
+                return new Tensor(strings);
+            }
+
+            return new Tensor(new NDArray(data, tfShape));
+        }
+
         /// <summary>
         /// Use the runner class to easily configure inputs, outputs and targets to be passed to the session runner.
         /// </summary>
@@ -491,7 +533,7 @@ namespace Microsoft.ML.TensorFlow
                     {
                         c_api.TF_SessionRun(_session, null, _inputs, _inputValues,
                              _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
-                            _operations.Length, IntPtr.Zero, _status);
+                            _operations.Length, IntPtr.Zero, _status.Handle);
                     }
                     catch (Exception ex)
                     {
