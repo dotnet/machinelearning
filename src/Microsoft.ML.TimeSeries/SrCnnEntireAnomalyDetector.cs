@@ -387,6 +387,8 @@ namespace Microsoft.ML.TimeSeries
             private readonly IDeseasonality _deseasonalityFunction;
 
             //used in all modes
+            private double _minimumOriginValue;
+            private double _maximumOriginValue;
             private readonly double[] _predictArray;
             private double[] _backAddArray;
             private double[] _fftRe;
@@ -449,10 +451,15 @@ namespace Microsoft.ML.TimeSeries
                     Array.Resize<double[]>(ref results, values.Length);
                 }
 
+                _minimumOriginValue = Double.MaxValue;
+                _maximumOriginValue = Double.MinValue;
+
                 Array.Resize(ref _seriesToDetect, values.Length);
                 for (int i = 0; i < values.Length; ++i)
                 {
                     _seriesToDetect[i] = values[i];
+                    _minimumOriginValue = Math.Min(_minimumOriginValue, values[i]);
+                    _maximumOriginValue = Math.Max(_maximumOriginValue, values[i]);
                 }
 
                 if (_period > 0)
@@ -641,7 +648,7 @@ namespace Microsoft.ML.TimeSeries
 
                 for (int i = 0; i < results.Length; ++i)
                 {
-                    results[i][3] = _ifftRe[i];
+                    results[i][3] = AdjustExpectedValueBasedOnOriginalDataRange(_ifftRe[i]);
                 }
             }
 
@@ -650,7 +657,7 @@ namespace Microsoft.ML.TimeSeries
                 //Step 8: Calculate Expected Value
                 for (int i = 0; i < values.Length; ++i)
                 {
-                    results[i][3] = values[i] - residual[i];
+                    results[i][3] = AdjustExpectedValueBasedOnOriginalDataRange(values[i] - residual[i]);
                 }
             }
 
@@ -762,7 +769,8 @@ namespace Microsoft.ML.TimeSeries
                 {
                     //Step 10: Calculate UpperBound and LowerBound
                     var margin = CalculateMargin(_units[i], sensitivity);
-                    results[i][3] = _ifftRe[i];
+                    results[i][3] = AdjustExpectedValueBasedOnOriginalDataRange(_ifftRe[i]);
+
                     results[i][4] = _units[i];
                     results[i][5] = _ifftRe[i] + margin;
                     results[i][6] = _ifftRe[i] - margin;
@@ -781,6 +789,21 @@ namespace Microsoft.ML.TimeSeries
                         results[i][6] = results[i][3] - margin;
                     }
                 }
+            }
+
+            // Adjust the expected value if original data range is non-negative or non-positive
+            private double AdjustExpectedValueBasedOnOriginalDataRange(double expectedValue)
+            {
+                if (_minimumOriginValue >= 0 && expectedValue < 0)
+                {
+                    expectedValue = 0;
+                }
+                else if (_maximumOriginValue <= 0 && expectedValue > 0)
+                {
+                    expectedValue = 0;
+                }
+
+                return expectedValue;
             }
 
             // Adjust the expected value so that it is within the bound margin of value
