@@ -1310,22 +1310,25 @@ namespace Microsoft.ML.Tests
             IEstimator<ITransformer>[] pipelines =
             {
                 mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text", new[] { ' ' })
-                                .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
-                                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
-                                            ngramLength: ngramLength,
-                                            useAllLengths: useAllLength,
-                                            weighting: weighting)),
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
+                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
+                ngramLength: ngramLength,
+                useAllLengths: useAllLength,
+                weighting: weighting)),
 
                 mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("Tokens", "Text")
                 .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
-                            ngramLength: ngramLength,
-                            useAllLengths: useAllLength,
-                            weighting: weighting)),
+                ngramLength: ngramLength,
+                useAllLengths: useAllLength,
+                weighting: weighting)),
 
                 mlContext.Transforms.Text.ProduceWordBags("Tokens", "Text",
-                                        ngramLength: ngramLength,
-                                        useAllLengths: useAllLength,
-                                        weighting: weighting)
+                ngramLength: ngramLength,
+                useAllLengths: useAllLength,
+                weighting: weighting),
+
+                mlContext.Transforms.Text.TokenizeIntoWords("Tokens0", "Text")
+                .Append(mlContext.Transforms.Text.ProduceWordBags("Tokens", "Tokens0"))
             };
 
             for (int i = 0; i < pipelines.Length; i++)
@@ -1346,7 +1349,7 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxFilePath, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    var columnName = i == pipelines.Length - 1 ? "Tokens" : "NGrams";
+                    var columnName = i >= pipelines.Length - 2 ? "Tokens" : "NGrams";
                     CompareResults(columnName, columnName, transformedData, onnxResult, 3);
 
                     VBuffer<ReadOnlyMemory<char>> mlNetSlots = default;
