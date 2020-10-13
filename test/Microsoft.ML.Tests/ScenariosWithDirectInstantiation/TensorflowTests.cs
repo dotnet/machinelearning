@@ -278,7 +278,7 @@ namespace Microsoft.ML.Scenarios
                 });
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact] // TensorFlow is 64-bit only
         public void TensorFlowTransformInputShapeTest()
         {
             var modelLocation = "model_shape_test";
