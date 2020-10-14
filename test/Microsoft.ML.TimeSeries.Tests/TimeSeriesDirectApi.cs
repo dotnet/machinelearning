@@ -776,6 +776,68 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        [Theory, CombinatorialData]
+        public void TestNonnegativeData(
+            [CombinatorialValues(true, false)] bool isPositive)
+        {
+            var ml = new MLContext(1);
+            IDataView dataView;
+            List<TimeSeriesDataDouble> data;
+
+            // Load data from file into the dataView
+            var dataPath = GetDataPath("Timeseries", "non_negative_case.csv");
+
+            // Load data from file into the dataView
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+            data = ml.Data.CreateEnumerable<TimeSeriesDataDouble>(dataView, reuseRowObject: false).ToList();
+
+            if (!isPositive)
+            {
+                for (int i = 0; i < data.Count; ++i)
+                {
+                    data[i].Value = - data[i].Value;
+                }
+            }
+
+            dataView = ml.Data.LoadFromEnumerable<TimeSeriesDataDouble>(data);
+
+            // Setup the detection arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
+            // Do batch anomaly detection
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                Threshold = 0.10,
+                BatchSize = -1,
+                Sensitivity = 99.0,
+                DetectMode = SrCnnDetectMode.AnomalyAndMargin,
+                Period = 0,
+                DeseasonalityMode = SrCnnDeseasonalityMode.Stl
+            };
+
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, options);
+
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                outputDataView, reuseRowObject: false);
+
+            if (isPositive)
+            {
+                foreach (var prediction in predictionColumn)
+                {
+                    Assert.True(prediction.Prediction[3] >= 0);
+                }
+            }
+            else
+            {
+                foreach (var prediction in predictionColumn)
+                {
+                    Assert.True(prediction.Prediction[3] <= 0);
+                }
+            }
+        }
+
         [Fact]
         public void RootCauseLocalization()
         {
