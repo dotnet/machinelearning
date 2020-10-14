@@ -84,7 +84,7 @@ namespace Microsoft.ML.TimeSeries
         {
             public const double Threshold = 0.3;
             public const int BatchSize = 2000;
-            public const double Sensitivity = 55;
+            public const double Sensitivity = 70;
             public const SrCnnDetectMode DetectMode = SrCnnDetectMode.AnomalyOnly;
             public const int Period = 0;
             public const SrCnnDeseasonalityMode DeseasonalityMode = SrCnnDeseasonalityMode.Stl;
@@ -349,7 +349,7 @@ namespace Microsoft.ML.TimeSeries
             private static readonly int _judgementWindowSize = 40;
             private static readonly double _eps = 1e-8;
             private static readonly double _deanomalyThreshold = 0.35;
-            private static readonly double _boundSensitivity = 70.0;
+            private static readonly double _boundSensitivity = 93.0;
 
             //    pseudo-code to generate the factors.
             //    factors = []
