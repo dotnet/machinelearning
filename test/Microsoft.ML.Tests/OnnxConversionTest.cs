@@ -1321,6 +1321,7 @@ namespace Microsoft.ML.Tests
                             ngramLength: ngramLength,
                             useAllLengths: useAllLength,
                             weighting: weighting)),
+
                 mlContext.Transforms.Text.ProduceWordBags("Tokens", "Text",
                             ngramLength: ngramLength,
                             useAllLengths: useAllLength,
