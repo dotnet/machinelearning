@@ -5,6 +5,7 @@
     <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
     <VersionPrefix>1.5.3</VersionPrefix>
     <PreReleaseVersionLabel></PreReleaseVersionLabel>
+    <SemanticVersioningV1>true</SemanticVersioningV1>
 
     <!--ML.NET Core dependencies-->
     <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>
@@ -37,7 +38,7 @@
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <MicrosoftDotNetApiCompatPackageVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatPackageVersion>
     <MicrosoftSourceLinkVersion>1.1.0-beta-20206-02</MicrosoftSourceLinkVersion>
-    
+
     <!-- Test-only Dependencies -->
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20080.1</MicrosoftCodeAnalysisTestingVersion>
@@ -103,9 +104,9 @@
     <SystemThreadingTasksExtensionVersion>4.5.2</SystemThreadingTasksExtensionVersion>
     <SystemValueTupleVersion>4.4.0</SystemValueTupleVersion>
     <WindowsAzureStorageVersion>8.5.0</WindowsAzureStorageVersion>
-    <XUnitVersion>2.4.1</XUnitVersion>
+    <XUnitVersion>2.4.0</XUnitVersion>
     <XUnitAbstractionsVersion>2.0.3</XUnitAbstractionsVersion>
-    <XUnitVSRunnerVersion>2.4.1</XUnitVSRunnerVersion>
+    <XUnitVSRunnerVersion>2.4.0</XUnitVSRunnerVersion>
     <MicrosoftDotNetBuildTasksFeedVersion>5.0.0-beta.20461.7</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftDotNetSignToolVersion>5.0.0-beta.20461.7</MicrosoftDotNetSignToolVersion>
     <MicrosoftAzureDocumentDBVersion>1.22.0</MicrosoftAzureDocumentDBVersion>

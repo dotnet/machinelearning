@@ -3,9 +3,51 @@
   <Import Project="..\Directory.Build.targets" />
 
   <PropertyGroup>
-    <!-- This needs to be in Directory.Build.targets or the default value for AllowedReferenceRelatedFileExtensions will not be applied. 
+    <!-- This needs to be in Directory.Build.targets or the default value for AllowedReferenceRelatedFileExtensions will not be applied.
          This is required in order to have following extension files in the output folder of the projects referencing other projects. -->
-    <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.runtimeconfig.json;.runtimeconfig.dev.json;.deps.json</AllowedReferenceRelatedFileExtensions>  
+    <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.runtimeconfig.json;.runtimeconfig.dev.json;.deps.json</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
+
+  <Target Name="CopyNativeAssembiles" AfterTargets="CopyFilesToOutputDirectory">
+    <Message Importance="High" Text="CopyNativeAssembiles EVENT" />
+    <PropertyGroup>
+		<LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
+		<LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
+		<LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
+		<LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
+
+		<TargetArchitecture Condition="'$(Platform)' == ''">x64</TargetArchitecture>
+		<NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
+		<BinDir Condition="'$(BinDir)'==''">$([MSBuild]::NormalizeDirectory('$(RepoRoot)', 'artifacts', 'bin'))</BinDir>
+		<NativeOutputPath>$(BinDir)Native\$(NativeTargetArchitecture).$(Configuration)\</NativeOutputPath>
+
+		<Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
+		<PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
+		<OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(MSBuildProjectName)\Debug</OutputPath>
+	</PropertyGroup>
+
+
+
+		<ItemGroup>
+		<NativeAssemblyReference>
+			<FullAssemblyPath>$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
+		</NativeAssemblyReference>
+		</ItemGroup>
+
+		<Message Importance="High" Text="$(NativeAssemblyReference)"/>
+		<Message Importance="high" Text="here"/>
+
+		<Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
+			DestinationFolder="$(OutDir)"
+			OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+			Retries="$(CopyRetryCount)"
+			RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+			UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
+			UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
+		<Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+		</Copy>
+  <!--<Exec Command="call C:\MyFile.bat or call C:\MyFile.bat call C:\MyFile2.bat" />-->
+  </Target>
+
 
 </Project>
