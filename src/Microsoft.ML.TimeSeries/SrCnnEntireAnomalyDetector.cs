@@ -683,10 +683,10 @@ namespace Microsoft.ML.TimeSeries
                 for (int i = 0; i < results.Length; ++i)
                 {
                     //Step 10: Calculate UpperBound and LowerBound
-                    var margin = CalculateMargin(_units[i], sensitivity, results[i][3], results[i][0] > 0, values[i]);
+                    var margin = CalculateMargin(_units[i], sensitivity);
                     results[i][4] = _units[i];
-                    results[i][5] = results[i][3] + margin.Item1;
-                    results[i][6] = results[i][3] - margin.Item2;
+                    results[i][5] = results[i][3] + margin;
+                    results[i][6] = results[i][3] - margin;
 
                     // update anomaly result according to the boundary
                     results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || results[i][5] < values[i]) ? 1 : 0;
@@ -779,11 +779,11 @@ namespace Microsoft.ML.TimeSeries
                 for (int i = 0; i < results.Length; ++i)
                 {
                     //Step 10: Calculate UpperBound and LowerBound
-                    var margin = CalculateMargin(_units[i], sensitivity, results[i][3], results[i][0] > 0, values[i]);
+                    var margin = CalculateMargin(_units[i], sensitivity);
                     results[i][3] = _ifftRe[i];
                     results[i][4] = _units[i];
-                    results[i][5] = _ifftRe[i] + margin.Item1;
-                    results[i][6] = _ifftRe[i] - margin.Item2;
+                    results[i][5] = _ifftRe[i] + margin;
+                    results[i][6] = _ifftRe[i] - margin;
 
                     //Step 11: Update Anomaly Score
                     results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
@@ -795,8 +795,8 @@ namespace Microsoft.ML.TimeSeries
                     if (results[i][0] == 0)
                     {
                         results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][3], _units[i]);
-                        results[i][5] = results[i][3] + margin.Item1;
-                        results[i][6] = results[i][3] - margin.Item2;
+                        results[i][5] = results[i][3] + margin;
+                        results[i][6] = results[i][3] - margin;
                     }
                 }
             }
@@ -804,8 +804,8 @@ namespace Microsoft.ML.TimeSeries
             // Adjust the expected value so that it is within the bound margin of value
             private double AdjustExpectedValueBasedOnBound(double value, double expectedValue, double unit)
             {
-                var boundMargin = CalculateMargin(unit, _boundSensitivity, expectedValue, true, value);
-                return Math.Max(Math.Min(expectedValue, value + boundMargin.Item1), value - boundMargin.Item2);
+                var boundMargin = CalculateMargin(unit, _boundSensitivity);
+                return Math.Max(Math.Min(expectedValue, value + boundMargin), value - boundMargin);
             }
 
             private int[] GetAnomalyIndex(double[] scores)
@@ -1027,62 +1027,16 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            private Tuple<double, double> CalculateMarginCore(double unit, double sensitivity, double expectedValue, bool isAnomaly, double value)
-            {
-                double percent = 0.5;
-                double delta = unit * _factors[(int)sensitivity];
-                double ignoreRatio = 0.0001;
-
-                double lowerMargin = delta;
-                double upperMargin = delta;
-                if (!isAnomaly)
-                {
-                    if (value < expectedValue - delta)
-                    {
-                        lowerMargin = expectedValue - value + delta * percent;
-                        upperMargin = delta;
-                    }
-                    else if (value > expectedValue + delta)
-                    {
-                        lowerMargin = delta;
-                        upperMargin = value - expectedValue + delta * percent;
-                    }
-                }
-                else
-                {
-                    if (value > expectedValue - delta && value < expectedValue + delta && Math.Abs(value - expectedValue) > ignoreRatio * unit && sensitivity == 99)
-                    {
-                        if (value > expectedValue)
-                        {
-                            lowerMargin = percent * (value - expectedValue);
-                            upperMargin = percent * (value - expectedValue);
-                        }
-                        else
-                        {
-                            lowerMargin = percent * (expectedValue - value);
-                            upperMargin = percent * (expectedValue - value);
-                        }
-                    }
-                }
-
-                return new Tuple<double, double>(upperMargin, lowerMargin);
-            }
-
-            private Tuple<double, double> CalculateMargin(double unit, double sensitivity, double expectedValue, bool isAnomaly, double value)
+            private double CalculateMargin(double unit, double sensitivity)
             {
                 if (Math.Floor(sensitivity) == sensitivity)
                 {
-                    return CalculateMarginCore(unit, sensitivity, expectedValue, isAnomaly, value);
+                    return unit * _factors[(int)sensitivity];
                 }
                 else
                 {
                     int lb = (int)sensitivity;
-                    var tightMargin = CalculateMargin(unit, lb + 1, expectedValue, isAnomaly, value);
-                    var looseMargin = CalculateMargin(unit, lb, expectedValue, isAnomaly, value);
-                    double upper = tightMargin.Item1 + (1 - sensitivity + lb) * (looseMargin.Item1 - tightMargin.Item1);
-                    double lower = tightMargin.Item2 + (1 - sensitivity + lb) * (looseMargin.Item2 - tightMargin.Item2);
-
-                    return new Tuple<double, double>(upper, lower);
+                    return (_factors[lb + 1] + (_factors[lb] - _factors[lb + 1]) * (1 - sensitivity + lb)) * unit;
                 }
             }
 
