@@ -404,7 +404,6 @@ namespace Microsoft.ML.Transforms.Text
                 string opType;
                 while (columns.MoveNext())
                 {
-
                     opType = "Tokenizer";
                     var column = columns.Current;
                     var intermediateVar = ctx.AddIntermediateVariable(_type, "TokenizerOutput", true);

@@ -1312,20 +1312,19 @@ namespace Microsoft.ML.Tests
                 mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text", new[] { ' ' })
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
                 .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
-                ngramLength: ngramLength,
-                useAllLengths: useAllLength,
-                weighting: weighting)),
+                            ngramLength: ngramLength,
+                            useAllLengths: useAllLength,
+                            weighting: weighting)),
 
                 mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("Tokens", "Text")
                 .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
-                ngramLength: ngramLength,
-                useAllLengths: useAllLength,
-                weighting: weighting)),
-
+                            ngramLength: ngramLength,
+                            useAllLengths: useAllLength,
+                            weighting: weighting)),
                 mlContext.Transforms.Text.ProduceWordBags("Tokens", "Text",
-                ngramLength: ngramLength,
-                useAllLengths: useAllLength,
-                weighting: weighting),
+                            ngramLength: ngramLength,
+                            useAllLengths: useAllLength,
+                            weighting: weighting),
 
                 mlContext.Transforms.Text.TokenizeIntoWords("Tokens0", "Text")
                 .Append(mlContext.Transforms.Text.ProduceWordBags("Tokens", "Tokens0"))
