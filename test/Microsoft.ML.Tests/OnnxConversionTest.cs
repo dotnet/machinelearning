@@ -1310,11 +1310,11 @@ namespace Microsoft.ML.Tests
             IEstimator<ITransformer>[] pipelines =
             {
                 mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text", new[] { ' ' })
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
-                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
-                            ngramLength: ngramLength,
-                            useAllLengths: useAllLength,
-                            weighting: weighting)),
+                                .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
+                                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
+                                            ngramLength: ngramLength,
+                                            useAllLengths: useAllLength,
+                                            weighting: weighting)),
 
                 mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("Tokens", "Text")
                 .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
