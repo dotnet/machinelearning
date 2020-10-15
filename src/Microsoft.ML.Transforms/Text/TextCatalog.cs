@@ -334,7 +334,7 @@ namespace Microsoft.ML
             => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, stopwords);
 
         /// <summary>
-        /// Create a <see cref="WordHashBagEstimator"/>, which maps the column specified in <paramref name="inputColumnName"/>
+        /// Create a <see cref="WordBagEstimator"/>, which maps the column specified in <paramref name="inputColumnName"/>
         /// to a vector of n-gram counts in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
@@ -363,7 +363,7 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
-        /// Create a <see cref="WordHashBagEstimator"/>, which maps the multiple columns specified in <paramref name="inputColumnNames"/>
+        /// Create a <see cref="WordBagEstimator"/>, which maps the multiple columns specified in <paramref name="inputColumnNames"/>
         /// to a vector of n-gram counts in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
