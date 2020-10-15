@@ -777,7 +777,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory, CombinatorialData]
-        public void TestNonnegativeData(
+        public void TestSrcnnEntireDetectNonnegativeData(
             [CombinatorialValues(true, false)] bool isPositive)
         {
             var ml = new MLContext(1);

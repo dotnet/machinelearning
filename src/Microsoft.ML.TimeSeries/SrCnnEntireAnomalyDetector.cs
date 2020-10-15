@@ -350,6 +350,7 @@ namespace Microsoft.ML.TimeSeries
             private static readonly double _eps = 1e-8;
             private static readonly double _deanomalyThreshold = 0.35;
             private static readonly double _boundSensitivity = 93.0;
+            private static readonly double _unitForZero = 0.3;
 
             //    pseudo-code to generate the factors.
             //    factors = []
@@ -921,18 +922,20 @@ namespace Microsoft.ML.TimeSeries
                 FftUtils.ComputeBackwardFft(_fftRe, _fftIm, _ifftRe, _ifftIm, length);
             }
 
-            private void CalculateBoundaryUnit(double[] data, bool[] isAnomalys)
+            private void CalculateBoundaryUnit(double[] data, bool[] isAnomalies)
             {
                 int window = Math.Min(data.Length / 3, 512);
                 double trendFraction = 0.5;    // mix trend and average of trend
                 double trendSum = 0;
                 int calculationSize = 0;
+                bool closeToZero = true;
 
                 MedianFilter(data, window, true);
                 for (int i = 0; i < _trends.Length; ++i)
                 {
-                    if (!isAnomalys[i])
+                    if (!isAnomalies[i])
                     {
+                        closeToZero = closeToZero && _trends[i] < _eps;
                         trendSum += Math.Abs(_trends[i]);
                         ++calculationSize;
                     }
@@ -951,10 +954,17 @@ namespace Microsoft.ML.TimeSeries
                 Array.Resize(ref _units, _trends.Length);
                 for (int i = 0; i < _units.Length; ++i)
                 {
-                    _units[i] = Math.Max(1, averageTrendPart + Math.Abs(_trends[i]) * trendFraction);
-                    if (double.IsInfinity(_units[i]))
+                    if (closeToZero)
                     {
-                        throw new ArithmeticException("Not finite unit value");
+                        _units[i] = _unitForZero;
+                    }
+                    else
+                    {
+                        _units[i] = averageTrendPart + Math.Abs(_trends[i]) * trendFraction;
+                        if (double.IsInfinity(_units[i]))
+                        {
+                            throw new ArithmeticException("Not finite unit value");
+                        }
                     }
                 }
             }
