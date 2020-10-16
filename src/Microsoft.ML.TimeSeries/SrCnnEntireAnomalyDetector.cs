@@ -1106,7 +1106,7 @@ namespace Microsoft.ML.TimeSeries
                 else
                 {
                     double lowerMargin = _factors[101 - lb];
-                    double upperMargin = _factors[101 - lb];
+                    double upperMargin = _factors[100 - lb];
                     anomalyScore = lb - 1 + (distanceFactor - lowerMargin) / (upperMargin - lowerMargin);
                 }
 
