@@ -116,8 +116,8 @@ namespace Microsoft.ML.Transforms
                 }
                 if (!col.ItemType.Equals(itemType))
                 {
-                    throw _host.Except($"Concatenated columns should have the same type. Column '{sources[i]}' has values of {col.ItemType}, " +
-                        $"but expected columns of type {itemType}.");
+                    throw _host.Except($"Concatenated columns should have the same type. Column '{sources[i]}' has type of {col.ItemType}, " +
+                        $"but expected column type is {itemType}.");
                 }
                 varVector |= col.Kind == SchemaShape.Column.VectorKind.VariableVector;
                 isNormalized &= col.IsNormalized();
