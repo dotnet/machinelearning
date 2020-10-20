@@ -760,5 +760,49 @@ CMT,1,1,null";
             Assert.Equal(1F, readIn[1, 9]);
             Assert.Equal(1F, readIn[1, 10]);
         }
+
+        [Fact]
+        public void TestMixedDataTypesInCsv()
+        {
+            string data = @"vendor_id,empty
+null,
+1,
+true,
+Null,
+,
+CMT,";
+
+            Stream GetStream(string streamData)
+            {
+                return new MemoryStream(Encoding.Default.GetBytes(streamData));
+            }
+            DataFrame df = DataFrame.LoadCsv(GetStream(data));
+            Assert.Equal(6, df.Rows.Count);
+            Assert.Equal(2, df.Columns.Count);
+
+            Assert.True(typeof(string) == df.Columns[0].DataType);
+            Assert.True(typeof(string) == df.Columns[1].DataType);
+
+            Assert.Equal("vendor_id", df.Columns[0].Name);
+            Assert.Equal("empty", df.Columns[1].Name);
+            VerifyColumnTypes(df);
+            Assert.Equal(2, df.Columns[0].NullCount);
+            Assert.Equal(0, df.Columns[1].NullCount);
+
+            var nullRow = df.Rows[3];
+            Assert.Null(nullRow[0]);
+
+            nullRow = df.Rows[4];
+            Assert.Equal("", nullRow[0]);
+
+            Assert.Null(df[0, 0]);
+            Assert.Null(df[3, 0]);
+
+            StringDataFrameColumn emptyColumn = (StringDataFrameColumn)df.Columns[1];
+            for (long i = 0; i < emptyColumn.Length; i++)
+            {
+                Assert.Equal("", emptyColumn[i]);
+            }
+        }
     }
 }
