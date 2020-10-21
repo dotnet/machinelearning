@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Timers;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
@@ -51,10 +52,23 @@ namespace Microsoft.ML.AutoML
             _logger = logger;
         }
 
+        private void MaxExperimentTimeExpiredEvent(object sender, EventArgs e)
+        {
+            _logger.Warning("Allocated time for Experiment of {0} seconds has elapsed with {1} models run. Ending experiment...",
+                _experimentSettings.MaxExperimentTimeInSeconds, _history.Count());
+            _context.CancelExecution();
+        }
+
         public IList<TRunDetail> Execute()
         {
-            var stopwatch = Stopwatch.StartNew();
             var iterationResults = new List<TRunDetail>();
+            // Create a timer for the max duration of experiment. When given time has
+            // elapsed, MaxExperimentTimeExpiredEvent is called to interrupt training
+            // of current model.
+            Timer timer = new Timer(_experimentSettings.MaxExperimentTimeInSeconds * 1000);
+            timer.Elapsed += MaxExperimentTimeExpiredEvent;
+            timer.AutoReset = false;
+            timer.Enabled = true;
 
             do
             {
@@ -100,8 +114,7 @@ namespace Microsoft.ML.AutoML
                 }
 
             } while (_history.Count < _experimentSettings.MaxModels &&
-                    !_experimentSettings.CancellationToken.IsCancellationRequested &&
-                    stopwatch.Elapsed.TotalSeconds < _experimentSettings.MaxExperimentTimeInSeconds);
+                    !_experimentSettings.CancellationToken.IsCancellationRequested);
 
             return iterationResults;
         }
