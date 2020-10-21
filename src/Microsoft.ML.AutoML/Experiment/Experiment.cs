@@ -26,7 +26,7 @@ namespace Microsoft.ML.AutoML
         private readonly IRunner<TRunDetail> _runner;
         private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly IChannel _logger;
-        private bool _endExperimentWhenAble = false;
+        private bool _endExperimentWhenAble;
 
         public Experiment(MLContext context,
             TaskKind task,
@@ -51,6 +51,7 @@ namespace Microsoft.ML.AutoML
             _datasetColumnInfo = datasetColumnInfo;
             _runner = runner;
             _logger = logger;
+            _endExperimentWhenAble = false;
         }
 
         private void MaxExperimentTimeExpiredEvent(object sender, EventArgs e)
