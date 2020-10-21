@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
@@ -318,6 +319,23 @@ namespace Microsoft.ML.AutoML.Test
                 }
             }
 
+        }
+
+        [Fact]
+        public void AutoFitMaxExperimentTimeTest()
+		{
+            // 1 Binary classification experiment takes less than 5 seconds.
+            // System.OperationCanceledException is thrown when ongoing experiment
+            // is canceled and at least one model has been generated.
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
+            var experiment = context.Auto()
+                .CreateBinaryClassificationExperiment(5)
+                .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
+            Assert.True((context.Model.GetEnvironment() as ICancelable).IsCanceled);
         }
 
         private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)

@@ -26,6 +26,7 @@ namespace Microsoft.ML.AutoML
         private readonly IRunner<TRunDetail> _runner;
         private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly IChannel _logger;
+        private bool _endExperimentWhenAble = false;
 
         public Experiment(MLContext context,
             TaskKind task,
@@ -54,9 +55,15 @@ namespace Microsoft.ML.AutoML
 
         private void MaxExperimentTimeExpiredEvent(object sender, EventArgs e)
         {
-            _logger.Warning("Allocated time for Experiment of {0} seconds has elapsed with {1} models run. Ending experiment...",
-                _experimentSettings.MaxExperimentTimeInSeconds, _history.Count());
-            _context.CancelExecution();
+            // If at least one model was run, end experiment immediately.
+            // Else, wait for first model to run before experiment is concluded.
+            _endExperimentWhenAble = true;
+            if (_history.Count > 0)
+            {
+                _logger.Warning("Allocated time for Experiment of {0} seconds has elapsed with {1} models run. Ending experiment...",
+                    _experimentSettings.MaxExperimentTimeInSeconds, _history.Count());
+                _context.CancelExecution();
+            }
         }
 
         public IList<TRunDetail> Execute()
@@ -64,11 +71,20 @@ namespace Microsoft.ML.AutoML
             var iterationResults = new List<TRunDetail>();
             // Create a timer for the max duration of experiment. When given time has
             // elapsed, MaxExperimentTimeExpiredEvent is called to interrupt training
-            // of current model.
-            Timer timer = new Timer(_experimentSettings.MaxExperimentTimeInSeconds * 1000);
-            timer.Elapsed += MaxExperimentTimeExpiredEvent;
-            timer.AutoReset = false;
-            timer.Enabled = true;
+            // of current model. Timer is not used if no experiment time is given, or
+            // is not a positive number.
+            if (_experimentSettings.MaxExperimentTimeInSeconds > 0)
+            {
+                Timer timer = new Timer(_experimentSettings.MaxExperimentTimeInSeconds * 1000);
+                timer.Elapsed += MaxExperimentTimeExpiredEvent;
+                timer.AutoReset = false;
+                timer.Enabled = true;
+            }
+            // If given max duration of experiment is 0, only 1 model will be trained.
+            // _experimentSettings.MaxExperimentTimeInSeconds is of type uint, it is
+            // either 0 or >0.
+            else
+                _endExperimentWhenAble = true;
 
             do
             {
@@ -114,7 +130,8 @@ namespace Microsoft.ML.AutoML
                 }
 
             } while (_history.Count < _experimentSettings.MaxModels &&
-                    !_experimentSettings.CancellationToken.IsCancellationRequested);
+                    !_experimentSettings.CancellationToken.IsCancellationRequested &&
+                    !_endExperimentWhenAble);
 
             return iterationResults;
         }
