@@ -235,7 +235,7 @@ namespace Microsoft.ML.AutoML.Test
 
             // STEP 2: Run AutoML experiment
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
-                .CreateRecommendationExperiment(5)
+                .CreateRecommendationExperiment(25)
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation()
                     {
