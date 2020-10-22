@@ -118,7 +118,7 @@ namespace Microsoft.ML.AutoML.Test
                 .Execute(trainData, validationData,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
-            Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
+            Assert.True(result.RunDetails.Max(i => i?.ValidationMetrics?.RSquared) > 0.9);
         }
 
         [LightGBMFact]
@@ -235,7 +235,7 @@ namespace Microsoft.ML.AutoML.Test
 
             // STEP 2: Run AutoML experiment
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
-                .CreateRecommendationExperiment(50)
+                .CreateRecommendationExperiment(5)
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation()
                     {
@@ -247,7 +247,8 @@ namespace Microsoft.ML.AutoML.Test
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
             Assert.True(experimentResult.RunDetails.Count() > 1);
             Assert.NotNull(bestRun.ValidationMetrics);
-            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.RSquared != 0));
+            System.Console.WriteLine("Number of models run successfully/total-tried: {0}", experimentResult.RunDetails.Select(r => r.ValidationMetrics != null && r.ValidationMetrics.RSquared != double.NaN).Count(), experimentResult.RunDetails.Count());
+            Assert.True(experimentResult.RunDetails.Max(i => i?.ValidationMetrics?.RSquared) != 0);
 
             var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
             var expectedOutputNames = new string[] { labelColumnName, userColumnName, userColumnName, itemColumnName, itemColumnName, scoreColumnName };
