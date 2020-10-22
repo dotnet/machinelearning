@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML
             // If at least one model was run, end experiment immediately.
             // Else, wait for first model to run before experiment is concluded.
             _endExperimentWhenAble = true;
-            if (_history.Count > 0)
+            if (_history.Any(r => r.RunSucceeded))
             {
                 _logger.Warning("Allocated time for Experiment of {0} seconds has elapsed with {1} models run. Ending experiment...",
                     _experimentSettings.MaxExperimentTimeInSeconds, _history.Count());
