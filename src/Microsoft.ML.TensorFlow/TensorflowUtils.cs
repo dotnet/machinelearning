@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -440,13 +441,13 @@ namespace Microsoft.ML.TensorFlow
                 return new Tensor((double[])(object)data, dims, TF_DataType.TF_DOUBLE);
             else if (typeof(T) == typeof(ReadOnlyMemory<char>))
             {
-                string[] strings = new string[data.Length];
-                for (int i = 0; i < strings.Length; i++)
+                byte[][] bytes = new byte[data.Length][];
+                for (int i = 0; i < bytes.Length; i++)
                 {
-                    strings[i] = data[i].ToString();
+                    bytes[i] = Encoding.Unicode.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
                 }
 
-                return new Tensor(strings);
+                return new Tensor(bytes, TF_DataType.TF_STRING);
             }
 
             return new Tensor(new NDArray(data, tfShape));
