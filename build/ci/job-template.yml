@@ -49,14 +49,16 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
-    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
-      - script: |
-              git status |
-              git branch |
-              git remote -v |
-              git remote add origin https://github.com/dotnet/machinelearning |
-              git remote -v
-        displayName: Check MacOS ML.NET Git branch
+    - script: git status
+      displayName: Check MacOS ML.NET Git branch 1
+    - script: git branch
+      displayName: Check MacOS ML.NET Git branch 2
+    - script: git remote -v
+      displayName: Check MacOS ML.NET Git branch 3
+    - script: git remote add origin https://github.com/dotnet/machinelearning
+      displayName: Check MacOS ML.NET Git branch 4
+    - script: git remote -v
+      displayName: Check MacOS ML.NET Git branch 5
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew unlink python@2 && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
