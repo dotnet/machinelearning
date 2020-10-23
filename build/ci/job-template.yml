@@ -49,16 +49,17 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
-    - script: ls -la
-      displayName: Check MacOS ML.NET Git branch 0
-    - script: git status
-      displayName: Check MacOS ML.NET Git branch 1
-    - script: git diff
-      displayName: Check MacOS ML.NET Git branch 2
-    - script: git branch
-      displayName: Check MacOS ML.NET Git branch 3
-    - script: git remote -v
-      displayName: Check MacOS ML.NET Git branch 4
+    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
+      - script: |
+          brew uninstall openssl@1.0.2t |
+          brew uninstall python@2.7.17 |
+          brew untap local/openssl |
+          brew untap local/python2 |
+          brew cask install xquartz |
+          brew update |
+          brew upgrade |
+          brew install ace boost cmake eigen gsl ipopt jpeg libedit opencv pkg-config qt5 sqlite swig tinyxml
+        displayName: MacOS-Homebrew bug Workaround
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew unlink python@2 && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
