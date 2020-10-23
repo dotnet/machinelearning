@@ -58,7 +58,7 @@ jobs:
           brew cask install xquartz |
           brew update |
           brew upgrade |
-          brew install ace boost cmake eigen gsl ipopt jpeg libedit opencv pkg-config qt5 sqlite swig tinyxml
+          brew install ace boost cmake eigen gsl ipopt jpeg libedit opencv pkg-config qt5 sqlite swig tinyxml python@2
         displayName: MacOS-Homebrew bug Workaround
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew unlink python@2 && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
