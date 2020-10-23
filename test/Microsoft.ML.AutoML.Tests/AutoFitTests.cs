@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
-using Microsoft.ML.Trainers.LightGbm;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -247,7 +248,6 @@ namespace Microsoft.ML.AutoML.Test
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
             Assert.True(experimentResult.RunDetails.Count() > 1);
             Assert.NotNull(bestRun.ValidationMetrics);
-            System.Console.WriteLine("Number of models run successfully/total-tried: {0}", experimentResult.RunDetails.Select(r => r.ValidationMetrics != null && r.ValidationMetrics.RSquared != double.NaN).Count(), experimentResult.RunDetails.Count());
             Assert.True(experimentResult.RunDetails.Max(i => i?.ValidationMetrics?.RSquared) != 0);
 
             var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
@@ -336,7 +336,20 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto()
                 .CreateBinaryClassificationExperiment(5)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
-            Assert.True((context.Model.GetEnvironment() as ICancelable).IsCanceled);
+            RunDetail<BinaryClassificationMetrics>[] runDetails = experiment.RunDetails.Where(r => r.Model != null).ToArray();
+            foreach(RunDetail<BinaryClassificationMetrics> runDetail in runDetails)
+			{
+                ModelContainer modelContainer = GetInstanceField(typeof(RunDetail<BinaryClassificationMetrics>), runDetail, "_modelContainer") as ModelContainer;
+                MLContext thisContext = GetInstanceField(typeof(ModelContainer), modelContainer, "_mlContext") as MLContext;
+                Assert.True((thisContext.Model.GetEnvironment() as ICancelable).IsCanceled);
+            }
+        }
+
+        private static object GetInstanceField(Type type, object instance, string fieldName)
+        {
+            BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            FieldInfo field = type.GetField(fieldName, bindFlags);
+            return field.GetValue(instance);
         }
 
         private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)

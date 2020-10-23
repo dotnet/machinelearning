@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Timers;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
@@ -26,7 +27,8 @@ namespace Microsoft.ML.AutoML
         private readonly IRunner<TRunDetail> _runner;
         private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly IChannel _logger;
-        private bool _endExperimentWhenAble;
+        private bool _experimentTimerExpired;
+        private HashSet<MLContext> _activeMLContexts;
 
         public Experiment(MLContext context,
             TaskKind task,
@@ -51,20 +53,23 @@ namespace Microsoft.ML.AutoML
             _datasetColumnInfo = datasetColumnInfo;
             _runner = runner;
             _logger = logger;
-            _endExperimentWhenAble = false;
+            _experimentTimerExpired = false;
+            _activeMLContexts = new HashSet<MLContext>();
         }
 
         private void MaxExperimentTimeExpiredEvent(object sender, EventArgs e)
         {
             // If at least one model was run, end experiment immediately.
             // Else, wait for first model to run before experiment is concluded.
-            _endExperimentWhenAble = true;
+            _experimentTimerExpired = true;
             if (_history.Any(r => r.RunSucceeded))
             {
                 _logger.Warning("Allocated time for Experiment of {0} seconds has elapsed with {1} models run. Ending experiment...",
                     _experimentSettings.MaxExperimentTimeInSeconds, _history.Count());
-                _context.CancelExecution();
+                foreach(MLContext c in _activeMLContexts)
+                    c.CancelExecution();
             }
+            _activeMLContexts.Clear();
         }
 
         public IList<TRunDetail> Execute()
@@ -85,7 +90,7 @@ namespace Microsoft.ML.AutoML
             // _experimentSettings.MaxExperimentTimeInSeconds is of type uint, it is
             // either 0 or >0.
             else
-                _endExperimentWhenAble = true;
+                _experimentTimerExpired = true;
 
             do
             {
@@ -93,7 +98,13 @@ namespace Microsoft.ML.AutoML
 
                 // get next pipeline
                 var getPipelineStopwatch = Stopwatch.StartNew();
-                var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task,
+
+                // A new MLContext is needed per model run. When max experiment time is reached, each used
+                // context is canceled to stop further model training. The cancellation of the main MLContext
+                // a user has instantiated is not desirable, thus additional MLContexts are used.
+                var activeMLContext = new MLContext(((ISeededEnvironment)_context.Model.GetEnvironment()).Seed);
+                _activeMLContexts.Add(activeMLContext);
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(activeMLContext, _history, _datasetColumnInfo, _task,
                     _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerAllowList);
 
                 var pipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
@@ -132,8 +143,7 @@ namespace Microsoft.ML.AutoML
 
             } while (_history.Count < _experimentSettings.MaxModels &&
                     !_experimentSettings.CancellationToken.IsCancellationRequested &&
-                    !_endExperimentWhenAble);
-
+                    !_experimentTimerExpired);
             return iterationResults;
         }
 
