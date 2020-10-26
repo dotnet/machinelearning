@@ -28,7 +28,7 @@ namespace Microsoft.ML.AutoML
         private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly IChannel _logger;
         private bool _experimentTimerExpired;
-        private HashSet<MLContext> _activeMLContexts;
+        private MLContext _currentModelMLContext;
 
         public Experiment(MLContext context,
             TaskKind task,
@@ -54,7 +54,6 @@ namespace Microsoft.ML.AutoML
             _runner = runner;
             _logger = logger;
             _experimentTimerExpired = false;
-            _activeMLContexts = new HashSet<MLContext>();
         }
 
         private void MaxExperimentTimeExpiredEvent(object sender, EventArgs e)
@@ -66,10 +65,8 @@ namespace Microsoft.ML.AutoML
             {
                 _logger.Warning("Allocated time for Experiment of {0} seconds has elapsed with {1} models run. Ending experiment...",
                     _experimentSettings.MaxExperimentTimeInSeconds, _history.Count());
-                foreach(MLContext c in _activeMLContexts)
-                    c.CancelExecution();
+                _currentModelMLContext.CancelExecution();
             }
-            _activeMLContexts.Clear();
         }
 
         public IList<TRunDetail> Execute()
@@ -102,12 +99,9 @@ namespace Microsoft.ML.AutoML
                 // A new MLContext is needed per model run. When max experiment time is reached, each used
                 // context is canceled to stop further model training. The cancellation of the main MLContext
                 // a user has instantiated is not desirable, thus additional MLContexts are used.
-                var activeMLContext = new MLContext(((ISeededEnvironment)_context.Model.GetEnvironment()).Seed);
-                _activeMLContexts.Add(activeMLContext);
-                var pipeline = PipelineSuggester.GetNextInferredPipeline(activeMLContext, _history, _datasetColumnInfo, _task,
+                _currentModelMLContext = new MLContext(((ISeededEnvironment)_context.Model.GetEnvironment()).Seed);
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(_currentModelMLContext, _history, _datasetColumnInfo, _task,
                     _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerAllowList);
-
-                var pipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
 
                 // break if no candidates returned, means no valid pipeline available
                 if (pipeline == null)

@@ -248,7 +248,7 @@ namespace Microsoft.ML.AutoML.Test
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
             Assert.True(experimentResult.RunDetails.Count() > 1);
             Assert.NotNull(bestRun.ValidationMetrics);
-            Assert.True(experimentResult.RunDetails.Max(i => i?.ValidationMetrics?.RSquared) != 0);
+            Assert.True(experimentResult.RunDetails.Max(i => i?.ValidationMetrics?.RSquared* i?.ValidationMetrics?.RSquared) > 0.5);
 
             var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
             var expectedOutputNames = new string[] { labelColumnName, userColumnName, userColumnName, itemColumnName, itemColumnName, scoreColumnName };
@@ -325,7 +325,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AutoFitMaxExperimentTimeTest()
 		{
-            // 1 Binary classification experiment takes less than 5 seconds.
+            // A single binary classification experiment takes less than 5 seconds.
             // System.OperationCanceledException is thrown when ongoing experiment
             // is canceled and at least one model has been generated.
             var context = new MLContext(1);
@@ -334,22 +334,19 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var experiment = context.Auto()
-                .CreateBinaryClassificationExperiment(5)
+                .CreateBinaryClassificationExperiment(10)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
-            RunDetail<BinaryClassificationMetrics>[] runDetails = experiment.RunDetails.Where(r => r.Model != null).ToArray();
-            foreach(RunDetail<BinaryClassificationMetrics> runDetail in runDetails)
-			{
-                ModelContainer modelContainer = GetInstanceField(typeof(RunDetail<BinaryClassificationMetrics>), runDetail, "_modelContainer") as ModelContainer;
-                MLContext thisContext = GetInstanceField(typeof(ModelContainer), modelContainer, "_mlContext") as MLContext;
-                Assert.True((thisContext.Model.GetEnvironment() as ICancelable).IsCanceled);
-            }
-        }
 
-        private static object GetInstanceField(Type type, object instance, string fieldName)
-        {
-            BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            FieldInfo field = type.GetField(fieldName, bindFlags);
-            return field.GetValue(instance);
+            // Ensure the (last) model that was training when maximum experiment time was reached has been stopped,
+            // and that its MLContext has been canceled.
+            Assert.True(experiment.RunDetails.Last().Exception.Message == "Operation was canceled.",
+                        "Training process was not successfully canceled after maximum experiment time was reached.");
+
+            // Ensure that the best found model can still run after maximum experiment time was reached.
+            var refitModel = experiment.BestRun.Estimator.Fit(trainData);
+            IDataView predictions = refitModel.Transform(trainData);
+            var metrics = context.BinaryClassification.Evaluate(predictions, labelColumnName: DatasetUtil.UciAdultLabel);
+            Assert.True(metrics?.Accuracy > 0.5);
         }
 
         private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)
