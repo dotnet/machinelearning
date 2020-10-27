@@ -1,21 +1,14 @@
 <Project>
-  <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <NoBuild>true</NoBuild>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IncludeSymbols>false</IncludeSymbols>
-
-    <IsSymbolsPackage Condition="$(MSBuildProjectName.Contains('.symbols'))">true</IsSymbolsPackage>
+    <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IsSymbolsPackage Condition="$(MSBuildProjectName.Contains('.snupkg'))">true</IsSymbolsPackage>
     <PackageIdFolderName>$(MSBuildProjectName.Replace('.symbols', ''))</PackageIdFolderName>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <IsPackable>true</IsPackable>
 
-    <!--
-    Our .nupkgproj files have conflicting names with src projects, which puts their intermediate
-    output in the same folder (like project.assets.json). Override the intermediate output to
-    make it unique for the .nupkgprojs.
-    -->
-    <IntermediateOutputPath>$(IntermediateOutputRootPath)$(MSBuildProjectName).NupkgProj\</IntermediateOutputPath>
-    <BaseIntermediateOutputPath>$(IntermediateOutputPath)</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <!-- nuspec properties -->
@@ -27,13 +20,19 @@
     <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
     <!-- space separated -->
     <PackageTags>ML.NET ML Machine Learning</PackageTags>
+
+    <LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
+		<LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
+		<LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\lib\**\*" Pack="true" PackagePath="lib" />
-    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\analyzers\**\*" Pack="true" PackagePath="analyzers" />
-    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\**\*" Pack="true" PackagePath="runtimes" />
-    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\*" Pack="true" PackagePath="tools" />
+
+    <!-- Create symbol packages correctly by copying the library and xml to the nuget. Then the pdb is auto put in the symbols package-->
+    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\lib\**\*" PackagePath="lib" />
+    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\analyzers\**\*" PackagePath="analyzers" />
+    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\**\*" PackagePath="runtimes" />
+    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\*" PackagePath="tools" />
 
     <Content Include="$(RepoRoot)\pkg\mlnetlogo.png" Pack="true" PackagePath="" />
   </ItemGroup>
@@ -43,12 +42,32 @@
     <Content Include="$(RepoRoot)\LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
+  <!--  This check does not work corectly anymore and also removes the PDB from the symbols packages.
+        Need to figure out the correct way to do this, but since the normal packages are building correctly
+        I am leaving this as is for now. -->
   <ItemGroup Condition="'$(IsSymbolsPackage)' != 'true'">
     <Content Remove="$(PackageAssetsPath)$(PackageIdFolderName)\**\*.pdb" />
     <Content Remove="$(PackageAssetsPath)$(PackageIdFolderName)\**\*.dwarf" />
     <Content Remove="$(PackageAssetsPath)$(PackageIdFolderName)\**\*.dbg" />
   </ItemGroup>
-  
+
+  <ItemGroup Condition="Exists('packages.config') OR
+                        Exists('$(MSBuildProjectName).packages.config') OR
+                        Exists('packages.$(MSBuildProjectName).config')">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x64\native\*.dll"
+             Condition="'$(PlatformTarget)' == 'x64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x86\native\*.dll"
+             Condition="'$(PlatformTarget)' == 'x86'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
   <!-- Work around https://github.com/NuGet/Home/issues/6091 -->
   <ItemDefinitionGroup>
     <PackageReference>

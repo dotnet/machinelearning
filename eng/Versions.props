@@ -4,8 +4,7 @@
     <!-- This repo version -->
     <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
     <VersionPrefix>1.5.3</VersionPrefix>
-    <PreReleaseVersionLabel></PreReleaseVersionLabel>
-    <SemanticVersioningV1>true</SemanticVersioningV1>
+    <PreReleaseVersionLabel>dev</PreReleaseVersionLabel>
 
     <!--ML.NET Core dependencies-->
     <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>

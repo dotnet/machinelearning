@@ -29,9 +29,6 @@
 		</NativeAssemblyReference>
 		</ItemGroup>
 
-		<Message Importance="High" Text="$(NativeAssemblyReference)"/>
-		<Message Importance="high" Text="here"/>
-
 		<Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
 			DestinationFolder="$(OutDir)"
 			OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
