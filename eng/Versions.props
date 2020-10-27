@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <!-- This repo version -->
-    <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
+    <DotNetUseShippingVersions>false</DotNetUseShippingVersions>
     <VersionPrefix>1.5.3</VersionPrefix>
     <PreReleaseVersionLabel>dev</PreReleaseVersionLabel>
 
