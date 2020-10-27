@@ -68,7 +68,7 @@ namespace Microsoft.ML.Functional.Tests
                 {
                     // The only line in the file is the version of the model.
                     var line = reader.ReadLine();
-                    Assert.Matches(new Regex(@"(\d+)\.(\d+)\.(\d+)-(dev|ci)\.(\d+)\.(\d+)\+[0-9a-f]+"), line);
+                    Assert.Matches(new Regex(@"(\d+)\.(\d+)\.(\d+)(-[dev|ci|preview\.(\d+)\.(\d+)\.(\d+)]){0,1}"), line);
                 }
             }
         }

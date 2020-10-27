@@ -1110,11 +1110,11 @@ namespace Microsoft.ML.Runtime
         /// </remarks>
         private static bool CanContainExtensions(Assembly assembly)
         {
-            if (assembly.FullName.StartsWith("Microsoft.ML.", StringComparison.Ordinal)
-                && HasMLNetPublicKey(assembly))
-            {
-                return false;
-            }
+            //if (assembly.FullName.StartsWith("Microsoft.ML.", StringComparison.Ordinal)
+            //    && HasMLNetPublicKey(assembly))
+            //{
+            //    return false;
+            //}
 
             return true;
         }
