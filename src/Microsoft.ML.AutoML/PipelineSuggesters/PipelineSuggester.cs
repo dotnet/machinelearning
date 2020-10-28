@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
@@ -204,10 +205,13 @@ namespace Microsoft.ML.AutoML
                     });
 
                 IEnumerable<SuggestedPipelineRunDetail> historyToUse = history
-                    .Where(r => r.RunSucceeded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null && r.Pipeline.Trainer.HyperParamSet.Any());
+                    .Where(r => r.RunSucceeded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName &&
+                                r.Pipeline.Trainer.HyperParamSet != null &&
+                                r.Pipeline.Trainer.HyperParamSet.Any() &&
+                                FloatUtils.IsFinite(r.Score));
 
                 // get new set of hyperparameter values
-                var proposedParamSet = sweeper.ProposeSweeps(1, historyToUse.Select(h => h.ToRunResult(isMaximizingMetric))).First();
+                var proposedParamSet = sweeper.ProposeSweeps(1, historyToUse.Select(h => h.ToRunResult(isMaximizingMetric))).FirstOrDefault();
                 if (!proposedParamSet.Any())
                 {
                     return false;
@@ -222,7 +226,7 @@ namespace Microsoft.ML.AutoML
             catch (Exception ex)
             {
                 logger.Error($"SampleHyperparameters failed with exception: {ex}");
-                return false;
+                throw;
             }
         }
     }
