@@ -636,22 +636,9 @@ namespace Microsoft.ML.Sweeper.RunTests
             Assert.True(sweeps == null || sweeps.Length <= 5);
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void TestSmacSweeper(bool foreignCulture)
+        [Fact]
+        public void TestSmacSweeper()
         {
-            var originalCulture = Thread.CurrentThread.CurrentCulture;
-
-            if (foreignCulture)
-            {
-                // Run this test using Russian culture info, so to test
-                // the Sweeper ability to correctly handle hyperparameters
-                // represented with a decimal separator of comma instead of
-                // period.
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU");
-            }
-
             var random = new Random(42);
             var env = new MLContext(42);
             const int maxInitSweeps = 5;
@@ -699,10 +686,6 @@ namespace Microsoft.ML.Sweeper.RunTests
             }
             // Because only unique configurations are considered, the number asked for may exceed the number actually returned.
             Assert.True(sweeps.Length <= 5);
-
-            //CultureInfo.DefaultThreadCurrentCulture = idk;
-            if(foreignCulture)
-                Thread.CurrentThread.CurrentCulture = originalCulture;
         }
     }
 }
