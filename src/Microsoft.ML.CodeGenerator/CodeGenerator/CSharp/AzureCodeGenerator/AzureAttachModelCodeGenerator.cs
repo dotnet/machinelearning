@@ -25,12 +25,13 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
         private readonly string _nameSpaceValue;
 
         public ICSharpFile ModelInputClass { get; private set; }
-        public ICSharpFile ModelOutputClass { get; private set; }
-        public ICSharpFile NormalizeMapping { get; private set; }
+        public ICSharpFile AzureImageModelOutputClass { get; private set; }
+        public ICSharpFile AzureObjectDetectionModelOutputClass { get; private set; }
         public ICSharpFile ModelProject { get; private set; }
         public ICSharpFile ConsumeModel { get; private set; }
         public ICSharpFile LabelMapping { get; private set; }
         public ICSharpFile ImageLabelMapping { get; private set; }
+        public ICSharpFile ObjectDetectionConsumeModel { get; private set; }
         public string Name { get; set; }
 
         public AzureAttachModelCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
@@ -55,26 +56,26 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             var labelType = _columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == _settings.LabelName).First().DataKind;
             Type labelTypeCsharp = Utils.GetCSharpType(labelType);
 
-            ModelOutputClass = new CSharpCodeFile()
+            AzureImageModelOutputClass = new CSharpCodeFile()
             {
-                File = new ModelOutputClass()
+                File = new AzureImageModelOutputClass()
                 {
                     Namespace = _nameSpaceValue,
                     Target = _settings.Target,
-                    TaskType = _settings.MlTask.ToString(),
-                    PredictionLabelType = labelTypeCsharp.Name,
+                    Labels = _settings.ClassificationLabel,
                 }.TransformText(),
                 Name = "ModelOutput.cs",
             };
 
-            NormalizeMapping = new CSharpCodeFile()
+            AzureObjectDetectionModelOutputClass = new CSharpCodeFile()
             {
-                File = new NormalizeMapping()
+                File = new AzureObjectDetectionModelOutputClass()
                 {
-                    Target = _settings.Target,
                     Namespace = _nameSpaceValue,
+                    Target = _settings.Target,
+                    Labels = _settings.ObjectLabel,
                 }.TransformText(),
-                Name = "NormalizeMapping.cs",
+                Name = "ModelOutput.cs",
             };
 
             ModelProject = new CSharpProjectFile()
@@ -87,36 +88,14 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     IncludeLightGBMPackage = false,
                     IncludeMklComponentsPackage = false,
                     IncludeOnnxModel = true,
+                    IncludeOnnxRuntime = _settings.IsObjectDetection,
                     IncludeRecommenderPackage = false,
                     StablePackageVersion = _settings.StablePackageVersion,
                     UnstablePackageVersion = _settings.UnstablePackageVersion,
+                    OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
                     Target = _settings.Target,
                 }.TransformText(),
                 Name = $"{ _settings.OutputName }.Model.csproj",
-            };
-
-            LabelMapping = new CSharpCodeFile()
-            {
-                File = new LabelMapping()
-                {
-                    Target = _settings.Target,
-                    Namespace = _nameSpaceValue,
-                    LabelMappingInputLabelType = typeof(Int64).Name,
-                    PredictionLabelType = labelTypeCsharp.Name,
-                    TaskType = _settings.MlTask.ToString(),
-                }.TransformText(),
-                Name = "LabelMapping.cs",
-            };
-
-            ImageLabelMapping = new CSharpCodeFile()
-            {
-                File = new ImageLabelMapping()
-                {
-                    Target = _settings.Target,
-                    Namespace = _nameSpaceValue,
-                    Labels = _settings.ClassificationLabel,
-                }.TransformText(),
-                Name = "LabelMapping.cs",
             };
 
             ConsumeModel = new CSharpCodeFile()
@@ -125,9 +104,10 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 {
                     Namespace = _nameSpaceValue,
                     Target = _settings.Target,
-                    HasLabelMapping = true,
-                    HasNormalizeMapping = _settings.IsImage,
-                    MLNetModelpath = _settings.ModelPath,
+                    MLNetModelName = _settings.ModelName,
+                    OnnxModelName = _settings.OnnxModelName,
+                    IsAzureImage = _settings.IsAzureAttach && _settings.IsImage,
+                    IsAzureObjectDetection = _settings.IsObjectDetection && _settings.IsAzureAttach,
                 }.TransformText(),
                 Name = "ConsumeModel.cs",
             };
@@ -141,11 +121,18 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 project = new CSharpProject()
                 {
                     ModelInputClass,
-                    ModelOutputClass,
+                    AzureImageModelOutputClass,
                     ConsumeModel,
                     ModelProject,
-                    NormalizeMapping,
-                    ImageLabelMapping,
+                };
+            } else if(_settings.IsObjectDetection)
+            {
+                project = new CSharpProject()
+                {
+                    ModelInputClass,
+                    AzureObjectDetectionModelOutputClass,
+                    ConsumeModel,
+                    ModelProject,
                 };
             }
             else
@@ -153,10 +140,9 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 project = new CSharpProject()
                 {
                     ModelInputClass,
-                    ModelOutputClass,
+                    AzureImageModelOutputClass,
                     ConsumeModel,
                     ModelProject,
-                    LabelMapping,
                 };
             }
             project.Name = Name;

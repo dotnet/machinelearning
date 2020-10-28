@@ -23,6 +23,11 @@ namespace Microsoft.ML.Internal.Utilities
             // a number and its decimal part). If this isn't set, then
             // default behavior is to use "." as decimal marker.
             UseCommaAsDecimalMarker = 0x01,
+
+            // If this flag is set, then empty spans (or those with only white-space)
+            // will be parsed as NaN. If it isn't set, then default behavior
+            // is to return them as 0.
+            EmptyAsNaN = 0x02,
         }
 
         private const ulong TopBit = 0x8000000000000000UL;
@@ -81,22 +86,22 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <summary>
-        /// This produces zero for an empty string.
+        /// This produces zero for an empty string, or NaN depending on the <see cref="DoubleParser.OptionFlags.EmptyAsNaN"/> used.
         /// </summary>
         public static bool TryParse(ReadOnlySpan<char> span, out Single value, OptionFlags flags = OptionFlags.Default)
         {
             var res = Parse(span, out value, flags);
-            Contracts.Assert(res != Result.Empty || value == 0);
+            Contracts.Assert(res != Result.Empty || ((flags & OptionFlags.EmptyAsNaN) == 0 && value == 0) || Single.IsNaN(value));
             return res <= Result.Empty;
         }
 
         /// <summary>
-        /// This produces zero for an empty string.
+        /// This produces zero for an empty string, or NaN depending on the <see cref="DoubleParser.OptionFlags.EmptyAsNaN"/> used.
         /// </summary>
         public static bool TryParse(ReadOnlySpan<char> span, out Double value, OptionFlags flags = OptionFlags.Default)
         {
             var res = Parse(span, out value, flags);
-            Contracts.Assert(res != Result.Empty || value == 0);
+            Contracts.Assert(res != Result.Empty || ((flags & OptionFlags.EmptyAsNaN) == 0 && value == 0) || Double.IsNaN(value));
             return res <= Result.Empty;
         }
 
@@ -107,7 +112,11 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 if (ich >= span.Length)
                 {
-                    value = 0;
+                    if ((flags & OptionFlags.EmptyAsNaN) == 0)
+                        value = 0;
+                    else
+                        value = Single.NaN;
+
                     return Result.Empty;
                 }
                 if (!char.IsWhiteSpace(span[ich]))
@@ -155,7 +164,11 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 if (ich >= span.Length)
                 {
-                    value = 0;
+                    if ((flags & OptionFlags.EmptyAsNaN) == 0)
+                        value = 0;
+                    else
+                        value = Double.NaN;
+
                     return Result.Empty;
                 }
                 if (!char.IsWhiteSpace(span[ich]))

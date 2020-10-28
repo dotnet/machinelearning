@@ -156,6 +156,11 @@ namespace Microsoft.ML.Trainers.LightGbm
                 NameMapping.Add(nameof(EvaluateMetricType.NormalizedDiscountedCumulativeGain), "ndcg");
             }
 
+            public Options()
+            {
+                RowGroupColumnName = DefaultColumnNames.GroupId; // Use GroupId as default for ranking options.
+            }
+
             internal override Dictionary<string, object> ToDictionary(IHost host)
             {
                 var res = base.ToDictionary(host);
@@ -179,7 +184,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="rowGroupdColumnName">The name of the column containing the group ID. </param>
+        /// <param name="rowGroupIdColumnName">The name of the column containing the group ID. </param>
         /// <param name="weightsColumnName">The name of the optional column containing the initial weights.</param>
         /// <param name="numberOfLeaves">The number of leaves to use.</param>
         /// <param name="learningRate">The learning rate.</param>
@@ -188,7 +193,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal LightGbmRankingTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
-            string rowGroupdColumnName = DefaultColumnNames.GroupId,
+            string rowGroupIdColumnName = DefaultColumnNames.GroupId,
             string weightsColumnName = null,
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
@@ -200,14 +205,14 @@ namespace Microsoft.ML.Trainers.LightGbm
                       LabelColumnName = labelColumnName,
                       FeatureColumnName = featureColumnName,
                       ExampleWeightColumnName = weightsColumnName,
-                      RowGroupColumnName = rowGroupdColumnName,
+                      RowGroupColumnName = rowGroupIdColumnName,
                       NumberOfLeaves = numberOfLeaves,
                       MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
                       LearningRate = learningRate,
                       NumberOfIterations = numberOfIterations
                   })
         {
-            Host.CheckNonEmpty(rowGroupdColumnName, nameof(rowGroupdColumnName));
+            Host.CheckNonEmpty(rowGroupIdColumnName, nameof(rowGroupIdColumnName));
         }
 
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)

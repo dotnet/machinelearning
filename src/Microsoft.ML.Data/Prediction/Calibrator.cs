@@ -837,8 +837,9 @@ namespace Microsoft.ML.Calibrators
     [BestFriend]
     internal static class CalibratorUtils
     {
-        // maximum number of rows passed to the calibrator.
-        private const int _maxCalibrationExamples = 1000000;
+        // Maximum number of rows to process when training the Calibrator.
+        // If 0, we'll actually process the whole dataset.
+        private const int _maxCalibrationExamples = 0;
 
         private static bool NeedCalibration(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
             ITrainer trainer, IPredictor predictor, RoleMappedSchema schema)
@@ -988,6 +989,10 @@ namespace Microsoft.ML.Calibrators
                     caliTrainer.ProcessTrainingExample(score, label > 0, weight);
 
                     if (maxRows > 0 && ++num >= maxRows)
+                        // If maxRows was 0, we'll process all of the rows in the dataset
+                        // Notice that depending on the calibrator, "processing" might mean
+                        // randomly choosing some of the "processed" rows
+                        // to actually train the calibrator.
                         break;
                 }
             }
@@ -1158,7 +1163,7 @@ namespace Microsoft.ML.Calibrators
     /// <summary>
     /// The naive binning-based calibrator.
     /// </summary>
-    public sealed class NaiveCalibrator : ICalibrator, ICanSaveInBinaryFormat
+    public sealed class NaiveCalibrator : ICalibrator, ICanSaveInBinaryFormat, ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "NaiveCaliExec";
         internal const string RegistrationName = "NaiveCalibrator";
@@ -1173,6 +1178,12 @@ namespace Microsoft.ML.Calibrators
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(NaiveCalibrator).Assembly.FullName);
         }
+
+        /// <summary>
+        /// Bool required by the interface ISingleCanSaveOnnx, returns true if
+        /// and only if calibrator can be exported in ONNX.
+        /// </summary>
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         private readonly IHost _host;
 
@@ -1280,6 +1291,45 @@ namespace Microsoft.ML.Calibrators
             return binIdx;
         }
 
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            _host.CheckValue(ctx, nameof(ctx));
+            _host.CheckValue(outputNames, nameof(outputNames));
+            _host.Check(Utils.Size(outputNames) == 2);
+            // outputNames[0] refers to the name of the Score column, which is the input of this graph
+            // outputNames[1] refers to the name of the Probability column, which is the final output of this graph
+
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "NaiveCalibrator");
+
+            string opType = "Sub";
+            var minVar = ctx.AddInitializer(Min, "Min");
+            var subNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "subNodeOutput");
+            var node = ctx.CreateNode(opType, new[] { outputNames[0], minVar }, new[] { subNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Div";
+            var binSizeVar = ctx.AddInitializer(BinSize, "BinSize");
+            var divNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "binIndexOutput");
+            node = ctx.CreateNode(opType, new[] { subNodeOutput, binSizeVar }, new[] { divNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Cast";
+            var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "castOutput");
+            node = ctx.CreateNode(opType, divNodeOutput, castOutput, ctx.GetNodeName(opType), "");
+            var toTypeInt = typeof(long);
+            node.AddAttribute("to", toTypeInt);
+
+            opType = "Clip";
+            var zeroVar = ctx.AddInitializer(0, "Zero");
+            var numBinsMinusOneVar = ctx.AddInitializer(_binProbs.Length-1, "NumBinsMinusOne");
+            var binIndexOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "binIndexOutput");
+            node = ctx.CreateNode(opType, new[] { castOutput, zeroVar, numBinsMinusOneVar }, new[] { binIndexOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "GatherElements";
+            var binProbabilitiesVar = ctx.AddInitializer(_binProbs, new long[] { _binProbs.Length, 1 }, "BinProbabilities");
+            node = ctx.CreateNode(opType, new[] { binProbabilitiesVar, binIndexOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
+
+            return true;
+        }
     }
 
     /// <summary>
@@ -1744,6 +1794,9 @@ namespace Microsoft.ML.Calibrators
             _host.CheckValue(ctx, nameof(ctx));
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));
             _host.Check(Utils.Size(scoreProbablityColumnNames) == 2);
+
+            const int minimumOpSetVersion = 9;
+            ctx.CheckOpSetVersion(minimumOpSetVersion, "PlattCalibrator");
 
             // The Affine operator is no longer supported in the v11 opset.
             // So we have to decompose it using Mul and Add

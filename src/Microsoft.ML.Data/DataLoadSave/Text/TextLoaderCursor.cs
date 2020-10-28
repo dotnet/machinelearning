@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -318,9 +319,11 @@ namespace Microsoft.ML.Data
                 Ch.CheckParam(column.Index < _getters.Length, nameof(column), "requested column not valid.");
                 Ch.Check(IsColumnActive(column));
 
-                var fn = _getters[column.Index] as ValueGetter<TValue>;
+                var originFn = _getters[column.Index];
+                var fn = originFn as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}', " +
+                        $"expected type: '{originFn.GetType().GetGenericArguments().First()}'.");
                 return fn;
             }
 
@@ -823,7 +826,7 @@ namespace Microsoft.ML.Data
                     foreach (var batch in state.GetBatches())
                     {
                         // If the collation of rows happened correctly, this should have a precise value.
-                        Contracts.Assert(batch.Total == _total + 1);
+                        Contracts.Assert(batch.Total == _total + 1, $"batch.Total:{batch.Total} while _total + 1:{_total + 1}.");
                         _total = batch.Total - 1;
                         for (int irow = batch.IrowMin; irow < batch.IrowLim; irow++)
                         {

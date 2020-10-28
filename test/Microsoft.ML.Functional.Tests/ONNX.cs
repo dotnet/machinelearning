@@ -16,6 +16,11 @@ namespace Microsoft.ML.Functional.Tests
 {
     public class ONNX : FunctionalTestBaseClass
     {
+        // These two members are meant to be changed
+        // Only when manually testing the Onnx GPU nuggets
+        private const bool _fallbackToCpu = true;
+        private static int? _gpuDeviceId = null;
+
         public ONNX(ITestOutputHelper output) : base(output)
         {
         }
@@ -52,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests
             // Therefore the VectorScoreColumn class (which contains a float [] field called Score) is used for the return
             // type on the Prediction engine.
             // See #2980 and #2981 for more information.
-            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath);
+            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxModel = onnxEstimator.Fit(data);
 
             // Create prediction engine and test predictions.
@@ -66,7 +71,7 @@ namespace Microsoft.ML.Functional.Tests
                 var originalPrediction = originalPredictionEngine.Predict(row);
                 var onnxPrediction = onnxPredictionEngine.Predict(row);
                 // Check that the predictions are identical.
-                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); // Note the low-precision equality!
+                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4);
             }
         }
 
@@ -98,7 +103,7 @@ namespace Microsoft.ML.Functional.Tests
                 mlContext.Model.ConvertToOnnx(model, data, file);
 
             // Load the model as a transform.
-            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath);
+            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxModel = onnxEstimator.Fit(data);
 
             // TODO #2980: ONNX outputs don't match the outputs of the model, so we must hand-correct this for now.
@@ -118,7 +123,7 @@ namespace Microsoft.ML.Functional.Tests
                 var originalPrediction = originalPredictionEngine.Predict(row);
                 var onnxPrediction = onnxPredictionEngine.Predict(row);
                 // Check that the predictions are identical.
-                Common.AssertEqual(originalPrediction.Score, onnxPrediction.Score, precision: 4); // Note the low precision!
+                Common.AssertEqual(originalPrediction.Score, onnxPrediction.Score, precision: 4);
             }
         }
 
@@ -150,7 +155,7 @@ namespace Microsoft.ML.Functional.Tests
                 mlContext.Model.ConvertToOnnx(model, data, file);
 
             // Load the model as a transform.
-            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath);
+            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxModel = onnxEstimator.Fit(data);
 
             // Create prediction engine and test predictions.
@@ -165,7 +170,7 @@ namespace Microsoft.ML.Functional.Tests
                 var originalPrediction = originalPredictionEngine.Predict(row);
                 var onnxPrediction = onnxPredictionEngine.Predict(row);
                 // Check that the predictions are identical.
-                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); // Note the low-precision equality!
+                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); 
             }
         }
     }

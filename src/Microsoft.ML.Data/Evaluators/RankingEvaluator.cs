@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
         /// </value>
         public const string GroupSummary = "GroupSummary";
 
-        private const string GroupId = "GroupId";
+        private const string GroupId = DefaultColumnNames.GroupId;
 
         private readonly int _truncationLevel;
         private readonly bool _groupSummary;

@@ -9,6 +9,8 @@ namespace Microsoft.ML.AutoML
         BinaryClassification,
         MulticlassClassification,
         Regression,
-        Recommendation
+        Recommendation,
+        ObjectDetection,
+        Ranking
     }
 }

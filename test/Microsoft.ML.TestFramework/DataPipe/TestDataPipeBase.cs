@@ -147,6 +147,7 @@ namespace Microsoft.ML.RunTests
             // Schema verification between estimator and transformer.
             var scoredTrainSchemaShape = SchemaShape.Create(transformer.GetOutputSchema(validFitInput.Schema));
             CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
+            (loadedTransformer as IDisposable)?.Dispose();
         }
 
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
@@ -312,7 +313,7 @@ namespace Microsoft.ML.RunTests
 
             // Default to breast-cancer.txt.
             if (string.IsNullOrEmpty(pathData))
-                pathData = GetDataPath("breast-cancer.txt");
+                pathData = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
             files = new MultiFileSource(pathData == "<none>" ? null : pathData);
             var sub = new SubComponent<ILegacyDataLoader, SignatureDataLoader>("Pipe", argsPipe);

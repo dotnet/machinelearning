@@ -461,6 +461,9 @@ namespace Microsoft.ML.Trainers
             {
                 _eigenVectors[i] = new VBuffer<float>(eigenVectors[i].Length, eigenVectors[i]);
                 _meanProjected[i] = VectorUtils.DotProduct(in _eigenVectors[i], in mean);
+                Host.CheckParam(_eigenVectors[i].GetValues().All(FloatUtils.IsFinite),
+                    nameof(eigenVectors),
+                    "The learnt eigenvectors contained NaN values, consider modifying the dataset or lower the rank or oversampling parameters");
             }
 
             _mean = mean;

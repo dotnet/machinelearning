@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using Microsoft.ML;
 using TestNamespace.Model;
 
@@ -16,6 +17,8 @@ namespace TestNamespace.Model
     public class ConsumeModel
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
+
+        public static string MLNetModelPath = Path.GetFullPath("x:\models\model.zip");
 
         // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app
@@ -31,8 +34,7 @@ namespace TestNamespace.Model
             MLContext mlContext = new MLContext();
 
             // Load model & create prediction engine
-            string modelPath = @"x:\models\model.zip";
-            ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
+            ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
 
             return predEngine;

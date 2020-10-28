@@ -20,6 +20,7 @@ namespace Microsoft.ML.AutoML
         private readonly IMetricsAgent<TMetrics> _metricsAgent;
         private readonly IEstimator<ITransformer> _preFeaturizer;
         private readonly ITransformer[] _preprocessorTransforms;
+        private readonly string _groupIdColumn;
         private readonly string _labelColumn;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
         private readonly IChannel _logger;
@@ -31,6 +32,7 @@ namespace Microsoft.ML.AutoML
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
             ITransformer[] preprocessorTransforms,
+            string groupIdColumn,
             string labelColumn,
             OptimizingMetricInfo optimizingMetricInfo,
             IChannel logger)
@@ -41,6 +43,7 @@ namespace Microsoft.ML.AutoML
             _metricsAgent = metricsAgent;
             _preFeaturizer = preFeaturizer;
             _preprocessorTransforms = preprocessorTransforms;
+            _groupIdColumn = groupIdColumn;
             _labelColumn = labelColumn;
             _optimizingMetricInfo = optimizingMetricInfo;
             _logger = logger;
@@ -56,7 +59,7 @@ namespace Microsoft.ML.AutoML
             {
                 var modelFileInfo = RunnerUtil.GetModelFileInfo(modelDirectory, iterationNum, i + 1);
                 var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainDatasets[i], _validDatasets[i],
-                    _labelColumn, _metricsAgent, _preprocessorTransforms?.ElementAt(i), modelFileInfo, _modelInputSchema,
+                    _groupIdColumn, _labelColumn, _metricsAgent, _preprocessorTransforms?.ElementAt(i), modelFileInfo, _modelInputSchema,
                     _logger);
                 trainResults.Add(trainResult);
             }
@@ -141,7 +144,29 @@ namespace Microsoft.ML.AutoML
                 return result as TMetrics;
             }
 
+            if (typeof(TMetrics) == typeof(RankingMetrics))
+            {
+                var newMetrics = metrics.Select(x => x as RankingMetrics);
+                Contracts.Assert(newMetrics != null);
+
+                var result = new RankingMetrics(
+                    dcg: GetAverageOfNonNaNScoresInNestedEnumerable(newMetrics.Select(x => x.DiscountedCumulativeGains)),
+                    ndcg: GetAverageOfNonNaNScoresInNestedEnumerable(newMetrics.Select(x => x.NormalizedDiscountedCumulativeGains)));
+                return result as TMetrics;
+            }
+
             throw new NotImplementedException($"Metric {typeof(TMetrics)} not implemented");
+        }
+
+        private static double[] GetAverageOfNonNaNScoresInNestedEnumerable(IEnumerable<IEnumerable<double>> results)
+        {
+            double[] arr = new double[results.ElementAt(0).Count()];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                Contracts.Assert(arr.Length == results.ElementAt(i).Count());
+                arr[i] = GetAverageOfNonNaNScores(results.Select(x => x.ElementAt(i)));
+            }
+            return arr;
         }
 
         private static double GetAverageOfNonNaNScores(IEnumerable<double> results)
@@ -154,12 +179,23 @@ namespace Microsoft.ML.AutoML
             return newResults.Average(r => r);
         }
 
+        /// <summary>
+        /// return the index of value from <paramref name="values"/> that closest to <paramref name="average"/>. If <paramref name="average"/> is NaN, +/- inf, the first, max/min value's index will be return.
+        /// </summary>
         private static int GetIndexClosestToAverage(IEnumerable<double> values, double average)
         {
             // Average will be NaN iff all values are NaN.
             // Return the first index in this case.
             if (double.IsNaN(average))
                 return 0;
+
+            // Return the max value's index if average is positive inf.
+            if (double.IsPositiveInfinity(average))
+                return values.ToList().IndexOf(values.Max());
+
+            // Return the min value's index if average is negative inf.
+            if (double.IsNegativeInfinity(average))
+                return values.ToList().IndexOf(values.Min());
 
             int avgFoldIndex = -1;
             var smallestDistFromAvg = double.PositiveInfinity;

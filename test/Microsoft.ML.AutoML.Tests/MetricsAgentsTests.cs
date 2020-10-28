@@ -122,6 +122,42 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void RankingMetricsGetScoreTest()
+        {
+            double[] ndcg = { 0.2, 0.3, 0.4 };
+            double[] dcg = { 0.2, 0.3, 0.4 };
+            var metrics = MetricsUtil.CreateRankingMetrics(dcg, ndcg);
+            Assert.Equal(0.4, GetScore(metrics, RankingMetric.Dcg));
+            Assert.Equal(0.4, GetScore(metrics, RankingMetric.Ndcg));
+
+            double[] largeNdcg = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95 };
+            double[] largeDcg = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95 };
+            metrics = MetricsUtil.CreateRankingMetrics(largeDcg, largeNdcg);
+            Assert.Equal(0.9, GetScore(metrics, RankingMetric.Dcg));
+            Assert.Equal(0.9, GetScore(metrics, RankingMetric.Ndcg));
+        }
+
+        [Fact]
+        public void RankingMetricsNonPerfectTest()
+        {
+            double[] ndcg = { 0.2, 0.3, 0.4 };
+            double[] dcg = { 0.2, 0.3, 0.4 };
+            var metrics = MetricsUtil.CreateRankingMetrics(dcg, ndcg);
+            Assert.False(IsPerfectModel(metrics, RankingMetric.Dcg));
+            Assert.False(IsPerfectModel(metrics, RankingMetric.Ndcg));
+        }
+
+        [Fact]
+        public void RankingMetricsPerfectTest()
+        {
+            double[] ndcg = { 0.2, 0.3, 1 };
+            double[] dcg = { 0.2, 0.3, 1 };
+            var metrics = MetricsUtil.CreateRankingMetrics(dcg, ndcg);
+            Assert.False(IsPerfectModel(metrics, RankingMetric.Dcg)); //REVIEW: No true Perfect model
+            Assert.True(IsPerfectModel(metrics, RankingMetric.Ndcg));
+        }
+
+        [Fact]
         public void ThrowNotSupportedMetricException()
         {
             var ex = MetricsAgentUtil.BuildMetricNotSupportedException(BinaryClassificationMetric.Accuracy);
@@ -143,6 +179,11 @@ namespace Microsoft.ML.AutoML.Test
             return new RegressionMetricsAgent(null, metric).GetScore(metrics);
         }
 
+        private static double GetScore(RankingMetrics metrics, RankingMetric metric)
+        {
+            return new RankingMetricsAgent(null, metric).GetScore(metrics);
+        }
+
         private static bool IsPerfectModel(BinaryClassificationMetrics metrics, BinaryClassificationMetric metric)
         {
             var metricsAgent = new BinaryMetricsAgent(null, metric);
@@ -158,6 +199,12 @@ namespace Microsoft.ML.AutoML.Test
         private static bool IsPerfectModel(RegressionMetrics metrics, RegressionMetric metric)
         {
             var metricsAgent = new RegressionMetricsAgent(null, metric);
+            return IsPerfectModel(metricsAgent, metrics);
+        }
+
+        private static bool IsPerfectModel(RankingMetrics metrics, RankingMetric metric)
+        {
+            var metricsAgent = new RankingMetricsAgent(null, metric);
             return IsPerfectModel(metricsAgent, metrics);
         }
 

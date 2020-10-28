@@ -21,8 +21,8 @@ namespace <#= Namespace #>.ConsoleApp
     public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"<#= Path #>";
-        private static string MLNET_MODEL = @"<#= MLNetModelpath #>";
-		private static string ONNX_MODEL = @"<#= OnnxModelPath #>";
+        private static string MLNET_MODEL = ConsumeModel.MLNetModelPath;
+		private static string ONNX_MODEL = ConsumeModel.OnnxModelPath;
        
 	    // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.

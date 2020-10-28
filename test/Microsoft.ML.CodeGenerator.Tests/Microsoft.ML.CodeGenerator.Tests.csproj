@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="ApprovalTests" Version="3.0.19" />
+    <PackageReference Include="ApprovalTests" Version="5.2.4" />
   </ItemGroup>
 
   <ItemGroup>

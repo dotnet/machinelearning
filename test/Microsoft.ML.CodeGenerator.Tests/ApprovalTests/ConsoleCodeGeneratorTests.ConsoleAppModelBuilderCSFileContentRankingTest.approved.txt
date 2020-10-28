@@ -1,0 +1,129 @@
+﻿//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using TestNamespace.Model;
+
+namespace TestNamespace.ConsoleApp
+{
+    public static class ModelBuilder
+    {
+        private static string TRAIN_DATA_FILEPATH = @"x:\dummypath\dummy_train.csv";
+        private static string TEST_DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
+        private static string MODEL_FILE = ConsumeModel.MLNetModelPath;
+
+        // Create MLContext to be shared across the model creation workflow objects 
+        // Set a random seed for repeatable/deterministic results across multiple trainings.
+        private static MLContext mlContext = new MLContext(seed: 1);
+
+        public static void CreateModel()
+        {
+            // Load Data
+            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
+                                            path: TRAIN_DATA_FILEPATH,
+                                            hasHeader: true,
+                                            separatorChar: ',',
+                                            allowQuoting: true,
+                                            allowSparse: true);
+
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
+                                            path: TEST_DATA_FILEPATH,
+                                            hasHeader: true,
+                                            separatorChar: ',',
+                                            allowQuoting: true,
+                                            allowSparse: true);
+            // Build training pipeline
+            IEstimator<ITransformer> trainingPipeline = BuildTrainingPipeline(mlContext);
+
+            // Train Model
+            ITransformer mlModel = TrainModel(mlContext, trainingDataView, trainingPipeline);
+
+            // Evaluate quality of Model
+            EvaluateModel(mlContext, mlModel, testDataView);
+
+            // Save model
+            SaveModel(mlContext, mlModel, MODEL_FILE, trainingDataView.Schema);
+        }
+
+        public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
+        {
+            // Data process configuration with pipeline data transformations 
+            var dataProcessPipeline = mlContext.Transforms.Conversion.Hash("GroupId", "GroupId");
+            // Set the training algorithm 
+            var trainer = mlContext.Ranking.Trainers.LightGbm(rowGroupColumnName: "GroupId", labelColumnName: "Label", featureColumnName: "Features");
+
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
+
+            return trainingPipeline;
+        }
+
+        public static ITransformer TrainModel(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)
+        {
+            Console.WriteLine("=============== Training  model ===============");
+
+            ITransformer model = trainingPipeline.Fit(trainingDataView);
+
+            Console.WriteLine("=============== End of training process ===============");
+            return model;
+        }
+
+        private static void EvaluateModel(MLContext mlContext, ITransformer mlModel, IDataView testDataView)
+        {
+            // Evaluate the model and show accuracy stats
+            Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
+            IDataView predictions = mlModel.Transform(testDataView);
+            var metrics = mlContext.Ranking.Evaluate(predictions, "Label", "Score");
+            PrintRankingMetrics(metrics);
+        }
+
+        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
+        {
+            // Save/persist the trained model to a .ZIP file
+            Console.WriteLine($"=============== Saving the model  ===============");
+            mlContext.Model.Save(mlModel, modelInputSchema, GetAbsolutePath(modelRelativePath));
+            Console.WriteLine("The model is saved to {0}", GetAbsolutePath(modelRelativePath));
+        }
+
+        public static string GetAbsolutePath(string relativePath)
+        {
+            FileInfo _dataRoot = new FileInfo(typeof(Program).Assembly.Location);
+            string assemblyFolderPath = _dataRoot.Directory.FullName;
+
+            string fullPath = Path.Combine(assemblyFolderPath, relativePath);
+
+            return fullPath;
+        }
+
+        public static void PrintRankingMetrics(RankingMetrics metrics)
+        {
+            Console.WriteLine($"*************************************************");
+            Console.WriteLine($"*       Metrics for Ranking model      ");
+            var max = (metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? metrics.NormalizedDiscountedCumulativeGains.Count - 1 : 9;
+            Console.WriteLine($"*------------------------------------------------");
+            Console.WriteLine($"*       Normalized Discounted Cumulative Gains @10:        {metrics.NormalizedDiscountedCumulativeGains[max]:0.##}");
+            Console.WriteLine($"*       Discounted Cumulative Gains @10:      {metrics.DiscountedCumulativeGains[max]:#.##}");
+            Console.WriteLine($"*************************************************");
+        }
+
+        public static void PrintRankingFoldsAverageMetrics(IEnumerable<TrainCatalogBase.CrossValidationResult<RankingMetrics>> crossValidationResults)
+        {
+            var max = (crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count < 10) ? crossValidationResults.First().Metrics.NormalizedDiscountedCumulativeGains.Count - 1 : 9;
+            var NDCG = crossValidationResults.Select(r => r.Metrics.NormalizedDiscountedCumulativeGains[max]);
+            var DCG = crossValidationResults.Select(r => r.Metrics.DiscountedCumulativeGains[max]);
+            Console.WriteLine($"*************************************************************************************************************");
+            Console.WriteLine($"*       Metrics for Ranking model      ");
+            Console.WriteLine($"*------------------------------------------------------------------------------------------------------------");
+            Console.WriteLine($"*       Average Normalized Discounted Cumulative Gains @10:       {NDCG.Average():0.###}");
+            Console.WriteLine($"*       Average Discounted Cumulative Gains @10:       {DCG.Average():#.###}");
+            Console.WriteLine($"*************************************************************************************************************");
+        }
+    }
+}

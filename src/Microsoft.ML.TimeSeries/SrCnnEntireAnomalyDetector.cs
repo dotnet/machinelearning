@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataView;
 using Microsoft.ML.Runtime;
@@ -31,6 +32,63 @@ namespace Microsoft.ML.TimeSeries
         /// In this mode, output (IsAnomaly, RawScore, Mag, ExpectedValue).
         /// </summary>
         AnomalyAndExpectedValue = 2
+    }
+
+    /// <summary>
+    /// The Deseasonality modes of SrCnn models. The de-seasonality mode is envoked when the period of the series is greater than 0.
+    /// </summary>
+    public enum SrCnnDeseasonalityMode
+    {
+        /// <summary>
+        /// In this mode, the stl decompose algorithm is used to de-seasonality.
+        /// </summary>
+        Stl = 0,
+
+        /// <summary>
+        /// In this mode, the mean value of points in the same position in a period is substracted to de-seasonality.
+        /// </summary>
+        Mean = 1,
+
+        /// <summary>
+        /// In this mode, the median value of points in the same position in a period is substracted to de-seasonality.
+        /// </summary>
+        Median = 2
+    }
+    public sealed class SrCnnEntireAnomalyDetectorOptions
+    {
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
+            SortOrder = 3, ShortName = "thr")]
+        public double Threshold = Defaults.Threshold;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The number of data points to be detected in each batch. It should be at least 12. Set this parameter to -1 to detect anomaly on the entire series.",
+            SortOrder = 4, ShortName = "bsz")]
+        public int BatchSize = Defaults.BatchSize;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "This parameter is used in AnomalyAndMargin mode the determine the range of the boundaries.",
+            SortOrder = 4, ShortName = "sen")]
+        public double Sensitivity = Defaults.Sensitivity;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Specify the detect mode as one of AnomalyOnly, AnomalyAndExpectedValue and AnomalyAndMargin.",
+            SortOrder = 5, ShortName = "dtmd")]
+        public SrCnnDetectMode DetectMode = Defaults.DetectMode;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "If there is circular pattern in the series, set this value to the number of points in one cycle.",
+            SortOrder = 5, ShortName = "prd")]
+        public int Period = Defaults.Period;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Specify the deseasonality mode as one of stl, mean and median.",
+            SortOrder = 6, ShortName = "dsmd")]
+        public SrCnnDeseasonalityMode DeseasonalityMode = Defaults.DeseasonalityMode;
+
+        internal static class Defaults
+        {
+            public const double Threshold = 0.3;
+            public const int BatchSize = 2000;
+            public const double Sensitivity = 70;
+            public const SrCnnDetectMode DetectMode = SrCnnDetectMode.AnomalyOnly;
+            public const int Period = 0;
+            public const SrCnnDeseasonalityMode DeseasonalityMode = SrCnnDeseasonalityMode.Stl;
+        }
     }
 
     /// <summary>
@@ -72,19 +130,17 @@ namespace Microsoft.ML.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode)"/>
+    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, double, int, double, SrCnnDetectMode)"/>
+    /// <seealso cref="TimeSeriesCatalog.DetectEntireAnomalyBySrCnn(AnomalyDetectionCatalog, IDataView, string, string, SrCnnEntireAnomalyDetectorOptions)"/>
     internal sealed class SrCnnEntireAnomalyDetector : BatchDataViewMapperBase<double, SrCnnEntireAnomalyDetector.Batch>
     {
         private const int MinBatchSize = 12;
 
         private static readonly int[] _outputLengthArray = {3, 7, 4};
-        private readonly int _batchSize;
+        private readonly SrCnnEntireAnomalyDetectorOptions _options;
         private readonly string _inputColumnName;
         private readonly int _outputLength;
         private readonly Bindings _bindings;
-        private readonly double _threshold;
-        private readonly double _sensitivity;
-        private readonly SrCnnDetectMode _detectMode;
 
         private class Bindings : ColumnBindingsBase
         {
@@ -127,27 +183,40 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string inputColumnName, string outputColumnName, double threshold, int batchSize, double sensitivity, SrCnnDetectMode detectMode)
+        public SrCnnEntireAnomalyDetector(IHostEnvironment env, IDataView input, string outputColumnName, string inputColumnName, SrCnnEntireAnomalyDetectorOptions options)
             : base(env, nameof(SrCnnEntireAnomalyDetector), input)
         {
+            Host.CheckValue(outputColumnName, nameof(outputColumnName));
+
             Host.CheckValue(inputColumnName, nameof(inputColumnName));
             _inputColumnName = inputColumnName;
 
-            Host.CheckUserArg(batchSize == -1 || batchSize >= MinBatchSize, nameof(batchSize), "BatchSize must be -1 or no less than 12.");
-            _batchSize = batchSize;
+            Host.CheckValue(options, nameof(options));
+            CheckOptionArguments(options);
 
-            Host.CheckUserArg(threshold >= 0 && threshold <= 1, nameof(threshold), "Must be in [0,1].");
-            Host.CheckUserArg(detectMode == SrCnnDetectMode.AnomalyOnly
-                || detectMode == SrCnnDetectMode.AnomalyAndExpectedValue
-                || detectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(detectMode), "Invalid detectMode");
-
-            Host.CheckUserArg(sensitivity >= 0 && sensitivity <= 100, nameof(sensitivity), "Must be in [0,100].");
-            _outputLength = _outputLengthArray[(int)detectMode];
-            _threshold = threshold;
-            _sensitivity = sensitivity;
-            _detectMode = detectMode;
+            _options = options;
+            _outputLength = _outputLengthArray[(int)options.DetectMode];
 
             _bindings = new Bindings(input.Schema, inputColumnName, outputColumnName, new VectorDataViewType(NumberDataViewType.Double, _outputLength));
+        }
+
+        private void CheckOptionArguments(SrCnnEntireAnomalyDetectorOptions options)
+        {
+            Host.CheckUserArg(options.Period >= 0, nameof(options.Period), "Must be an integer equal to or greater than 0.");
+
+            Host.CheckUserArg(options.BatchSize == -1 || options.BatchSize >= MinBatchSize, nameof(options.BatchSize), "Must be -1 or no less than 12.");
+            Host.CheckUserArg(options.BatchSize >= 4 * options.Period || options.BatchSize == -1 || options.Period == 0, nameof(options.BatchSize), "Must be at least four times the length of one period.");
+
+            Host.CheckUserArg(options.Threshold >= 0 && options.Threshold <= 1, nameof(options.Threshold), "Must be in [0,1].");
+            Host.CheckUserArg(options.DetectMode == SrCnnDetectMode.AnomalyOnly
+                || options.DetectMode == SrCnnDetectMode.AnomalyAndExpectedValue
+                || options.DetectMode == SrCnnDetectMode.AnomalyAndMargin, nameof(options.DetectMode), "Invalid detectMode");
+
+            Host.CheckUserArg(options.DeseasonalityMode == SrCnnDeseasonalityMode.Stl
+                || options.DeseasonalityMode == SrCnnDeseasonalityMode.Mean
+                || options.DeseasonalityMode == SrCnnDeseasonalityMode.Median, nameof(options.DeseasonalityMode), "Invalid detectMode");
+
+            Host.CheckUserArg(options.Sensitivity >= 0 && options.Sensitivity <= 100, nameof(options.Sensitivity), "Must be in [0,100].");
         }
 
         protected override ColumnBindingsBase SchemaBindings => _bindings;
@@ -159,16 +228,17 @@ namespace Microsoft.ML.TimeSeries
             return new[] { currentBatch.CreateGetter(input, _inputColumnName) };
         }
 
-        protected override Batch CreateBatch(DataViewRowCursor input) => new Batch(_batchSize, _outputLength, _threshold, _sensitivity, _detectMode);
+        protected override Batch CreateBatch(DataViewRowCursor input)
+            => new Batch(_options.BatchSize, _outputLength, _options.Threshold, _options.Sensitivity, _options.DetectMode, _options.Period, _options.DeseasonalityMode);
 
         protected override Func<bool> GetIsNewBatchDelegate(DataViewRowCursor input)
         {
-            return () => _batchSize == -1 ? input.Position == 0 : input.Position % _batchSize == 0;
+            return () => _options.BatchSize == -1 ? input.Position == 0 : input.Position % _options.BatchSize == 0;
         }
 
         protected override Func<bool> GetLastInBatchDelegate(DataViewRowCursor input)
         {
-            return () => _batchSize == -1 ? input.Position == -1 : (input.Position + 1) % _batchSize == 0;
+            return () => _options.BatchSize == -1 ? input.Position == -1 : (input.Position + 1) % _options.BatchSize == 0;
         }
 
         protected override ValueGetter<double> GetLookAheadGetter(DataViewRowCursor input)
@@ -202,7 +272,7 @@ namespace Microsoft.ML.TimeSeries
             private double[][] _results;
             private int _bLen;
 
-            public Batch(int batchSize, int outputLength, double threshold, double sensitivity, SrCnnDetectMode detectMode)
+            public Batch(int batchSize, int outputLength, double threshold, double sensitivity, SrCnnDetectMode detectMode, int period, SrCnnDeseasonalityMode deseasonalityMode)
             {
                 _batchSize = batchSize;
                 _outputLength = outputLength;
@@ -216,7 +286,7 @@ namespace Microsoft.ML.TimeSeries
                     _previousBatch = new List<double>(batchSize);
                     _batch = new List<double>(batchSize);
                 }
-                _modeler = new SrCnnEntireModeler(threshold, sensitivity, detectMode);
+                _modeler = new SrCnnEntireModeler(threshold, sensitivity, detectMode, period, deseasonalityMode);
             }
 
             public void AddValue(double value)
@@ -279,41 +349,65 @@ namespace Microsoft.ML.TimeSeries
             private static readonly int _judgementWindowSize = 40;
             private static readonly double _eps = 1e-8;
             private static readonly double _deanomalyThreshold = 0.35;
+            private static readonly double _boundSensitivity = 93.0;
+            private static readonly double _unitForZero = 0.3;
 
-            // A fixed lookup table which returns factor using sensitivity as index.
-            // Since Margin = BoundaryUnit * factor, this factor is calculated to make sure Margin == Boundary when sensitivity is 50,
-            // and increases/decreases exponentially as sensitivity increases/decreases.
-            // The factor array is generated by formula:
-            // f(x)=1, if x=50;
-            // f(x)=f(x+1)*(1.25+0.001*x), if 0<=x<50;
-            // f(x)=f(x+1)/(1.25+0.001*(x-50)), if 50<x<60;
-            // f(x)=f(x+1)/(1.15+0.001*(x-50)),, if 60<=x<=100.
+            //    pseudo-code to generate the factors.
+            //    factors = []
+            //    for i in range(0, 30):
+            //        sen = 0.8 * (i - 30) ** 2 + 32
+            //        factors.append(sen)
+            //    for i in range(30, 50):
+            //        sen = -1.25 * i + 67.5
+            //        factors.append(sen)
+            //    for i in range(50, 60):
+            //        sen = -0.4 * i + 25
+            //        factors.append(sen)
+            //    for i in range(60, 70):
+            //        sen = -0.04 * i + 3.4
+            //        factors.append(sen)
+            //    for i in range(70, 80):
+            //        sen = -0.03 * i + 2.7
+            //        factors.append(sen)
+            //    for i in range(80, 90):
+            //        sen = -0.015 * i + 1.4999999999999998
+            //        factors.append(sen)
+            //    for i in range(90, 98):
+            //        sen = -0.011818181818181818 * i + 1.2136363636363636
+            //        factors.append(sen)
+            //    ratio.append(-0.011818181818181818 * 99 + 1.2136363636363636)
+            //    ratio.append(0.01200000000000001)
+            //    for i in range(5):
+            //        sen= -0.001925*i+ 0.008
+            //    ratio.append(sen)
+            //    ratio.append(0)
+            //    ratio=ratio[5:]
             private static readonly double[] _factors = new double[]{
-                    184331.62871148242, 141902.71648305038, 109324.12672037778, 84289.9974713784, 65038.57829581667, 50222.84038287002,
-                    38812.08684920403, 30017.081863266845, 23233.035497884553, 17996.15452973242, 13950.50738738947, 10822.736530170265,
-                    8402.745753237783, 6528.939979205737, 5076.93622022219, 3950.92312857758, 3077.042935029268, 2398.318733460069,
-                    1870.7634426365591, 1460.393007522685, 1140.9320371270976, 892.0500681212648, 698.0047481387048, 546.5972968979678,
-                    428.36778753759233, 335.97473532360186, 263.71643275007995, 207.16137686573444, 162.8627176617409, 128.13746472206208,
-                    100.8956415134347, 79.50799173635517, 62.70346351447568, 49.48971074544253, 39.09139869308257, 30.90229145698227,
-                    24.448015393182175, 19.35709849024717, 15.338429865489042, 12.163703303322, 9.653732780414286, 7.667778221139226,
-                    6.095213212352326, 4.8490160798347866, 3.8606815922251485, 3.076240312529999, 2.4531421949999994, 1.9578149999999996,
-                    1.5637499999999998, 1.25, 1.0, 0.8695652173913044, 0.7554867223208555, 0.655804446459076, 0.5687809596349316,
-                    0.4928777813127657, 0.4267340097946024, 0.36914706729636887, 0.3190553736355825, 0.27552277516026125, 0.23772456873189068,
-                    0.20493497304473338, 0.17651591132190647, 0.1519069804835684, 0.13061649224726435, 0.11221348131208278, 0.09632058481723846,
-                    0.08260770567516164, 0.0707863801843716, 0.06060477755511267, 0.051843265658779024, 0.0443104834690419, 0.03783986632710667,
-                    0.03228657536442549, 0.027524787181948417, 0.02344530424356765, 0.019953450420057577, 0.01696721974494692, 0.014415649740821513,
-                    0.012237393667929978, 0.010379468759906684, 0.008796159966022614, 0.0074480609365136455, 0.006301235986898177,
-                    0.00532648857725966, 0.004498723460523362, 0.0037963911059268884, 0.0032010043051660104, 0.002696718032995797,
-                    0.0022699646742388863, 0.0019091376570554135, 0.0011570531254881296, 0.000697019955113331, 0.00041737721863073713,
-                    0.000248438820613534, 0.00014700521929794912, 8.647365841055832e-05, 5.056939088336744e-05, 2.9400808653120604e-05,
-                    1.6994687082728674e-05, 9.767061541798089e-06
-                };
+                532.0, 492.8, 455.20000000000005, 419.20000000000005, 384.8, 352.0, 320.8, 291.2, 263.20000000000005,
+                236.8, 212.0, 188.8, 167.20000000000002, 147.2, 128.8, 112.0, 96.8, 83.2, 71.2, 60.8, 52.0, 44.8, 39.2,
+                35.2, 32.8, 30.0, 28.75, 27.5, 26.25, 25.0, 23.75, 22.5, 21.25, 20.0, 18.75, 17.5, 16.25, 15.0, 13.75,
+                12.5, 11.25, 10.0, 8.75, 7.5, 6.25, 5.0, 4.599999999999998, 4.199999999999999, 3.799999999999997,
+                3.3999999999999986, 3.0, 2.599999999999998, 2.1999999999999993, 1.7999999999999972, 1.3999999999999986,
+                1.0, 0.96, 0.9199999999999999, 0.8799999999999999, 0.8399999999999999, 0.7999999999999998,
+                0.7599999999999998, 0.7199999999999998, 0.6799999999999997, 0.6399999999999997, 0.6000000000000001,
+                0.5700000000000003, 0.54, 0.5100000000000002, 0.4800000000000004, 0.4500000000000002, 0.4200000000000004,
+                0.3900000000000001, 0.3600000000000003, 0.33000000000000007, 0.2999999999999998, 0.2849999999999999,
+                0.2699999999999998, 0.2549999999999999, 0.23999999999999977, 0.22499999999999987, 0.20999999999999974,
+                0.19499999999999984, 0.17999999999999994, 0.1649999999999998, 0.1499999999999999, 0.13818181818181818,
+                0.12636363636363646, 0.1145454545454545, 0.10272727272727278, 0.09090909090909083, 0.0790909090909091,
+                0.06727272727272737, 0.043636363636363695, 0.01200000000000001, 0.008, 0.0060750000000000005, 0.00415,
+                0.0022249999999999995, 0.0002999999999999999, 0.0
+            };
 
             private readonly double _threshold;
             private readonly double _sensitivity;
             private readonly SrCnnDetectMode _detectMode;
+            private readonly int _period;
+            private readonly IDeseasonality _deseasonalityFunction;
 
             //used in all modes
+            private double _minimumOriginValue;
+            private double _maximumOriginValue;
             private readonly double[] _predictArray;
             private double[] _backAddArray;
             private double[] _fftRe;
@@ -329,6 +423,7 @@ namespace Microsoft.ML.TimeSeries
             private double[] _cumSumList;
             private double[] _cumSumShift;
             private double[] _zeroArray;
+            private double[] _seriesToDetect;
             //used in AnomalyAndExpectedValue and AnomalyAndMargin
             private double[] _deAnomalyData;
             //used in AnomalyAndMargin mode
@@ -337,12 +432,27 @@ namespace Microsoft.ML.TimeSeries
             private double[] _trends;
             private double[] _curWindow;
 
-            public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode)
+            public SrCnnEntireModeler(double threshold, double sensitivity, SrCnnDetectMode detectMode, int period, SrCnnDeseasonalityMode deseasonalityMode)
             {
                 _threshold = threshold;
                 _sensitivity = sensitivity;
                 _detectMode = detectMode;
+                _period = period;
                 _predictArray = new double[_lookaheadWindowSize + 1];
+
+                switch (deseasonalityMode)
+                {
+                    case SrCnnDeseasonalityMode.Stl:
+                        _deseasonalityFunction = new StlDeseasonality();
+                        break;
+                    case SrCnnDeseasonalityMode.Mean:
+                        _deseasonalityFunction = new MeanDeseasonality();
+                        break;
+                    default:
+                        Contracts.Assert(deseasonalityMode == SrCnnDeseasonalityMode.Median);
+                        _deseasonalityFunction = new MedianDeseasonality();
+                        break;
+                }
             }
 
             public void Train(double[] values, ref double[][] results)
@@ -359,27 +469,47 @@ namespace Microsoft.ML.TimeSeries
                 {
                     Array.Resize<double[]>(ref results, values.Length);
                 }
-                SpectralResidual(values, results, _threshold);
+
+                _minimumOriginValue = Double.MaxValue;
+                _maximumOriginValue = Double.MinValue;
+
+                Array.Resize(ref _seriesToDetect, values.Length);
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    _seriesToDetect[i] = values[i];
+                    _minimumOriginValue = Math.Min(_minimumOriginValue, values[i]);
+                    _maximumOriginValue = Math.Max(_maximumOriginValue, values[i]);
+                }
+
+                if (_period > 0)
+                {
+                    _deseasonalityFunction.Deseasonality(ref values, _period, ref _seriesToDetect);
+                }
+
+                SpectralResidual(_seriesToDetect, results, _threshold);
+
                 //Optional Steps
                 if (_detectMode == SrCnnDetectMode.AnomalyAndMargin)
                 {
-                    GetMargin(values, results, _sensitivity);
+                    if (_period > 0)
+                    {
+                        GetMarginPeriod(values, results, _seriesToDetect, _sensitivity);
+                    }
+                    else
+                    {
+                        GetMargin(values, results, _sensitivity);
+                    }
                 }
                 else if (_detectMode == SrCnnDetectMode.AnomalyAndExpectedValue)
                 {
-                    GetExpectedValue(values, results);
-                }
-            }
-
-            private void AllocateDoubleArray(ref double[] arr, int length)
-            {
-                if (arr == null)
-                {
-                    arr = new double[length];
-                }
-                else if (arr.Length != length)
-                {
-                    Array.Resize<double>(ref arr, length);
+                    if (_period > 0)
+                    {
+                        GetExpectedValuePeriod(values, results, _seriesToDetect);
+                    }
+                    else
+                    {
+                        GetExpectedValue(values, results);
+                    }
                 }
             }
 
@@ -390,18 +520,18 @@ namespace Microsoft.ML.TimeSeries
 
                 // Step 2: FFT transformation
                 int length = _backAddArray.Length;
-                AllocateDoubleArray(ref _fftRe, length);
-                AllocateDoubleArray(ref _fftIm, length);
+                Array.Resize(ref _fftRe, length);
+                Array.Resize(ref _fftIm, length);
 
-                AllocateDoubleArray(ref _zeroArray, length);
+                Array.Resize(ref _zeroArray, length);
                 FftUtils.ComputeForwardFft(_backAddArray, _zeroArray, _fftRe, _fftIm, length);
 
                 // Step 3: Calculate mags of FFT
-                AllocateDoubleArray(ref _magList, length);
-                AllocateDoubleArray(ref _magLogList, length);
+                Array.Resize(ref _magList, length);
+                Array.Resize(ref _magLogList, length);
                 for (int i = 0; i < length; ++i)
                 {
-                    _magList[i] = Math.Sqrt((Math.Pow(_fftRe[i], 2) + Math.Pow(_fftIm[i], 2)));
+                    _magList[i] = Math.Sqrt(_fftRe[i] * _fftRe[i] + _fftIm[i] * _fftIm[i]);
                     if (_magList[i] > _eps)
                     {
                         _magLogList[i] = Math.Log(_magList[i]);
@@ -414,15 +544,15 @@ namespace Microsoft.ML.TimeSeries
 
                 // Step 4: Calculate spectral
                 AverageFilter(_magLogList, _averagingWindowSize);
-                AllocateDoubleArray(ref _spectralList, length);
+                Array.Resize(ref _spectralList, length);
                 for (int i = 0; i < length; ++i)
                 {
                     _spectralList[i] = Math.Exp(_magLogList[i] - _cumSumList[i]);
                 }
 
                 // Step 5: IFFT transformation
-                AllocateDoubleArray(ref _transRe, length);
-                AllocateDoubleArray(ref _transIm, length);
+                Array.Resize(ref _transRe, length);
+                Array.Resize(ref _transIm, length);
                 for (int i = 0; i < length; ++i)
                 {
                     if (_magLogList[i] != 0)
@@ -437,15 +567,15 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
 
-                AllocateDoubleArray(ref _ifftRe, length);
-                AllocateDoubleArray(ref _ifftIm, length);
+                Array.Resize(ref _ifftRe, length);
+                Array.Resize(ref _ifftIm, length);
                 FftUtils.ComputeBackwardFft(_transRe, _transIm, _ifftRe, _ifftIm, length);
 
                 // Step 6: Calculate mag and ave_mag of IFFT
-                AllocateDoubleArray(ref _ifftMagList, length);
+                Array.Resize(ref _ifftMagList, length);
                 for (int i = 0; i < length; ++i)
                 {
-                    _ifftMagList[i] = Math.Sqrt((Math.Pow(_ifftRe[i], 2) + Math.Pow(_ifftIm[i], 2)));
+                    _ifftMagList[i] = Math.Sqrt(_ifftRe[i] * _ifftRe[i] + _ifftIm[i] * _ifftIm[i]);
                 }
                 AverageFilter(_ifftMagList, Math.Min(_ifftMagList.Length, _judgementWindowSize));
 
@@ -473,7 +603,7 @@ namespace Microsoft.ML.TimeSeries
                     _predictArray[j++] = data[i];
                 }
                 var predictedValue = PredictNext(_predictArray);
-                AllocateDoubleArray(ref _backAddArray, data.Length + _backAddWindowSize);
+                Array.Resize(ref _backAddArray, data.Length + _backAddWindowSize);
                 for (int i = 0; i < data.Length; ++i)
                 {
                     _backAddArray[i] = data[i];
@@ -500,8 +630,8 @@ namespace Microsoft.ML.TimeSeries
                 double cumsum = 0.0f;
                 int length = data.Length;
 
-                AllocateDoubleArray(ref _cumSumList, length);
-                AllocateDoubleArray(ref _cumSumShift, length);
+                Array.Resize(ref _cumSumList, length);
+                Array.Resize(ref _cumSumShift, length);
 
                 for (int i = 0; i < length; ++i)
                 {
@@ -537,7 +667,111 @@ namespace Microsoft.ML.TimeSeries
 
                 for (int i = 0; i < results.Length; ++i)
                 {
-                    results[i][3] = _ifftRe[i];
+                    results[i][3] = AdjustExpectedValueBasedOnOriginalDataRange(_ifftRe[i]);
+                }
+            }
+
+            private void GetExpectedValuePeriod(double[] values, double[][] results, IReadOnlyList<double> residual)
+            {
+                //Step 8: Calculate Expected Value
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    results[i][3] = AdjustExpectedValueBasedOnOriginalDataRange(values[i] - residual[i]);
+                }
+            }
+
+            private void GetMarginPeriod(double[] values, double[][] results, IReadOnlyList<double> residual, double sensitivity)
+            {
+                //Step 8: Calculated Expected Value
+                GetExpectedValuePeriod(values, results, residual);
+
+                //Step 9: Calculate Boundary Unit
+                CalculateBoundaryUnit(values, results.Select(x => x[0] > 0).ToArray());
+
+                for (int i = 0; i < results.Length; ++i)
+                {
+                    //Step 10: Calculate UpperBound and LowerBound
+                    var margin = CalculateMargin(_units[i], sensitivity);
+                    results[i][4] = _units[i];
+                    results[i][5] = results[i][3] + margin;
+                    results[i][6] = results[i][3] - margin;
+
+                    // update anomaly result according to the boundary
+                    results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || results[i][5] < values[i]) ? 1 : 0;
+                }
+
+                List<Tuple<int, int>> segments = new List<Tuple<int, int>>();
+                int start = -1;
+                int cursor = -1;
+                for(int i = 0; i < values.Length; ++i)
+                {
+                    // this is a outlier
+                    if (results[i][6] > values[i] || values[i] > results[i][5])
+                    {
+                        if (cursor + 1 == i)
+                        {
+                            cursor = i;
+                        }
+                        else
+                        {
+                            if (start > -1)
+                            {
+                                segments.Add(new Tuple<int, int>(start, cursor));
+                            }
+                            start = i;
+                            cursor = i;
+                        }
+                    }
+                }
+
+                if (start > -1)
+                {
+                    segments.Add(new Tuple<int, int>(start, Math.Max(start, cursor)));
+                }
+
+                List<int> anomalyIndex = new List<int>();
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    if(results[i][0] > 0)
+                    {
+                        anomalyIndex.Add(i);
+                    }
+                }
+
+                // more than one anomaly, update anomaly results
+                if (anomalyIndex.Count > 1)
+                {
+                    cursor = 0;
+                    for(int i = 0; i < anomalyIndex.Count - 1; ++i)
+                    {
+                        while (cursor < segments.Count && anomalyIndex[i] >= segments[cursor].Item2)
+                        {
+                            ++cursor;
+                        }
+
+                        if (cursor < segments.Count && segments[cursor].Item1 <= anomalyIndex[i] && anomalyIndex[i+1] <= segments[cursor].Item2)
+                        {
+                            for (int j = anomalyIndex[i]; j < anomalyIndex[i+1]; ++j)
+                            {
+                                results[j][0] = 1;
+                            }
+                        }
+                    }
+                }
+
+                //Step 11: Update Anomaly Score, Expected Value and Boundaries
+                for (int i = 0; i < results.Length; ++i)
+                {
+                    results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
+
+                    // adjust the expected value if the point is not anomaly
+                    if (results[i][0] == 0)
+                    {
+                        double margin = results[i][5] - results[i][3];
+                        results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][3], _units[i]);
+                        results[i][5] = results[i][3] + margin;
+                        results[i][6] = results[i][3] - margin;
+                    }
                 }
             }
 
@@ -554,13 +788,48 @@ namespace Microsoft.ML.TimeSeries
                 {
                     //Step 10: Calculate UpperBound and LowerBound
                     var margin = CalculateMargin(_units[i], sensitivity);
-                    results[i][3] = _ifftRe[i];
+                    results[i][3] = AdjustExpectedValueBasedOnOriginalDataRange(_ifftRe[i]);
+
                     results[i][4] = _units[i];
                     results[i][5] = _ifftRe[i] + margin;
                     results[i][6] = _ifftRe[i] - margin;
+
                     //Step 11: Update Anomaly Score
                     results[i][1] = CalculateAnomalyScore(values[i], _ifftRe[i], _units[i], results[i][0] > 0);
+
+                    //Step 12: Update IsAnomaly
+                    results[i][0] = results[i][0] > 0 && (values[i] < results[i][6] || values[i] > results[i][5]) ? 1 : 0;
+
+                    //Step 13: Update Expected Value, LowerBound and UpperBound for not anomaly points.
+                    if (results[i][0] == 0)
+                    {
+                        results[i][3] = AdjustExpectedValueBasedOnBound(values[i], results[i][3], _units[i]);
+                        results[i][5] = results[i][3] + margin;
+                        results[i][6] = results[i][3] - margin;
+                    }
                 }
+            }
+
+            // Adjust the expected value if original data range is non-negative or non-positive
+            private double AdjustExpectedValueBasedOnOriginalDataRange(double expectedValue)
+            {
+                if (_minimumOriginValue >= 0 && expectedValue < 0)
+                {
+                    expectedValue = 0;
+                }
+                else if (_maximumOriginValue <= 0 && expectedValue > 0)
+                {
+                    expectedValue = 0;
+                }
+
+                return expectedValue;
+            }
+
+            // Adjust the expected value so that it is within the bound margin of value
+            private double AdjustExpectedValueBasedOnBound(double value, double expectedValue, double unit)
+            {
+                var boundMargin = CalculateMargin(unit, _boundSensitivity);
+                return Math.Max(Math.Min(expectedValue, value + boundMargin), value - boundMargin);
             }
 
             private int[] GetAnomalyIndex(double[] scores)
@@ -577,7 +846,7 @@ namespace Microsoft.ML.TimeSeries
 
             private void GetDeanomalyData(double[] data, int[] anomalyIdxList)
             {
-                AllocateDoubleArray(ref _deAnomalyData, data.Length);
+                Array.Resize(ref _deAnomalyData, data.Length);
                 Array.Copy(data, _deAnomalyData, data.Length);
                 int minPointsToFit = 4;
                 foreach (var idx in anomalyIdxList)
@@ -622,11 +891,11 @@ namespace Microsoft.ML.TimeSeries
                 var n = values.Count;
                 double sumX = values.Sum(item => item.Item1);
                 double sumY = values.Sum(item => item.Item2);
-                double sumXX = values.Sum(item => Math.Pow(item.Item1, 2));
+                double sumXX = values.Sum(item => item.Item1 * item.Item1);
                 double sumXY = values.Sum(item => item.Item1 * item.Item2);
 
-                var a = ((double)n * sumXY - sumX * sumY) / ((double)n * sumXX - sumX * sumX);
-                var b = (sumXX * sumY - sumX * sumXY) / ((double)n * sumXX - sumX * sumX);
+                var a = ((n * sumXY) - (sumX * sumY)) / ((n * sumXX) - (sumX * sumX));
+                var b = ((sumXX * sumY) - (sumX * sumXY)) / ((n * sumXX) - (sumX * sumX));
 
                 return a * (double)idx + b;
             }
@@ -634,9 +903,9 @@ namespace Microsoft.ML.TimeSeries
             private void CalculateExpectedValueByFft(double[] data)
             {
                 int length = data.Length;
-                AllocateDoubleArray(ref _fftRe, length);
-                AllocateDoubleArray(ref _fftIm, length);
-                AllocateDoubleArray(ref _zeroArray, length);
+                Array.Resize(ref _fftRe, length);
+                Array.Resize(ref _fftIm, length);
+                Array.Resize(ref _zeroArray, length);
                 FftUtils.ComputeForwardFft(data, _zeroArray, _fftRe, _fftIm, length);
 
                 for (int i = 0; i < length; ++i)
@@ -648,23 +917,25 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
 
-                AllocateDoubleArray(ref _ifftRe, length);
-                AllocateDoubleArray(ref _ifftIm, length);
+                Array.Resize(ref _ifftRe, length);
+                Array.Resize(ref _ifftIm, length);
                 FftUtils.ComputeBackwardFft(_fftRe, _fftIm, _ifftRe, _ifftIm, length);
             }
 
-            private void CalculateBoundaryUnit(double[] data, bool[] isAnomalys)
+            private void CalculateBoundaryUnit(double[] data, bool[] isAnomalies)
             {
                 int window = Math.Min(data.Length / 3, 512);
                 double trendFraction = 0.5;    // mix trend and average of trend
                 double trendSum = 0;
                 int calculationSize = 0;
+                bool closeToZero = true;
 
                 MedianFilter(data, window, true);
                 for (int i = 0; i < _trends.Length; ++i)
                 {
-                    if (!isAnomalys[i])
+                    if (!isAnomalies[i])
                     {
+                        closeToZero = closeToZero && _trends[i] < _eps;
                         trendSum += Math.Abs(_trends[i]);
                         ++calculationSize;
                     }
@@ -680,13 +951,20 @@ namespace Microsoft.ML.TimeSeries
                     trendFraction = 1.0;
                 }
 
-                AllocateDoubleArray(ref _units, _trends.Length);
+                Array.Resize(ref _units, _trends.Length);
                 for (int i = 0; i < _units.Length; ++i)
                 {
-                    _units[i] = Math.Max(1, averageTrendPart + Math.Abs(_trends[i]) * trendFraction);
-                    if (double.IsInfinity(_units[i]))
+                    if (closeToZero)
                     {
-                        throw new ArithmeticException("Not finite unit value");
+                        _units[i] = _unitForZero;
+                    }
+                    else
+                    {
+                        _units[i] = averageTrendPart + Math.Abs(_trends[i]) * trendFraction;
+                        if (double.IsInfinity(_units[i]))
+                        {
+                            throw new ArithmeticException("Not finite unit value");
+                        }
                     }
                 }
             }
@@ -695,11 +973,11 @@ namespace Microsoft.ML.TimeSeries
             {
                 int wLen = window / 2 * 2 + 1;
                 int tLen = data.Length;
-                AllocateDoubleArray(ref _val, tLen);
+                Array.Resize(ref _val, tLen);
                 Array.Copy(data, _val, tLen);
-                AllocateDoubleArray(ref _trends, tLen);
+                Array.Resize(ref _trends, tLen);
                 Array.Copy(data, _trends, tLen);
-                AllocateDoubleArray(ref _curWindow, wLen);
+                Array.Resize(ref _curWindow, wLen);
 
                 if (tLen < wLen)
                     return;
@@ -804,19 +1082,14 @@ namespace Microsoft.ML.TimeSeries
                     return anomalyScore;
                 }
 
-                double distance = Math.Abs(exp - value);
-                List<double> margins = new List<double>();
-                for (int i = 100; i >= 0; --i)
-                {
-                    margins.Add(CalculateMargin(unit, i));
-                }
+                double distanceFactor = Math.Abs(exp - value) / unit;
 
                 int lb = 0;
                 int ub = 100;
                 while (lb < ub)
                 {
                     int mid = (lb + ub) / 2;
-                    if (margins[mid] < distance)
+                    if (_factors[100 - mid] < distanceFactor)
                     {
                         lb = mid + 1;
                     }
@@ -826,15 +1099,15 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
 
-                if (Math.Abs(margins[lb] - distance) < _eps || lb == 0)
+                if (_factors[100 - lb] == distanceFactor || lb == 0)
                 {
                     anomalyScore = lb;
                 }
                 else
                 {
-                    double lowerMargin = margins[lb - 1];
-                    double upperMargin = margins[lb];
-                    anomalyScore = lb - 1 + (distance - lowerMargin) / (upperMargin - lowerMargin);
+                    double lowerMargin = _factors[101 - lb];
+                    double upperMargin = _factors[100 - lb];
+                    anomalyScore = lb - 1 + (distanceFactor - lowerMargin) / (upperMargin - lowerMargin);
                 }
 
                 return anomalyScore / 100.0f;

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -40,7 +41,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateExperimentExecuteLabelNotInTrain()
         {
-            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data,
                 new ColumnInformation() { LabelColumnName = "L" }, null, task));
@@ -55,7 +56,7 @@ namespace Microsoft.ML.AutoML.Test
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add("N");
 
-            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data, columnInfo, null, task));
                 Assert.Equal("Provided label column 'Label' was of type Boolean, but only type Single is allowed.", ex.Message);
@@ -95,7 +96,7 @@ namespace Microsoft.ML.AutoML.Test
             validDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
             var validData = validDataBuilder.GetDataView();
 
-            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
                     new ColumnInformation() { LabelColumnName = "0" }, validData, task));
@@ -118,7 +119,7 @@ namespace Microsoft.ML.AutoML.Test
             validDataBuilder.AddColumn("2", new string[] { "2" });
             var validData = validDataBuilder.GetDataView();
 
-            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
                     new ColumnInformation() { LabelColumnName = "0" }, validData, task));
@@ -141,7 +142,7 @@ namespace Microsoft.ML.AutoML.Test
             validDataBuilder.AddColumn("1", NumberDataViewType.Single, new float[] { 1 });
             var validData = validDataBuilder.GetDataView();
 
-            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
                     new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression));
@@ -205,7 +206,7 @@ namespace Microsoft.ML.AutoML.Test
             var columnInfo = new ColumnInformation();
             columnInfo.TextColumnNames.Add(textPurposeColName);
 
-            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, columnInfo, null, task));
                 Assert.Equal("Provided text column 'TextColumn' was of type Single, but only type String is allowed.", ex.Message);
@@ -247,6 +248,15 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void ValidateRankingLabelTypes()
+        {
+            ValidateLabelTypeTestCore<float>(TaskKind.Ranking, NumberDataViewType.Single, true);
+            ValidateLabelTypeTestCore<bool>(TaskKind.Ranking, BooleanDataViewType.Instance, false);
+            ValidateLabelTypeTestCore<double>(TaskKind.Ranking, NumberDataViewType.Double, false);
+            ValidateLabelTypeTestCore<string>(TaskKind.Ranking, TextDataViewType.Instance, false);
+        }
+
+        [Fact]
         public void ValidateAllowedFeatureColumnTypes()
         {
             var dataViewBuilder = new ArrayDataViewBuilder(new MLContext(1));
@@ -256,7 +266,7 @@ namespace Microsoft.ML.AutoML.Test
             dataViewBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, 0f);
             var dataView = dataViewBuilder.GetDataView();
 
-            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
                 UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
                     null, task);
@@ -306,7 +316,7 @@ namespace Microsoft.ML.AutoML.Test
             var schema = schemaBuilder.ToSchema();
             var validationData = DataViewTestFixture.BuildDummyDataView(schema, createDummyRow: false);
 
-            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainingData, new ColumnInformation(),
                     validationData, task));

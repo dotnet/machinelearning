@@ -86,7 +86,20 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ConsoleAppModelBuilderCSFileContentRankingTest()
+        {
+            (Pipeline pipeline,
+                        ColumnInferenceResults columnInference) = GetMockedRankingPipelineAndInference();
 
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Ranking));
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
+                false, false, false, false);
+
+            Approvals.Verify(result.modelBuilderCSFileContent);
+        }
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
@@ -203,7 +216,7 @@ namespace mlnet.Tests
             var setting = new CodeGeneratorSettings()
             {
                 TrainDataset = @"/path/to/dataset",
-                ModelPath = @"/path/to/model",
+                ModelName = @"/path/to/model",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"CodeGenTest",
                 OutputBaseDir = @"/path/to/codegen",
@@ -211,16 +224,57 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "stableversion",
                 UnstablePackageVersion = "unstableversion",
-                OnnxModelPath = @"/path/to/onnxModel",
+                OnnxModelName = @"/path/to/onnxModel",
+                OnnxRuntimePacakgeVersion = "1.2.3",
                 IsAzureAttach = true,
+                IsObjectDetection = false,
                 IsImage = true,
-                ClassificationLabel = new string[] {"label1", "label2", "label3"},
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
             foreach (var project in codeGen.ToSolution())
             {
-                foreach(var projectFile in project)
+                foreach (var projectFile in project)
                 {
+                    NamerFactory.AdditionalInformation = projectFile.Name;
+                    Approvals.Verify(((ICSharpFile)projectFile).File);
+                }
+            }
+        }
+
+
+        // Tevin: added to test OD codeGen working
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void AzureObjectDetectionCodeGeneratorTest()
+        {
+            (var pipeline, var columnInference) = GetMockedAzureObjectDetectionPipelineAndInference(@"/path/to/onnxModel");
+            var setting = new CodeGeneratorSettings()
+            {
+                TrainDataset = @"/path/to/dataset",
+                ModelName = @"/path/to/model",
+                MlTask = TaskKind.ObjectDetection,
+                OutputName = @"CodeGenTest",
+                OutputBaseDir = @"/path/to/codegen",
+                LabelName = "Label",
+                Target = GenerateTarget.ModelBuilder,
+                StablePackageVersion = "stableversion",
+                UnstablePackageVersion = "unstableversion",
+                OnnxModelName = @"/path/to/onnxModel",
+                OnnxRuntimePacakgeVersion = @"1.2.3",
+                IsAzureAttach = true,
+                IsImage = false,
+                IsObjectDetection = true,
+                ClassificationLabel = new string[] { "label1", "label2", "label3" },
+                ObjectLabel = new string[] { "label1", "label2", "label3" },
+            };
+            var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
+            //codeGen.GenerateOutput(); // use this to see output in project.
+            foreach (var project in codeGen.ToSolution())
+            {
+                foreach (var projectFile in project)
+                {
+
                     NamerFactory.AdditionalInformation = projectFile.Name;
                     Approvals.Verify(((ICSharpFile)projectFile).File);
                 }
@@ -238,7 +292,7 @@ namespace mlnet.Tests
             var setting = new CodeGeneratorSettings()
             {
                 TrainDataset = @"\path\to\file",
-                ModelPath = @"\path\to\model",
+                ModelName = @"\path\to\model",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"test",
                 OutputBaseDir = @"\path\to\test",
@@ -246,9 +300,11 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "StablePackageVersion",
                 UnstablePackageVersion = "UnstablePackageVersion",
-                OnnxModelPath = @"\path\to\onnx",
+                OnnxModelName = @"\path\to\onnx",
+                OnnxRuntimePacakgeVersion = "1.2.3",
                 IsAzureAttach = true,
                 IsImage = false,
+                IsObjectDetection = false,
                 OnnxInputMapping = mapping,
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
@@ -267,8 +323,18 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ModelInputClassTest()
         {
-            (var pipeline, var columnInference, var mapping) = this.GetMockedAzurePipelineAndInference();
+            // Test with datasets whose columns are sanitized and not sanitized. The columns of a dataset are considered
+            // sanitized if the column names are all unique and distinct, irrespective of capitalization. 
+            (var pipelineSanitized, var columnInferenceSanitized, var mappingSanitized) = this.GetMockedAzurePipelineAndInference();
+            TestModelInput(pipelineSanitized, columnInferenceSanitized, mappingSanitized, "sanitized");
+            (var pipelineUnsatinized, var columnInferenceUnsatinized, var mappingUnsatinized) = this.GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames();
+            TestModelInput(pipelineUnsatinized, columnInferenceUnsatinized, mappingUnsatinized, "unsanitized");
 
+        }
+
+        private void TestModelInput(Pipeline pipeline, ColumnInferenceResults columnInference,
+                                    IDictionary<string, CodeGeneratorSettings.ColumnMapping> mapping, string info)
+        {
             // test with null map case
             var columnMappingStringList = Utils.GenerateClassLabels(columnInference);
             var modelInputProject = new CSharpCodeFile()
@@ -281,7 +347,7 @@ namespace mlnet.Tests
                 }.TransformText(),
                 Name = "ModelInput.cs",
             };
-            NamerFactory.AdditionalInformation = "null_map";
+            NamerFactory.AdditionalInformation = info + "_null_map";
             Approvals.Verify(modelInputProject.File);
 
             // test with map case
@@ -296,7 +362,7 @@ namespace mlnet.Tests
                 }.TransformText(),
                 Name = "ModelInput.cs",
             };
-            NamerFactory.AdditionalInformation = "map";
+            NamerFactory.AdditionalInformation = info + "_map";
             Approvals.Verify(modelInputProject.File);
         }
 
@@ -596,15 +662,102 @@ namespace mlnet.Tests
             return (_mockedPipeline, _columnInference);
         }
 
+        private (Pipeline, ColumnInferenceResults) GetMockedAzureObjectDetectionPipelineAndInference(string onnxModelPath)
+        {
+            var onnxPipeLineNode = new PipelineNode(
+                nameof(SpecialTransformer.ApplyOnnxModel),
+                PipelineNodeType.Transform,
+                new string[] { },
+                new string[] { },
+                null);
+            var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImagePath", "input");
+            var resizeImageNode = new PipelineNode(
+                nameof(SpecialTransformer.ObjectDetectionResizeImage),
+                PipelineNodeType.Transform,
+                "input",
+                "input",
+                new Dictionary<string, object>()
+                {
+                    { "imageWidth", 800 },
+                    { "imageHeight", 600 },
+                });
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "input", "input");
+            var bestPipeLine = new Pipeline(new PipelineNode[]
+            {
+                loadImageNode,
+                resizeImageNode,
+                extractPixelsNode,
+                onnxPipeLineNode,
+            });
+
+            var textLoaderArgs = new TextLoader.Options()
+            {
+                Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("ImagePath", DataKind.String, 1), // 0?
+                    },
+                AllowQuoting = true,
+                AllowSparse = true,
+                HasHeader = true,
+                Separators = new[] { '\t' }
+            };
+
+            var columnInference = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = textLoaderArgs,
+                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+            };
+
+            return (bestPipeLine, columnInference);
+        }
+
+        private (Pipeline, ColumnInferenceResults) GetMockedRankingPipelineAndInference()
+        {
+            if (_mockedPipeline == null)
+            {
+                var hyperParam = new Dictionary<string, object>()
+                {
+                    {"RowGroupColumnName","GroupId" },
+                    {"LabelColumnName","Label" },
+                };
+                var hashPipelineNode = new PipelineNode(nameof(EstimatorName.Hashing), PipelineNodeType.Transform, "GroupId", "GroupId");
+                var lightGbmPipelineNode = new PipelineNode(nameof(TrainerName.LightGbmRanking), PipelineNodeType.Trainer, "Features", "Score", hyperParam);
+                var pipeline = new Pipeline(new PipelineNode[]
+                {
+                    hashPipelineNode,
+                    lightGbmPipelineNode
+                });
+                _mockedPipeline = pipeline;
+                var textLoaderArgs = new TextLoader.Options()
+                {
+                    Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("GroupId", DataKind.Single, 1),
+                        new TextLoader.Column("col1", DataKind.Single, 0),
+                        new TextLoader.Column("col2", DataKind.String, 0),
+                        new TextLoader.Column("col3", DataKind.Int32, 0),
+                        new TextLoader.Column("col4", DataKind.UInt32, 0),
+                    },
+                    AllowQuoting = true,
+                    AllowSparse = true,
+                    HasHeader = true,
+                    Separators = new[] { ',' }
+                };
+
+                this._columnInference = new ColumnInferenceResults()
+                {
+                    TextLoaderOptions = textLoaderArgs,
+                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" , GroupIdColumnName = "GroupId"}
+                };
+            }
+
+            return (_mockedPipeline, _columnInference);
+        }
+
         private (Pipeline, ColumnInferenceResults) GetMockedAzureImagePipelineAndInference()
         {
             // construct pipeline
-            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
-                new Dictionary<string, object>()
-                {
-                    { "outputColumnNames", "output1" },
-                    { "inputColumnNames", "input1"},
-                });
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, string.Empty, string.Empty);
             var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImageSource", "ImageSource_featurized");
             var resizeImageNode = new PipelineNode(
                 nameof(SpecialTransformer.ResizeImage),
@@ -616,17 +769,13 @@ namespace mlnet.Tests
                     { "imageWidth", 224 },
                     { "imageHeight", 224 },
                 });
-            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "ImageSource_featurized");
-            var normalizePipeline = new PipelineNode(nameof(SpecialTransformer.NormalizeMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
-            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "input1");
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 loadImageNode,
                 resizeImageNode,
                 extractPixelsNode,
-                normalizePipeline,
                 onnxPipeLineNode,
-                labelMapPipelineNode,
             });
 
             // construct column inference
@@ -654,17 +803,10 @@ namespace mlnet.Tests
         private (Pipeline, ColumnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping>) GetMockedAzurePipelineAndInference()
         {
             // construct pipeline
-            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
-                new Dictionary<string, object>()
-                {
-                    { "outputColumnNames", "output1" },
-                    { "inputColumnNames", "input1"},
-                });
-            var labelMapPipelineNode = new PipelineNode(nameof(SpecialTransformer.LabelMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, string.Empty, string.Empty);
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 onnxPipeLineNode,
-                labelMapPipelineNode,
             });
 
             // construct column inference
@@ -828,6 +970,118 @@ namespace mlnet.Tests
             return (bestPipeLine, columnInference, mapping);
         }
 
+        private (Pipeline, ColumnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping>) GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames()
+        {
+            // construct pipeline
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
+                new Dictionary<string, object>()
+                {
+                    { "outputColumnNames", "output1" },
+                    { "inputColumnNames", "input1"},
+                });
+            var bestPipeLine = new Pipeline(new PipelineNode[]
+            {
+                onnxPipeLineNode,
+            });
+
+            // construct column inference
+            var textLoaderArgs = new TextLoader.Options()
+            {
+                Columns = new[] {
+                        new TextLoader.Column("id", DataKind.Int32, 0),
+                        new TextLoader.Column("MsAssetNum", DataKind.Int32, 1),
+                        new TextLoader.Column("Make", DataKind.String, 2),
+                        new TextLoader.Column("Model", DataKind.String, 3),
+                        new TextLoader.Column("model", DataKind.Double, 4),
+                        new TextLoader.Column("work category", DataKind.String, 5),
+                        new TextLoader.Column("Work category", DataKind.Int32, 6),
+                        new TextLoader.Column("IsDetachable", DataKind.Boolean, 7),
+                    },
+                AllowQuoting = true,
+                AllowSparse = true,
+                HasHeader = true,
+                Separators = new[] { ',' }
+            };
+
+            var columnInference = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = textLoaderArgs,
+                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+            };
+
+            // construct columnMapping
+            // mock columnMapping
+            var mapping = new Dictionary<string, CodeGeneratorSettings.ColumnMapping>()
+            {
+                {
+                    "id",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_0",
+                        ColumnType = DataKind.Int32,
+                    }
+                },
+                {
+                    "MsAssetNum",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_1",
+                        ColumnType = DataKind.Int32,
+                    }
+                },
+                {
+                    "Make",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_2",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Model",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_3",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "model",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_4",
+                        ColumnType = DataKind.Double,
+                    }
+                },
+                {
+                    "work category",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_5",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Work Category",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_6",
+                        ColumnType = DataKind.Int32,
+                    }
+                },
+                {
+                    "IsDetachable",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_7",
+                        ColumnType = DataKind.Boolean,
+                    }
+                }
+            };
+
+            return (bestPipeLine, columnInference, mapping);
+        }
+
 
         private (Pipeline, ColumnInferenceResults) GetMockedOvaPipelineAndInference()
         {
@@ -878,9 +1132,10 @@ namespace mlnet.Tests
                 TrainDataset = "x:\\dummypath\\dummy_train.csv",
                 TestDataset = "x:\\dummypath\\dummy_test.csv",
                 LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip",
+                ModelName = "x:\\models\\model.zip",
                 StablePackageVersion = StablePackageVersion,
-                UnstablePackageVersion = UnstablePackageVersion
+                UnstablePackageVersion = UnstablePackageVersion,
+                OnnxRuntimePacakgeVersion = "1.2.3",
             };
         }
     }

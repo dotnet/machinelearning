@@ -1,0 +1,46 @@
+﻿//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+
+using Microsoft.ML.Data;
+
+namespace test.Model
+{
+    public class ModelInput
+    {
+        [ColumnName("id"), LoadColumn(0)]
+        public int Id_col_0 { get; set; }
+
+
+        [ColumnName("MsAssetNum"), LoadColumn(1)]
+        public int MsAssetNum_col_1 { get; set; }
+
+
+        [ColumnName("Make"), LoadColumn(2)]
+        public string Make_col_2 { get; set; }
+
+
+        [ColumnName("Model"), LoadColumn(3)]
+        public string Model_col_3 { get; set; }
+
+
+        [ColumnName("model"), LoadColumn(4)]
+        public double Model_col_4 { get; set; }
+
+
+        [ColumnName("work category"), LoadColumn(5)]
+        public string Work_category_col_5 { get; set; }
+
+
+        [ColumnName("Work category"), LoadColumn(6)]
+        public int Work_category_col_6 { get; set; }
+
+
+        [ColumnName("IsDetachable"), LoadColumn(7)]
+        public bool IsDetachable_col_7 { get; set; }
+
+
+    }
+}

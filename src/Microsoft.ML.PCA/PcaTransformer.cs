@@ -625,6 +625,9 @@ namespace Microsoft.ML.Transforms
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 TransformInfo transformInfo = _parent._transformInfos[iinfo];
 
                 // When the transformer is loaded from a model file,

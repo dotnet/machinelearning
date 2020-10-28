@@ -414,6 +414,9 @@ namespace Microsoft.ML.Transforms.Text
                 //                                                   |
                 //                                               P [j * 3]
 
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+
                 long[] axes = new long[] { 0 };
                 // Allocate D, a constant tensor representing word embedding weights.
                 var shapeD = new long[] { _parent._currentVocab.GetNumWords() + 3, _parent._currentVocab.Dimension };

@@ -36,8 +36,10 @@ namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting an <see cref="OnnxScoringEstimator"/>.
+    /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+    /// and how to run it on a GPU.
     /// </summary>
-    public sealed class OnnxTransformer : RowToRowTransformerBase
+    public sealed class OnnxTransformer : RowToRowTransformerBase, IDisposable
     {
         /// <summary>
         /// A class used for capturing shape information from command line.
@@ -340,6 +342,26 @@ namespace Microsoft.ML.Transforms.Onnx
             return new[] { 1 };
         }
 
+        /// <summary>
+        /// In the case that the ML.Net user wants a subset of columns or lists the columns in a different order then specified in the ONNX model,
+        /// we need to map from the ML.Net dataview column index to the ONNX model output index. This method does that mapping.
+        /// </summary>
+        /// <param name="iinfo">The index of the ML.Net column requested.</param>
+        /// <returns>The index of ONNX output.</returns>
+        internal int MapDataViewColumnToOnnxOutputTensor(int iinfo)
+        {
+            return Model.ModelInfo.OutputNames.IndexOf(Outputs[iinfo]);
+        }
+
+        private bool _isDisposed;
+        public void Dispose()
+        {
+            if (_isDisposed)
+                return;
+            Model?.Dispose();
+            _isDisposed = true;
+        }
+
         private sealed class Mapper : MapperBase
         {
             private readonly OnnxTransformer _parent;
@@ -389,13 +411,16 @@ namespace Microsoft.ML.Transforms.Onnx
                     if (vectorType != null && vectorType.Size == 0)
                         throw Host.Except($"Variable length input columns not supported");
 
-                    if (type.GetItemType() != inputNodeInfo.DataViewType.GetItemType())
+                    var itemType = type.GetItemType();
+                    var nodeItemType = inputNodeInfo.DataViewType.GetItemType();
+                    if (itemType != nodeItemType)
                     {
                         // If the ONNX model input node expects a type that mismatches with the type of the input IDataView column that is provided
                         // then throw an exception.
                         // This is done except in the case where the ONNX model input node expects a UInt32 but the input column is actually KeyDataViewType
                         // This is done to support a corner case originated in NimbusML. For more info, see: https://github.com/microsoft/NimbusML/issues/426
-                        if (!(type.GetItemType() is KeyDataViewType && inputNodeInfo.DataViewType.GetItemType().RawType == typeof(UInt32)))
+                        var isKeyType = itemType is KeyDataViewType;
+                        if (!isKeyType || itemType.RawType != nodeItemType.RawType)
                             throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
                     }
 
@@ -465,7 +490,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                if (_parent.Model.ModelInfo.OutputsInfo[iinfo].DataViewType is VectorDataViewType vectorType)
+                if (_parent.Model.ModelInfo.OutputsInfo[_parent.MapDataViewColumnToOnnxOutputTensor(iinfo)].DataViewType is VectorDataViewType vectorType)
                 {
                     var elemRawType = vectorType.ItemType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
@@ -476,7 +501,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
                 else
                 {
-                    var type = _parent.Model.ModelInfo.OutputsInfo[iinfo].DataViewType.RawType;
+                    var type = _parent.Model.ModelInfo.OutputsInfo[_parent.MapDataViewColumnToOnnxOutputTensor(iinfo)].DataViewType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
                     return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames);
                 }
@@ -564,7 +589,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
                     var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
                     var trueValue = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => value.AsDictionary<string, float>());
-                    var caster = _parent.Model.ModelInfo.OutputsInfo[iinfo].Caster;
+                    var caster = _parent.Model.ModelInfo.OutputsInfo[_parent.MapDataViewColumnToOnnxOutputTensor(iinfo)].Caster;
                     dst = (T)caster(namedOnnxValue);
                 };
                 return valueGetter;
@@ -702,28 +727,30 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
     /// | Output column data type | As specified by the ONNX model |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.2.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.2.0 (for GPU processing if GPU is available) |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.5.2 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.5.2 (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
-    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the
-    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library (version 1.2.0).
-    /// Models are scored on CPU by default.
+    /// To create this estimator use the following APIs:
+    /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
+    ///
+    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
+    /// Models are scored on CPU if the project references Microsoft.ML.OnnxRuntime and on the GPU if the project references Microsoft.ML.OnnxRuntime.Gpu.
+    /// Every project using the OnnxScoringEstimator must reference one of the above two packages.
     ///
     /// To run on a GPU, use the
-    /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) (version 1.2.0) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
-    /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.1 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 7.6.5](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#default-gpu-cuda)).
-    /// Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
+    /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
+    /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.2 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 8.0.3](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#system-requirements)).
+    /// When creating the estimator through [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*), set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1. If the GPU device isn't found but 'fallbackToCpu = true' then the estimator will run on the CPU. If the GPU device isn't found but 'fallbackToCpu = false' then the estimator will throw an exception
     ///
     /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
+    ///
+    /// Internally, OnnxTransformer (the return value of OnnxScoringEstimator.Fit()) holds a reference to an inference session which points to unmanaged memory owned by OnnxRuntime.dll.
+    /// Whenever there is a call to [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*) in a pipeline, it is advised to cast the return value of the Fit() call to IDisposable and call Dispose() to ensure that there are no memory leaks.
     ///
     /// OnnxRuntime works on Windows, MacOS and Ubuntu 16.04 Linux 64-bit platforms.
     /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.
     /// Refer to [ONNX](http://onnx.ai) for more information.
     ///
-    /// To create this estimator use the following:
-    /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
-    ///
-    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

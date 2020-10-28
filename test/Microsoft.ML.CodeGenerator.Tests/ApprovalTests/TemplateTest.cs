@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using ApprovalTests;
 using ApprovalTests.Reporters;
+using Microsoft.ML.CodeGenerator.Templates.Azure.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -43,17 +44,81 @@ namespace Microsoft.ML.CodeGenerator.Tests
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void TestConsumeModel()
+        public void TestConsumeModel_NotAzureImage_NotObjectDetection()
         {
             var consumeModel = new ConsumeModel()
             {
                 Namespace = "Namespace",
-                HasNormalizeMapping = true,
-                HasLabelMapping = true,
-                MLNetModelpath = @"/path/to/model",
+                IsAzureImage = false,
+                IsAzureObjectDetection = false,
+                MLNetModelName = @"mlmodel.zip",
             };
 
             Approvals.Verify(consumeModel.TransformText());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestConsumeModel_AzureImage()
+        {
+            var consumeModel = new ConsumeModel()
+            {
+                Namespace = "Namespace",
+                IsAzureImage = true,
+                IsAzureObjectDetection = false,
+                MLNetModelName = @"mlmodel.zip",
+                OnnxModelName = "onnx.onnx"
+            };
+
+            Approvals.Verify(consumeModel.TransformText());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestConsumeModel_AzureObjectDetection()
+        {
+            var consumeModel = new ConsumeModel()
+            {
+                Namespace = "Namespace",
+                IsAzureImage = false,
+                IsAzureObjectDetection = true,
+                MLNetModelName = @"mlmodel.zip",
+                OnnxModelName = "onnx.onnx"
+            };
+
+            Approvals.Verify(consumeModel.TransformText());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestAzureImageModelOutputClass_WithLabel()
+        {
+            var azureImageOutput = new AzureImageModelOutputClass
+            {
+                Namespace = "Namespace",
+                Labels = new string[] { "str1", "str2", "str3" },
+                Target = CSharp.GenerateTarget.Cli
+            };
+
+            Approvals.Verify(azureImageOutput.TransformText());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestAzureObjectDetectionModelOutputClass_WithLabel()
+        {
+            var azureImageOutput = new AzureObjectDetectionModelOutputClass
+            {
+                Namespace = "Namespace",
+                Labels = new string[] { "str1", "str2", "str3" },
+                Target = CSharp.GenerateTarget.Cli
+            };
+
+            Approvals.Verify(azureImageOutput.TransformText());
         }
 
         [Fact]
@@ -76,7 +141,7 @@ namespace Microsoft.ML.CodeGenerator.Tests
                 LabelName = "Label",
                 CacheBeforeTrainer = true,
                 PostTrainerTransforms = new string[] { "PostTrainerTransformer1" },
-                MLNetModelpath = "/path/to/model",
+                MLNetModelName = "/path/to/model",
             };
 
             Approvals.Verify(modelBuilder.TransformText());

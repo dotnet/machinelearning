@@ -1,0 +1,89 @@
+﻿<#@ template language="C#" linePragmas="false" visibility="internal"#>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="..\..\Console\Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
+
+using System;
+using Microsoft.ML.Data;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace <#= Namespace #>.Model
+{
+    public class ModelOutput
+    {
+        public string[] ObjectTags = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
+
+        [ColumnName("boxes")]
+        public float[] Boxes { get; set; }
+
+        [ColumnName("labels")]
+        public long[] Labels { get; set; }
+
+        [ColumnName("scores")]
+        public float[] Scores { get; set; }
+
+        private BoundingBox[] BoundingBoxes
+        {
+            get
+            {
+                var boundingBoxes = new List<BoundingBox>();
+
+                boundingBoxes = Enumerable.Range(0, this.Labels.Length)
+                          .Select((index) =>
+                          {
+                              var boxes = this.Boxes;
+                              var scores = this.Scores;
+                              var labels = this.Labels;
+
+                              return new BoundingBox()
+                              {
+                                  Left = boxes[index * 4],
+                                  Top = boxes[(index * 4) + 1],
+                                  Right = boxes[(index * 4) + 2],
+                                  Bottom = boxes[(index * 4) + 3],
+                                  Score = scores[index],
+                                  Label = this.ObjectTags[labels[index]],
+                              };
+                          }).ToList();
+                return boundingBoxes.ToArray();
+            }
+        }
+
+        public override string ToString()
+        {
+            return string.Join("\n", BoundingBoxes.Select(x => x.ToString()));
+        }
+    }
+
+    public class BoundingBox
+    {
+        public float Top;
+
+        public float Left;
+
+        public float Right;
+
+        public float Bottom;
+
+        public string Label;
+
+        public float Score;
+
+        public override string ToString()
+        {
+            return $"Top: {this.Top}, Left: {this.Left}, Right: {this.Right}, Bottom: {this.Bottom}, Label: {this.Label}, Score: {this.Score}";
+        }
+    }
+}
+<#+
+public string Namespace {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
+public string[] Labels {get; set;} = new string[0];
+#>

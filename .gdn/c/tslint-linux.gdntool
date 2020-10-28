@@ -1,0 +1,160 @@
+{
+  "fileVersion": "0",
+  "name": "TSLint",
+  "fullName": "TSLint",
+  "toolVersion": "latest",
+  "shortDescription": "An extensible static analysis tool that checks TypeScript code for readability, maintainability, and functionality errors.",
+  "longDescription": "",
+  "links": [
+    {
+      "name": "Homepage",
+      "uri": "https://palantir.github.io/tslint/"
+    }
+  ],
+  "executablePath": "tslint",
+  "packages": [
+    {
+      "master": true,
+      "type": "npm",
+      "name": "tslint",
+      "version": "latest",
+      "peerDependencies": [
+        {
+          "name": "typescript",
+          "version": "latest"
+        },
+        {
+          "name": "tslint-microsoft-contrib",
+          "version": "latest"
+        }
+      ]
+    }
+  ],
+  "arguments": [
+    {
+      "id": "TargetFile",
+      "displayName": "Target File",
+      "argumentType": "positional",
+      "sortOrder": 1
+    },
+    {
+      "id": "OutputFile",
+      "displayName": "Output File",
+      "key": "out",
+      "argumentType": "keyValue"
+    },
+    {
+      "id": "ConfigurationFile",
+      "displayName": "Configuration File",
+      "key": "config",
+      "argumentType": "keyValue",
+      "default": "$(tslint.DefaultConfigurationFile)",
+      "isGlob": true
+    },
+    {
+      "id": "ExcludePattern",
+      "displayName": "Exclude Pattern",
+      "key": "exclude",
+      "argumentType": "keyValue",
+      "default": "$(tslint.DefaultExcludePattern)",
+      "isGlob": true
+    },
+    {
+      "id": "Autofix",
+      "displayName": "Autofix",
+      "key": "fix",
+      "argumentType": "switch"
+    },
+    {
+      "id": "ForceSuccess",
+      "displayName": "Force Success",
+      "key": "force",
+      "argumentType": "switch",
+      "default": true
+    },
+    {
+      "id": "Initialize",
+      "displayName": "Initialize",
+      "key": "init",
+      "argumentType": "switch"
+    },
+    {
+      "id": "OutputAbsolutePaths",
+      "displayName": "Output Absolute Paths",
+      "key": "outputAbsolutePaths",
+      "argumentType": "switch"
+    },
+    {
+      "id": "AdditionalRulesDirectory",
+      "displayName": "Additional Rules Directory",
+      "key": "rules-dir",
+      "argumentType": "keyValue",
+      "default": "$(tslint.MicrosoftContribRules)",
+      "isGlob": true
+    },
+    {
+      "id": "AdditionalFormattersDirectory",
+      "displayName": "Additional Formatters Directory",
+      "key": "formatters-dir",
+      "argumentType": "keyValue"
+    },
+    {
+      "id": "OutputFormat",
+      "displayName": "Output Format",
+      "key": "format",
+      "argumentType": "keyValue",
+      "default": "json"
+    },
+    {
+      "id": "ProjectFile",
+      "displayName": "Project File",
+      "key": "project",
+      "argumentType": "keyValue",
+      "default": "**\\tsconfig.json",
+      "isGlob": true,
+      "batchGlobResults": true,
+      "required": true
+    },
+    {
+      "id": "TypeChecker",
+      "displayName": "Type Checker",
+      "key": "type-check",
+      "argumentType": "switch"
+    },
+    {
+      "id": "Help",
+      "displayName": "Help",
+      "key": "help",
+      "argumentType": "switch"
+    }
+  ],
+  "commandLineOptions": {
+    "keyValueSeparator": " ",
+    "argumentPrefix": "--",
+    "aliasPrefix": "-",
+    "helpArgumentId": "Help",
+    "targetArgumentId": "ProjectFile",
+    "outputArgumentId": "OutputFile"
+  },
+  "outputExtension": "json",
+  "successfulExitCodes": [ 0 ],
+  "errorExitCodes": {
+    "1": "TSLint failed. An invalid command line argument or combination thereof was used",
+    "2": "Linting failed with one or more rule violations with severity error, try enabling ForceSucess"
+  },
+  "errorHelperMessage": "Please refer to https://palantir.github.io/tslint/usage/cli/ for more info.",
+  "supportsBugFiling": true,
+  "bugFilingFilter": "file|**\\*.Results.json",
+  "presetVariables": {
+    "tslint.DefaultConfigurationFile": "$(InstallDirectory)\\node_modules\\tslint-microsoft-contrib\\recommended_ruleset.js",
+    "tslint.DefaultExcludePattern": "d|**typings;-|.gdn\\**",
+    "tslint.MicrosoftContribRules": "$(InstallDirectory)\\node_modules\\tslint-microsoft-contrib"
+  },
+  "converterInfo": {
+    "logFileConverters": {
+      "tslint": {
+        "converterName": "TSLintConverter"
+      }
+    }
+  }
+}

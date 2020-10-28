@@ -41,7 +41,9 @@ namespace Microsoft.ML.AutoML
                 { TrainerName.SymbolicSgdLogisticRegressionBinary, typeof(SymbolicSgdLogisticRegressionBinaryExtension) },
                 { TrainerName.SymbolicSgdLogisticRegressionOva, typeof(SymbolicSgdLogisticRegressionOvaExtension) },
                 { TrainerName.MatrixFactorization, typeof(MatrixFactorizationExtension) },
-                { TrainerName.ImageClassification, typeof(ImageClassificationExtension) }
+                { TrainerName.ImageClassification, typeof(ImageClassificationExtension) },
+                { TrainerName.LightGbmRanking, typeof(LightGbmRankingExtension) },
+                { TrainerName.FastTreeRanking, typeof(FastTreeRankingExtension) },
             };
 
         private static readonly IDictionary<Type, TrainerName> _extensionTypesToTrainerNames =
@@ -59,7 +61,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public static IEnumerable<ITrainerExtension> GetTrainers(TaskKind task,
-            IEnumerable<TrainerName> whitelist, ColumnInformation columnInfo)
+            IEnumerable<TrainerName> allowList, ColumnInformation columnInfo)
         {
             IEnumerable<ITrainerExtension> trainers;
             if (task == TaskKind.BinaryClassification)
@@ -89,16 +91,20 @@ namespace Microsoft.ML.AutoML
             {
                 trainers = GetRecommendationLearners();
             }
+            else if (task == TaskKind.Ranking)
+            {
+                trainers = GetRankingLearners();
+            }
             else
             {
                 // should not be possible to reach here
                 throw new NotSupportedException($"unsupported machine learning task type {task}");
             }
 
-            if (whitelist != null)
+            if (allowList != null)
             {
-                whitelist = new HashSet<TrainerName>(whitelist);
-                trainers = trainers.Where(t => whitelist.Contains(GetTrainerName(t)));
+                allowList = new HashSet<TrainerName>(allowList);
+                trainers = trainers.Where(t => allowList.Contains(GetTrainerName(t)));
             }
 
             return trainers;
@@ -157,6 +163,15 @@ namespace Microsoft.ML.AutoML
             return new ITrainerExtension[]
             {
                 new MatrixFactorizationExtension()
+            };
+        }
+
+        private static IEnumerable<ITrainerExtension> GetRankingLearners()
+        {
+            return new ITrainerExtension[]
+            {
+                new LightGbmRankingExtension(),
+                new FastTreeRankingExtension()
             };
         }
     }

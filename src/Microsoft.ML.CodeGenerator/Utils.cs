@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
@@ -48,23 +51,35 @@ namespace Microsoft.ML.CodeGenerator.Utilities
 
         internal static IDictionary<string, string> GenerateSampleData(IDataView dataView, ColumnInferenceResults columnInference)
         {
-            var featureColumns = dataView.Schema.AsEnumerable().Where(col => col.Name != columnInference.ColumnInformation.LabelColumnName && !columnInference.ColumnInformation.IgnoredColumnNames.Contains(col.Name));
+            var featureColumns = dataView.Schema.ToList().FindAll(
+                col => col.Name != columnInference.ColumnInformation.LabelColumnName &&
+                       !columnInference.ColumnInformation.IgnoredColumnNames.Contains(col.Name));
             var rowCursor = dataView.GetRowCursor(featureColumns);
 
-            var sampleData = featureColumns.Select(column => new { key = Utils.Normalize(column.Name), val = "null" }).ToDictionary(x => x.key, x => x.val);
+            OrderedDictionary sampleData = new OrderedDictionary();
+            // Get normalized and unique column names. If there are duplicate column names, the
+            // differentiator suffix '_col_x' will be added to each column name, where 'x' is
+            // the load order for a given column.
+            List<string> normalizedColumnNames= GenerateColumnNames(featureColumns.Select(column => column.Name).ToList());
+            foreach (string columnName in normalizedColumnNames)
+                sampleData[columnName] = null;
             if (rowCursor.MoveNext())
             {
                 var getGetGetterMethod = typeof(Utils).GetMethod(nameof(Utils.GetValueFromColumn), BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
-                foreach (var column in featureColumns)
+                // Access each feature column name through its index in featureColumns
+                // as there may exist duplicate column names. In this case, sampleData
+                // column names may have the differentiator suffix of '_col_x' added,
+                // which requires access to each column name in through its index.
+                for(int i = 0; i < featureColumns.Count(); i++)
                 {
-                    var getGeneraicGetGetterMethod = getGetGetterMethod.MakeGenericMethod(column.Type.RawType);
-                    string val = getGeneraicGetGetterMethod.Invoke(null, new object[] { rowCursor, column }) as string;
-                    sampleData[Utils.Normalize(column.Name)] = val;
+                    var getGenericGetGetterMethod = getGetGetterMethod.MakeGenericMethod(featureColumns[i].Type.RawType);
+                    string val = getGenericGetGetterMethod.Invoke(null, new object[] { rowCursor, featureColumns[i] }) as string;
+                    sampleData[i] = val;
                 }
             }
 
-            return sampleData;
+            return sampleData.Cast<DictionaryEntry>().ToDictionary(k => (string)k.Key, v => (string)v.Value);
         }
 
         internal static string GetValueFromColumn<T>(DataViewRowCursor rowCursor, DataViewSchema.Column column)
@@ -246,6 +261,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
         internal static IList<string> GenerateClassLabels(ColumnInferenceResults columnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
             IList<string> result = new List<string>();
+            List<string> columnNames = new List<string>();
             foreach (var column in columnInferenceResults.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();
@@ -268,37 +284,9 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     dataKind = column.DataKind;
                     columnName = column.Name;
                 }
-                switch (dataKind)
-                {
-                    case Microsoft.ML.Data.DataKind.String:
-                        sb.Append(Symbols.StringSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Boolean:
-                        sb.Append(Symbols.BoolSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Single:
-                        sb.Append(Symbols.FloatSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Double:
-                        sb.Append(Symbols.DoubleSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Int32:
-                        sb.Append(Symbols.IntSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.UInt32:
-                        sb.Append(Symbols.UIntSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.Int64:
-                        sb.Append(Symbols.LongSymbol);
-                        break;
-                    case Microsoft.ML.Data.DataKind.UInt64:
-                        sb.Append(Symbols.UlongSymbol);
-                        break;
-                    default:
-                        throw new ArgumentException($"The data type '{column.DataKind}' is not handled currently.");
+                sb.Append(GetSymbolOfDataKind(dataKind));
 
-                }
-
+                // Accomodate VectorType (array) columns
                 if (range > 0)
                 {
                     result.Add($"[ColumnName(\"{columnName}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
@@ -309,12 +297,70 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                     result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
-                sb.Append(Utils.Normalize(column.Name));
-                sb.Append("{get; set;}");
+                columnNames.Add(column.Name);
                 result.Add(sb.ToString());
                 result.Add("\r\n");
             }
+            // Get normalized and unique column names. If there are duplicate column names, the
+            // differentiator suffix '_col_x' will be added to each column name, where 'x' is
+            // the load order for a given column.
+            List<string> normalizedColumnNames = GenerateColumnNames(columnNames);
+            for (int i = 1; i < result.Count; i+=3)
+            {
+                // Get normalized column name for correctly typed class property name
+                result[i] += normalizedColumnNames[i/3];
+                result[i] += "{get; set;}";
+            }
             return result;
+        }
+
+        /// <summary>
+        /// Take a list of column names that may not be normalized to fit property name standards
+        /// and contain duplicate column names. Return unique and normalized column names.
+        /// </summary>
+        /// <param name="columnNames">Column names to normalize.</param>
+        /// <returns>A list of strings that contain normalized and unique column names.</returns>
+        internal static List<string> GenerateColumnNames(List<string> columnNames)
+        {
+            for (int i = 0; i < columnNames.Count; i++)
+                columnNames[i] = Utils.Normalize(columnNames[i]);
+            // Check if there are any duplicates in columnNames by obtaining its set
+            // and seeing whether or not they are the same size.
+            HashSet<String> columnNamesSet = new HashSet<String>(columnNames);
+            // If there are duplicates, add the differentiator suffix '_col_x'
+            // to each normalized column name, where 'x' is the load
+            // order for a given column from dataset.
+            if (columnNamesSet.Count != columnNames.Count)
+            {
+                for (int i = 0; i < columnNames.Count; i++)
+                    columnNames[i] += String.Concat("_col_", i);
+            }
+            return columnNames;
+        }
+
+        internal static string GetSymbolOfDataKind(DataKind dataKind)
+        {
+            switch (dataKind)
+            {
+                case DataKind.String:
+                    return Symbols.StringSymbol;
+                case DataKind.Boolean:
+                    return Symbols.BoolSymbol;
+                case DataKind.Single:
+                    return Symbols.FloatSymbol;
+                case DataKind.Double:
+                    return Symbols.DoubleSymbol;
+                case DataKind.Int32:
+                    return Symbols.IntSymbol;
+                case DataKind.UInt32:
+                    return Symbols.UIntSymbol;
+                case DataKind.Int64:
+                    return Symbols.LongSymbol;
+                case DataKind.UInt64:
+                    return Symbols.UlongSymbol;
+                default:
+                    throw new ArgumentException($"The data type '{dataKind}' is not handled currently.");
+            }
         }
     }
 }

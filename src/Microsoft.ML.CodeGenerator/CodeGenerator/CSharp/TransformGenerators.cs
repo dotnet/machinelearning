@@ -143,6 +143,29 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
+    internal class Hashing : TransformGeneratorBase
+    {
+        public Hashing(PipelineNode node) : base(node)
+        {
+        }
+
+        internal override string MethodName => "Conversion.Hash";
+
+        public override string GenerateTransformer()
+        {
+            StringBuilder sb = new StringBuilder();
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            sb.Append(MethodName);
+            sb.Append("(");
+            sb.Append(outputColumn);
+            sb.Append(",");
+            sb.Append(inputColumn);
+            sb.Append(")");
+            return sb.ToString();
+        }
+    }
+
     internal class MissingValueIndicator : TransformGeneratorBase
     {
         public MissingValueIndicator(PipelineNode node) : base(node)
@@ -377,6 +400,17 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
+    internal class ObjectDetectionImageResizing : TransformGeneratorBase
+    {
+        public ObjectDetectionImageResizing(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ResizeImages";
+
+        public override string GenerateTransformer()
+        {
+            return @"ResizeImages(outputColumnName: ""ImageSource_featurized"", imageWidth: 800, imageHeight: 600, inputColumnName: ""ImageSource_featurized"")";
+        }
+    }
+
     internal class PixelExtract : TransformGeneratorBase
     {
         public PixelExtract(PipelineNode node) : base(node) { }
@@ -384,33 +418,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public override string GenerateTransformer()
         {
-            return @"ExtractPixels(""ImageSource_featurized"", ""ImageSource_featurized"")";
-        }
-    }
-
-    internal class CustomNormalizeMapping : TransformGeneratorBase
-    {
-        public CustomNormalizeMapping(PipelineNode node) : base(node) { }
-        internal override string MethodName => "NormalizeMapping";
-
-        public override string GenerateTransformer()
-        {
-            return @"CustomMapping<NormalizeInput, NormalizeOutput>(
-                                          (input, output) => NormalizeMapping.Mapping(input, output),
-                                          contractName: nameof(NormalizeMapping))";
-        }
-    }
-
-    internal class CustomLabelMapping : TransformGeneratorBase
-    {
-        public CustomLabelMapping(PipelineNode node) : base(node) { }
-        internal override string MethodName => "LabelMapping";
-
-        public override string GenerateTransformer()
-        {
-            return @"CustomMapping<LabelMappingInput, LabelMappingOutput>(
-                                          (input, output) => LabelMapping.Mapping(input, output),
-                                          contractName: nameof(LabelMapping))";
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"input columns for the suggested transform: {MethodName} is not exactly one.");
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} it not exactly one.");
+            return $"ExtractPixels({outputColumn}, {inputColumn})";
         }
     }
 
