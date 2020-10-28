@@ -46,7 +46,14 @@ phases:
   queue:
     name: Hosted macOS
   steps:
-  - script: brew update && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
+  # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/1811
+  - script: |
+      brew uninstall openssl@1.0.2t |
+      brew uninstall python@2.7.17 |
+      brew untap local/openssl |
+      brew untap local/python2
+    displayName: MacOS Homebrew bug Workaround
+  - script: brew update && brew install cmake $(Build.SourcesDirectory)/build/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
     displayName: Install build dependencies
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
