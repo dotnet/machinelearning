@@ -53,7 +53,7 @@ jobs:
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: |
           brew uninstall openssl@1.0.2t |
-          brew untap local/openssl |
+          brew untap local/openssl
         displayName: MacOS Homebrew bug Workaround
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew install mono-libgdiplus && brew link libomp --force
