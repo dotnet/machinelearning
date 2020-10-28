@@ -339,7 +339,7 @@ namespace Microsoft.ML.AutoML.Test
 
             // Ensure the (last) model that was training when maximum experiment time was reached has been stopped,
             // and that its MLContext has been canceled.
-            Assert.True(experiment.RunDetails.Last().Exception.Message == "Operation was canceled.",
+            Assert.True(experiment.RunDetails.Last().Exception.Message.Contains("Operation was canceled"),
                         "Training process was not successfully canceled after maximum experiment time was reached.");
 
             // Ensure that the best found model can still run after maximum experiment time was reached.

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Timers;
+using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -56,7 +56,7 @@ namespace Microsoft.ML.AutoML
             _experimentTimerExpired = false;
         }
 
-        private void MaxExperimentTimeExpiredEvent(object sender, EventArgs e)
+        private void MaxExperimentTimeExpiredEvent(object state)
         {
             // If at least one model was run, end experiment immediately.
             // Else, wait for first model to run before experiment is concluded.
@@ -78,10 +78,10 @@ namespace Microsoft.ML.AutoML
             // is not a positive number.
             if (_experimentSettings.MaxExperimentTimeInSeconds > 0)
             {
-                Timer timer = new Timer(_experimentSettings.MaxExperimentTimeInSeconds * 1000);
-                timer.Elapsed += MaxExperimentTimeExpiredEvent;
-                timer.AutoReset = false;
-                timer.Enabled = true;
+                Timer timer = new Timer(
+                    new TimerCallback(MaxExperimentTimeExpiredEvent), null,
+                    _experimentSettings.MaxExperimentTimeInSeconds * 1000, Timeout.Infinite
+                );
             }
             // If given max duration of experiment is 0, only 1 model will be trained.
             // _experimentSettings.MaxExperimentTimeInSeconds is of type uint, it is
