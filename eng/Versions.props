@@ -77,6 +77,7 @@
     <MicrosoftExtensionsDependencyModelVersion>2.1.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsFileSystemGlobbingVersion>2.0.0</MicrosoftExtensionsFileSystemGlobbingVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.0</MicrosoftNETCorePlatformsVersion>
+    <MicrosoftNETCore3PlatformsVersion>3.1.0</MicrosoftNETCore3PlatformsVersion>
     <MicrosoftNetCompilersToolsetVersion>3.8.0-3.20460.2</MicrosoftNetCompilersToolsetVersion>
     <MoqVersion>4.8.3</MoqVersion>
     <MonoOptionsVersion>5.3.0.1</MonoOptionsVersion>
