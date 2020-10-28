@@ -53,7 +53,7 @@ phases:
       brew untap local/openssl |
       brew untap local/python2
     displayName: MacOS Homebrew bug Workaround
-  - script: brew update && brew install cmake $(Build.SourcesDirectory)/build/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
+  - script: brew update && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew install mono-libgdiplus && brew link libomp --force
     displayName: Install build dependencies
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
