@@ -8,5 +8,4 @@
     <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.runtimeconfig.json;.runtimeconfig.dev.json;.deps.json</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
-
 </Project>

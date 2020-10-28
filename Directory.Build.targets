@@ -38,7 +38,6 @@
 			UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
 		<Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
 		</Copy>
-  <!--<Exec Command="call C:\MyFile.bat or call C:\MyFile.bat call C:\MyFile2.bat" />-->
   </Target>
 
 
