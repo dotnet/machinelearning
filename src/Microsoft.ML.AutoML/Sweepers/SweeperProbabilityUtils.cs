@@ -99,7 +99,7 @@ namespace Microsoft.ML.AutoML
                 }
                 else if (sweepParam is LongValueGenerator lvg)
                 {
-                    var longValue = GetIfIParameterValueOfT<long>(pset) ?? long.Parse(pset.ValueText);
+                    var longValue = GetIfIParameterValueOfT<long>(pset) ?? long.Parse(pset.ValueText, CultureInfo.InvariantCulture);
                     // Normalizing all numeric parameters to [0,1] range.
                     result.Add(lvg.NormalizeValue(new LongParameterValue(pset.Name, longValue)));
                 }
