@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
@@ -102,9 +104,27 @@ namespace Microsoft.ML.AutoML.Test
             //throw new NotImplementedException();
         }
 
-        [Fact]
-        public void AutoFitRegressionTest()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void AutoFitRegressionTest(bool foreignCulture)
         {
+            var originalCulture = Thread.CurrentThread.CurrentCulture;
+            uint experimentTime = 0;
+
+            if (foreignCulture)
+            {
+                // If users run AutoML with a different local, sometimes
+                // the sweeper encounters problems when parsing some strings.
+                // So testing in another culture is necessary.
+                // Furthermore, these issues might only occur after several
+                // iterations, so more experiment time is needed for this to
+                // occur.
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("pl-PL");
+                experimentTime = 30;
+
+            }
+            
             var context = new MLContext(1);
             var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
@@ -113,11 +133,14 @@ namespace Microsoft.ML.AutoML.Test
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
             var result = context.Auto()
-                .CreateRegressionExperiment(0)
+                .CreateRegressionExperiment(experimentTime)
                 .Execute(trainData, validationData,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
+
+            if(foreignCulture)  
+                Thread.CurrentThread.CurrentCulture = originalCulture;
         }
 
         [LightGBMFact]
