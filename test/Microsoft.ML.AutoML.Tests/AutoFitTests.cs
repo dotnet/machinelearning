@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -111,44 +112,48 @@ namespace Microsoft.ML.AutoML.Test
         public void AutoFitRegressionTest(string culture)
         {
             var originalCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
-
-            uint experimentTime = 0;
-
-            if (culture == "ar-SA")
+            try
             {
-                // If users run AutoML with a different local, sometimes
+                Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+
+                // If users run AutoML with a different locale, sometimes
                 // the sweeper encounters problems when parsing some strings.
                 // So testing in another culture is necessary.
-                // Furthermore, these issues might only occur after several
+                // Furthermore, these issues might only occur after ~70
                 // iterations, so more experiment time is needed for this to
                 // occur.
-                experimentTime = 30;
+                uint experimentTime = (uint) (culture == "en-US" ? 0 : 30);
+
+                var experimentSettings = new RegressionExperimentSettings { MaxExperimentTimeInSeconds = experimentTime};
+                if (!Environment.Is64BitProcess)
+                {
+                    // LightGBM isn't available on x86 machines
+                    experimentSettings.Trainers.Remove(RegressionTrainer.LightGbm);
+                }
+
+                var context = new MLContext(1);
+                var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
+                var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
+                var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+                var trainData = textLoader.Load(dataPath);
+                var validationData = context.Data.TakeRows(trainData, 20);
+                trainData = context.Data.SkipRows(trainData, 20);
+                var result = context.Auto()
+                    .CreateRegressionExperiment(experimentSettings)
+                    .Execute(trainData, validationData,
+                        new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
+
+                Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
+
+                // Ensure experimentTime allows enough iterations to fully test the internationalization code
+                // If the below assertion fails, increase the experiment time so the number of iterations is met
+                Assert.True(culture == "en-US" || result.RunDetails.Count() >= 75, $"RunDetails.Count() = {result.RunDetails.Count()}, below 75");
 
             }
-            else if(culture == "pl-PL")
+            finally
             {
-                experimentTime = 100;
+                Thread.CurrentThread.CurrentCulture = originalCulture;
             }
-
-            var context = new MLContext(1);
-            var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
-            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
-            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-            var trainData = textLoader.Load(dataPath);
-            var validationData = context.Data.TakeRows(trainData, 20);
-            trainData = context.Data.SkipRows(trainData, 20);
-            var result = context.Auto()
-                .CreateRegressionExperiment(experimentTime)
-                .Execute(trainData, validationData,
-                    new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
-
-            //MYTODO: Only adding this for debugging purposes on the CI:
-            System.Console.WriteLine($"culture:{culture} - Count: {result.RunDetails.Count()} - Null ValidationMetrics Count:{result.RunDetails.Where(rd => rd.ValidationMetrics == null).Count()}");
-
-            Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
-
-            Thread.CurrentThread.CurrentCulture = originalCulture;
         }
 
         [LightGBMFact]
