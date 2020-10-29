@@ -122,7 +122,7 @@ namespace Microsoft.ML.AutoML.Test
                 // Furthermore, these issues might only occur after ~70
                 // iterations, so more experiment time is needed for this to
                 // occur.
-                uint experimentTime = (uint) (culture == "en-US" ? 0 : 65);
+                uint experimentTime = (uint) (culture == "en-US" ? 0 : 100);
 
                 var experimentSettings = new RegressionExperimentSettings { MaxExperimentTimeInSeconds = experimentTime};
                 if (!Environment.Is64BitProcess)
