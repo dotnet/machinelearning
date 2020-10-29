@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -106,7 +105,6 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Theory]
-        [Trait("Category", "RunSpecificTest")]
         [InlineData("en-US")]
         [InlineData("ar-SA")]
         [InlineData("pl-PL")]
@@ -115,7 +113,7 @@ namespace Microsoft.ML.AutoML.Test
             var originalCulture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
 
-            uint experimentTime = 30;
+            uint experimentTime = 0;
 
             if (culture == "ar-SA")
             {
@@ -134,7 +132,6 @@ namespace Microsoft.ML.AutoML.Test
             }
 
             var context = new MLContext(1);
-            context.Log += (sender, e) => Console.WriteLine(e); //MYTODO: added for debugging purposes
             var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
@@ -146,14 +143,8 @@ namespace Microsoft.ML.AutoML.Test
                 .Execute(trainData, validationData,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
-            //var trainers = Enum.GetValues(typeof(RegressionTrainer)).OfType<RegressionTrainer>().ToList();
-
             //MYTODO: Only adding this for debugging purposes on the CI:
-            var nullValidationMetrics = result.RunDetails.Where(rd => rd.ValidationMetrics == null).ToArray();
-            System.Console.WriteLine($"culture:{culture} - Count: {result.RunDetails.Count()} - Null ValidationMetrics Count:{nullValidationMetrics.Count()}");
-            if (nullValidationMetrics.Count() > 0)
-                for (var i = 0; i < nullValidationMetrics.Count(); i++)
-                    Console.WriteLine($"nullValidationMetrics[{i}].TrainerName={nullValidationMetrics[i].TrainerName}");
+            System.Console.WriteLine($"culture:{culture} - Count: {result.RunDetails.Count()} - Null ValidationMetrics Count:{result.RunDetails.Where(rd => rd.ValidationMetrics == null).Count()}");
 
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
 
