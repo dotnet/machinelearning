@@ -69,6 +69,16 @@ namespace Microsoft.ML.AutoML
             }
         }
 
+        private void MainContextCanceledEvent(object state)
+		{
+            // If the main MLContext is canceled, cancel the ongoing model training and MLContext.
+            if ((_context.Model.GetEnvironment() as ICancelable).IsCanceled)
+            {
+                _logger.Warning("Main MLContext has been canceled. Ending experiment...");
+                _currentModelMLContext.CancelExecution();
+            }
+		}
+
         public IList<TRunDetail> Execute()
         {
             var iterationResults = new List<TRunDetail>();
@@ -78,7 +88,7 @@ namespace Microsoft.ML.AutoML
             // is not a positive number.
             if (_experimentSettings.MaxExperimentTimeInSeconds > 0)
             {
-                Timer timer = new Timer(
+                Timer maxExperimentTimeTimer = new Timer(
                     new TimerCallback(MaxExperimentTimeExpiredEvent), null,
                     _experimentSettings.MaxExperimentTimeInSeconds * 1000, Timeout.Infinite
                 );
@@ -88,6 +98,11 @@ namespace Microsoft.ML.AutoML
             // either 0 or >0.
             else
                 _experimentTimerExpired = true;
+            // Add second timer to check for the cancelation signal from the main MLContext
+            // to the active child MLContext. This timer will propagate the cancelation
+            // signal from the main to the child MLContexs if the main MLContext is
+            // canceled.
+            Timer mainContextCanceledTimer = new Timer(new TimerCallback(MainContextCanceledEvent), null, 1000, 1000);
 
             do
             {
