@@ -58,7 +58,7 @@ jobs:
           brew untap local/python2
         displayName: MacOS Homebrew bug Workaround
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
-      - script: brew update && brew install cmake $(Build.SourcesDirectory)/build/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
+      - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
         displayName: Install build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
