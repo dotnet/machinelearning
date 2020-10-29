@@ -143,6 +143,9 @@ namespace Microsoft.ML.AutoML.Test
                 .Execute(trainData, validationData,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
+            //MYTODO: Only adding this for debugging purposes on the CI:
+            System.Console.WriteLine($"culture:{culture} - Count: {result.RunDetails.Count()} - Null ValidationMetrics Count:{result.RunDetails.Where(rd => rd.ValidationMetrics == null).Count()}");
+
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
 
             Thread.CurrentThread.CurrentCulture = originalCulture;
