@@ -105,14 +105,17 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void AutoFitRegressionTest(bool foreignCulture)
+        [InlineData("en-US")]
+        [InlineData("ar-SA")]
+        [InlineData("pl-PL")]
+        public void AutoFitRegressionTest(string culture)
         {
             var originalCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+
             uint experimentTime = 0;
 
-            if (foreignCulture)
+            if (culture == "ar-SA")
             {
                 // If users run AutoML with a different local, sometimes
                 // the sweeper encounters problems when parsing some strings.
@@ -120,11 +123,14 @@ namespace Microsoft.ML.AutoML.Test
                 // Furthermore, these issues might only occur after several
                 // iterations, so more experiment time is needed for this to
                 // occur.
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("pl-PL");
                 experimentTime = 30;
 
             }
-            
+            else if(culture == "pl-PL")
+            {
+                experimentTime = 100;
+            }
+
             var context = new MLContext(1);
             var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
@@ -139,8 +145,7 @@ namespace Microsoft.ML.AutoML.Test
 
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
 
-            if(foreignCulture)  
-                Thread.CurrentThread.CurrentCulture = originalCulture;
+            Thread.CurrentThread.CurrentCulture = originalCulture;
         }
 
         [LightGBMFact]
