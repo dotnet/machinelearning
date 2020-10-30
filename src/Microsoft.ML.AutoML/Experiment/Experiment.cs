@@ -63,7 +63,7 @@ namespace Microsoft.ML.AutoML
                 // get next pipeline
                 var getPipelineStopwatch = Stopwatch.StartNew();
                 var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task,
-                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerAllowList);
+                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _logger, _trainerAllowList);
 
                 var pipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
 
