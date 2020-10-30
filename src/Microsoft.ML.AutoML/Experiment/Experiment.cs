@@ -101,6 +101,7 @@ namespace Microsoft.ML.AutoML
             // either 0 or >0.
             else
                 _experimentTimerExpired = true;
+
             // Add second timer to check for the cancelation signal from the main MLContext
             // to the active child MLContext. This timer will propagate the cancelation
             // signal from the main to the child MLContexs if the main MLContext is
@@ -122,7 +123,7 @@ namespace Microsoft.ML.AutoML
                 // A new MLContext is needed per model run. When max experiment time is reached, each used
                 // context is canceled to stop further model training. The cancellation of the main MLContext
                 // a user has instantiated is not desirable, thus additional MLContexts are used.
-                _currentModelMLContext = new MLContext(_newContextSeedGenerator.Next());
+                _currentModelMLContext = _newContextSeedGenerator == null ? new MLContext() : new MLContext(_newContextSeedGenerator.Next());
                 var pipeline = PipelineSuggester.GetNextInferredPipeline(_currentModelMLContext, _history, _datasetColumnInfo, _task,
                     _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerAllowList);
 

@@ -53,9 +53,9 @@ namespace Microsoft.ML.AutoML
         }
 
         public MLContext GetContext()
-		{
+        {
             return _context;
-		}
+        }
 
         public Pipeline ToPipeline()
         {
