@@ -27,8 +27,11 @@ namespace Microsoft.ML.AutoML
         private readonly IRunner<TRunDetail> _runner;
         private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly IChannel _logger;
+        private Timer _maxExperimentTimeTimer;
+        private Timer _mainContextCanceledTimer;
         private bool _experimentTimerExpired;
         private MLContext _currentModelMLContext;
+        private Random _newContextSeedGenerator;
 
         public Experiment(MLContext context,
             TaskKind task,
@@ -70,14 +73,14 @@ namespace Microsoft.ML.AutoML
         }
 
         private void MainContextCanceledEvent(object state)
-		{
+        {
             // If the main MLContext is canceled, cancel the ongoing model training and MLContext.
             if ((_context.Model.GetEnvironment() as ICancelable).IsCanceled)
             {
                 _logger.Warning("Main MLContext has been canceled. Ending experiment...");
                 _currentModelMLContext.CancelExecution();
             }
-		}
+        }
 
         public IList<TRunDetail> Execute()
         {
@@ -88,7 +91,7 @@ namespace Microsoft.ML.AutoML
             // is not a positive number.
             if (_experimentSettings.MaxExperimentTimeInSeconds > 0)
             {
-                Timer maxExperimentTimeTimer = new Timer(
+                _maxExperimentTimeTimer = new Timer(
                     new TimerCallback(MaxExperimentTimeExpiredEvent), null,
                     _experimentSettings.MaxExperimentTimeInSeconds * 1000, Timeout.Infinite
                 );
@@ -102,7 +105,12 @@ namespace Microsoft.ML.AutoML
             // to the active child MLContext. This timer will propagate the cancelation
             // signal from the main to the child MLContexs if the main MLContext is
             // canceled.
-            Timer mainContextCanceledTimer = new Timer(new TimerCallback(MainContextCanceledEvent), null, 1000, 1000);
+            _mainContextCanceledTimer = new Timer(new TimerCallback(MainContextCanceledEvent), null, 1000, 1000);
+
+            // Pseudo random number generator to result in deterministic runs with the provided main MLContext's seed and to
+            // maintain variability between training iterations.
+            int? mainContextSeed = ((ISeededEnvironment)_context.Model.GetEnvironment()).Seed;
+            _newContextSeedGenerator = (mainContextSeed.HasValue) ? RandomUtils.Create(mainContextSeed.Value) : RandomUtils.Create();
 
             do
             {
@@ -114,7 +122,7 @@ namespace Microsoft.ML.AutoML
                 // A new MLContext is needed per model run. When max experiment time is reached, each used
                 // context is canceled to stop further model training. The cancellation of the main MLContext
                 // a user has instantiated is not desirable, thus additional MLContexts are used.
-                _currentModelMLContext = new MLContext(((ISeededEnvironment)_context.Model.GetEnvironment()).Seed);
+                _currentModelMLContext = new MLContext(_newContextSeedGenerator.Next());
                 var pipeline = PipelineSuggester.GetNextInferredPipeline(_currentModelMLContext, _history, _datasetColumnInfo, _task,
                     _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerAllowList);
 
