@@ -334,7 +334,7 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var experiment = context.Auto()
-                .CreateBinaryClassificationExperiment(60)
+                .CreateBinaryClassificationExperiment(15)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // Ensure the (last) model that was training when maximum experiment time was reached has been stopped,
