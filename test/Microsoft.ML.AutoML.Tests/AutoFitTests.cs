@@ -334,7 +334,7 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var experiment = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(30)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // Ensure the (last) model that was training when maximum experiment time was reached has been stopped,
@@ -343,12 +343,9 @@ namespace Microsoft.ML.AutoML.Test
                         "Training process was not successfully canceled after maximum experiment time was reached.");
 
             // Ensure that the best found model can still run after maximum experiment time was reached.
-            var refitModel = experiment.BestRun.Estimator.Fit(trainData);
-            IDataView predictions = refitModel.Transform(trainData);
-            var prev = predictions.Preview();
-            Assert.Equal(30, predictions.Schema.Count);
-            Assert.True(predictions.Schema.GetColumnOrNull("PredictedLabel").HasValue);
-            Assert.True(predictions.Schema.GetColumnOrNull("Score").HasValue);
+            IDataView predictions = experiment.BestRun.Model.Transform(trainData);
+            var metrics = context.BinaryClassification.Evaluate(predictions, labelColumnName: DatasetUtil.UciAdultLabel);
+            Assert.True(metrics?.Accuracy > 0.5);
         }
 
         private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)
