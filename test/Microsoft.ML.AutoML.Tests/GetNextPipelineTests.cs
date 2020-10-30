@@ -9,7 +9,6 @@ using Xunit;
 using Newtonsoft.Json;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
-using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -28,8 +27,7 @@ namespace Microsoft.ML.AutoML.Test
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // get next pipeline
-            var pipeline = PipelineSuggester.GetNextPipeline(context, new List<PipelineScore>(), columns,
-                TaskKind.BinaryClassification, ((IChannelProvider)context).Start("AutoMLTest"));
+            var pipeline = PipelineSuggester.GetNextPipeline(context, new List<PipelineScore>(), columns, TaskKind.BinaryClassification);
 
             // serialize & deserialize pipeline
             var serialized = JsonConvert.SerializeObject(pipeline);
@@ -59,7 +57,7 @@ namespace Microsoft.ML.AutoML.Test
             for (var i = 0; i < maxIterations; i++)
             {
                 // Get next pipeline
-                var pipeline = PipelineSuggester.GetNextPipeline(context, history, columns, task, ((IChannelProvider)context).Start("AutoMLTest"));
+                var pipeline = PipelineSuggester.GetNextPipeline(context, history, columns, task);
                 if (pipeline == null)
                 {
                     break;
