@@ -125,7 +125,7 @@ namespace Microsoft.ML.AutoML
                 // a user has instantiated is not desirable, thus additional MLContexts are used.
                 _currentModelMLContext = _newContextSeedGenerator == null ? new MLContext() : new MLContext(_newContextSeedGenerator.Next());
                 var pipeline = PipelineSuggester.GetNextInferredPipeline(_currentModelMLContext, _history, _datasetColumnInfo, _task,
-                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerAllowList);
+                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _logger, _trainerAllowList);
 
                 // break if no candidates returned, means no valid pipeline available
                 if (pipeline == null)
