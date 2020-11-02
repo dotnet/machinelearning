@@ -84,7 +84,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
+        ///  [!code-csharp[ImageClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/ImageClassification/ImageClassificationDefault.cs)]
         /// ]]></format>
         /// </example>
         public static ImageLoadingEstimator LoadRawImageBytes(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName = null)
