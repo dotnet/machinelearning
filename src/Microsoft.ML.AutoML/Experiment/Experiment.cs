@@ -106,7 +106,7 @@ namespace Microsoft.ML.AutoML
             // to the active child MLContext. This timer will propagate the cancelation
             // signal from the main to the child MLContexs if the main MLContext is
             // canceled.
-            _mainContextCanceledTimer = new Timer(1000);
+            _mainContextCanceledTimer = new Timer(3000);
             _mainContextCanceledTimer.Elapsed += MainContextCanceledEvent;
             _mainContextCanceledTimer.AutoReset = true;
             _mainContextCanceledTimer.Enabled = true;

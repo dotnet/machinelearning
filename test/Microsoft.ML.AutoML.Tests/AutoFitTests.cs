@@ -130,6 +130,8 @@ namespace Microsoft.ML.AutoML.Test
                     // LightGBM isn't available on x86 machines
                     experimentSettings.Trainers.Remove(RegressionTrainer.LightGbm);
                 }
+                // FastForest takes too long compared to other trainers
+                experimentSettings.Trainers.Remove(RegressionTrainer.FastForest);
 
                 var context = new MLContext(1);
                 var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
@@ -269,7 +271,7 @@ namespace Microsoft.ML.AutoML.Test
 
             // STEP 2: Run AutoML experiment
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
-                .CreateRecommendationExperiment(5)
+                .CreateRecommendationExperiment(8)
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation()
                     {
