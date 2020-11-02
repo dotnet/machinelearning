@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using System.Timers;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML
             _experimentTimerExpired = false;
         }
 
-        private void MaxExperimentTimeExpiredEvent(object state)
+        private void MaxExperimentTimeExpiredEvent(Object source, ElapsedEventArgs e)
         {
             // If at least one model was run, end experiment immediately.
             // Else, wait for first model to run before experiment is concluded.
@@ -72,7 +72,7 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        private void MainContextCanceledEvent(object state)
+        private void MainContextCanceledEvent(Object source, ElapsedEventArgs e)
         {
             // If the main MLContext is canceled, cancel the ongoing model training and MLContext.
             if ((_context.Model.GetEnvironment() as ICancelable).IsCanceled)
@@ -91,10 +91,10 @@ namespace Microsoft.ML.AutoML
             // is not a positive number.
             if (_experimentSettings.MaxExperimentTimeInSeconds > 0)
             {
-                _maxExperimentTimeTimer = new Timer(
-                    new TimerCallback(MaxExperimentTimeExpiredEvent), null,
-                    _experimentSettings.MaxExperimentTimeInSeconds * 1000, Timeout.Infinite
-                );
+                _maxExperimentTimeTimer = new Timer(_experimentSettings.MaxExperimentTimeInSeconds * 1000);
+                _maxExperimentTimeTimer.Elapsed += MaxExperimentTimeExpiredEvent;
+                _maxExperimentTimeTimer.AutoReset = false;
+                _maxExperimentTimeTimer.Enabled = true;
             }
             // If given max duration of experiment is 0, only 1 model will be trained.
             // _experimentSettings.MaxExperimentTimeInSeconds is of type uint, it is
@@ -106,7 +106,10 @@ namespace Microsoft.ML.AutoML
             // to the active child MLContext. This timer will propagate the cancelation
             // signal from the main to the child MLContexs if the main MLContext is
             // canceled.
-            _mainContextCanceledTimer = new Timer(new TimerCallback(MainContextCanceledEvent), null, 1000, 1000);
+            _mainContextCanceledTimer = new Timer(1000);
+            _mainContextCanceledTimer.Elapsed += MainContextCanceledEvent;
+            _mainContextCanceledTimer.AutoReset = true;
+            _mainContextCanceledTimer.Enabled = true;
 
             // Pseudo random number generator to result in deterministic runs with the provided main MLContext's seed and to
             // maintain variability between training iterations.
