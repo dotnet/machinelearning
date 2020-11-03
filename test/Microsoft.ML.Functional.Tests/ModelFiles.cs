@@ -68,7 +68,7 @@ namespace Microsoft.ML.Functional.Tests
                 {
                     // The only line in the file is the version of the model.
                     var line = reader.ReadLine();
-                    Assert.Matches(new Regex(@"(\d+).(\d+)\.(\d+)\.(\d+) \@BuiltBy:(.)* \@SrcCode:(.)*"), line);
+                    Assert.Matches(new Regex(@"(\d+)\.(\d+)\.(\d+)(-[dev|ci|preview\.(\d+)\.(\d+)\.(\d+)]){0,1}"), line);
                 }
             }
         }
@@ -79,8 +79,8 @@ namespace Microsoft.ML.Functional.Tests
         /// <remarks>
         /// Serves two scenarios:
         ///  1. I can train a model and save it to a file, including transforms.
-        ///  2. Training and prediction happen in different processes (or even different machines). 
-        ///     The actual test will not run in different processes, but will simulate the idea that the 
+        ///  2. Training and prediction happen in different processes (or even different machines).
+        ///     The actual test will not run in different processes, but will simulate the idea that the
         ///     "communication pipe" is just a serialized model of some form.
         /// </remarks>
         [Fact]
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Functional.Tests
                 serializedModel = mlContext.Model.Load(file, out var serializedSchema);
                 TestCommon.CheckSameSchemas(data.Schema, serializedSchema);
             }
-            
+
             // Create prediction engine and test predictions.
             var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
             var serializedPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(serializedModel);
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Functional.Tests
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
             // Because we saved the transform model as part of the composite loader, with no transforms,
             // the transform that should be loaded should be an empty transformer chain, since the "model,"
-            // such as it is, has been combined with the loader. 
+            // such as it is, has been combined with the loader.
             Assert.Empty(Assert.IsType<TransformerChain<ITransformer>>(loadedWithSchema));
             Assert.Empty(Assert.IsType<TransformerChain<ITransformer>>(loadedWithLoader));
 

@@ -13,9 +13,8 @@
 
   <PropertyGroup>
     <Copyright>$(CopyrightNetFoundation)</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-    <DebugType>embedded</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -31,7 +30,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageAssetsPath>$(ArtifactsDir)/pkgassets/</PackageAssetsPath>
+    <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
     <PkgDir>$(RepoRoot)pkg/</PkgDir>
   </PropertyGroup>
 
@@ -49,17 +48,17 @@
   <PropertyGroup>
     <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
- 
+
     <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-  
+
     <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
-    <!--    
+    <!--
       When building using source-build the process is:
       - Newtonsoft.Json versions 9.0.1 and 12.0.2 are built by source-build
       - Version 12.0.2 is written to Version.props
