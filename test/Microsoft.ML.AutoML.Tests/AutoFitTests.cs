@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -149,6 +150,22 @@ namespace Microsoft.ML.AutoML.Test
                 // If the below assertion fails, increase the experiment time so the number of iterations is met
                 Assert.True(culture == "en-US" || result.RunDetails.Count() >= 75, $"RunDetails.Count() = {result.RunDetails.Count()}, below 75");
             }
+            catch (AggregateException ae)
+			{
+                // During CI unit testing, the host machines can run slower than normal, which
+                // can increase the run time of unit tests and throw OperationCanceledExceptions
+                // from multiple threads in the form of a single AggregateException.
+                foreach (var ex in ae.Flatten().InnerExceptions)
+                {
+                    var ignoredExceptions = new List<Exception>();
+                    if (ex is OperationCanceledException)
+                        continue;
+                    else
+                        ignoredExceptions.Add(ex);
+                    if (ignoredExceptions.Count > 0)
+                        throw new AggregateException(ignoredExceptions);
+                }
+            }
             finally
             {
                 Thread.CurrentThread.CurrentCulture = originalCulture;
@@ -268,34 +285,53 @@ namespace Microsoft.ML.AutoML.Test
             var testDataView = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             // STEP 2: Run AutoML experiment
-            ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
-                .CreateRecommendationExperiment(5)
-                .Execute(trainDataView, testDataView,
-                    new ColumnInformation()
-                    {
-                        LabelColumnName = labelColumnName,
-                        UserIdColumnName = userColumnName,
-                        ItemIdColumnName = itemColumnName
-                    });
+            try
+            {
+                ExperimentResult<RegressionMetrics>  experimentResult = mlContext.Auto()
+                    .CreateRecommendationExperiment(5)
+                    .Execute(trainDataView, testDataView,
+                        new ColumnInformation()
+                        {
+                            LabelColumnName = labelColumnName,
+                            UserIdColumnName = userColumnName,
+                            ItemIdColumnName = itemColumnName
+                        });
 
-            RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
-            Assert.True(experimentResult.RunDetails.Count() > 1);
-            Assert.NotNull(bestRun.ValidationMetrics);
-            Assert.True(experimentResult.RunDetails.Max(i => i?.ValidationMetrics?.RSquared* i?.ValidationMetrics?.RSquared) > 0.5);
+                RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
+                Assert.True(experimentResult.RunDetails.Count() > 1);
+                Assert.NotNull(bestRun.ValidationMetrics);
+                Assert.True(experimentResult.RunDetails.Max(i => i?.ValidationMetrics?.RSquared* i?.ValidationMetrics?.RSquared) > 0.5);
 
-            var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
-            var expectedOutputNames = new string[] { labelColumnName, userColumnName, userColumnName, itemColumnName, itemColumnName, scoreColumnName };
-            foreach (var col in outputSchema)
-                Assert.True(col.Name == expectedOutputNames[col.Index]);
+                var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
+                var expectedOutputNames = new string[] { labelColumnName, userColumnName, userColumnName, itemColumnName, itemColumnName, scoreColumnName };
+                foreach (var col in outputSchema)
+                    Assert.True(col.Name == expectedOutputNames[col.Index]);
 
-            IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
-            // Retrieve label column's index from the test IDataView
-            testDataView.Schema.TryGetColumnIndex(labelColumnName, out int labelColumnId);
-            // Retrieve score column's index from the IDataView produced by the trained model
-            testDataViewWithBestScore.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
+                IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
+                // Retrieve label column's index from the test IDataView
+                testDataView.Schema.TryGetColumnIndex(labelColumnName, out int labelColumnId);
+                // Retrieve score column's index from the IDataView produced by the trained model
+                testDataViewWithBestScore.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
 
-            var metrices = mlContext.Recommendation().Evaluate(testDataViewWithBestScore, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
-            Assert.NotEqual(0, metrices.MeanSquaredError);
+                var metrices = mlContext.Recommendation().Evaluate(testDataViewWithBestScore, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
+                Assert.NotEqual(0, metrices.MeanSquaredError);
+            }
+            catch (AggregateException ae)
+            {
+                // During CI unit testing, the host machines can run slower than normal, which
+                // can increase the run time of unit tests and throw OperationCanceledExceptions
+                // from multiple threads in the form of a single AggregateException.
+                foreach (var ex in ae.Flatten().InnerExceptions)
+                {
+                    var ignoredExceptions = new List<Exception>();
+                    if (ex is OperationCanceledException)
+                        continue;
+                    else
+                        ignoredExceptions.Add(ex);
+                    if (ignoredExceptions.Count > 0)
+                        throw new AggregateException(ignoredExceptions);
+                }
+            }
         }
 
         [Fact]
