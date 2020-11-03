@@ -118,59 +118,47 @@ namespace Microsoft.ML.AutoML
 
             do
             {
-                try
+                var iterationStopwatch = Stopwatch.StartNew();
+
+                // get next pipeline
+                var getPipelineStopwatch = Stopwatch.StartNew();
+
+                // A new MLContext is needed per model run. When max experiment time is reached, each used
+                // context is canceled to stop further model training. The cancellation of the main MLContext
+                // a user has instantiated is not desirable, thus additional MLContexts are used.
+                _currentModelMLContext = _newContextSeedGenerator == null ? new MLContext() : new MLContext(_newContextSeedGenerator.Next());
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(_currentModelMLContext, _history, _datasetColumnInfo, _task,
+                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _logger, _trainerAllowList);
+                // break if no candidates returned, means no valid pipeline available
+                if (pipeline == null)
                 {
-                    var iterationStopwatch = Stopwatch.StartNew();
-
-                    // get next pipeline
-                    var getPipelineStopwatch = Stopwatch.StartNew();
-
-                    // A new MLContext is needed per model run. When max experiment time is reached, each used
-                    // context is canceled to stop further model training. The cancellation of the main MLContext
-                    // a user has instantiated is not desirable, thus additional MLContexts are used.
-                    _currentModelMLContext = _newContextSeedGenerator == null ? new MLContext() : new MLContext(_newContextSeedGenerator.Next());
-                    var pipeline = PipelineSuggester.GetNextInferredPipeline(_currentModelMLContext, _history, _datasetColumnInfo, _task,
-                        _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _logger, _trainerAllowList);
-                    // break if no candidates returned, means no valid pipeline available
-                    if (pipeline == null)
-                    {
-                        break;
-                    }
-
-                    // evaluate pipeline
-                    _logger.Trace($"Evaluating pipeline {pipeline.ToString()}");
-                    (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail)
-                        = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
-
-                    _history.Add(suggestedPipelineRunDetail);
-                    WriteIterationLog(pipeline, suggestedPipelineRunDetail, iterationStopwatch);
-
-                    runDetail.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
-                    runDetail.PipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
-
-                    ReportProgress(runDetail);
-                    iterationResults.Add(runDetail);
-
-                    // if model is perfect, break
-                    if (_metricsAgent.IsModelPerfect(suggestedPipelineRunDetail.Score))
-                    {
-                        break;
-                    }
-
-                    // If after third run, all runs have failed so far, throw exception
-                    if (_history.Count() == 3 && _history.All(r => !r.RunSucceeded))
-                    {
-                        throw new InvalidOperationException($"Training failed with the exception: {_history.Last().Exception}");
-                    }
+                    break;
                 }
-                catch (OperationCanceledException e)
+
+                // evaluate pipeline
+                _logger.Trace($"Evaluating pipeline {pipeline.ToString()}");
+                (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail)
+                    = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
+
+                _history.Add(suggestedPipelineRunDetail);
+                WriteIterationLog(pipeline, suggestedPipelineRunDetail, iterationStopwatch);
+
+                runDetail.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
+                runDetail.PipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
+
+                ReportProgress(runDetail);
+                iterationResults.Add(runDetail);
+
+                // if model is perfect, break
+                if (_metricsAgent.IsModelPerfect(suggestedPipelineRunDetail.Score))
                 {
-                    // This exception is thrown when the IHost/MLContext of the trainer is canceled due to
-                    // reaching maximum experiment time. Simply catch this exception and return finished
-                    // iteration results.
-                    _logger.Warning("OperationCanceledException has been caught after maximum experiment time" +
-                        "was reached, and the running MLContext was stopped. Details: {0}", e.Message);
-                    return iterationResults;
+                    break;
+                }
+
+                // If after third run, all runs have failed so far, throw exception
+                if (_history.Count() == 3 && _history.All(r => !r.RunSucceeded))
+                {
+                    throw new InvalidOperationException($"Training failed with the exception: {_history.Last().Exception}");
                 }
             } while (_history.Count < _experimentSettings.MaxModels &&
                     !_experimentSettings.CancellationToken.IsCancellationRequested &&

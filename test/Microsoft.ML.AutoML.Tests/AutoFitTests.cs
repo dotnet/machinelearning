@@ -405,13 +405,13 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var experiment = context.Auto()
-                .CreateBinaryClassificationExperiment(20)
+                .CreateBinaryClassificationExperiment(15)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // Ensure the (last) model that was training when maximum experiment time was reached has been stopped,
             // and that its MLContext has been canceled. Sometimes during CI unit testing, the host machines can run slower than normal, which
             // can increase the run time of unit tests, and may not produce multiple runs.
-            if (experiment.RunDetails.Select(r => r.Exception == null).Count() > 1)
+            if (experiment.RunDetails.Select(r => r.Exception == null).Count() > 1 && experiment.RunDetails.Last().Exception != null)
             {
                 Assert.True(experiment.RunDetails.Last().Exception.Message.Contains("Operation was canceled"),
                             "Training process was not successfully canceled after maximum experiment time was reached.");
