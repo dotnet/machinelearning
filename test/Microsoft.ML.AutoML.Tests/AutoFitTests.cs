@@ -391,12 +391,14 @@ namespace Microsoft.ML.AutoML.Test
 
         }
 
-        [Fact]
+        [LightGBMFact]
         public void AutoFitMaxExperimentTimeTest()
         {
             // A single binary classification experiment takes less than 5 seconds.
             // System.OperationCanceledException is thrown when ongoing experiment
             // is canceled and at least one model has been generated.
+            // BinaryClassificationExperiment includes LightGBM, which is not 32-bit
+            // compatible.
             var context = new MLContext(1);
             var dataPath = DatasetUtil.GetUciAdultDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
