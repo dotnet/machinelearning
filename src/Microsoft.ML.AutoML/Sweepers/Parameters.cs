@@ -83,7 +83,7 @@ namespace Microsoft.ML.AutoML
         {
             _name = name;
             _value = value;
-            _valueText = _value.ToString("D");
+            _valueText = _value.ToString("D", CultureInfo.InvariantCulture);
         }
 
         public bool Equals(IParameterValue other)

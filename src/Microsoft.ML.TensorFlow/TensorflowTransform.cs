@@ -20,6 +20,7 @@ using NumSharp;
 using Tensorflow;
 using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 using static Tensorflow.Binding;
+using Utils = Microsoft.ML.Internal.Utilities.Utils;
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer),
     typeof(TensorFlowEstimator.Options), typeof(SignatureDataTransform), TensorFlowTransformer.UserName, TensorFlowTransformer.ShortName)]
@@ -280,6 +281,7 @@ namespace Microsoft.ML.Transforms
             _addBatchDimensionInput = addBatchDimensionInput;
             Inputs = inputColumnNames;
             Outputs = outputColumnNames;
+            tf.compat.v1.disable_eager_execution();
 
             (TFOutputTypes, OutputTypes, TFOutputOperations) = GetOutputInfo(Host, Session, Outputs);
             (TFInputTypes, TFInputShapes, TFInputOperations) = GetInputInfo(Host, Session, Inputs, batchSize);
@@ -344,7 +346,7 @@ namespace Microsoft.ML.Transforms
                 new ObjectDisposedException(nameof(graph));
 
             var cstatus = status == null ? new Status() : status;
-            var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus);
+            var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus.Handle);
 
             cstatus.Check();
 
@@ -352,7 +354,7 @@ namespace Microsoft.ML.Transforms
                 return new TensorShape(new int[0]);
 
             var dims = new long[n];
-            c_api.TF_GraphGetTensorShape(graph, output, dims, dims.Length, cstatus);
+            c_api.TF_GraphGetTensorShape(graph, output, dims, dims.Length, cstatus.Handle);
             cstatus.Check();
             return new TensorShape(dims.Select(x => (int)x).ToArray());
         }
@@ -426,12 +428,14 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
             if (isFrozen)
             {
-                Status status = new Status();
-                var buffer = Session.graph.ToGraphDef(status);
-                ctx.SaveBinaryStream("TFModel", w =>
+                using (var status = new Status())
+                using (var buffer = Session.graph.ToGraphDef(status))
                 {
-                    w.WriteByteArray(buffer.MemoryBlock.ToArray());
-                });
+                    ctx.SaveBinaryStream("TFModel", w =>
+                    {
+                        w.WriteByteArray(buffer.DangerousMemoryBlock.ToArray());
+                    });
+                }
             }
 
             Host.AssertNonEmpty(Inputs);
@@ -801,46 +805,8 @@ namespace Microsoft.ML.Transforms
                 // This is done to reduce memory allocation every time tensor is created.
                 _denseData = new T[_vBuffer.Length];
                 _vBuffer.CopyTo(_denseData);
-                var tensor = CastDataAndReturnAsTensor(_denseData);
+                var tensor = TensorFlowUtils.CastDataAndReturnAsTensor(_denseData, _tfShape);
                 return tensor;
-            }
-
-            private Tensor CastDataAndReturnAsTensor(T[] data)
-            {
-                if (typeof(T) == typeof(sbyte))
-                    return new Tensor((sbyte[])(object)data, _dims, TF_DataType.TF_INT8);
-                else if (typeof(T) == typeof(long))
-                    return new Tensor((long[])(object)data, _dims, TF_DataType.TF_INT64);
-                else if (typeof(T) == typeof(Int32))
-                    return new Tensor((Int32[])(object)data, _dims, TF_DataType.TF_INT32);
-                else if (typeof(T) == typeof(Int16))
-                    return new Tensor((Int16[])(object)data, _dims, TF_DataType.TF_INT16);
-                else if (typeof(T) == typeof(byte))
-                    return new Tensor((byte[])(object)data, _dims, TF_DataType.TF_UINT8);
-                else if (typeof(T) == typeof(ulong))
-                    return new Tensor((ulong[])(object)data, _dims, TF_DataType.TF_UINT64);
-                else if (typeof(T) == typeof(UInt32))
-                    return new Tensor((UInt32[])(object)data, _dims, TF_DataType.TF_UINT32);
-                else if (typeof(T) == typeof(UInt16))
-                    return new Tensor((UInt16[])(object)data, _dims, TF_DataType.TF_UINT16);
-                else if (typeof(T) == typeof(bool))
-                    return new Tensor((bool[])(object)data, _dims, TF_DataType.TF_BOOL);
-                else if (typeof(T) == typeof(float))
-                    return new Tensor((float[])(object)data, _dims, TF_DataType.TF_FLOAT);
-                else if (typeof(T) == typeof(double))
-                    return new Tensor((double[])(object)data, _dims, TF_DataType.TF_DOUBLE);
-                else if (typeof(T) == typeof(ReadOnlyMemory<char>))
-                {
-                    byte[][] bytes = new byte[_vBuffer.Length][];
-                    for (int i = 0; i < bytes.Length; i++)
-                    {
-                        bytes[i] = Encoding.UTF8.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
-                    }
-
-                    return new Tensor(bytes, _tfShape.dims.Select(x => (long)x).ToArray());
-                }
-
-                return new Tensor(new NDArray(data, _tfShape));
             }
 
             public void BufferTrainingData()
@@ -853,7 +819,7 @@ namespace Microsoft.ML.Transforms
             public Tensor GetBufferedBatchTensor()
             {
                 _position = 0;
-                var tensor = CastDataAndReturnAsTensor(_bufferedData);
+                var tensor = TensorFlowUtils.CastDataAndReturnAsTensor(_denseData, _tfShape);
 
                 _bufferedData = new T[_bufferedDataSize];
                 return tensor;
