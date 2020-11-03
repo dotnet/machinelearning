@@ -52,6 +52,11 @@ namespace Microsoft.ML.AutoML
             return ToString().GetHashCode();
         }
 
+        public MLContext GetContext()
+        {
+            return _context;
+        }
+
         public Pipeline ToPipeline()
         {
             var pipelineElements = new List<PipelineNode>();
