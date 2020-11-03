@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Timers;
+using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML
             _experimentTimerExpired = false;
         }
 
-        private void MaxExperimentTimeExpiredEvent(Object source, ElapsedEventArgs e)
+        private void MaxExperimentTimeExpiredEvent(object state)
         {
             // If at least one model was run, end experiment immediately.
             // Else, wait for first model to run before experiment is concluded.
@@ -72,7 +72,7 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        private void MainContextCanceledEvent(Object source, ElapsedEventArgs e)
+        private void MainContextCanceledEvent(object state)
         {
             // If the main MLContext is canceled, cancel the ongoing model training and MLContext.
             if ((_context.Model.GetEnvironment() as ICancelable).IsCanceled)
@@ -91,10 +91,10 @@ namespace Microsoft.ML.AutoML
             // is not a positive number.
             if (_experimentSettings.MaxExperimentTimeInSeconds > 0)
             {
-                _maxExperimentTimeTimer = new Timer(_experimentSettings.MaxExperimentTimeInSeconds * 1000);
-                _maxExperimentTimeTimer.Elapsed += MaxExperimentTimeExpiredEvent;
-                _maxExperimentTimeTimer.AutoReset = false;
-                _maxExperimentTimeTimer.Enabled = true;
+                _maxExperimentTimeTimer = new Timer(
+                    new TimerCallback(MaxExperimentTimeExpiredEvent), null,
+                    _experimentSettings.MaxExperimentTimeInSeconds * 1000, Timeout.Infinite
+                );
             }
             // If given max duration of experiment is 0, only 1 model will be trained.
             // _experimentSettings.MaxExperimentTimeInSeconds is of type uint, it is
@@ -106,62 +106,69 @@ namespace Microsoft.ML.AutoML
             // to the active child MLContext. This timer will propagate the cancelation
             // signal from the main to the child MLContexs if the main MLContext is
             // canceled.
-            _mainContextCanceledTimer = new Timer(3000);
-            _mainContextCanceledTimer.Elapsed += MainContextCanceledEvent;
-            _mainContextCanceledTimer.AutoReset = true;
-            _mainContextCanceledTimer.Enabled = true;
+            _mainContextCanceledTimer = new Timer(new TimerCallback(MainContextCanceledEvent), null, 1000, 1000);
 
             // Pseudo random number generator to result in deterministic runs with the provided main MLContext's seed and to
             // maintain variability between training iterations.
-            int? mainContextSeed = ((ISeededEnvironment)_context.Model.GetEnvironment()).Seed;
+            int ? mainContextSeed = ((ISeededEnvironment)_context.Model.GetEnvironment()).Seed;
             _newContextSeedGenerator = (mainContextSeed.HasValue) ? RandomUtils.Create(mainContextSeed.Value) : RandomUtils.Create();
 
             do
             {
-                var iterationStopwatch = Stopwatch.StartNew();
-
-                // get next pipeline
-                var getPipelineStopwatch = Stopwatch.StartNew();
-
-                // A new MLContext is needed per model run. When max experiment time is reached, each used
-                // context is canceled to stop further model training. The cancellation of the main MLContext
-                // a user has instantiated is not desirable, thus additional MLContexts are used.
-                _currentModelMLContext = _newContextSeedGenerator == null ? new MLContext() : new MLContext(_newContextSeedGenerator.Next());
-                var pipeline = PipelineSuggester.GetNextInferredPipeline(_currentModelMLContext, _history, _datasetColumnInfo, _task,
-                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _logger, _trainerAllowList);
-
-                // break if no candidates returned, means no valid pipeline available
-                if (pipeline == null)
+                try
                 {
-                    break;
+                    var iterationStopwatch = Stopwatch.StartNew();
+
+                    // get next pipeline
+                    var getPipelineStopwatch = Stopwatch.StartNew();
+
+                    // A new MLContext is needed per model run. When max experiment time is reached, each used
+                    // context is canceled to stop further model training. The cancellation of the main MLContext
+                    // a user has instantiated is not desirable, thus additional MLContexts are used.
+                    _currentModelMLContext = _newContextSeedGenerator == null ? new MLContext() : new MLContext(_newContextSeedGenerator.Next());
+                    var pipeline = PipelineSuggester.GetNextInferredPipeline(_currentModelMLContext, _history, _datasetColumnInfo, _task,
+                        _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _logger, _trainerAllowList);
+                    // break if no candidates returned, means no valid pipeline available
+                    if (pipeline == null)
+                    {
+                        break;
+                    }
+
+                    // evaluate pipeline
+                    _logger.Trace($"Evaluating pipeline {pipeline.ToString()}");
+                    (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail)
+                        = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
+
+                    _history.Add(suggestedPipelineRunDetail);
+                    WriteIterationLog(pipeline, suggestedPipelineRunDetail, iterationStopwatch);
+
+                    runDetail.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
+                    runDetail.PipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
+
+                    ReportProgress(runDetail);
+                    iterationResults.Add(runDetail);
+
+                    // if model is perfect, break
+                    if (_metricsAgent.IsModelPerfect(suggestedPipelineRunDetail.Score))
+                    {
+                        break;
+                    }
+
+                    // If after third run, all runs have failed so far, throw exception
+                    if (_history.Count() == 3 && _history.All(r => !r.RunSucceeded))
+                    {
+                        throw new InvalidOperationException($"Training failed with the exception: {_history.Last().Exception}");
+                    }
                 }
-
-                // evaluate pipeline
-                _logger.Trace($"Evaluating pipeline {pipeline.ToString()}");
-                (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail)
-                    = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
-
-                _history.Add(suggestedPipelineRunDetail);
-                WriteIterationLog(pipeline, suggestedPipelineRunDetail, iterationStopwatch);
-
-                runDetail.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
-                runDetail.PipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
-
-                ReportProgress(runDetail);
-                iterationResults.Add(runDetail);
-
-                // if model is perfect, break
-                if (_metricsAgent.IsModelPerfect(suggestedPipelineRunDetail.Score))
+                catch (OperationCanceledException e)
                 {
-                    break;
+                    // This exception is thrown when the IHost/MLContext of the trainer is canceled due to
+                    // reaching maximum experiment time. Simply catch this exception and return finished
+                    // iteration results.
+                    _logger.Warning("OperationCanceledException has been caught after maximum experiment time" +
+                        "was reached, and the running MLContext was stopped. Details: {0}", e.Message);
+                    return iterationResults;
                 }
-
-                // If after third run, all runs have failed so far, throw exception
-                if (_history.Count() == 3 && _history.All(r => !r.RunSucceeded))
-                {
-                    throw new InvalidOperationException($"Training failed with the exception: {_history.Last().Exception}");
-                }
-
             } while (_history.Count < _experimentSettings.MaxModels &&
                     !_experimentSettings.CancellationToken.IsCancellationRequested &&
                     !_experimentTimerExpired);
