@@ -78,6 +78,9 @@ namespace Microsoft.ML.AutoML
             if ((_context.Model.GetEnvironment() as ICancelable).IsCanceled)
             {
                 _logger.Warning("Main MLContext has been canceled. Ending experiment...");
+                // Stop timer to prevent restarting and prevent continuous calls to
+                // MainContextCanceledEvent
+                _mainContextCanceledTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 _currentModelMLContext.CancelExecution();
             }
         }
@@ -110,7 +113,7 @@ namespace Microsoft.ML.AutoML
 
             // Pseudo random number generator to result in deterministic runs with the provided main MLContext's seed and to
             // maintain variability between training iterations.
-            int ? mainContextSeed = ((ISeededEnvironment)_context.Model.GetEnvironment()).Seed;
+            int? mainContextSeed = ((ISeededEnvironment)_context.Model.GetEnvironment()).Seed;
             _newContextSeedGenerator = (mainContextSeed.HasValue) ? RandomUtils.Create(mainContextSeed.Value) : RandomUtils.Create();
 
             do
