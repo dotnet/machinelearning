@@ -114,7 +114,7 @@ namespace Microsoft.ML.AutoML
             // Pseudo random number generator to result in deterministic runs with the provided main MLContext's seed and to
             // maintain variability between training iterations.
             int? mainContextSeed = ((ISeededEnvironment)_context.Model.GetEnvironment()).Seed;
-            _newContextSeedGenerator = (mainContextSeed.HasValue) ? RandomUtils.Create(mainContextSeed.Value) : RandomUtils.Create();
+            _newContextSeedGenerator = (mainContextSeed.HasValue) ? RandomUtils.Create(mainContextSeed.Value) : null;
 
             do
             {
