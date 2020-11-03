@@ -1,10 +1,10 @@
 <Project>
 
   <Import Project="Sdk.props" Sdk="Microsoft.Build.Traversal" />
-  <!-- 
-    Typically Sdk.Targets are imported at the end. But if we do that here, 
+  <!--
+    Typically Sdk.Targets are imported at the end. But if we do that here,
     we won't be able to override the Build target and call build.cmd
-    to run CMake builds 
+    to run CMake builds
   -->
   <Import Project="Sdk.targets" Sdk="Microsoft.Build.Traversal" />
 
@@ -22,7 +22,7 @@
   <Target Name="Build" DependsOnTargets="BuildNativeUnix;BuildNativeWindows;PreparePackageAssets" />
 
   <PropertyGroup>
-    <PlaceholderFile>$(PkgDir)_._</PlaceholderFile>
+    <PlaceholderFile>$(RepoRoot)eng\pkg\_._</PlaceholderFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
