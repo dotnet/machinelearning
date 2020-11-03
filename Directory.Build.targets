@@ -1,4 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+
+  <Target Name="CopyNativeAssembiles" AfterTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup>
+		<LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
+		<LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
+		<LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
+		<LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
+
+		<TargetArchitecture Condition="'$(Platform)' == ''">x64</TargetArchitecture>
+		<NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
+		<BinDir Condition="'$(BinDir)'==''">$([MSBuild]::NormalizeDirectory('$(RepoRoot)', 'artifacts', 'bin'))</BinDir>
+		<NativeOutputPath>$(BinDir)Native\$(NativeTargetArchitecture).$(Configuration)\</NativeOutputPath>
+
+		<Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
+		<PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
+		<OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(MSBuildProjectName)\Debug</OutputPath>
+	</PropertyGroup>
+
+		<ItemGroup>
+		<NativeAssemblyReference>
+			<FullAssemblyPath>$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
+		</NativeAssemblyReference>
+		</ItemGroup>
+
+		<Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
+			DestinationFolder="$(OutDir)"
+			OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+			Retries="$(CopyRetryCount)"
+			RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+			UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
+			UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
+		<Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+		</Copy>
+  </Target>
+
 </Project>

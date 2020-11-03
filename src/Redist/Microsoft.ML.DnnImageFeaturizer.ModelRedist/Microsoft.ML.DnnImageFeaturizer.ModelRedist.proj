@@ -65,7 +65,7 @@
     <ModelFileCopy Include="$(ModelPlacementDir)\ResNet18Onnx\ResNet18.onnx"
     TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet18\tools\DnnImageModels\ResNet18Onnx\ResNet18.onnx" />
   </ItemGroup>
-    
+
   <ItemGroup>
     <ModelFileCopy Include="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
     TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet18\tools\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
@@ -75,7 +75,7 @@
     <ModelFileCopy Include="$(ModelPlacementDir)\ResNet50Onnx\ResNet50.onnx"
     TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet50\tools\DnnImageModels\ResNet50Onnx\ResNet50.onnx" />
   </ItemGroup>
-    
+
   <ItemGroup>
     <ModelFileCopy Include="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
     TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet50\tools\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
@@ -85,13 +85,13 @@
     <ModelFileCopy Include="$(ModelPlacementDir)\ResNet101Onnx\ResNet101.onnx"
     TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet101\tools\DnnImageModels\ResNet101Onnx\ResNet101.onnx" />
   </ItemGroup>
-    
+
   <ItemGroup>
     <ModelFileCopy Include="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
     TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet101\tools\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
   </ItemGroup>
 
-  <Target Name="DownloadDnnModelFiles" 
+  <Target Name="DownloadDnnModelFiles"
           Inputs="@(ModelFiles)" Outputs="@(ModelFiles->'%(DestinationFile)')">
     <Message Importance="High" Text="Downloading external model files... @(ModelFiles->'%(DestinationFile)')" />
     <MakeDir Directories="$(ModelPlacementDir)" />
@@ -118,7 +118,9 @@
 
   <Target Name="Build"
           DependsOnTargets="CopyDnnModelFiles" />
-  
+
   <Target Name="Pack" />
+
+  <Target Name="Test" />
 
 </Project>

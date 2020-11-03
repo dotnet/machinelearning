@@ -2,9 +2,9 @@
 <Project>
   <PropertyGroup>
     <!-- This repo version -->
-    <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
+    <DotNetUseShippingVersions>false</DotNetUseShippingVersions>
     <VersionPrefix>1.5.3</VersionPrefix>
-    <PreReleaseVersionLabel></PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>dev</PreReleaseVersionLabel>
 
     <!--ML.NET Core dependencies-->
     <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>
@@ -37,7 +37,7 @@
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <MicrosoftDotNetApiCompatPackageVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatPackageVersion>
     <MicrosoftSourceLinkVersion>1.1.0-beta-20206-02</MicrosoftSourceLinkVersion>
-    
+
     <!-- Test-only Dependencies -->
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20080.1</MicrosoftCodeAnalysisTestingVersion>
@@ -77,6 +77,7 @@
     <MicrosoftExtensionsDependencyModelVersion>2.1.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsFileSystemGlobbingVersion>2.0.0</MicrosoftExtensionsFileSystemGlobbingVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.0</MicrosoftNETCorePlatformsVersion>
+    <MicrosoftNETCore3PlatformsVersion>3.1.0</MicrosoftNETCore3PlatformsVersion>
     <MicrosoftNetCompilersToolsetVersion>3.8.0-3.20460.2</MicrosoftNetCompilersToolsetVersion>
     <MoqVersion>4.8.3</MoqVersion>
     <MonoOptionsVersion>5.3.0.1</MonoOptionsVersion>
@@ -103,9 +104,9 @@
     <SystemThreadingTasksExtensionVersion>4.5.2</SystemThreadingTasksExtensionVersion>
     <SystemValueTupleVersion>4.4.0</SystemValueTupleVersion>
     <WindowsAzureStorageVersion>8.5.0</WindowsAzureStorageVersion>
-    <XUnitVersion>2.4.1</XUnitVersion>
+    <XUnitVersion>2.4.0</XUnitVersion>
     <XUnitAbstractionsVersion>2.0.3</XUnitAbstractionsVersion>
-    <XUnitVSRunnerVersion>2.4.1</XUnitVSRunnerVersion>
+    <XUnitVSRunnerVersion>2.4.0</XUnitVSRunnerVersion>
     <MicrosoftDotNetBuildTasksFeedVersion>5.0.0-beta.20461.7</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftDotNetSignToolVersion>5.0.0-beta.20461.7</MicrosoftDotNetSignToolVersion>
     <MicrosoftAzureDocumentDBVersion>1.22.0</MicrosoftAzureDocumentDBVersion>
