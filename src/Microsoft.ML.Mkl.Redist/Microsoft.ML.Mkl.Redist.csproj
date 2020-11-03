@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
-  <Import Project="$(RepoRoot)pkg/Directory.Build.props" />
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
     <Authors>Intel</Authors>
@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="$(RepoRoot)pkg\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
-    <Content Include="$(PkgDir)_._" Pack="true" PackagePath="lib\netstandard2.0\" />
+    <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+    <Content Include="$(RepoRoot)eng\pkg\_._" Pack="true" PackagePath="lib\netstandard2.0\" />
     <Content Include="$(NUGET_PACKAGES)\mlnetmkldeps\$(MlNetMklDepsPackageVersion)\LICENSE.txt" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

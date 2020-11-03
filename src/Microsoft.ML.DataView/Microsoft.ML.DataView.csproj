@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepoRoot)pkg/Directory.Build.props"/>
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>

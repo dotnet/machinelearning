@@ -206,8 +206,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.EntryPoints", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{A84717CB-F11A-41C5-A74D-C0F1D47B7431}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\common\CommonPackage.props = pkg\common\CommonPackage.props
-		pkg\common\DnnImageFeaturizer.props = pkg\common\DnnImageFeaturizer.props
+		eng\pkg\CommonPackage.props = eng\pkg\CommonPackage.props
+		eng\pkg\DnnImageFeaturizer.props = eng\pkg\DnnImageFeaturizer.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DataView", "src\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj", "{85D0CAFD-2FE8-496A-88C7-585D35B94243}"

@@ -34,7 +34,7 @@
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\**\*" PackagePath="runtimes" />
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\*" PackagePath="tools" />
 
-    <Content Include="$(RepoRoot)\pkg\mlnetlogo.png" Pack="true" PackagePath="" />
+    <Content Include="$(RepoRoot)eng\pkg\mlnetlogo.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">

@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepoRoot)pkg/Directory.Build.props" />
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -18,6 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(RepoRoot)pkg\common\DnnImageFeaturizer.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+    <Content Include="$(RepoRoot)eng\pkg\DnnImageFeaturizer.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
 </Project>
