@@ -2,9 +2,7 @@
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
-
   <Target Name="CopyNativeAssembiles" AfterTargets="CopyFilesToOutputDirectory">
-    <Message Importance="High" Text="CopyNativeAssembiles EVENT" />
     <PropertyGroup>
 		<LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
 		<LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
@@ -20,8 +18,6 @@
 		<PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
 		<OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(MSBuildProjectName)\Debug</OutputPath>
 	</PropertyGroup>
-
-
 
 		<ItemGroup>
 		<NativeAssemblyReference>
@@ -39,7 +35,5 @@
 		<Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
 		</Copy>
   </Target>
-
-
 
 </Project>

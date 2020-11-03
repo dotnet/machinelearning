@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.ML.Vision</PackageId>
     <DefineConstants>CORECLR</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>Microsoft.ML.Vision contains high level APIs for vision tasks like image classification.</PackageDescription>

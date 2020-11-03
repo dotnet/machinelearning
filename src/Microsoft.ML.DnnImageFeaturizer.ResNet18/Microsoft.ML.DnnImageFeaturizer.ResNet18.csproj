@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.ML.DnnImageFeaturizer.ResNet18</PackageId>
     <PackageDescription>ML.NET component for pretrained ResNet18 image featurization</PackageDescription>
   </PropertyGroup>
 

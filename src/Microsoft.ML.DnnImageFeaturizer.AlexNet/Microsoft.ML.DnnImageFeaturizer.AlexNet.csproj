@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.ML.DnnImageFeaturizer.AlexNet</PackageId>
     <PackageDescription>ML.NET component for pretrained AlexNet image featurization</PackageDescription>
   </PropertyGroup>
 

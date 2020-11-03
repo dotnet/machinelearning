@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.ML.OnnxTransformer</PackageId>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>ML.NET component for Microsoft.ML.Scoring library</PackageDescription>
   </PropertyGroup>

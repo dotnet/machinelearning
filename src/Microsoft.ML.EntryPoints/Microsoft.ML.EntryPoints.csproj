@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.ML.EntryPoints</PackageId>
     <PackageDescription>Microsoft.ML.EntryPoints contains the ML.NET entry point API catalog.</PackageDescription>
   </PropertyGroup>
 

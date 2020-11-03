@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.ML.Recommender</PackageId>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>LIBMF, the core computation library for matrix factorization in ML.NET</PackageDescription>
   </PropertyGroup>

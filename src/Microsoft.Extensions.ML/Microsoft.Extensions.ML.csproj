@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.Extensions.ML</PackageId>
     <PackageDescription>An integration package for ML.NET models on scalable web apps and services.</PackageDescription>
   </PropertyGroup>
 

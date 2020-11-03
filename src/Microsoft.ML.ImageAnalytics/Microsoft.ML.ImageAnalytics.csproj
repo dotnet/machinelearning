@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.ML.ImageAnalytics</PackageId>
     <PackageDescription>ML.NET component for Image support</PackageDescription>
   </PropertyGroup>
 

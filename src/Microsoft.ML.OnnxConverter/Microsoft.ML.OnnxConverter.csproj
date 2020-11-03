@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Microsoft.ML.OnnxConverter</PackageId>
     <RootNamespace>Microsoft.ML.Model.Onnx</RootNamespace>
     <PackageDescription>ML.NET component for exporting ONNX Models</PackageDescription>
   </PropertyGroup>
