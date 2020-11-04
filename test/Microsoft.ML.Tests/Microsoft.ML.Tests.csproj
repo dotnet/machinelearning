@@ -3,7 +3,11 @@
   <PropertyGroup>
     <AssemblyName>Microsoft.ML.Tests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrongNameKeyId>Test</StrongNameKeyId>
   </PropertyGroup>
+
+  <!-- Import the test signing certificate -->
+  <Import Project="../Cert.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
