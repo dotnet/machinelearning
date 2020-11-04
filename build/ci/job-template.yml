@@ -106,10 +106,10 @@ jobs:
       #   timeoutInMinutes: 20
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -runSpecificTests -ci #-coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -133,7 +133,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}: #-runCITests
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -coverage=${{ parameters.codeCoverage }}
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
@@ -182,5 +182,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -buildPackages
+      - script: ${{ parameters.buildScript }} -pack  -ci #-buildPackages
         displayName: Build Packages
