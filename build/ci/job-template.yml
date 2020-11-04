@@ -109,19 +109,19 @@ jobs:
         displayName: Build Nightly-Build Project with latest package versions
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
         displayName: Run Nightly Build Tests
-    # - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-    #   - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
-    #     displayName: Download Benchmark Data
-    #     timeoutInMinutes: 10
-    #   - script: ${{ parameters.buildScript }} -- /t:DownloadTensorflowMetaFiles /p:IncludeTensorflowMetaFile=true
-    #     displayName: Download Tensorflow Meta File
-    #     timeoutInMinutes: 20
+    - ${{ if eq(parameters.nightlyBuild, 'false') }}:
+      # - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
+      #   displayName: Download Benchmark Data
+      #   timeoutInMinutes: 10
+      # - script: ${{ parameters.buildScript }} -- /t:DownloadTensorflowMetaFiles /p:IncludeTensorflowMetaFile=true
+      #   displayName: Download Tensorflow Meta File
+      #  timeoutInMinutes: 20
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -runSpecificTests
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -runSpecificTests -ci
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -145,7 +145,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
@@ -194,5 +194,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -buildPackages
+      - script: ${{ parameters.buildScript }} -buildPackages -pack -ci
         displayName: Build Packages
