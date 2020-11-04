@@ -21,7 +21,7 @@ jobs:
       timeoutInMinutes: 120
     cancelTimeoutInMinutes: 10
     variables:
-      dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
+      dotnetPath: $(Build.SourcesDirectory)/.dotnet/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
       nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
       nightlyBuildRunPath: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.NightlyBuild.Tests/$(_targetFramework)
@@ -43,7 +43,7 @@ jobs:
             _targetFramework: netcoreapp2.1
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
-    
+
     pool: ${{ parameters.pool }}
     ${{ if ne(parameters.container, '') }}:
       container: ${{ parameters.container }}
@@ -89,8 +89,8 @@ jobs:
                     Get-ChildItem -Path  '.\bin\AnyCPU.*' -Recurse |
                     Select -ExpandProperty FullName |
                     Where {$_ -notlike '*\Microsoft.ML.NightlyBuild.Tests*'} |
-                    sort length -Descending | 
-                    Remove-Item -force 
+                    sort length -Descending |
+                    Remove-Item -force
                     Write-Output "Done cleaning up usless project..."
           displayName: Clean up useless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
@@ -106,10 +106,10 @@ jobs:
         timeoutInMinutes: 20
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -$(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -119,10 +119,10 @@ jobs:
               testAssemblyVer2: |
                 **\*test.dll
                 **\*tests.dll
-                !**\obj\** 
+                !**\obj\**
               runSettingsFile: $(Build.SourcesDirectory)/tools-local/vstest.runsettings
               searchFolder: '$(System.DefaultWorkingDirectory)'
-              vstestLocationMethod: 'version' 
+              vstestLocationMethod: 'version'
               vsTestVersion: 'latest'
               runInParallel: False
               runTestsInIsolation: True
@@ -132,10 +132,10 @@ jobs:
               diagnosticsEnabled: False
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
-      - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} -$(_configuration) -runCITests -coverage=${{ parameters.codeCoverage }}
+      - ${{ if eq(parameters.innerLoop, 'true') }}: #-runCITests
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
-    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore build/Codecoverage.proj
+    - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
     - task: PublishTestResults@2
@@ -143,7 +143,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testRunner: 'vSTest'
-        searchFolder: '$(System.DefaultWorkingDirectory)/bin'
+        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin'
         testResultsFiles: '**/*.trx'
         testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
         configuration: $(_configuration)
@@ -152,14 +152,14 @@ jobs:
       displayName: Stage build logs
       condition: not(succeeded())
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)
-        contents: '?(msbuild.*|binclash.log|init-tools.log)'
+        sourceFolder: $(Build.SourcesDirectory)/artifacts/log/
+        contents: '**'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
       displayName: Stage test output
       condition: not(succeeded())
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)/bin
+        sourceFolder: $(Build.SourcesDirectory)/artifacts/bin
         contents: |
           **/TestOutput/**/*
           **/*.trx
@@ -172,7 +172,7 @@ jobs:
         contents: |
           *.dmp
           CrashDumps/*.dmp
-          bin/**/*.pdb
+          artifacts/bin/**/*.pdb
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
       displayName: Publish build and test logs
