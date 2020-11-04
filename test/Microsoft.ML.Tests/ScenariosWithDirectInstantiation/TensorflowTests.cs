@@ -1271,7 +1271,6 @@ namespace Microsoft.ML.Scenarios
 
         class PrimitiveOutput
         {
-            //[VectorType(1)]
             public string string_merge { get; set; }
         }
 
