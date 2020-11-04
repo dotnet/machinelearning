@@ -310,73 +310,72 @@ namespace Microsoft.ML.Transforms.Image
                         float aspect = 0;
                         float widthAspect = 0;
                         float heightAspect = 0;
-                        if (src.Height != info.ImageHeight || src.Width != info.ImageWidth)
+
+                        widthAspect = (float)info.ImageWidth / sourceWidth;
+                        heightAspect = (float)info.ImageHeight / sourceHeight;
+
+                        if (info.Resizing == ImageResizingEstimator.ResizingKind.IsoPad)
                         {
                             widthAspect = (float)info.ImageWidth / sourceWidth;
                             heightAspect = (float)info.ImageHeight / sourceHeight;
-
-                            if (info.Resizing == ImageResizingEstimator.ResizingKind.IsoPad)
+                            if (heightAspect < widthAspect)
                             {
-                                widthAspect = (float)info.ImageWidth / sourceWidth;
-                                heightAspect = (float)info.ImageHeight / sourceHeight;
-                                if (heightAspect < widthAspect)
-                                {
-                                    aspect = heightAspect;
-                                    destX = (int)((info.ImageWidth - (sourceWidth * aspect)) / 2);
-                                }
-                                else
-                                {
-                                    aspect = widthAspect;
-                                    destY = (int)((info.ImageHeight - (sourceHeight * aspect)) / 2);
-                                }
-
-                                destWidth = (int)(sourceWidth * aspect);
-                                destHeight = (int)(sourceHeight * aspect);
+                                aspect = heightAspect;
+                                destX = (int)((info.ImageWidth - (sourceWidth * aspect)) / 2);
                             }
-                            else if (info.Resizing == ImageResizingEstimator.ResizingKind.IsoCrop)
+                            else
                             {
-                                if (heightAspect < widthAspect)
-                                {
-                                    aspect = widthAspect;
-                                    switch (info.Anchor)
-                                    {
-                                        case ImageResizingEstimator.Anchor.Top:
-                                            destY = 0;
-                                            break;
-                                        case ImageResizingEstimator.Anchor.Bottom:
-                                            destY = (int)(info.ImageHeight - (sourceHeight * aspect));
-                                            break;
-                                        default:
-                                            destY = (int)((info.ImageHeight - (sourceHeight * aspect)) / 2);
-                                            break;
-                                    }
-                                }
-                                else
-                                {
-                                    aspect = heightAspect;
-                                    switch (info.Anchor)
-                                    {
-                                        case ImageResizingEstimator.Anchor.Left:
-                                            destX = 0;
-                                            break;
-                                        case ImageResizingEstimator.Anchor.Right:
-                                            destX = (int)(info.ImageWidth - (sourceWidth * aspect));
-                                            break;
-                                        default:
-                                            destX = (int)((info.ImageWidth - (sourceWidth * aspect)) / 2);
-                                            break;
-                                    }
-                                }
+                                aspect = widthAspect;
+                                destY = (int)((info.ImageHeight - (sourceHeight * aspect)) / 2);
+                            }
 
-                                destWidth = (int)(sourceWidth * aspect);
-                                destHeight = (int)(sourceHeight * aspect);
-                            }
-                            else if (info.Resizing == ImageResizingEstimator.ResizingKind.Fill)
-                            {
-                                destWidth = info.ImageWidth;
-                                destHeight = info.ImageHeight;
-                            }
+                            destWidth = (int)(sourceWidth * aspect);
+                            destHeight = (int)(sourceHeight * aspect);
                         }
+                        else if (info.Resizing == ImageResizingEstimator.ResizingKind.IsoCrop)
+                        {
+                            if (heightAspect < widthAspect)
+                            {
+                                aspect = widthAspect;
+                                switch (info.Anchor)
+                                {
+                                    case ImageResizingEstimator.Anchor.Top:
+                                        destY = 0;
+                                        break;
+                                    case ImageResizingEstimator.Anchor.Bottom:
+                                        destY = (int)(info.ImageHeight - (sourceHeight * aspect));
+                                        break;
+                                    default:
+                                        destY = (int)((info.ImageHeight - (sourceHeight * aspect)) / 2);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                aspect = heightAspect;
+                                switch (info.Anchor)
+                                {
+                                    case ImageResizingEstimator.Anchor.Left:
+                                        destX = 0;
+                                        break;
+                                    case ImageResizingEstimator.Anchor.Right:
+                                        destX = (int)(info.ImageWidth - (sourceWidth * aspect));
+                                        break;
+                                    default:
+                                        destX = (int)((info.ImageWidth - (sourceWidth * aspect)) / 2);
+                                        break;
+                                }
+                            }
+
+                            destWidth = (int)(sourceWidth * aspect);
+                            destHeight = (int)(sourceHeight * aspect);
+                        }
+                        else if (info.Resizing == ImageResizingEstimator.ResizingKind.Fill)
+                        {
+                            destWidth = info.ImageWidth;
+                            destHeight = info.ImageHeight;
+                        }
+
                         // Graphics.DrawImage() does not support PixelFormat.Indexed. Hence convert the
                         // pixel format to Format32bppArgb as described here https://stackoverflow.com/questions/17313285/graphics-on-indexed-image
                         // For images with invalid pixel format also use Format32bppArgb to draw the resized image.
