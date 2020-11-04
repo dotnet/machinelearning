@@ -393,7 +393,10 @@ namespace Microsoft.ML.Transforms.Image
                             }
                         }
                         else
+                        {
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+                        }
+
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
                         using (var g = Graphics.FromImage(dst))
