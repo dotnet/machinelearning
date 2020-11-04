@@ -19,7 +19,7 @@ namespace Microsoft.ML.TensorFlow
             //is not valid data type for tensorflow.net and exception will thrown if we call as_dtype method
             //so we specially deal with string type here.
             //Get string data first then convert to ReadOnlyMemory<Char> and assign value to dst.
-            if (typeof(T).Name.Contains("ReadOnlyMemory"))
+            if (typeof(T) == typeof(ReadOnlyMemory<char>))
             {
                 dst = (T)(object)tensor.StringData()[0].AsMemory();
                 return;
