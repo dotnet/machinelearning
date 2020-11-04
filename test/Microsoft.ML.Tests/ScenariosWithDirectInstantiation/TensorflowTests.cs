@@ -1304,7 +1304,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowPrimitiveInputTest()
         {
-            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(@"C:\code\machinelearning-testdata\Microsoft.ML.TensorFlow.TestModels\model_primitive_input_test\");
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(@"model_primitive_input_test");
             var schema = tensorFlowModel.GetModelSchema();
             Assert.True(schema.TryGetColumnIndex("input1", out var colIndex));
             Assert.True(schema.TryGetColumnIndex("input2", out colIndex));
