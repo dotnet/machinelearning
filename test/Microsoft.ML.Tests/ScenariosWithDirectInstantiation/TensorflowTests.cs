@@ -1260,6 +1260,20 @@ namespace Microsoft.ML.Scenarios
             public string[] BOut { get; set; }
         }
 
+        class PrimitiveInput
+        {
+            [LoadColumn(0, 1)]
+            public string input1;
+
+            [LoadColumn(1, 2)]
+            public string input2;
+        }
+
+        class PrimitiveOutput
+        {
+            public string string_merge { get; set; }
+        }
+
         [TensorFlowFact]
         public void TensorFlowStringTest()
         {
@@ -1284,6 +1298,32 @@ namespace Microsoft.ML.Scenarios
             for (int i = 0; i < input.A.Length; i++)
                 Assert.Equal(input.A[i], textOutput.AOut[i]);
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
+        }
+
+        [TensorFlowFact]
+        public void TensorFlowPrimitiveInputTest()
+        {
+            using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(@"model_primitive_input_test");
+            var schema = tensorFlowModel.GetModelSchema();
+            Assert.True(schema.TryGetColumnIndex("input1", out var colIndex));
+            Assert.True(schema.TryGetColumnIndex("input2", out colIndex));
+
+            var dataview = _mlContext.Data.CreateTextLoader<PrimitiveInput>().Load(new MultiFileSource(null));
+
+            var pipeline = tensorFlowModel.ScoreTensorFlowModel(
+                inputColumnNames: new[] { "input1", "input2" },
+                outputColumnNames: new[] { "string_merge" });
+            var transformer = _mlContext.Model.CreatePredictionEngine<PrimitiveInput, PrimitiveOutput>(pipeline.Fit(dataview));
+
+            var input = new PrimitiveInput
+            {
+                input1 = "This is fine.",
+                input2 = "Thank you very much!."
+            };
+
+            var primitiveOutput = transformer.Predict(input);
+
+            Assert.Equal("This is fine.Thank you very much!.", primitiveOutput.string_merge);
         }
 
         [TensorFlowFact]
