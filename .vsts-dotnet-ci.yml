@@ -28,7 +28,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted CentOS 7
+      name: Hosted Ubuntu 1604
 
 - template: /build/ci/job-template.yml
   parameters:
