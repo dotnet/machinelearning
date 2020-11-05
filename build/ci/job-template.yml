@@ -55,7 +55,7 @@ jobs:
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) -platform ${{ parameters.architecture }}
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
       displayName: Build
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - task: Bash@3
@@ -154,7 +154,7 @@ jobs:
       inputs:
         sourceFolder: $(Build.SourcesDirectory)/artifacts/log/
         contents: '**'
-        targetFolder: $(Build.ArtifactStagingDirectory)
+        targetFolder: $(Build.ArtifactStagingDirectory)artifacts/log/
     - task: CopyFiles@2
       displayName: Stage test output
       condition: not(succeeded())
