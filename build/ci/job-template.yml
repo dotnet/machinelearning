@@ -62,11 +62,11 @@ jobs:
       - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
         displayName: Install MacOS build dependencies
     # Extra Ubuntu step required to install OS-specific dependencies
-    - ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604') }}:
+    - ${{ if eq(parameters.container, 'UbuntuContainer') }}:
       - script: sudo apt install curl zlib1g-dev
         displayName: Install Ubuntu build dependencies
     # Extra CentOS step required to install OS-specific dependencies
-    - ${{ if eq(parameters.pool.name, 'Hosted CentOS 7') }}:
+    - ${{ if eq(parameters.container, 'CentosContainer') }}:
       - script: sudo yum install zlib-devel
         displayName: Install CentOS build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
