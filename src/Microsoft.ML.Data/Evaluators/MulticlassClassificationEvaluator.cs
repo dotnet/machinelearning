@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
         public const string AccuracyMicro = "Accuracy(micro-avg)";
         public const string AccuracyMacro = "Accuracy(macro-avg)";
         public const string TopKAccuracy = "Top K accuracy";
-        public const string AllTopKAccuracy = "Top K accuracy(All K)";
+        public const string AllTopKAccuracy = "Top K accuracy";
         public const string PerClassLogLoss = "Per class log-loss";
         public const string LogLoss = "Log-loss";
         public const string LogLossReduction = "Log-loss reduction";
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Data
 
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKSlotNames =
                         (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                            dst = new VBuffer<ReadOnlyMemory<char>>(allTopK.First().Length, Enumerable.Range(1,allTopK.First().Length).Select(i=>new ReadOnlyMemory<char>(($"K={i.ToString()}").ToCharArray())).ToArray());
+                            dst = new VBuffer<ReadOnlyMemory<char>>(allTopK.First().Length, Enumerable.Range(1,allTopK.First().Length).Select(i=>new ReadOnlyMemory<char>(($"@K={i.ToString()}").ToCharArray())).ToArray());
                     overallDvBldr.AddColumn(AllTopKAccuracy, getKSlotNames, NumberDataViewType.Double, allTopK.ToArray());
 
                     var confDvBldr = new ArrayDataViewBuilder(Host);
