@@ -815,8 +815,10 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
-        public void ImageResizerTransformResizingModeFill()
+        [Theory]
+        [CombinatorialData]
+        public void ImageResizerTransformResizingModeFillSameSIze([CombinatorialValues(200, 50)] int imageWidth,
+            [CombinatorialValues(100, 50)] int imageHeight)
         {
             var env = new MLContext(1);
             var dataFile = GetDataPath("images/fillmode.tsv");
@@ -829,9 +831,8 @@ namespace Microsoft.ML.Tests
                 }
             }, new MultiFileSource(dataFile));
 
-            const int targetDimension = 50;
             var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(env, "ImageReal", targetDimension, targetDimension, "ImageReal",
+                .Append(new ImageResizingEstimator(env, "ImageReal", imageWidth, imageHeight, "ImageReal",
                     resizing: ImageResizingEstimator.ResizingKind.Fill));
 
             var rowView = pipe.Preview(data).RowView;
@@ -867,7 +868,6 @@ namespace Microsoft.ML.Tests
                     Assert.True(c.B < 6);
                 });
             }
-
             Done();
         }
 
