@@ -194,5 +194,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -buildPackages -pack -ci
+      - script: ${{ parameters.buildScript }} -buildPackages -pack
         displayName: Build Packages
