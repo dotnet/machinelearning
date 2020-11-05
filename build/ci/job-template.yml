@@ -60,10 +60,14 @@ jobs:
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
         displayName: Install MacOS build dependencies
-    # Extra Linux step required to install OS-specific dependencies
+    # Extra Ubuntu step required to install OS-specific dependencies
     - ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604') }}:
-      - script: apt install curl zlib1g-dev
-        displayName: Install Linux build dependencies
+      - script: sudo apt install curl zlib1g-dev
+        displayName: Install Ubuntu build dependencies
+    # Extra CentOS step required to install OS-specific dependencies
+    - ${{ if eq(parameters.pool.name, 'Hosted CentOS 7') }}:
+      - script: sudo yum install zlib-devel
+        displayName: Install CentOS build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
@@ -143,7 +147,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci -verbosity detailed
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
