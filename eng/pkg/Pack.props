@@ -33,8 +33,6 @@
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\analyzers\**\*" PackagePath="analyzers" />
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\**\*" PackagePath="runtimes" />
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\*" PackagePath="tools" />
-
-    <Content Include="$(RepoRoot)eng\pkg\mlnetlogo.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">
