@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.AutoML
 {
@@ -123,11 +124,12 @@ namespace Microsoft.ML.AutoML
                     logLoss: GetAverageOfNonNaNScores(newMetrics.Select(x => x.LogLoss)),
                     logLossReduction: GetAverageOfNonNaNScores(newMetrics.Select(x => x.LogLossReduction)),
                     topKPredictionCount: newMetrics.ElementAt(0).TopKPredictionCount,
-                    topKAccuracy: GetAverageOfNonNaNScores(newMetrics.Select(x => x.TopKAccuracy)),
-                    // Return PerClassLogLoss and ConfusionMatrix from the fold closest to average score
+                    //need to "transpose"/rotate this array of arrays so we can average across all top 0, top 1, top 2, etc
+                    topKAccuracies: newMetrics.SelectMany(nm => nm.TopKAccuracyForAllK.Select((double tk, int i) => (i, tk))).ToLookup(itk => itk.i, itk => itk.tk).Select(tk => GetAverageOfNonNaNScores(tk)).ToArray(),
                     perClassLogLoss: (metricsClosestToAvg as MulticlassClassificationMetrics).PerClassLogLoss.ToArray(),
-                    confusionMatrix: (metricsClosestToAvg as MulticlassClassificationMetrics).ConfusionMatrix);
+                    confusionMatrix: (metricsClosestToAvg as MulticlassClassificationMetrics).ConfusionMatrix) ;
                 return result as TMetrics;
+
             }
 
             if (typeof(TMetrics) == typeof(RegressionMetrics))
