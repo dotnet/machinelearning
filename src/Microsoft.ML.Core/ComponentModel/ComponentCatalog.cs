@@ -1111,9 +1111,9 @@ namespace Microsoft.ML.Runtime
         private static bool CanContainExtensions(Assembly assembly)
         {
             if (assembly.FullName.StartsWith("Microsoft.ML.", StringComparison.Ordinal)
-               && HasMLNetPublicKey(assembly))
+                && HasMLNetPublicKey(assembly))
             {
-               return false;
+                return false;
             }
 
             return true;
