@@ -121,10 +121,10 @@ namespace Microsoft.ML.Data
             MacroAccuracy = FetchDouble(MulticlassClassificationEvaluator.AccuracyMacro);
             LogLoss = FetchDouble(MulticlassClassificationEvaluator.LogLoss);
             LogLossReduction = FetchDouble(MulticlassClassificationEvaluator.LogLossReduction);
-            if (TopKPredictionCount > 0)
-                TopKAccuracyForAllK = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.AllTopKAccuracy).DenseValues().ToImmutableArray();
-
             TopKPredictionCount = topKPredictionCount;
+
+            if (topKPredictionCount > 0)
+                TopKAccuracyForAllK = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.AllTopKAccuracy).DenseValues().ToImmutableArray();
 
             var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
             PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();

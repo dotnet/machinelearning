@@ -61,6 +61,7 @@ namespace Microsoft.ML.Data
         internal const string LoadName = "MultiClassClassifierEvaluator";
 
         private readonly int? _outputTopKAcc;
+        private readonly bool _names;
 
         public MulticlassClassificationEvaluator(IHostEnvironment env, Arguments args)
             : base(env, LoadName)
@@ -68,6 +69,7 @@ namespace Microsoft.ML.Data
             Host.AssertValue(args, "args");
             Host.CheckUserArg(args.OutputTopKAcc == null || args.OutputTopKAcc > 0, nameof(args.OutputTopKAcc));
             _outputTopKAcc = args.OutputTopKAcc;
+            _names = args.Names;
         }
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
