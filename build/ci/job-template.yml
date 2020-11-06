@@ -93,7 +93,7 @@ jobs:
                     Remove-Item -force
                     Write-Output "Done cleaning up usless project..."
           displayName: Clean up useless project
-      - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
+      - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
         displayName: Run Nightly Build Tests
@@ -143,7 +143,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testRunner: 'vSTest'
-        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin'
+        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/TestResults'
         testResultsFiles: '**/*.trx'
         testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
         configuration: $(_configuration)
