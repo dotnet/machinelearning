@@ -16,7 +16,7 @@ Moreover, to run some of the benchmarks you have to download external dependenci
 
     build.cmd -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=true
 
-1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.Benchmarks)
+1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.PerformanceTests)
 
 2. Run the benchmarks in Release, choose one of the benchmarks when prompted
 
@@ -55,7 +55,7 @@ To get the total number of allocated managed memory please pass additional conso
 
     $env:DOTNET_MULTILEVEL_LOOKUP=0
 
-1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.Benchmarks)
+1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.PerformanceTests)
 
 2. Run the benchmarks in `Release-netcoreapp3_1` configuration, choose one of the benchmarks when prompted
 

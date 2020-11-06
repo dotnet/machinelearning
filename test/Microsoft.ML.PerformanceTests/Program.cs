@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Threading;
 using BenchmarkDotNet.Running;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     class Program
     {

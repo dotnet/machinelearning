@@ -10,7 +10,7 @@ using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
 
-namespace Microsoft.ML.Benchmarks.Harness
+namespace Microsoft.ML.PerformanceTests.Harness
 {
     /// <summary>
     /// to avoid side effects of benchmarks affect each other BenchmarkDotNet runs every benchmark in a standalone, dedicated process

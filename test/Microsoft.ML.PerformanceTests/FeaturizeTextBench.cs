@@ -11,7 +11,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     [Config(typeof(TrainConfig))]
     public class FeaturizeTextBench : BenchmarkBase
