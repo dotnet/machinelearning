@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
         public const string AccuracyMicro = "Accuracy(micro-avg)";
         public const string AccuracyMacro = "Accuracy(macro-avg)";
         public const string TopKAccuracy = "Top K accuracy";
-        public const string AllTopKAccuracy = "Top K accuracy";
+        public const string AllTopKAccuracy = "Top K accuracies";
         public const string PerClassLogLoss = "Per class log-loss";
         public const string LogLoss = "Log-loss";
         public const string LogLossReduction = "Log-loss reduction";
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Data
 
                         ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKSlotNames =
                             (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                                dst = new VBuffer<ReadOnlyMemory<char>>(allTopK.First().Length, Enumerable.Range(1, allTopK.First().Length).Select(i => new ReadOnlyMemory<char>(($"@K={i.ToString()}").ToCharArray())).ToArray());
+                                dst = new VBuffer<ReadOnlyMemory<char>>(allTopK.First().Length, Enumerable.Range(1, allTopK.First().Length).Select(i => new ReadOnlyMemory<char>(i.ToString().ToCharArray())).ToArray());
                         overallDvBldr.AddColumn(AllTopKAccuracy, getKSlotNames, NumberDataViewType.Double, allTopK.ToArray());
                     }
 
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public double TopKAccuracy => !(OutputTopKAcc is null) ? AllTopKAccuracy[OutputTopKAcc.Value] : 0d;
+                public double TopKAccuracy => !(OutputTopKAcc is null) ? AllTopKAccuracy[OutputTopKAcc.Value-1] : 0d;
                 public double[] AllTopKAccuracy => CumulativeSum(_seenRanks.Take(OutputTopKAcc ?? 0).Select(l => l / (double)(_numInstances - _numUnknownClassInstances))).ToArray();
 
                 // The per class average log loss is calculated by dividing the weighted sum of the log loss of examples
@@ -924,13 +924,16 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out IDataView conf))
                 throw ch.Except("No confusion matrix found");
 
-            // Change the name of the Top-k-accuracy column.
+            // Change the name of the Top-k-accuracies collection column & remove redundant old TopK output
             if (_outputTopKAcc != null)
-                fold = ChangeTopKAccColumnName(fold);
+            {
+                fold = ChangeAllTopKAccColumnName(fold);
+                fold = DropColumn(fold, MulticlassClassificationEvaluator.TopKAccuracy);
+            }
 
             // Drop the per-class information.
             if (!_outputPerClass)
-                fold = DropPerClassColumn(fold);
+                fold = DropColumn(fold, MulticlassClassificationEvaluator.PerClassLogLoss);
 
             var unweightedConf = MetricWriter.GetConfusionTableAsFormattedString(Host, conf, out string weightedConf, false, _numConfusionTableClasses);
             var unweightedFold = MetricWriter.GetPerFoldResults(Host, fold, out string weightedFold);
@@ -951,9 +954,16 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < metrics.Length; i++)
             {
                 var idv = metrics[i];
-                idv = DropAllTopKColumn(idv);
+
+                // Change the name of the Top-k-accuracies collection column & remove redundant old TopK output
+                if (_outputTopKAcc != null)
+                {
+                    idv = ChangeAllTopKAccColumnName(idv);
+                    idv = DropColumn(idv, MulticlassClassificationEvaluator.TopKAccuracy);
+                }
+
                 if (!_outputPerClass)
-                    idv = DropPerClassColumn(idv);
+                    idv = DropColumn(idv, MulticlassClassificationEvaluator.PerClassLogLoss);
 
                 overallList.Add(idv);
             }
@@ -984,34 +994,23 @@ namespace Microsoft.ML.Data
             return base.CombineOverallMetricsCore(views);
         }
 
-        private protected override IDataView GetOverallResultsCore(IDataView overall)
-        {
-            // Change the name of the Top-k-accuracy column.
-            if (_outputTopKAcc != null)
-                overall = ChangeTopKAccColumnName(overall);
-            return overall;
-        }
-
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
             input = new ColumnCopyingTransformer(Host, (string.Format(TopKAccuracyFormat, _outputTopKAcc), MulticlassClassificationEvaluator.TopKAccuracy)).Transform(input);
             return ColumnSelectingTransformer.CreateDrop(Host, input, MulticlassClassificationEvaluator.TopKAccuracy);
         }
 
-        private IDataView DropPerClassColumn(IDataView input)
+        private IDataView ChangeAllTopKAccColumnName(IDataView input)
         {
-            if (input.Schema.TryGetColumnIndex(MulticlassClassificationEvaluator.PerClassLogLoss, out int perClassCol))
-            {
-                input = ColumnSelectingTransformer.CreateDrop(Host, input, MulticlassClassificationEvaluator.PerClassLogLoss);
-            }
-            return input;
+            input = new ColumnCopyingTransformer(Host, (TopKAccuracyFormat, MulticlassClassificationEvaluator.AllTopKAccuracy)).Transform(input);
+            return ColumnSelectingTransformer.CreateDrop(Host, input, MulticlassClassificationEvaluator.AllTopKAccuracy);
         }
 
-        private IDataView DropAllTopKColumn(IDataView input)
+        private IDataView DropColumn(IDataView input, string columnToDrop)
         {
-            if (input.Schema.TryGetColumnIndex(MulticlassClassificationEvaluator.AllTopKAccuracy, out int AllTopKCol))
+            if (input.Schema.TryGetColumnIndex(columnToDrop, out int ColInd))
             {
-                input = ColumnSelectingTransformer.CreateDrop(Host, input, MulticlassClassificationEvaluator.AllTopKAccuracy);
+                input = ColumnSelectingTransformer.CreateDrop(Host, input, columnToDrop);
             }
             return input;
         }
