@@ -1110,15 +1110,10 @@ namespace Microsoft.ML.Runtime
         /// </remarks>
         private static bool CanContainExtensions(Assembly assembly)
         {
-            // We used to have two separate strong name keys for product and test binaries and Arcade
-            // does not support that anymore (and that did not accept our PR for adding the additional
-            // signed key and using two strong name keys without the PR). If they ever decide to support
-            // this scenario we can remove the regex and go back to checking just the public key and startswith.
             if (assembly.FullName.StartsWith("Microsoft.ML.", StringComparison.Ordinal)
-               && !Regex.IsMatch(assembly.FullName, @"Microsoft\.ML.*\.Tests.*")
-               && HasMLNetPublicKey(assembly))
+                && HasMLNetPublicKey(assembly))
             {
-               return false;
+                return false;
             }
 
             return true;
