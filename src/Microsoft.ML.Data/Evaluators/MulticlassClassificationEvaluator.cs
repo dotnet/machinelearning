@@ -171,8 +171,10 @@ namespace Microsoft.ML.Data
                     logLoss.Add(agg.UnweightedCounters.LogLoss);
                     logLossRed.Add(agg.UnweightedCounters.Reduction);
                     if (agg.UnweightedCounters.OutputTopKAcc > 0)
+                    {
                         topKAcc.Add(agg.UnweightedCounters.TopKAccuracy);
-                    allTopK.Add(agg.UnweightedCounters.AllTopKAccuracy);
+                        allTopK.Add(agg.UnweightedCounters.AllTopKAccuracy);
+                    }
                     perClassLogLoss.Add(agg.UnweightedCounters.PerClassLogLoss);
 
                     confStratCol.AddRange(agg.UnweightedCounters.ConfusionTable.Select(x => stratColKey));
@@ -189,8 +191,10 @@ namespace Microsoft.ML.Data
                         logLoss.Add(agg.WeightedCounters.LogLoss);
                         logLossRed.Add(agg.WeightedCounters.Reduction);
                         if (agg.WeightedCounters.OutputTopKAcc > 0)
+                        {
                             topKAcc.Add(agg.WeightedCounters.TopKAccuracy);
-                        allTopK.Add(agg.WeightedCounters.AllTopKAccuracy);
+                            allTopK.Add(agg.WeightedCounters.AllTopKAccuracy);
+                        }
                         perClassLogLoss.Add(agg.WeightedCounters.PerClassLogLoss);
                         weights.AddRange(agg.WeightedCounters.ConfusionTable);
                     }
@@ -212,13 +216,16 @@ namespace Microsoft.ML.Data
                     overallDvBldr.AddColumn(LogLoss, NumberDataViewType.Double, logLoss.ToArray());
                     overallDvBldr.AddColumn(LogLossReduction, NumberDataViewType.Double, logLossRed.ToArray());
                     if (aggregator.UnweightedCounters.OutputTopKAcc > 0)
+                    {
                         overallDvBldr.AddColumn(TopKAccuracy, NumberDataViewType.Double, topKAcc.ToArray());
-                    overallDvBldr.AddColumn(PerClassLogLoss, aggregator.GetSlotNames, NumberDataViewType.Double, perClassLogLoss.ToArray());
 
-                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKSlotNames =
-                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                            dst = new VBuffer<ReadOnlyMemory<char>>(allTopK.First().Length, Enumerable.Range(1,allTopK.First().Length).Select(i=>new ReadOnlyMemory<char>(($"@K={i.ToString()}").ToCharArray())).ToArray());
-                    overallDvBldr.AddColumn(AllTopKAccuracy, getKSlotNames, NumberDataViewType.Double, allTopK.ToArray());
+                        ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKSlotNames =
+                            (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                                dst = new VBuffer<ReadOnlyMemory<char>>(allTopK.First().Length, Enumerable.Range(1, allTopK.First().Length).Select(i => new ReadOnlyMemory<char>(($"@K={i.ToString()}").ToCharArray())).ToArray());
+                        overallDvBldr.AddColumn(AllTopKAccuracy, getKSlotNames, NumberDataViewType.Double, allTopK.ToArray());
+                    }
+
+                    overallDvBldr.AddColumn(PerClassLogLoss, aggregator.GetSlotNames, NumberDataViewType.Double, perClassLogLoss.ToArray());
 
                     var confDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
@@ -362,7 +369,7 @@ namespace Microsoft.ML.Data
                 private static IEnumerable<double> CumulativeSum(IEnumerable<double> s)
                 {
                     double sum = 0;
-                    ;
+
                     foreach (var x in s)
                     {
                         sum += x;
@@ -481,9 +488,9 @@ namespace Microsoft.ML.Data
                 // Get the probability that the CORRECT label has: (best case is that it's the highest probability):
                 var correctProba = !wasKnownLabel ? 0 : _scoresArr[intLabel];
 
-                // Find the rank of the *correct* label (in Scores[]). If 0 => Good, correct. And the lower the better.
-                // The rank will be from 0 to N. (Not N-1).
-                // Problem: What if we have probabilities that are equal to the correct prediction (eg, a:0.1, b:0.1, c:0.1, d:0.6, e:0.1 where c is the correct label).
+                // Find the rank of the *correct* label (in _scoresArr[]). If the correct (ground truth) labels gets rank 0, it means the model assigned it the highest probability (that's ideal). Rank 1 would mean our model gives the real label the 2nd highest probabality, etc.
+                // The rank will be from 0 to N. (Not N-1). Rank N is used for unrecognized values.
+                // Situation: What if we have probabilities that are equal to the correct prediction (eg, a:0.1, b:0.1, c:0.1, d:0.6, e:0.1 where c is the correct label).
                 // This actually happens a lot with some models. We handle ties by assigning rank in order of first appearance. In this example, we assign c the rank of 3, because d has a higher probability and a and b are sequentially first.
                 int rankofCorrectLabel = 0;
                 //float highestProb = 0;
@@ -1022,6 +1029,7 @@ namespace Microsoft.ML.Data
             }
             yield return new MetricColumn("LogLoss", MulticlassClassificationEvaluator.LogLoss, MetricColumn.Objective.Minimize);
             yield return new MetricColumn("LogLossReduction", MulticlassClassificationEvaluator.LogLossReduction);
+            yield return new MetricColumn("TopKAccuracyForAllK", MulticlassClassificationEvaluator.AllTopKAccuracy, isVector: true);
         }
 
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
