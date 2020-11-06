@@ -98,12 +98,6 @@ jobs:
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      # - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
-      #   displayName: Download Benchmark Data
-      #   timeoutInMinutes: 10
-      # - script: ${{ parameters.buildScript }} -- /t:DownloadTensorflowMetaFiles /p:IncludeTensorflowMetaFile=true
-      #   displayName: Download Tensorflow Meta File
-      #   timeoutInMinutes: 20
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments=-notrait%20Category=SkipInCI #-coverage=${{ parameters.codeCoverage }}
@@ -159,10 +153,9 @@ jobs:
       displayName: Stage test output
       condition: not(succeeded())
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)/artifacts/bin
+        sourceFolder: $(Build.SourcesDirectory)/artifacts/TestResults
         contents: |
-          **/TestOutput/**/*
-          **/*.trx
+          **
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
       displayName: Stage process dump and pdb if any
