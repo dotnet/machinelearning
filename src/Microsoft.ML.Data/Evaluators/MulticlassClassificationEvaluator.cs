@@ -459,8 +459,6 @@ namespace Microsoft.ML.Data
 
                 var intLabel = (int)label;
 
-                var assigned = Array.IndexOf(_scoresArr, _scoresArr.Max()); //perf could be improved
-
                 var wasKnownLabel = true;
 
                 // log-loss
@@ -485,13 +483,24 @@ namespace Microsoft.ML.Data
 
                 // Find the rank of the *correct* label (in Scores[]). If 0 => Good, correct. And the lower the better.
                 // The rank will be from 0 to N. (Not N-1).
-                // Problem: What if we have probabilities that are equal to the correct prediction (eg, .6 .1 .1 .1 .1).
-                // This actually happens a lot with some models. Here we assign the worst rank in the case of a tie (so 4 in this example)
-                var correctRankWorstCase = !wasKnownLabel ? _scoresArr.Length : _scoresArr.Count(score => score >= correctProba) - 1;
+                // Problem: What if we have probabilities that are equal to the correct prediction (eg, a:0.1, b:0.1, c:0.1, d:0.6, e:0.1 where c is the correct label).
+                // This actually happens a lot with some models. We handle ties by assigning rank in order of first appearance. In this example, we assign c the rank of 3, because d has a higher probability and a and b are sequentially first.
+                int rankofCorrectLabel = 0;
+                //float highestProb = 0;
+                int assigned = -1;
+                for (int i=0; i < _scoresArr.Length; i++)
+                {
+                    if ( _scoresArr[i] > correctProba || (_scoresArr[i] == correctProba && i < intLabel))
+                        rankofCorrectLabel++;
 
-                UnweightedCounters.Update(correctRankWorstCase, assigned, logloss, intLabel, 1);
+                    //This is the assigned "prediction" of the model if it has the highest probability.
+                    if (assigned < 0 || _scoresArr[assigned] < _scoresArr[i] )
+                        assigned = i;
+                }
+
+                UnweightedCounters.Update(rankofCorrectLabel, assigned, logloss, intLabel, 1);
                 if (WeightedCounters != null)
-                    WeightedCounters.Update(correctRankWorstCase, assigned, logloss, intLabel, weight);
+                    WeightedCounters.Update(rankofCorrectLabel, assigned, logloss, intLabel, weight);
             }
 
             protected override List<string> GetWarningsCore()
