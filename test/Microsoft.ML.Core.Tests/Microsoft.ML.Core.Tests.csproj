@@ -1,7 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <DefineConstants>CORECLR</DefineConstants>
+    <StrongNameKeyId>Test</StrongNameKeyId>
   </PropertyGroup>
+
+    <!-- Import the test signing certificate -->
+  <Import Project="../Cert.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj" />
@@ -22,7 +26,7 @@
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Tests\Microsoft.ML.Tests.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
