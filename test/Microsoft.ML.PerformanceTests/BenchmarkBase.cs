@@ -8,7 +8,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFrameworkCommon;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     public class BenchmarkBase
     {

@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using Microsoft.ML.Benchmarks.Harness;
+using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     [CIBenchmark]
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics

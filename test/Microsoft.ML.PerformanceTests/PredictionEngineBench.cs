@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Benchmarks.Harness;
+using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     [CIBenchmark]
     public class PredictionEngineBench : BenchmarkBase

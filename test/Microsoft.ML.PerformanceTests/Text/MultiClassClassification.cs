@@ -10,7 +10,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TestFrameworkCommon;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     [Config(typeof(TrainConfig))]
     public class MulticlassClassificationTrain : BenchmarkBase
