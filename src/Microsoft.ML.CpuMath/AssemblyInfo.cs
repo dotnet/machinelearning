@@ -15,6 +15,6 @@ using Microsoft.ML.Internal.CpuMath.Core;
 [assembly: InternalsVisibleTo("Microsoft.ML.Sweeper" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.TimeSeries" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Transforms" + PublicKey.Value)]
-[assembly: InternalsVisibleTo("Microsoft.ML.Benchmarks.Tests" + PublicKey.Value)]
+[assembly: InternalsVisibleTo("Microsoft.ML.PerformanceTests.Tests" + PublicKey.Value)]
 
 [assembly: WantsToBeBestFriends]

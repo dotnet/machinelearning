@@ -9,9 +9,9 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.DotNetCli;
-using Microsoft.ML.Benchmarks.Harness;
+using Microsoft.ML.PerformanceTests.Harness;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     public class RecommendedConfig : ManualConfig
     {

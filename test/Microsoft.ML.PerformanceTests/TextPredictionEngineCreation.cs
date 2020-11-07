@@ -5,7 +5,7 @@
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML;
-using Microsoft.ML.Benchmarks;
+using Microsoft.ML.PerformanceTests;
 using Microsoft.ML.Trainers;
 
 namespace micro
