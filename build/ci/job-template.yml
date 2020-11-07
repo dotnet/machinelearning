@@ -44,6 +44,7 @@ jobs:
             _targetFramework: netcoreapp2.1
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
+
     pool: ${{ parameters.pool }}
     ${{ if ne(parameters.container, '') }}:
       container: ${{ parameters.container }}
@@ -186,5 +187,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -pack  -ci
+      - script: ${{ parameters.buildScript }} -pack -ci
         displayName: Build Packages

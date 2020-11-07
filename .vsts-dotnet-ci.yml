@@ -6,6 +6,7 @@ resources:
   containers:
   - container: CentosContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
+
   - container: UbuntuContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-20200515184230-2c829e8
 
@@ -53,12 +54,12 @@ jobs:
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug
+        _configuration: Debug-netcoreapp3_1
         _config_short: DI
         _includeBenchmarkData: false
         _targetFramework: netcoreapp3.1
       Release_Build:
-        _configuration: Release
+        _configuration: Release-netcoreapp3_1
         _config_short: RI
         _includeBenchmarkData: true
         _targetFramework: netcoreapp3.1
@@ -82,12 +83,12 @@ jobs:
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug
+        _configuration: Debug-netfx
         _config_short: DFX
         _includeBenchmarkData: false
         _targetFramework: win-x64
       Release_Build:
-        _configuration: Release
+        _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
         _targetFramework: win-x64
