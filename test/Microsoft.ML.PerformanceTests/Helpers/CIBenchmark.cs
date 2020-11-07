@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-namespace Microsoft.ML.Benchmarks.Harness
+namespace Microsoft.ML.PerformanceTests.Harness
 {
     /// <summary>
     /// This attribute is used to identify the benchmarks 

@@ -1,4 +1,4 @@
-# ML.NET Benchmarks
+# ML.NET Benchmarks/Performance Tests
 
 This project contains performance benchmarks.
 
@@ -8,46 +8,19 @@ This project contains performance benchmarks.
 
     git submodule update --init
 
-**Pre-requisite:** On a clean repo with initialized submodules, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release` with native dependencies. 
+**Pre-requisite:** On a clean repo with initialized submodules, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release`. 
 
-    build.cmd -release -buildNative
-    
-Moreover, to run some of the benchmarks you have to download external dependencies.
+    build.cmd -configuration Release
 
-    build.cmd -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=true
+1. Navigate to the performance tests directory (machinelearning\test\Microsoft.ML.PerformanceTests)
 
-1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.Benchmarks)
-
-2. Run the benchmarks in Release, choose one of the benchmarks when prompted
+2. Run the benchmarks in Release:
 
 ```log
-    dotnet run -c Release
-```
-   
-3. To run specific tests only, pass in the filter to the harness:
-
-```log
-    dotnet run -c Release -- --filter namespace*
-    dotnet run -c Release -- --filter *typeName*
-    dotnet run -c Release -- --filter *.methodName
-    dotnet run -c Release -- --filter namespace.typeName.methodName
+    build.cmd -configuration Release -performanceTest
 ```
 
-4. GC Statistics
-
-To get the total number of allocated managed memory please pass additional console argument: `--memory` or just `-m`. This feature is disabled by default because it requires an additional iteration (which is expensive for time consuming benchmarks).
-
-|       Gen 0 |      Gen 1 |     Gen 2 | Allocated |
-|------------:|-----------:|----------:|----------:|
-| 175000.0000 | 33000.0000 | 7000.0000 | 238.26 MB |
-
-5. To find out more about supported command line arguments run
-
-```log
-    dotnet run -c Release -- --help
-```
-
-## .NET Core 3.0
+## .NET Core 3.1
 
 **Pre-requisite:** Follow the [netcoreapp3.1 instructions](../../docs/building/netcoreapp3.1-instructions.md).
 
@@ -55,12 +28,12 @@ To get the total number of allocated managed memory please pass additional conso
 
     $env:DOTNET_MULTILEVEL_LOOKUP=0
 
-1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.Benchmarks)
+1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.PerformanceTests)
 
-2. Run the benchmarks in `Release-netcoreapp3_1` configuration, choose one of the benchmarks when prompted
+2. Run the benchmarks in `Release-netcoreapp3_1` configuration:
 
 ```log
-    ..\..\Tools\dotnetcli\dotnet.exe run -c Release-netcoreapp3_1
+    build.cmd -configuration Release-netcoreapp3_1 -performanceTest
 ```
 ## Authoring new benchmarks
 
@@ -91,7 +64,7 @@ you can debug this test locally by:
 
 1- Building the solution in the release mode locally
 
-build.cmd -release -buildNative
+build.cmd -configuration Release -performanceTest
 
 2- Changing the configuration in Visual Studio from Debug -> Release
 3- Changing the annotation in the `BenchmarksProjectIsNotBroken` to replace `BenchmarkTheory` with `Theory`, as below. 

@@ -4,10 +4,10 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Benchmarks.Harness;
+using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     [CIBenchmark]
     public class CacheDataViewBench : BenchmarkBase

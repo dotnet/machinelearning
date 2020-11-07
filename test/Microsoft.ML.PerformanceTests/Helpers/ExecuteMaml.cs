@@ -4,7 +4,7 @@
 
 using System;
 using Microsoft.ML.Tools;
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     internal static class ExecuteMaml
     {
