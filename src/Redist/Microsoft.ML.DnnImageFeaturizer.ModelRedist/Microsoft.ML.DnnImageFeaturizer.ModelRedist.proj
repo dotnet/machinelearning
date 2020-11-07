@@ -123,4 +123,6 @@
 
   <Target Name="Test" />
 
+  <Target Name="PerformanceTest"/>
+
 </Project>

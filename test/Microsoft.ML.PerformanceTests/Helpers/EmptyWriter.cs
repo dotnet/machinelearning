@@ -5,7 +5,7 @@
 using System.IO;
 using System.Text;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     // Adding this class to not print anything to the console.
     // This is required for the current version of BenchmarkDotNet

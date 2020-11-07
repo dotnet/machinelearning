@@ -15,7 +15,7 @@ using static Microsoft.ML.DataOperationsCatalog;
 using System.Net.Http;
 using Microsoft.ML.Vision;
 
-namespace Microsoft.ML.Benchmarks
+namespace Microsoft.ML.PerformanceTests
 {
     [Config(typeof(TrainConfig))]
     public class ImageClassificationBench : BenchmarkBase

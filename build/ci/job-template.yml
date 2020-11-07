@@ -58,9 +58,10 @@ jobs:
           brew untap local/openssl |
           brew untap local/python2
         displayName: MacOS Homebrew bug Workaround
+    # Extra MacOS step required to install OS-specific dependencies
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
-        displayName: Install build dependencies
+        displayName: Install MacOS build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
@@ -186,5 +187,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -pack  -ci
+      - script: ${{ parameters.buildScript }} -pack -ci
         displayName: Build Packages
