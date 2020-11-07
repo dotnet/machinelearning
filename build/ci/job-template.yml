@@ -70,6 +70,7 @@ jobs:
           script: cd packages;find . -type d -path "*/runtimes/osx-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
         displayName: Clean up non-Linux runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+      #   TODO: We need to do this. THe packages are restored in a different folder so we need find the correct path.
       # - task: PowerShell@2
       #   inputs:
       #     targetType: inline
@@ -100,6 +101,7 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
+          # TODO: Code coverage needs to be fixed.
           - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments=-notrait%20Category=SkipInCI #-coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
@@ -126,8 +128,8 @@ jobs:
               diagnosticsEnabled: False
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
-      - ${{ if eq(parameters.innerLoop, 'true') }}: #-runCITests
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
+      - ${{ if eq(parameters.innerLoop, 'true') }}:
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments=-notrait%20Category=SkipInCI #-coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
@@ -175,5 +177,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -pack  -ci #-buildPackages
+      - script: ${{ parameters.buildScript }} -pack  -ci
         displayName: Build Packages
