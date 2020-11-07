@@ -20,8 +20,6 @@ namespace Microsoft.ML.PerformanceTests
             // enforce Neutral Language as "en-us" because the input data files use dot as decimal separator (and it fails for cultures with ",")
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
-            Console.WriteLine("args");
-
             /*
             Available Benchmarks:
                 #0  TextPredictionEngineCreationBenchmark
@@ -39,14 +37,16 @@ namespace Microsoft.ML.PerformanceTests
                 #12 ShuffleRowsBench
                 #13 StochasticDualCoordinateAscentClassifierBench
                 #14 TextLoaderBench
-
-            You should select the target benchmark(s). Please, print a number of a benchmark(e.g. `0`) or a contained benchmark caption(e.g. `TextPredictionEngineCreationBenchmark`).
-            If you want to select few, please separate them with space ` ` (e.g. `1 2 3`).
             */
 
+            // TO-DO: Further investigate how to run each benchmark separately.
+            // Arcade's `-performanceTest` command results in a predefined dotnet call that does not allow for additional arguments
+            // to be passed (say, for selecting individual benchmarks to run).
+            // Link to code:
+            //     https://github.com/dotnet/arcade/blob/4873d157a8f34f8cc7e28b3f9938b32c642ef542/src/Microsoft.DotNet.Arcade.Sdk/tools/Performance.targets#L16-L19
             BenchmarkSwitcher
                .FromAssembly(typeof(Program).Assembly)
-               .Run(args, new RecommendedConfig());
+               .RunAll(new RecommendedConfig());
 
         }
     }
