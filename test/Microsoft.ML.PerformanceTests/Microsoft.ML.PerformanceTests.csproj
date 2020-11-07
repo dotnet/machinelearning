@@ -2,6 +2,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <IsUnitTestProject>false</IsUnitTestProject>
+    <IsPerformanceTestProject>true</IsPerformanceTestProject>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="BenchmarkDotNet.Artifacts\**" />
@@ -30,22 +32,6 @@
     <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
-  <ItemGroup>
-    <BenchmarkFile Update="@(BenchmarkFile)">
-      <Url>https://aka.ms/mlnet-resources/benchmarks/%(Identity)</Url>
-      <DestinationFile>$(MSBuildThisFileDirectory)/test/data/external/%(Identity)</DestinationFile>
-    </BenchmarkFile>
-    <TestFile Include="@(BenchmarkFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" />
-  </ItemGroup>
-  <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
-    <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />
-    <DownloadFile
-            SourceUrl="%(BenchmarkFile.Url)"
-            DestinationFolder="$(MSBuildThisFileDirectory)/test/data/external/"
-            Retries="5"
-            SkipUnchangedFiles="true">
-    </DownloadFile>
-  </Target>
   <ItemGroup>
     <MetaFile Update="@(MetaFile)">
       <Url>https://aka.ms/mlnet-resources/meta/%(Identity)</Url>
