@@ -121,11 +121,11 @@ namespace Microsoft.ML.AutoML.Test
                 // the sweeper encounters problems when parsing some strings.
                 // So testing in another culture is necessary.
                 // Furthermore, these issues might only occur after ~70
-                // iterations, so more experiment time is needed for this to
-                // occur.
-                uint experimentTime = (uint) (culture == "en-US" ? 0 : 180);
+                // iterations, so setting the internal maxModels parameter.
+                int maxModels = culture == "en-US" ? 1 : 75;
 
-                var experimentSettings = new RegressionExperimentSettings { MaxExperimentTimeInSeconds = experimentTime};
+                var experimentSettings = new RegressionExperimentSettings { MaxModels = maxModels };
+
                 if (!Environment.Is64BitProcess)
                 {
                     // LightGBM isn't available on x86 machines
@@ -144,27 +144,10 @@ namespace Microsoft.ML.AutoML.Test
                     .Execute(trainData, validationData,
                         new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
-                Assert.True(result.RunDetails.Max(i => i?.ValidationMetrics?.RSquared) > 0.9);
+                Assert.True(result.RunDetails.Max(i => i?.ValidationMetrics?.RSquared) > 0.99);
 
-                // Ensure experimentTime allows enough iterations to fully test the internationalization code
-                // If the below assertion fails, increase the experiment time so the number of iterations is met
-                Assert.True(culture == "en-US" || result.RunDetails.Count() >= 75, $"RunDetails.Count() = {result.RunDetails.Count()}, below 75");
-            }
-            catch (AggregateException ae)
-			{
-                // During CI unit testing, the host machines can run slower than normal, which
-                // can increase the run time of unit tests and throw OperationCanceledExceptions
-                // from multiple threads in the form of a single AggregateException.
-                foreach (var ex in ae.Flatten().InnerExceptions)
-                {
-                    var ignoredExceptions = new List<Exception>();
-                    if (ex is OperationCanceledException)
-                        continue;
-                    else
-                        ignoredExceptions.Add(ex);
-                    if (ignoredExceptions.Count > 0)
-                        throw new AggregateException(ignoredExceptions);
-                }
+                // Test the internal maxModels parameter
+                Assert.True(culture == "en-US" || result.RunDetails.Count() == 75, $"RunDetails.Count() = {result.RunDetails.Count()}, is not 75");
             }
             finally
             {
