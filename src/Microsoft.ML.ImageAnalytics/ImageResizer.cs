@@ -292,17 +292,12 @@ namespace Microsoft.ML.Transforms.Image
                 ValueGetter<Bitmap> del =
                     (ref Bitmap dst) =>
                     {
+                        if (dst != null)
+                            dst.Dispose();
+
                         getSrc(ref src);
                         if (src == null || src.Height <= 0 || src.Width <= 0)
                             return;
-
-                        if (src.Height == info.ImageHeight && src.Width == info.ImageWidth)
-                        {
-                            dst = src;
-                            return;
-                        }
-                        else if(dst != null)
-                            dst.Dispose();
 
                         int sourceWidth = src.Width;
                         int sourceHeight = src.Height;
@@ -398,9 +393,7 @@ namespace Microsoft.ML.Transforms.Image
                             }
                         }
                         else
-                        {
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
-                        }
 
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
