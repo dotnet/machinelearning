@@ -115,7 +115,7 @@ jobs:
           - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -ci /p:TestRunnerAdditionalArguments='-trait%20Category=RunSpecificTest' #-coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -ci /p:TestRunnerAdditionalArguments='-trait Category=RunSpecificTest' #-coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -139,7 +139,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait%20Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
