@@ -11,6 +11,7 @@ parameters:
   runSpecific: false
   container: ''
   useVSTestTask: false
+  spaceValue : ' '
 
 jobs:
   - job: ${{ parameters.name }}
@@ -48,6 +49,8 @@ jobs:
     pool: ${{ parameters.pool }}
     ${{ if ne(parameters.container, '') }}:
       container: ${{ parameters.container }}
+    ${{ if eq(parameters.buildScript, './build.sh') }}:
+      parameters.spaceValue: '%20'
 
     steps:
     # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/1811
@@ -115,7 +118,7 @@ jobs:
           - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -ci /p:TestRunnerAdditionalArguments='-trait Category=RunSpecificTest' #-coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -ci /p:TestRunnerAdditionalArguments='-trait${{ parameters.spaceValue }}Category=RunSpecificTest' #-coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -139,7 +142,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait${{ parameters.spaceValue }}Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
