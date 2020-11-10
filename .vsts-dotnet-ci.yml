@@ -30,7 +30,6 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
-    spaceValue: '%20'
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -40,7 +39,6 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
-    spaceValue: '%20'
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -49,7 +47,6 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted macOS
-    spaceValue: '%20'
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -70,7 +67,6 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
       name: Hosted VS2017
-    spaceValue: ' '
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -80,7 +76,6 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
-    spaceValue: ' '
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -101,7 +96,6 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name: Hosted VS2017
-    spaceValue: ' '
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -112,4 +106,3 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
-    spaceValue: ' '
