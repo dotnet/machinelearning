@@ -84,10 +84,13 @@ jobs:
           script: cd packages;find . -type d -path "*/runtimes/osx-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
         displayName: Clean up non-Linux runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
-      - script: dir /s "$(Agent.HomeDirectory)/bin"
+      - script: dir /s "$(Agent.HomeDirectory)"
         displayName: show bin folder disk usage
-      - script: dir /s "$(Agent.HomeDirectory)/externals/nuget"
-        displayName: show bin folder disk usage
+      - task: PowerShell@2
+        inputs:
+          targetType: inline
+          script: Get-ChildItem -Path '$(Agent.HomeDirectory)artifacts\obj\*' -Recurse | Remove-Item -Recurse -Confirm:$false -Force
+        displayName: Clean up obj folder to save space
       - task: PowerShell@2
         inputs:
           targetType: inline
@@ -111,16 +114,16 @@ jobs:
           displayName: Clean up useless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
-      - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
+      - script: ${{ parameters.buildScript }} /p:Build=false -$(_configuration) -runnightlybuildtests
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           # TODO: Code coverage needs to be fixed.
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' #-coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' #-coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -144,7 +147,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
+        - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
@@ -192,5 +195,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -pack -ci
+      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci
         displayName: Build Packages
