@@ -86,7 +86,7 @@ jobs:
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
       - script: dir /s "$(Build.SourcesDirectory)"
         displayName: show bin folder disk usage
-      - script: dir /s "c:"
+      - script: dir /s "c:/Packages"
         displayName: c recurse
       - script: dir /s "d:"
         displayName: d recurse
