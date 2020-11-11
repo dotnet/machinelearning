@@ -86,6 +86,10 @@ jobs:
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
       - script: dir /s "$(Build.SourcesDirectory)"
         displayName: show bin folder disk usage
+      - script: ls c:\ *.nuget* -Recurse -Directory
+        displayName: c recurse
+      - script: ls d:\ *.nuget* -Recurse -Directory
+        displayName: d recurse
       - task: PowerShell@2
         inputs:
           targetType: inline
