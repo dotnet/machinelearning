@@ -86,7 +86,7 @@ jobs:
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
       - script: dir /s "$(Agent.HomeDirectory)/bin"
         displayName: show bin folder disk usage
-      - script: dir /s "$(Agent.HomeDirectory)/externals"
+      - script: dir /s "$(Agent.HomeDirectory)/externals/nuget"
         displayName: show bin folder disk usage
       - task: PowerShell@2
         inputs:
