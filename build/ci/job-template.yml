@@ -84,7 +84,9 @@ jobs:
           script: cd packages;find . -type d -path "*/runtimes/osx-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
         displayName: Clean up non-Linux runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
-      - script: dir /s "$(Agent.HomeDirectory)"
+      - script: dir /s "$(Agent.HomeDirectory)/bin"
+        displayName: show bin folder disk usage
+      - script: dir /s "$(Agent.HomeDirectory)/externals"
         displayName: show bin folder disk usage
       - task: PowerShell@2
         inputs:
