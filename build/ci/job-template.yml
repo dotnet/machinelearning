@@ -89,11 +89,6 @@ jobs:
       - task: PowerShell@2
         inputs:
           targetType: inline
-          script: Get-ChildItem -Path '$(Build.SourcesDirectory)\artifacts\obj\*' -Recurse | Remove-Item -Recurse -Confirm:$false -Force
-        displayName: Clean up obj folder to save space
-      - task: PowerShell@2
-        inputs:
-          targetType: inline
           script: Get-ChildItem -Path  '$(Build.SourcesDirectory)\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
         displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
