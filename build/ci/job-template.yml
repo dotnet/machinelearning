@@ -109,16 +109,16 @@ jobs:
           displayName: Clean up useless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
-      - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=x86 -$(_configuration) -runnightlybuildtests  /p:RestorePackagesPath=packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=${{ parameters.architecture }} -$(_configuration) -runnightlybuildtests  /p:RestorePackagesPath=packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           # TODO: Code coverage needs to be fixed.
-          - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=x86 -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=${{ parameters.architecture }} -configuration $(_configuration) -test -ci #-coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=x86 -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest'  /p:RestorePackagesPath=packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=${{ parameters.architecture }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest'  /p:RestorePackagesPath=packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -142,7 +142,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=x86 -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
+        - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=${{ parameters.architecture }} -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
@@ -190,5 +190,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=x86 -pack -ci  /p:RestorePackagesPath=packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      - script: ${{ parameters.buildScript }} /p:Build=false /p:TargetArchitecture=${{ parameters.architecture }} -pack -ci  /p:RestorePackagesPath=packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
         displayName: Build Packages
