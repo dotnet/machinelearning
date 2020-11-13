@@ -9,14 +9,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
     public partial class ModelFiles : FunctionalTestBaseClass
     {

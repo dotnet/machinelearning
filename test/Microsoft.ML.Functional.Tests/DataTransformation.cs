@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
@@ -11,7 +11,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Transforms.HashingEstimator;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
     public class DataTransformation : FunctionalTestBaseClass
     {

@@ -125,4 +125,7 @@
 
   <Target Name="PerformanceTest"/>
 
+  <Target Name="IntegrationTest"/>
+  <!--#MYTODO: Why is adding this necessary? If I don't do it I get an error message-->
+
 </Project>

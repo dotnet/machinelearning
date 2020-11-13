@@ -6,6 +6,14 @@
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <PublicSign>false</PublicSign>
     <ReferenceTypeForTestFramework>Project</ReferenceTypeForTestFramework>
+
+    <!-- #MYTODO: What happens if I leave this as true? does the IntegrationTests also run with all the other tests (as expected?)?-->
+    <IsUnitTestProject>false</IsUnitTestProject>
+    
+    <!--#MYTODO: The command works even without this below, so I don't know if it's even necessary-->
+    <IsIntegrationTestProject>true</IsIntegrationTestProject>
+    
+    
   </PropertyGroup>
 
   <ItemGroup>

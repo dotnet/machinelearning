@@ -11,7 +11,7 @@
   <Import Project="..\NightlyBuildDependency.props" />
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.ML.Functional.Tests\**\*.cs" />
+    <Compile Include="..\Microsoft.ML.IntegrationTests\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
