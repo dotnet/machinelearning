@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -348,6 +348,7 @@ namespace Microsoft.ML
         /// </summary>
         public static void CheckVersionInfo(ref ModelHeader header, VersionInfo ver)
         {
+
             Contracts.CheckDecode(header.ModelSignature == ver.ModelSignature, "Unknown file type");
             Contracts.CheckDecode(header.ModelVerReadable <= header.ModelVerWritten, "Corrupt file header");
             if (header.ModelVerReadable > ver.VerWrittenCur)
@@ -355,6 +356,11 @@ namespace Microsoft.ML
                                 "Suggestion: Make sure the model is trained with ML.NET {0} or older.\n" +
                                 "Debug details: Maximum expected version {2}, got {3}.",
                                 typeof(VersionInfo).Assembly.GetName().Version, ver.LoaderSignature, header.ModelVerReadable, ver.VerWrittenCur);
+            if (header.ModelVerWritten > ver.VerWrittenCur)
+            {
+                throw Contracts.ExceptDecode("Model was trained on a newer version of ML․NET. " +
+                    "Forward compatibility is not guaranteed. Please update your ML.NET version");
+            }
             if (header.ModelVerWritten < ver.VerWeCanReadBack)
             {
                 // Breaking backwards compatibility is something we should avoid if at all possible. If
