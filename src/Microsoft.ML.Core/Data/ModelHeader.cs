@@ -348,18 +348,19 @@ namespace Microsoft.ML
         /// </summary>
         public static void CheckVersionInfo(ref ModelHeader header, VersionInfo ver)
         {
-
             Contracts.CheckDecode(header.ModelSignature == ver.ModelSignature, "Unknown file type");
             Contracts.CheckDecode(header.ModelVerReadable <= header.ModelVerWritten, "Corrupt file header");
             if (header.ModelVerReadable > ver.VerWrittenCur)
-                throw Contracts.ExceptDecode("Cause: ML.NET {0} cannont read component '{1}' of the model, because the model is too new.\n" +
+                throw Contracts.ExceptDecode("Cause: ML.NET {0} cannot read component '{1}' of the model, because the model is too new.\n" +
                                 "Suggestion: Make sure the model is trained with ML.NET {0} or older.\n" +
                                 "Debug details: Maximum expected version {2}, got {3}.",
                                 typeof(VersionInfo).Assembly.GetName().Version, ver.LoaderSignature, header.ModelVerReadable, ver.VerWrittenCur);
             if (header.ModelVerWritten > ver.VerWrittenCur)
             {
-                throw Contracts.ExceptDecode("Model was trained on a newer version of ML․NET. " +
-                    "Forward compatibility is not guaranteed. Please update your ML.NET version");
+                throw Contracts.ExceptDecode("The model was trained on a newer version of ML․NET.\n" +
+                    "Please update your ML.NET version, as forward compatibility is not guaranteed.\n" +
+                    "Debug details: Maximum expected version {0}, got {1}.",
+                    ver.VerWrittenCur, header.ModelVerWritten);
             }
             if (header.ModelVerWritten < ver.VerWeCanReadBack)
             {
