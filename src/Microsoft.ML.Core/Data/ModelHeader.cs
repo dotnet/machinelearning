@@ -355,10 +355,12 @@ namespace Microsoft.ML
                                 "Suggestion: Make sure the model is trained with ML.NET {0} or older.\n" +
                                 "Debug details: Maximum expected version {2}, got {3}.",
                                 typeof(VersionInfo).Assembly.GetName().Version, ver.LoaderSignature, header.ModelVerReadable, ver.VerWrittenCur);
-            if (header.ModelVerWritten > ver.VerWrittenCur)
+            var envVar = Environment.GetEnvironmentVariable("NEWER_MODEL_VERSION_ALLOWED");
+            if (envVar != "TRUE" && header.ModelVerWritten > ver.VerWrittenCur)
             {
                 throw Contracts.ExceptDecode("The model was trained on a newer version of ML․NET.\n" +
                     "Please update your ML.NET version, as forward compatibility is not guaranteed.\n" +
+                    "To ignore exception and continue, set environment variable NEWER_MODEL_VERSION_ALLOWED to TRUE.\n" +
                     "Debug details: Maximum expected version {0}, got {1}.",
                     ver.VerWrittenCur, header.ModelVerWritten);
             }
