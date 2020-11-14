@@ -22,9 +22,9 @@
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
-    <TensorFlowVersion>1.14.0</TensorFlowVersion>
-    <TensorFlowMajorVersion>1</TensorFlowMajorVersion>
-    <TensorflowDotNETVersion>0.11.8.1</TensorflowDotNETVersion>
+    <TensorFlowVersion>2.3.1</TensorFlowVersion>
+    <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
+    <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
 
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
@@ -44,7 +44,7 @@
     <MicrosoftExtensionsTestPackageVersion>3.0.1</MicrosoftExtensionsTestPackageVersion>
     <MicrosoftMLTestDatabasesPackageVersion>0.0.6-test</MicrosoftMLTestDatabasesPackageVersion>
     <MicrosoftMLTestModelsPackageVersion>0.0.6-test</MicrosoftMLTestModelsPackageVersion>
-    <MicrosoftMLTensorFlowTestModelsVersion>0.0.12-test</MicrosoftMLTensorFlowTestModelsVersion>
+    <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <SystemDataSqlClientVersion>4.6.1</SystemDataSqlClientVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
