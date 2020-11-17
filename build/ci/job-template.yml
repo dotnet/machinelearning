@@ -144,7 +144,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' -coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
