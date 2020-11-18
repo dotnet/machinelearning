@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.Ensemble</IncludeInPackage>
     <PackageDescription>ML.NET component for Ensembles</PackageDescription>
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
