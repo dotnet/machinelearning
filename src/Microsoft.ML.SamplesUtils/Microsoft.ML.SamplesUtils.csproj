@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML.SampleUtils</IncludeInPackage>
     <PackageDescription>Sample utils for Microsoft.ML.Samples</PackageDescription>
   </PropertyGroup>
 
