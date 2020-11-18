@@ -37,6 +37,7 @@
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <MicrosoftDotNetApiCompatPackageVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatPackageVersion>
     <MicrosoftSourceLinkVersion>1.1.0-beta-20206-02</MicrosoftSourceLinkVersion>
+    <BuildToolsPackageVersion>3.0.0-preview4-04926-01</BuildToolsPackageVersion>
 
     <!-- Test-only Dependencies -->
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
