@@ -2,7 +2,8 @@
 	"tools": {
 	  "dotnet": "5.0.100-rc.1.20452.10",
 	  "runtimes": {
-		"dotnet/x64": ["$(MicrosoftNETCorePlatformsVersion)", "$(MicrosoftNETCore3PlatformsVersion)" ]
+		"dotnet/x64": ["$(MicrosoftNETCorePlatformsVersion)", "$(MicrosoftNETCore3PlatformsVersion)"],
+		"dotnet/x86": ["$(MicrosoftNETCorePlatformsVersion)", "$(MicrosoftNETCore3PlatformsVersion)"]
 	  }
 	},
 	"msbuild-sdks": {
