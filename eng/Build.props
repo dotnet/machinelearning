@@ -9,7 +9,6 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-  <!-- The condition is speeds up runtime whenever you don't want to build. -->
     <ProjectToBuild Include="$(RepoRoot)src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj" />
     <ProjectToBuild Include="$(RepoRoot)src/Native/Native.proj" />
     <ProjectToBuild Include="$(RepoRoot)Microsoft.ML.sln" />
