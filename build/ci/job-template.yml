@@ -142,15 +142,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-<<<<<<< HEAD
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
-=======
-<<<<<<< HEAD
-        - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
-=======
-        - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages /p:CollectCoverage=${{ parameters.codeCoverage }}
->>>>>>> testing update
->>>>>>> testing update
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:CollectCoverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
