@@ -495,14 +495,14 @@ namespace Microsoft.ML.Data
                 // Situation: What if we have probabilities that are equal to the correct prediction (eg, a:0.1, b:0.1, c:0.1, d:0.6, e:0.1 where c is the correct label).
                 // This actually happens a lot with some models. We handle ties by assigning rank in order of first appearance. In this example, we assign c the rank of 3, because d has a higher probability and a and b are sequentially first.
                 int rankofCorrectLabel = 0;
-                int assigned = -1;
+                int assigned = 0;
                 for (int i=0; i < _scoresArr.Length; i++)
                 {
                     if ( _scoresArr[i] > correctProba || (_scoresArr[i] == correctProba && i < intLabel))
                         rankofCorrectLabel++;
 
                     //This is the assigned "prediction" of the model if it has the highest probability.
-                    if (assigned < 0 || _scoresArr[assigned] < _scoresArr[i] )
+                    if ( _scoresArr[assigned] < _scoresArr[i] )
                         assigned = i;
                 }
 

@@ -79,7 +79,7 @@ namespace Microsoft.ML.Data
         public double TopKAccuracy => TopKAccuracyForAllK?.LastOrDefault() ?? 0;
 
         /// <summary>
-        /// If positive, this indicates the K in <see cref="TopKAccuracy"/> and <see cref="TopKAccuracy"/>.
+        /// If positive, this indicates the K in <see cref="TopKAccuracy"/> and <see cref="TopKAccuracyForAllK"/>.
         /// </summary>
         public int TopKPredictionCount { get; }
 
