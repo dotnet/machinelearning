@@ -115,10 +115,10 @@ jobs:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           # TODO: Code coverage needs to be fixed.
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci #-coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:CollectCoverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' #-coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:CollectCoverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -142,7 +142,15 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
+<<<<<<< HEAD
         - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' #-coverage=${{ parameters.codeCoverage }}
+=======
+<<<<<<< HEAD
+        - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
+=======
+        - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages /p:CollectCoverage=${{ parameters.codeCoverage }}
+>>>>>>> testing update
+>>>>>>> testing update
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
