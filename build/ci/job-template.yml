@@ -190,5 +190,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -configuration $(_configuration) -pack -ci /p:TargetArchitecture=${{ parameters.architecture }} /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      - script: ${{ parameters.buildScript }} -restore -build -configuration $(_configuration) -pack -ci /p:TargetArchitecture=${{ parameters.architecture }} /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
         displayName: Build Packages
