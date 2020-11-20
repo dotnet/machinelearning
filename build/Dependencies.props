@@ -16,15 +16,15 @@
     <GoogleProtobufPackageVersion>3.10.1</GoogleProtobufPackageVersion>
     <LightGBMPackageVersion>2.2.3</LightGBMPackageVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
-    <MicrosoftMLOnnxRuntimePackageVersion>1.5.1</MicrosoftMLOnnxRuntimePackageVersion>
+    <MicrosoftMLOnnxRuntimePackageVersion>1.5.2</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.9</MlNetMklDepsPackageVersion>
     <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
-    <TensorFlowVersion>1.14.0</TensorFlowVersion>
-    <TensorFlowMajorVersion>1</TensorFlowMajorVersion>
-    <TensorflowDotNETVersion>0.11.8.1</TensorflowDotNETVersion>
+    <TensorFlowVersion>2.3.1</TensorFlowVersion>
+    <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
+    <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
   </PropertyGroup>
 
   <!-- Model Builder Dependencies -->
@@ -55,7 +55,7 @@
     <MicrosoftExtensionsTestPackageVersion>3.0.1</MicrosoftExtensionsTestPackageVersion>
     <MicrosoftMLTestDatabasesPackageVersion>0.0.6-test</MicrosoftMLTestDatabasesPackageVersion>
     <MicrosoftMLTestModelsPackageVersion>0.0.6-test</MicrosoftMLTestModelsPackageVersion>
-    <MicrosoftMLTensorFlowTestModelsVersion>0.0.12-test</MicrosoftMLTensorFlowTestModelsVersion>
+    <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <SystemDataSqlClientVersion>4.6.1</SystemDataSqlClientVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>

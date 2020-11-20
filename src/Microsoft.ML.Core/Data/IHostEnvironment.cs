@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime
     internal interface ICancelable
     {
         /// <summary>
-        /// Signal to stop exection in all the hosts.
+        /// Signal to stop execution in all the hosts.
         /// </summary>
         void CancelExecution();
 

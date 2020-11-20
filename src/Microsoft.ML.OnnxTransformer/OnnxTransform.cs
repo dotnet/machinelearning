@@ -727,7 +727,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
     /// | Output column data type | As specified by the ONNX model |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.3.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.3.0 (for GPU processing if GPU is available) |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.5.2 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.5.2 (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
     /// To create this estimator use the following APIs:
@@ -739,7 +739,7 @@ namespace Microsoft.ML.Transforms.Onnx
     ///
     /// To run on a GPU, use the
     /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
-    /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.1 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 7.6.5](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#default-gpu-cuda)).
+    /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.2 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 8.0.3](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#system-requirements)).
     /// When creating the estimator through [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*), set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1. If the GPU device isn't found but 'fallbackToCpu = true' then the estimator will run on the CPU. If the GPU device isn't found but 'fallbackToCpu = false' then the estimator will throw an exception
     ///
     /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
