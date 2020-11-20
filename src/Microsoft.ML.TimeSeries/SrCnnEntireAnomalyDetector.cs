@@ -309,6 +309,15 @@ namespace Microsoft.ML.TimeSeries
                     _previousBatch = _previousBatch.GetRange(_batch.Count, _bLen);
                     _previousBatch.AddRange(_batch);
                     _modeler.Train(_previousBatch.ToArray(), ref _results);
+
+                    // move the values to front
+                    for (int i = 0; i < _batch.Count; ++i)
+                    {
+                        for (int j = 0; j < _outputLength; ++j)
+                        {
+                            _results[i][j] = _results[_bLen + i][j];
+                        }
+                    }
                 }
                 else
                 {
@@ -334,7 +343,7 @@ namespace Microsoft.ML.TimeSeries
                         double src = default;
                         srcGetter(ref src);
                         var result = VBufferEditor.Create(ref dst, _outputLength);
-                        _results[input.Position % _batchSize + _bLen].CopyTo(result.Values);
+                        _results[input.Position % _batchSize].CopyTo(result.Values);
                         dst = result.Commit();
                     };
                 return getter;
@@ -587,10 +596,11 @@ namespace Microsoft.ML.TimeSeries
                 {
                     _ifftMagList[i] = Math.Sqrt(_ifftRe[i] * _ifftRe[i] + _ifftIm[i] * _ifftIm[i]);
                 }
-                AverageFilter(_ifftMagList, Math.Min(_ifftMagList.Length, _judgementWindowSize), true);
-                for (int i = 1; i <= Math.Min(length, _minimumScoreWindowSize); ++i)
+
+                AverageFilter(_ifftMagList, Math.Min(_ifftMagList.Length, _judgementWindowSize));
+                for (int i = 0; i <= Math.Min(length, _minimumScoreWindowSize); ++i)
                 {
-                    _cumSumList[i] = _cumSumList[Math.Min(length - 1, _minimumScoreWindowSize + 1)];
+                    _cumSumList[i] = _cumSumList[Math.Min(length, _minimumScoreWindowSize) - 1];
                 }
 
                 // Step 7: Calculate raw score and set result
@@ -653,13 +663,13 @@ namespace Microsoft.ML.TimeSeries
                     _cumSumList[i] = cumsum;
                     _cumSumShift[i] = cumsum;
                 }
-                for (int i = n + 1; i < length; ++i)
+                for (int i = n; i < length; ++i)
                 {
                     _cumSumList[i] = (_cumSumList[i] - _cumSumShift[i - n]) / n;
                 }
-                for (int i = 1; i <= n && i < length; ++i)
+                for (int i = 1; i < n; ++i)
                 {
-                    _cumSumList[i] = ignoreFirst ? (_cumSumShift[i] - _cumSumShift[0]) / i : _cumSumList[i] / (i + 1);
+                    _cumSumList[i] /= (i + 1);
                 }
             }
 
