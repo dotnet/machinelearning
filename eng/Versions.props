@@ -2,9 +2,16 @@
 <Project>
   <PropertyGroup>
     <!-- This repo version -->
-    <DotNetUseShippingVersions>false</DotNetUseShippingVersions>
+    <!-- 
+      Arcade automatically changes the version of assemblies to 42.42.42.42 unless DotNetUseShippingVersions
+      is set to true.
+      Details in Arcade documentation:
+        https://github.com/dotnet/arcade/blob/c788ffa83b088cafe9dbffc1cbc8155ba88b2553/Documentation/CorePackages/Versioning.md#output
+    -->
+    <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
     <VersionPrefix>1.5.3</VersionPrefix>
     <PreReleaseVersionLabel>dev</PreReleaseVersionLabel>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
 
     <!--ML.NET Core dependencies-->
     <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>
