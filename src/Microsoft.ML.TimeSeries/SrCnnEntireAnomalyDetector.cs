@@ -354,6 +354,11 @@ namespace Microsoft.ML.TimeSeries
             private static readonly double _minimumScore = 0.0;
             private static readonly double _maximumScore = 1.0;
             // If the score window is smaller than this value, the anomaly score is tend to be small.
+            // Proof: For each point, the SR anomaly score is calculated as (w is average window size):
+            // (mag - avg_mag) / avg_mag
+            // = max (w * mag_{a} - sum_{i=0 to w-1} mag_{a - i}) / sum_{i=0 to w-1} mag_{a - i}
+            // = max ((w - 1) * mag_{a} + C) / (mag_{a} + C)
+            // <= w - 1
             private static readonly int _minimumScoreWindowSize = (int)(_maximumScore * 10) + 1;
 
             //    pseudo-code to generate the factors.

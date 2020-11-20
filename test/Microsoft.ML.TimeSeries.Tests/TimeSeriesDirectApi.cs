@@ -777,6 +777,64 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory, CombinatorialData]
+        public void TestSrCnnAnomalyDetectorWithAnomalyAtBeginning(
+            [CombinatorialValues(SrCnnDeseasonalityMode.Stl, SrCnnDeseasonalityMode.Mean, SrCnnDeseasonalityMode.Median)] SrCnnDeseasonalityMode mode
+        )
+        {
+            var ml = new MLContext(1);
+            IDataView dataView;
+            List<TimeSeriesDataDouble> data;
+
+            var dataPath = GetDataPath("Timeseries", "anomaly_at_beginning.csv");
+
+            // Load data from file into the dataView
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+            data = ml.Data.CreateEnumerable<TimeSeriesDataDouble>(dataView, reuseRowObject: false).ToList();
+
+            // Setup the detection arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
+            // Do batch anomaly detection
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                Threshold = 0.30,
+                BatchSize = -1,
+                Sensitivity = 80.0,
+                DetectMode = SrCnnDetectMode.AnomalyAndMargin,
+                Period = 0,
+                DeseasonalityMode = mode
+            };
+
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, options);
+
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                outputDataView, reuseRowObject: false);
+
+            var anomalyIndex = 1;
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                Assert.Equal(7, prediction.Prediction.Length);
+                if (anomalyIndex == k)
+                {
+                    Assert.Equal(1, prediction.Prediction[0]);
+                    Assert.True(prediction.Prediction[6] > data[k].Value || data[k].Value > prediction.Prediction[5]);
+                }
+                else
+                {
+                    Assert.Equal(0, prediction.Prediction[0]);
+                    Assert.True(prediction.Prediction[6] <= data[k].Value);
+                    Assert.True(data[k].Value <= prediction.Prediction[5]);
+                }
+
+                ++k;
+            }
+        }
+
+        [Theory, CombinatorialData]
         public void TestSrcnnEntireDetectNonnegativeData(
             [CombinatorialValues(true, false)] bool isPositive)
         {
