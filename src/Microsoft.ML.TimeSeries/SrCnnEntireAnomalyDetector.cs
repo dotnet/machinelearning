@@ -351,6 +351,10 @@ namespace Microsoft.ML.TimeSeries
             private static readonly double _deanomalyThreshold = 0.35;
             private static readonly double _boundSensitivity = 93.0;
             private static readonly double _unitForZero = 0.3;
+            private static readonly double _minimumScore = 0.0;
+            private static readonly double _maximumScore = 1.0;
+            // If the score window is smaller than this value, the anomaly score is tend to be small.
+            private static readonly int _minimumScoreWindowSize = (int)(_maximumScore * 10) + 1;
 
             //    pseudo-code to generate the factors.
             //    factors = []
@@ -438,6 +442,7 @@ namespace Microsoft.ML.TimeSeries
                 _sensitivity = sensitivity;
                 _detectMode = detectMode;
                 _period = period;
+                // it will reduce the probability of a point detected as anomaly if its score window is too short
                 _predictArray = new double[_lookaheadWindowSize + 1];
 
                 switch (deseasonalityMode)
@@ -577,15 +582,19 @@ namespace Microsoft.ML.TimeSeries
                 {
                     _ifftMagList[i] = Math.Sqrt(_ifftRe[i] * _ifftRe[i] + _ifftIm[i] * _ifftIm[i]);
                 }
-                AverageFilter(_ifftMagList, Math.Min(_ifftMagList.Length, _judgementWindowSize));
+                AverageFilter(_ifftMagList, Math.Min(_ifftMagList.Length, _judgementWindowSize), true);
+                for (int i = 1; i <= Math.Min(length, _minimumScoreWindowSize); ++i)
+                {
+                    _cumSumList[i] = _cumSumList[Math.Min(length - 1, _minimumScoreWindowSize + 1)];
+                }
 
                 // Step 7: Calculate raw score and set result
                 for (int i = 0; i < results.GetLength(0); ++i)
                 {
                     var score = CalculateScore(_ifftMagList[i], _cumSumList[i]);
                     score /= 10.0f;
-                    score = Math.Min(score, 1);
-                    score = Math.Max(score, 0);
+                    score = Math.Min(score, _maximumScore);
+                    score = Math.Max(score, _minimumScore);
 
                     var detres = score > threshold ? 1 : 0;
 
@@ -625,7 +634,7 @@ namespace Microsoft.ML.TimeSeries
                 return (data[1] + slopeSum);
             }
 
-            private void AverageFilter(double[] data, int n)
+            private void AverageFilter(double[] data, int n, bool ignoreFirst=false)
             {
                 double cumsum = 0.0f;
                 int length = data.Length;
@@ -639,13 +648,13 @@ namespace Microsoft.ML.TimeSeries
                     _cumSumList[i] = cumsum;
                     _cumSumShift[i] = cumsum;
                 }
-                for (int i = n; i < length; ++i)
+                for (int i = n + 1; i < length; ++i)
                 {
                     _cumSumList[i] = (_cumSumList[i] - _cumSumShift[i - n]) / n;
                 }
-                for (int i = 1; i < n; ++i)
+                for (int i = 1; i <= n && i < length; ++i)
                 {
-                    _cumSumList[i] /= (i + 1);
+                    _cumSumList[i] = ignoreFirst ? (_cumSumShift[i] - _cumSumShift[0]) / i : _cumSumList[i] / (i + 1);
                 }
             }
 
