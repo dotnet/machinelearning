@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Convenience method for "TopKAccuracyForAllK[TopKPredictionCount - 1]". If <see cref="TopKPredictionCount"/> is positive, this is the relative number of examples where
-        /// the true label is one of the top-k predicted labels by the predictor.
+        /// the true label is one of the top K predicted labels by the predictor.
         /// </summary>
         public double TopKAccuracy => TopKAccuracyForAllK?.LastOrDefault() ?? 0;
 
