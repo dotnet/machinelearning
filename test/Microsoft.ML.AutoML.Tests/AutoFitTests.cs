@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -374,8 +375,9 @@ namespace Microsoft.ML.AutoML.Test
 
         }
 
-        [LightGBMFact]
-        public void AutoFitMaxExperimentTimeTest()
+        [Theory, IterationData(25)]
+        [TestCategory("RunSpecificTest")]
+        public void AutoFitMaxExperimentTimeTest(int iteration)
         {
             // A single binary classification experiment takes less than 5 seconds.
             // System.OperationCanceledException is thrown when ongoing experiment
@@ -397,7 +399,7 @@ namespace Microsoft.ML.AutoML.Test
             if (experiment.RunDetails.Select(r => r.Exception == null).Count() > 1 && experiment.RunDetails.Last().Exception != null)
             {
                 Assert.True(experiment.RunDetails.Last().Exception.Message.Contains("Operation was canceled"),
-                            "Training process was not successfully canceled after maximum experiment time was reached.");
+                            "Iteration " + iteration + "Did not obtain 'Operation was canceled' error. Obtained unexpected error: " + experiment.RunDetails.Last().Exception.Message);
                 // Ensure that the best found model can still run after maximum experiment time was reached.
                 IDataView predictions = experiment.BestRun.Model.Transform(trainData);
             }
