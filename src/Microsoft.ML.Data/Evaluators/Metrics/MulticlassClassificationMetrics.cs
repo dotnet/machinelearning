@@ -73,7 +73,7 @@ namespace Microsoft.ML.Data
         public double MicroAccuracy { get; }
 
         /// <summary>
-        /// Convenience method for "TopKAccuracyForAllK[TopKPredictionCount - 1]". If <see cref="TopKPredictionCount"/> is positive, 
+        /// Convenience method for "TopKAccuracyForAllK[TopKPredictionCount - 1]". If <see cref="TopKPredictionCount"/> is positive,
         /// this is the relative number of examples where
         /// the true label is one of the top K predicted labels by the predictor.
         /// </summary>
