@@ -817,7 +817,7 @@ namespace Microsoft.ML.Tests
                 {
                     // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
-                    var onnxTransformer = onnxEstimator.Fit(data);
+                    using var onnxTransformer = onnxEstimator.Fit(data);
                     var onnxResult = onnxTransformer.Transform(data);
                     CompareResults("Score", "Score", transformedData, onnxResult, isRightColumnOnnxScalar: true);
                     CompareResults("Probability", "Probability", transformedData, onnxResult, isRightColumnOnnxScalar: true);
@@ -2029,7 +2029,7 @@ namespace Microsoft.ML.Tests
         private void TestPipeline<TLastTransformer>(EstimatorChain<TLastTransformer> pipeline, IDataView dataView, string onnxFileName, ColumnComparison[] columnsToCompare, string onnxTxtName = null, string onnxTxtSubDir = null)
             where TLastTransformer : class, ITransformer
         {
-            var model = pipeline.Fit(dataView);
+            using var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, dataView);
 
