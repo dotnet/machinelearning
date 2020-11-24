@@ -143,7 +143,7 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
+        - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
