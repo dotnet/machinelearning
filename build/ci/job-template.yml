@@ -110,7 +110,7 @@ jobs:
           displayName: Clean up useless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
-      - script: $(dotnetPath) msbuild $(runNightlyBuildProj) /t:RunNightlyBuildTests /p:Configuration=$(_configuration)
+      - script: $(dotnetPath) msbuild $(runNightlyBuildProj) /t:RunNightlyBuildTests /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }}
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
