@@ -25,7 +25,8 @@ jobs:
       dotnetPath: $(Build.SourcesDirectory)/.dotnet/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
       nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
-      nightlyBuildRunPath: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.NightlyBuild.Tests/$(_targetFramework)
+      nightlyBuildRunPath: $(Build.SourcesDirectory)/artifacts/bin/Microsoft.ML.NightlyBuild.Tests/$(_configuration)/$(_targetFramework)
+      runNightlyBuildProj: $(Build.SourcesDirectory)/test/run-night-build-tests.proj
       packageUpdaterProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       versionFilePath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
       PROCDUMP_PATH: '$(Build.SourcesDirectory)/Tools/ProcDump/'
@@ -100,16 +101,16 @@ jobs:
         displayName: Update package versions for nightly build
       - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
         - powershell: |
-                    Get-ChildItem -Path  '.\bin\AnyCPU.*' -Recurse |
+                    Get-ChildItem -Path  '.\artifacts\bin\*' -Recurse |
                     Select -ExpandProperty FullName |
-                    Where {$_ -notlike '*\Microsoft.ML.NightlyBuild.Tests*'} |
+                    Where {$_ -NotMatch '.*\\Microsoft\.ML\.NightlyBuild\.Tests.*|.*\\Native.*'} |
                     sort length -Descending |
                     Remove-Item -force
                     Write-Output "Done cleaning up usless project..."
           displayName: Clean up useless project
-      - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
+      - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
-      - script: ${{ parameters.buildScript }} /p:Build=false -$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -runnightlybuildtests  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      - script: $(dotnetPath) msbuild $(runNightlyBuildProj) /t:RunNightlyBuildTests /p:Configuration=$(_configuration)
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
