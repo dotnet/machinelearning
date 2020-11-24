@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Functional.Tests.Datasets
+namespace Microsoft.ML.IntegrationTests.Datasets
 {
     /// <summary>
     /// A schematized class for loading the HousingRegression dataset.

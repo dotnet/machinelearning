@@ -59,7 +59,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 _compilation = compilation;
                 _factAttribute = factAttribute;
                 _baseTestClass = _compilation.GetTypeByMetadataName("Microsoft.ML.TestFramework.BaseTestClass");
-                _FTbaseTestClass = _compilation.GetTypeByMetadataName("Microsoft.ML.Functional.Tests.FunctionalTestBaseClass");
+                _FTbaseTestClass = _compilation.GetTypeByMetadataName("Microsoft.ML.IntegrationTests.FunctionalTestBaseClass");
             }
 
             public void AnalyzeNamedType(SymbolAnalysisContext context)

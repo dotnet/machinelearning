@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
     /// <summary>
     /// Test data input and output formats.
