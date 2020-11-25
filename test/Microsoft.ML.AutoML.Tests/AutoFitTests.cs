@@ -404,13 +404,14 @@ namespace Microsoft.ML.AutoML.Test
                 if(!containsMessage)
                 {
                     var isAggregate = lastException is AggregateException;
-                    Console.WriteLine($"Type: {lastException.GetType()} - IsAggregate: {isAggregate} - Exception Message: {lastException.Message}, - InnerException Message: {lastException.InnerException?.Message}");
+                    Output.WriteLine($"Type: {lastException.GetType()} - IsAggregate: {isAggregate} - Exception Message: {lastException.Message}, - InnerException Message: {lastException.InnerException?.Message}");
+
                     if(isAggregate)
                     {
-                        Console.WriteLine("Printing inner exceptions...");
+                        Output.WriteLine("Printing inner exceptions...");
                         foreach (var ex in ((AggregateException)lastException).Flatten().InnerExceptions)
                         {
-                            Console.WriteLine($"Exception Message: { ex.Message}, -InnerException Message: { ex.InnerException?.Message}");
+                            Output.WriteLine($"Exception Message: { ex.Message}, -InnerException Message: { ex.InnerException?.Message}");
                         }
                     }
                 }
