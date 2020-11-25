@@ -375,7 +375,7 @@ namespace Microsoft.ML.AutoML.Test
 
         }
 
-        [Theory, IterationData(25)]
+        [Theory, IterationData(50)]
         [TestCategory("RunSpecificTest")]
         public void AutoFitMaxExperimentTimeTest(int iteration)
         {
@@ -398,26 +398,26 @@ namespace Microsoft.ML.AutoML.Test
             // can increase the run time of unit tests, and may not produce multiple runs.
             if (experiment.RunDetails.Select(r => r.Exception == null).Count() > 1 && experiment.RunDetails.Last().Exception != null)
             {
+                var expectedExceptionMessage = "Operation was canceled";
                 var lastException = experiment.RunDetails.Last().Exception;
-                var containsMessage = lastException.Message.Contains("Operation was canceled");
+                var containsMessage = lastException.Message.Contains(expectedExceptionMessage);
 
-                if(!containsMessage)
+                if(lastException is AggregateException lastAggregateException)
                 {
-                    var isAggregate = lastException is AggregateException;
-                    Output.WriteLine($"Type: {lastException.GetType()} - IsAggregate: {isAggregate} - Exception Message: {lastException.Message}, - InnerException Message: {lastException.InnerException?.Message}");
-
-                    if(isAggregate)
-                    {
-                        Output.WriteLine("Printing inner exceptions...");
-                        foreach (var ex in ((AggregateException)lastException).Flatten().InnerExceptions)
-                        {
-                            Output.WriteLine($"Exception Message: { ex.Message}, -InnerException Message: { ex.InnerException?.Message}");
-                        }
-                    }
+                    // Sometimes multiple threads might throw the same "Operation was cancelled"
+                    // exception and all of them are grouped inside an AggregateException
+                    // Must check that all exceptions are the expected one.
+                    containsMessage = true;
+                    foreach (var ex in lastAggregateException.Flatten().InnerExceptions)
+                        if (!ex.Message.Contains("Operation was cancelled"))
+                            containsMessage = false;
                 }
 
-                Assert.True(lastException.Message.Contains("Operation was canceled"),
-                            "Iteration " + iteration + "Did not obtain 'Operation was canceled' error. Obtained unexpected error: " + experiment.RunDetails.Last().Exception.Message);
+
+                Assert.True(containsMessage,
+                            $"Iteration {iteration} - Did not obtain '{expectedExceptionMessage}' error." +
+                            $"Obtained unexpected error of type {lastException.GetType()} with message: {lastException.Message}");
+       
                 // Ensure that the best found model can still run after maximum experiment time was reached.
                 IDataView predictions = experiment.BestRun.Model.Transform(trainData);
             }
