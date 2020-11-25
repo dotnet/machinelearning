@@ -410,7 +410,7 @@ namespace Microsoft.ML.AutoML.Test
                         Console.WriteLine("Printing inner exceptions...");
                         foreach (var ex in ((AggregateException)lastException).Flatten().InnerExceptions)
                         {
-                            Console.WriteLine($"Exception Message: { ex.Message}, -InnerException Message: { ex.InnerException?.Message}")
+                            Console.WriteLine($"Exception Message: { ex.Message}, -InnerException Message: { ex.InnerException?.Message}");
                         }
                     }
                 }
