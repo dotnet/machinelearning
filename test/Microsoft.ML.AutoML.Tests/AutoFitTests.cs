@@ -398,7 +398,24 @@ namespace Microsoft.ML.AutoML.Test
             // can increase the run time of unit tests, and may not produce multiple runs.
             if (experiment.RunDetails.Select(r => r.Exception == null).Count() > 1 && experiment.RunDetails.Last().Exception != null)
             {
-                Assert.True(experiment.RunDetails.Last().Exception.Message.Contains("Operation was canceled"),
+                var lastException = experiment.RunDetails.Last().Exception;
+                var containsMessage = lastException.Message.Contains("Operation was canceled");
+
+                if(!containsMessage)
+                {
+                    var isAggregate = lastException is AggregateException;
+                    Console.WriteLine($"Type: {lastException.GetType()} - IsAggregate: {isAggregate} - Exception Message: {lastException.Message}, - InnerException Message: {lastException.InnerException?.Message}");
+                    if(isAggregate)
+                    {
+                        Console.WriteLine("Printing inner exceptions...");
+                        foreach (var ex in ((AggregateException)lastException).Flatten().InnerExceptions)
+                        {
+                            Console.WriteLine($"Exception Message: { ex.Message}, -InnerException Message: { ex.InnerException?.Message}")
+                        }
+                    }
+                }
+
+                Assert.True(lastException.Message.Contains("Operation was canceled"),
                             "Iteration " + iteration + "Did not obtain 'Operation was canceled' error. Obtained unexpected error: " + experiment.RunDetails.Last().Exception.Message);
                 // Ensure that the best found model can still run after maximum experiment time was reached.
                 IDataView predictions = experiment.BestRun.Model.Transform(trainData);
