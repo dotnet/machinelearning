@@ -408,9 +408,15 @@ namespace Microsoft.ML.AutoML.Test
                     // exception and all of them are grouped inside an AggregateException
                     // Must check that all exceptions are the expected one.
                     containsMessage = true;
+                    Output.WriteLine("Printing inner exceptions ... ");
                     foreach (var ex in lastAggregateException.Flatten().InnerExceptions)
+                    {
+                        Output.WriteLine(ex.Message);
                         if (!ex.Message.Contains("Operation was cancelled"))
+                        {
                             containsMessage = false;
+                        }
+                    }
                 }
 
 
