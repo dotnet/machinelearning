@@ -456,7 +456,6 @@ namespace Microsoft.ML.TimeSeries
                 _sensitivity = sensitivity;
                 _detectMode = detectMode;
                 _period = period;
-                // it will reduce the probability of a point detected as anomaly if its score window is too short
                 _predictArray = new double[_lookaheadWindowSize + 1];
 
                 switch (deseasonalityMode)
@@ -649,7 +648,7 @@ namespace Microsoft.ML.TimeSeries
                 return (data[1] + slopeSum);
             }
 
-            private void AverageFilter(double[] data, int n, bool ignoreFirst=false)
+            private void AverageFilter(double[] data, int n)
             {
                 double cumsum = 0.0f;
                 int length = data.Length;
