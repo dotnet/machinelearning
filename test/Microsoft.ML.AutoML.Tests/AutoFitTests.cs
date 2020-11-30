@@ -375,9 +375,8 @@ namespace Microsoft.ML.AutoML.Test
 
         }
 
-        [Theory, IterationData(50)]
-        [TestCategory("RunSpecificTest")]
-        public void AutoFitMaxExperimentTimeTest(int iteration)
+        [LightGBMFact]
+        public void AutoFitMaxExperimentTimeTest()
         {
             // A single binary classification experiment takes less than 5 seconds.
             // System.OperationCanceledException is thrown when ongoing experiment
