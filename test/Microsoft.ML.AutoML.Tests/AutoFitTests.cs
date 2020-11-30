@@ -418,7 +418,7 @@ namespace Microsoft.ML.AutoML.Test
 
 
                 Assert.True(containsMessage,
-                            $"Iteration {iteration} - Did not obtain '{expectedExceptionMessage}' error." +
+                            $"Did not obtain '{expectedExceptionMessage}' error." +
                             $"Obtained unexpected error of type {lastException.GetType()} with message: {lastException.Message}");
        
                 // Ensure that the best found model can still run after maximum experiment time was reached.
