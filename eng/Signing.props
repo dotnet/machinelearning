@@ -1,6 +1,14 @@
 <Project>
-    <ItemGroup>
-        <!-- <StrongNameSignInfo Include="$(RepoRoot)\Tools\Open.snk" PublicKeyToken="cc7b13ffcd2ddd51" CertificateName="Microsoft400" />
-        <StrongNameSignInfo Include="$(RepoRoot)\Tools\Test.snk" PublicKeyToken="9d77cc7ad39b68eb" CertificateName="Microsoft400" /> -->
-    </ItemGroup
+    <ItemGroup Condition="'$(SignBinaries)' == 'true'">
+        <ItemsToSign Remove="@(ItemsToSign)" />
+        <ItemsToSign Include="$(ArtifactsDir)pkgassets\**\*.dll" />
+        <FileExtensionSignInfo Include="*.dll" CertificateName="Microsoft400" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(SignNugetPackages)' == 'true'">
+        <ItemsToSign Remove="@(ItemsToSign)" />
+        <ItemsToSign Include="$(ArtifactsDir)packages\**\*.nupkg" />
+        <ItemsToSign Include="$(ArtifactsDir)packages\**\*.snupkg" />
+        <FileExtensionSignInfo Include="*.nupkg" CertificateName="NuGet" />
+        <FileExtensionSignInfo Include="*.snupkg" CertificateName="NuGet" />
+    </ItemGroup>
 </Project>

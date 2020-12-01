@@ -1,7 +1,12 @@
 <Project>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.BuildTools" Version="$(BuildToolsPackageVersion)" />
+  </ItemGroup>
+  
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
 
-  <UsingTask TaskName="ExecWithRetriesForNuGetPush" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="ExecWithRetriesForNuGetPush" AssemblyFile="$(NuGetPackageRoot)\microsoft.dotnet.buildtools\$(BuildToolsPackageVersion)\lib\Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
     <PublishSymbolsPackage>Microsoft.SymbolUploader.Build.Task</PublishSymbolsPackage>
@@ -9,15 +14,15 @@
     <NuGetPushTimeoutSeconds Condition="'$(NuGetPushTimeoutSeconds)' == ''">600</NuGetPushTimeoutSeconds>
   </PropertyGroup>
 
-  <Import Project="$(PackagesDir)\$(PublishSymbolsPackage.ToLower())\$(PublishSymbolsPackageVersion)\build\PublishSymbols.targets" />
+  <Import Project="$(NuGetPackageRoot)\$(PublishSymbolsPackage.ToLower())\$(MicrosoftSymbolUploaderBuildTaskVersion)\build\PublishSymbols.targets" />
 
   <Target Name="PublishPackages">
     <Error Condition="'$(NuGetFeedUrl)' == ''" Text="Missing required property NuGetFeedUrl" />
     <Error Condition="'$(NuGetApiKey)' == ''" Text="Missing required property NuGetApiKey" />
 
     <ItemGroup>
-      <NuGetPackages Include="$(PackageOutputPath)**\*.nupkg"
-                     Exclude="$(PackageOutputPath)**\*.symbols.*nupkg" />
+      <NuGetPackages Include="$(ArtifactsDir)packages\**\*.nupkg"
+                     Exclude="$(ArtifactsDir)packages\**\*.snupkg" />
 
       <!--
       IgnorableErrorMessages applies to the "ExectWithRetriesForNuGetPush" task.
@@ -34,7 +39,7 @@
     <Message Text="Pushing ML.NET packages to $(NuGetFeedUrl)" />
     
     <PropertyGroup>
-      <DotnetToolCommand>$(ToolsDir)dotnetcli/dotnet</DotnetToolCommand>
+      <DotnetToolCommand>$(MSBuildThisFileDirectory)..\.dotnet\dotnet</DotnetToolCommand>
       <NuGetPushCommand>$(DotnetToolCommand) nuget push --source $(NuGetFeedUrl) --api-key $(NuGetApiKey) --timeout $(NuGetPushTimeoutSeconds)</NuGetPushCommand>
     </PropertyGroup>
 
@@ -46,7 +51,7 @@
           Condition="'$(EnablePublishSymbols)'=='true'"
           DependsOnTargets="SetupPublishSymbols">
     <Message Text="Attempting to Publish Symbols" />
-    <Error Condition="!Exists('$(PackageOutputPath)')" Text="'PackageOutputPath' folder '$(PackageOutputPath)' does not exist."/>
+    <Error Condition="!Exists('$(ArtifactsDir)packages')" Text="'PackageOutputPath' folder '$(PackageOutputPath)' does not exist."/>
     <Error Condition="'$(SymbolServerPath)'==''" Text="Missing property SymbolServerPath" />
     <Error Condition="'$(SymbolServerPAT)'==''" Text="Missing property SymbolServerPAT" />
     <CallTarget Targets="PublishSymbols" />
@@ -59,7 +64,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <SymbolPackagesToPublish Include="$(PackageOutputPath)**\*.symbols.*nupkg" />
+      <SymbolPackagesToPublish Include="$(ArtifactsDir)packages\**\*.snupkg" />
     </ItemGroup>
 
     <Message Importance="High" Text="Publishing @(SymbolPackagesToPublish) to $(SymbolServerPath)"/>
