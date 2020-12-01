@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests
 
             // Step 3: Check ONNX model's text format. This test will be not necessary if Step 2 can run on Linux and
             // Mac to support cross-platform tests.
-            
+
             CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
 
             Done();
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void KmeansOnnxConversionTest()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
 
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Tests
                 new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
                 new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.None, columns: new[] { ("OriginalText", "text") }));
             var onnxFileName = $"TextNormalizing.onnx";
-            
+
             TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("NormText"), new ColumnComparison("UpperText"), new ColumnComparison("OriginalText") });
 
             Done();
@@ -1154,7 +1154,7 @@ namespace Microsoft.ML.Tests
 
             // IsNaN outputs a binary tensor. Support for this has been added in the latest version
             // of Onnxruntime, but that hasn't been released yet.
-            // So we need to convert its type to Int32 until then. 
+            // So we need to convert its type to Int32 until then.
             // ConvertType part of the pipeline can be removed once we pick up a new release of the Onnx runtime
 
             var pipeline = mlContext.Transforms.IndicateMissingValues(new[] { new InputOutputColumnPair("MissingIndicator", "Features"), })
@@ -1806,7 +1806,7 @@ namespace Microsoft.ML.Tests
             }
             Done();
         }
-        
+
         [Fact]
         public void OneHotHashEncodingOnnxConversionWithCustomOpSetVersionTest()
         {
@@ -2029,7 +2029,7 @@ namespace Microsoft.ML.Tests
         private void TestPipeline<TLastTransformer>(EstimatorChain<TLastTransformer> pipeline, IDataView dataView, string onnxFileName, ColumnComparison[] columnsToCompare, string onnxTxtName = null, string onnxTxtSubDir = null)
             where TLastTransformer : class, ITransformer
         {
-            var model = pipeline.Fit(dataView);
+            using var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, dataView);
 

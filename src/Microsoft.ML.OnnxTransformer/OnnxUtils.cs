@@ -350,7 +350,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         /// <param name="inputNamedOnnxValues">The NamedOnnxValues to score.</param>
         /// <returns>Resulting output NamedOnnxValues list.</returns>
-        public IReadOnlyCollection<NamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
+        public IDisposableReadOnlyCollection<DisposableNamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
         {
             return _session.Run(inputNamedOnnxValues);
         }

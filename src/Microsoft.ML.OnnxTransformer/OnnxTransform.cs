@@ -507,14 +507,32 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
             }
 
-            private class OnnxRuntimeOutputCacher
+            private class OnnxRuntimeOutputCacher : IDisposable
             {
                 public long Position;
-                public Dictionary<string, NamedOnnxValue> Outputs;
+                public Dictionary<string, DisposableNamedOnnxValue> Outputs;
                 public OnnxRuntimeOutputCacher()
                 {
                     Position = -1;
-                    Outputs = new Dictionary<string, NamedOnnxValue>();
+                    Outputs = new Dictionary<string, DisposableNamedOnnxValue>();
+                }
+
+                private bool _isDisposed;
+                public void Dispose()
+                {
+                    if (_isDisposed)
+                        return;
+                    foreach (var onnxValue in Outputs.Values)
+                        onnxValue.Dispose();
+                    _isDisposed = true;
+                }
+
+                ~OnnxRuntimeOutputCacher()
+                {
+                    if (_isDisposed)
+                        return;
+                    foreach (var onnxValue in Outputs.Values)
+                        onnxValue.Dispose();
                 }
             }
 
@@ -534,6 +552,10 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     foreach (var outputNameOnnxValue in outputNamedOnnxValues)
                     {
+                        if(outputCache.Outputs.TryGetValue(outputNameOnnxValue.Name, out DisposableNamedOnnxValue value))
+                        {
+                            value.Dispose();
+                        }
                         outputCache.Outputs[outputNameOnnxValue.Name] = outputNameOnnxValue;
                     }
                     outputCache.Position = position;
