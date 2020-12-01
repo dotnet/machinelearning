@@ -63,6 +63,9 @@ while [ "$1" != "" ]; do
     shift
 done
 
+# strip the -netcoreapp3_1 and -netfx suffixes from the configuration
+__configuration=${__configuration/-netcoreapp3_1/}
+__configuration=${__configuration/-netfx/}
 __cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath} -DMKL_LIB_RPATH=${__mkllibrpath}"
 
 __IntermediatesDir="$__baseIntermediateOutputPath/Native/$__build_arch.$__configuration"
