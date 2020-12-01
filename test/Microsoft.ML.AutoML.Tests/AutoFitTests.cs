@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -375,8 +376,6 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void AutoFitMaxExperimentTimeTest()
         {
             // A single binary classification experiment takes less than 5 seconds.
@@ -398,8 +397,30 @@ namespace Microsoft.ML.AutoML.Test
             // can increase the run time of unit tests, and may not produce multiple runs.
             if (experiment.RunDetails.Select(r => r.Exception == null).Count() > 1 && experiment.RunDetails.Last().Exception != null)
             {
-                Assert.True(experiment.RunDetails.Last().Exception.Message.Contains("Operation was canceled"),
-                            "Training process was not successfully canceled after maximum experiment time was reached.");
+                var expectedExceptionMessage = "Operation was canceled";
+                var lastException = experiment.RunDetails.Last().Exception;
+                var containsMessage = lastException.Message.Contains(expectedExceptionMessage);
+
+                if(lastException is AggregateException lastAggregateException)
+                {
+                    // Sometimes multiple threads might throw the same "Operation was cancelled"
+                    // exception and all of them are grouped inside an AggregateException
+                    // Must check that all exceptions are the expected one.
+                    containsMessage = true;
+                    foreach (var ex in lastAggregateException.Flatten().InnerExceptions)
+                    {
+                        if (!ex.Message.Contains(expectedExceptionMessage))
+                        {
+                            containsMessage = false;
+                        }
+                    }
+                }
+
+
+                Assert.True(containsMessage,
+                            $"Did not obtain '{expectedExceptionMessage}' error." +
+                            $"Obtained unexpected error of type {lastException.GetType()} with message: {lastException.Message}");
+       
                 // Ensure that the best found model can still run after maximum experiment time was reached.
                 IDataView predictions = experiment.BestRun.Model.Transform(trainData);
             }
