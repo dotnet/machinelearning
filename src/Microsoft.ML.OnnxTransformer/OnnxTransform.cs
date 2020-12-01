@@ -534,7 +534,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return result;
             }
 
-            internal class OnnxRuntimeOutputCacher : IDisposable
+            private class OnnxRuntimeOutputCacher : IDisposable
             {
                 public long Position;
                 public Dictionary<string, DisposableNamedOnnxValue> Outputs;
