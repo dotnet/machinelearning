@@ -39,7 +39,7 @@ namespace Microsoft.ML.IntegrationTests
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
 #if NETFRAMEWORK
-            string codeBaseUri = typeof(FunctionalTestBaseClass).Assembly.CodeBase;
+            string codeBaseUri = typeof(IntegrationTestBaseClass).Assembly.CodeBase;
             string path = new Uri(codeBaseUri).AbsolutePath;
             var currentAssemblyLocation = new FileInfo(Directory.GetParent(path).FullName);
 #else
