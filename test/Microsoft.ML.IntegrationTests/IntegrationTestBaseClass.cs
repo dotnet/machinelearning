@@ -14,9 +14,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public class FunctionalTestBaseClass : IDisposable
+    public class IntegrationTestBaseClass : IDisposable
     {
-        static FunctionalTestBaseClass()
+        static IntegrationTestBaseClass()
         {
             RootDir = TestCommon.GetRepoRoot();
             DataDir = Path.Combine(RootDir, "test", "data");
@@ -31,7 +31,7 @@ namespace Microsoft.ML.IntegrationTests
         protected static string DataDir { get; }
         protected ITestOutputHelper Output { get; }
 
-        public FunctionalTestBaseClass(ITestOutputHelper output)
+        public IntegrationTestBaseClass(ITestOutputHelper output)
         {
             //This locale is currently set for tests only so that the produced output
             //files can be compared on systems with other locales to give set of known
@@ -44,7 +44,7 @@ namespace Microsoft.ML.IntegrationTests
             var currentAssemblyLocation = new FileInfo(Directory.GetParent(path).FullName);
 #else
             // There is an extra folder in the netfx path representing the runtime identifier.
-            var currentAssemblyLocation = new FileInfo(typeof(FunctionalTestBaseClass).Assembly.Location);
+            var currentAssemblyLocation = new FileInfo(typeof(IntegrationTestBaseClass).Assembly.Location);
 #endif
             OutDir = Path.Combine(currentAssemblyLocation.Directory.FullName, "TestOutput");
             Directory.CreateDirectory(OutDir);

@@ -15,7 +15,7 @@ namespace Microsoft.ML.IntegrationTests
     /// <summary>
     /// Test explainability features.
     /// </summary>
-    public class Explainability : FunctionalTestBaseClass
+    public class Explainability : IntegrationTestBaseClass
     {
         public Explainability(ITestOutputHelper output) : base(output)
         {

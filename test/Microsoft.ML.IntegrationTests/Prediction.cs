@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public class PredictionScenarios : FunctionalTestBaseClass
+    public class PredictionScenarios : IntegrationTestBaseClass
     {
         public PredictionScenarios(ITestOutputHelper output) : base(output)
         {

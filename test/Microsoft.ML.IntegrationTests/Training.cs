@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public class Training : FunctionalTestBaseClass
+    public class Training : IntegrationTestBaseClass
     {
         public Training(ITestOutputHelper output) : base(output)
         {

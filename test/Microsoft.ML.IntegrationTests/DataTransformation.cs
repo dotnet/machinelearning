@@ -13,7 +13,7 @@ using static Microsoft.ML.Transforms.HashingEstimator;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public class DataTransformation : FunctionalTestBaseClass
+    public class DataTransformation : IntegrationTestBaseClass
     {
         public DataTransformation(ITestOutputHelper output) : base(output)
         {

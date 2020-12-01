@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public class IntrospectiveTraining : FunctionalTestBaseClass
+    public class IntrospectiveTraining : IntegrationTestBaseClass
     {
         public IntrospectiveTraining(ITestOutputHelper output) : base(output)
         {

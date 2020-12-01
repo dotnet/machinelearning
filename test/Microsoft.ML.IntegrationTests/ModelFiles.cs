@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public partial class ModelFiles : FunctionalTestBaseClass
+    public partial class ModelFiles : IntegrationTestBaseClass
     {
         public ModelFiles(ITestOutputHelper output) : base(output)
         {

@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public class Validation : FunctionalTestBaseClass
+    public class Validation : IntegrationTestBaseClass
     {
         public Validation(ITestOutputHelper output) : base(output)
         {

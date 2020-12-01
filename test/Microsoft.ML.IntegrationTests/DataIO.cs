@@ -13,7 +13,7 @@ namespace Microsoft.ML.IntegrationTests
     /// <summary>
     /// Test data input and output formats.
     /// </summary>
-    public class DataIO : FunctionalTestBaseClass
+    public class DataIO : IntegrationTestBaseClass
     {
         // Separators to test
         private readonly char[] _separators;

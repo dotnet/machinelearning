@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public class ONNX : FunctionalTestBaseClass
+    public class ONNX : IntegrationTestBaseClass
     {
         // These two members are meant to be changed
         // Only when manually testing the Onnx GPU nuggets

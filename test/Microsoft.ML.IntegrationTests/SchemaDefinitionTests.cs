@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.IntegrationTests
 {
-    public class SchemaDefinitionTests : FunctionalTestBaseClass
+    public class SchemaDefinitionTests : IntegrationTestBaseClass
     {
         private MLContext _ml;
 
