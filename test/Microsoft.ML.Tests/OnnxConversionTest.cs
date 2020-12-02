@@ -788,7 +788,7 @@ namespace Microsoft.ML.Tests
             .Append(mlContext.Transforms.NormalizeMinMax("Features"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
 
-            var model = pipeline.Fit(data);
+            using var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
             var onnxConversionContext = new OnnxContextImpl(mlContext, "A Simple Pipeline", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
@@ -2029,7 +2029,7 @@ namespace Microsoft.ML.Tests
         private void TestPipeline<TLastTransformer>(EstimatorChain<TLastTransformer> pipeline, IDataView dataView, string onnxFileName, ColumnComparison[] columnsToCompare, string onnxTxtName = null, string onnxTxtSubDir = null)
             where TLastTransformer : class, ITransformer
         {
-            var model = pipeline.Fit(dataView);
+            using var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, dataView);
 
