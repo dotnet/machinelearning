@@ -309,6 +309,15 @@ namespace Microsoft.ML.TimeSeries
                     _previousBatch = _previousBatch.GetRange(_batch.Count, _bLen);
                     _previousBatch.AddRange(_batch);
                     _modeler.Train(_previousBatch.ToArray(), ref _results);
+
+                    // move the values to front
+                    for (int i = 0; i < _batch.Count; ++i)
+                    {
+                        for (int j = 0; j < _outputLength; ++j)
+                        {
+                            _results[i][j] = _results[_bLen + i][j];
+                        }
+                    }
                 }
                 else
                 {
@@ -334,7 +343,7 @@ namespace Microsoft.ML.TimeSeries
                         double src = default;
                         srcGetter(ref src);
                         var result = VBufferEditor.Create(ref dst, _outputLength);
-                        _results[input.Position % _batchSize + _bLen].CopyTo(result.Values);
+                        _results[input.Position % _batchSize].CopyTo(result.Values);
                         dst = result.Commit();
                     };
                 return getter;
@@ -351,6 +360,15 @@ namespace Microsoft.ML.TimeSeries
             private static readonly double _deanomalyThreshold = 0.35;
             private static readonly double _boundSensitivity = 93.0;
             private static readonly double _unitForZero = 0.3;
+            private static readonly double _minimumScore = 0.0;
+            private static readonly double _maximumScore = 1.0;
+            // If the score window is smaller than this value, the anomaly score is tend to be small.
+            // Proof: For each point, the SR anomaly score is calculated as (w is average window size):
+            // (mag - avg_mag) / avg_mag
+            // = max (w * mag_{a} - sum_{i=0 to w-1} mag_{a - i}) / sum_{i=0 to w-1} mag_{a - i}
+            // = max ((w - 1) * mag_{a} + C) / (mag_{a} + C)
+            // <= w - 1
+            private static readonly int _minimumScoreWindowSize = (int)(_maximumScore * 10) + 1;
 
             //    pseudo-code to generate the factors.
             //    factors = []
@@ -577,15 +595,20 @@ namespace Microsoft.ML.TimeSeries
                 {
                     _ifftMagList[i] = Math.Sqrt(_ifftRe[i] * _ifftRe[i] + _ifftIm[i] * _ifftIm[i]);
                 }
+
                 AverageFilter(_ifftMagList, Math.Min(_ifftMagList.Length, _judgementWindowSize));
+                for (int i = 0; i <= Math.Min(length, _minimumScoreWindowSize); ++i)
+                {
+                    _cumSumList[i] = _cumSumList[Math.Min(length, _minimumScoreWindowSize) - 1];
+                }
 
                 // Step 7: Calculate raw score and set result
                 for (int i = 0; i < results.GetLength(0); ++i)
                 {
                     var score = CalculateScore(_ifftMagList[i], _cumSumList[i]);
                     score /= 10.0f;
-                    score = Math.Min(score, 1);
-                    score = Math.Max(score, 0);
+                    score = Math.Min(score, _maximumScore);
+                    score = Math.Max(score, _minimumScore);
 
                     var detres = score > threshold ? 1 : 0;
 
