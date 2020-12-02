@@ -942,8 +942,10 @@ namespace Microsoft.ML.Data
                     public override void Unset()
                     {
                         Contracts.Assert(_index <= _count);
-                        if (Values != null)
-                            _pool.Return(Values);
+                        // Remove all the objects from the pool
+                        // to free up references to those objects
+                        while (_pool.Count > 0)
+                            _pool.Get();
                         Values = null;
                         _count = 0;
                         _index = 0;
