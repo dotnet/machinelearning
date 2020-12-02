@@ -198,40 +198,49 @@ namespace Microsoft.ML.Transforms.Onnx
                 _session = new InferenceSession(modelFile);
             }
 
-            // Load ONNX model file and parse its input and output schema. The reason of doing so is that ONNXRuntime
-            // doesn't expose full type information via its C# APIs.
-            ModelFile = modelFile;
-            var model = new OnnxCSharpToProtoWrapper.ModelProto();
-            using (var modelStream = File.OpenRead(modelFile))
-            using (var codedStream = Google.Protobuf.CodedInputStream.CreateWithLimits(modelStream, Int32.MaxValue, 10))
-                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(codedStream);
-
-            // Parse actual input and output types stored in the loaded ONNX model to get their DataViewType's.
-            var inputTypePool = new Dictionary<string, DataViewType>();
-            foreach (var valueInfo in model.Graph.Input)
-                inputTypePool[valueInfo.Name] = OnnxTypeParser.GetDataViewType(valueInfo.Type);
-
-            var initializerTypePool = new Dictionary<string, DataViewType>();
-            foreach (var valueInfo in model.Graph.Initializer)
-                initializerTypePool[valueInfo.Name] = OnnxTypeParser.GetScalarDataViewType(valueInfo.DataType);
-
-            var outputTypePool = new Dictionary<string, DataViewType>();
-            // Build casters which maps NamedOnnxValue to .NET objects.
-            var casterPool = new Dictionary<string, Func<NamedOnnxValue, object>>();
-            foreach (var valueInfo in model.Graph.Output)
+            try
             {
-                outputTypePool[valueInfo.Name] = OnnxTypeParser.GetDataViewType(valueInfo.Type);
-                casterPool[valueInfo.Name] = OnnxTypeParser.GetDataViewValueCasterAndResultedType(valueInfo.Type, out Type actualType);
+                // Load ONNX model file and parse its input and output schema. The reason of doing so is that ONNXRuntime
+                // doesn't expose full type information via its C# APIs.
+                ModelFile = modelFile;
+                var model = new OnnxCSharpToProtoWrapper.ModelProto();
+                using (var modelStream = File.OpenRead(modelFile))
+                using (var codedStream = Google.Protobuf.CodedInputStream.CreateWithLimits(modelStream, Int32.MaxValue, 10))
+                    model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(codedStream);
+
+                // Parse actual input and output types stored in the loaded ONNX model to get their DataViewType's.
+                var inputTypePool = new Dictionary<string, DataViewType>();
+                foreach (var valueInfo in model.Graph.Input)
+                    inputTypePool[valueInfo.Name] = OnnxTypeParser.GetDataViewType(valueInfo.Type);
+
+                var initializerTypePool = new Dictionary<string, DataViewType>();
+                foreach (var valueInfo in model.Graph.Initializer)
+                    initializerTypePool[valueInfo.Name] = OnnxTypeParser.GetScalarDataViewType(valueInfo.DataType);
+
+                var outputTypePool = new Dictionary<string, DataViewType>();
+                // Build casters which maps NamedOnnxValue to .NET objects.
+                var casterPool = new Dictionary<string, Func<NamedOnnxValue, object>>();
+                foreach (var valueInfo in model.Graph.Output)
+                {
+                    outputTypePool[valueInfo.Name] = OnnxTypeParser.GetDataViewType(valueInfo.Type);
+                    casterPool[valueInfo.Name] = OnnxTypeParser.GetDataViewValueCasterAndResultedType(valueInfo.Type, out Type actualType);
+                }
+
+                var inputInfos = GetOnnxVariablesFromMetadata(_session.InputMetadata, shapeDictionary, inputTypePool, null);
+                var outputInfos = GetOnnxVariablesFromMetadata(_session.OutputMetadata, shapeDictionary, outputTypePool, casterPool);
+                var overrideableInitializers = GetOnnxVariablesFromMetadata(_session.OverridableInitializerMetadata, shapeDictionary, inputTypePool, null);
+
+                // Create a view to the used ONNX model from ONNXRuntime's perspective.
+                ModelInfo = new OnnxModelInfo(inputInfos, outputInfos, overrideableInitializers);
+
+                Graph = model.Graph;
             }
-
-            var inputInfos = GetOnnxVariablesFromMetadata(_session.InputMetadata, shapeDictionary, inputTypePool, null);
-            var outputInfos = GetOnnxVariablesFromMetadata(_session.OutputMetadata, shapeDictionary, outputTypePool, casterPool);
-            var overrideableInitializers = GetOnnxVariablesFromMetadata(_session.OverridableInitializerMetadata, shapeDictionary, inputTypePool, null);
-
-            // Create a view to the used ONNX model from ONNXRuntime's perspective.
-            ModelInfo = new OnnxModelInfo(inputInfos, outputInfos, overrideableInitializers);
-
-            Graph = model.Graph;
+            catch
+            {
+                _session.Dispose();
+                _session = null;
+                throw;
+            }
         }
 
         private List<OnnxVariableInfo> GetOnnxVariablesFromMetadata(IReadOnlyDictionary<string, NodeMetadata> nodeMetadata,
@@ -350,7 +359,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         /// <param name="inputNamedOnnxValues">The NamedOnnxValues to score.</param>
         /// <returns>Resulting output NamedOnnxValues list.</returns>
-        public IReadOnlyCollection<NamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
+        public IDisposableReadOnlyCollection<DisposableNamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
         {
             return _session.Run(inputNamedOnnxValues);
         }

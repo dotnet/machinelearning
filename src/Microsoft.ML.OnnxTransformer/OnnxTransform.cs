@@ -484,8 +484,10 @@ namespace Microsoft.ML.Transforms.Onnx
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+                => throw new NotImplementedException("This should never be called!");
+
+            private Delegate CreateGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, OnnxRuntimeOutputCacher outputCacher)
             {
-                disposer = null;
                 Host.AssertValue(input);
 
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
@@ -495,26 +497,59 @@ namespace Microsoft.ML.Transforms.Onnx
                     var elemRawType = vectorType.ItemType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
                     if (vectorType.ItemType is TextDataViewType)
-                        return MakeStringTensorGetter(input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                        return MakeStringTensorGetter(input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCacher);
                     else
-                        return Utils.MarshalInvoke(MakeTensorGetter<int>, elemRawType, input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                        return Utils.MarshalInvoke(MakeTensorGetter<int>, elemRawType, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCacher);
                 }
                 else
                 {
                     var type = _parent.Model.ModelInfo.OutputsInfo[_parent.MapDataViewColumnToOnnxOutputTensor(iinfo)].DataViewType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
-                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCacher);
                 }
             }
 
-            private class OnnxRuntimeOutputCacher
+            public override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                Contracts.Assert(input.Schema == InputSchema);
+
+                OnnxRuntimeOutputCacher outputCacher = new OnnxRuntimeOutputCacher();
+
+                int n = OutputColumns.Value.Length;
+                var result = new Delegate[n];
+                for (int i = 0; i < n; i++)
+                {
+                    if (!activeOutput(i))
+                        continue;
+                    result[i] = CreateGetter(input, i, activeOutput, outputCacher);
+                }
+                disposer = () =>
+                {
+                    outputCacher.Dispose();
+                };
+                return result;
+            }
+
+            private sealed class OnnxRuntimeOutputCacher : IDisposable
             {
                 public long Position;
-                public Dictionary<string, NamedOnnxValue> Outputs;
+                public Dictionary<string, DisposableNamedOnnxValue> Outputs;
+                public IDisposableReadOnlyCollection<DisposableNamedOnnxValue> OutputOnnxValues;
+
                 public OnnxRuntimeOutputCacher()
                 {
                     Position = -1;
-                    Outputs = new Dictionary<string, NamedOnnxValue>();
+                    Outputs = new Dictionary<string, DisposableNamedOnnxValue>();
+                }
+
+                private bool _isDisposed;
+
+                public void Dispose()
+                {
+                    if (_isDisposed)
+                        return;
+                    OutputOnnxValues?.Dispose();
+                    _isDisposed = true;
                 }
             }
 
@@ -529,10 +564,11 @@ namespace Microsoft.ML.Transforms.Onnx
                         inputNameOnnxValues.Add(srcNamedOnnxValueGetters[i].GetNamedOnnxValue());
                     }
 
-                    var outputNamedOnnxValues = _parent.Model.Run(inputNameOnnxValues);
-                    Contracts.Assert(outputNamedOnnxValues.Count > 0);
+                    outputCache.OutputOnnxValues?.Dispose();
+                    outputCache.OutputOnnxValues = _parent.Model.Run(inputNameOnnxValues);
+                    Contracts.Assert(outputCache.OutputOnnxValues.Count > 0);
 
-                    foreach (var outputNameOnnxValue in outputNamedOnnxValues)
+                    foreach (var outputNameOnnxValue in outputCache.OutputOnnxValues)
                     {
                         outputCache.Outputs[outputNameOnnxValue.Name] = outputNameOnnxValue;
                     }
@@ -540,10 +576,10 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
             }
 
-            private Delegate MakeTensorGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames)
+            private Delegate MakeTensorGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
+                string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
-                var outputCacher = new OnnxRuntimeOutputCacher();
                 ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
@@ -558,10 +594,11 @@ namespace Microsoft.ML.Transforms.Onnx
                 return valueGetter;
             }
 
-            private Delegate MakeStringTensorGetter(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames)
+            private Delegate MakeStringTensorGetter(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
+                string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
-                var outputCacher = new OnnxRuntimeOutputCacher();
+
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> valueGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
@@ -580,14 +617,15 @@ namespace Microsoft.ML.Transforms.Onnx
                 return valueGetter;
             }
 
-            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames)
+            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
+                string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
-                var outputCache = new OnnxRuntimeOutputCacher();
+
                 ValueGetter<T> valueGetter = (ref T dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
-                    var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
+                    var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var trueValue = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => value.AsDictionary<string, float>());
                     var caster = _parent.Model.ModelInfo.OutputsInfo[_parent.MapDataViewColumnToOnnxOutputTensor(iinfo)].Caster;
                     dst = (T)caster(namedOnnxValue);
