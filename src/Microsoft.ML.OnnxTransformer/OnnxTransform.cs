@@ -362,12 +362,8 @@ namespace Microsoft.ML.Transforms.Onnx
             _isDisposed = true;
         }
 
-        private sealed class Mapper : IRowMapper
+        private sealed class Mapper : MapperBase
         {
-            private readonly IHost _host;
-            private readonly DataViewSchema _inputSchema;
-            private readonly Lazy<DataViewSchema.DetachedColumn[]> _outputColumns;
-
             private readonly OnnxTransformer _parent;
             /// <summary>
             /// <see cref="_inputColIndices"/>'s i-th element value tells the <see cref="IDataView"/> column index to
@@ -383,11 +379,9 @@ namespace Microsoft.ML.Transforms.Onnx
             /// </summary>
             private readonly Type[] _inputOnnxTypes;
 
-            public Mapper(OnnxTransformer parent, DataViewSchema inputSchema)
+            public Mapper(OnnxTransformer parent, DataViewSchema inputSchema) :
+                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
-                _host = Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper));
-                _inputSchema = inputSchema;
-                _outputColumns = new Lazy<DataViewSchema.DetachedColumn[]>(GetOutputColumnsCore);
 
                 _parent = parent;
                 _inputColIndices = new int[_parent.Inputs.Length];
@@ -407,7 +401,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
-                        throw _host.ExceptSchemaMismatch(nameof(inputSchema),"input", _parent.Inputs[i]);
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema),"input", _parent.Inputs[i]);
 
                     _inputColIndices[i] = col.Value.Index;
 
@@ -415,7 +409,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     var vectorType = type as VectorDataViewType;
 
                     if (vectorType != null && vectorType.Size == 0)
-                        throw _host.Except($"Variable length input columns not supported");
+                        throw Host.Except($"Variable length input columns not supported");
 
                     var itemType = type.GetItemType();
                     var nodeItemType = inputNodeInfo.DataViewType.GetItemType();
@@ -427,7 +421,7 @@ namespace Microsoft.ML.Transforms.Onnx
                         // This is done to support a corner case originated in NimbusML. For more info, see: https://github.com/microsoft/NimbusML/issues/426
                         var isKeyType = itemType is KeyDataViewType;
                         if (!isKeyType || itemType.RawType != nodeItemType.RawType)
-                            throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
+                            throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
                     }
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
@@ -439,9 +433,8 @@ namespace Microsoft.ML.Transforms.Onnx
                         throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {typeValueCount}.");
                 }
             }
-            DataViewSchema.DetachedColumn[] IRowMapper.GetOutputColumns() => _outputColumns.Value;
 
-            private DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 var stdSuffix = ".output";
                 var info = new DataViewSchema.DetachedColumn[_parent.Outputs.Length];
@@ -483,16 +476,19 @@ namespace Microsoft.ML.Transforms.Onnx
                 builder.AddSlotNames(count, getter);
             }
 
-            private Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
-            private void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
+            private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
-            private Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, OnnxRuntimeOutputCacher outputCacher)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+                => throw new NotImplementedException("This should never be called!");
+
+            private Delegate CreateGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, OnnxRuntimeOutputCacher outputCacher)
             {
-                _host.AssertValue(input);
+                Host.AssertValue(input);
 
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
@@ -513,19 +509,19 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
             }
 
-            Delegate[] IRowMapper.CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            public override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                Contracts.Assert(input.Schema == _inputSchema);
+                Contracts.Assert(input.Schema == InputSchema);
 
                 OnnxRuntimeOutputCacher outputCacher = new OnnxRuntimeOutputCacher();
 
-                int n = _outputColumns.Value.Length;
+                int n = OutputColumns.Value.Length;
                 var result = new Delegate[n];
                 for (int i = 0; i < n; i++)
                 {
                     if (!activeOutput(i))
                         continue;
-                    result[i] = MakeGetter(input, i, activeOutput, outputCacher);
+                    result[i] = CreateGetter(input, i, activeOutput, outputCacher);
                 }
                 disposer = () =>
                 {
@@ -583,14 +579,14 @@ namespace Microsoft.ML.Transforms.Onnx
             private Delegate MakeTensorGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
                 string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
-                _host.AssertValue(input);
+                Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var tensor = namedOnnxValue.AsTensor<T>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<T>;
                     if (tensor == null)
-                        throw _host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
+                        throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
                     var editor = VBufferEditor.Create(ref dst, (int)tensor.Length);
                     tensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
@@ -601,14 +597,15 @@ namespace Microsoft.ML.Transforms.Onnx
             private Delegate MakeStringTensorGetter(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
                 string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
-                _host.AssertValue(input);
+                Host.AssertValue(input);
+
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> valueGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var tensor = namedOnnxValue.AsTensor<string>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<string>;
                     if (tensor == null)
-                        throw _host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(string)}");
+                        throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(string)}");
 
                     // Create VBufferEditor to fill "dst" with the values in "denseTensor".
                     var editor = VBufferEditor.Create(ref dst, (int)tensor.Length);
@@ -623,7 +620,8 @@ namespace Microsoft.ML.Transforms.Onnx
             private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
                 string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
-                _host.AssertValue(input);
+                Host.AssertValue(input);
+
                 ValueGetter<T> valueGetter = (ref T dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
@@ -703,12 +701,6 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 return new NamedOnnxValueGetterVec<T>(input, colIndex, onnxShape);
             }
-
-            void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
-
-            Func<int, bool> IRowMapper.GetDependencies(Func<int, bool> activeOutput) => GetDependenciesCore(activeOutput);
-
-            public ITransformer GetTransformer() => _parent;
 
             /// <summary>
             /// Common function for wrapping ML.NET getter as a NamedOnnxValue getter.
