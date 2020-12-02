@@ -36,13 +36,13 @@ namespace Microsoft.ML.IntegrationTests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.Sdca());
+                .Append(mlContext.Regression.Trainers.FastTree());
 
             // Fit the pipeline
             var model = pipeline.Fit(data);
 
             IDataView transformedData;
-            RegressionPredictionTransformer<LinearRegressionModelParameters> linearPredictor;
+            RegressionPredictionTransformer<FastTreeRegressionModelParameters> linearPredictor;
 
             if(saveModel)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.ML.IntegrationTests
                 transformedData = loadedModel.Transform(data);
 
                 // Extract linear predictor
-                linearPredictor = (loadedModel as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+                linearPredictor = (loadedModel as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<FastTreeRegressionModelParameters>;
             }
             else
             {
