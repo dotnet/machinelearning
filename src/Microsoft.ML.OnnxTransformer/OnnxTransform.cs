@@ -534,7 +534,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return result;
             }
 
-            private class OnnxRuntimeOutputCacher : IDisposable
+            private sealed class OnnxRuntimeOutputCacher : IDisposable
             {
                 public long Position;
                 public Dictionary<string, DisposableNamedOnnxValue> Outputs;
@@ -548,18 +548,12 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 private bool _isDisposed;
 
-                protected virtual void Dispose(bool disposing)
+                public void Dispose()
                 {
                     if (_isDisposed)
                         return;
                     OutputOnnxValues?.Dispose();
                     _isDisposed = true;
-                }
-
-                public void Dispose()
-                {
-                    Dispose(disposing: true);
-                    GC.SuppressFinalize(this);
                 }
             }
 

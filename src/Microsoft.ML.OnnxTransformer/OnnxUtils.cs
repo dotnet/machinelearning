@@ -235,9 +235,10 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 Graph = model.Graph;
             }
-            catch (Exception)
+            catch
             {
                 _session.Dispose();
+                _session = null;
                 throw;
             }
         }
