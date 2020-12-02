@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Functional.Tests.Datasets
+namespace Microsoft.ML.IntegrationTests.Datasets
 {
     /// <summary>
     /// A class to hold a feature column.

@@ -9,9 +9,9 @@ using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
-    public class SchemaDefinitionTests : FunctionalTestBaseClass
+    public class SchemaDefinitionTests : IntegrationTestBaseClass
     {
         private MLContext _ml;
 

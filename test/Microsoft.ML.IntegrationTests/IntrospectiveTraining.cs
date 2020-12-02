@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -15,9 +15,9 @@ using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
-    public class IntrospectiveTraining : FunctionalTestBaseClass
+    public class IntrospectiveTraining : IntegrationTestBaseClass
     {
         public IntrospectiveTraining(ITestOutputHelper output) : base(output)
         {

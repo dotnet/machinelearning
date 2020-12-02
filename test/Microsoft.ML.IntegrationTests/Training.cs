@@ -4,16 +4,16 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
-    public class Training : FunctionalTestBaseClass
+    public class Training : IntegrationTestBaseClass
     {
         public Training(ITestOutputHelper output) : base(output)
         {

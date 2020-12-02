@@ -51,7 +51,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             private readonly Compilation _compilation;
             private readonly INamedTypeSymbol _factAttribute;
             private readonly INamedTypeSymbol _baseTestClass;
-            private readonly INamedTypeSymbol _FTbaseTestClass;
+            private readonly INamedTypeSymbol _ITbaseTestClass;
             private readonly ConcurrentDictionary<INamedTypeSymbol, bool> _knownTestAttributes = new ConcurrentDictionary<INamedTypeSymbol, bool>();
 
             public AnalyzerImpl(Compilation compilation, INamedTypeSymbol factAttribute)
@@ -59,7 +59,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 _compilation = compilation;
                 _factAttribute = factAttribute;
                 _baseTestClass = _compilation.GetTypeByMetadataName("Microsoft.ML.TestFramework.BaseTestClass");
-                _FTbaseTestClass = _compilation.GetTypeByMetadataName("Microsoft.ML.Functional.Tests.FunctionalTestBaseClass");
+                _ITbaseTestClass = _compilation.GetTypeByMetadataName("Microsoft.ML.IntegrationTests.IntegrationTestBaseClass");
             }
 
             public void AnalyzeNamedType(SymbolAnalysisContext context)
@@ -90,13 +90,13 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             private bool ExtendsBaseTestClass(INamedTypeSymbol namedType)
             {
                 if (_baseTestClass is null && 
-                    _FTbaseTestClass is null)
+                    _ITbaseTestClass is null)
                     return false;
 
                 for (var current = namedType; current is object; current = current.BaseType)
                 {
                     if (Equals(current, _baseTestClass) ||
-                        Equals(current, _FTbaseTestClass))
+                        Equals(current, _ITbaseTestClass))
                         return true;
                 }
 

@@ -4,7 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
@@ -12,9 +12,9 @@ using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
-    public class ONNX : FunctionalTestBaseClass
+    public class ONNX : IntegrationTestBaseClass
     {
         // These two members are meant to be changed
         // Only when manually testing the Onnx GPU nuggets

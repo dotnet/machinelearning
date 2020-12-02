@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
     /// <summary>
     /// Test explainability features.
     /// </summary>
-    public class Explainability : FunctionalTestBaseClass
+    public class Explainability : IntegrationTestBaseClass
     {
         public Explainability(ITestOutputHelper output) : base(output)
         {
@@ -36,13 +36,13 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.Sdca());
+                .Append(mlContext.Regression.Trainers.FastTree());
 
             // Fit the pipeline
             var model = pipeline.Fit(data);
 
             IDataView transformedData;
-            RegressionPredictionTransformer<LinearRegressionModelParameters> linearPredictor;
+            RegressionPredictionTransformer<FastTreeRegressionModelParameters> linearPredictor;
 
             if(saveModel)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests
                 transformedData = loadedModel.Transform(data);
 
                 // Extract linear predictor
-                linearPredictor = (loadedModel as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+                linearPredictor = (loadedModel as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<FastTreeRegressionModelParameters>;
             }
             else
             {

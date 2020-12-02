@@ -12,11 +12,11 @@ using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
-    public class FunctionalTestBaseClass : IDisposable
+    public class IntegrationTestBaseClass : IDisposable
     {
-        static FunctionalTestBaseClass()
+        static IntegrationTestBaseClass()
         {
             RootDir = TestCommon.GetRepoRoot();
             DataDir = Path.Combine(RootDir, "test", "data");
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Functional.Tests
         protected static string DataDir { get; }
         protected ITestOutputHelper Output { get; }
 
-        public FunctionalTestBaseClass(ITestOutputHelper output)
+        public IntegrationTestBaseClass(ITestOutputHelper output)
         {
             //This locale is currently set for tests only so that the produced output
             //files can be compared on systems with other locales to give set of known
@@ -39,12 +39,12 @@ namespace Microsoft.ML.Functional.Tests
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
 #if NETFRAMEWORK
-            string codeBaseUri = typeof(FunctionalTestBaseClass).Assembly.CodeBase;
+            string codeBaseUri = typeof(IntegrationTestBaseClass).Assembly.CodeBase;
             string path = new Uri(codeBaseUri).AbsolutePath;
             var currentAssemblyLocation = new FileInfo(Directory.GetParent(path).FullName);
 #else
             // There is an extra folder in the netfx path representing the runtime identifier.
-            var currentAssemblyLocation = new FileInfo(typeof(FunctionalTestBaseClass).Assembly.Location);
+            var currentAssemblyLocation = new FileInfo(typeof(IntegrationTestBaseClass).Assembly.Location);
 #endif
             OutDir = Path.Combine(currentAssemblyLocation.Directory.FullName, "TestOutput");
             Directory.CreateDirectory(OutDir);

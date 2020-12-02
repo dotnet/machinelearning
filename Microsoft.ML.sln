@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TestFramework"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Predictor.Tests", "test\Microsoft.ML.Predictor.Tests\Microsoft.ML.Predictor.Tests.csproj", "{6B047E09-39C9-4583-96F3-685D84CA4117}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Functional.Tests", "test\Microsoft.ML.Functional.Tests\Microsoft.ML.Functional.Tests.csproj", "{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.IntegrationTests", "test\Microsoft.ML.IntegrationTests\Microsoft.ML.IntegrationTests.csproj", "{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.ResultProcessor", "src\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj", "{3769FCC3-9AFF-4C37-97E9-6854324681DF}"
 EndProject

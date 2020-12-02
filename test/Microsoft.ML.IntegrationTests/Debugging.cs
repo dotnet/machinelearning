@@ -5,16 +5,16 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
-    public class Debugging : FunctionalTestBaseClass
+    public class Debugging : IntegrationTestBaseClass
     {
         public Debugging(ITestOutputHelper output) : base(output)
         {

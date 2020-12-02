@@ -116,6 +116,8 @@
           UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)" -->
   </Target>
 
+  <!-- The targets below are needed for arcade -->
+
   <Target Name="Build"
           DependsOnTargets="CopyDnnModelFiles" />
 
@@ -124,5 +126,7 @@
   <Target Name="Test" />
 
   <Target Name="PerformanceTest"/>
+
+  <Target Name="IntegrationTest"/>
 
 </Project>

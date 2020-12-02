@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Functional.Tests.Datasets
+namespace Microsoft.ML.IntegrationTests.Datasets
 {
     /// <summary>
     /// A class for the Adult test dataset.

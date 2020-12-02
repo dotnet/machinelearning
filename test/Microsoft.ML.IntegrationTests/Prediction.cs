@@ -6,15 +6,15 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Functional.Tests
+namespace Microsoft.ML.IntegrationTests
 {
-    public class PredictionScenarios : FunctionalTestBaseClass
+    public class PredictionScenarios : IntegrationTestBaseClass
     {
         public PredictionScenarios(ITestOutputHelper output) : base(output)
         {
