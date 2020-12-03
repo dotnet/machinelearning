@@ -49,6 +49,7 @@
   <Target Name="BuildNativeUnix"
           Condition="'$(OS)' != 'Windows_NT'"
           DependsOnTargets="GenerateNativeVersionFile">
+    <Message Text="NuGetPackageRoot: $(NuGetPackageRoot)" Importance="High"/>
     <PropertyGroup>
       <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
       <!-- mkllibrpath is used as rpath on macOS by binaries such as SymSDGNative and MklProxyNative to locate mkl library.
@@ -66,7 +67,7 @@
   <Target Name="BuildNativeWindows"
           Condition="'$(OS)' == 'Windows_NT'"
           DependsOnTargets="GenerateNativeVersionFile">
-
+    <Message Text="NuGetPackageRoot: $(NuGetPackageRoot)" Importance="High"/>
     <PropertyGroup>
       <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgs>
     </PropertyGroup>
@@ -78,7 +79,7 @@
   </Target>
 
   <Target Name="PreparePackageAssets">
-
+    <Message Text="NuGetPackageRoot: $(NuGetPackageRoot)" Importance="High"/>
     <!-- Copy MklImports into the native assets folder, so it can be treated like a regularly built native assembly - packaged into our NuGet packages, and used by tests. -->
     <Message Text="PreparePackageAssets" Importance="High"/>
 
