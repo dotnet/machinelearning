@@ -202,7 +202,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 CompareNumbersWithTolerance(stats.Deviance, 45.79, digitsOfPrecision: 2);
                 CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
 #else
-                CompareNumbersWithTolerance(stats.Deviance, 45.35, digitsOfPrecision: 2);
+                CompareNumbersWithTolerance(stats.Deviance, 45.35, digitsOfPrecision: 0);
                 CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
 #endif
                 //Assert.Equal(14, stats.ParametersCount);

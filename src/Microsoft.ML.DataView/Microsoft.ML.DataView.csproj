@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.DataView</IncludeInPackage>
+    <PackageDescription>Contains the IDataView system which is a set of interfaces and components that provide efficient, compositional processing of schematized data for machine learning and advanced analytics applications.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,5 +15,5 @@
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Core\Utilities\ArrayUtils.cs" />
   </ItemGroup>
-  
+
 </Project>

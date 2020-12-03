@@ -1,3 +1,4 @@
+#TODO: Need to update build documentation.
 parameters:
   name: ''
   architecture: x64
@@ -21,13 +22,18 @@ jobs:
       timeoutInMinutes: 120
     cancelTimeoutInMinutes: 10
     variables:
-      dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
+      dotnetPath: $(Build.SourcesDirectory)/.dotnet/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
       nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
-      nightlyBuildRunPath: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.NightlyBuild.Tests/$(_targetFramework)
+      nightlyBuildRunPath: $(Build.SourcesDirectory)/artifacts/bin/Microsoft.ML.NightlyBuild.Tests/$(_configuration)/$(_targetFramework)
+      runNightlyBuildProj: $(Build.SourcesDirectory)/test/run-night-build-tests.proj
       packageUpdaterProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       versionFilePath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
       PROCDUMP_PATH: '$(Build.SourcesDirectory)/Tools/ProcDump/'
+      ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+        spaceValue: ' '
+      ${{ if eq(parameters.buildScript, './build.sh') }}:
+        spaceValue: '%20'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
@@ -43,7 +49,7 @@ jobs:
             _targetFramework: netcoreapp2.1
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
-    
+
     pool: ${{ parameters.pool }}
     ${{ if ne(parameters.container, '') }}:
       container: ${{ parameters.container }}
@@ -57,13 +63,14 @@ jobs:
           brew untap local/openssl |
           brew untap local/python2
         displayName: MacOS Homebrew bug Workaround
+    # Extra MacOS step required to install OS-specific dependencies
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
-        displayName: Install build dependencies
+        displayName: Install MacOS build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
       displayName: Build
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - task: Bash@3
@@ -78,13 +85,13 @@ jobs:
           script: cd packages;find . -type d -path "*/runtimes/osx-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
         displayName: Clean up non-Linux runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+      - script: dir /s "$(Build.SourcesDirectory)"
+        displayName: show bin folder disk usage
       - task: PowerShell@2
         inputs:
           targetType: inline
-          script: Get-ChildItem -Path  '.\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
+          script: Get-ChildItem -Path  '$(Build.SourcesDirectory)\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
         displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
-      - script: dir /s "bin"
-        displayName: show bin folder disk usage
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
@@ -94,30 +101,25 @@ jobs:
         displayName: Update package versions for nightly build
       - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
         - powershell: |
-                    Get-ChildItem -Path  '.\bin\AnyCPU.*' -Recurse |
+                    Get-ChildItem -Path  '.\artifacts\bin\*' -Recurse |
                     Select -ExpandProperty FullName |
-                    Where {$_ -notlike '*\Microsoft.ML.NightlyBuild.Tests*'} |
-                    sort length -Descending | 
-                    Remove-Item -force 
+                    Where {$_ -NotMatch '.*\\Microsoft\.ML\.NightlyBuild\.Tests.*|.*\\Native.*'} |
+                    sort length -Descending |
+                    Remove-Item -force
                     Write-Output "Done cleaning up usless project..."
           displayName: Clean up useless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
-      - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
+      - script: $(dotnetPath) msbuild $(runNightlyBuildProj) /t:RunNightlyBuildTests /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }}
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
-        displayName: Download Benchmark Data
-        timeoutInMinutes: 10
-      - script: ${{ parameters.buildScript }} -- /t:DownloadTensorflowMetaFiles /p:IncludeTensorflowMetaFile=true
-        displayName: Download Tensorflow Meta File
-        timeoutInMinutes: 20
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+          # TODO: Code coverage needs to be fixed.
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci #-coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} -$(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -127,10 +129,10 @@ jobs:
               testAssemblyVer2: |
                 **\*test.dll
                 **\*tests.dll
-                !**\obj\** 
+                !**\obj\**
               runSettingsFile: $(Build.SourcesDirectory)/tools-local/vstest.runsettings
               searchFolder: '$(System.DefaultWorkingDirectory)'
-              vstestLocationMethod: 'version' 
+              vstestLocationMethod: 'version'
               vsTestVersion: 'latest'
               runInParallel: False
               runTestsInIsolation: True
@@ -141,9 +143,9 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} -$(_configuration) -runCITests -coverage=${{ parameters.codeCoverage }}
+        - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages #-coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
-    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore build/Codecoverage.proj
+    - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
     - task: PublishTestResults@2
@@ -151,7 +153,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testRunner: 'vSTest'
-        searchFolder: '$(System.DefaultWorkingDirectory)/bin'
+        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/TestResults'
         testResultsFiles: '**/*.trx'
         testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
         configuration: $(_configuration)
@@ -161,16 +163,15 @@ jobs:
       condition: not(succeeded())
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
-        contents: '?(msbuild.*|binclash.log|init-tools.log)'
+        contents: 'artifacts/log/**'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
       displayName: Stage test output
       condition: not(succeeded())
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)/bin
+        sourceFolder: $(Build.SourcesDirectory)
         contents: |
-          **/TestOutput/**/*
-          **/*.trx
+          artifacts/TestResults/**
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
       displayName: Stage process dump and pdb if any
@@ -180,7 +181,7 @@ jobs:
         contents: |
           *.dmp
           CrashDumps/*.dmp
-          bin/**/*.pdb
+          artifacts/bin/**/*.pdb
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
       displayName: Publish build and test logs
@@ -190,5 +191,5 @@ jobs:
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -buildPackages
+      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
         displayName: Build Packages

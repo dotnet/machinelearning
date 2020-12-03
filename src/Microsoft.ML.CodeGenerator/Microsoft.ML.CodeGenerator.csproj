@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.CodeGenerator</IncludeInPackage>
+    <PackageDescription>ML.NET Code Generator</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,8 +21,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+
+    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="Templates\Azure\Console\AzureModelBuilder.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>

@@ -1,6 +1,5 @@
 <Project>
   <ItemGroup>
-    <Project Include="*\*proj" />
+    <ProjectToBuild Include="**/*.proj" />
   </ItemGroup>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.traversal.targets))\dir.traversal.targets" />
 </Project>

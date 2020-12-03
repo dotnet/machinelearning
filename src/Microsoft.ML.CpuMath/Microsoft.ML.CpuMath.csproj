@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
+    <PackageDescription>Microsoft.ML.CpuMath contains optimized math routines for ML.NET.</PackageDescription>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CPUMATH_INFRASTRUCTURE</DefineConstants>
   </PropertyGroup>
@@ -29,6 +31,10 @@
     <Compile Remove="FactorizationMachine/AvxIntrinsics.cs" />
 
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="build\**\*" Pack="true" PackagePath="build" />
   </ItemGroup>
 
 </Project>

@@ -5,6 +5,8 @@
 
 # Tool Runtime Dir
 /[Tt]ools/
+/.dotnet/
+/.packages/
 
 # User-specific files
 *.suo

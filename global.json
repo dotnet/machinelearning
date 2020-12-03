@@ -1,0 +1,16 @@
+{
+	"tools": {
+	  "dotnet": "3.1.102",
+	  "runtimes": {
+		"dotnet/x64": ["$(MicrosoftNETCorePlatformsVersion)", "$(MicrosoftNETCore3PlatformsVersion)"],
+		"dotnet/x86": ["$(MicrosoftNETCorePlatformsVersion)", "$(MicrosoftNETCore3PlatformsVersion)"]
+	  }
+	},
+	"msbuild-sdks": {
+	  "Microsoft.DotNet.Arcade.Sdk": "5.0.0-beta.20461.7",
+	  "Microsoft.DotNet.Helix.Sdk": "5.0.0-beta.20461.7",
+	  "Microsoft.Build.Traversal": "2.1.1",
+	  "Microsoft.SourceLink.GitHub": "1.1.0-beta-20206-02",
+	  "Microsoft.SourceLink.Common": "1.1.0-beta-20206-02"
+	}
+  }

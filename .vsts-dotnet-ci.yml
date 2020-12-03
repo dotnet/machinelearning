@@ -6,7 +6,7 @@ resources:
   containers:
   - container: CentosContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
-  
+
   - container: UbuntuContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-20200515184230-2c829e8
 
@@ -29,7 +29,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name:  Hosted Ubuntu 1604
+      name: Hosted Ubuntu 1604
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -38,7 +38,7 @@ jobs:
     container: UbuntuContainer
     innerLoop: true
     pool:
-      name:  Hosted Ubuntu 1604
+      name: Hosted Ubuntu 1604
 
 - template: /build/ci/job-template.yml
   parameters:

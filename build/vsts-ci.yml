@@ -1,5 +1,5 @@
 ################################################################################
-# ML.NET's official, signed build 
+# ML.NET's official, signed build
 ################################################################################
 
 resources:
@@ -23,14 +23,18 @@ phases:
     - agent.os -equals linux
     container: CentosContainer
   steps:
+  - script: ./restore.sh
+    displayName: restore all projects
+  - script: ./build.sh -configuration $(BuildConfig) /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+    displayName: build redist
   # Only build native assets to avoid conflicts.
-  - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
+  - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64
     displayName: Build
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Linux package assets
     inputs:
-      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
 
@@ -46,23 +50,26 @@ phases:
   queue:
     name: Hosted macOS
   steps:
-  # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/1811
   - script: |
       brew uninstall openssl@1.0.2t |
       brew uninstall python@2.7.17 |
       brew untap local/openssl |
       brew untap local/python2
     displayName: MacOS Homebrew bug Workaround
-  - script: brew update && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
+  - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
     displayName: Install build dependencies
+  - script: ./restore.sh
+    displayName: restore all projects
+  - script: ./build.sh -configuration $(BuildConfig) /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+    displayName: build redist
   # Only build native assets to avoid conflicts.
-  - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
+  - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64
     displayName: Build
 
   - task: PublishBuildArtifacts@1
     displayName: Publish macOS package assets
     inputs:
-      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
 
@@ -80,7 +87,7 @@ phases:
     _TeamName: DotNetCore
   queue:
     name: DotNetCore-Build
-    demands: 
+    demands:
       - agent.os -equals Windows_NT
   steps:
 
@@ -95,27 +102,26 @@ phases:
     continueOnError: false
     condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
+  - script: ./restore.cmd
+    displayName: restore all projects
+  - script: ./build.cmd -configuration $(BuildConfig) /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+    displayName: build redist
   # Only build native assets to avoid conflicts.
-  - script: ./build.cmd -buildNative -$(BuildConfig) -buildArch=x86 -skipRIDAgnosticAssets
+  - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86
     displayName: Build
-  
-  - task: MSBuild@1
-    displayName: Sign Windows_x86 Binaries
-    inputs:
-      solution: build/sign.proj
-      msbuildArguments: /p:SignType=$(_SignType)
-      msbuildVersion: 15.0
-    continueOnError: false
+
+  - script: ./sign.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:SignBinaries=true
+    displayName: sign binaries
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Windows_x86 package assets
     inputs:
-      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
 
   # Terminate all dotnet build processes.
-  - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
+  - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
     displayName: Dotnet Server Shutdown
 
 ################################################################################
@@ -132,7 +138,7 @@ phases:
     _TeamName: DotNetCore
   queue:
     name: DotNetCore-Build
-    demands: 
+    demands:
       - agent.os -equals Windows_NT
   steps:
 
@@ -147,8 +153,8 @@ phases:
     continueOnError: false
     condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
-  # Build both native and managed assets. 
-  - script: ./build.cmd -$(BuildConfig)
+  # Build both native and managed assets.
+  - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64
     displayName: Build
 
   - task: ComponentGovernanceComponentDetection@0
@@ -157,24 +163,19 @@ phases:
       verbosity: 'Verbose'
       alertWarningLevel: 'High'
 
-  
-  - task: MSBuild@1
-    displayName: Sign Windows_x64 Binaries
-    inputs:
-      solution: build/sign.proj
-      msbuildArguments: /p:SignType=$(_SignType)
-      msbuildVersion: 15.0
-    continueOnError: false
+
+  - script: ./sign.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:SignBinaries=true
+    displayName: sign binaries
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Windows_x64 package assets
     inputs:
-      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
 
   # Terminate all dotnet build processes.
-  - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
+  - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
     displayName: Dotnet Server Shutdown
 
 ################################################################################
@@ -199,7 +200,7 @@ phases:
     _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
   queue:
     name: DotNetCore-Build
-    demands: 
+    demands:
       - agent.os -equals Windows_NT
   steps:
 
@@ -220,31 +221,27 @@ phases:
     displayName: Download package assets
     inputs:
       artifactName: PackageAssets
-      downloadPath: $(Build.SourcesDirectory)/bin/obj/packages
+      downloadPath: $(Build.SourcesDirectory)/artifacts/pkgassets
 
   # Workaround https://github.com/Microsoft/vsts-tasks/issues/6739
   - task: CopyFiles@2
     displayName: Copy package assets to correct folder
     inputs:
-      sourceFolder: $(Build.SourcesDirectory)/bin/obj/packages/PackageAssets
-      targetFolder: $(Build.SourcesDirectory)/bin/obj/packages
-  
-  - script: ./build.cmd -buildPackages
-    displayName: Create Packages
+      sourceFolder: $(Build.SourcesDirectory)/artifacts/pkgassets/PackageAssets
+      targetFolder: $(Build.SourcesDirectory)/artifacts/pkgassets
 
-  - task: MSBuild@1
-    displayName: Sign Packages
-    inputs:
-      solution: build/sign.proj
-      msbuildArguments: /p:SignType=$(_SignType) /p:SignNugetPackages=true
-      msbuildVersion: 15.0
+  - script: ./build.cmd -pack -configuration $(BuildConfig)
+    displayName: Build Packages
+
+  - script: ./sign.cmd /p:SignNugetPackages=true
+    displayName: sign packages
     continueOnError: false
 
   - task: NuGetAuthenticate@0
     inputs:
       nuGetServiceConnections: machinelearning-dnceng-public-feed # To allow publishing to a feed of another organization
 
-  - script: Tools\dotnetcli\dotnet msbuild build\publish.proj /t:PublishPackages /p:NuGetFeedUrl=$(_AzureDevopsFeedUrl) /p:NuGetApiKey=AzureArtifacts
+  - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe msbuild build\publish.proj /t:PublishPackages /p:NuGetFeedUrl=$(_AzureDevopsFeedUrl) /p:NuGetApiKey=AzureArtifacts
     displayName: Publish Packages to AzureDevOps Feed
 
   - task: MSBuild@1
@@ -264,5 +261,5 @@ phases:
     continueOnError: true
 
   # Terminate all dotnet build processes.
-  - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
+  - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
     displayName: Dotnet Server Shutdown

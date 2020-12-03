@@ -7,7 +7,7 @@ using Microsoft.ML;
 
 [assembly: InternalsVisibleTo("Microsoft.ML.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Core.Tests" + PublicKey.TestValue)]
-[assembly: InternalsVisibleTo("Microsoft.ML.Predictor.Tests" + PublicKey.TestValue)]
-[assembly: InternalsVisibleTo("Microsoft.ML.TestFramework" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo("Microsoft.ML.Predictor.Tests" + PublicKey.Value)]
+[assembly: InternalsVisibleTo("Microsoft.ML.TestFramework" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("RunTests" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo("DotNetBridge" + InternalPublicKey.Value)]
