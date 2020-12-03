@@ -23,6 +23,11 @@ namespace Microsoft.ML.Tests
 {
     public class OnnxTransformTests : TestDataPipeBase
     {
+        // These two members are meant to be changed
+        // Only when manually testing the Onnx GPU nuggets
+        private const bool _fallbackToCpu = true;
+        private static int? _gpuDeviceId = null;
+
         private const int InputSize = 150528;
 
         private class TestData
@@ -134,7 +139,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = ML.Transforms.ApplyOnnxModel(new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile);
+            var pipe = ML.Transforms.ApplyOnnxModel(new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -231,7 +236,7 @@ namespace Microsoft.ML.Tests
             var pipe = ML.Transforms.LoadImages("data_0", imageFolder, "imagePath")
                 .Append(ML.Transforms.ResizeImages("data_0", imageHeight, imageWidth))
                 .Append(ML.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
-                .Append(ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile));
+                .Append(ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu));
 
             TestEstimatorCore(pipe, data);
 
@@ -292,7 +297,7 @@ namespace Microsoft.ML.Tests
                     }
                 });
 
-            var pipeline = ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile);
+            var pipeline = ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxTransformer = pipeline.Fit(dataView);
             var onnx = onnxTransformer.Transform(dataView);
             var scoreCol = onnx.Schema["softmaxout_1"];
@@ -325,7 +330,7 @@ namespace Microsoft.ML.Tests
                         inb = new float[] {1,2,3,4,5}
                     }
                 });
-            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outa", "outb" }, new[] { "ina", "inb" }, modelFile);
+            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outa", "outb" }, new[] { "ina", "inb" }, modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxTransformer = pipeline.Fit(dataView);
             var onnx = onnxTransformer.Transform(dataView);
 
@@ -365,7 +370,7 @@ namespace Microsoft.ML.Tests
                     }
                 });
             // The model returns the output columns in the order outa, outb. We are doing the opposite here, making sure the name mapping is correct.
-            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outb", "outa" }, new[] { "ina", "inb" }, modelFile);
+            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outb", "outa" }, new[] { "ina", "inb" }, modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxTransformer = pipeline.Fit(dataView);
             var onnx = onnxTransformer.Transform(dataView);
 
@@ -391,7 +396,7 @@ namespace Microsoft.ML.Tests
             (onnxTransformer as IDisposable)?.Dispose();
 
             // The model returns the output columns in the order outa, outb. We are doing only a subset, outb, to make sure the mapping works.
-            pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outb" }, new[] { "ina", "inb" }, modelFile);
+            pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outb" }, new[] { "ina", "inb" }, modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             onnxTransformer = pipeline.Fit(dataView);
             onnx = onnxTransformer.Transform(dataView);
 
@@ -425,7 +430,7 @@ namespace Microsoft.ML.Tests
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, 1.2f }},
                 };
             var idv = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = ML.Transforms.ApplyOnnxModel(modelFile);
+            var pipeline = ML.Transforms.ApplyOnnxModel(modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxTransformer = pipeline.Fit(idv);
             var transformedValues = onnxTransformer.Transform(idv);
             var predictions = mlContext.Data.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();
@@ -451,7 +456,7 @@ namespace Microsoft.ML.Tests
                     new TestDataNoneDimension(){features = new float[] { 6.3f, 3.3f, 6.0f, 2.5f }},
             };
             var idv = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = ML.Transforms.ApplyOnnxModel(modelFile);
+            var pipeline = ML.Transforms.ApplyOnnxModel(modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxTransformer = pipeline.Fit(idv);
             var transformedValues = onnxTransformer.Transform(idv);
             var predictions = mlContext.Data.CreateEnumerable<PredictionNoneDimension>(transformedValues, reuseRowObject: false).ToArray();
@@ -526,7 +531,7 @@ namespace Microsoft.ML.Tests
             // "softmaxout_1" are model input and output names stored in the used ONNX model file. Users may need to inspect their own models to
             // get the right input and output column names.
             var pipeline = ML.Transforms.ExtractPixels("data_0", "Image")                   // Map column "Image" to column "data_0"
-                .Append(ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile)); // Map column "data_0" to column "softmaxout_1"
+                .Append(ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu)); // Map column "data_0" to column "softmaxout_1"
             var model = pipeline.Fit(dataView);
             var onnx = model.Transform(dataView);
 
@@ -576,7 +581,7 @@ namespace Microsoft.ML.Tests
             };
 
             var dataView = ML.Data.LoadFromEnumerable(dataPoints);
-            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile);
+            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxTransformer = pipeline.Fit(dataView);
             var transformedDataView = onnxTransformer.Transform(dataView);
 
@@ -629,7 +634,7 @@ namespace Microsoft.ML.Tests
             };
 
             var dataView = ML.Data.LoadFromEnumerable(dataPoints);
-            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile);
+            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             var onnxTransformer = pipeline.Fit(dataView);
             var transformedDataView = onnxTransformer.Transform(dataView);
 
@@ -794,19 +799,19 @@ namespace Microsoft.ML.Tests
             // Test 1.
             pipeline[0] = ML.Transforms.ApplyOnnxModel(
                 new[] { nameof(PredictionWithCustomShape.argmax) }, new[] { nameof(InputWithCustomShape.input) },
-                modelFile, shapeDictionary);
+                modelFile, shapeDictionary, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             onnxTransformer[0] = pipeline[0].Fit(dataView);
             transformedDataViews[0] = onnxTransformer[0].Transform(dataView);
 
             // Test 2.
             pipeline[1] = ML.Transforms.ApplyOnnxModel(
                 nameof(PredictionWithCustomShape.argmax), nameof(InputWithCustomShape.input),
-                modelFile, shapeDictionary);
+                modelFile, shapeDictionary, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             onnxTransformer[1] = pipeline[1].Fit(dataView);
             transformedDataViews[1] = onnxTransformer[1].Transform(dataView);
 
             // Test 3.
-            pipeline[2] = ML.Transforms.ApplyOnnxModel(modelFile, shapeDictionary);
+            pipeline[2] = ML.Transforms.ApplyOnnxModel(modelFile, shapeDictionary, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
             onnxTransformer[2] = pipeline[2].Fit(dataView);
             transformedDataViews[2] = onnxTransformer[2].Transform(dataView);
 
@@ -856,7 +861,7 @@ namespace Microsoft.ML.Tests
 
             // Define a ONNX transform, trains it, and apply it to the input data. 
             var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outa", "outb" }, new[] { "ina", "inb" },
-                modelFile, shapeDictionary);
+                modelFile, shapeDictionary, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
         }
 
         /// <summary>
@@ -956,7 +961,7 @@ namespace Microsoft.ML.Tests
             var dataView = ML.Data.LoadFromEnumerable(dataPoints);
 
             var pipeline = ML.Transforms.ApplyOnnxModel(nameof(PredictionWithCustomShape.argmax),
-                nameof(InputWithCustomShape.input), modelFile, shapeDictionary);
+                nameof(InputWithCustomShape.input), modelFile, shapeDictionary, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
 
             var model = pipeline.Fit(dataView);
 

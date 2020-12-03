@@ -6,8 +6,10 @@ set __currentScriptDir=%~dp0
 
 :SetupArgs
 :: Initialize the args that will be passed to cmake
-set __binDir=%__currentScriptDir%..\..\bin
 set __rootDir=%__currentScriptDir%..\..
+set __artifactsDir=%__rootDir%\artifacts
+set __binDir=%__artifactsDir%\bin
+set __objDir=%__artifactsDir%\obj
 set __CMakeBinDir=""
 set __IntermediatesDir=""
 set __BuildArch=x64
@@ -96,10 +98,10 @@ echo Commencing native build of dotnet/machinelearning
 echo.
 
 if %__CMakeBinDir% == "" (
-    set "__CMakeBinDir=%__binDir%\%__BuildArch%.%CMAKE_BUILD_TYPE%\Native"
+    set "__CMakeBinDir=%__binDir%\Native\%__BuildArch%.%CMAKE_BUILD_TYPE%"
 )
 if %__IntermediatesDir% == "" (
-    set "__IntermediatesDir=%__binDir%\obj\%__BuildArch%.%CMAKE_BUILD_TYPE%\Native"
+    set "__IntermediatesDir=%__objDir%\Native\%__BuildArch%.%CMAKE_BUILD_TYPE%"
 )
 set "__CMakeBinDir=%__CMakeBinDir:\=/%"
 set "__IntermediatesDir=%__IntermediatesDir:\=/%"

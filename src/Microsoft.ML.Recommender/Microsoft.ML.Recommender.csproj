@@ -1,14 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Recommender</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageDescription>LIBMF, the core computation library for matrix factorization in ML.NET</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+    <Content Include="$(RepoRoot)src\Native\MatrixFactorizationNative\libmf\COPYRIGHT" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

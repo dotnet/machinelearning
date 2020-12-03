@@ -22,7 +22,7 @@
 
   <!-- The purpose of this target is to return a path from a referenced
        package / project -->
-  <Target Name="GetContract" DependsOnTargets="ResolveReferences" Returns="@(_contractReferencePath)">
+  <Target Name="GetContract" DependsOnTargets="ResolveReferences" Returns="@(_contractReferencePath)" Condition="'$(ContractName)' != 'Microsoft.ML' And '$(ContractName)' != 'Microsoft.ML.Mkl.Redist'">
     <Error Condition="'$(ContractName)' == ''" Text="ContractName must be specified" />
     <ItemGroup>
       <_contractReferencePath Include="@(ReferencePath)" Condition="'%(FileName)' == '$(ContractName)'" />

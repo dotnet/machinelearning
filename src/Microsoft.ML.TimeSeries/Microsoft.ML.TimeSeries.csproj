@@ -1,13 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.TimeSeries</IncludeInPackage>
+    <PackageDescription>Microsoft.ML.TimeSeries contains ML.NET Time Series prediction algorithms. Uses Intel Mkl.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.csproj" />
+
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
   </ItemGroup>
 </Project>

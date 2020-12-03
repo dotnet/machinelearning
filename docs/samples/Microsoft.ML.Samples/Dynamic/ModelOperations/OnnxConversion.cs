@@ -82,7 +82,8 @@ namespace Samples.Dynamic.ModelOperations
             //Create the pipeline using onnx file.
             var onnxModelPath = "your_path_to_sample_onnx_conversion_1.onnx";
             var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
-            var onnxTransformer = onnxEstimator.Fit(trainTestOriginalData.TrainSet);
+            //Make sure to either use the 'using' clause or explicitly dispose the returned onnxTransformer to prevent memory leaks
+            using var onnxTransformer = onnxEstimator.Fit(trainTestOriginalData.TrainSet);
 
             //Inference the testset
             var output = transformer.Transform(trainTestOriginalData.TestSet);

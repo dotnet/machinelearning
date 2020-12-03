@@ -1,22 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Mkl.Components</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageDescription>ML.NET additional learners making use of Intel Mkl.</PackageDescription>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.csproj" />
+
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- The package reference is in there, so that the build can download the MlNetMklDeps package at build time.
     The binaries of this package, are extraceted, and repackaged in the Microsoft.ML.Mkl.Redist; that is the one that has a true
     dependancy on MlNetMklDeps. From the users prospective, the Microsoft.ML.Mkl.Components package depends on Microsoft.ML.Mkl.Redist. -->
-    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" >
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

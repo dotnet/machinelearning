@@ -5,7 +5,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.ML.Internal.CpuMath.Core;
 
-[assembly: InternalsVisibleTo("Microsoft.ML.CpuMath.UnitTests" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo("Microsoft.ML.CpuMath.UnitTests" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Data" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.FastTree" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Mkl.Components" + PublicKey.Value)]
@@ -15,6 +15,6 @@ using Microsoft.ML.Internal.CpuMath.Core;
 [assembly: InternalsVisibleTo("Microsoft.ML.Sweeper" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.TimeSeries" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Transforms" + PublicKey.Value)]
-[assembly: InternalsVisibleTo("Microsoft.ML.Benchmarks.Tests" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo("Microsoft.ML.PerformanceTests.Tests" + PublicKey.Value)]
 
 [assembly: WantsToBeBestFriends]
