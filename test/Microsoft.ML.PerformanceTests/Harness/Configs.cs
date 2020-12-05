@@ -39,14 +39,19 @@ namespace Microsoft.ML.PerformanceTests
         /// </summary>
         private IToolchain CreateToolchain()
         {
+            TimeSpan timeout = TimeSpan.FromMinutes(5);
+
 #if NETFRAMEWORK
             var tfm = "net461";
-            var csProj = CsProjClassicNetToolchain.Net461;
+            var csProj = CsProjClassicNetToolchain.From(tfm, timeout: timeout);
 #else
-            var tfm = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ?
-                NetCoreAppSettings.NetCoreApp21.TargetFrameworkMoniker : NetCoreAppSettings.NetCoreApp31.TargetFrameworkMoniker;
-            var csProj = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ?
-                CsProjCoreToolchain.NetCoreApp21 : CsProjCoreToolchain.NetCoreApp31;
+            var settings = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null
+                ? NetCoreAppSettings.NetCoreApp21 : NetCoreAppSettings.NetCoreApp31;
+
+            settings = settings.WithTimeout(timeout);
+
+            var tfm = settings.TargetFrameworkMoniker;
+            var csProj = CsProjCoreToolchain.From(settings);
 #endif
             return new Toolchain(
                 tfm,
