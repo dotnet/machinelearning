@@ -77,7 +77,7 @@
 
   </Target>
 
-  <Target Name="PreparePackageAssets">
+  <Target Name="PreparePackageAssets" Condition="'$(PreparePackageAssets)' == 'true'">
 
     <!-- Copy MklImports into the native assets folder, so it can be treated like a regularly built native assembly - packaged into our NuGet packages, and used by tests. -->
     <Message Text="PreparePackageAssets" Importance="High"/>
