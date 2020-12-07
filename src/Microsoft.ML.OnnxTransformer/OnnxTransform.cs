@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,6 +42,17 @@ namespace Microsoft.ML.Transforms.Onnx
     /// </summary>
     public sealed class OnnxTransformer : RowToRowTransformerBase, IDisposable
     {
+        private class OnnxRuntimeOutputCacher
+        {
+            public long Position;
+            public Dictionary<string, DisposableNamedOnnxValue> Outputs;
+            public OnnxRuntimeOutputCacher()
+            {
+                Position = -1;
+                Outputs = new Dictionary<string, DisposableNamedOnnxValue>();
+            }
+        }
+
         /// <summary>
         /// A class used for capturing shape information from command line.
         /// <see cref="Name"/> is a tensor name while <see cref="Shape"/> is that tenor's desired shape.
@@ -97,6 +109,8 @@ namespace Microsoft.ML.Transforms.Onnx
         /// This field is internal because the associated estimator may access it.
         /// </summary>
         internal readonly OnnxModel Model;
+
+        private readonly ConcurrentBag<OnnxRuntimeOutputCacher> _outputCache;
 
         internal const string Summary = "Transforms the data using the Onnx model.";
         internal const string UserName = "ONNX Scoring Transform";
@@ -197,6 +211,8 @@ namespace Microsoft.ML.Transforms.Onnx
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransformer)))
         {
             Host.CheckValue(options, nameof(options));
+
+            _outputCache = new ConcurrentBag<OnnxRuntimeOutputCacher>();
 
             foreach (var col in options.InputColumns)
                 Host.CheckNonWhiteSpace(col, nameof(options.InputColumns));
@@ -358,6 +374,17 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             if (_isDisposed)
                 return;
+
+            Contracts.AssertValue(_outputCache);
+
+            foreach (var cache in _outputCache)
+            {
+                foreach (var kvp in cache.Outputs)
+                {
+                    kvp.Value.Dispose();
+                }
+            }
+
             Model?.Dispose();
             _isDisposed = true;
         }
@@ -507,17 +534,6 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
             }
 
-            private class OnnxRuntimeOutputCacher
-            {
-                public long Position;
-                public Dictionary<string, NamedOnnxValue> Outputs;
-                public OnnxRuntimeOutputCacher()
-                {
-                    Position = -1;
-                    Outputs = new Dictionary<string, NamedOnnxValue>();
-                }
-            }
-
             private void UpdateCacheIfNeeded(long position, INamedOnnxValueGetter[] srcNamedOnnxValueGetters, string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCache)
             {
                 if (outputCache.Position != position)
@@ -534,6 +550,11 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     foreach (var outputNameOnnxValue in outputNamedOnnxValues)
                     {
+                        if(outputCache.Outputs.ContainsKey(outputNameOnnxValue.Name))
+                        {
+                            outputCache.Outputs[outputNameOnnxValue.Name].Dispose();
+                        }
+
                         outputCache.Outputs[outputNameOnnxValue.Name] = outputNameOnnxValue;
                     }
                     outputCache.Position = position;
@@ -544,6 +565,7 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 Host.AssertValue(input);
                 var outputCacher = new OnnxRuntimeOutputCacher();
+                _parent._outputCache.Add(outputCacher);
                 ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
@@ -562,6 +584,7 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 Host.AssertValue(input);
                 var outputCacher = new OnnxRuntimeOutputCacher();
+                _parent._outputCache.Add(outputCacher);
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> valueGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
