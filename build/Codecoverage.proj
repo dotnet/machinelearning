@@ -16,12 +16,12 @@
       <_ReportGeneratorPath>$(PkgReportGenerator)\tools\net47\ReportGenerator.exe</_ReportGeneratorPath>
     </PropertyGroup>
 
-    <Message Importance="high" Text="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\*\*\coverage.opencover.xml -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -filefilters:+*.cs;+*.fs -reporttypes:Cobertura" />
-    <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\*\*\coverage.opencover.xml -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -filefilters:+*.cs;+*.fs -reporttypes:Cobertura" />
+    <Message Importance="high" Text="&quot;$(_ReportGeneratorPath)&quot; -reports:$(ArtifactsDir)bin\**\coverage.opencover.xml -targetdir:$(ArtifactsDir)bin\ -filefilters:+*.cs;+*.fs -reporttypes:Cobertura" />
+    <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(ArtifactsDir)bin\**\coverage.opencover.xml -targetdir:$(ArtifactsDir)bin\coverage -filefilters:+*.cs;+*.fs -reporttypes:Cobertura" />
 
     <ItemGroup>
-      <_CodecovArgs Include="-f;$(BaseOutputPath)$(PlatformConfig)\coverage\Cobertura.xml" />
-
+      <_CodecovArgs Include="-f;$(ArtifactsDir)bin\coverage\Cobertura.xml" />
+      
       <!-- Report an error if the upload fails -->
       <_CodecovArgs Include="--required" />
 
