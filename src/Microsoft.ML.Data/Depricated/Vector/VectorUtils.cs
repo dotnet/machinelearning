@@ -40,7 +40,8 @@ namespace Microsoft.ML.Numeric
 
         public static float DotProduct(in VBuffer<float> a, in VBuffer<float> b)
         {
-            Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
+            var message = $"Vectors must have the same dimensionality. A.Length: { a.Length } B.length: {b.Length}";
+            Contracts.Check(a.Length == b.Length, message);
 
             var aValues = a.GetValues();
             var bValues = b.GetValues();
