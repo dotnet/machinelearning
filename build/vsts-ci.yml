@@ -253,7 +253,6 @@ phases:
       packagesToPush: $(Build.SourcesDirectory)/artifacts/**/*.nupkg;!$(Build.SourcesDirectory)/artifacts/**/*.snupkg  
       nuGetFeedType: external
       publishFeedCredentials: machinelearning-dnceng-public-feed
-      allowPackageConflicts: true
 
   - task: MSBuild@1
     displayName: Publish Symbols to SymWeb Symbol Server
