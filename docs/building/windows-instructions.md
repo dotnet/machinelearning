@@ -56,8 +56,8 @@ You can use the Developer Command Prompt, Powershell or work in any regular cmd.
 From a (non-admin) Command Prompt window:
 
 - `build.cmd` - builds the assemblies
-- `build.cmd -runTests` - called after a normal "build.cmd" will run all tests
-- `build.cmd -buildPackages` called after a normal “build.cmd” will create the NuGet packages with the assemblies in “bin"
+- `build.cmd -test` - called after a normal "build.cmd" will run all tests
+- `build.cmd -pack` called after a normal “build.cmd” will create the NuGet packages with the assemblies in `artifacts\packages`"
 
 **Note**: Before working on individual projects or test projects you **must** run `build.cmd` from the root once before beginning that work. It is also a good idea to run `build.cmd` whenever you pull a large set of unknown changes into your branch.
 
@@ -69,7 +69,7 @@ After successfully building, run tests in the Visual Studio Test Explorer window
 
 ### Running tests from the command line
 
-From the root, run `build.cmd` and then `build.cmd -runTests`.
+From the root, run `build.cmd` and then `build.cmd -test`.
 For more details, or to test an individual project, you can navigate to the test project directory and then use `dotnet test`
 
 ## Known Issues
