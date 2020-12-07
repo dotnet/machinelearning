@@ -148,16 +148,6 @@ jobs:
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
-    - task: PublishTestResults@2
-      displayName: Publish Test Results
-      condition: succeededOrFailed()
-      inputs:
-        testRunner: 'vSTest'
-        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/TestResults'
-        testResultsFiles: '**/*.trx'
-        testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
-        configuration: $(_configuration)
-        mergeTestResults: true
     - task: CopyFiles@2
       displayName: Stage build logs
       condition: not(succeeded())
