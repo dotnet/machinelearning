@@ -491,11 +491,11 @@ namespace Microsoft.ML.Data
                 var correctProba = !wasKnownLabel ? 0 : _scoresArr[intLabel];
 
                 // Find the rank of the *correct* label (in _scoresArr[]). If the correct (ground truth) labels gets rank 0,
-                // it means the model assigned it the highest probability (that's ideal). Rank 1 would mean our model 
+                // it means the model assigned it the highest probability (that's ideal). Rank 1 would mean our model
                 // gives the real label the 2nd highest probabality, etc.
                 // The rank will be from 0 to N. (Not N-1). Rank N is used for unrecognized values.
                 //
-                // Tie breaking: What if we have probabilities that are equal to the correct prediction (eg, a:0.1, b:0.1, 
+                // Tie breaking: What if we have probabilities that are equal to the correct prediction (eg, a:0.1, b:0.1,
                 // c:0.1, d:0.6, e:0.1 where c is the correct label).
                 // This actually happens a lot with some models. We handle ties by assigning rank in order of first
                 // appearance. In this example, we assign c the rank of 3, because d has a higher probability and a and b
@@ -512,9 +512,9 @@ namespace Microsoft.ML.Data
                         assigned = i;
                 }
 
-                UnweightedCounters.Update(rankofCorrectLabel, assigned, logloss, intLabel, 1);
+                UnweightedCounters.Update(rankOfCorrectLabel, assigned, logloss, intLabel, 1);
                 if (WeightedCounters != null)
-                    WeightedCounters.Update(rankofCorrectLabel, assigned, logloss, intLabel, weight);
+                    WeightedCounters.Update(rankOfCorrectLabel, assigned, logloss, intLabel, weight);
             }
 
             protected override List<string> GetWarningsCore()
