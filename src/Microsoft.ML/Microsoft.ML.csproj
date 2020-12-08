@@ -4,7 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <NoWarn>$(NoWarn);NU5118</NoWarn>
+    <NoWarn>$(NoWarn);NU5118;NU5127;NU5128</NoWarn>
     <PackageDescription>ML.NET is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.</PackageDescription>
   </PropertyGroup>
 
