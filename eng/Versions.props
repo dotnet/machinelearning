@@ -10,7 +10,7 @@
     -->
     <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
     <VersionPrefix>1.5.3</VersionPrefix>
-    <PreReleaseVersionLabel>dev</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
 
     <!--ML.NET Core dependencies-->
