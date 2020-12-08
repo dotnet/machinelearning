@@ -189,6 +189,7 @@ phases:
   variables:
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
@@ -230,10 +231,14 @@ phases:
       sourceFolder: $(Build.SourcesDirectory)/artifacts/pkgassets/PackageAssets
       targetFolder: $(Build.SourcesDirectory)/artifacts/pkgassets
 
-  - script: ./build.cmd -pack -configuration $(BuildConfig)
+  # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
+  # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
+  # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
+  # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version 
+  - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:OfficialBuildId=$(OfficialBuildId) /p:DotNetFinalVersionKind=$(DotnetVersionKind)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
     displayName: Build Packages
 
-  - script: ./sign.cmd /p:SignNugetPackages=true
+  - script: ./sign.cmd /p:SignNugetPackages=true  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
     displayName: sign packages
     continueOnError: false
 
@@ -241,14 +246,19 @@ phases:
     inputs:
       nuGetServiceConnections: machinelearning-dnceng-public-feed # To allow publishing to a feed of another organization
 
-  - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe msbuild build\publish.proj /t:PublishPackages /p:NuGetFeedUrl=$(_AzureDevopsFeedUrl) /p:NuGetApiKey=AzureArtifacts
-    displayName: Publish Packages to AzureDevOps Feed
+  - task: NuGetCommand@2
+    displayName: Push packages to AzureDevOps feed
+    inputs:
+      command: push
+      packagesToPush: $(Build.SourcesDirectory)/artifacts/**/*.nupkg;!$(Build.SourcesDirectory)/artifacts/**/*.snupkg  
+      nuGetFeedType: external
+      publishFeedCredentials: machinelearning-dnceng-public-feed
 
   - task: MSBuild@1
     displayName: Publish Symbols to SymWeb Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
       msbuildVersion: 15.0
     continueOnError: true
 
@@ -256,7 +266,7 @@ phases:
     displayName: Publish Symbols to Msdl Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
       msbuildVersion: 15.0
     continueOnError: true
 

@@ -5,6 +5,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.SampleUtils</IncludeInPackage>
     <PackageDescription>Sample utils for Microsoft.ML.Samples</PackageDescription>
+
+    <!--The nuget we publish is named SampleUtils, so this is necessary.
+    Still, the namespace expected inside the nuget is named SamplesUtils,
+    So the project itself and its code is not to be renamed SampleUtils.-->
+    <PackageId>Microsoft.ML.SampleUtils</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
