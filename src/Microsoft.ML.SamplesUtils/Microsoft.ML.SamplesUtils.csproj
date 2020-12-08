@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.SampleUtils</IncludeInPackage>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <PackageDescription>Sample utils for Microsoft.ML.Samples</PackageDescription>
   </PropertyGroup>
 

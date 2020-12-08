@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Recommender</IncludeInPackage>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>LIBMF, the core computation library for matrix factorization in ML.NET</PackageDescription>
   </PropertyGroup>

@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.DnnImageFeaturizer.AlexNet</IncludeInPackage>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <PackageDescription>ML.NET component for pretrained AlexNet image featurization</PackageDescription>
   </PropertyGroup>
 

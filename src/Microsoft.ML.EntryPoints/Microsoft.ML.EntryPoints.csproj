@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.EntryPoints</IncludeInPackage>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <PackageDescription>Microsoft.ML.EntryPoints contains the ML.NET entry point API catalog.</PackageDescription>
   </PropertyGroup>
 

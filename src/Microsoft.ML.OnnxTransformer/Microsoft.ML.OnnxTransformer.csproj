@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.OnnxTransformer</IncludeInPackage>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>ML.NET component for Microsoft.ML.Scoring library</PackageDescription>
   </PropertyGroup>

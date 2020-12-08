@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.CodeGenerator</IncludeInPackage>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <PackageDescription>ML.NET Code Generator</PackageDescription>
   </PropertyGroup>
 

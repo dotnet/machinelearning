@@ -16,7 +16,7 @@
     <Authors>Microsoft</Authors>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
-    <!-- <PackageIcon>mlnetlogo.png</PackageIcon> -->
+    <PackageIcon>mlnetlogo.png</PackageIcon>
     <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
     <!-- space separated -->
     <PackageTags>ML.NET ML Machine Learning</PackageTags>
@@ -34,7 +34,7 @@
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\**\*" PackagePath="runtimes" />
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\*" PackagePath="tools" />
 
-    <!-- <Content Include="$(RepoRoot)eng\pkg\mlnetlogo.png" Pack="true" PackagePath="" /> -->
+    <Content Include="$(RepoRoot)eng\pkg\mlnetlogo.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">

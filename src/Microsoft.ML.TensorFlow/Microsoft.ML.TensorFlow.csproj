@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.TensorFlow</IncludeInPackage>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <DefineConstants>CORECLR</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>Microsoft.ML.TensorFlow contains ML.NET integration of TensorFlow.</PackageDescription>

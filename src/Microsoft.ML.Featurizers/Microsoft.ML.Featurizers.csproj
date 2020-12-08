@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.Featurizers</IncludeInPackage>
+    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>ML.NET featurizers with native code implementation</PackageDescription>
   </PropertyGroup>
