@@ -10,7 +10,10 @@ set -e
 usage()
 {
   echo "Common settings:"
-  echo "  --configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
+  echo "  --configuration <value>    Build configuration (short: -c). Available options:"
+  echo "                               'Debug', 'Release' (for .NET Core 2.1)"
+  echo "                               'Debug-netcoreapp3_1', 'Release-netcoreapp3_1' (for .NET Core 3.1)"
+  echo "                               'Debug-netfx', 'Release-netfx' (for .NET Frameworks 4.6.1)"
   echo "  --verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic] (short: -v)"
   echo "  --binaryLog                Create MSBuild binary log (short: -bl)"
   echo "  --help                     Print help and exit (short: -h)"

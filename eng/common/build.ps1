@@ -38,6 +38,9 @@ if($env:Platform) {
 function Print-Usage() {
   Write-Host "Common settings:"
   Write-Host "  -configuration <value>  Build configuration: 'Debug' or 'Release' (short: -c)"
+  Write-Host "                            'Debug', 'Release' (for .NET Core 2.1)"
+  Write-Host "                            'Debug-netcoreapp3_1', 'Release-netcoreapp3_1' (for .NET Core 3.1)"
+  Write-Host "                            'Debug-netfx', 'Release-netfx' (for .NET Frameworks 4.6.1)"
   Write-Host "  -platform <value>       Platform configuration: 'x86', 'x64' or any valid Platform value to pass to msbuild"
   Write-Host "  -verbosity <value>      Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic] (short: -v)"
   Write-Host "  -binaryLog              Output binary log (short: -bl)"
