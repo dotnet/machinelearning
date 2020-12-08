@@ -25,10 +25,10 @@ phases:
   steps:
   - script: ./restore.sh
     displayName: restore all projects
-  - script: ./build.sh -configuration $(BuildConfig) /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
     displayName: build redist
   # Only build native assets to avoid conflicts.
-  - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64
+  - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
     displayName: Build
 
   - task: PublishBuildArtifacts@1
@@ -60,10 +60,10 @@ phases:
     displayName: Install build dependencies
   - script: ./restore.sh
     displayName: restore all projects
-  - script: ./build.sh -configuration $(BuildConfig) /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
     displayName: build redist
   # Only build native assets to avoid conflicts.
-  - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64
+  - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
     displayName: Build
 
   - task: PublishBuildArtifacts@1
@@ -104,10 +104,10 @@ phases:
 
   - script: ./restore.cmd
     displayName: restore all projects
-  - script: ./build.cmd -configuration $(BuildConfig) /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+  - script: ./build.cmd -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
     displayName: build redist
   # Only build native assets to avoid conflicts.
-  - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86
+  - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
     displayName: Build
 
   - script: ./sign.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:SignBinaries=true
@@ -154,7 +154,7 @@ phases:
     condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
   # Build both native and managed assets.
-  - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64
+  - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
     displayName: Build
 
   - task: ComponentGovernanceComponentDetection@0
