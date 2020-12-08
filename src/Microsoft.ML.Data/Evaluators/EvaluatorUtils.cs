@@ -1037,7 +1037,7 @@ namespace Microsoft.ML.Data
                     foreach (var name in names.Items(all: true))
                     {
                         var tryNaming = string.Format(metricName, name.Value);
-                        if (tryNaming == metricName) //metricName wasn't a format string, so just append slotname
+                        if (tryNaming == metricName) // metricName wasn't a format string, so just append slotname
                             tryNaming = (string.Format("{0}{1}", metricName, name.Value));
 
                         metricNames.Add(tryNaming);
