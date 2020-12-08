@@ -126,9 +126,8 @@ namespace Microsoft.ML.AutoML
                     topKPredictionCount: newMetrics.ElementAt(0).TopKPredictionCount,
                     topKAccuracies: GetAverageOfNonNaNScoresInNestedEnumerable(newMetrics.Select(x => x.TopKAccuracyForAllK)),
                     perClassLogLoss: (metricsClosestToAvg as MulticlassClassificationMetrics).PerClassLogLoss.ToArray(),
-                    confusionMatrix: (metricsClosestToAvg as MulticlassClassificationMetrics).ConfusionMatrix) ;
+                    confusionMatrix: (metricsClosestToAvg as MulticlassClassificationMetrics).ConfusionMatrix);
                 return result as TMetrics;
-
             }
 
             if (typeof(TMetrics) == typeof(RegressionMetrics))

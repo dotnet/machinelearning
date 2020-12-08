@@ -37,10 +37,10 @@ namespace Microsoft.ML.Tests
             // decreases on each row so as to get the expected TopK accuracy array hardcoded below.
             var inputArray = new[]
             {
-                new MulticlassEvaluatorInput{Label = 0, Score = new[] {0.4f, 0.3f, 0.2f, 0.1f }, PredictedLabel=0},
-                new MulticlassEvaluatorInput{Label = 0, Score = new[] {0.3f, 0.4f, 0.2f, 0.1f }, PredictedLabel=1},
-                new MulticlassEvaluatorInput{Label = 0, Score = new[] {0.2f, 0.3f, 0.4f, 0.1f }, PredictedLabel=2},
-                new MulticlassEvaluatorInput{Label = 0, Score = new[] {0.1f, 0.3f, 0.2f, 0.4f }, PredictedLabel=3}
+                new MulticlassEvaluatorInput{Label = 0, Score = new[] {0.4f, 0.3f, 0.2f, 0.1f}, PredictedLabel = 0},
+                new MulticlassEvaluatorInput{Label = 0, Score = new[] {0.3f, 0.4f, 0.2f, 0.1f}, PredictedLabel = 1},
+                new MulticlassEvaluatorInput{Label = 0, Score = new[] {0.2f, 0.3f, 0.4f, 0.1f}, PredictedLabel = 2},
+                new MulticlassEvaluatorInput{Label = 0, Score = new[] {0.1f, 0.3f, 0.2f, 0.4f}, PredictedLabel = 3}
             };
 
             var expectedTopKArray = new[] { 0.25d, 0.5d, 0.75d, 1.0d };

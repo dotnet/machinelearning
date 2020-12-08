@@ -309,7 +309,7 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public double TopKAccuracy => !(OutputTopKAcc is null) ? AllTopKAccuracy[OutputTopKAcc.Value-1] : 0d;
+                public double TopKAccuracy => !(OutputTopKAcc is null) ? AllTopKAccuracy[OutputTopKAcc.Value - 1] : 0d;
                 public double[] AllTopKAccuracy => CumulativeSum(_seenRanks.Take(OutputTopKAcc ?? 0).Select(l => l / (double)(_numInstances - _numUnknownClassInstances))).ToArray();
 
                 // The per class average log loss is calculated by dividing the weighted sum of the log loss of examples
@@ -490,19 +490,25 @@ namespace Microsoft.ML.Data
                 // Get the probability that the CORRECT label has: (best case is that it's the highest probability):
                 var correctProba = !wasKnownLabel ? 0 : _scoresArr[intLabel];
 
-                // Find the rank of the *correct* label (in _scoresArr[]). If the correct (ground truth) labels gets rank 0, it means the model assigned it the highest probability (that's ideal). Rank 1 would mean our model gives the real label the 2nd highest probabality, etc.
+                // Find the rank of the *correct* label (in _scoresArr[]). If the correct (ground truth) labels gets rank 0,
+                // it means the model assigned it the highest probability (that's ideal). Rank 1 would mean our model 
+                // gives the real label the 2nd highest probabality, etc.
                 // The rank will be from 0 to N. (Not N-1). Rank N is used for unrecognized values.
-                // Situation: What if we have probabilities that are equal to the correct prediction (eg, a:0.1, b:0.1, c:0.1, d:0.6, e:0.1 where c is the correct label).
-                // This actually happens a lot with some models. We handle ties by assigning rank in order of first appearance. In this example, we assign c the rank of 3, because d has a higher probability and a and b are sequentially first.
-                int rankofCorrectLabel = 0;
+                //
+                // Tie breaking: What if we have probabilities that are equal to the correct prediction (eg, a:0.1, b:0.1, 
+                // c:0.1, d:0.6, e:0.1 where c is the correct label).
+                // This actually happens a lot with some models. We handle ties by assigning rank in order of first
+                // appearance. In this example, we assign c the rank of 3, because d has a higher probability and a and b
+                //  are sequentially first.
+                int rankOfCorrectLabel = 0;
                 int assigned = 0;
                 for (int i=0; i < _scoresArr.Length; i++)
                 {
-                    if ( _scoresArr[i] > correctProba || (_scoresArr[i] == correctProba && i < intLabel))
-                        rankofCorrectLabel++;
+                    if (_scoresArr[i] > correctProba || (_scoresArr[i] == correctProba && i < intLabel))
+                        rankOfCorrectLabel++;
 
-                    //This is the assigned "prediction" of the model if it has the highest probability.
-                    if ( _scoresArr[assigned] < _scoresArr[i] )
+                    // This is the assigned "prediction" of the model if it has the highest probability.
+                    if (_scoresArr[assigned] < _scoresArr[i])
                         assigned = i;
                 }
 
