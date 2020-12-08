@@ -421,11 +421,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
         }
 
-        [Theory, IterationData(25)]
+        [Theory, IterationData(250)]
         [TestCategory("RunSpecificTest")]
         public void TestFastTreeRegressionFeaturizationInPipeline(int iteration)
         {
             Console.WriteLine(iteration);
+            if(iteration == 2)
+                throw new Exception("Force to publish the .html output on the CI");
+                
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
