@@ -5,8 +5,8 @@ ML.NET source code files build for .NET Core 3.1 and .NET Standard 2.0. However,
 
 To run tests on .NET Core 3.1, you need to do a few manual steps.
 
-1. Run `.\build.cmd -- /p:Configuration=Release-netcoreapp3_1` or `.\build.cmd -Release-netcoreapp3_1` from the root of the repo.
-2. If you want to build the NuGet packages, `.\build.cmd -buildPackages` after step 1.
+1. Run `.\build.cmd -configuration Debug-netcoreapp3_1` or `.\build.cmd -configuration Release-netcoreapp3_1` from the root of the repo.
+2. If you want to build the NuGet packages, `.\build.cmd -pack` after step 1.
 
 If you are using Visual Studio, you will need to do the following:
 
