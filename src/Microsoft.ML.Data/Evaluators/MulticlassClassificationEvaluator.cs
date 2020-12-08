@@ -264,7 +264,7 @@ namespace Microsoft.ML.Data
                 private double _numCorrect;
                 private readonly double[] _sumWeightsOfClass;
                 private readonly double[] _totalPerClassLogLoss;
-                private readonly long[] _seenRanks;
+                private readonly double[] _seenRanks;
 
                 public readonly double[][] ConfusionTable;
 
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Data
                     for (int i = 0; i < ConfusionTable.Length; i++)
                         ConfusionTable[i] = new double[numClasses];
 
-                    _seenRanks = new long[numClasses + 1];
+                    _seenRanks = new double[numClasses + 1];
                 }
 
                 public void Update(int seenRank, int assigned, double loglossCurr, int label, float weight)
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Data
                     if (label < _numClasses)
                         _totalPerClassLogLoss[label] += loglossCurr * weight;
 
-                    _seenRanks[seenRank]++;
+                    _seenRanks[seenRank]+=weight;
 
                     if (seenRank == 0) //prediction matched label
                     {
