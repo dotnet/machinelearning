@@ -4,7 +4,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Ensemble</IncludeInPackage>
-    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <PackageDescription>ML.NET component for Ensembles</PackageDescription>
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>

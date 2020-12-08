@@ -4,7 +4,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Mkl.Components</IncludeInPackage>
-    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>ML.NET additional learners making use of Intel Mkl.</PackageDescription>
   </PropertyGroup>

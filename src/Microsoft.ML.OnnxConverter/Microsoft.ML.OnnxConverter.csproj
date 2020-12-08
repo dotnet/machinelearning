@@ -4,7 +4,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.OnnxConverter</IncludeInPackage>
-    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <RootNamespace>Microsoft.ML.Model.Onnx</RootNamespace>
     <PackageDescription>ML.NET component for exporting ONNX Models</PackageDescription>
   </PropertyGroup>

@@ -7,7 +7,6 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <PackageDescription>$(MSBuildProjectName) contains the MKL library redistributed as a NuGet package.</PackageDescription>
     <PackageTags>$(PackageTags) MLNET MKL</PackageTags>
   </PropertyGroup>

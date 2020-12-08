@@ -4,7 +4,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.TimeSeries</IncludeInPackage>
-    <NoWarn>$(NoWarn);NU5118</NoWarn>
     <PackageDescription>Microsoft.ML.TimeSeries contains ML.NET Time Series prediction algorithms. Uses Intel Mkl.</PackageDescription>
   </PropertyGroup>
 
