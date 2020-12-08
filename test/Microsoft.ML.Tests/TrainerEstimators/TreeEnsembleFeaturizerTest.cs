@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 
@@ -420,9 +421,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
         }
 
-        [Fact]
-        public void TestFastTreeRegressionFeaturizationInPipeline()
+        [Theory, IterationData(25)]
+        [TestCategory("RunSpecificTest")]
+        public void TestFastTreeRegressionFeaturizationInPipeline(int iteration)
         {
+            Console.WriteLine(iteration);
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
