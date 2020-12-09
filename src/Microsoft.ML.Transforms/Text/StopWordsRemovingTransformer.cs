@@ -984,7 +984,7 @@ namespace Microsoft.ML.Transforms.Text
             {
 
                 const string dir = "Stopwords";
-                NormStr.Pool stopwrods = null;
+                NormStr.Pool stopwords = null;
                 bool res = ctx.TryProcessSubModel(dir,
                     c =>
                     {
@@ -997,22 +997,22 @@ namespace Microsoft.ML.Transforms.Text
                         int cstr = ctx.Reader.ReadInt32();
                         Host.CheckDecode(cstr > 0);
 
-                        stopwrods = new NormStr.Pool();
+                        stopwords = new NormStr.Pool();
                         for (int istr = 0; istr < cstr; istr++)
                         {
-                            var nstr = stopwrods.Add(ctx.LoadString());
+                            var nstr = stopwords.Add(ctx.LoadString());
                             Host.CheckDecode(nstr.Id == istr);
                         }
 
                         // All stopwords are distinct.
-                        Host.CheckDecode(stopwrods.Count == cstr);
+                        Host.CheckDecode(stopwords.Count == cstr);
                         // The deserialized pool should not have the empty string.
-                        Host.CheckDecode(stopwrods.Get("") == null);
+                        Host.CheckDecode(stopwords.Get("") == null);
                     });
                 if (!res)
                     throw Host.ExceptDecode();
 
-                _stopWordsMap = stopwrods;
+                _stopWordsMap = stopwords;
             }
         }
 
