@@ -61,7 +61,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void MulticlassMetricsGetScoreTest()
         {
-            var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0, 0.5, new double[] {});
+            var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0, new double[] {0.5}, new double[] {});
             Assert.Equal(0.1, GetScore(metrics, MulticlassClassificationMetric.MicroAccuracy));
             Assert.Equal(0.2, GetScore(metrics, MulticlassClassificationMetric.MacroAccuracy));
             Assert.Equal(0.3, GetScore(metrics, MulticlassClassificationMetric.LogLoss));
@@ -72,7 +72,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void MulticlassMetricsNonPerfectTest()
         {
-            var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0, 0.5, new double[] { });
+            var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0, new double[] { 0.5 }, new double[] { });
             Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.MacroAccuracy));
             Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.MicroAccuracy));
             Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.LogLoss));
@@ -83,7 +83,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void MulticlassMetricsPerfectTest()
         {
-            var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(1, 1, 0, 1, 0, 1, new double[] { });
+            var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(1, 1, 0, 1, 0, new double[] { 1 }, new double[] { });
             Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.MicroAccuracy));
             Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.MacroAccuracy));
             Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.LogLoss));

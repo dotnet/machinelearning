@@ -37,6 +37,8 @@ namespace Microsoft.ML.PerformanceTests
         private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
         private IrisData[][] _batches;
         private MulticlassClassificationMetrics _metrics;
+        private MulticlassClassificationEvaluator _evaluator;
+        private IDataView _scoredIrisTestData;
 
         protected override IEnumerable<Metric> GetMetrics()
         {
@@ -118,7 +120,7 @@ namespace Microsoft.ML.PerformanceTests
             _consumer.Consume(predicted);
         }
 
-        [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
+        [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5), nameof(EvaluateMetrics) })]
         public void SetupPredictBenchmarks()
         {
             _trainedModel = Train(_dataPath);
@@ -141,9 +143,9 @@ namespace Microsoft.ML.PerformanceTests
             var loader = new TextLoader(_mlContext, options: options);
 
             IDataView testData = loader.Load(_dataPath);
-            IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MulticlassClassificationEvaluator(_mlContext, new MulticlassClassificationEvaluator.Arguments());
-            _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
+            _scoredIrisTestData = _trainedModel.Transform(testData);
+            _evaluator = new MulticlassClassificationEvaluator(_mlContext, new MulticlassClassificationEvaluator.Arguments());
+            _metrics = _evaluator.Evaluate(_scoredIrisTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
 
             _batches = new IrisData[_batchSizes.Length][];
             for (int i = 0; i < _batches.Length; i++)
@@ -168,6 +170,9 @@ namespace Microsoft.ML.PerformanceTests
 
         [Benchmark]
         public void PredictIrisBatchOf5() => _trainedModel.Transform(_mlContext.Data.LoadFromEnumerable(_batches[2]));
+
+        [Benchmark]
+        public void EvaluateMetrics() => _evaluator.Evaluate(_scoredIrisTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
     }
 
     public class IrisData

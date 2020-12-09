@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
@@ -251,7 +252,7 @@ namespace Microsoft.ML
                 logLoss: a.LogLoss - b.LogLoss,
                 logLossReduction: a.LogLossReduction - b.LogLossReduction,
                 topKPredictionCount: a.TopKPredictionCount,
-                topKAccuracy: a.TopKAccuracy - b.TopKAccuracy,
+                topKAccuracies: a?.TopKAccuracyForAllK?.Zip(b.TopKAccuracyForAllK, (a,b)=>a-b)?.ToArray(),
                 perClassLogLoss: perClassLogLoss
                 );
         }
