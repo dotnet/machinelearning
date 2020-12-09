@@ -52,9 +52,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{487213C9-E8A9-4F94-85D7-28A05DBBFE3A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "netstandard2.0", "netstandard2.0", "{9252A8EB-ABFB-440C-AB4D-1D562753CE0F}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.targets = pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.targets
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Sweeper.Tests", "test\Microsoft.ML.Sweeper.Tests\Microsoft.ML.Sweeper.Tests.csproj", "{3DEB504D-7A07-48CE-91A2-8047461CB3D4}"
 EndProject
@@ -63,10 +60,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Ensemble", "src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj", "{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CpuMath", "Microsoft.ML.CpuMath", "{BF66A305-DF10-47E4-8D81-42049B149D2B}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.nupkgproj = pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.nupkgproj
-		pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.symbols.nupkgproj = pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools-local", "tools-local", "{7F13E156-3EBA-4021-84A5-CD56BA72F99E}"
 EndProject
@@ -117,127 +110,52 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.EntryPoints", "src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj", "{7504D46F-E4B3-43CB-9B1C-82F3131F1C99}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Mkl.Components", "Microsoft.ML.Mkl.Components", "{63006A14-B924-48C5-83C9-CFE9DA22B01F}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.nupkgproj = pkg\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.nupkgproj
-		pkg\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.symbols.nupkgproj = pkg\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.ImageAnalytics", "Microsoft.ML.ImageAnalytics", "{1229F799-37F0-4282-B9F0-74BFA97CC362}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.nupkgproj = pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.nupkgproj
-		pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.symbols.nupkgproj = pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.LightGbm", "Microsoft.ML.LightGbm", "{DE95FE65-9FF7-4233-93DF-7A8F2805624A}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.nupkgproj = pkg\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.nupkgproj
-		pkg\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.symbols.nupkgproj = pkg\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Mkl.Redist", "Microsoft.ML.Mkl.Redist", "{4CF8095E-B4A3-4326-A550-43098E447288}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.nupkgproj = pkg\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxConverter", "Microsoft.ML.OnnxConverter", "{19AC192B-75FE-45D5-B219-898E401D5904}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.nupkgproj = pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.nupkgproj
-		pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.symbols.nupkgproj = pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxTransformer", "Microsoft.ML.OnnxTransformer", "{93FF16AA-635E-421D-96C1-008818C143A2}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.nupkgproj = pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.nupkgproj
-		pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.symbols.nupkgproj = pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Recommender", "Microsoft.ML.Recommender", "{320AF46A-4809-486E-8F9E-A00C8AE47751}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.nupkgproj = pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.nupkgproj
-		pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.symbols.nupkgproj = pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TensorFlow", "Microsoft.ML.TensorFlow", "{11894B4A-78B4-4523-A6DD-4495722E244F}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.nupkgproj = pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.nupkgproj
-		pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.symbols.nupkgproj = pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TimeSeries", "Microsoft.ML.TimeSeries", "{B836F712-7FB6-4B75-A3EB-FB05F8E0D15E}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.nupkgproj = pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.nupkgproj
-		pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.symbols.nupkgproj = pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DnnImageFeaturizer.AlexNet", "Microsoft.ML.DnnImageFeaturizer.AlexNet", "{B00098E4-771E-41DF-A3AA-A606AAB334B7}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.nupkgproj
-		pkg\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.symbols.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DnnImageFeaturizer.ResNet18", "Microsoft.ML.DnnImageFeaturizer.ResNet18", "{BD93C0F3-3CED-4BE8-9389-4234250FBFB1}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.nupkgproj
-		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.symbols.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DnnImageFeaturizer.ResNet50", "Microsoft.ML.DnnImageFeaturizer.ResNet50", "{8EDFB7E5-7E7E-411D-99C5-7A4895D0F9CB}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.nupkgproj
-		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.symbols.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DnnImageFeaturizer.ResNet101", "Microsoft.ML.DnnImageFeaturizer.ResNet101", "{9E689AD4-F908-493C-B882-B1B33E8F7696}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.nupkgproj
-		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.symbols.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.EntryPoints", "Microsoft.ML.EntryPoints", "{8D8CC016-0020-40EC-BD8E-73F1CE0F9662}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.nupkgproj = pkg\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.nupkgproj
-		pkg\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.symbols.nupkgproj = pkg\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{A84717CB-F11A-41C5-A74D-C0F1D47B7431}"
-	ProjectSection(SolutionItems) = preProject
-		eng\pkg\CommonPackage.props = eng\pkg\CommonPackage.props
-		eng\pkg\DnnImageFeaturizer.props = eng\pkg\DnnImageFeaturizer.props
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DataView", "src\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj", "{85D0CAFD-2FE8-496A-88C7-585D35B94243}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DataView", "Microsoft.ML.DataView", "{31D38B21-102B-41C0-9E0A-2FE0BF68D123}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.DataView\Microsoft.ML.DataView.nupkgproj = pkg\Microsoft.ML.DataView\Microsoft.ML.DataView.nupkgproj
-		pkg\Microsoft.ML.DataView\Microsoft.ML.DataView.symbols.nupkgproj = pkg\Microsoft.ML.DataView\Microsoft.ML.DataView.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteExecutorConsoleApp", "test\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj", "{5E920CAC-5A28-42FB-936E-49C472130953}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Ensemble", "Microsoft.ML.Ensemble", "{AD7058C9-5608-49A8-BE23-58C33A74EE91}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.nupkgproj = pkg\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.nupkgproj
-		pkg\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.symbols.nupkgproj = pkg\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Experimental", "src\Microsoft.ML.Experimental\Microsoft.ML.Experimental.csproj", "{E02DA82D-3FEE-4C60-BD80-9EC3C3448DFC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.FastTree", "Microsoft.ML.FastTree", "{B1B3F284-FA3D-4D76-A712-FF04495D244B}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.FastTree\Microsoft.ML.FastTree.nupkgproj = pkg\Microsoft.ML.FastTree\Microsoft.ML.FastTree.nupkgproj
-		pkg\Microsoft.ML.FastTree\Microsoft.ML.FastTree.symbols.nupkgproj = pkg\Microsoft.ML.FastTree\Microsoft.ML.FastTree.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Extensions.ML", "src\Microsoft.Extensions.ML\Microsoft.Extensions.ML.csproj", "{D6741C37-B5E6-4050-BCBA-9715809EA15B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Extensions.ML.Tests", "test\Microsoft.Extensions.ML.Tests\Microsoft.Extensions.ML.Tests.csproj", "{21CAD3A1-5E1F-42C1-BB73-46B6E67F4206}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.Extensions.ML", "Microsoft.Extensions.ML", "{AE4F7569-26F3-4160-8A8B-7A57D0DA3350}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.Extensions.ML\Microsoft.Extensions.ML.nupkgproj = pkg\Microsoft.Extensions.ML\Microsoft.Extensions.ML.nupkgproj
-		pkg\Microsoft.Extensions.ML\Microsoft.Extensions.ML.symbols.nupkgproj = pkg\Microsoft.Extensions.ML\Microsoft.Extensions.ML.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StableApi", "tools-local\Microsoft.ML.StableApi\Microsoft.ML.StableApi.csproj", "{F308DC6B-7E59-40D7-A581-834E8CD99CFE}"
 EndProject
@@ -246,10 +164,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML", "src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj", "{E48285BF-F49A-4EA3-AED0-1BDDBF77EB80}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.AutoML", "Microsoft.ML.AutoML", "{F5D11F71-2D61-4AE9-99D7-0F0B54649B15}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.AutoML\Microsoft.ML.AutoML.nupkgproj = pkg\Microsoft.ML.AutoML\Microsoft.ML.AutoML.nupkgproj
-		pkg\Microsoft.ML.AutoML\Microsoft.ML.AutoML.symbols.nupkgproj = pkg\Microsoft.ML.AutoML\Microsoft.ML.AutoML.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Samples", "docs\samples\Microsoft.ML.AutoML.Samples\Microsoft.ML.AutoML.Samples.csproj", "{A6924919-9E37-4023-8B7F-E85C8E3CC9B3}"
 EndProject
@@ -258,20 +172,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Featurizers", "src\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.csproj", "{E2DD0721-5B0F-4606-8182-4C7EFB834518}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Featurizers", "Microsoft.ML.Featurizers", "{1BA5C784-52E8-4A87-8525-26B2452F2882}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.nupkgproj = pkg\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.nupkgproj
-		pkg\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.symbols.nupkgproj = pkg\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeGenerator", "src\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.csproj", "{56CB0850-7341-4D71-9AE4-9EFC472D93DD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeGenerator.Tests", "test\Microsoft.ML.CodeGenerator.Tests\Microsoft.ML.CodeGenerator.Tests.csproj", "{46CC5637-3DDF-4100-93FC-44BB87B2DB81}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CodeGenerator", "Microsoft.ML.CodeGenerator", "{3817A875-278C-4140-BF66-3C4A8CA55F0D}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.nupkgproj = pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.nupkgproj
-		pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.symbols.nupkgproj = pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.symbols.nupkgproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Vision", "src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj", "{419F93D5-4135-4DA0-A76E-EFC23E04093D}"
 EndProject
@@ -284,9 +190,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{C91F81E3-B900-4968-A6DF-F53B515E97E1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "netstandard2.0", "netstandard2.0", "{027DBA48-85B6-46F1-9487-0B49B5057FC0}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.CpuMath\build\netstandard2.0\Microsoft.ML.CpuMath.props = pkg\Microsoft.ML.CpuMath\build\netstandard2.0\Microsoft.ML.CpuMath.props
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML", "src\Microsoft.ML\Microsoft.ML.csproj", "{6CF88209-69DB-4B36-9604-3ECD9F163E96}"
 EndProject
