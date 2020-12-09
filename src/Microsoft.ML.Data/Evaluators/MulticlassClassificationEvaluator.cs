@@ -309,7 +309,7 @@ namespace Microsoft.ML.Data
                 }
 
                 public double TopKAccuracy => !(OutputTopKAcc is null) ? AllTopKAccuracy[OutputTopKAcc.Value - 1] : 0d;
-                public double[] AllTopKAccuracy => CumulativeSum(_seenRanks.Take(OutputTopKAcc ?? 0).Select(l => l / (double)(_numInstances))).ToArray();
+                public double[] AllTopKAccuracy => CumulativeSum(_seenRanks.Take(OutputTopKAcc ?? 0).Select(l => l / _numInstances)).ToArray();
 
                 // The per class average log loss is calculated by dividing the weighted sum of the log loss of examples
                 // in each class by the total weight of examples in that class.
@@ -350,9 +350,9 @@ namespace Microsoft.ML.Data
                     if (label < _numClasses)
                         _totalPerClassLogLoss[label] += loglossCurr * weight;
 
-                    _seenRanks[seenRank]+=weight;
+                    _seenRanks[seenRank] += weight;
 
-                    if (seenRank == 0) //prediction matched label
+                    if (seenRank == 0) // Prediction matched label
                     {
                         _numCorrect += weight;
                         ConfusionTable[label][label] += weight;
