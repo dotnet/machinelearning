@@ -52,7 +52,7 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
 
-            if(useNumberOfCVFolds)
+            if (useNumberOfCVFolds)
             {
                 // When setting numberOfCVFolds
                 // The results object is a CrossValidationExperimentResults<> object
@@ -67,7 +67,7 @@ namespace Microsoft.ML.AutoML.Test
             }
             else
             {
-                // When using this API, if the trainset is under the
+                // When using this other API, if the trainset is under the
                 // crossValRowCounThreshold, AutoML will also perform CrossValidation
                 // but through a very different path that the one above,
                 // throw a CrossValSummaryRunner and will return
@@ -75,7 +75,7 @@ namespace Microsoft.ML.AutoML.Test
                 // simply a ExperimentResult<> object
 
                 int crossValRowCountThreshold = 15000;
-                trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold);
+                trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
                 var result = context.Auto()
                     .CreateMulticlassClassificationExperiment(0)
                     .Execute(trainData, DatasetUtil.TrivialMulticlassDatasetLabel);
