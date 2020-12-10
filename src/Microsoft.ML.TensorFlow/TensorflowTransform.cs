@@ -510,6 +510,7 @@ namespace Microsoft.ML.Transforms
 
                     if (shape == null || (shape.Length == 0))
                     {
+                        // for vector type input TensorShape should same to dim
                         if (_isInputVector[i])
                         {
                             vecType = (VectorDataViewType)type;
@@ -517,6 +518,7 @@ namespace Microsoft.ML.Transforms
                             _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
                         }
                         else
+                            // for primitive type use default TensorShape
                             _fullySpecifiedShapes[i] = new TensorShape();
                     }
                     else

@@ -1305,8 +1305,10 @@ namespace Microsoft.ML.Scenarios
         {
             using var tensorFlowModel = _mlContext.Model.LoadTensorFlowModel(@"model_primitive_input_test");
             var schema = tensorFlowModel.GetModelSchema();
-            Assert.True(schema.TryGetColumnIndex("input1", out var colIndex));
-            Assert.True(schema.TryGetColumnIndex("input2", out colIndex));
+            Assert.True(schema.GetColumnOrNull("input1").HasValue);
+            Assert.True(schema.GetColumnOrNull("input1").Value.Type is TextDataViewType);
+            Assert.True(schema.GetColumnOrNull("input2").HasValue);
+            Assert.True(schema.GetColumnOrNull("input2").Value.Type is TextDataViewType);
 
             var dataview = _mlContext.Data.CreateTextLoader<PrimitiveInput>().Load(new MultiFileSource(null));
 

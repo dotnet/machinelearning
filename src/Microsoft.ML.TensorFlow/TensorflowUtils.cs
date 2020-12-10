@@ -81,10 +81,12 @@ namespace Microsoft.ML.TensorFlow
 
                 if(tensorShape == null)
                 {
+                    // primitive column type
                     schemaBuilder.AddColumn(op.name, mlType, metadataBuilder.ToAnnotations());
                 }
                 else
                 {
+                    // vector column type
                     DataViewType columnType = new VectorDataViewType(mlType);
                     if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
                         (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
