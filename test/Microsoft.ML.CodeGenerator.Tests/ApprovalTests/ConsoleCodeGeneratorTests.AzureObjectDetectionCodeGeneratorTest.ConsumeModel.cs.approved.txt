@@ -14,9 +14,9 @@ namespace CodeGenTest.Model
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
-        public static string MLNetModelPath = Path.GetFullPath("/path/to/model");
+        public static string MLNetModelPath = Path.Combine(System.AppContext.BaseDirectory, "/path/to/model");
 
-        public static string OnnxModelPath = Path.GetFullPath("/path/to/onnxModel");
+        public static string OnnxModelPath = Path.Combine(System.AppContext.BaseDirectory, "/path/to/onnxModel");
 
         // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app

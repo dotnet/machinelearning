@@ -41,11 +41,12 @@ MB_Annotation();
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
-        public static string MLNetModelPath = Path.GetFullPath(""");
+        public static string MLNetModelPath = Path.Combine(System.AppContext.BaseDirectory, """);
             this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelName));
             this.Write("\");\r\n");
 if(IsAzureImage || IsAzureObjectDetection){ 
-            this.Write(" \r\n        public static string OnnxModelPath = Path.GetFullPath(\"");
+            this.Write(" \r\n        public static string OnnxModelPath = Path.Combine(System.AppContext.Ba" +
+                    "seDirectory, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(OnnxModelName));
             this.Write("\");\r\n");
 } 

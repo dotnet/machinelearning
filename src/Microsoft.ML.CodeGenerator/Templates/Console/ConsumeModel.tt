@@ -23,9 +23,9 @@ namespace <#= Namespace #>.Model
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
-        public static string MLNetModelPath = Path.GetFullPath("<#= MLNetModelName #>");
+        public static string MLNetModelPath = Path.Combine(System.AppContext.BaseDirectory, "<#= MLNetModelName #>");
 <#if(IsAzureImage || IsAzureObjectDetection){ #> 
-        public static string OnnxModelPath = Path.GetFullPath("<#= OnnxModelName #>");
+        public static string OnnxModelPath = Path.Combine(System.AppContext.BaseDirectory, "<#= OnnxModelName #>");
 <#} #>
 
         // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
