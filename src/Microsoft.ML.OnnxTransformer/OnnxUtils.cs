@@ -358,10 +358,11 @@ namespace Microsoft.ML.Transforms.Onnx
         /// Uses an open session to score a list of NamedOnnxValues.
         /// </summary>
         /// <param name="inputNamedOnnxValues">The NamedOnnxValues to score.</param>
+        /// <param name="outputColumns">The active output columns.</param>
         /// <returns>Resulting output NamedOnnxValues list.</returns>
-        public IDisposableReadOnlyCollection<DisposableNamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
+        public IDisposableReadOnlyCollection<DisposableNamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues, List<string> outputColumns)
         {
-            return _session.Run(inputNamedOnnxValues);
+            return _session.Run(inputNamedOnnxValues, outputColumns);
         }
 
         /// <summary>

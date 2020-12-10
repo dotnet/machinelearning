@@ -553,7 +553,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
             }
 
-            private void UpdateCacheIfNeeded(long position, INamedOnnxValueGetter[] srcNamedOnnxValueGetters, string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCache)
+            private void UpdateCacheIfNeeded(long position, INamedOnnxValueGetter[] srcNamedOnnxValueGetters, List<string> activeOutputColNames, OnnxRuntimeOutputCacher outputCache)
             {
                 if (outputCache.Position != position)
                 {
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     }
 
                     outputCache.OutputOnnxValues?.Dispose();
-                    outputCache.OutputOnnxValues = _parent.Model.Run(inputNameOnnxValues);
+                    outputCache.OutputOnnxValues = _parent.Model.Run(inputNameOnnxValues, activeOutputColNames);
                     Contracts.Assert(outputCache.OutputOnnxValues.Count > 0);
 
                     foreach (var outputNameOnnxValue in outputCache.OutputOnnxValues)
@@ -580,9 +580,10 @@ namespace Microsoft.ML.Transforms.Onnx
                 string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
+                var listActiveOutputColumns = activeOutputColNames.ToList();
                 ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, listActiveOutputColumns, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var tensor = namedOnnxValue.AsTensor<T>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<T>;
                     if (tensor == null)
@@ -598,10 +599,11 @@ namespace Microsoft.ML.Transforms.Onnx
                 string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
+                var listActiveOutputColumns = activeOutputColNames.ToList();
 
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> valueGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, listActiveOutputColumns, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var tensor = namedOnnxValue.AsTensor<string>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<string>;
                     if (tensor == null)
@@ -621,10 +623,11 @@ namespace Microsoft.ML.Transforms.Onnx
                 string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
+                var listActiveOutputColumns = activeOutputColNames.ToList();
 
                 ValueGetter<T> valueGetter = (ref T dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, listActiveOutputColumns, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var trueValue = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => value.AsDictionary<string, float>());
                     var caster = _parent.Model.ModelInfo.OutputsInfo[_parent.MapDataViewColumnToOnnxOutputTensor(iinfo)].Caster;
