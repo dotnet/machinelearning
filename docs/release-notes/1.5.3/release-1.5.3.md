@@ -33,7 +33,7 @@
 - Fixed MacOS builds ([#5467](https://github.com/dotnet/machinelearning/pull/5467) and [#5457](https://github.com/dotnet/machinelearning/pull/5457))
 
 ## **Documentation Updates**
-- Fixed Spelling on stopwords ([#5524](https://github.com/dotnet/machinelearning/pull/5524))
+- Fixed Spelling on stopwords ([#5524](https://github.com/dotnet/machinelearning/pull/5524))(**Thank you @LeoGaunt**)
 - Changed LoadRawImages Sample ([#5460](https://github.com/dotnet/machinelearning/pull/5460))
 
 
