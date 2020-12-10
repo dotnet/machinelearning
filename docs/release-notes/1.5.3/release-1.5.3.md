@@ -1,10 +1,10 @@
 # [ML.NET](http://dot.net/ml) 1.5.3
 
 ## **New Features**
-- **New API for exporting models to Onnx**. ([#todo](https://github.com/dotnet/machinelearning/pull/todo)). A new API has been added to Onnx converter to specify the output columns you care about. This will export a smaller and more performant model in many cases.
+- **New API for exporting models to Onnx**. ([#5544](https://github.com/dotnet/machinelearning/pull/5544)). A new API has been added to Onnx converter to specify the output columns you care about. This will export a smaller and more performant model in many cases.
 
 ## **Enhancements**
-- Perf improvement for TopK Accuracy and return all topK in Classification Evaluator ([#5395](https://github.com/dotnet/machinelearning/pull/5395))
+- Perf improvement for TopK Accuracy and return all topK in Classification Evaluator ([#5395](https://github.com/dotnet/machinelearning/pull/5395)) (**Thank you @jsallen**)
 - Update OnnxRuntime to 1.6 ([#5529](https://github.com/dotnet/machinelearning/pull/5529))
 - Updated tensorflow.net to 0.20.0 ([#5404](https://github.com/dotnet/machinelearning/pull/5404))
 
@@ -14,7 +14,7 @@
   - Fixed code generator tests failure ([#5520](https://github.com/dotnet/machinelearning/pull/5520))
   - Use Timer and ctx.CancelExecution() to fix AutoML max-time experiment bug ([#5445](https://github.com/dotnet/machinelearning/pull/5445))
   - Handled exception during GetNextPipeline for AutoML ([#5455](https://github.com/dotnet/machinelearning/pull/5455))
-  - Fixed issue when parsing float string fails on pl-PL culture set using Regression Experiment ([#5163](https://github.com/dotnet/machinelearning/pull/5163))
+  - Fixed internationalization bug([#5162](https://github.com/dotnet/machinelearning/pull/5163)) in AutoML parameter sweeping caused by culture dependent float parsing. ([#5163](https://github.com/dotnet/machinelearning/pull/5163))
   - Fixed MaxModels exit criteria for AutoML unit test ([#5471](https://github.com/dotnet/machinelearning/pull/5471))
 - Fixed memory leaks from OnnxTransformer ([#5518](https://github.com/dotnet/machinelearning/pull/5518))
 - Fixed memory leak in object pool ([#5521](https://github.com/dotnet/machinelearning/pull/5521))
