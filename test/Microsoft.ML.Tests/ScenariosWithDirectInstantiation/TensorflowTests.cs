@@ -1262,10 +1262,10 @@ namespace Microsoft.ML.Scenarios
 
         class PrimitiveInput
         {
-            [LoadColumn(0, 1)]
+            [LoadColumn(0)]
             public string input1;
 
-            [LoadColumn(1, 2)]
+            [LoadColumn(1)]
             public string input2;
         }
 

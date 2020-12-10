@@ -509,7 +509,16 @@ namespace Microsoft.ML.Transforms
                     var shape = originalShape.dims;
 
                     if (shape == null || (shape.Length == 0))
-                        _fullySpecifiedShapes[i] = new TensorShape();
+                    {
+                        if (_isInputVector[i])
+                        {
+                            vecType = (VectorDataViewType)type;
+                            var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
+                            _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
+                        }
+                        else
+                            _fullySpecifiedShapes[i] = new TensorShape();
+                    }
                     else
                     {
                         vecType = (VectorDataViewType)type;
