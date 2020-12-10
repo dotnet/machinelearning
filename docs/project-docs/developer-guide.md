@@ -18,9 +18,9 @@ Developer Workflow
 The dev workflow describes the [development process](https://github.com/dotnet/buildtools/blob/master/Documentation/Dev-workflow.md) to follow. It is divided into specific tasks that are fast, transparent and easy to understand.
 The tasks are represented in scripts (cmd/sh) in the root of the repo.
 
-For more information about the different options that each task has, use the argument `-?` when calling the script.  For example:
+For more information about the different options that each task has, use the argument `-help` when calling the script.  For example:
 ```
-build -?
+build -help
 ```
 
 **Examples**
@@ -33,13 +33,12 @@ git submodule update --init
 
 - Building in release mode for platform x64
 ```
-build.cmd -Release -TargetArchitecture:x64
+build.cmd -configuration Release /p:TargetArchitecture=x64
 ```
 
 - Building the src and then building and running the tests
 ```
-build.cmd
-build.cmd -runTests
+build.cmd -test
 ```
 
 ### Building individual projects
@@ -60,11 +59,19 @@ You can build the tests for Microsoft.MachineLearning.Core.dll by going to
 ### Building in Release or Debug
 
 By default, building from the root or within a project will build the libraries in Debug mode.
-One can build in Debug or Release mode from the root by doing `build.cmd -Release` or `build.cmd -Debug`.
+One can build in Debug or Release mode from the root by doing `build.cmd -configuration Release` or `build.cmd -configuration Debug`.
+
+Currently, the full list of supported configurations are:
+- `Debug`, `Release` (for .NET Core 2.1)
+- `Debug-netcoreapp3_1`, `Release-netcoreapp3_1` (for .NET Core 3.1)
+- `Debug-netfx`, `Release-netfx` (for .NET Framework 4.6.1)
 
 ### Building other Architectures
 
-We only support 64-bit binaries right now.
+We support both 32-bit and 64-bit binaries. To build in 32-bit, use the `TargetArchitecture` flag as below:
+```
+build.cmd -configuration Debug /p:TargetArchitecture=x86
+```
 
 ### Updating manifest and ep-list files
 
@@ -78,6 +85,20 @@ Steps to update `core_manifest.json` and `core_ep-list.tsv`:
 3. Verify the changes to `core_manifest.json` and `core_ep-list.tsv` are correct.
 4. Re-enable the skip attribute on the `RegenerateEntryPointCatalog` test.
 5. Commit the updated `core_manifest.json` and `core_ep-list.tsv` files to your branch.
+
+### Running specifics unit tests on CI
+
+It may be necessary to run only specific unit tests on CI, and perhaps even run these tests back to back multiple times. The steps to run one or more unit tests are as follows:
+1. Set `runSpecific: true` and `innerLoop: false` in [.vsts-dotnet-ci.yml](https://github.com/dotnet/machinelearning/blob/master/.vsts-dotnet-ci.yml) per each build you'd like to run the specifics tests on CI.
+2. Import `Microsoft.ML.TestFrameworkCommon.Attributes` in the unit test files that contain specific unit tests to be run.
+3. Add the `[TestCategory("RunSpecificTest")]` to the unit test(s) you'd like to run specifically.
+
+If you would like to run these specific unit test(s) multiple times, do the following for each unit test to run:
+1. Replace the `[Fact]` attribute with `[Theory, IterationData(X)]` where `X` is the number of times to run the unit test.
+2. Add the `int iteration` argument to the unit test you'd like to run multiple times.
+3. Use the `iteration` parameter at least once in the unit test. This may be as simple as printing to console the `iteration` parameter's value.
+
+These steps are demonstrated in this demonstrative [commit](https://github.com/dotnet/machinelearning/commit/2fb5f8cfcd2a81f27bc22ac6749f1ce2045e925b).
 
 ### Running unit tests through VSTest Task & Collecting memory dumps
 

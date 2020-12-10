@@ -384,12 +384,11 @@ namespace Microsoft.ML.Transforms
                 // If there are other dimension that are unknown the transformer will return a variable length vector.
                 // This is the work around in absence of reshape transformer.
                 var idims = shape.dims;
-                int[] dims = shape.ndim > 0 ? idims.Skip(idims[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
+                int[] dims = shape.ndim > 0 ? idims.Skip(idims[0] == -1 ? 1 : 0).ToArray() : new int[0];
                 for (int j = 0; j < dims.Length; j++)
                     dims[j] = dims[j] == -1 ? 0 : dims[j];
                 if (dims == null || dims.Length == 0)
                 {
-                    dims = new[] { 1 };
                     outputTypes[i] = Tf2MlNetType(tfOutputType);
                 }
                 else
@@ -503,20 +502,18 @@ namespace Microsoft.ML.Transforms
                         throw Host.Except("Variable length input columns not supported");
 
                     _isInputVector[i] = type is VectorDataViewType;
-                    if (!_isInputVector[i])
-                        throw Host.Except("Non-vector columns are not supported and should be loaded as vector columns of size 1");
-                    vecType = (VectorDataViewType)type;
                     var expectedType = Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.GetItemType() != expectedType)
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
                     var originalShape = _parent.TFInputShapes[i];
                     var shape = originalShape.dims;
 
-                    var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
                     if (shape == null || (shape.Length == 0))
-                        _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
+                        _fullySpecifiedShapes[i] = new TensorShape();
                     else
                     {
+                        vecType = (VectorDataViewType)type;
+                        var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
                         // If the column is one dimension we make sure that the total size of the TF shape matches.
                         // Compute the total size of the known dimensions of the shape.
                         int valCount = 1;
@@ -561,7 +558,10 @@ namespace Microsoft.ML.Transforms
 
                     if (_parent._addBatchDimensionInput)
                     {
-                        var l = new int[_fullySpecifiedShapes[i].ndim + 1];
+                        // ndim of default TensorShape is -1, make originDim to 0 in this case.
+                        // after addBatchDimension, input column will be changed: type -> type[]
+                        var originDim = _fullySpecifiedShapes[i].ndim < 0 ? 0 : _fullySpecifiedShapes[i].ndim;
+                        var l = new int[originDim + 1];
                         l[0] = 1;
                         for (int ishape = 1; ishape < l.Length; ishape++)
                             l[ishape] = _fullySpecifiedShapes[i].dims[ishape - 1];
@@ -729,11 +729,10 @@ namespace Microsoft.ML.Transforms
             {
                 _srcgetter = input.GetGetter<T>(input.Schema[colIndex]);
                 _tfShape = tfShape;
-                long size = 0;
+                long size = 1;
                 _position = 0;
-                if (tfShape.dims.Length != 0)
+                if (tfShape.dims != null && tfShape.dims.Length != 0)
                 {
-                    size = 1;
                     foreach (var dim in tfShape.dims)
                         size *= dim;
                 }
@@ -744,8 +743,7 @@ namespace Microsoft.ML.Transforms
             {
                 var scalar = default(T);
                 _srcgetter(ref scalar);
-                var tensor = new Tensor(new[] { scalar });
-                tensor.set_shape(_tfShape);
+                var tensor = TensorFlowUtils.CastDataAndReturnAsTensor(scalar);
                 return tensor;
             }
 
@@ -928,8 +926,6 @@ namespace Microsoft.ML.Transforms
                 var input = _options.InputColumns[i];
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
                 var expectedType = Tf2MlNetType(_tfInputTypes[i]);
                 if (col.ItemType != expectedType)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());

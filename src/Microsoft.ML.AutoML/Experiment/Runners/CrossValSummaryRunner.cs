@@ -58,7 +58,7 @@ namespace Microsoft.ML.AutoML
             for (var i = 0; i < _trainDatasets.Length; i++)
             {
                 var modelFileInfo = RunnerUtil.GetModelFileInfo(modelDirectory, iterationNum, i + 1);
-                var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainDatasets[i], _validDatasets[i],
+                var trainResult = RunnerUtil.TrainAndScorePipeline(pipeline.GetContext(), pipeline, _trainDatasets[i], _validDatasets[i],
                     _groupIdColumn, _labelColumn, _metricsAgent, _preprocessorTransforms?.ElementAt(i), modelFileInfo, _modelInputSchema,
                     _logger);
                 trainResults.Add(trainResult);
@@ -123,8 +123,7 @@ namespace Microsoft.ML.AutoML
                     logLoss: GetAverageOfNonNaNScores(newMetrics.Select(x => x.LogLoss)),
                     logLossReduction: GetAverageOfNonNaNScores(newMetrics.Select(x => x.LogLossReduction)),
                     topKPredictionCount: newMetrics.ElementAt(0).TopKPredictionCount,
-                    topKAccuracy: GetAverageOfNonNaNScores(newMetrics.Select(x => x.TopKAccuracy)),
-                    // Return PerClassLogLoss and ConfusionMatrix from the fold closest to average score
+                    topKAccuracies: GetAverageOfNonNaNScoresInNestedEnumerable(newMetrics.Select(x => x.TopKAccuracyForAllK)),
                     perClassLogLoss: (metricsClosestToAvg as MulticlassClassificationMetrics).PerClassLogLoss.ToArray(),
                     confusionMatrix: (metricsClosestToAvg as MulticlassClassificationMetrics).ConfusionMatrix);
                 return result as TMetrics;
@@ -163,7 +162,6 @@ namespace Microsoft.ML.AutoML
             double[] arr = new double[results.ElementAt(0).Count()];
             for (int i = 0; i < arr.Length; i++)
             {
-                Contracts.Assert(arr.Length == results.ElementAt(i).Count());
                 arr[i] = GetAverageOfNonNaNScores(results.Select(x => x.ElementAt(i)));
             }
             return arr;

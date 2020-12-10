@@ -452,6 +452,36 @@ namespace Microsoft.ML.TensorFlow
             return new Tensor(new NDArray(data, tfShape));
         }
 
+        internal static Tensor CastDataAndReturnAsTensor<T>(T data)
+        {
+            if (typeof(T) == typeof(sbyte))
+                return new Tensor((sbyte)(object)data, TF_DataType.TF_INT8);
+            else if (typeof(T) == typeof(long))
+                return new Tensor((long)(object)data, TF_DataType.TF_INT64);
+            else if (typeof(T) == typeof(Int32))
+                return new Tensor((Int32)(object)data, TF_DataType.TF_INT32);
+            else if (typeof(T) == typeof(Int16))
+                return new Tensor((Int16)(object)data, TF_DataType.TF_INT16);
+            else if (typeof(T) == typeof(byte))
+                return new Tensor((byte)(object)data, TF_DataType.TF_UINT8);
+            else if (typeof(T) == typeof(ulong))
+                return new Tensor((ulong)(object)data, TF_DataType.TF_UINT64);
+            else if (typeof(T) == typeof(UInt32))
+                return new Tensor((UInt32)(object)data, TF_DataType.TF_UINT32);
+            else if (typeof(T) == typeof(UInt16))
+                return new Tensor((UInt16)(object)data, TF_DataType.TF_UINT16);
+            else if (typeof(T) == typeof(bool))
+                return new Tensor((bool)(object)data, TF_DataType.TF_BOOL);
+            else if (typeof(T) == typeof(float))
+                return new Tensor((float)(object)data, TF_DataType.TF_FLOAT);
+            else if (typeof(T) == typeof(double))
+                return new Tensor((double)(object)data, TF_DataType.TF_DOUBLE);
+            else if (typeof(T) == typeof(ReadOnlyMemory<char>))
+                return new Tensor(data.ToString());
+
+            throw new ArgumentException($"Unsupported data type of {typeof(T)} to convert to Tensor.");
+        }
+
         /// <summary>
         /// Use the runner class to easily configure inputs, outputs and targets to be passed to the session runner.
         /// </summary>

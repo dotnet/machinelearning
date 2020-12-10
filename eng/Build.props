@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <ItemDefinitionGroup>
+    <ProjectToBuild>
+      <RestoreInParallel>true</RestoreInParallel>
+      <BuildInParallel>false</BuildInParallel>
+    </ProjectToBuild>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <ProjectToBuild Include="$(RepoRoot)src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj" />
+    <ProjectToBuild Include="$(RepoRoot)src/Native/Native.proj" />
+    <ProjectToBuild Include="$(RepoRoot)Microsoft.ML.sln" />
+  </ItemGroup>
+
+</Project>

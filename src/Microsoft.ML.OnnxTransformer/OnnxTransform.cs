@@ -484,8 +484,10 @@ namespace Microsoft.ML.Transforms.Onnx
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+                => throw new NotImplementedException("This should never be called!");
+
+            private Delegate CreateGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, OnnxRuntimeOutputCacher outputCacher)
             {
-                disposer = null;
                 Host.AssertValue(input);
 
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
@@ -495,30 +497,63 @@ namespace Microsoft.ML.Transforms.Onnx
                     var elemRawType = vectorType.ItemType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
                     if (vectorType.ItemType is TextDataViewType)
-                        return MakeStringTensorGetter(input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                        return MakeStringTensorGetter(input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCacher);
                     else
-                        return Utils.MarshalInvoke(MakeTensorGetter<int>, elemRawType, input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                        return Utils.MarshalInvoke(MakeTensorGetter<int>, elemRawType, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCacher);
                 }
                 else
                 {
                     var type = _parent.Model.ModelInfo.OutputsInfo[_parent.MapDataViewColumnToOnnxOutputTensor(iinfo)].DataViewType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
-                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCacher);
                 }
             }
 
-            private class OnnxRuntimeOutputCacher
+            public override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                Contracts.Assert(input.Schema == InputSchema);
+
+                OnnxRuntimeOutputCacher outputCacher = new OnnxRuntimeOutputCacher();
+
+                int n = OutputColumns.Value.Length;
+                var result = new Delegate[n];
+                for (int i = 0; i < n; i++)
+                {
+                    if (!activeOutput(i))
+                        continue;
+                    result[i] = CreateGetter(input, i, activeOutput, outputCacher);
+                }
+                disposer = () =>
+                {
+                    outputCacher.Dispose();
+                };
+                return result;
+            }
+
+            private sealed class OnnxRuntimeOutputCacher : IDisposable
             {
                 public long Position;
-                public Dictionary<string, NamedOnnxValue> Outputs;
+                public Dictionary<string, DisposableNamedOnnxValue> Outputs;
+                public IDisposableReadOnlyCollection<DisposableNamedOnnxValue> OutputOnnxValues;
+
                 public OnnxRuntimeOutputCacher()
                 {
                     Position = -1;
-                    Outputs = new Dictionary<string, NamedOnnxValue>();
+                    Outputs = new Dictionary<string, DisposableNamedOnnxValue>();
+                }
+
+                private bool _isDisposed;
+
+                public void Dispose()
+                {
+                    if (_isDisposed)
+                        return;
+                    OutputOnnxValues?.Dispose();
+                    _isDisposed = true;
                 }
             }
 
-            private void UpdateCacheIfNeeded(long position, INamedOnnxValueGetter[] srcNamedOnnxValueGetters, string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCache)
+            private void UpdateCacheIfNeeded(long position, INamedOnnxValueGetter[] srcNamedOnnxValueGetters, List<string> activeOutputColNames, OnnxRuntimeOutputCacher outputCache)
             {
                 if (outputCache.Position != position)
                 {
@@ -529,10 +564,11 @@ namespace Microsoft.ML.Transforms.Onnx
                         inputNameOnnxValues.Add(srcNamedOnnxValueGetters[i].GetNamedOnnxValue());
                     }
 
-                    var outputNamedOnnxValues = _parent.Model.Run(inputNameOnnxValues);
-                    Contracts.Assert(outputNamedOnnxValues.Count > 0);
+                    outputCache.OutputOnnxValues?.Dispose();
+                    outputCache.OutputOnnxValues = _parent.Model.Run(inputNameOnnxValues, activeOutputColNames);
+                    Contracts.Assert(outputCache.OutputOnnxValues.Count > 0);
 
-                    foreach (var outputNameOnnxValue in outputNamedOnnxValues)
+                    foreach (var outputNameOnnxValue in outputCache.OutputOnnxValues)
                     {
                         outputCache.Outputs[outputNameOnnxValue.Name] = outputNameOnnxValue;
                     }
@@ -540,13 +576,14 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
             }
 
-            private Delegate MakeTensorGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames)
+            private Delegate MakeTensorGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
+                string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
-                var outputCacher = new OnnxRuntimeOutputCacher();
+                var listActiveOutputColumns = activeOutputColNames.ToList();
                 ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, listActiveOutputColumns, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var tensor = namedOnnxValue.AsTensor<T>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<T>;
                     if (tensor == null)
@@ -558,13 +595,15 @@ namespace Microsoft.ML.Transforms.Onnx
                 return valueGetter;
             }
 
-            private Delegate MakeStringTensorGetter(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames)
+            private Delegate MakeStringTensorGetter(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
+                string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
-                var outputCacher = new OnnxRuntimeOutputCacher();
+                var listActiveOutputColumns = activeOutputColNames.ToList();
+
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> valueGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, listActiveOutputColumns, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var tensor = namedOnnxValue.AsTensor<string>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<string>;
                     if (tensor == null)
@@ -580,14 +619,16 @@ namespace Microsoft.ML.Transforms.Onnx
                 return valueGetter;
             }
 
-            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames)
+            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters,
+                string[] activeOutputColNames, OnnxRuntimeOutputCacher outputCacher)
             {
                 Host.AssertValue(input);
-                var outputCache = new OnnxRuntimeOutputCacher();
+                var listActiveOutputColumns = activeOutputColNames.ToList();
+
                 ValueGetter<T> valueGetter = (ref T dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
-                    var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, listActiveOutputColumns, outputCacher);
+                    var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
                     var trueValue = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => value.AsDictionary<string, float>());
                     var caster = _parent.Model.ModelInfo.OutputsInfo[_parent.MapDataViewColumnToOnnxOutputTensor(iinfo)].Caster;
                     dst = (T)caster(namedOnnxValue);
@@ -727,7 +768,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
     /// | Output column data type | As specified by the ONNX model |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.3.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.3.0 (for GPU processing if GPU is available) |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.5.2 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.5.2 (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
     /// To create this estimator use the following APIs:
@@ -739,7 +780,7 @@ namespace Microsoft.ML.Transforms.Onnx
     ///
     /// To run on a GPU, use the
     /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
-    /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.1 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 7.6.5](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#default-gpu-cuda)).
+    /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.2 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 8.0.3](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#system-requirements)).
     /// When creating the estimator through [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*), set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1. If the GPU device isn't found but 'fallbackToCpu = true' then the estimator will run on the CPU. If the GPU device isn't found but 'fallbackToCpu = false' then the estimator will throw an exception
     ///
     /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.

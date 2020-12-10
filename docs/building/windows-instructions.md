@@ -56,8 +56,8 @@ You can use the Developer Command Prompt, Powershell or work in any regular cmd.
 From a (non-admin) Command Prompt window:
 
 - `build.cmd` - builds the assemblies
-- `build.cmd -runTests` - called after a normal "build.cmd" will run all tests
-- `build.cmd -buildPackages` called after a normal “build.cmd” will create the NuGet packages with the assemblies in “bin"
+- `build.cmd -test -integrationTest` - builds the assemblies and runs all tests, including integration tests.
+- `build.cmd -pack` builds the assemblies and generates the corresponding NuGet packages with the assemblies in `artifacts\packages`"
 
 **Note**: Before working on individual projects or test projects you **must** run `build.cmd` from the root once before beginning that work. It is also a good idea to run `build.cmd` whenever you pull a large set of unknown changes into your branch.
 
@@ -65,12 +65,20 @@ From a (non-admin) Command Prompt window:
 
 ### Running tests from Visual Studio
 
-After successfully building, run tests in the Visual Studio Test Explorer window.
+After successfully building, run tests through the Visual Studio Test Explorer window.
+
+Before running tests on Visual Studio, make sure you have selected the correct processor architecture (`x64`, `x86`) for running unit tests that your machine supports and that you have built ML.NET on. To check, click on the settings image in the Test Explorer window, then on "Process Architecture for AnyCPU Projects", and then on the correct architecture type, as demonstrated in the image below:
+
+![Check for unit test process architecture](./assets/process_architecture_run_tests_vs.png)
 
 ### Running tests from the command line
 
-From the root, run `build.cmd` and then `build.cmd -runTests`.
-For more details, or to test an individual project, you can navigate to the test project directory and then use `dotnet test`
+From root, run `build.cmd -test -integrationTest`.
+For more details, or to test an individual project, you can navigate to the test project directory and then use `dotnet test`.
+
+## Running Benchmarks
+
+For more information on running ML.NET benchmarks, please visit the [benchmarking instructions](../../test/Microsoft.ML.PerformanceTests/README.md).
 
 ## Known Issues
 

@@ -48,7 +48,7 @@ On macOS a few components are needed which are not provided by a default develop
 * libomp 7
 * libgdiplus
 * gettext
-* All the requirements necessary to run .NET Core 3.1 applications. To view macOS prerequisites click [here](https://docs.microsoft.com/en-us/dotnet/core/macos-prerequisites?tabs=netcore30).
+* All the requirements necessary to run .NET Core 3.1 applications. To view macOS prerequisites click [here](https://docs.microsoft.com/en-us/dotnet/core/install/macos?tabs=netcore31#dependencies).
 
 One way of obtaining CMake and other required libraries is via [Homebrew](https://brew.sh):
 ```sh

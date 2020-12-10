@@ -2,7 +2,7 @@
 
   <Import Project="..\Directory.Build.targets" />
 
-  <Target Name="PreparePackageAssets"
+  <Target Name="PreparePackageAssets" Condition="'$(CopyPackageAssets)' == 'true'"
           AfterTargets="Build">
 
     <ItemGroup Condition="'$(IncludeInPackage)' != ''">
