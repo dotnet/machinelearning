@@ -154,7 +154,12 @@ jobs:
       inputs:
         testRunner: 'xUnit'
         searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults'
-        testResultsFiles: '**/*.xml'
+        # Upload all test results except performance test project. On CI by default performance tests
+        # will not run and test result files will still be generate without details. Avoid uploading 
+        # performance test result to avoid warnings on publish test result stage.
+        testResultsFiles: |
+          **/*.xml
+          !**/*PerformanceTests*.xml
         testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
         configuration: $(_configuration)
         mergeTestResults: true
