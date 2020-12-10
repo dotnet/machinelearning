@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests
 
             // Step 3: Check ONNX model's text format. This test will be not necessary if Step 2 can run on Linux and
             // Mac to support cross-platform tests.
-            
+
             CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
 
             Done();
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void KmeansOnnxConversionTest()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
 
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Tests
                 new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
                 new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.None, columns: new[] { ("OriginalText", "text") }));
             var onnxFileName = $"TextNormalizing.onnx";
-            
+
             TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("NormText"), new ColumnComparison("UpperText"), new ColumnComparison("OriginalText") });
 
             Done();
@@ -1154,7 +1154,7 @@ namespace Microsoft.ML.Tests
 
             // IsNaN outputs a binary tensor. Support for this has been added in the latest version
             // of Onnxruntime, but that hasn't been released yet.
-            // So we need to convert its type to Int32 until then. 
+            // So we need to convert its type to Int32 until then.
             // ConvertType part of the pipeline can be removed once we pick up a new release of the Onnx runtime
 
             var pipeline = mlContext.Transforms.IndicateMissingValues(new[] { new InputOutputColumnPair("MissingIndicator", "Features"), })
@@ -1545,6 +1545,46 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void SelectiveExportOnnxTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            var dataView = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
+                separatorChar: ';',
+                hasHeader: true);
+
+            var mlpipeline = mlContext.Transforms.CopyColumns("Target1", "Target");
+            var onnxFileName = "copycolumns.onnx";
+
+            var mlmodel = mlpipeline.Fit(dataView);
+
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            using (var stream = File.Create(onnxModelPath))
+            {
+                mlContext.Model.ConvertToOnnx(mlmodel, dataView, stream, "Target1");
+            }
+
+            var model = new OnnxCSharpToProtoWrapper.ModelProto();
+            using (var modelStream = File.OpenRead(onnxModelPath))
+            using (var codedStream = Google.Protobuf.CodedInputStream.CreateWithLimits(modelStream, Int32.MaxValue, 10))
+                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(codedStream);
+
+            Assert.True(model.Graph.Output.Count == 1);
+            Assert.Equal("Target1.output", model.Graph.Output[0].Name);
+
+            // Make sure that even though the column wasn't passed to ONNX, that it can still be used directly from ML.Net
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+            var loadedModel = pipeline.Fit(dataView);
+
+            // Getting the preview will cause an issue if there is an error since ONNX is no longer exporting that column.
+            var loadedData = loadedModel.Transform(dataView).Preview(1);
+            Assert.Equal((Single)140.66, loadedData.ColumnView[1].Values[0]);
+
+            Done();
+        }
+
+        [Fact]
         public void UseKeyDataViewTypeAsUInt32InOnnxInput()
         {
             // In this test an onnx model which expect a uin32 input column is applied to a KeyDataViewType input column
@@ -1806,7 +1846,7 @@ namespace Microsoft.ML.Tests
             }
             Done();
         }
-        
+
         [Fact]
         public void OneHotHashEncodingOnnxConversionWithCustomOpSetVersionTest()
         {
