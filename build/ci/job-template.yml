@@ -148,6 +148,21 @@ jobs:
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
+    - task: PublishTestResults@2
+      displayName: Publish Test Results
+      condition: succeededOrFailed()
+      inputs:
+        testRunner: 'xUnit'
+        searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults'
+        # Upload all test results except performance test project. On CI by default performance tests
+        # will not run and test result files will still be generate without details. Avoid uploading 
+        # performance test result to avoid warnings on publish test result stage.
+        testResultsFiles: |
+          **/*.xml
+          !**/*PerformanceTests*.xml
+        testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
+        configuration: $(_configuration)
+        mergeTestResults: true
     - task: CopyFiles@2
       displayName: Stage build logs
       condition: not(succeeded())
