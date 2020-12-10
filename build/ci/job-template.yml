@@ -148,7 +148,7 @@ jobs:
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
-	  - task: PublishTestResults@2
+    - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()
       inputs:
