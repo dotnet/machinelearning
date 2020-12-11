@@ -176,7 +176,7 @@ namespace Microsoft.ML.AutoML.Test
             var settings = new RankingExperimentSettings()
             {
                 MaxExperimentTimeInSeconds = 5,
-                DcgTruncationLevel = 5
+                OptimizationMetricTruncationLevel = 5
             };
             var experiment = mlContext.Auto()
                 .CreateRankingExperiment(settings);
@@ -203,8 +203,8 @@ namespace Microsoft.ML.AutoML.Test
             for (int i = 0; i < experimentResults.Length; i++)
             {
                 RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
-                Assert.Equal(5, bestRun.ValidationMetrics.DiscountedCumulativeGains.Count);
-                Assert.Equal(5, bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Count);
+                Assert.Equal(10, bestRun.ValidationMetrics.DiscountedCumulativeGains.Count);
+                Assert.Equal(10, bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Count);
                 Assert.True(experimentResults[i].RunDetails.Count() > 0);
                 Assert.NotNull(bestRun.ValidationMetrics);
                 Assert.True(bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Last() > 0.4);

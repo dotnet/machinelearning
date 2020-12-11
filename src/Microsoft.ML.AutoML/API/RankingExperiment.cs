@@ -33,13 +33,13 @@ namespace Microsoft.ML.AutoML
         /// <value>
         /// The default value is 10.
         /// </value>
-        public int DcgTruncationLevel { get; set; }
+        public int OptimizationMetricTruncationLevel { get; set; }
 
         public RankingExperimentSettings()
         {
             OptimizingMetric = RankingMetric.Ndcg;
             Trainers = Enum.GetValues(typeof(RankingTrainer)).OfType<RankingTrainer>().ToList();
-            DcgTruncationLevel = 10;
+            OptimizationMetricTruncationLevel = 10;
         }
     }
     public enum RankingMetric
@@ -78,11 +78,11 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="results">Enumeration of AutoML experiment run results.</param>
         /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <param name="dcgTruncationLevel">Maximum truncation level for computing (N)DCG. Defaults to 3.</param>
+        /// <param name="optimizationMetricTruncationLevel">Maximum truncation level for computing (N)DCG. Defaults to 10.</param>
         /// <returns>The best experiment run.</returns>
-        public static RunDetail<RankingMetrics> Best(this IEnumerable<RunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, int dcgTruncationLevel = 3)
+        public static RunDetail<RankingMetrics> Best(this IEnumerable<RunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, int optimizationMetricTruncationLevel = 10)
         {
-            var metricsAgent = new RankingMetricsAgent(null, metric, dcgTruncationLevel);
+            var metricsAgent = new RankingMetricsAgent(null, metric, optimizationMetricTruncationLevel);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
             return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
@@ -92,11 +92,11 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="results">Enumeration of AutoML experiment cross validation run results.</param>
         /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <param name="dcgTruncationLevel">Maximum truncation level for computing (N)DCG. Defaults to 3.</param>
+        /// <param name="optimizationMetricTruncationLevel">Maximum truncation level for computing (N)DCG. Defaults to 10.</param>
         /// <returns>The best experiment run.</returns>
-        public static CrossValidationRunDetail<RankingMetrics> Best(this IEnumerable<CrossValidationRunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, int dcgTruncationLevel = 3)
+        public static CrossValidationRunDetail<RankingMetrics> Best(this IEnumerable<CrossValidationRunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, int optimizationMetricTruncationLevel = 10)
         {
-            var metricsAgent = new RankingMetricsAgent(null, metric, dcgTruncationLevel);
+            var metricsAgent = new RankingMetricsAgent(null, metric, optimizationMetricTruncationLevel);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
             return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
@@ -115,7 +115,7 @@ namespace Microsoft.ML.AutoML
     {
         internal RankingExperiment(MLContext context, RankingExperimentSettings settings)
             : base(context,
-                  new RankingMetricsAgent(context, settings.OptimizingMetric, settings.DcgTruncationLevel),
+                  new RankingMetricsAgent(context, settings.OptimizingMetric, settings.OptimizationMetricTruncationLevel),
                   new OptimizingMetricInfo(settings.OptimizingMetric),
                   settings,
                   TaskKind.Ranking,

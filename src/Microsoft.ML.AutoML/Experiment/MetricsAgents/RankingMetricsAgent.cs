@@ -12,11 +12,14 @@ namespace Microsoft.ML.AutoML
         private readonly RankingMetric _optimizingMetric;
         private readonly int _dcgTruncationLevel;
 
-        public RankingMetricsAgent(MLContext mlContext, RankingMetric metric, int dcgTruncationLevel)
+        public RankingMetricsAgent(MLContext mlContext, RankingMetric metric, int optimizationMetricTruncationLevel)
         {
             _mlContext = mlContext;
             _optimizingMetric = metric;
-            _dcgTruncationLevel = dcgTruncationLevel;
+
+            // We want to make sure we always have at least 10 results. Getting extra results adds no measurable performance
+            // impact, so err on the side of more.
+            _dcgTruncationLevel = System.Math.Max(10, 2 * optimizationMetricTruncationLevel);
         }
 
         // Optimizing metric used: NDCG@10 and DCG@10
