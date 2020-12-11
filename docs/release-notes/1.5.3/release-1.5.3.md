@@ -7,6 +7,7 @@
 - Perf improvement for TopK Accuracy and return all topK in Classification Evaluator ([#5395](https://github.com/dotnet/machinelearning/pull/5395)) (**Thank you @jsallen**)
 - Update OnnxRuntime to 1.6 ([#5529](https://github.com/dotnet/machinelearning/pull/5529))
 - Updated tensorflow.net to 0.20.0 ([#5404](https://github.com/dotnet/machinelearning/pull/5404))
+- Added in DcgTruncationLevel to AutoML api and increased default level to 10 ([#5433](https://github.com/dotnet/machinelearning/pull/5433))
 
 ## **Bug Fixes**
 - **AutoML.NET specific fixes**.
@@ -16,6 +17,9 @@
   - Handled exception during GetNextPipeline for AutoML ([#5455](https://github.com/dotnet/machinelearning/pull/5455))
   - Fixed internationalization bug([#5162](https://github.com/dotnet/machinelearning/pull/5163)) in AutoML parameter sweeping caused by culture dependent float parsing. ([#5163](https://github.com/dotnet/machinelearning/pull/5163))
   - Fixed MaxModels exit criteria for AutoML unit test ([#5471](https://github.com/dotnet/machinelearning/pull/5471))
+  - Fixed AutoML CrossValSummaryRunner for TopKAccuracyForAllK ([#5548](https://github.com/dotnet/machinelearning/pull/5548))
+- Fixed bug in Tensorflow Transforer with handling primitive types ([#5547](https://github.com/dotnet/machinelearning/pull/5547))
+- Fixed MLNet.CLI build error ([#5546](https://github.com/dotnet/machinelearning/pull/5546))
 - Fixed memory leaks from OnnxTransformer ([#5518](https://github.com/dotnet/machinelearning/pull/5518))
 - Fixed memory leak in object pool ([#5521](https://github.com/dotnet/machinelearning/pull/5521))
 - Fixed Onnx Export for ProduceWordBags ([#5435](https://github.com/dotnet/machinelearning/pull/5435))
