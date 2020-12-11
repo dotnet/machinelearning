@@ -1,7 +1,7 @@
 # The MlNetMklDeps nuget
 ML.NET's repository takes a dependency of the MlNetMklDeps nuget, which contains the MKL binaries of the MKL functions that ML.NET uses. This other nuget is actually also built and managed by the team. In the next section, the steps to create those binaries are described. In this section the contents of the nuget are mentioned.
 
-**MlNetMklDeps nuget following this layout:**
+**MlNetMklDeps nuget follows this layout:**
 * licensing (contains Intel's license.txt they ship MKL with along with any third party licenses)
 * MlNetMklDeps.nuspec
 * runtimes
