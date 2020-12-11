@@ -1,6 +1,6 @@
 # Generate C# code from ONNX proto file
 
-The `machinelearning\src\Microsoft.ML.OnnxConverter\OnnxMl.cs` file needs to updated anytime the IR version is updated in OnnxRuntime, using the steps below:
+The `machinelearning\src\Microsoft.ML.OnnxConverter\OnnxMl.cs` file needs to be updated anytime the IR version is updated in OnnxRuntime, using the steps below:
 
 1. Download `onnx-ml.proto3` from https://github.com/onnx/onnx/blob/master/onnx/onnx-ml.proto3
 2. Download protobuf C# compiler version 3.0 or greater from 
