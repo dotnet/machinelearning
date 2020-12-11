@@ -267,7 +267,13 @@ namespace Microsoft.ML.Transforms.Onnx
 
             public static IEnumerable<TDst> CastOnnxSequenceToIEnumerable<TSrc, TDst>(IEnumerable<TSrc> o, Func<TSrc, object> caster)
             {
-                return o.Select(v => (TDst)caster(v));
+                // Since now we're disposing the NamedOnnxValue objects
+                // after running inference on each output, we need
+                // to copy (enumerate) the output through ".ToList()"
+                // else, if our users try the keep the past sequence
+                // outputs of their OnnxTransformer, they would
+                // end up with empty sequences.
+                return o.Select(v => (TDst)caster(v)).ToList();
             }
         }
 
