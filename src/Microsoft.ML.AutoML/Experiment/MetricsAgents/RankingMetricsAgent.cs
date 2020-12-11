@@ -17,8 +17,9 @@ namespace Microsoft.ML.AutoML
             _mlContext = mlContext;
             _optimizingMetric = metric;
 
-            // We want to make sure we always have at least 10 results. Getting extra results adds no measurable performance
-            // impact, so err on the side of more.
+            // We want to make sure we always report metrics for at least 10 results (e.g. NDCG@10) to the user. 
+            // Producing extra results adds no measurable performance impact, so we report at least 2x of the
+            // user's requested optimization truncation level.
             _dcgTruncationLevel = System.Math.Max(10, 2 * optimizationMetricTruncationLevel);
         }
 
