@@ -4,7 +4,7 @@
 - **New API for exporting models to Onnx**. ([#5544](https://github.com/dotnet/machinelearning/pull/5544)). A new API has been added to Onnx converter to specify the output columns you care about. This will export a smaller and more performant model in many cases.
 
 ## **Enhancements**
-- Perf improvement for TopK Accuracy and return all topK in Classification Evaluator ([#5395](https://github.com/dotnet/machinelearning/pull/5395)) (**Thank you @jsallen**)
+- Perf improvement for TopK Accuracy and return all topK in Classification Evaluator ([#5395](https://github.com/dotnet/machinelearning/pull/5395)) (**Thank you @jasallen**)
 - Update OnnxRuntime to 1.6 ([#5529](https://github.com/dotnet/machinelearning/pull/5529))
 - Updated tensorflow.net to 0.20.0 ([#5404](https://github.com/dotnet/machinelearning/pull/5404))
 - Added in DcgTruncationLevel to AutoML api and increased default level to 10 ([#5433](https://github.com/dotnet/machinelearning/pull/5433))
