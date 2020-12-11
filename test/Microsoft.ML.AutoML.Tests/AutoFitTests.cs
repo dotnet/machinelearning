@@ -42,19 +42,48 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [Fact]
-        public void AutoFitMultiTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AutoFitMultiTest(bool useNumberOfCVFolds)
         {
             var context = new MLContext(0);
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
-            var result = context.Auto()
-                .CreateMulticlassClassificationExperiment(0)
-                .Execute(trainData, 5, DatasetUtil.TrivialMulticlassDatasetLabel);
-            Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
-            var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
-            Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+
+            if (useNumberOfCVFolds)
+            {
+                // When setting numberOfCVFolds
+                // The results object is a CrossValidationExperimentResults<> object
+                uint numberOfCVFolds = 5;
+                var result = context.Auto()
+                    .CreateMulticlassClassificationExperiment(0)
+                    .Execute(trainData, numberOfCVFolds, DatasetUtil.TrivialMulticlassDatasetLabel);
+
+                Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
+                var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
+                Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+            }
+            else
+            {
+                // When using this other API, if the trainset is under the
+                // crossValRowCounThreshold, AutoML will also perform CrossValidation
+                // but through a very different path that the one above,
+                // throw a CrossValSummaryRunner and will return
+                // a different type of object as "result" which would now be
+                // simply a ExperimentResult<> object
+
+                int crossValRowCountThreshold = 15000;
+                trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
+                var result = context.Auto()
+                    .CreateMulticlassClassificationExperiment(0)
+                    .Execute(trainData, DatasetUtil.TrivialMulticlassDatasetLabel);
+
+                Assert.True(result.BestRun.ValidationMetrics.MicroAccuracy >= 0.7);
+                var scoredData = result.BestRun.Model.Transform(trainData);
+                Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+            }
         }
 
         [TensorFlowFact]
