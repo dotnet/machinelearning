@@ -133,8 +133,8 @@ namespace Microsoft.ML.AutoML.Test
             double[] largeNdcg = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95 };
             double[] largeDcg = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95 };
             metrics = MetricsUtil.CreateRankingMetrics(largeDcg, largeNdcg);
-            Assert.Equal(0.9, GetScore(metrics, RankingMetric.Dcg, 3));
-            Assert.Equal(0.9, GetScore(metrics, RankingMetric.Ndcg, 3));
+            Assert.Equal(0.3, GetScore(metrics, RankingMetric.Dcg, 3));
+            Assert.Equal(0.3, GetScore(metrics, RankingMetric.Ndcg, 3));
         }
 
         [Fact]
