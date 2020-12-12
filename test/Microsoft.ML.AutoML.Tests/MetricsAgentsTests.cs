@@ -179,7 +179,7 @@ namespace Microsoft.ML.AutoML.Test
             return new RegressionMetricsAgent(null, metric).GetScore(metrics);
         }
 
-        private static double GetScore(RankingMetrics metrics, RankingMetric metric, int dcgTruncationLevel)
+        private static double GetScore(RankingMetrics metrics, RankingMetric metric, uint dcgTruncationLevel)
         {
             return new RankingMetricsAgent(null, metric, dcgTruncationLevel).GetScore(metrics);
         }
@@ -202,7 +202,7 @@ namespace Microsoft.ML.AutoML.Test
             return IsPerfectModel(metricsAgent, metrics);
         }
 
-        private static bool IsPerfectModel(RankingMetrics metrics, RankingMetric metric, int dcgTruncationLevel)
+        private static bool IsPerfectModel(RankingMetrics metrics, RankingMetric metric, uint dcgTruncationLevel)
         {
             var metricsAgent = new RankingMetricsAgent(null, metric, dcgTruncationLevel);
             return IsPerfectModel(metricsAgent, metrics);

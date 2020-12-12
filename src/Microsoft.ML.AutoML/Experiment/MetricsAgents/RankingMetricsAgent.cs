@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
@@ -10,16 +12,19 @@ namespace Microsoft.ML.AutoML
     {
         private readonly MLContext _mlContext;
         private readonly RankingMetric _optimizingMetric;
-        private readonly int _dcgTruncationLevel;
+        private readonly uint _dcgTruncationLevel;
 
-        public RankingMetricsAgent(MLContext mlContext, RankingMetric metric, int optimizationMetricTruncationLevel)
+        public RankingMetricsAgent(MLContext mlContext, RankingMetric metric, uint optimizationMetricTruncationLevel)
         {
             _mlContext = mlContext;
             _optimizingMetric = metric;
 
+            if (optimizationMetricTruncationLevel <= 0)
+                throw _mlContext.ExceptUserArg(nameof(optimizationMetricTruncationLevel), "DCG Truncation Level must be greater than 0");
+
             // We want to make sure we always have at least 10 results. Getting extra results adds no measurable performance
             // impact, so err on the side of more.
-            _dcgTruncationLevel = System.Math.Max(10, 2 * optimizationMetricTruncationLevel);
+            _dcgTruncationLevel = optimizationMetricTruncationLevel;
         }
 
         // Optimizing metric used: NDCG@10 and DCG@10
@@ -33,11 +38,9 @@ namespace Microsoft.ML.AutoML
             switch (_optimizingMetric)
             {
                 case RankingMetric.Ndcg:
-                    return (metrics.NormalizedDiscountedCumulativeGains.Count >= 10) ? metrics.NormalizedDiscountedCumulativeGains[9] :
-                        metrics.NormalizedDiscountedCumulativeGains[metrics.NormalizedDiscountedCumulativeGains.Count - 1];
+                    return metrics.NormalizedDiscountedCumulativeGains[Math.Min(metrics.NormalizedDiscountedCumulativeGains.Count, (int)_dcgTruncationLevel) - 1];
                 case RankingMetric.Dcg:
-                    return (metrics.DiscountedCumulativeGains.Count >= 10) ? metrics.DiscountedCumulativeGains[9] :
-                        metrics.DiscountedCumulativeGains[metrics.DiscountedCumulativeGains.Count-1];
+                    return metrics.DiscountedCumulativeGains[Math.Min(metrics.DiscountedCumulativeGains.Count, (int)_dcgTruncationLevel) - 1];
                 default:
                     throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
             }
@@ -66,7 +69,7 @@ namespace Microsoft.ML.AutoML
         {
             var rankingEvalOptions = new RankingEvaluatorOptions
             {
-                DcgTruncationLevel = _dcgTruncationLevel
+                DcgTruncationLevel = Math.Max(10, 2 * (int)_dcgTruncationLevel)
             };
 
             return _mlContext.Ranking.Evaluate(data, rankingEvalOptions, labelColumn, groupIdColumn);

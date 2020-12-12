@@ -33,7 +33,7 @@ namespace Microsoft.ML.AutoML
         /// <value>
         /// The default value is 10.
         /// </value>
-        public int OptimizationMetricTruncationLevel { get; set; }
+        public uint OptimizationMetricTruncationLevel { get; set; }
 
         public RankingExperimentSettings()
         {
@@ -80,7 +80,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="metric">Metric to consider when selecting the best run.</param>
         /// <param name="optimizationMetricTruncationLevel">Maximum truncation level for computing (N)DCG. Defaults to 10.</param>
         /// <returns>The best experiment run.</returns>
-        public static RunDetail<RankingMetrics> Best(this IEnumerable<RunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, int optimizationMetricTruncationLevel = 10)
+        public static RunDetail<RankingMetrics> Best(this IEnumerable<RunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, uint optimizationMetricTruncationLevel = 10)
         {
             var metricsAgent = new RankingMetricsAgent(null, metric, optimizationMetricTruncationLevel);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
@@ -94,7 +94,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="metric">Metric to consider when selecting the best run.</param>
         /// <param name="optimizationMetricTruncationLevel">Maximum truncation level for computing (N)DCG. Defaults to 10.</param>
         /// <returns>The best experiment run.</returns>
-        public static CrossValidationRunDetail<RankingMetrics> Best(this IEnumerable<CrossValidationRunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, int optimizationMetricTruncationLevel = 10)
+        public static CrossValidationRunDetail<RankingMetrics> Best(this IEnumerable<CrossValidationRunDetail<RankingMetrics>> results, RankingMetric metric = RankingMetric.Ndcg, uint optimizationMetricTruncationLevel = 10)
         {
             var metricsAgent = new RankingMetricsAgent(null, metric, optimizationMetricTruncationLevel);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;

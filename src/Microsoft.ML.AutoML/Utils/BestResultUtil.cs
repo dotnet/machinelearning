@@ -35,7 +35,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public static RunDetail<RankingMetrics> GetBestRun(IEnumerable<RunDetail<RankingMetrics>> results,
-            RankingMetric metric, int dcgTruncationLevel)
+            RankingMetric metric, uint dcgTruncationLevel)
         {
             var metricsAgent = new RankingMetricsAgent(null, metric, dcgTruncationLevel);
 
