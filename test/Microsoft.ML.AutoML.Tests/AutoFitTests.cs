@@ -202,8 +202,13 @@ namespace Microsoft.ML.AutoML.Test
             trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
 
             // STEP 2: Run AutoML experiment
+            var settings = new RankingExperimentSettings()
+            {
+                MaxExperimentTimeInSeconds = 5,
+                OptimizationMetricTruncationLevel = 3
+            };
             var experiment = mlContext.Auto()
-                .CreateRankingExperiment(5);
+                .CreateRankingExperiment(settings);
 
             ExperimentResult<RankingMetrics>[] experimentResults =
             {
@@ -227,6 +232,9 @@ namespace Microsoft.ML.AutoML.Test
             for (int i = 0; i < experimentResults.Length; i++)
             {
                 RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
+                // The user requested 3, but we always return at least 10.
+                Assert.Equal(10, bestRun.ValidationMetrics.DiscountedCumulativeGains.Count);
+                Assert.Equal(10, bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Count);
                 Assert.True(experimentResults[i].RunDetails.Count() > 0);
                 Assert.NotNull(bestRun.ValidationMetrics);
                 Assert.True(bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Last() > 0.4);

@@ -6888,10 +6888,17 @@ namespace Microsoft.ML.RunTests
 
                 // Since we used a toy dataset, we won't worry much about comparing actual
                 // Double values of the result. Simply check that we get results.
-                Assert.Equal(3, ndcgArray.Length);
+                Assert.Equal(10, ndcgArray.Length);
                 Assert.True(ndcgArray[0] > 0);
                 Assert.True(ndcgArray[1] > 0);
-                Assert.True(ndcgArray[2] > 0);
+                Assert.True(ndcgArray[2] > 0);                
+                Assert.True(ndcgArray[3] > 0);
+                Assert.True(ndcgArray[4] > 0);
+                Assert.True(ndcgArray[5] > 0);                
+                Assert.True(ndcgArray[6] > 0);
+                Assert.True(ndcgArray[7] > 0);
+                Assert.True(ndcgArray[8] > 0);
+                Assert.True(ndcgArray[9] > 0);
             }
         }
     }

@@ -2783,7 +2783,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": 3
+          "Default": 10
         },
         {
           "Name": "LabelGains",
