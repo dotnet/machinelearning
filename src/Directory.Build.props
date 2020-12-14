@@ -8,12 +8,12 @@
          When you are ready to tackle adding them, remove <NoWarn>
          below, and when you get clean, also remove <WarningsNotAsErrors>
     -->
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <NoWarn>$(NoWarn);1591;NU5118</NoWarn>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);1591</WarningsNotAsErrors>
 
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\Source.ruleset</CodeAnalysisRuleSet>
     
-    <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)\Native</NativeAssetsBuiltPath>
+    <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)</NativeAssetsBuiltPath>
 
     <PackageRid Condition="'$(OS)' == 'Windows_NT'">win</PackageRid>
     <PackageRid Condition="'$(OS)' != 'Windows_NT'">linux</PackageRid>
@@ -25,7 +25,6 @@
   <PropertyGroup>
     <RunApiCompat Condition="'$(DesignTimeBuild)' == 'true'">false</RunApiCompat>
     <RunApiCompat Condition="'$(RunApiCompat)' == ''">$(IsStableProject)</RunApiCompat>
-    <ToolHostCmd>$(ToolsDir)dotnetcli/dotnet</ToolHostCmd>
 
     <!-- only validate that the current implementation is compatible
          with the old one, not vice-versa (since latest may have new

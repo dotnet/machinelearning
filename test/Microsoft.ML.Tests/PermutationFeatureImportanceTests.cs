@@ -469,6 +469,10 @@ namespace Microsoft.ML.Tests
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
+
+                // Saving and Loading the model cause the internal random state to change, so we reset the seed
+                // here so help the tests pass.
+                ML = new MLContext(0);
                 pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
             }
             else

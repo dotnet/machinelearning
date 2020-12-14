@@ -10,13 +10,13 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
-using Microsoft.ML.Benchmarks.Harness;
+using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Benchmarks.Tests
+namespace Microsoft.ML.PerformanceTests.Tests
 {
     public class TestConfig : RecommendedConfig
     {

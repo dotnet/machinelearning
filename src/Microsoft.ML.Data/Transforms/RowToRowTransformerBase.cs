@@ -58,7 +58,7 @@ namespace Microsoft.ML.Data
         {
             protected readonly IHost Host;
             protected readonly DataViewSchema InputSchema;
-            private readonly Lazy<DataViewSchema.DetachedColumn[]> _outputColumns;
+            protected readonly Lazy<DataViewSchema.DetachedColumn[]> OutputColumns;
             private readonly RowToRowTransformerBase _parent;
 
             protected MapperBase(IHost host, DataViewSchema inputSchema, RowToRowTransformerBase parent)
@@ -68,21 +68,21 @@ namespace Microsoft.ML.Data
                 Host = host;
                 InputSchema = inputSchema;
                 _parent = parent;
-                _outputColumns = new Lazy<DataViewSchema.DetachedColumn[]>(GetOutputColumnsCore);
+                OutputColumns = new Lazy<DataViewSchema.DetachedColumn[]>(GetOutputColumnsCore);
             }
 
             protected abstract DataViewSchema.DetachedColumn[] GetOutputColumnsCore();
 
-            DataViewSchema.DetachedColumn[] IRowMapper.GetOutputColumns() => _outputColumns.Value;
+            DataViewSchema.DetachedColumn[] IRowMapper.GetOutputColumns() => OutputColumns.Value;
 
-            Delegate[] IRowMapper.CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            public virtual Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
                 // of the input row.
                 // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
                 // is no longer always possible. So, we relax the assert as below.
                 Contracts.Assert(input.Schema == InputSchema);
-                int n = _outputColumns.Value.Length;
+                int n = OutputColumns.Value.Length;
                 var result = new Delegate[n];
                 var disposers = new Action[n];
                 for (int i = 0; i < n; i++)

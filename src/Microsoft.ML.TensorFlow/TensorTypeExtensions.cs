@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text;
 using Microsoft.ML.Internal.Utilities;
 using Tensorflow;
 using Utils = Microsoft.ML.Internal.Utilities.Utils;
@@ -14,6 +15,16 @@ namespace Microsoft.ML.TensorFlow
     {
         public static void ToScalar<T>(this Tensor tensor, ref T dst) where T : unmanaged
         {
+            //In ML.NET we are using ReadOnlyMemory<Char> to store string data but ReadOnlyMemory<Char>
+            //is not valid data type for tensorflow.net and exception will thrown if we call as_dtype method
+            //so we specially deal with string type here.
+            //Get string data first then convert to ReadOnlyMemory<Char> and assign value to dst.
+            if (typeof(T) == typeof(ReadOnlyMemory<char>))
+            {
+                dst = (T)(object)tensor.StringData()[0].AsMemory();
+                return;
+            }
+
             if (typeof(T).as_dtype() != tensor.dtype)
                 throw new NotSupportedException();
 
