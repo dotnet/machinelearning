@@ -38,7 +38,7 @@ namespace Microsoft.ML.AutoML.Test
 
         [TensorFlowFact]
         public void AutoFitContextLogTest()
-		{
+        {
             // This test confirms that logs produced from contexts made during AutoML experiment
             // runs are correctly relayed to the main Experiment MLContext.
             _markerAutoFitContextLogTest = false;
@@ -115,7 +115,7 @@ namespace Microsoft.ML.AutoML.Test
                 Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
             }
         }
-        
+
         [TensorFlowFact]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
