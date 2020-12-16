@@ -21,8 +21,38 @@ namespace Microsoft.ML.AutoML.Test
 {
     public class AutoFitTests : BaseTestClass
     {
+        // Marker necessary for AutoFitContextLogTest to ensure that the wanted logs
+        // from Experiment's sub MLContexts were relayed to the main calling MLContext.
+        bool _markerAutoFitContextLogTest;
         public AutoFitTests(ITestOutputHelper output) : base(output)
         {
+        }
+
+        private void MlContextLog(object sender, LoggingEventArgs e)
+        {
+            // Log containing ImageClassificationTrainer will only come from AutoML's sub
+            // contexts.
+            if (!_markerAutoFitContextLogTest && e.Message.Contains("[Source=ImageClassificationTrainer;"))
+                _markerAutoFitContextLogTest = true;
+        }
+
+        [TensorFlowFact]
+        public void AutoFitContextLogTest()
+        {
+            // This test confirms that logs produced from contexts made during AutoML experiment
+            // runs are correctly relayed to the main Experiment MLContext.
+            _markerAutoFitContextLogTest = false;
+            var context = new MLContext(1);
+            context.Log += MlContextLog;
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(datasetPath);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(15)
+                            .Execute(trainData, columnInference.ColumnInformation);
+            Assert.True(_markerAutoFitContextLogTest, "Image classification trainer logs from Experiment's sub contexts" +
+                "were not relayed to the main MLContext.");
         }
 
         [Fact]
