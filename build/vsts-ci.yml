@@ -56,6 +56,7 @@ phases:
       brew untap local/openssl |
       brew untap local/python2
     displayName: MacOS Homebrew bug Workaround
+    continueOnError: true
   - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
     displayName: Install build dependencies
   - script: ./restore.sh
