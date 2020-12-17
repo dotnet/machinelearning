@@ -23,7 +23,7 @@
   <Target Name="SetupPublishSymbols">
     <PropertyGroup>
       <SymbolExpirationInDays Condition="'$(SymbolExpirationInDays)'=='' and '$(SymbolExpirationDate)'==''">180</SymbolExpirationInDays>
-      <ConvertPortablePdbsToWindowsPdbs>true</ConvertPortablePdbsToWindowsPdbs>
+      <ConvertPortablePdbsToWindowsPdbs>false</ConvertPortablePdbsToWindowsPdbs>
     </PropertyGroup>
 
     <ItemGroup>
