@@ -1,23 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
-
   <PropertyGroup>
     <Authors>Intel</Authors>
-    <IncludeSymbols>false</IncludeSymbols>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>true</IncludeSymbols>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageDescription>$(MSBuildProjectName) contains the MKL library redistributed as a NuGet package.</PackageDescription>
     <PackageTags>$(PackageTags) MLNET MKL</PackageTags>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-
   <PropertyGroup>
     <IncludeMLNetNotices>false</IncludeMLNetNotices>
   </PropertyGroup>
-
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
     <Content Include="$(RepoRoot)eng\pkg\_._" Pack="true" PackagePath="lib\netstandard2.0\" />
     <Content Include="$(NUGET_PACKAGES)\mlnetmkldeps\$(MlNetMklDepsPackageVersion)\LICENSE.txt" Pack="true" PackagePath="" />
   </ItemGroup>
+  <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
+    <ItemGroup>
+      <!--Include native PDBs-->
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb" TargetPath="..\..\runtimes\win-x86\native"/>
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb" TargetPath="..\..\runtimes\win-x64\native"/>
+    </ItemGroup>
+  </Target>
 </Project>

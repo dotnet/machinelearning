@@ -1,16 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Recommender</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>LIBMF, the core computation library for matrix factorization in ML.NET</PackageDescription>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
-
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
@@ -18,10 +16,16 @@
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
     <Content Include="$(RepoRoot)src\Native\MatrixFactorizationNative\libmf\COPYRIGHT" Pack="true" PackagePath="" />
   </ItemGroup>
-
+  <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
+    <ItemGroup>
+      <!--Include native PDBs-->
+      <!--The path needed to be hardcoded for this to work on our publishing CI-->
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MatrixFactorizationNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MatrixFactorizationNative.pdb" TargetPath="..\..\runtimes\win-x86\native"/>
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MatrixFactorizationNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MatrixFactorizationNative.pdb" TargetPath="..\..\runtimes\win-x64\native"/>
+    </ItemGroup>
+  </Target>
 </Project>
