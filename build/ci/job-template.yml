@@ -94,5 +94,5 @@ jobs:
           script: Get-ChildItem -Path  '$(Build.SourcesDirectory)\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
         displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} -pack -ci -configuration $(_configuration) /p:Build=false /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      - script: ${{ parameters.buildScript }} -pack -ci -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Build=false /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
         displayName: Build Packages
