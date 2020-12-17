@@ -243,6 +243,16 @@ phases:
     displayName: sign packages
     continueOnError: false
 
+  # The generated .nupkgs and .snupkgs packages are published to Azure artifacts,
+  # in case we need to debug them. They're found under Release/Shipping
+  - task: PublishBuildArtifacts@1
+    displayName: Push packages and symbol packages to Azure Artifacts
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/artifacts/packages
+      artifactName: PackageAssets
+      artifactType: container
+    continueOnError: true
+
   - task: NuGetAuthenticate@0
     inputs:
       nuGetServiceConnections: machinelearning-dnceng-public-feed # To allow publishing to a feed of another organization
