@@ -442,9 +442,11 @@ namespace Microsoft.ML.AutoML.Test
 
         }
 
-        [LightGBMFact]
-        public void AutoFitMaxExperimentTimeTest()
+        [Theory, IterationData(10)]
+        [TestCategory("RunSpecificTest")]
+        public void AutoFitMaxExperimentTimeTest(int iteration)
         {
+            Console.WriteLine(iteration);
             // A single binary classification experiment takes less than 5 seconds.
             // System.OperationCanceledException is thrown when ongoing experiment
             // is canceled and at least one model has been generated.
@@ -455,8 +457,12 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
+
+            var experSettings = new BinaryExperimentSettings { MaxExperimentTimeInSeconds = 60};
+            experSettings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
+
             var experiment = context.Auto()
-                .CreateBinaryClassificationExperiment(15)
+                .CreateBinaryClassificationExperiment(experSettings)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // Ensure the (last) model that was training when maximum experiment time was reached has been stopped,
