@@ -2,6 +2,10 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- To include the DLL and PDBs of the underlying projects
+    We need to remove the IncludeBuildOutput=false. This also generates a
+    Microsoft.ML.dll in the nuget package, and a Microsoft.ML.pdb in the .snupkg
+    But these are to be ignored, as they don't contain anything meaningful-->
     <!-- <IncludeBuildOutput>false</IncludeBuildOutput> -->
     <NoWarn>$(NoWarn);NU5127;NU5128</NoWarn>
     <PackageDescription>ML.NET is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.</PackageDescription>
