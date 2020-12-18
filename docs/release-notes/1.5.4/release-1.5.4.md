@@ -1,4 +1,4 @@
-# [ML.NET](http://dot.net/ml) 1.5.3
+# [ML.NET](http://dot.net/ml) 1.5.4
 
 ## **New Features**
 - **New API for exporting models to Onnx**. ([#5544](https://github.com/dotnet/machinelearning/pull/5544)). A new API has been added to Onnx converter to specify the output columns you care about. This will export a smaller and more performant model in many cases.
