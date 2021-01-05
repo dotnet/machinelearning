@@ -12,6 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -818,6 +819,8 @@ namespace Microsoft.ML.Transforms
             public abstract Delegate GetGetter(DataViewRow input, int index);
 
             public abstract IDataView GetDataView(IHostEnvironment env);
+            public abstract TKey[] GetKeys<TKey>();
+            public abstract TValue[] GetValues<TValue>();
         }
 
         /// <summary>
@@ -962,6 +965,17 @@ namespace Microsoft.ML.Transforms
             }
 
             private static TValue GetValue<T>(TValue value) => value;
+
+            public override T[] GetKeys<T>()
+            {
+
+                return _mapping.Keys.Cast<T>().ToArray();
+            }
+            public override T[] GetValues<T>()
+            {
+                return _mapping.Values.Cast<T>().ToArray();
+            }
+
         }
 
         /// <summary>
@@ -1012,12 +1026,13 @@ namespace Microsoft.ML.Transforms
             return new Mapper(this, schema, _valueMap, ColumnPairs);
         }
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly DataViewSchema _inputSchema;
             private readonly ValueMap _valueMap;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
             private readonly ValueMappingTransformer _parent;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             internal Mapper(ValueMappingTransformer transform,
                             DataViewSchema inputSchema,
@@ -1038,6 +1053,257 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
 
                 return _valueMap.GetGetter(input, ColMapNewToOld[iinfo]);
+            }
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+                Host.CheckValue(ctx, nameof(ctx));
+
+                for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
+                {
+                    string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
+                    string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
+
+                    if (!_inputSchema.TryGetColumnIndex(inputColumnName, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(_inputSchema), "input", inputColumnName);
+                    var type = _inputSchema[colSrc].Type;
+                    DataViewType colType;
+                    if (type is VectorDataViewType vectorType)
+                      colType = new VectorDataViewType((PrimitiveDataViewType)_parent.ValueColumnType, vectorType.Dimensions);
+                    else
+                      colType = _parent.ValueColumnType;
+                    string dstVariableName = ctx.AddIntermediateVariable(colType, outputColumnName);
+                    if (!ctx.ContainsColumn(inputColumnName))
+                        continue;
+
+                    if (!SaveAsOnnxCore(ctx, ctx.GetVariableName(inputColumnName), dstVariableName))
+                        ctx.RemoveColumn(inputColumnName, true);
+                }
+            }
+
+            private void CastInputToString<T>(OnnxContext ctx, out OnnxNode node, string srcVariableName, string opType, string labelEncoderOutput)
+            {
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(TextDataViewType.Instance, (int)srcShape[1]), "castOutput");
+                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
+                castNode.AddAttribute("to", t);
+                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                var values = Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToString(item));
+                node.AddAttribute("keys_strings", values);
+            }
+
+            private void CastInputToInt<T>(OnnxContext ctx, out OnnxNode node, string srcVariableName, string opType, string labelEncoderOutput)
+            {
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, (int)srcShape[1]), "castOutput");
+                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
+                castNode.AddAttribute("to", t);
+                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                var values = Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToInt64(item));
+                node.AddAttribute("keys_int64s", values);
+            }
+
+            private void CastInputToFloat<T>(OnnxContext ctx, out OnnxNode node, string srcVariableName, string opType, string labelEncoderOutput)
+            {
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, (int)srcShape[1]), "castOutput");
+                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+                castNode.AddAttribute("to", t);
+                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                var values = Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToSingle(item));
+                node.AddAttribute("keys_floats", values);
+            }
+
+            private bool SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
+            {
+                const int minimumOpSetVersion = 9;
+                ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
+                OnnxNode node;
+                string opType = "LabelEncoder";
+                var labelEncoderInput = srcVariableName;
+                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
+                var typeValue = _valueMap.ValueColumn.Type;
+                var typeKey = _valueMap.KeyColumn.Type;
+
+                var labelEncoderOutput = (typeValue == NumberDataViewType.Single || typeValue == TextDataViewType.Instance || typeValue == NumberDataViewType.Int64) ? dstVariableName :
+                    (typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance) ? ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, (int)srcShape[1]), "LabelEncoderOutput") :
+                    ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, (int) srcShape[1]), "LabelEncoderOutput");
+
+                // Labelencoder doesn't support mapping between the same type and only supports mappings between int64s, floats, and strings.
+                // Keys that are of NumberDataTypeView, but not int64s, are cast to strings. If values, we cast them to int64s, in order to avoid same type mappings.
+                // String -> String mappings can't be supported.
+                if (typeKey == NumberDataViewType.Int64)
+                {
+                    // To avoid int64 -> int64 mapping, we cast keys to strings
+                    if (typeValue is NumberDataViewType)
+                    {
+                        CastInputToString<Int64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                    }
+                    else
+                    {
+                        node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                        node.AddAttribute("keys_int64s", _valueMap.GetKeys<Int64>());
+                    }
+                }
+                else if (typeKey == NumberDataViewType.Int32)
+                {
+                    // To avoid string -> string mapping, we cast keys to int64s
+                    if (typeValue is TextDataViewType)
+                    {
+                        labelEncoderOutput = dstVariableName;
+                        CastInputToInt<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput;
+                    }
+                    else
+                        CastInputToString<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                }
+                else if (typeKey == NumberDataViewType.Int16)
+                {
+                    if (typeValue is TextDataViewType)
+                    {
+                        CastInputToInt<Int16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                    }
+                    else
+                        CastInputToString<Int16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                }
+                else if (typeKey == NumberDataViewType.UInt64)
+                {
+                    if (typeValue is TextDataViewType)
+                    {
+                        CastInputToInt<UInt64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                    }
+                    else
+                        CastInputToString<UInt64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                }
+                else if (typeKey == NumberDataViewType.UInt32)
+                {
+                    if (typeValue is TextDataViewType)
+                    {
+                        CastInputToInt<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                    }
+                    else
+                        CastInputToString<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput); // TODO
+                }
+                else if (typeKey == NumberDataViewType.UInt16)
+                {
+                    if (typeValue is TextDataViewType)
+                    {
+                        CastInputToInt<UInt16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                    }
+                    else
+                        CastInputToString<UInt16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                }
+                else if (typeKey == NumberDataViewType.Single)
+                {
+                    if (typeValue == NumberDataViewType.Single || typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance)
+                    {
+                        CastInputToString<float>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                    }
+                    else
+                    {
+                        node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                        node.AddAttribute("keys_floats", _valueMap.GetKeys<float>());
+                    }
+                }
+                else if (typeKey == NumberDataViewType.Double)
+                {
+                    if (typeValue == NumberDataViewType.Single || typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance)
+                    {
+                        CastInputToString<double>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                    }
+                    else
+                        CastInputToFloat<double>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                }
+                else if (typeKey == TextDataViewType.Instance)
+                {
+                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                    node.AddAttribute("keys_strings", _valueMap.GetKeys<ReadOnlyMemory<char>>());
+                }
+                else if (typeKey == BooleanDataViewType.Instance)
+                {
+                    if (typeValue == NumberDataViewType.Single || typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance)
+                    {
+                        var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(TextDataViewType.Instance, (int)srcShape[1]), "castOutput");
+                        var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
+                        var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
+                        castNode.AddAttribute("to", t);
+                        node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                        var values = Array.ConvertAll(_valueMap.GetKeys<bool>(), item => Convert.ToString(Convert.ToByte(item)));
+                        node.AddAttribute("keys_strings", values);
+                    }
+                    else
+                        CastInputToFloat<bool>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                }
+                else
+                    return false;
+
+                // Pass in values
+                if (typeValue == NumberDataViewType.Int64)
+                {
+                    node.AddAttribute("values_int64s", _valueMap.GetValues<long>());
+                }
+                else if (typeValue == NumberDataViewType.Int32)
+                {
+                    node.AddAttribute("values_int64s", _valueMap.GetValues<int>().Select(item => Convert.ToInt64(item)));
+                    var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
+                    castNode.AddAttribute("to", typeValue.RawType);
+                }
+                else if (typeValue == NumberDataViewType.Int16)
+                {
+                    node.AddAttribute("values_int64s", _valueMap.GetValues<short>().Select(item => Convert.ToInt64(item)));
+                    var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
+                    castNode.AddAttribute("to", typeValue.RawType);
+                }
+                else if (typeValue == NumberDataViewType.UInt64)
+                {
+                    node.AddAttribute("values_int64s", _valueMap.GetValues<ulong>().Select(item => Convert.ToInt64(item)));
+                    var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
+                    castNode.AddAttribute("to", typeValue.RawType);
+                }
+                else if (typeValue == NumberDataViewType.UInt32)
+                {
+                    node.AddAttribute("values_int64s", _valueMap.GetValues<uint>().Select(item => Convert.ToInt64(item)));
+                    var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
+                    castNode.AddAttribute("to", typeValue.RawType);
+                }
+                else if (typeValue == NumberDataViewType.UInt16)
+                {
+                    node.AddAttribute("values_int64s", _valueMap.GetValues<ushort>().Select(item => Convert.ToInt64(item)));
+                    var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
+                    castNode.AddAttribute("to", typeValue.RawType);
+                }
+                else if (typeValue == NumberDataViewType.Single)
+                {
+                    node.AddAttribute("values_floats", _valueMap.GetValues<float>());
+                }
+                else if (typeValue == NumberDataViewType.Double)
+                {
+                    node.AddAttribute("values_floats", _valueMap.GetValues<double>().Select(item => Convert.ToSingle(item)));
+                    var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
+                    castNode.AddAttribute("to", typeValue.RawType);
+                }
+                else if (typeValue == TextDataViewType.Instance)
+                {
+                    node.AddAttribute("values_strings", _valueMap.GetValues<ReadOnlyMemory<char>>());
+                }
+                else if (typeValue == BooleanDataViewType.Instance)
+                {
+                    node.AddAttribute("values_floats", _valueMap.GetValues<bool>().Select(item => Convert.ToSingle(item)));
+                    var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
+                    castNode.AddAttribute("to", typeValue.RawType);
+                }
+                else
+                    return false;
+
+                //Unknown keys should map to 0
+                node.AddAttribute("default_int64", 0);
+                node.AddAttribute("default_string", "");
+                node.AddAttribute("default_float", 0f);
+                return true;
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
