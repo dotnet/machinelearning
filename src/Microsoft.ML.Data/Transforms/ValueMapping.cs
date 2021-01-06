@@ -968,7 +968,6 @@ namespace Microsoft.ML.Transforms
 
             public override T[] GetKeys<T>()
             {
-
                 return _mapping.Keys.Cast<T>().ToArray();
             }
             public override T[] GetValues<T>()
@@ -1134,12 +1133,13 @@ namespace Microsoft.ML.Transforms
                     (typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance) ? ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, (int)srcShape[1]), "LabelEncoderOutput") :
                     ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, (int) srcShape[1]), "LabelEncoderOutput");
 
-                // Labelencoder doesn't support mapping between the same type and only supports mappings between int64s, floats, and strings.
-                // Keys that are of NumberDataTypeView, but not int64s, are cast to strings. If values, we cast them to int64s, in order to avoid same type mappings.
+                // The LabelEncoder operator doesn't support mappings between the same type and only supports mappings between int64s, floats, and strings.
+                // As a result, we need to cast most inputs and outputs. In order to avoid as many unsupported mappings, we cast keys that are of NumberDataTypeView
+                // to strings and values of NumberDataTypeView to int64s.
                 // String -> String mappings can't be supported.
                 if (typeKey == NumberDataViewType.Int64)
                 {
-                    // To avoid int64 -> int64 mapping, we cast keys to strings
+                    // To avoid a int64 -> int64 mapping, we cast keys to strings
                     if (typeValue is NumberDataViewType)
                     {
                         CastInputToString<Int64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
@@ -1152,48 +1152,37 @@ namespace Microsoft.ML.Transforms
                 }
                 else if (typeKey == NumberDataViewType.Int32)
                 {
-                    // To avoid string -> string mapping, we cast keys to int64s
+                    // To avoid a string -> string mapping, we cast keys to int64s
                     if (typeValue is TextDataViewType)
-                    {
-                        labelEncoderOutput = dstVariableName;
-                        CastInputToInt<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput;
-                    }
+                        CastInputToInt<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
                     else
                         CastInputToString<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
                 }
                 else if (typeKey == NumberDataViewType.Int16)
                 {
                     if (typeValue is TextDataViewType)
-                    {
                         CastInputToInt<Int16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
-                    }
                     else
                         CastInputToString<Int16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
                 }
                 else if (typeKey == NumberDataViewType.UInt64)
                 {
                     if (typeValue is TextDataViewType)
-                    {
                         CastInputToInt<UInt64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
-                    }
                     else
                         CastInputToString<UInt64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
                 }
                 else if (typeKey == NumberDataViewType.UInt32)
                 {
                     if (typeValue is TextDataViewType)
-                    {
                         CastInputToInt<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
-                    }
                     else
-                        CastInputToString<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput); // TODO
+                        CastInputToString<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
                 }
                 else if (typeKey == NumberDataViewType.UInt16)
                 {
                     if (typeValue is TextDataViewType)
-                    {
                         CastInputToInt<UInt16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
-                    }
                     else
                         CastInputToString<UInt16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
                 }
@@ -1212,14 +1201,14 @@ namespace Microsoft.ML.Transforms
                 else if (typeKey == NumberDataViewType.Double)
                 {
                     if (typeValue == NumberDataViewType.Single || typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance)
-                    {
                         CastInputToString<double>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
-                    }
                     else
                         CastInputToFloat<double>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
                 }
                 else if (typeKey == TextDataViewType.Instance)
                 {
+                    if (typeValue == TextDataViewType.Instance)
+                        return false;
                     node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
                     node.AddAttribute("keys_strings", _valueMap.GetKeys<ReadOnlyMemory<char>>());
                 }
@@ -1241,7 +1230,6 @@ namespace Microsoft.ML.Transforms
                 else
                     return false;
 
-                // Pass in values
                 if (typeValue == NumberDataViewType.Int64)
                 {
                     node.AddAttribute("values_int64s", _valueMap.GetValues<long>());
