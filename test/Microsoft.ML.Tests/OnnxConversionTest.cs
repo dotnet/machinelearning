@@ -1224,9 +1224,13 @@ namespace Microsoft.ML.Tests
             {
                 new TextLoader.Column("Keys", keyType, 0, 2)
             };
-
+            TextLoader.Column[] columnsScalar = new[]
+            {
+                new TextLoader.Column("Keys", keyType, 0)
+            };
             IDataView[] dataViews =
             {
+                mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
                 mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
             };
             List<IEstimator<ITransformer>> pipelines = new List<IEstimator<ITransformer>>();
@@ -1358,7 +1362,6 @@ namespace Microsoft.ML.Tests
                 for (int j = 0; j < dataViews.Length; j++)
                 {
                     var onnxFileName = "MapValue.onnx";
-
                     TestPipeline(pipeline, dataViews[j], onnxFileName, new ColumnComparison[] { new ColumnComparison("Value") });
                 }
             }

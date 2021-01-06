@@ -1082,40 +1082,20 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private void CastInputToString<T>(OnnxContext ctx, out OnnxNode node, string srcVariableName, string opType, string labelEncoderOutput)
+            private void CastInputTo<T>(OnnxContext ctx, out OnnxNode node, string srcVariableName, string opType, string labelEncoderOutput, PrimitiveDataViewType itemType)
             {
                 var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
-                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(TextDataViewType.Instance, (int)srcShape[1]), "castOutput");
+                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(itemType, (int)srcShape[1]), "castOutput");
                 var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
-                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
-                castNode.AddAttribute("to", t);
+                castNode.AddAttribute("to", itemType.RawType);
                 node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
-                var values = Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToString(item));
-                node.AddAttribute("keys_strings", values);
-            }
+                if (itemType == TextDataViewType.Instance)
+                    node.AddAttribute("keys_strings", Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToString(item)));
+                else if (itemType == NumberDataViewType.Single)
+                    node.AddAttribute("keys_floats", Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToSingle(item)));
+                else if (itemType == NumberDataViewType.Int64)
+                    node.AddAttribute("keys_int64s", Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToInt64(item)));
 
-            private void CastInputToInt<T>(OnnxContext ctx, out OnnxNode node, string srcVariableName, string opType, string labelEncoderOutput)
-            {
-                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
-                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, (int)srcShape[1]), "castOutput");
-                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
-                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
-                castNode.AddAttribute("to", t);
-                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
-                var values = Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToInt64(item));
-                node.AddAttribute("keys_int64s", values);
-            }
-
-            private void CastInputToFloat<T>(OnnxContext ctx, out OnnxNode node, string srcVariableName, string opType, string labelEncoderOutput)
-            {
-                var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
-                var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, (int)srcShape[1]), "castOutput");
-                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
-                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
-                castNode.AddAttribute("to", t);
-                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
-                var values = Array.ConvertAll(_valueMap.GetKeys<T>(), item => Convert.ToSingle(item));
-                node.AddAttribute("keys_floats", values);
             }
 
             private bool SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
@@ -1135,14 +1115,14 @@ namespace Microsoft.ML.Transforms
 
                 // The LabelEncoder operator doesn't support mappings between the same type and only supports mappings between int64s, floats, and strings.
                 // As a result, we need to cast most inputs and outputs. In order to avoid as many unsupported mappings, we cast keys that are of NumberDataTypeView
-                // to strings and values of NumberDataTypeView to int64s.
+                // to strings and values of NumberDataViewType to int64s.
                 // String -> String mappings can't be supported.
                 if (typeKey == NumberDataViewType.Int64)
                 {
                     // To avoid a int64 -> int64 mapping, we cast keys to strings
                     if (typeValue is NumberDataViewType)
                     {
-                        CastInputToString<Int64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<Int64>(ctx, out node, srcVariableName, opType, labelEncoderOutput, TextDataViewType.Instance);
                     }
                     else
                     {
@@ -1154,43 +1134,43 @@ namespace Microsoft.ML.Transforms
                 {
                     // To avoid a string -> string mapping, we cast keys to int64s
                     if (typeValue is TextDataViewType)
-                        CastInputToInt<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput, NumberDataViewType.Int64);
                     else
-                        CastInputToString<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<Int32>(ctx, out node, srcVariableName, opType, labelEncoderOutput, TextDataViewType.Instance);
                 }
                 else if (typeKey == NumberDataViewType.Int16)
                 {
                     if (typeValue is TextDataViewType)
-                        CastInputToInt<Int16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<Int16>(ctx, out node, srcVariableName, opType, labelEncoderOutput, NumberDataViewType.Int64);
                     else
-                        CastInputToString<Int16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<Int16>(ctx, out node, srcVariableName, opType, labelEncoderOutput, TextDataViewType.Instance);
                 }
                 else if (typeKey == NumberDataViewType.UInt64)
                 {
                     if (typeValue is TextDataViewType)
-                        CastInputToInt<UInt64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<UInt64>(ctx, out node, srcVariableName, opType, labelEncoderOutput, NumberDataViewType.Int64);
                     else
-                        CastInputToString<UInt64>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<UInt64>(ctx, out node, srcVariableName, opType, labelEncoderOutput, TextDataViewType.Instance);
                 }
                 else if (typeKey == NumberDataViewType.UInt32)
                 {
                     if (typeValue is TextDataViewType)
-                        CastInputToInt<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput, NumberDataViewType.Int64);
                     else
-                        CastInputToString<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<UInt32>(ctx, out node, srcVariableName, opType, labelEncoderOutput, TextDataViewType.Instance);
                 }
                 else if (typeKey == NumberDataViewType.UInt16)
                 {
                     if (typeValue is TextDataViewType)
-                        CastInputToInt<UInt16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<UInt16>(ctx, out node, srcVariableName, opType, labelEncoderOutput, NumberDataViewType.Int64);
                     else
-                        CastInputToString<UInt16>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<UInt16>(ctx, out node, srcVariableName, opType, labelEncoderOutput, TextDataViewType.Instance);
                 }
                 else if (typeKey == NumberDataViewType.Single)
                 {
                     if (typeValue == NumberDataViewType.Single || typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance)
                     {
-                        CastInputToString<float>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<float>(ctx, out node, srcVariableName, opType, labelEncoderOutput, TextDataViewType.Instance);
                     }
                     else
                     {
@@ -1201,9 +1181,9 @@ namespace Microsoft.ML.Transforms
                 else if (typeKey == NumberDataViewType.Double)
                 {
                     if (typeValue == NumberDataViewType.Single || typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance)
-                        CastInputToString<double>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<double>(ctx, out node, srcVariableName, opType, labelEncoderOutput, TextDataViewType.Instance);
                     else
-                        CastInputToFloat<double>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<double>(ctx, out node, srcVariableName, opType, labelEncoderOutput, NumberDataViewType.Single);
                 }
                 else if (typeKey == TextDataViewType.Instance)
                 {
@@ -1225,7 +1205,7 @@ namespace Microsoft.ML.Transforms
                         node.AddAttribute("keys_strings", values);
                     }
                     else
-                        CastInputToFloat<bool>(ctx, out node, srcVariableName, opType, labelEncoderOutput);
+                        CastInputTo<bool>(ctx, out node, srcVariableName, opType, labelEncoderOutput, NumberDataViewType.Single);
                 }
                 else
                     return false;
