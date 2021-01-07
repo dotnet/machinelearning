@@ -362,6 +362,9 @@ namespace Microsoft.ML.TimeSeries
             private static readonly double _unitForZero = 0.3;
             private static readonly double _minimumScore = 0.0;
             private static readonly double _maximumScore = 1.0;
+            // Use this threshold to correct false anomalies
+            private static readonly double _zscoreThreshold = 1.5;
+
             // If the score window is smaller than this value, the anomaly score is tend to be small.
             // Proof: For each point, the SR anomaly score is calculated as (w is average window size):
             // (mag - avg_mag) / avg_mag
@@ -426,6 +429,8 @@ namespace Microsoft.ML.TimeSeries
             //used in all modes
             private double _minimumOriginValue;
             private double _maximumOriginValue;
+            private double _std;
+            private double _mean;
             private readonly double[] _predictArray;
             private double[] _backAddArray;
             private double[] _fftRe;
@@ -490,6 +495,7 @@ namespace Microsoft.ML.TimeSeries
 
                 _minimumOriginValue = Double.MaxValue;
                 _maximumOriginValue = Double.MinValue;
+                _mean = 0.0;
 
                 Array.Resize(ref _seriesToDetect, values.Length);
                 for (int i = 0; i < values.Length; ++i)
@@ -497,7 +503,16 @@ namespace Microsoft.ML.TimeSeries
                     _seriesToDetect[i] = values[i];
                     _minimumOriginValue = Math.Min(_minimumOriginValue, values[i]);
                     _maximumOriginValue = Math.Max(_maximumOriginValue, values[i]);
+                    _mean += values[i];
                 }
+
+                _mean /= values.Length;
+                _std = 0.0;
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    _std += (values[i] - _mean) * (values[i] - _mean);
+                }
+                _std = Math.Sqrt(_std / values.Length - 1);
 
                 if (_period > 0)
                 {
@@ -612,9 +627,20 @@ namespace Microsoft.ML.TimeSeries
 
                     var detres = score > threshold ? 1 : 0;
 
+                    // Anomalies correction by zscore
+                    if (detres > 0)
+                    {
+                        if (_std < _eps || Math.Abs(values[i] - _mean) / _std < _zscoreThreshold)
+                        {
+                            detres = 0;
+                            score = 0.0;
+                        }
+                    }
+
                     results[i][0] = detres;
                     results[i][1] = score;
                     results[i][2] = _ifftMagList[i];
+
                 }
             }
 
