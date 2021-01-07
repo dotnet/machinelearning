@@ -1214,7 +1214,7 @@ namespace Microsoft.ML.Tests
         // Due to lack of support in OnnxRuntime, String => String mappings are not supported
         public void ValueMappingOnnxConversionTest([CombinatorialValues(DataKind.Int64, DataKind.Int32, DataKind.UInt32, DataKind.UInt64,
         DataKind.UInt16, DataKind.Int16, DataKind.Double, DataKind.String, DataKind.Boolean)]
-        DataKind keyType)
+        DataKind keyType, [CombinatorialValues(true, false)] bool treatValuesAsKeyType)
         {
             var mlContext = new MLContext(seed: 1);
             string filePath = (keyType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt")
@@ -1237,16 +1237,16 @@ namespace Microsoft.ML.Tests
 
             if (keyType == DataKind.Single)
             {
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, int> { { 3, 6 }, { 23, 46 } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, long> { { 3, 6 }, { 23, 46 } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, short> { { 3, 6 }, { 23, 46 } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, uint> { { 3, 6 }, { 23, 46 } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, ushort> { { 3, 6 }, { 23, 46 } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, ulong> { { 3, 6 }, { 23, 46 } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, string> { { 3, "True" }, { 23, "False" } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, float> { { 3, 6 }, { 23, 46 } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, double> { { 3, 698 }, { 23, 7908 } }, "Keys"));
-                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, bool> { { 3, false }, { 23, true } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, int> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, long> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, short> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, uint> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, ushort> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, ulong> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, string> { { 3, "True" }, { 23, "False" } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, float> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, double> { { 3, 698 }, { 23, 7908 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, bool> { { 3, false }, { 23, true } }, "Keys", treatValuesAsKeyType));
             }
             else if (keyType == DataKind.Double)
             {
@@ -1361,7 +1361,7 @@ namespace Microsoft.ML.Tests
             {
                 for (int j = 0; j < dataViews.Length; j++)
                 {
-                    var onnxFileName = "MapValue.onnx";
+                    var onnxFileName = "ValueMapping.onnx";
                     TestPipeline(pipeline, dataViews[j], onnxFileName, new ColumnComparison[] { new ColumnComparison("Value") });
                 }
             }

@@ -1108,6 +1108,7 @@ namespace Microsoft.ML.Transforms
                 var srcShape = ctx.RetrieveShapeOrNull(srcVariableName);
                 var typeValue = _valueMap.ValueColumn.Type;
                 var typeKey = _valueMap.KeyColumn.Type;
+                var kind = _valueMap.ValueColumn.Type.GetRawKind();
 
                 var labelEncoderOutput = (typeValue == NumberDataViewType.Single || typeValue == TextDataViewType.Instance || typeValue == NumberDataViewType.Int64) ? dstVariableName :
                     (typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance) ? ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, (int)srcShape[1]), "LabelEncoderOutput") :
@@ -1226,13 +1227,13 @@ namespace Microsoft.ML.Transforms
                     var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
                     castNode.AddAttribute("to", typeValue.RawType);
                 }
-                else if (typeValue == NumberDataViewType.UInt64)
+                else if (typeValue == NumberDataViewType.UInt64 || kind == InternalDataKind.U8)
                 {
                     node.AddAttribute("values_int64s", _valueMap.GetValues<ulong>().Select(item => Convert.ToInt64(item)));
                     var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");
                     castNode.AddAttribute("to", typeValue.RawType);
                 }
-                else if (typeValue == NumberDataViewType.UInt32)
+                else if (typeValue == NumberDataViewType.UInt32 || kind == InternalDataKind.U4)
                 {
                     node.AddAttribute("values_int64s", _valueMap.GetValues<uint>().Select(item => Convert.ToInt64(item)));
                     var castNode = ctx.CreateNode("Cast", labelEncoderOutput, dstVariableName, ctx.GetNodeName("Cast"), "");

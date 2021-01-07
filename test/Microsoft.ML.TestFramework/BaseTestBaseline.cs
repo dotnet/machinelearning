@@ -674,9 +674,7 @@ namespace Microsoft.ML.RunTests
         public void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6, bool isRightColumnOnnxScalar = false)
         {
             var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
             var leftType = leftColumn.Type.GetItemType();
-            var rightType = rightColumn.Type.GetItemType();
 
             if (leftType == NumberDataViewType.SByte)
                 CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
