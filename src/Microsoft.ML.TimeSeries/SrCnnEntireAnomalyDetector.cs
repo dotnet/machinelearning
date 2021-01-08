@@ -495,24 +495,23 @@ namespace Microsoft.ML.TimeSeries
 
                 _minimumOriginValue = Double.MaxValue;
                 _maximumOriginValue = Double.MinValue;
-                _mean = 0.0;
+
+                var sum = 0.0;
+                var squareSum = 0.0;
 
                 Array.Resize(ref _seriesToDetect, values.Length);
                 for (int i = 0; i < values.Length; ++i)
                 {
+                    var value = values[i];
                     _seriesToDetect[i] = values[i];
-                    _minimumOriginValue = Math.Min(_minimumOriginValue, values[i]);
-                    _maximumOriginValue = Math.Max(_maximumOriginValue, values[i]);
-                    _mean += values[i];
+                    _minimumOriginValue = Math.Min(_minimumOriginValue, value);
+                    _maximumOriginValue = Math.Max(_maximumOriginValue, value);
+                    sum += value;
+                    squareSum += value * value;
                 }
 
-                _mean /= values.Length;
-                _std = 0.0;
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    _std += (values[i] - _mean) * (values[i] - _mean);
-                }
-                _std = Math.Sqrt(_std / values.Length - 1);
+                _mean = sum / values.Length;
+                _std = Math.Sqrt((squareSum - (sum * sum) / values.Length) / values.Length);
 
                 if (_period > 0)
                 {
@@ -630,7 +629,9 @@ namespace Microsoft.ML.TimeSeries
                     // Anomalies correction by zscore
                     if (detres > 0)
                     {
-                        if (_std < _eps || Math.Abs(values[i] - _mean) / _std < _zscoreThreshold)
+                        // Use zscore to filter out those points lie in the dense region.
+                        var zscore = Math.Abs(values[i] - _mean) / _std;
+                        if (_std < _eps || zscore < _zscoreThreshold)
                         {
                             detres = 0;
                             score = 0.0;
