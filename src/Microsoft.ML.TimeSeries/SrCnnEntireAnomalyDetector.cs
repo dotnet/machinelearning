@@ -629,7 +629,7 @@ namespace Microsoft.ML.TimeSeries
                     // Anomalies correction by zscore
                     if (detres > 0)
                     {
-                        // Use zscore to filter out those points lie in the dense region.
+                        // Use zscore to filter out those false anomalies that lie within 1.5 sigma region.
                         var zscore = Math.Abs(values[i] - _mean) / _std;
                         if (_std < _eps || zscore < _zscoreThreshold)
                         {
