@@ -55,9 +55,15 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
+    # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
+    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
+      - script: |
+          rm -rf /usr/local/bin/2to3
+        displayName: MacOS Homebrew bug Workaround
+        continueOnError: true
     # Extra MacOS step required to install OS-specific dependencies
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
-      - script: brew update && brew unlink python@3.9 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
+      - script: brew update && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
         displayName: Install MacOS build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
