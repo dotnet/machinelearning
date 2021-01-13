@@ -62,6 +62,8 @@ namespace Microsoft.ML
     /// <remarks>
     /// This class can also be used with trained pipelines that do not end with a predictor: in this case, the
     /// 'prediction' will be just the outcome of all the transformations.
+    ///
+    /// The PredictionEngine is NOT thread safe. Using it in a threaded environment can cause unexpected issues.
     /// </remarks>
     public sealed class PredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
        where TSrc : class
