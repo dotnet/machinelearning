@@ -39,8 +39,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.SimpleMessageDiagnostic.Rule).WithLocation(basis + 32, 35).WithArguments("Check", "\"Less fine: \" + env.GetType().Name"),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(basis + 34, 17).WithArguments("CheckUserArg", "name", "\"p\""),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.DecodeMessageWithLoadContextDiagnostic.Rule).WithLocation(basis + 39, 41).WithArguments("CheckDecode", "\"This message is suspicious\""),
-                new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 24).WithMessage("'ICancelable' is inaccessible due to its protection level"),
-                new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 67).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
+                new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithSpan("/0/Test1.cs", 752, 24, 752, 35).WithMessage("'ICancelable' is inaccessible due to its protection level"),
+                new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithSpan("/0/Test1.cs", 752, 67, 752, 77).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
             };
 
             var test = new VerifyCS.Test
@@ -126,9 +126,9 @@ namespace TestNamespace
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(23, 39).WithArguments("CheckValue", "paramName", "\"noMatch\""),
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(24, 53).WithArguments("CheckUserArg", "name", "\"chumble\""),
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(25, 53).WithArguments("CheckUserArg", "name", "\"sp\""),
-                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 24).WithMessage("'ICancelable' is inaccessible due to its protection level"),
-                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 67).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
-                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 753, 90).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.Runtime.IHostEnvironment' to 'Microsoft.ML.Runtime.IExceptionContext'"),
+                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithSpan("/0/Test1.cs", 752, 24, 752, 35).WithMessage("'ICancelable' is inaccessible due to its protection level"),
+                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithSpan("/0/Test1.cs", 752, 67, 752, 77).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
+                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithSpan("/0/Test1.cs", 753, 90, 753, 93).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.Runtime.IHostEnvironment' to 'Microsoft.ML.Runtime.IExceptionContext'"),
                     },
                 },
                 FixedState =
@@ -146,9 +146,9 @@ namespace TestNamespace
                     {
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.ExceptionDiagnostic.Rule).WithLocation(9, 43).WithArguments("ExceptParam"),
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(23, 39).WithArguments("CheckValue", "paramName", "\"noMatch\""),
-                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 24).WithMessage("'ICancelable' is inaccessible due to its protection level"),
-                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 67).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
-                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 753, 90).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.Runtime.IHostEnvironment' to 'Microsoft.ML.Runtime.IExceptionContext'"),
+                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithSpan("/0/Test1.cs", 752, 24, 752, 35).WithMessage("'ICancelable' is inaccessible due to its protection level"),
+                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithSpan("/0/Test1.cs", 752, 67, 752, 77).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
+                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithSpan("/0/Test1.cs", 753, 90, 753, 93).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.Runtime.IHostEnvironment' to 'Microsoft.ML.Runtime.IExceptionContext'"),
                     },
                 },
             };
