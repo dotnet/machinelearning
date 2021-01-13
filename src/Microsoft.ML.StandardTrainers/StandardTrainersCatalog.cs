@@ -9,6 +9,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML
 {
+    using static Microsoft.ML.Trainers.AveragedPerceptronTrainer;
     using LROptions = LbfgsLogisticRegressionBinaryTrainer.Options;
 
     /// <summary>
@@ -417,10 +418,10 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
-            float learningRate = AveragedLinearOptions.AveragedDefault.LearningRate,
-            bool decreaseLearningRate = AveragedLinearOptions.AveragedDefault.DecreaseLearningRate,
-            float l2Regularization = AveragedLinearOptions.AveragedDefault.L2Regularization,
-            int numberOfIterations = AveragedLinearOptions.AveragedDefault.NumberOfIterations)
+            float learningRate = AveragedPerceptronDefault.LearningRate,
+            bool decreaseLearningRate = AveragedPerceptronDefault.DecreaseLearningRate,
+            float l2Regularization = AveragedPerceptronDefault.L2Regularization,
+            int numberOfIterations = AveragedPerceptronDefault.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
 
