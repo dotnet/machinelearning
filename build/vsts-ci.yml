@@ -50,11 +50,9 @@ phases:
   queue:
     name: Hosted macOS
   steps:
+  # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
   - script: |
-      brew uninstall openssl@1.0.2t |
-      brew uninstall python@2.7.17 |
-      brew untap local/openssl |
-      brew untap local/python2
+      rm -rf /usr/local/bin/2to3
     displayName: MacOS Homebrew bug Workaround
     continueOnError: true
   - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
@@ -235,7 +233,7 @@ phases:
   # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
   # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
   # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
-  # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version 
+  # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
   - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:OfficialBuildId=$(OfficialBuildId) /p:DotNetFinalVersionKind=$(DotnetVersionKind)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
     displayName: Build Packages
 
@@ -261,7 +259,7 @@ phases:
     displayName: Push packages to AzureDevOps feed
     inputs:
       command: push
-      packagesToPush: $(Build.SourcesDirectory)/artifacts/**/*.nupkg;!$(Build.SourcesDirectory)/artifacts/**/*.snupkg  
+      packagesToPush: $(Build.SourcesDirectory)/artifacts/**/*.nupkg;!$(Build.SourcesDirectory)/artifacts/**/*.snupkg
       nuGetFeedType: external
       publishFeedCredentials: machinelearning-dnceng-public-feed
 
