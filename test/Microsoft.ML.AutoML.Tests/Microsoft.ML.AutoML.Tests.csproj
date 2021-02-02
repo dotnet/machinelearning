@@ -41,6 +41,7 @@
   <ItemGroup>
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />

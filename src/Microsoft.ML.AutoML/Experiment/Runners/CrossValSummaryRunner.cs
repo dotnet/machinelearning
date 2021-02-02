@@ -159,6 +159,19 @@ namespace Microsoft.ML.AutoML
 
         private static double[] GetAverageOfNonNaNScoresInNestedEnumerable(IEnumerable<IEnumerable<double>> results)
         {
+            if (results.All(result => result == null))
+            {
+                // If all nested enumerables are null, we say the average is a null enumerable as well.
+                // This is expected to happen on Multiclass metrics where the TopKAccuracyForAllK
+                // array can be null if the topKPredictionCount isn't a valid number.
+                // In that case all of the "results" enumerables will be null anyway, and so
+                // returning null is the expected solution.
+                return null;
+            }
+
+            // In case there are only some null elements, we'll ignore them:
+            results = results.Where(result => result != null);
+
             double[] arr = new double[results.ElementAt(0).Count()];
             for (int i = 0; i < arr.Length; i++)
             {

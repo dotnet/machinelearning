@@ -52,13 +52,6 @@ namespace Microsoft.ML.TensorFlow
                 if (mlType == null || op.NumOutputs <= 0)
                     continue;
 
-                // Construct the final ML.NET type of a Tensorflow variable.
-                var tensorShape = op.output.TensorShape.dims;
-                var columnType = new VectorDataViewType(mlType);
-                if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
-                    (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
-                    columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
-
                 // There can be at most two metadata fields.
                 //  1. The first field always presents. Its value is this operator's type. For example,
                 //     if an output is produced by an "Softmax" operator, the value of this field should be "Softmax".
@@ -83,7 +76,24 @@ namespace Microsoft.ML.TensorFlow
                         (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 
-                schemaBuilder.AddColumn(op.name, columnType, metadataBuilder.ToAnnotations());
+                // Construct the final ML.NET type of a Tensorflow variable.
+                var tensorShape = op.output.TensorShape.dims;
+
+                if(tensorShape == null)
+                {
+                    // primitive column type
+                    schemaBuilder.AddColumn(op.name, mlType, metadataBuilder.ToAnnotations());
+                }
+                else
+                {
+                    // vector column type
+                    DataViewType columnType = new VectorDataViewType(mlType);
+                    if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
+                        (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
+                        columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
+
+                    schemaBuilder.AddColumn(op.name, columnType, metadataBuilder.ToAnnotations());
+                }
             }
             return schemaBuilder.ToSchema();
         }

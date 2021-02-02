@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data
         /// Maximum truncation level for computing (N)DCG
         /// </value>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum truncation level for computing (N)DCG", ShortName = "t")]
-        public int DcgTruncationLevel = 3;
+        public int DcgTruncationLevel = 10;
 
         /// <value>
         /// Label relevance gains
@@ -858,7 +858,7 @@ namespace Microsoft.ML.Data
             public string GroupIdColumn;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum truncation level for computing (N)DCG", ShortName = "t")]
-            public int DcgTruncationLevel = 3;
+            public int DcgTruncationLevel = 10;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Label relevance gains", ShortName = "gains")]
             public string LabelGains = "0,3,7,15,31";

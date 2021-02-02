@@ -21,8 +21,38 @@ namespace Microsoft.ML.AutoML.Test
 {
     public class AutoFitTests : BaseTestClass
     {
+        // Marker necessary for AutoFitContextLogTest to ensure that the wanted logs
+        // from Experiment's sub MLContexts were relayed to the main calling MLContext.
+        bool _markerAutoFitContextLogTest;
         public AutoFitTests(ITestOutputHelper output) : base(output)
         {
+        }
+
+        private void MlContextLog(object sender, LoggingEventArgs e)
+        {
+            // Log containing ImageClassificationTrainer will only come from AutoML's sub
+            // contexts.
+            if (!_markerAutoFitContextLogTest && e.Message.Contains("[Source=ImageClassificationTrainer;"))
+                _markerAutoFitContextLogTest = true;
+        }
+
+        [TensorFlowFact]
+        public void AutoFitContextLogTest()
+        {
+            // This test confirms that logs produced from contexts made during AutoML experiment
+            // runs are correctly relayed to the main Experiment MLContext.
+            _markerAutoFitContextLogTest = false;
+            var context = new MLContext(1);
+            context.Log += MlContextLog;
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(datasetPath);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(15)
+                            .Execute(trainData, columnInference.ColumnInformation);
+            Assert.True(_markerAutoFitContextLogTest, "Image classification trainer logs from Experiment's sub contexts" +
+                "were not relayed to the main MLContext.");
         }
 
         [Fact]
@@ -42,19 +72,48 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [Fact]
-        public void AutoFitMultiTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AutoFitMultiTest(bool useNumberOfCVFolds)
         {
             var context = new MLContext(0);
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
-            var result = context.Auto()
-                .CreateMulticlassClassificationExperiment(0)
-                .Execute(trainData, 5, DatasetUtil.TrivialMulticlassDatasetLabel);
-            Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
-            var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
-            Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+
+            if (useNumberOfCVFolds)
+            {
+                // When setting numberOfCVFolds
+                // The results object is a CrossValidationExperimentResults<> object
+                uint numberOfCVFolds = 5;
+                var result = context.Auto()
+                    .CreateMulticlassClassificationExperiment(0)
+                    .Execute(trainData, numberOfCVFolds, DatasetUtil.TrivialMulticlassDatasetLabel);
+
+                Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
+                var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
+                Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+            }
+            else
+            {
+                // When using this other API, if the trainset is under the
+                // crossValRowCounThreshold, AutoML will also perform CrossValidation
+                // but through a very different path that the one above,
+                // throw a CrossValSummaryRunner and will return
+                // a different type of object as "result" which would now be
+                // simply a ExperimentResult<> object
+
+                int crossValRowCountThreshold = 15000;
+                trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
+                var result = context.Auto()
+                    .CreateMulticlassClassificationExperiment(0)
+                    .Execute(trainData, DatasetUtil.TrivialMulticlassDatasetLabel);
+
+                Assert.True(result.BestRun.ValidationMetrics.MicroAccuracy >= 0.7);
+                var scoredData = result.BestRun.Model.Transform(trainData);
+                Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+            }
         }
 
         [TensorFlowFact]
@@ -173,8 +232,13 @@ namespace Microsoft.ML.AutoML.Test
             trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
 
             // STEP 2: Run AutoML experiment
+            var settings = new RankingExperimentSettings()
+            {
+                MaxExperimentTimeInSeconds = 5,
+                OptimizationMetricTruncationLevel = 3
+            };
             var experiment = mlContext.Auto()
-                .CreateRankingExperiment(5);
+                .CreateRankingExperiment(settings);
 
             ExperimentResult<RankingMetrics>[] experimentResults =
             {
@@ -198,6 +262,9 @@ namespace Microsoft.ML.AutoML.Test
             for (int i = 0; i < experimentResults.Length; i++)
             {
                 RunDetail<RankingMetrics> bestRun = experimentResults[i].BestRun;
+                // The user requested 3, but we always return at least 10.
+                Assert.Equal(10, bestRun.ValidationMetrics.DiscountedCumulativeGains.Count);
+                Assert.Equal(10, bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Count);
                 Assert.True(experimentResults[i].RunDetails.Count() > 0);
                 Assert.NotNull(bestRun.ValidationMetrics);
                 Assert.True(bestRun.ValidationMetrics.NormalizedDiscountedCumulativeGains.Last() > 0.4);

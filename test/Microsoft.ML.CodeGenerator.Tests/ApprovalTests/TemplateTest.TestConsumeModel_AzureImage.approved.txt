@@ -14,9 +14,9 @@ namespace Namespace.Model
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
-        public static string MLNetModelPath = Path.GetFullPath("mlmodel.zip");
+        public static string MLNetModelPath = Path.Combine(System.AppContext.BaseDirectory, "mlmodel.zip");
  
-        public static string OnnxModelPath = Path.GetFullPath("onnx.onnx");
+        public static string OnnxModelPath = Path.Combine(System.AppContext.BaseDirectory, "onnx.onnx");
 
         // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app
