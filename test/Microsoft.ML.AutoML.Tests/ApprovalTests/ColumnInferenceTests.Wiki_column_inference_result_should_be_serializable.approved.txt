@@ -1,0 +1,66 @@
+{
+  "TextLoaderOptions": {
+    "AllowQuoting": true,
+    "AllowSparse": false,
+    "InputSize": null,
+    "Separators": [
+      "\t"
+    ],
+    "DecimalMarker": ".",
+    "Columns": [
+      {
+        "Name": "Sentiment",
+        "Source": [
+          {
+            "Min": 0,
+            "Max": 0,
+            "AutoEnd": false,
+            "VariableEnd": false,
+            "AllOther": false,
+            "ForceVector": false
+          }
+        ],
+        "KeyCount": null,
+        "DataKind": 11
+      },
+      {
+        "Name": "SentimentText",
+        "Source": [
+          {
+            "Min": 1,
+            "Max": 1,
+            "AutoEnd": false,
+            "VariableEnd": false,
+            "AllOther": false,
+            "ForceVector": false
+          }
+        ],
+        "KeyCount": null,
+        "DataKind": 11
+      }
+    ],
+    "TrimWhitespace": false,
+    "HasHeader": true,
+    "UseThreads": true,
+    "ReadMultilines": false,
+    "HeaderFile": null,
+    "MaxRows": null,
+    "EscapeChar": "\"",
+    "MissingRealsAsNaNs": false
+  },
+  "ColumnInformation": {
+    "LabelColumnName": "Sentiment",
+    "UserIdColumnName": null,
+    "GroupIdColumnName": null,
+    "ItemIdColumnName": null,
+    "ExampleWeightColumnName": null,
+    "SamplingKeyColumnName": null,
+    "CategoricalColumnNames": [],
+    "NumericColumnNames": [],
+    "TextColumnNames": [
+      "SentimentText"
+    ],
+    "IgnoredColumnNames": [],
+    "ImagePathColumnNames": []
+  }
+}
