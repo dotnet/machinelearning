@@ -721,7 +721,7 @@ namespace Microsoft.ML.Tests
             [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyOnly)] SrCnnDetectMode mode
             )
         {
-                        var ml = new MLContext(1);
+            var ml = new MLContext(1);
             IDataView dataView;
             List<TimeSeriesDataDouble> data;
 

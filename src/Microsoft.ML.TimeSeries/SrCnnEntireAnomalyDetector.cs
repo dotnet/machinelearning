@@ -503,7 +503,7 @@ namespace Microsoft.ML.TimeSeries
                 for (int i = 0; i < values.Length; ++i)
                 {
                     var value = values[i];
-                    _seriesToDetect[i] = values[i];
+                    _seriesToDetect[i] = value;
                     _minimumOriginValue = Math.Min(_minimumOriginValue, value);
                     _maximumOriginValue = Math.Max(_maximumOriginValue, value);
                     sum += value;
