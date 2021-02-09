@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -715,6 +714,61 @@ namespace Microsoft.ML.Tests
                 Assert.True(data[index].Value <= prediction.Prediction[5]);
                 ++index;
             }
+        }
+
+        [Theory, CombinatorialData]
+        public void TestSrCnnAnomalyDetectorBigSpike(
+            [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyOnly)] SrCnnDetectMode mode
+            )
+        {
+            var ml = new MLContext(1);
+            IDataView dataView;
+            List<TimeSeriesDataDouble> data;
+
+            var dataPath = GetDataPath("Timeseries", "big_spike_data.csv");
+
+            // Load data from file into the dataView
+            dataView = ml.Data.LoadFromTextFile<TimeSeriesDataDouble>(dataPath, hasHeader: true);
+            data = ml.Data.CreateEnumerable<TimeSeriesDataDouble>(dataView, reuseRowObject: false).ToList();
+
+            // Setup the detection arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesDataDouble.Value);
+
+            // Do batch anomaly detection
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                Threshold = 0.3,
+                BatchSize = -1,
+                Sensitivity = 80.0,
+                DetectMode = mode,
+                Period = 0,
+                DeseasonalityMode = SrCnnDeseasonalityMode.Stl
+            };
+
+            var outputDataView = ml.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, outputColumnName, inputColumnName, options);
+
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                outputDataView, reuseRowObject: false);
+
+            var anomalyIndex = 26;
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                if (anomalyIndex == k)
+                {
+                    Assert.Equal(1, prediction.Prediction[0]);
+                }
+                else
+                {
+                    Assert.Equal(0, prediction.Prediction[0]);
+                }
+
+                ++k;
+            }
+
         }
 
         [Theory, CombinatorialData]
