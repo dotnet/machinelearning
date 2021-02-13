@@ -33,7 +33,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static IidChangePointEstimator DetectIidChangePoint(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-            int confidence, int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
+            double confidence, int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             => new IidChangePointEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, changeHistoryLength, inputColumnName, martingale, eps);
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static IidSpikeEstimator DetectIidSpike(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-             int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
+             double confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
             => new IidSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, inputColumnName, side);
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static SsaChangePointEstimator DetectChangePointBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-            int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize, ErrorFunction errorFunction = ErrorFunction.SignedDifference,
+            double confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize, ErrorFunction errorFunction = ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             => new SsaChangePointEstimator(CatalogUtils.GetEnvironment(catalog), new SsaChangePointDetector.Options
             {
@@ -121,7 +121,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SsaSpikeEstimator DetectSpikeBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int confidence, int pvalueHistoryLength,
+        public static SsaSpikeEstimator DetectSpikeBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, double confidence, int pvalueHistoryLength,
             int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided, ErrorFunction errorFunction = ErrorFunction.SignedDifference)
             => new SsaSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, inputColumnName, side, errorFunction);
 
