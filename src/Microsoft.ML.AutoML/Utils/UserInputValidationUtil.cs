@@ -249,12 +249,15 @@ namespace Microsoft.ML.AutoML
             var nullableColumn = trainData.Schema.GetColumnOrNull(columnName);
             if (nullableColumn == null)
             {
-                var closestNamed = ClosestNamed(trainData, columnName, 2);
+                var closestNamed = ClosestNamed(trainData, columnName, 7);
+
+                var exceptionMessage = $"Provided {columnPurpose} column '{columnName}' not found in training data.";
                 if (closestNamed != string.Empty)
                 {
-                    throw new ArgumentException($"Provided {columnPurpose} column '{columnName}' not found in training data. Did you mean '{closestNamed}'.");
+                    exceptionMessage += $" Did you mean '{closestNamed}'.";
                 }
-                throw new ArgumentException($"Provided {columnPurpose} column '{columnName}' not found in training data.");
+
+                throw new ArgumentException(exceptionMessage);
             }
 
             if(allowedTypes == null)
@@ -284,7 +287,7 @@ namespace Microsoft.ML.AutoML
             var closestNamed = string.Empty;
             foreach (var column in trainData.Schema)
             {
-                var editDistance = StringEditDistance.GetEditDistance(column.Name, columnName);
+                var editDistance = StringEditDistance.GetLevenshteinDistance(column.Name, columnName);
                 if (editDistance < minEditDistance)
                 {
                     minEditDistance = editDistance;

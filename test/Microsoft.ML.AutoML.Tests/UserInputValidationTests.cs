@@ -44,10 +44,11 @@ namespace Microsoft.ML.AutoML.Test
         {
             foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
+                const string columnName = "ReallyLongNonExistingColumnName";
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data,
-                new ColumnInformation() { LabelColumnName = "L" }, null, task));
+                new ColumnInformation() { LabelColumnName = columnName }, null, task));
 
-                Assert.Equal("Provided label column 'L' not found in training data.", ex.Message);
+                Assert.Equal($"Provided label column '{columnName}' not found in training data.", ex.Message);
             }
         }
 

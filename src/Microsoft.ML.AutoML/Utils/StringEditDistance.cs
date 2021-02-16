@@ -2,9 +2,9 @@
 
 namespace Microsoft.ML.AutoML.Utils
 {
-    public static class StringEditDistance
+    internal static class StringEditDistance
     {
-        public static int GetEditDistance(string first, string second)
+        public static int GetLevenshteinDistance(string first, string second)
         {
             if (first is null)
             {
