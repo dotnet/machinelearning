@@ -55,7 +55,7 @@ namespace Samples.Dynamic
 
             // Time Series model.
             ITransformer model = ml.Transforms.DetectIidChangePoint(
-                outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
+                outputColumnName, inputColumnName, 95.0d, Size / 4).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesEngine<TimeSeriesData,

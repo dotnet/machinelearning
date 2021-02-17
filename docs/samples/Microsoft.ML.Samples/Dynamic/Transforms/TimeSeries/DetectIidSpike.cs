@@ -47,7 +47,7 @@ namespace Samples.Dynamic
 
             // The transformed model.
             ITransformer model = ml.Transforms.DetectIidSpike(outputColumnName,
-                inputColumnName, 95, Size).Fit(dataView);
+                inputColumnName, 95.0d, Size).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesEngine<TimeSeriesData,

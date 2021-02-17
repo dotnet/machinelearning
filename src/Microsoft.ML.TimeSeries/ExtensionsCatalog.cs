@@ -33,6 +33,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
+        [Obsolete("This API method is deprecated, please use the overload with confidence parameter of type double.")]
         public static IidChangePointEstimator DetectIidChangePoint(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             int confidence, int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             => DetectIidChangePoint(catalog, outputColumnName, inputColumnName, (double)confidence, changeHistoryLength, martingale, eps);
@@ -81,6 +82,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
+        [Obsolete("This API method is deprecated, please use the overload with confidence parameter of type double.")]
         public static IidSpikeEstimator DetectIidSpike(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
              int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
             => DetectIidSpike(catalog, outputColumnName, inputColumnName, (double)confidence, pvalueHistoryLength, side);
@@ -132,6 +134,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
+        [Obsolete("This API method is deprecated, please use the overload with confidence parameter of type double.")]
         public static SsaChangePointEstimator DetectChangePointBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize, ErrorFunction errorFunction = ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
@@ -198,6 +201,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
+        [Obsolete("This API method is deprecated, please use the overload with confidence parameter of type double.")]
         public static SsaSpikeEstimator DetectSpikeBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int confidence, int pvalueHistoryLength,
             int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided, ErrorFunction errorFunction = ErrorFunction.SignedDifference)
             => DetectSpikeBySsa(catalog, outputColumnName, inputColumnName, (double)confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction);
