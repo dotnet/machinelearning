@@ -226,7 +226,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectChangePointBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.ErrorFunction,Microsoft.ML.Transforms.TimeSeries.MartingaleType,System.Double)" />
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectChangePointBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Double,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.ErrorFunction,Microsoft.ML.Transforms.TimeSeries.MartingaleType,System.Double)" />
     public sealed class SsaChangePointEstimator : IEstimator<SsaChangePointDetector>
     {
         private readonly IHost _host;
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
         internal SsaChangePointEstimator(IHostEnvironment env, string outputColumnName,
-            int confidence,
+            double confidence,
             int changeHistoryLength,
             int trainingWindowSize,
             int seasonalityWindowSize,

@@ -45,7 +45,7 @@ namespace Samples.Dynamic
 
             // The transformed data.
             var transformedData = ml.Transforms.DetectIidSpike(outputColumnName,
-                inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
+                inputColumnName, 95.0d, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of
             // IidSpikePrediction.

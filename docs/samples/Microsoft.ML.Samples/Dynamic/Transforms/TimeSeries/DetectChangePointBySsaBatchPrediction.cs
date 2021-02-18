@@ -59,7 +59,7 @@ namespace Samples.Dynamic
 
             // The transformed data.
             var transformedData = ml.Transforms.DetectChangePointBySsa(
-                outputColumnName, inputColumnName, 95, 8, TrainingSize,
+                outputColumnName, inputColumnName, 95.0d, 8, TrainingSize,
                 SeasonalitySize + 1).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of

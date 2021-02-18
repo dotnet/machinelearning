@@ -53,7 +53,7 @@ namespace Samples.Dynamic
 
             // Train the change point detector.
             ITransformer model = ml.Transforms.DetectSpikeBySsa(outputColumnName,
-                inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(
+                inputColumnName, 95.0d, 8, TrainingSize, SeasonalitySize + 1).Fit(
                 dataView);
 
             // Create a prediction engine from the model for feeding new data.
