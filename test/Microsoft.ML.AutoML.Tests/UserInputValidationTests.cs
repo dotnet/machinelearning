@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -43,10 +44,26 @@ namespace Microsoft.ML.AutoML.Test
         {
             foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
             {
+                const string columnName = "ReallyLongNonExistingColumnName";
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data,
-                new ColumnInformation() { LabelColumnName = "L" }, null, task));
+                new ColumnInformation() { LabelColumnName = columnName }, null, task));
 
-                Assert.Equal("Provided label column 'L' not found in training data.", ex.Message);
+                Assert.Equal($"Provided label column '{columnName}' not found in training data.", ex.Message);
+            }
+        }
+
+        [Fact]
+        public void ValidateExperimentExecuteLabelNotInTrainMistyped()
+        {
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
+            {
+                var originalColumnName = _data.Schema.First().Name;
+                var mistypedColumnName = originalColumnName + "a";
+                var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data,
+                    new ColumnInformation() { LabelColumnName = mistypedColumnName }, null, task));
+
+                Assert.Equal($"Provided label column '{mistypedColumnName}' not found in training data. Did you mean '{originalColumnName}'.",
+                    ex.Message);
             }
         }
 
