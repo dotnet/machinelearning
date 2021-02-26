@@ -206,7 +206,7 @@ namespace Microsoft.ML.AutoML
                     // iteration results. For some trainers, like FastTree, because training is done in parallel
                     // in can throw multiple OperationCancelledExceptions. This causes them to be returned as an
                     // AggregateException and misses the first catch block. This is to handle that case.
-                    if (e.InnerExceptions.All( exception => exception is OperationCanceledException))
+                    if (e.InnerExceptions.All(exception => exception is OperationCanceledException))
                     {
                         _logger.Warning(_operationCancelledMessage, e.Message);
                         return iterationResults;
