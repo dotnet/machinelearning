@@ -200,7 +200,7 @@ namespace Microsoft.ML.AutoML
                 {
                     // This exception is thrown when the IHost/MLContext of the trainer is canceled due to
                     // reaching maximum experiment time. Simply catch this exception and return finished
-                    // iteration results. For some trainers, Like FastTree, because training is done in parallel
+                    // iteration results. For some trainers, like FastTree, because training is done in parallel
                     // in can throw multiple OperationCancelledExceptions. This causes them to be returned as an
                     // AggregateException and misses the first catch block. This is to handle that case.
                     if (e.InnerExceptions.All( exception => exception is OperationCanceledException))
