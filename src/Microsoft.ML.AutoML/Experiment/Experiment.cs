@@ -210,7 +210,7 @@ namespace Microsoft.ML.AutoML
                         return iterationResults;
                     }
 
-                    Console.WriteLine(e.Message);
+                    throw;
                 }
             } while (_history.Count < _experimentSettings.MaxModels &&
                     !_experimentSettings.CancellationToken.IsCancellationRequested &&
