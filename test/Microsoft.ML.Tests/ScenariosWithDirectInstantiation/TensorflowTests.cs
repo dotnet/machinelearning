@@ -1152,6 +1152,37 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
+        // This test has been created as result of https://github.com/dotnet/machinelearning/issues/5364.
+        [TensorFlowFact]
+        public void TreatOutputAsBatched()
+        {
+            MLContext mlContext = new MLContext();
+
+            var dataView = mlContext.Data.CreateTextLoader<TextInput>().Load(new MultiFileSource(null));
+
+            string modelLocation = @"model_string_test";
+
+            // When treatOutputAsBatched is defaultd to true, make sure the output is correct.
+            using var model = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
+                .Fit(dataView);
+
+            var modelSchema = model.GetOutputSchema(dataView.Schema);
+
+            Assert.Equal(4, modelSchema.Count);
+            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance, 2), modelSchema[2].Type);
+            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance, 1,1), modelSchema[3].Type);
+
+            using var modelNonBatched = mlContext.Model.LoadTensorFlowModel(modelLocation, false).ScoreTensorFlowModel(new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
+                .Fit(dataView);
+
+            modelSchema = modelNonBatched.GetOutputSchema(dataView.Schema);
+
+            Assert.Equal(4, modelSchema.Count);
+            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance, 0, 2), modelSchema[2].Type);
+            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance, 1, 1), modelSchema[3].Type);
+
+        }
+
 
         [TensorFlowFact]
         public void TensorFlowTransformCifarInvalidShape()
@@ -1227,10 +1258,12 @@ namespace Microsoft.ML.Scenarios
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            using var pipelineModel = _mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
+            using var pipelineModel = _mlContext.Model.LoadTensorFlowModel(modelLocation, false).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
                 .Append(_mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
                 .Fit(dataView);
             using var tfEnginePipe = _mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);
+
+            var schema = pipelineModel.GetOutputSchema(dataView.Schema);
 
             var processedData = dataPipe.Predict(data[0]);
             Array.Resize(ref processedData.Features, 600);

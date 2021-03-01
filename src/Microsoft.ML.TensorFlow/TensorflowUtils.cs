@@ -32,7 +32,7 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         internal const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
-        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, Graph graph, string opType = null)
+        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, Graph graph, string opType = null, bool treatOutputAsBatched = true)
         {
             var schemaBuilder = new DataViewSchema.Builder();
             foreach (Operation op in graph)
@@ -79,7 +79,7 @@ namespace Microsoft.ML.TensorFlow
                 // Construct the final ML.NET type of a Tensorflow variable.
                 var tensorShape = op.output.TensorShape.dims;
 
-                if(tensorShape == null)
+                if (tensorShape == null)
                 {
                     // primitive column type
                     schemaBuilder.AddColumn(op.name, mlType, metadataBuilder.ToAnnotations());
@@ -90,7 +90,16 @@ namespace Microsoft.ML.TensorFlow
                     DataViewType columnType = new VectorDataViewType(mlType);
                     if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
                         (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
-                        columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
+                        if (treatOutputAsBatched)
+                        {
+                            columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
+                        }
+                        else
+                        {
+                            if (tensorShape[0] < 0)
+                                tensorShape[0] = 0;
+                            columnType = new VectorDataViewType(mlType, tensorShape);
+                        }
 
                     schemaBuilder.AddColumn(op.name, columnType, metadataBuilder.ToAnnotations());
                 }
@@ -108,10 +117,11 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
-        internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath)
+        /// <param name="treatOutputAsBatched">If the first dimension of the output is unknown, should it be treated as batched or not.</param>
+        internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath, bool treatOutputAsBatched = true)
         {
-            using var model = LoadTensorFlowModel(env, modelPath);
-            return GetModelSchema(env, model.Session.graph);
+            using var model = LoadTensorFlowModel(env, modelPath, treatOutputAsBatched);
+            return GetModelSchema(env, model.Session.graph, treatOutputAsBatched: treatOutputAsBatched);
         }
 
         /// <summary>
@@ -119,11 +129,12 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">The model to load.</param>
+        /// <param name="treatOutputAsBatched">If the first dimension of the output is unknown, should it be treated as batched or not.</param>
         /// <returns></returns>
-        internal static TensorFlowModel LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        internal static TensorFlowModel LoadTensorFlowModel(IHostEnvironment env, string modelPath, bool treatOutputAsBatched = true)
         {
             var session = GetSession(env, modelPath);
-            return new TensorFlowModel(env, session, modelPath);
+            return new TensorFlowModel(env, session, modelPath, treatOutputAsBatched: treatOutputAsBatched);
         }
 
         internal static PrimitiveDataViewType Tf2MlNetType(TF_DataType type)
