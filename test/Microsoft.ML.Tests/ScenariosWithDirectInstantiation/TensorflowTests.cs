@@ -1162,7 +1162,7 @@ namespace Microsoft.ML.Scenarios
 
             string modelLocation = @"model_string_test";
 
-            // When treatOutputAsBatched is defaultd to true, make sure the output is correct.
+            // When treatOutputAsBatched is defaulted to true, make sure the output is correct.
             using var model = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
                 .Fit(dataView);
 
