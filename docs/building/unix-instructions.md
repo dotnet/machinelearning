@@ -55,4 +55,4 @@ One way of obtaining CMake and other required libraries is via [Homebrew](https:
 $ brew update && brew install cmake https://raw.githubusercontent.com/dotnet/machinelearning/master/build/libomp.rb mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
 ```
 
-Please note that newer versions of Homebrew [don't allow installing directly from a URL](https://github.com/Homebrew/brew/issues/8791). If you run into this issue, you may need to download libomp.rb first and install it will the local file instead.
+Please note that newer versions of Homebrew [don't allow installing directly from a URL](https://github.com/Homebrew/brew/issues/8791). If you run into this issue, you may need to download libomp.rb first and install it with the local file instead.
