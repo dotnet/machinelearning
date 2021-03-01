@@ -13,7 +13,7 @@ namespace Samples.Dynamic
         public static void Example()
         {
             // Download the squeeznet image model from ONNX model zoo, version 1.2
-            // https://github.com/onnx/models/tree/master/squeezenet or use
+            // https://github.com/onnx/models/tree/master/vision/classification/squeezenet or use
             // Microsoft.ML.Onnx.TestModels nuget.
             // It's a multiclass classifier. It consumes an input "data_0" and
             // produces an output "softmaxout_1".
@@ -45,7 +45,7 @@ namespace Samples.Dynamic
             // Map column "data_0" to column "softmaxout_1"
             var pipeline = mlContext.Transforms.ExtractPixels("data_0", "Image")
                 .Append(mlContext.Transforms.ApplyOnnxModel("softmaxout_1",
-                "data_0", modelPath)); 
+                "data_0", modelPath));
 
             var model = pipeline.Fit(dataView);
             var onnx = model.Transform(dataView);
@@ -60,12 +60,12 @@ namespace Samples.Dynamic
                 ImageDataPoint>(onnx, false).ToList();
 
             // The scores are probabilities of all possible classes, so they should
-            // all be positive. 
+            // all be positive.
             foreach (var dataPoint in transformedDataPoints)
             {
                 var firstClassProb = dataPoint.Scores.First();
                 var lastClassProb = dataPoint.Scores.Last();
-                Console.WriteLine("The probability of being the first class is " + 
+                Console.WriteLine("The probability of being the first class is " +
                     (firstClassProb * 100) + "%.");
 
                 Console.WriteLine($"The probability of being the last class is " +
