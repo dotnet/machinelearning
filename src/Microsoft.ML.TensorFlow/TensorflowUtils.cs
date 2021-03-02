@@ -32,7 +32,7 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         internal const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
-        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, Graph graph, string opType = null, bool treatOutputAsBatched = true)
+        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, Graph graph, bool treatOutputAsBatched, string opType = null)
         {
             var schemaBuilder = new DataViewSchema.Builder();
             foreach (Operation op in graph)
@@ -99,9 +99,9 @@ namespace Microsoft.ML.TensorFlow
                             columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
                         }
                         // When treatOutputAsBatched is false, if the first value is less than 0 we want to set it to 0. TensorFlow
-                        // represents and unkown size as -1, but ML.NET represents it as 0 so we need to convert it.
-                        //I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as a dimension of unkown length, and so the ML.NET
-                        //data type will be a vector of 2 dimensions, where the first dimension is unkown and the second has a length of 5.
+                        // represents an unkown size as -1, but ML.NET represents it as 0 so we need to convert it.
+                        // I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as a dimension of unkown length, and so the ML.NET
+                        // data type will be a vector of 2 dimensions, where the first dimension is unkown and the second has a length of 5.
                         else
                         {
                             if (tensorShape[0] < 0)
@@ -129,7 +129,7 @@ namespace Microsoft.ML.TensorFlow
         internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath, bool treatOutputAsBatched = true)
         {
             using var model = LoadTensorFlowModel(env, modelPath, treatOutputAsBatched);
-            return GetModelSchema(env, model.Session.graph, treatOutputAsBatched: treatOutputAsBatched);
+            return GetModelSchema(env, model.Session.graph, treatOutputAsBatched);
         }
 
         /// <summary>

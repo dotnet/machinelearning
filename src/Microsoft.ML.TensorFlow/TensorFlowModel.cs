@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public DataViewSchema GetModelSchema()
         {
-            return TensorFlowUtils.GetModelSchema(_env, Session.graph, treatOutputAsBatched: TreatOutputAsBatched);
+            return TensorFlowUtils.GetModelSchema(_env, Session.graph, TreatOutputAsBatched);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public DataViewSchema GetInputSchema()
         {
-            return TensorFlowUtils.GetModelSchema(_env, Session.graph, "Placeholder");
+            return TensorFlowUtils.GetModelSchema(_env, Session.graph, TreatOutputAsBatched, "Placeholder");
         }
 
         /// <summary>
