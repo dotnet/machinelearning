@@ -45,6 +45,7 @@ namespace Microsoft.ML.Transforms
         private readonly string _savedModelPath;
         private readonly bool _isTemporarySavedModel;
         private readonly bool _addBatchDimensionInput;
+        private readonly bool _treatOutputAsBatched;
         internal readonly Session Session;
         internal readonly Runner Runner;
         internal readonly DataViewType[] OutputTypes;
@@ -71,8 +72,9 @@ namespace Microsoft.ML.Transforms
                 modelSignature: "TENSFLOW",
                 //verWrittenCur: 0x00010001, // Initial
                 //verWrittenCur: 0x00010002,  // Added Support for Multiple Outputs and SavedModel.
-                verWrittenCur: 0x00010003,  // Added Support for adding batch dimension in inputs.
-                verReadableCur: 0x00010003,
+                //verWrittenCur: 0x00010003,  // Added Support for adding batch dimension in inputs.
+                verWrittenCur: 0x00010004,  // Added Support for treating batch as output or not.
+                verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(TensorFlowTransformer).Assembly.FullName);
@@ -123,6 +125,7 @@ namespace Microsoft.ML.Transforms
             // *** Binary format ***
             // byte: indicator for frozen models
             // byte: indicator for adding batch dimension in input
+            // byte: indicator for treating output as batched
             // stream: tensorFlow model.
             // int: number of input columns
             // for each input column
@@ -130,13 +133,13 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen, out bool addBatchDimensionInput);
+            GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen, out bool addBatchDimensionInput, out bool treatOutputAsBatched);
             if (isFrozen)
             {
                 byte[] modelBytes = null;
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
-                return new TensorFlowTransformer(env, LoadTFSession(env, modelBytes), outputs, inputs, null, false, addBatchDimensionInput);
+                return new TensorFlowTransformer(env, LoadTFSession(env, modelBytes), outputs, inputs, null, false, addBatchDimensionInput, treatOutputAsBatched: treatOutputAsBatched);
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), nameof(TensorFlowTransformer) + "_" + Guid.NewGuid()));
@@ -165,7 +168,7 @@ namespace Microsoft.ML.Transforms
                     }
                 });
 
-                return new TensorFlowTransformer(env, GetSession(env, tempDirPath), outputs, inputs, tempDirPath, true, addBatchDimensionInput);
+                return new TensorFlowTransformer(env, GetSession(env, tempDirPath), outputs, inputs, tempDirPath, true, addBatchDimensionInput, treatOutputAsBatched: treatOutputAsBatched);
             }
             catch (Exception)
             {
@@ -237,7 +240,7 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen, out bool addBatchDimensionInput)
+        private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen, out bool addBatchDimensionInput, out bool treatOutputAsBatched)
         {
             isFrozen = true;
             bool isNonFrozenModelSupported = ctx.Header.ModelVerReadable >= 0x00010002;
@@ -248,6 +251,11 @@ namespace Microsoft.ML.Transforms
             bool isAddingBatchDimensionSupported = ctx.Header.ModelVerReadable >= 0x00010003;
             if (isAddingBatchDimensionSupported)
                 addBatchDimensionInput = ctx.Reader.ReadBoolByte();
+
+            treatOutputAsBatched = true;
+            bool isTreatingOutputAsBatchedSupported = ctx.Header.ModelVerReadable >= 0x00010004;
+            if (isTreatingOutputAsBatchedSupported)
+                treatOutputAsBatched = ctx.Reader.ReadBoolByte();
 
             var numInputs = ctx.Reader.ReadInt32();
             env.CheckDecode(numInputs > 0);
@@ -280,6 +288,7 @@ namespace Microsoft.ML.Transforms
             _isTemporarySavedModel = isTemporarySavedModel;
             Session = session;
             _addBatchDimensionInput = addBatchDimensionInput;
+            _treatOutputAsBatched = treatOutputAsBatched;
             Inputs = inputColumnNames;
             Outputs = outputColumnNames;
             tf.compat.v1.disable_eager_execution();
@@ -421,6 +430,7 @@ namespace Microsoft.ML.Transforms
             // *** Binary format ***
             // byte: indicator for frozen models
             // byte: indicator for adding batch dimension in input
+            // byte: indicator for treating output as batched
             // stream: tensorFlow model.
             // int: number of input columns
             // for each input column
@@ -431,6 +441,7 @@ namespace Microsoft.ML.Transforms
             var isFrozen = string.IsNullOrEmpty(_savedModelPath);
             ctx.Writer.WriteBoolByte(isFrozen);
             ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
+            ctx.Writer.WriteBoolByte(_treatOutputAsBatched);
             if (isFrozen)
             {
                 using (var status = new Status())

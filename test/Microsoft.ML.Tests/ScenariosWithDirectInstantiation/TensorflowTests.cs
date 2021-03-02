@@ -1152,38 +1152,6 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        // This test has been created as result of https://github.com/dotnet/machinelearning/issues/5364.
-        [TensorFlowFact]
-        public void TreatOutputAsBatched()
-        {
-            MLContext mlContext = new MLContext();
-
-            var dataView = mlContext.Data.CreateTextLoader<TextInput>().Load(new MultiFileSource(null));
-
-            string modelLocation = @"model_string_test";
-
-            // When treatOutputAsBatched is defaulted to true, make sure the output is correct.
-            using var model = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
-                .Fit(dataView);
-
-            var modelSchema = model.GetOutputSchema(dataView.Schema);
-
-            Assert.Equal(4, modelSchema.Count);
-            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance, 2), modelSchema[2].Type);
-            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance, 1,1), modelSchema[3].Type);
-
-            using var modelNonBatched = mlContext.Model.LoadTensorFlowModel(modelLocation, false).ScoreTensorFlowModel(new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
-                .Fit(dataView);
-
-            modelSchema = modelNonBatched.GetOutputSchema(dataView.Schema);
-
-            Assert.Equal(4, modelSchema.Count);
-            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance, 0, 2), modelSchema[2].Type);
-            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance, 1, 1), modelSchema[3].Type);
-
-        }
-
-
         [TensorFlowFact]
         public void TensorFlowTransformCifarInvalidShape()
         {
