@@ -20,7 +20,6 @@
 - Fixed nuget.config multi-feed issue ([#5614](https://github.com/dotnet/machinelearning/pull/5614))
 - Remove references to Microsoft.ML.Scoring ([#5602](https://github.com/dotnet/machinelearning/pull/5602))
 - Fixed Averaged Perceptron default value ([#5586](https://github.com/dotnet/machinelearning/pull/5586))
-- Fixes #5352 issues caused by equality with non-string values for root cause localization  ([#5354](https://github.com/dotnet/machinelearning/pull/5354))
 
 
 ## **Build / Test updates**
