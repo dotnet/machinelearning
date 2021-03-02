@@ -90,7 +90,7 @@ namespace Microsoft.ML.TensorFlow
                     DataViewType columnType = new VectorDataViewType(mlType);
                     if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
                         (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
-                        // When treatOutputAsBatched is true we keep the existing behaviour. This means that if the first dimension is greater
+                        // treatOutputAsBatched == true means that if the first dimension is greater
                         // than 0 we take the tensor shape as is. If the first value is less then 0, we treat it as the batch input so we can
                         // ignore it for the shape of the ML.NET vector. I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as
                         // batch input, and so the ML.NET data type will be a vector of length 5.
