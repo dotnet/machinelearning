@@ -27,6 +27,10 @@ namespace Microsoft.ML.AutoML
         private readonly IRunner<TRunDetail> _runner;
         private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly IChannel _logger;
+
+        private readonly string _operationCancelledMessage = "OperationCanceledException has been caught after maximum experiment time" +
+                        "was reached, and the running MLContext was stopped. Details: {0}";
+
         private Timer _maxExperimentTimeTimer;
         private Timer _mainContextCanceledTimer;
         private bool _experimentTimerExpired;
@@ -192,9 +196,23 @@ namespace Microsoft.ML.AutoML
                     // This exception is thrown when the IHost/MLContext of the trainer is canceled due to
                     // reaching maximum experiment time. Simply catch this exception and return finished
                     // iteration results.
-                    _logger.Warning("OperationCanceledException has been caught after maximum experiment time" +
-                        "was reached, and the running MLContext was stopped. Details: {0}", e.Message);
+                    _logger.Warning(_operationCancelledMessage, e.Message);
                     return iterationResults;
+                }
+                catch (AggregateException e)
+                {
+                    // This exception is thrown when the IHost/MLContext of the trainer is canceled due to
+                    // reaching maximum experiment time. Simply catch this exception and return finished
+                    // iteration results. For some trainers, like FastTree, because training is done in parallel
+                    // in can throw multiple OperationCancelledExceptions. This causes them to be returned as an
+                    // AggregateException and misses the first catch block. This is to handle that case.
+                    if (e.InnerExceptions.All(exception => exception is OperationCanceledException))
+                    {
+                        _logger.Warning(_operationCancelledMessage, e.Message);
+                        return iterationResults;
+                    }
+
+                    throw;
                 }
             } while (_history.Count < _experimentSettings.MaxModels &&
                     !_experimentSettings.CancellationToken.IsCancellationRequested &&
