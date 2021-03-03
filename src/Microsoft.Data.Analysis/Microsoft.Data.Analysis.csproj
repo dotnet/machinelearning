@@ -1,0 +1,251 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SuppressFinalPackageVersion>false</SuppressFinalPackageVersion>
+    <VersionPrefix>0.5.0</VersionPrefix>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Description>This package contains easy-to-use and high-performance libraries for data analysis and transformation.</Description>
+    <PackageReleaseNotes>Initial preview of robust and extensible types and algorithms for manipulating structured data that supports aggregations, statistical funtions, sorting, grouping, joins, merges, handling missing values and more. </PackageReleaseNotes>
+    <PackageTags>ML.NET ML Machine Learning Data Science DataFrame Preparation DataView Analytics Exploration</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- 
+      1591: Documentation warnings
+      NU5100: Warning that gets triggered because a .dll is not placed under lib folder on package. This is by design as we want MDAI to be under interactive-extensions folder.
+       -->
+    <NoWarn>$(NoWarn);1591;NU5100</NoWarn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddMDAIToInteractiveExtensionsFolder</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <!-- The following properties are set to package M.D.A.Interactive with the M.D.A nuget package. If M.D.A.I undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
+  <Target Name="AddMDAIToInteractiveExtensionsFolder">
+    <MSBuild Projects="./../Microsoft.Data.Analysis.Interactive/Microsoft.Data.Analysis.Interactive.csproj"
+             Targets="_GetBuildOutputFilesWithTfm"
+             Properties="TargetFramework=netcoreapp3.1"> <!-- Manually hardcoding the TargetFramework to netcoreapp3.1 as that is the one that MDAI targets -->
+      <Output TaskParameter="TargetOutputs" ItemName="_ItemsToIncludeForInteractive" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_ItemsToIncludeForInteractive Update="@(_ItemsToIncludeForInteractive)" PackagePath="interactive-extensions/dotnet" />
+      <TfmSpecificPackageFile Include="@(_ItemsToIncludeForInteractive)" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <None Include="Converters.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Converters.tt</DependentUpon>
+    </None>
+    <None Include="PrimitiveDataFrameColumn.BinaryOperators.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperators.tt</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Apache.Arrow" Version="2.0.0" />
+    <PackageReference Include="System.Memory" Version="4.5.3" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
+    <PackageReference Include="System.Buffers" Version="4.5.0" />
+    <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
+    <PackageReference Include="Microsoft.ML.DataView" Version="1.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Converters.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Converters.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperationAPIs.ExplodedColumns.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperationAPIs.ExplodedColumns.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.cs</LastGenOutput>
+    </None>
+    <None Update="DataFrameColumn.BinaryOperations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataFrameColumn.BinaryOperations.cs</LastGenOutput>
+    </None>
+    <None Update="DataFrameColumn.BinaryOperators.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataFrameColumn.BinaryOperators.cs</LastGenOutput>
+    </None>
+    <None Update="DataFrameColumn.Computations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataFrameColumn.Computations.cs</LastGenOutput>
+    </None>
+    <None Update="DataFrame.BinaryOperations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataFrame.BinaryOperations.cs</LastGenOutput>
+    </None>
+    <None Update="DataFrame.BinaryOperators.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataFrame.BinaryOperators.cs</LastGenOutput>
+    </None>
+    <None Update="DataFrameBinaryOperators.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataFrameBinaryOperators.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperations.Combinations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperations.Combinations.tt</DependentUpon>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperations.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperators.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperators.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.Computations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.Computations.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.ReversedBinaryOperations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.ReversedBinaryOperations.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumnArithmetic.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveColumnArithmetic.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumnComputations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumnComputations.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumnArithmetic.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumnArithmetic.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Converters.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Converters.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.tt</DependentUpon>
+    </Compile>
+    <Compile Update="DataFrameColumn.BinaryOperations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataFrameColumn.BinaryOperations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumn.BinaryOperationAPIs.ExplodedColumns.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperationAPIs.ExplodedColumns.tt</DependentUpon>
+    </Compile>
+    <Compile Update="DataFrameColumn.BinaryOperators.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataFrameColumn.BinaryOperators.tt</DependentUpon>
+    </Compile>
+    <Compile Update="DataFrameColumn.Computations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataFrameColumn.Computations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="DataFrame.BinaryOperations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataFrame.BinaryOperations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="DataFrame.BinaryOperators.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataFrame.BinaryOperators.tt</DependentUpon>
+    </Compile>
+    <Compile Update="DataFrameBinaryOperators.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataFrameBinaryOperators.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumn.BinaryOperations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumn.BinaryOperators.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperators.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumn.Computations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.Computations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumn.ReversedBinaryOperations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.ReversedBinaryOperations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumnArithmetic.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveColumnArithmetic.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumnComputations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumnComputations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveColumnContainer.BinaryOperations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveColumnContainer.BinaryOperations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumnArithmetic.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumnArithmetic.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveColumnContainer.BinaryOperations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveColumnContainer.BinaryOperations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Microsoft.Data</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

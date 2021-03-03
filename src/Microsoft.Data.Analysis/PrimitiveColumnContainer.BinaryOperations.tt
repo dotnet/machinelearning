@@ -1,0 +1,56 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="ColumnArithmeticTemplate.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from PrimitiveColumnContainer.BinaryOperations.tt. Do not modify directly
+
+namespace Microsoft.Data.Analysis
+{
+    internal partial class PrimitiveColumnContainer<T>
+        where T : struct
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
+       public <#= method.GetSingleArgumentMethodSignature("PrimitiveColumnContainer", "T") #>
+       {
+<# if (method.MethodType == MethodType.ComparisonScalar ) { #>
+            PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, scalar, ret);
+<# } else { #>
+            PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, right, ret);
+<# } #>
+            return this;
+       }
+
+<# } else { #>
+        public <#= method.GetSingleArgumentMethodSignature("PrimitiveColumnContainer", "T")#>
+        {
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+            PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, scalar);
+<# } else if (method.MethodType == MethodType.BinaryInt) { #>
+            PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, value);
+<# } else { #>
+            PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, right);
+<# } #>
+            return this;
+        }
+
+<# } #>
+<# } #>
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+       public PrimitiveColumnContainer<T> Reverse<#=method.MethodName#>(T scalar)
+       {
+            PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(scalar, this);
+            return this;
+       }
+<# } #>
+<# } #>
+    }
+}

@@ -1,0 +1,116 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic"#>
+<#@ output extension=".ttinclude"#>
+<#@ include file="ColumnArithmeticTemplate.ttinclude"#>
+\<#+
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from PrimitiveDataFrameColumn.BinaryOperations.Combinations.tt. Do not modify directly
+
+public class TypeCombination
+{
+       private string _thisColumnType;
+       private string _otherColumnType;
+       private string _returnColumnType;
+
+       public TypeCombination(string thisColumnType, string otherColumnType, string returnColumnType)
+       {
+           _thisColumnType = thisColumnType;
+           _otherColumnType = otherColumnType;
+           _returnColumnType = returnColumnType;
+       }
+       public string ThisColumnType => _thisColumnType;
+       public string OtherColumnType => _otherColumnType;
+       public string ReturnColumnType => _returnColumnType;
+}
+
+public static class BinaryOperationCombinations
+{
+
+    public static List<TypeCombination> binaryOperationCombinations = new List<TypeCombination>
+    {
+<#
+foreach (TypeConfiguration type in typeConfiguration) 
+{
+    if(!type.SupportsNumeric || type.TypeName == "char") 
+    {
+        continue;
+    }
+    foreach (TypeConfiguration type2 in typeConfiguration) 
+    {
+        if (!type2.SupportsNumeric || type2.TypeName == "char") 
+        {
+            continue;
+        }
+#>
+<# 
+// We won't support binary operations on pairs of signed and unsigned types yet. For users, there is a simple work around of cloning the columns to higher types(short -> int, int -> long etc) and then performing binary ops on them
+if (IsMixedSignedAndUnsignedTypePair(type.TypeName, type2.TypeName)) {
+    // continue;
+} 
+
+// If the C# spec doesn't allow some implicit conversions, don't define that API
+string returnType = GetBinaryOperationReturnType(type, type2);
+if (returnType == string.Empty)
+{
+    continue;
+}
+#>
+        new TypeCombination("<#=type.TypeName#>", "<#=type2.TypeName#>", "<#=returnType#>"),
+<#
+    }
+}
+#>
+    };
+}
+
+public static class ComparisonOperationCombinations
+{
+    public static List<TypeCombination> comparisonOperationCombinations = new List<TypeCombination>
+    {
+<#
+        foreach (TypeConfiguration type in typeConfiguration) 
+        {
+            if (type.TypeName == "char")
+            {
+                continue;
+            }
+            foreach (TypeConfiguration innerType in typeConfiguration)
+            {
+                if (innerType.TypeName == "char")
+                {
+                    continue;
+                }
+                if (type.TypeName == "bool" && innerType.TypeName != "bool")
+                {
+                    continue;
+                }
+                if (type.SupportsNumeric != innerType.SupportsNumeric)
+                {
+                    continue;
+                }
+                // For comparison, we don't exclude mixed signed and unsigned types since the result is always a bool
+
+                if (type.SupportsNumeric)
+                {
+                    // If the C# spec doesn't allow some implicit conversions, don't define that API. For ex: float == decimal or long == ulong are not allowed
+                    string returnType = GetBinaryOperationReturnType(type, innerType);
+                    if (returnType == string.Empty)
+                    {
+                        continue;
+                    }
+                }
+#>
+        new TypeCombination("<#=type.TypeName#>", "<#=innerType.TypeName#>", "bool"),
+<#
+            }
+        }
+#>
+    };
+}
+\#>
