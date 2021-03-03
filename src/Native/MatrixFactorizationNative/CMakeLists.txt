@@ -1,7 +1,10 @@
 project (MatrixFactorizationNative)
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 add_definitions(-DUSEOMP)
-add_definitions(-DUSESSE)
+
+if(not CMAKE_GENERATOR_PLATFORM matches "Arm64")
+    add_definitions(-DUSESSE)
+endif()
 
 include_directories(libmf)
 

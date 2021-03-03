@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.FastTree</IncludeInPackage>
     <PackageDescription>ML.NET component for FastTree</PackageDescription>
-    <DefineConstants>$(DefineConstants);USE_FASTTREENATIVE;NO_STORE;CORECLR</DefineConstants>
+    <DefineConstants>$(DefineConstants);NO_STORE;CORECLR</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>

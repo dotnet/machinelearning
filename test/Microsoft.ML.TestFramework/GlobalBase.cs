@@ -25,13 +25,19 @@ namespace Microsoft.ML.Internal.Internallearn.Test
             var prev = Contracts.SetAssertHandler(AssertHandler);
             Contracts.Check(prev == null, "Expected to replace null assertion handler!");
 
-            // Enable Conditional Numerical Reproducibility
-            // https://software.intel.com/en-us/articles/introduction-to-the-conditional-numerical-reproducibility-cnr
-            Environment.SetEnvironmentVariable("MKL_CBWR", "COMPATIBLE");
+#if ARM64
+Console.WriteLine("arm ");
+#endif
 
-            // HACK: ensure MklImports is loaded very early in the tests so it doesn't deadlock while loading it later.
-            // See https://github.com/dotnet/machinelearning/issues/1073
-            Mkl.PptrfInternal(Mkl.Layout.RowMajor, Mkl.UpLo.Up, 0, Array.Empty<double>());
+
+            // Enable Conditional Numerical Reproducibility
+            // // https://software.intel.com/en-us/articles/introduction-to-the-conditional-numerical-reproducibility-cnr
+            // Environment.SetEnvironmentVariable("MKL_CBWR", "COMPATIBLE");
+
+            // // HACK: ensure MklImports is loaded very early in the tests so it doesn't deadlock while loading it later.
+            // // See https://github.com/dotnet/machinelearning/issues/1073
+            // Mkl.PptrfInternal(Mkl.Layout.RowMajor, Mkl.UpLo.Up, 0, Array.Empty<double>());
+
         }
 
         private static class Mkl

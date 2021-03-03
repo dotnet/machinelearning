@@ -7,6 +7,10 @@
   <Import Project="eng/ExternalBenchmarkDataFiles.props" />
   <Import Project="eng/TensorflowMetaFiles.props" />
 
+  <PropertyGroup> 
+    <DefineConstants Condition="'$(Platform)' == 'Arm64'">$(DefineConstants);ARM64</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup>
 	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
   </PropertyGroup>
