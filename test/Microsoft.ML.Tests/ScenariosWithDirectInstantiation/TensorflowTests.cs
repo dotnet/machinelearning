@@ -1226,12 +1226,10 @@ namespace Microsoft.ML.Scenarios
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            using var pipelineModel = _mlContext.Model.LoadTensorFlowModel(modelLocation, false).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
+            using var pipelineModel = _mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
                 .Append(_mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
                 .Fit(dataView);
             using var tfEnginePipe = _mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);
-
-            var schema = pipelineModel.GetOutputSchema(dataView.Schema);
 
             var processedData = dataPipe.Predict(data[0]);
             Array.Resize(ref processedData.Features, 600);
