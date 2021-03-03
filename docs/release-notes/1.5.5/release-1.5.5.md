@@ -2,7 +2,7 @@
 
 ## **New Features**
 - **New API allowing confidence parameter to be a double**.([#5623](https://github.com/dotnet/machinelearning/pull/5623))
-. A new API has been added to accept double type for the confidence level. This helps when you need to have high precision then an int will allow for. (**Thank you @esso23**)
+. A new API has been added to accept double type for the confidence level. This helps when you need to have higher precision than an int will allow for. (**Thank you @esso23**)
 - **Support to export ValueMapping estimator to ONNX was added** ([#5577](https://github.com/dotnet/machinelearning/pull/5577))
 - **New API to treat TensorFlow output as batched/not-batched** ([#5634](https://github.com/dotnet/machinelearning/pull/5634)) A new API has been added so you can specify if the output from TensorFlow is batched or not.
 
@@ -13,7 +13,7 @@
 
 ## **Bug Fixes**
 - **AutoML.NET specific fixes**.
-  - Fixed am AutoML aggregate timeout exception ([#5631](https://github.com/dotnet/machinelearning/pull/5631))
+  - Fixed an AutoML aggregate timeout exception ([#5631](https://github.com/dotnet/machinelearning/pull/5631))
   - Offer suggestions for possibly mistyped label column names in AutoML ([#5624](https://github.com/dotnet/machinelearning/pull/5624)) (**Thank you @Crabzmatic**)
 - Update some ToString conversions ([#5627](https://github.com/dotnet/machinelearning/pull/5627)) (**Thanks @4201104140**)
 - Fixed an issue in SRCnnEntireAnomalyDetector ([#5579](https://github.com/dotnet/machinelearning/pull/5579))
