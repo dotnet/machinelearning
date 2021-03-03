@@ -11,8 +11,8 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.20377.1" />
-		<PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="1.0.0-beta.20377.1" />
+		<PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.20410.1" />
+		<PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="1.0.0-beta.20410.1" />
 	</ItemGroup>
 
 	<ItemGroup>

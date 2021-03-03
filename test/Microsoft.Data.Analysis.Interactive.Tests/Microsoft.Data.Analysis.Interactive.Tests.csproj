@@ -6,9 +6,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Microsoft.Data.Analysis.Interactive\Microsoft.Data.Analysis.Interactive.csproj" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.5" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="3.1.5" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.5" />
 	</ItemGroup>
 
 	<!-- register for test discovery in Visual Studio -->
