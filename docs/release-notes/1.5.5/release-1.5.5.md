@@ -30,7 +30,7 @@
 
 ## **Documentation Updates**
 - Updated documentation for the correct version of CUDA for TensorFlow. ([#5635](https://github.com/dotnet/machinelearning/pull/5635))
-- Updates cocumentation for an issue with brew and installing libomp. ([#5635](https://github.com/dotnet/machinelearning/pull/5635))
+- Updates documentation for an issue with brew and installing libomp. ([#5635](https://github.com/dotnet/machinelearning/pull/5635))
 - Updated an ONNX url to the correct url.  ([#5635](https://github.com/dotnet/machinelearning/pull/5635))
 - Added in note in the documentation that the PredictionEngine is not thread safe. ([#5583](https://github.com/dotnet/machinelearning/pull/5583))
 
