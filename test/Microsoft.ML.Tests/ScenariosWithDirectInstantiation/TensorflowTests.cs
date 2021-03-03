@@ -1152,7 +1152,6 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-
         [TensorFlowFact]
         public void TensorFlowTransformCifarInvalidShape()
         {

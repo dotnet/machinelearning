@@ -32,7 +32,7 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         internal const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
-        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, Graph graph, string opType = null)
+        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, Graph graph, bool treatOutputAsBatched, string opType = null)
         {
             var schemaBuilder = new DataViewSchema.Builder();
             foreach (Operation op in graph)
@@ -79,7 +79,7 @@ namespace Microsoft.ML.TensorFlow
                 // Construct the final ML.NET type of a Tensorflow variable.
                 var tensorShape = op.output.TensorShape.dims;
 
-                if(tensorShape == null)
+                if (tensorShape == null)
                 {
                     // primitive column type
                     schemaBuilder.AddColumn(op.name, mlType, metadataBuilder.ToAnnotations());
@@ -90,7 +90,24 @@ namespace Microsoft.ML.TensorFlow
                     DataViewType columnType = new VectorDataViewType(mlType);
                     if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
                         (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
-                        columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
+                        // treatOutputAsBatched == true means that if the first dimension is greater
+                        // than 0 we take the tensor shape as is. If the first value is less then 0, we treat it as the batch input so we can
+                        // ignore it for the shape of the ML.NET vector. I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as
+                        // batch input, and so the ML.NET data type will be a vector of length 5.
+                        if (treatOutputAsBatched)
+                        {
+                            columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
+                        }
+                        // When treatOutputAsBatched is false, if the first value is less than 0 we want to set it to 0. TensorFlow
+                        // represents an unknown size as -1, but ML.NET represents it as 0 so we need to convert it.
+                        // I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as a dimension of unknown length, and so the ML.NET
+                        // data type will be a vector of 2 dimensions, where the first dimension is unknown and the second has a length of 5.
+                        else
+                        {
+                            if (tensorShape[0] < 0)
+                                tensorShape[0] = 0;
+                            columnType = new VectorDataViewType(mlType, tensorShape);
+                        }
 
                     schemaBuilder.AddColumn(op.name, columnType, metadataBuilder.ToAnnotations());
                 }
@@ -108,10 +125,11 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
-        internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath)
+        /// <param name="treatOutputAsBatched">If the first dimension of the output is unknown, should it be treated as batched or not.</param>
+        internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath, bool treatOutputAsBatched = true)
         {
-            using var model = LoadTensorFlowModel(env, modelPath);
-            return GetModelSchema(env, model.Session.graph);
+            using var model = LoadTensorFlowModel(env, modelPath, treatOutputAsBatched);
+            return GetModelSchema(env, model.Session.graph, treatOutputAsBatched);
         }
 
         /// <summary>
@@ -119,11 +137,12 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">The model to load.</param>
+        /// <param name="treatOutputAsBatched">If the first dimension of the output is unknown, should it be treated as batched or not.</param>
         /// <returns></returns>
-        internal static TensorFlowModel LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        internal static TensorFlowModel LoadTensorFlowModel(IHostEnvironment env, string modelPath, bool treatOutputAsBatched = true)
         {
             var session = GetSession(env, modelPath);
-            return new TensorFlowModel(env, session, modelPath);
+            return new TensorFlowModel(env, session, modelPath, treatOutputAsBatched: treatOutputAsBatched);
         }
 
         internal static PrimitiveDataViewType Tf2MlNetType(TF_DataType type)

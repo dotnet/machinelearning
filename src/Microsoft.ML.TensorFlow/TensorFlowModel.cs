@@ -18,6 +18,7 @@ namespace Microsoft.ML.Transforms
     {
         internal Session Session { get; }
         internal string ModelPath { get; }
+        internal bool TreatOutputAsBatched { get; }
 
         private readonly IHostEnvironment _env;
 
@@ -27,10 +28,12 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">An <see cref="IHostEnvironment"/> object.</param>
         /// <param name="session">TensorFlow session object.</param>
         /// <param name="modelLocation">Location of the model from where <paramref name="session"/> was loaded.</param>
-        internal TensorFlowModel(IHostEnvironment env, Session session, string modelLocation)
+        /// <param name="treatOutputAsBatched">If the first dimension of the output is unknown, should it be treated as batched or not.</param>
+        internal TensorFlowModel(IHostEnvironment env, Session session, string modelLocation, bool treatOutputAsBatched = true)
         {
             Session = session;
             ModelPath = modelLocation;
+            TreatOutputAsBatched = treatOutputAsBatched;
             _env = env;
             _disposed = false;
         }
@@ -40,7 +43,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public DataViewSchema GetModelSchema()
         {
-            return TensorFlowUtils.GetModelSchema(_env, Session.graph);
+            return TensorFlowUtils.GetModelSchema(_env, Session.graph, TreatOutputAsBatched);
         }
 
         /// <summary>
@@ -49,7 +52,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public DataViewSchema GetInputSchema()
         {
-            return TensorFlowUtils.GetModelSchema(_env, Session.graph, "Placeholder");
+            return TensorFlowUtils.GetModelSchema(_env, Session.graph, TreatOutputAsBatched, "Placeholder");
         }
 
         /// <summary>

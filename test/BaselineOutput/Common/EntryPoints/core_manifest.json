@@ -23613,6 +23613,15 @@
           "SortOrder": 16.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "TreatOutputAsBatched",
+          "Type": "Bool",
+          "Desc": "If the first dimension of the output is unknown, should it be treated as batched or not. e.g. output = [-1] will be read as a vector of unknown length when this is false.",
+          "Required": false,
+          "SortOrder": 17.0,
+          "IsNullable": false,
+          "Default": true
         }
       ],
       "Outputs": [

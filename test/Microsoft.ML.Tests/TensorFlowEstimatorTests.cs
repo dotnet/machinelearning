@@ -185,6 +185,52 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
+        public void TreatOutputAsBatched()
+        {
+            var modelLocation = "cifar_model/frozen_model.pb";
+
+            var mlContext = new MLContext(seed: 1);
+            var imageHeight = 32;
+            var imageWidth = 32;
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
+
+            // Note that CamelCase column names are there to match the TF graph node names.
+            // Check and make sure save/load work correctly for the new TreatOutputAsBatched value.
+            var pipe = ML.Transforms.LoadImages("Input", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("Input", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
+                .Append(ML.Model.LoadTensorFlowModel(modelLocation, false).ScoreTensorFlowModel("Output", "Input"));
+
+            TestEstimatorCore(pipe, data);
+            var schema = pipe.Fit(data).Transform(data).Schema;
+
+            // The dimensions of the output with treatOutputAsBatched set to false should be * 10
+            // as the first dimension of -1 is treated as an unknown dimension.
+            Assert.Equal(new VectorDataViewType(NumberDataViewType.Single, 0, 10), schema["Output"].Type);
+
+            // Note that CamelCase column names are there to match the TF graph node names.
+            // Test with TreatOutputAsBatched set to default value of true.
+            pipe = ML.Transforms.LoadImages("Input", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("Input", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
+                .Append(ML.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
+
+            TestEstimatorCore(pipe, data);
+            schema = pipe.Fit(data).Transform(data).Schema;
+
+            // The dimensions of the output with treatOutputAsBatched set to true should be 10
+            // as the first dimension of -1 is treated as the batch dimension.
+            Assert.Equal(new VectorDataViewType(NumberDataViewType.Single, 10), schema["Output"].Type);
+
+        }
+
+        [TensorFlowFact]
         public void TestTensorFlowWithSchema()
         {
             const string modelLocation = "cifar_model/frozen_model.pb";
