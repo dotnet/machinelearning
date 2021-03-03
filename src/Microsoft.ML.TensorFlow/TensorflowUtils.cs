@@ -99,9 +99,9 @@ namespace Microsoft.ML.TensorFlow
                             columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
                         }
                         // When treatOutputAsBatched is false, if the first value is less than 0 we want to set it to 0. TensorFlow
-                        // represents an unkown size as -1, but ML.NET represents it as 0 so we need to convert it.
-                        // I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as a dimension of unkown length, and so the ML.NET
-                        // data type will be a vector of 2 dimensions, where the first dimension is unkown and the second has a length of 5.
+                        // represents an unknown size as -1, but ML.NET represents it as 0 so we need to convert it.
+                        // I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as a dimension of unknown length, and so the ML.NET
+                        // data type will be a vector of 2 dimensions, where the first dimension is unknown and the second has a length of 5.
                         else
                         {
                             if (tensorShape[0] < 0)

@@ -183,7 +183,7 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(4, numRows);
             }
         }
-        
+
         [TensorFlowFact]
         public void TreatOutputAsBatched()
         {
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests
             var schema = pipe.Fit(data).Transform(data).Schema;
 
             // The dimensions of the output with treatOutputAsBatched set to false should be * 10
-            // as the first dimension of -1 is treated as an unkown dimension.
+            // as the first dimension of -1 is treated as an unknown dimension.
             Assert.Equal(new VectorDataViewType(NumberDataViewType.Single, 0, 10), schema["Output"].Type);
 
             // Note that CamelCase column names are there to match the TF graph node names.
