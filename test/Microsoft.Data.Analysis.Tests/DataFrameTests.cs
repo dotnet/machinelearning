@@ -1776,7 +1776,7 @@ namespace Microsoft.Data.Analysis.Tests
             ArrowStringDataFrameColumn arrowColumn = CreateArrowStringColumn(3);
             Assert.Equal(3, arrowColumn.Length);
             Assert.Equal(1, arrowColumn.NullCount);
-            Assert.Equal(null, arrowColumn[1]);
+            Assert.Null(arrowColumn[1]);
             ArrowStringDataFrameColumn arrowColumnFilled = arrowColumn.FillNulls("foo");
             Assert.Equal(3, arrowColumn.Length);
             Assert.Equal(1, arrowColumn.NullCount);
