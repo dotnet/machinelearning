@@ -2,11 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<LangVersion>7.3</LangVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<SuppressFinalPackageVersion>false</SuppressFinalPackageVersion>
 		<VersionPrefix>0.5.0</VersionPrefix>
-		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<Description>This package contains easy-to-use and high-performance libraries for data analysis and transformation.</Description>
 		<PackageReleaseNotes>Initial preview of robust and extensible types and algorithms for manipulating structured data that supports aggregations, statistical funtions, sorting, grouping, joins, merges, handling missing values and more. </PackageReleaseNotes>
 		<PackageTags>ML.NET ML Machine Learning Data Science DataFrame Preparation DataView Analytics Exploration</PackageTags>
@@ -21,9 +19,7 @@
 
 	<!-- The following properties are set to package M.D.A.Interactive with the M.D.A nuget package. If M.D.A.I undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
 	<Target Name="AddMDAIToInteractiveExtensionsFolder">
-		<MSBuild Projects="./../Microsoft.Data.Analysis.Interactive/Microsoft.Data.Analysis.Interactive.csproj"
-				 Targets="_GetBuildOutputFilesWithTfm"
-				 Properties="TargetFramework=netcoreapp3.1">
+		<MSBuild Projects="./../Microsoft.Data.Analysis.Interactive/Microsoft.Data.Analysis.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=netcoreapp3.1">
 			<!-- Manually hardcoding the TargetFramework to netcoreapp3.1 as that is the one that MDAI targets -->
 			<Output TaskParameter="TargetOutputs" ItemName="_ItemsToIncludeForInteractive" />
 		</MSBuild>
@@ -48,12 +44,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Apache.Arrow" Version="2.0.0" />
-		<PackageReference Include="System.Memory" Version="4.5.3" />
-		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
-		<PackageReference Include="System.Buffers" Version="4.5.0" />
-		<PackageReference Include="System.Text.Encoding" Version="4.3.0" />
-		<PackageReference Include="Microsoft.ML.DataView" Version="1.0.0" />
+		<PackageReference Include="Apache.Arrow" Version="$(ApacheArrowVersion)" />
+		<PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
+		<PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
+		<PackageReference Include="System.Text.Encoding" Version="$(SystemTextEncodingVersion)" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
