@@ -5,13 +5,14 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="ApprovalTests" Version="5.2.4" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="Microsoft.ML.TestDatabases" Version="$(MicrosoftMLTestDatabasesPackageVersion)" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="TestData\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -31,5 +32,9 @@
     <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
+
+  <Target Name="CopyDatasets" AfterTargets="Build">
+    <Copy SourceFiles="$(PkgMicrosoft_ML_TestDatabases)\contentFiles\any\any\TestDatabases\flower_photos_tiny_set_for_unit_tests.zip" DestinationFolder="$(OutDir)" />
+  </Target>
 
 </Project>

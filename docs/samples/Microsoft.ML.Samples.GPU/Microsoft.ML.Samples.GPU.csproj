@@ -35,6 +35,7 @@
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
 
+    <PackageReference Include="Microsoft.ML.Assets" Version="$(MicrosoftMLAssetsVersions)" PrivateAssets="all" GeneratePathProperty="true"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -51,15 +52,15 @@
     <PackageReference Include="SciSharp.TensorFlow.Redist-Linux-GPU" Version="$(TensorFlowVersion)" />
   </ItemGroup>
 
-    <ItemGroup>
-    <Content Include="$(ArtifactsObjDir)DnnImageModels\ResNet18Onnx\ResNet18.onnx">
+  <ItemGroup>
+    <Content Include="$(PkgMicrosoft_ML_Assets)\contentFiles\any\any\ResNet18Onnx\ResNet18.onnx">
       <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
-    <ItemGroup>
-    <Content Include="$(ArtifactsObjDir)DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx">
+  <ItemGroup>
+    <Content Include="$(PkgMicrosoft_ML_Assets)\contentFiles\any\any\ResNetPrepOnnx\ResNetPreprocess.onnx">
       <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

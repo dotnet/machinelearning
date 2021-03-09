@@ -71,8 +71,8 @@ namespace Microsoft.ML.Scenarios
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
-            //Download the image set and unzip
-            _finalImagesFolderName = DownloadImageSet(
+            //Unzip and rename image folder
+            _finalImagesFolderName = UnzipImageSet(
                 imagesDownloadFolderPath);
 
             _fullImagesetFolderPath = Path.Combine(
@@ -1770,8 +1770,8 @@ namespace Microsoft.ML.Scenarios
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadBadImageSet(imagesDownloadFolderPath);
+            //Unzip bad image set
+            string finalImagesFolderName = UnzipBadImageSet(imagesDownloadFolderPath);
 
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
@@ -1873,27 +1873,23 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        public string DownloadImageSet(string imagesDownloadFolder)
+        public string UnzipImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
             string filenameAlias = "FPTSUT"; // FPTSUT = flower photos tiny set for unit tests
-            string url = "datasets/flower_photos_tiny_set_for_unit_test.zip";
 
-            Download(url, imagesDownloadFolder, fileName);
-            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
+            UnZip(fileName, imagesDownloadFolder);
             // Sometimes tests fail because the path is too long. So rename the dataset folder to a shorter directory.
             if (!Directory.Exists(Path.Combine(imagesDownloadFolder, filenameAlias)))
                 Directory.Move(Path.Combine(imagesDownloadFolder, Path.GetFileNameWithoutExtension(fileName)), Path.Combine(imagesDownloadFolder, "FPTSUT"));
             return filenameAlias;
         }
 
-        public string DownloadBadImageSet(string imagesDownloadFolder)
+        public string UnzipBadImageSet(string imagesDownloadFolder)
         {
             string fileName = "CatsVsDogs_tiny_for_unit_tests.zip";
-            string url = "datasets/CatsVsDogs_tiny_for_unit_tests.zip";
 
-            Download(url, imagesDownloadFolder, fileName);
-            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
+            UnZip(fileName, imagesDownloadFolder);
 
             return Path.GetFileNameWithoutExtension(fileName);
         }

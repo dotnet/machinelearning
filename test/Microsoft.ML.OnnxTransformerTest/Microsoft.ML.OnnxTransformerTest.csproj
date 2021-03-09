@@ -15,17 +15,18 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.Assets" Version="$(MicrosoftMLAssetsVersions)" PrivateAssets="all" GeneratePathProperty="true"/>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(ArtifactsObjDir)DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx">
+    <Content Include="$(PkgMicrosoft_ML_Assets)\contentFiles\any\any\ResNetPrepOnnx\ResNetPreprocess.onnx">
       <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(ArtifactsObjDir)DnnImageModels\ResNet18Onnx\ResNet18.onnx">
+    <Content Include="$(PkgMicrosoft_ML_Assets)\contentFiles\any\any\ResNet18Onnx\ResNet18.onnx">
       <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

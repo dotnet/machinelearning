@@ -16,10 +16,26 @@
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
+
+    <PackageReference Include="Microsoft.ML.Assets" Version="$(MicrosoftMLAssetsVersions)" PrivateAssets="all" GeneratePathProperty="true"/>
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\DnnImageFeaturizer.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
+
+<Target Name="CallCopyDnnOnnxModels" BeforeTargets="Build" >
+    <ItemGroup>
+      <ModelFileCopy Include="$(PkgMicrosoft_ML_Assets)contentFiles\any\any\ResNetPrepOnnx\ResNetPreprocess.onnx"
+      TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet50\tools\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ModelFileCopy Include="$(PkgMicrosoft_ML_Assets)contentFiles\any\any\ResNet50Onnx\ResNet50.onnx"
+      TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet50\tools\DnnImageModels\ResNet50Onnx\ResNet50.onnx" />
+    </ItemGroup>
+
+    <CallTarget Targets="CopyDnnOnnxModels"/>
+  </Target>
 
 </Project>

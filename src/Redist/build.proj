@@ -1,5 +1,0 @@
-<Project>
-  <ItemGroup>
-    <ProjectToBuild Include="**/*.proj" />
-  </ItemGroup>
-</Project>

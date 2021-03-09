@@ -58,8 +58,8 @@ namespace Microsoft.ML.AutoML.Test
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
 
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
+            //Unzip the images
+            string finalImagesFolderName = UnzipImageSet(
                 imagesDownloadFolderPath);
 
             string fullImagesetFolderPath = Path.Combine(
@@ -82,7 +82,7 @@ namespace Microsoft.ML.AutoML.Test
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
             /*
-             * This is only needed as Linux can produce files in a different 
+             * This is only needed as Linux can produce files in a different
              * order than other OSes. As this is a test case we want to maintain
              * consistent accuracy across all OSes, so we sort to remove this discrepancy.
              */
@@ -108,13 +108,11 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        public static string DownloadImageSet(string imagesDownloadFolder)
+        public static string UnzipImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
-            string url = $"https://aka.ms/mlnet-resources/datasets/flower_photos_tiny_set_for_unit_test.zip";
 
-            Download(url, imagesDownloadFolder, fileName);
-            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
+            UnZip(fileName, imagesDownloadFolder);
 
             return Path.GetFileNameWithoutExtension(fileName);
         }

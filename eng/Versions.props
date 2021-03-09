@@ -9,7 +9,6 @@
         https://github.com/dotnet/arcade/blob/c788ffa83b088cafe9dbffc1cbc8155ba88b2553/Documentation/CorePackages/Versioning.md#output
     -->
     <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
-    <VersionPrefix>1.5.6</VersionPrefix>
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
 
@@ -18,6 +17,7 @@
     <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
     <SystemThreadingChannelsPackageVersion>4.7.1</SystemThreadingChannelsPackageVersion>
+    <MicrosoftMLAssetsVersions>1.0.0</MicrosoftMLAssetsVersions>
 
     <!-- Other/External dependencies -->
     <GoogleProtobufPackageVersion>3.10.1</GoogleProtobufPackageVersion>
@@ -50,7 +50,7 @@
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20374.2</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftExtensionsTestPackageVersion>3.0.1</MicrosoftExtensionsTestPackageVersion>
-    <MicrosoftMLTestDatabasesPackageVersion>0.0.6-test</MicrosoftMLTestDatabasesPackageVersion>
+    <MicrosoftMLTestDatabasesPackageVersion>0.0.7-test</MicrosoftMLTestDatabasesPackageVersion>
     <MicrosoftMLTestModelsPackageVersion>0.0.7-test</MicrosoftMLTestModelsPackageVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>

@@ -21,7 +21,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         {
         }
 
-        [Fact]
+        [Fact(Skip = "We are using nugets to manage assets now. Skipping this test until we have another host to use.")]
         [TestCategory("ResourceDownload")]
         public async Task TestDownloadError()
         {
