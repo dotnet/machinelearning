@@ -35,7 +35,7 @@
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
 
-    <PackageReference Include="Microsoft.ML.Assets" Version="$(MicrosoftMLAssetsVersions)" PrivateAssets="all" GeneratePathProperty="true"/>
+    <PackageReference Include="Microsoft.ML.Assets" Version="$(MicrosoftMLAssetsVersions)" ExcludeAssets="all" GeneratePathProperty="true"/>
   </ItemGroup>
 
   <ItemGroup>

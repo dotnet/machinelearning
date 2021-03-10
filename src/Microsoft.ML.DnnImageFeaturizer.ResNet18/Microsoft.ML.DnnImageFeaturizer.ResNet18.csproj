@@ -17,27 +17,24 @@
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
 
-    <PackageReference Include="Microsoft.ML.Assets" Version="$(MicrosoftMLAssetsVersions)" PrivateAssets="all" GeneratePathProperty="true"/>
+    <PackageReference Include="Microsoft.ML.Assets" Version="$(MicrosoftMLAssetsVersions)" ExcludeAssets="all" GeneratePathProperty="true"/>
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\DnnImageFeaturizer.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ModelFileCopy Include="$(PkgMicrosoft_ML_Assets)\contentFiles\any\any\ResNetPrepOnnx\ResNetPreprocess.onnx"
+    TargetPath="$(PackageAssetsPath)Microsoft.ML.DnnImageFeaturizer.ResNet18\tools\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ModelFileCopy Include="$(PkgMicrosoft_ML_Assets)\contentFiles\any\any\ResNet18Onnx\ResNet18.onnx"
+    TargetPath="$(PackageAssetsPath)Microsoft.ML.DnnImageFeaturizer.ResNet18\tools\DnnImageModels\ResNet18Onnx\ResNet18.onnx" />
+  </ItemGroup>
+
   <Target Name="CallCopyDnnOnnxModels" BeforeTargets="Build" >
-  <Message Importance="High" Text="$(PkgMicrosoft_ML_Assets)" />
-  <Message Importance="High" Text="After Message Pkg" />
-
-    <ItemGroup>
-      <ModelFileCopy Include="$(PkgMicrosoft_ML_Assets)\contentFiles\any\any\ResNetPrepOnnx\ResNetPreprocess.onnx"
-      TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet18\tools\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ModelFileCopy Include="$(PkgMicrosoft_ML_Assets)contentFiles\any\any\ResNet18Onnx\ResNet18.onnx"
-      TargetPath="$(PackageAssetsPath)\Microsoft.ML.DnnImageFeaturizer.ResNet18\tools\DnnImageModels\ResNet18Onnx\ResNet18.onnx" />
-    </ItemGroup>
-
     <CallTarget Targets="CopyDnnOnnxModels"/>
   </Target>
 
