@@ -164,5 +164,202 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.True(parser.EndOfData);
             }
         }
+
+        [Fact]
+        public void ErrorLine()
+        {
+            string data = @"abc 123
+def 45
+ghi 789";
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                parser.TextFieldType = FieldType.FixedWidth;
+                parser.SetFieldWidths(new[] { 3, 4 });
+
+                Assert.Equal(-1, parser.ErrorLineNumber);
+                Assert.Equal("", parser.ErrorLine);
+
+                Assert.Equal(new[] { "abc", "123" }, parser.ReadFields());
+                Assert.Equal(-1, parser.ErrorLineNumber);
+                Assert.Equal("", parser.ErrorLine);
+
+                Assert.Throws<Exception>(() => parser.ReadFields());
+                Assert.Equal(2, parser.ErrorLineNumber);
+                Assert.Equal("def 45", parser.ErrorLine);
+
+                Assert.Equal(new[] { "ghi", "789" }, parser.ReadFields());
+                Assert.Equal(2, parser.ErrorLineNumber);
+                Assert.Equal("def 45", parser.ErrorLine);
+            }
+        }
+
+        [Fact]
+        public void HasFieldsEnclosedInQuotes_TrimWhiteSpace()
+        {
+            string data = @""""", "" "" ,""abc"", "" 123 "" ,";
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { "", "", "abc", "123", "" }, parser.ReadFields());
+            }
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                parser.TrimWhiteSpace = false;
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { "", " ", "abc", " 123 ", "" }, parser.ReadFields());
+            }
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                parser.HasFieldsEnclosedInQuotes = false;
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { @"""""", @""" """, @"""abc""", @""" 123 """, "" }, parser.ReadFields());
+            }
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                parser.TrimWhiteSpace = false;
+                parser.HasFieldsEnclosedInQuotes = false;
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { @"""""", @" "" "" ", @"""abc""", @" "" 123 "" ", "" }, parser.ReadFields());
+            }
+
+            data = @""","", "", """;
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                parser.TrimWhiteSpace = false;
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { ",", ", " }, parser.ReadFields());
+            }
+        }
+
+        [Fact]
+        public void PeekChars()
+        {
+            string data = @"abc,123
+def,456
+ghi,789";
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                Assert.Throws<ArgumentException>(() => parser.PeekChars(0));
+
+                Assert.Equal("a", parser.PeekChars(1));
+                Assert.Equal("abc,123", parser.PeekChars(10));
+
+                Assert.Equal("abc,123", parser.ReadLine());
+
+                parser.TextFieldType = FieldType.FixedWidth;
+                parser.SetFieldWidths(new[] { 3, -1 });
+
+                Assert.Equal("d", parser.PeekChars(1));
+                Assert.Equal("def,456", parser.PeekChars(10));
+                Assert.Equal(new[] { "def", ",456" }, parser.ReadFields());
+
+                parser.TextFieldType = FieldType.Delimited;
+                parser.SetDelimiters(new[] { "," });
+
+                Assert.Equal("g", parser.PeekChars(1));
+                Assert.Equal("ghi,789", parser.PeekChars(10));
+                Assert.Equal(new[] { "ghi", "789" }, parser.ReadFields());
+
+                Assert.Null(parser.PeekChars(1));
+                Assert.Null(parser.PeekChars(10));
+            }
+        }
+
+        [Fact]
+        public void ReadFields_FieldWidths()
+        {
+            string data = @"abc,123
+def,456
+ghi,789";
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                parser.TextFieldType = FieldType.FixedWidth;
+
+                Assert.Throws<InvalidOperationException>(() => parser.ReadFields());
+
+                parser.SetFieldWidths(new[] { -1 });
+                Assert.Equal(new[] { "abc,123" }, parser.ReadFields());
+
+                parser.SetFieldWidths(new[] { 3, -1 });
+                Assert.Equal(new[] { "def", ",456" }, parser.ReadFields());
+
+                parser.SetFieldWidths(new[] { 3, 2 });
+                Assert.Equal(new[] { "ghi", ",7" }, parser.ReadFields());
+
+                parser.SetFieldWidths(new[] { 3, 2 });
+                Assert.Null(parser.ReadFields());
+            }
+        }
+
+        [Fact]
+        public void ReadFields_Delimiters_LineNumber()
+        {
+            string data = @"abc,123
+def,456
+ghi,789";
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                Assert.Equal(1, parser.LineNumber);
+
+                Assert.Throws<Exception>(() => parser.ReadFields());
+                Assert.Equal(1, parser.LineNumber);
+
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { "abc","123" }, parser.ReadFields());
+                Assert.Equal(2, parser.LineNumber);
+
+                parser.SetDelimiters(new[] { ";", "," });
+                Assert.Equal(new[] { "def", "456" }, parser.ReadFields());
+                Assert.Equal(3, parser.LineNumber);
+
+                parser.SetDelimiters(new[] { "g", "9" });
+                Assert.Equal(new[] { "", "hi,78", "" }, parser.ReadFields());
+                Assert.Equal(-1, parser.LineNumber);
+            }
+
+            data = @",,
+
+,
+";
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                Assert.Equal(1, parser.LineNumber);
+
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { "", "", "" }, parser.ReadFields());
+                Assert.Equal(2, parser.LineNumber);
+
+                // ReadFields should ignore the empty new line
+                Assert.Equal(new[] { "", "" }, parser.ReadFields());
+                Assert.Equal(-1, parser.LineNumber);
+
+                Assert.Null(parser.ReadFields());
+                Assert.Equal(-1, parser.LineNumber);
+
+                Assert.Null(parser.ReadFields());
+                Assert.Equal(-1, parser.LineNumber);
+            }
+        }
+
+        [Fact]
+        public void UnmatchedQuote_MalformedLineException()
+        {
+            string data = @""""", """;
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                parser.SetDelimiters(new[] { "," });
+                Assert.Throws<Exception>(() => parser.ReadFields());
+            }
+        }
     }
 }
