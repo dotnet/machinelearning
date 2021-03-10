@@ -248,6 +248,13 @@ namespace Microsoft.Data.Analysis
         protected internal virtual void AddDataViewColumn(DataViewSchema.Builder builder) => throw new NotImplementedException();
 
         /// <summary>
+        /// Appends a value to this <see cref="DataFrameColumn"/> using <paramref name="cursor"/>
+        /// </summary>
+        /// <param name="cursor">The row cursor which has the current position</param>
+        /// <param name="schemaColumn">The <see cref="DataViewSchema.Column"/> in <see cref="DataViewSchema"/></param>
+        protected internal virtual void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn) => throw new NotImplementedException();
+
+        /// <summary>
         /// Clamps values beyond the specified thresholds
         /// </summary>
         /// <typeparam name="U"></typeparam>

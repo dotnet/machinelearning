@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.Data.Analysis
 {
     public partial class DataFrame : IDataView
-    {        
+    {
         // TODO: support shuffling
         bool IDataView.CanShuffle => false;
 

@@ -10,12 +10,12 @@ using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public partial class DataFrameTests
+    public partial class DataFrameIDataViewTests
     {
         [Fact]
         public void TestIDataView()
         {
-            IDataView dataView = MakeDataFrameWithAllColumnTypes(10, withNulls: false);
+            IDataView dataView = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
 
             DataDebuggerPreview preview = dataView.Preview();
             Assert.Equal(10, preview.RowView.Length);
@@ -85,7 +85,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestIDataViewSchemaInvalidate()
         {
-            DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10, withNulls: false);
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllMutableColumnTypes(10, withNulls: false);
 
             IDataView dataView = df;
 
@@ -113,7 +113,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestIDataViewWithNulls()
         {
             int length = 10;
-            IDataView dataView = MakeDataFrameWithAllColumnTypes(length, withNulls: true);
+            IDataView dataView = DataFrameTests.MakeDataFrameWithAllColumnTypes(length, withNulls: true);
 
             DataDebuggerPreview preview = dataView.Preview();
             Assert.Equal(length, preview.RowView.Length);
@@ -223,6 +223,21 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal("foo", preview.ColumnView[14].Values[4].ToString());
             Assert.Equal("", preview.ColumnView[14].Values[5].ToString()); // null row
             Assert.Equal("foo", preview.ColumnView[14].Values[6].ToString());
+        }
+
+        [Fact]
+        public void TestDataFrameFromIDataView()
+        {
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
+            df.Columns.Remove("Char"); // Because chars are returned as uint16 by IDataView, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
+            IDataView dfAsIDataView = df;
+            DataFrame newDf = dfAsIDataView.ToDataFrame();
+            Assert.Equal(dfAsIDataView.GetRowCount(), newDf.Rows.Count);
+            Assert.Equal(dfAsIDataView.Schema.Count, newDf.Columns.Count);
+            for (int i = 0; i < df.Columns.Count; i++)
+            {
+                Assert.True(df.Columns[i].ElementwiseEquals(newDf.Columns[i]).All());
+            }
         }
     }
 }
