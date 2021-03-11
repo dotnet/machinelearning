@@ -1,0 +1,236 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="ColumnArithmeticTemplate.ttinclude" #>
+<#@ include file="PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Microsoft.Data.Analysis
+{
+<#
+void GenerateAllBinaryCombinationsForOperator(string op, string methodName)
+{
+    HashSet<string> visited = new HashSet<string> { };
+ foreach (TypeCombination outer in BinaryOperationCombinations.binaryOperationCombinations) 
+ {
+    string outerColumnType = outer.ThisColumnType;
+    if (visited.Contains(outerColumnType))
+    {
+        continue;
+    }
+    visited.Add(outerColumnType);
+    string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
+#>
+    public partial class <#=fullOuterColumnType#>
+    {
+<#
+    foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations.Where((ACombination) => ACombination.ThisColumnType == outerColumnType)) 
+    {
+        string returnType = types.ReturnColumnType;
+        string columnType = types.ThisColumnType;
+        string otherColumnType = types.OtherColumnType;
+
+        string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+        string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+        string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+#>
+        public static <#=fullReturnType#> operator <#=op#>(<#=fullColumnType#> left, <#=fullOtherColumnType#> right)
+        {
+            return left.<#=methodName#>(right);
+        }
+<# 
+    } 
+#>
+    }
+<#
+}
+}
+#>
+<#
+void GenerateAllBinaryScalarCombinationsForOperator(string op, string methodName)
+{
+    HashSet<string> visited = new HashSet<string> { };
+ foreach (TypeCombination outer in BinaryOperationCombinations.binaryOperationCombinations) 
+ {
+    string outerColumnType = outer.ThisColumnType;
+    if (visited.Contains(outerColumnType))
+    {
+        continue;
+    }
+    visited.Add(outerColumnType);
+    string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
+#>
+    public partial class <#=fullOuterColumnType#>
+    {
+<#
+    foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations.Where((ACombination) => ACombination.ThisColumnType == outerColumnType)) 
+    {
+        string returnType = types.ReturnColumnType;
+        string columnType = types.ThisColumnType;
+        string otherColumnType = types.OtherColumnType;
+
+        string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+        string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+#>
+        public static <#=fullReturnType#> operator <#=op#>(<#=fullColumnType#> left, <#=otherColumnType#> right)
+        {
+            return left.<#=methodName#>(right);
+        }
+        public static <#=fullReturnType#> operator <#=op#>(<#=otherColumnType#> left, <#=fullColumnType#> right)
+        {
+            return right.Reverse<#=methodName#>(left);
+        }
+<# 
+    } 
+#>
+    }
+<#
+}
+}
+#>
+<#
+void GenerateAllBinaryBitwiseCombinationsForOperator(string op, string methodName)
+{
+#>
+    public partial class BooleanDataFrameColumn
+    {
+        public static BooleanDataFrameColumn operator <#=op#>(BooleanDataFrameColumn left, BooleanDataFrameColumn right)
+        {
+            return left.<#=methodName#>(right);
+        }
+    }
+<# 
+}
+#>
+<#
+void GenerateAllBinaryScalarBitwiseCombinationsForOperator(string op, string methodName)
+{
+#>
+    public partial class BooleanDataFrameColumn
+    {
+        public static BooleanDataFrameColumn operator <#=op#>(BooleanDataFrameColumn left, bool right)
+        {
+            return left.<#=methodName#>(right);
+        }
+    }
+<# 
+}
+#>
+<#
+void GenerateAllBinaryIntBitwiseCombinationsForOperator(string op, string methodName)
+{
+    foreach (var type in typeConfiguration)
+    {
+        if (!type.SupportsNumeric || !type.SupportsBitwise || type.TypeName == "char")
+        {
+            continue;
+        }
+        string returnType = GetBinaryShiftOperationReturnType(type);
+        if (returnType == string.Empty)
+        {
+            continue;
+        }
+        string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+        string fullColumnType = GetCapitalizedPrimitiveTypes(type.TypeName) + "DataFrameColumn";
+        string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+#>
+    public partial class <#=fullColumnType#>
+    {
+        public static <#=fullReturnType#> operator <#=op#>(<#=fullColumnType#> left, int value)
+        {
+            return left.<#=methodName#>(value);
+        }
+    }
+<# 
+    }
+}
+#>
+<# 
+void GenerateAllComparisonCombinationsForOperator(string op, string methodName)
+{
+ foreach (TypeCombination types in ComparisonOperationCombinations.comparisonOperationCombinations) 
+ {
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+
+#>
+    public partial class <#=fullColumnType#>
+    {
+        public static <#=fullReturnType#> operator <#=op#>(<#=fullColumnType#> left, <#=fullOtherColumnType#> right)
+        {
+            return left.<#=methodName#>(right);
+        }
+    }
+<# 
+ }
+ }
+#>
+<# 
+void GenerateAllComparisonScalarCombinationsForOperator(string op, string methodName)
+{
+ foreach (TypeCombination types in ComparisonOperationCombinations.comparisonOperationCombinations) 
+ {
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+
+#>
+    public partial class <#=fullColumnType#>
+    {
+        public static <#=fullReturnType#> operator <#=op#>(<#=fullColumnType#> left, <#=otherColumnType#> right)
+        {
+            return left.<#=methodName#>(right);
+        }
+    }
+<# 
+ }
+ }
+#>
+<#
+foreach (MethodConfiguration method in methodConfiguration)
+{
+    // Don't generate method for Comparison and ComparisonScalar methods here
+    if (method.MethodType == MethodType.Binary && method.IsNumeric)
+    {
+        GenerateAllBinaryCombinationsForOperator(method.Operator, method.MethodName);
+    }
+    else if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
+    {
+        GenerateAllBinaryScalarCombinationsForOperator(method.Operator, method.MethodName);
+    }
+    else if (method.MethodType == MethodType.Binary && method.IsBitwise)
+    {
+        GenerateAllBinaryBitwiseCombinationsForOperator(method.Operator, method.MethodName);
+    }
+    else if (method.MethodType == MethodType.BinaryScalar && method.IsBitwise)
+    {
+        GenerateAllBinaryScalarBitwiseCombinationsForOperator(method.Operator, method.MethodName);
+    }
+    else if (method.MethodType == MethodType.BinaryInt)
+    {
+        GenerateAllBinaryIntBitwiseCombinationsForOperator(method.Operator, method.MethodName);
+    }
+}
+#>
+}
