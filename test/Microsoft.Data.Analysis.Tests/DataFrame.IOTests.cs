@@ -101,14 +101,18 @@ namespace Microsoft.Data.Analysis.Tests
             }
         }
 
-        [Fact]
-        public void TestReadCsvWithHeader()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestReadCsvWithHeader(bool useQuotes)
         {
-            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
-CMT,1,1,1271,3.8,CRD,17.5
-CMT,1,1,474,1.5,CRD,8
-CMT,1,1,637,1.4,CRD,8.5
-CMT,1,1,181,0.6,CSH,4.5";
+            string CMT = useQuotes ? @"""C,MT""" : "CMT";
+            string verifyCMT = useQuotes ? "C,MT" : "CMT";
+            string data = @$"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
+{CMT},1,1,1271,3.8,CRD,17.5
+{CMT},1,1,474,1.5,CRD,8
+{CMT},1,1,637,1.4,CRD,8.5
+{CMT},1,1,181,0.6,CSH,4.5";
 
             Stream GetStream(string streamData)
             {
@@ -118,7 +122,7 @@ CMT,1,1,181,0.6,CSH,4.5";
             {
                 Assert.Equal(4, df.Rows.Count);
                 Assert.Equal(7, df.Columns.Count);
-                Assert.Equal("CMT", df.Columns["vendor_id"][3]);
+                Assert.Equal(verifyCMT, df.Columns["vendor_id"][3]);
                 VerifyColumnTypes(df);
             }
             DataFrame df = DataFrame.LoadCsv(GetStream(data));
@@ -130,7 +134,7 @@ CMT,1,1,181,0.6,CSH,4.5";
             {
                 Assert.Equal(3, reducedRows.Rows.Count);
                 Assert.Equal(7, reducedRows.Columns.Count);
-                Assert.Equal("CMT", reducedRows.Columns["vendor_id"][2]);
+                Assert.Equal(verifyCMT, reducedRows.Columns["vendor_id"][2]);
                 VerifyColumnTypes(df);
             }
             DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), numberOfRowsToRead: 3);
@@ -139,13 +143,17 @@ CMT,1,1,181,0.6,CSH,4.5";
             ReducedRowsTest(csvDf);
         }
 
-        [Fact]
-        public void TestReadCsvNoHeader()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestReadCsvNoHeader(bool useQuotes)
         {
-            string data = @"CMT,1,1,1271,3.8,CRD,17.5
-CMT,1,1,474,1.5,CRD,8
-CMT,1,1,637,1.4,CRD,8.5
-CMT,1,1,181,0.6,CSH,4.5";
+            string CMT = useQuotes ? @"""C,MT""" : "CMT";
+            string verifyCMT = useQuotes ? "C,MT" : "CMT";
+            string data = @$"{CMT},1,1,1271,3.8,CRD,17.5
+{CMT},1,1,474,1.5,CRD,8
+{CMT},1,1,637,1.4,CRD,8.5
+{CMT},1,1,181,0.6,CSH,4.5";
 
             Stream GetStream(string streamData)
             {
@@ -155,7 +163,7 @@ CMT,1,1,181,0.6,CSH,4.5";
             {
                 Assert.Equal(4, df.Rows.Count);
                 Assert.Equal(7, df.Columns.Count);
-                Assert.Equal("CMT", df.Columns["Column0"][3]);
+                Assert.Equal(verifyCMT, df.Columns["Column0"][3]);
                 VerifyColumnTypes(df);
             }
 
@@ -168,7 +176,7 @@ CMT,1,1,181,0.6,CSH,4.5";
             {
                 Assert.Equal(3, reducedRows.Rows.Count);
                 Assert.Equal(7, reducedRows.Columns.Count);
-                Assert.Equal("CMT", reducedRows.Columns["Column0"][2]);
+                Assert.Equal(verifyCMT, reducedRows.Columns["Column0"][2]);
                 VerifyColumnTypes(df);
             }
 

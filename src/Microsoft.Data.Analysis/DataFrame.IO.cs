@@ -172,16 +172,20 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private static DataFrame ReadCsvLinesIntoDataFrame(IEnumerable<string> lines,
+        private static DataFrame ReadCsvLinesIntoDataFrame(WrappedStreamReaderOrStringReader wrappedReader,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
-                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false
-                                )
+                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
+                                Encoding encoding = null)
         {
             if (dataTypes == null && guessRows <= 0)
             {
                 throw new ArgumentException(string.Format(Strings.ExpectedEitherGuessRowsOrDataTypes, nameof(guessRows), nameof(dataTypes)));
             }
+
+            TextReader textReader = wrappedReader.TextReader;
+            TextFieldParser parser = new TextFieldParser(textReader);
+            parser.SetDelimiters(separator.ToString());
 
             var linesForGuessType = new List<string[]>();
             long rowline = 0;
@@ -194,17 +198,15 @@ namespace Microsoft.Data.Analysis
 
             List<DataFrameColumn> columns;
             // First pass: schema and number of rows.
-            string line = null;
 
-            var enumerator = lines.GetEnumerator();
-            while (enumerator.MoveNext())
+            string[] fields;
+            while ((fields = parser.ReadFields()) != null)
             {
-                line = enumerator.Current;
                 if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
                 {
                     if (linesForGuessType.Count < guessRows || (header && rowline == 0))
                     {
-                        var spl = line.Split(separator);
+                        string[] spl = fields;
                         if (header && rowline == 0)
                         {
                             if (columnNames == null)
@@ -240,15 +242,16 @@ namespace Microsoft.Data.Analysis
             }
 
             DataFrame ret = new DataFrame(columns);
-            line = null;
 
             // Fill values.
-            enumerator.Reset();
+            textReader = wrappedReader.TextReader;
+            parser = new TextFieldParser(textReader);
+            parser.SetDelimiters(separator.ToString());
+
             rowline = 0;
-            while (enumerator.MoveNext() && (numberOfRowsToRead == -1 || rowline < numberOfRowsToRead))
+            while ((fields = parser.ReadFields()) != null && (numberOfRowsToRead == -1 || rowline < numberOfRowsToRead))
             {
-                line = enumerator.Current;
-                var spl = line.Split(separator);
+                string[] spl = fields;
                 if (header && rowline == 0)
                 {
                     // Skips.
@@ -269,54 +272,54 @@ namespace Microsoft.Data.Analysis
                 }
                 columns.Insert(0, indexColumn);
             }
+
+            textReader.Dispose();
             return ret;
         }
 
-        private class CsvLines : IEnumerable<string>
+        private class WrappedStreamReaderOrStringReader
         {
-            private CsvLineEnumerator enumerator;
-            public CsvLines(CsvLineEnumerator csvLineEnumerator)
+            private Stream _stream;
+            private long _initialPosition;
+            private Encoding _encoding;
+            private string _csvString;
+
+            public WrappedStreamReaderOrStringReader(Stream stream, Encoding encoding)
             {
-                enumerator = csvLineEnumerator;
+                _stream = stream;
+                _initialPosition = stream.Position;
+                _encoding = encoding;
+                _csvString = null;
             }
 
-            public IEnumerator<string> GetEnumerator() => enumerator;
-
-            IEnumerator IEnumerable.GetEnumerator() => enumerator;
-        }
-
-        private class CsvLineEnumerator : IEnumerator<string>
-        {
-            private StreamReader streamReader;
-            private string currentLine;
-            private long streamStartPosition;
-            public CsvLineEnumerator(StreamReader csvStream)
+            public WrappedStreamReaderOrStringReader(string csvString)
             {
-                streamStartPosition = csvStream.BaseStream.Position;
-                streamReader = csvStream;
-                currentLine = null;
+                _csvString = csvString;
+                _initialPosition = 0;
+                _encoding = null;
+                _stream = null;
             }
 
-            public string Current => currentLine;
+            public long InitialPosition => _initialPosition;
 
-            object IEnumerator.Current => currentLine;
-
-            public void Dispose()
+            // Returns a new TextReader. If the wrapped object is a stream, the stream is reset to its initial position. 
+            public TextReader TextReader
             {
-                throw new NotImplementedException();
+                get
+                {
+                    if (_stream != null)
+                    {
+                        _stream.Seek(_initialPosition, SeekOrigin.Begin);
+                        return new StreamReader(_stream, _encoding, detectEncodingFromByteOrderMarks: true, DefaultStreamReaderBufferSize, leaveOpen: true);
+                    }
+                    else
+                    {
+                        return new StringReader(_csvString);
+                    }
+                }
+
             }
 
-            public bool MoveNext()
-            {
-                currentLine = streamReader.ReadLine();
-                return currentLine != null;
-            }
-
-            public void Reset()
-            {
-                streamReader.DiscardBufferedData();
-                streamReader.BaseStream.Seek(streamStartPosition, SeekOrigin.Begin);
-            }
         }
 
         /// <summary>
@@ -336,8 +339,8 @@ namespace Microsoft.Data.Analysis
                                 string[] columnNames = null, Type[] dataTypes = null,
                                 long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false)
         {
-            string[] lines = csvString.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-            return ReadCsvLinesIntoDataFrame(lines, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
+            WrappedStreamReaderOrStringReader wrappedStreamReaderOrStringReader = new WrappedStreamReaderOrStringReader(csvString);
+            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
         }
 
         /// <summary>
@@ -369,12 +372,8 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(string.Format(Strings.ExpectedEitherGuessRowsOrDataTypes, nameof(guessRows), nameof(dataTypes)));
             }
 
-            using (var streamReader = new StreamReader(csvStream, encoding ?? Encoding.UTF8, detectEncodingFromByteOrderMarks: true, DefaultStreamReaderBufferSize, leaveOpen: true))
-            {
-                CsvLineEnumerator linesEnumerator = new CsvLineEnumerator(streamReader);
-                IEnumerable<string> lines = new CsvLines(linesEnumerator);
-                return ReadCsvLinesIntoDataFrame(lines, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
-            }
+            WrappedStreamReaderOrStringReader wrappedStreamReaderOrStringReader = new WrappedStreamReaderOrStringReader(csvStream, encoding ?? Encoding.UTF8);
+            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
         }
 
         /// <summary>
