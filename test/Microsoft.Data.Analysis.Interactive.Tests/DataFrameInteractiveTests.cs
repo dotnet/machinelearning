@@ -11,7 +11,7 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
     public partial class DataFrameInteractiveTests
     {
         private const string BUTTON_HTML_PART = "button onclick";
-        private const string TABLE_HTML_PART = "";
+        private const string TABLE_HTML_PART = "<table";
 
         public static DataFrame MakeDataFrameWithTwoColumns(int length, bool withNulls = true)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
         }
 
         [Fact]
-        public void LessThanTenRowsDataFrameTest()
+        public void LessThanOnePageDataFrameTest()
         {
             DataFrame dataFrame = MakeDataFrameWithTwoColumns(length: 5);
             DataFrameKernelExtension.RegisterDataFrame();
@@ -40,9 +40,9 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
         }
 
         [Fact]
-        public void MoreThanTenRowsDataFrameTest()
+        public void MoreThanOnePageDataFrameTest()
         {
-            DataFrame dataFrame = MakeDataFrameWithTwoColumns(length: 21);
+            DataFrame dataFrame = MakeDataFrameWithTwoColumns(length: 26);
             DataFrameKernelExtension.RegisterDataFrame();
             var html = dataFrame.ToDisplayString("text/html");
 
