@@ -469,6 +469,7 @@ namespace Microsoft.Data.Analysis
             (ref ReadOnlyMemory<char> value) => value = this[cursor.Position].AsMemory();
 
         private ValueGetter<ReadOnlyMemory<char>> getter = null;
+
         protected internal override void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn)
         {
             long row = cursor.Position;

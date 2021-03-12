@@ -11,7 +11,17 @@ namespace Microsoft.Data.Analysis
 {
     public static class IDataViewExtensions
     {
-        public static DataFrame ToDataFrame(this IDataView dataView, long maxRows = -1, params string[] selectColumns)
+        public static DataFrame ToDataFrame(this IDataView dataView, long maxRows = -1)
+        {
+            return ToDataFrame(dataView, maxRows, null);
+        }
+
+        public static DataFrame ToDataFrame(this IDataView dataView, params string[] selectColumns)
+        {
+            return ToDataFrame(dataView, -1, selectColumns);
+        }
+
+        public static DataFrame ToDataFrame(this IDataView dataView, long maxRows, params string[] selectColumns)
         {
             DataViewSchema schema = dataView.Schema;
             List<DataFrameColumn> columns = new List<DataFrameColumn>(schema.Count);
@@ -92,9 +102,9 @@ namespace Microsoft.Data.Analysis
             DataViewRowCursor cursor = dataView.GetRowCursor(activeColumns);
             while (cursor.MoveNext())
             {
-                foreach (var column in activeColumns)
+                foreach (DataViewSchema.Column column in activeColumns)
                 {
-                    columns[column.Index].AddValueUsingCursor(cursor, column);
+                    ret[column.Name].AddValueUsingCursor(cursor, column);
                 }
             }
 

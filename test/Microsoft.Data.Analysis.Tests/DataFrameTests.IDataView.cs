@@ -239,5 +239,32 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.True(df.Columns[i].ElementwiseEquals(newDf.Columns[i]).All());
             }
         }
+
+        [Fact]
+        public void TestDataFrameFromIDataView_SelectColumns()
+        {
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
+            IDataView dfAsIDataView = df;
+            DataFrame newDf = dfAsIDataView.ToDataFrame("Int", "Double");
+            Assert.Equal(dfAsIDataView.GetRowCount(), newDf.Rows.Count);
+            Assert.Equal(2, newDf.Columns.Count);
+            Assert.True(df.Columns["Int"].ElementwiseEquals(newDf.Columns["Int"]).All());
+            Assert.True(df.Columns["Double"].ElementwiseEquals(newDf.Columns["Double"]).All());
+        }
+
+        [Fact]
+        public void TestDataFrameFromIDataView_SelectRows()
+        {
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
+            df.Columns.Remove("Char"); // Because chars are returned as uint16 by IDataView, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
+            IDataView dfAsIDataView = df;
+            DataFrame newDf = dfAsIDataView.ToDataFrame(5);
+            Assert.Equal(5, newDf.Rows.Count);
+            Assert.Equal(dfAsIDataView.Schema.Count, newDf.Columns.Count);
+            for (int i = 0; i < df.Columns.Count; i++)
+            {
+                Assert.True(df.Columns[i].ElementwiseEquals(newDf.Columns[i]).All());
+            }
+        }
     }
 }
