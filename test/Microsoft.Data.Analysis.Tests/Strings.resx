@@ -216,9 +216,6 @@
   <data name="NonSeekableStream" xml:space="preserve">
     <value>Expected a seekable stream</value>
   </data>
-  <data name="NotSupportedColumnType" xml:space="preserve">
-    <value>{0} is not a supported column type.</value>
-  </data>
   <data name="NullDelimiters" xml:space="preserve">
     <value>Delimiters is null.</value>
   </data>

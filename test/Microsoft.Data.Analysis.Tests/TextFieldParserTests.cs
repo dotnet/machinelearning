@@ -361,5 +361,59 @@ ghi,789";
                 Assert.Throws<Exception>(() => parser.ReadFields());
             }
         }
+
+        [Fact]
+        public void ReadFields_QuoteOnNewLine()
+        {
+            string data = @"abc,""123
+123""
+def,456
+ghi,789";
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                Assert.Equal(1, parser.LineNumber);
+
+                Assert.Throws<Exception>(() => parser.ReadFields());
+                Assert.Equal(1, parser.LineNumber);
+
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { "abc",@"123
+123" }, parser.ReadFields());
+                Assert.Equal(3, parser.LineNumber);
+
+                parser.SetDelimiters(new[] { ";", "," });
+                Assert.Equal(new[] { "def", "456" }, parser.ReadFields());
+                Assert.Equal(4, parser.LineNumber);
+
+                parser.SetDelimiters(new[] { "g", "9" });
+                Assert.Equal(new[] { "", "hi,78", "" }, parser.ReadFields());
+                Assert.Equal(-1, parser.LineNumber);
+            }
+
+            data = @",,
+
+,
+";
+
+            using (var parser = new TextFieldParser(GetStream(data)))
+            {
+                Assert.Equal(1, parser.LineNumber);
+
+                parser.SetDelimiters(new[] { "," });
+                Assert.Equal(new[] { "", "", "" }, parser.ReadFields());
+                Assert.Equal(2, parser.LineNumber);
+
+                // ReadFields should ignore the empty new line
+                Assert.Equal(new[] { "", "" }, parser.ReadFields());
+                Assert.Equal(-1, parser.LineNumber);
+
+                Assert.Null(parser.ReadFields());
+                Assert.Equal(-1, parser.LineNumber);
+
+                Assert.Null(parser.ReadFields());
+                Assert.Equal(-1, parser.LineNumber);
+            }
+        }
     }
 }

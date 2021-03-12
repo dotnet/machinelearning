@@ -175,8 +175,8 @@ namespace Microsoft.Data.Analysis
         private static DataFrame ReadCsvLinesIntoDataFrame(WrappedStreamReaderOrStringReader wrappedReader,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
-                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
-                                Encoding encoding = null)
+                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false
+                                )
         {
             if (dataTypes == null && guessRows <= 0)
             {

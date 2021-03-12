@@ -8,6 +8,12 @@
         <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
         <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
         <Compile Include="..\..\src\Microsoft.Data.Analysis\TextFieldParser.cs" />
+        <!--<Compile Include="..\..\src\Microsoft.Data.Analysis\strings.Designer.cs" />-->
+        <!--<Compile Update="..\..\src\Microsoft.Data.Analysis\Strings.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Strings.resx</DependentUpon>
+        </Compile>-->
     </ItemGroup>
 
     <ItemGroup>
@@ -27,5 +33,19 @@
             <AutoGen>True</AutoGen>
             <DependentUpon>DataFrameColumn.BinaryOperationTests.tt</DependentUpon>
         </Compile>
+        <Compile Update="Strings.Designer.cs">
+          <DesignTime>True</DesignTime>
+          <AutoGen>True</AutoGen>
+          <DependentUpon>Strings.resx</DependentUpon>
+        </Compile>
     </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Update="Strings.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+            <CustomToolNamespace>Microsoft.Data</CustomToolNamespace>
+        </EmbeddedResource>
+    </ItemGroup>
+
 </Project>

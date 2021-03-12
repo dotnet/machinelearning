@@ -232,7 +232,7 @@ namespace Microsoft.Data.Analysis
 
         public FieldType TextFieldType
         {
-            get =>_textFieldType;
+            get => _textFieldType;
             set
             {
                 ValidateFieldTypeEnumValue(value, "value");
@@ -243,7 +243,7 @@ namespace Microsoft.Data.Analysis
 
         public int[] FieldWidths
         {
-            get =>_fieldWidths;
+            get => _fieldWidths;
             private set
             {
                 if (value != null)
@@ -282,7 +282,7 @@ namespace Microsoft.Data.Analysis
 
         public bool TrimWhiteSpace
         {
-            get =>_trimWhiteSpace;
+            get => _trimWhiteSpace;
             set
             {
                 _trimWhiteSpace = value;
@@ -291,7 +291,7 @@ namespace Microsoft.Data.Analysis
 
         public bool HasFieldsEnclosedInQuotes
         {
-            get =>_hasFieldsEnclosedInQuotes;
+            get => _hasFieldsEnclosedInQuotes;
             set
             {
                 _hasFieldsEnclosedInQuotes = value;
@@ -331,7 +331,6 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        // What's the difference between this and WhitespaceCharacters in how they are used?
         private string WhitespacePattern
         {
             get
@@ -451,7 +450,7 @@ namespace Microsoft.Data.Analysis
         {
             if (numberOfChars <= 0)
             {
-                throw new ArgumentException($"{nameof(numberOfChars)} must be greater than 0");
+                throw new ArgumentException(string.Format(Strings.PositiveNumberOfCharacters, nameof(numberOfChars)));
             }
 
             if ((_reader == null) | (_buffer == null))
@@ -571,7 +570,7 @@ namespace Microsoft.Data.Analysis
             }
             if (!stream.CanRead)
             {
-                throw new ArgumentException("stream can't read");
+                throw new ArgumentException(Strings.StreamDoesntSupportReading);
             }
             if (defaultEncoding == null)
             {
@@ -585,7 +584,7 @@ namespace Microsoft.Data.Analysis
         {
             if (!File.Exists(path))
             {
-                throw new FileNotFoundException($"{path} not found.");
+                throw new FileNotFoundException(Strings.FileNotFound);
             }
             return path;
         }
@@ -666,7 +665,7 @@ namespace Microsoft.Data.Analysis
             int bufferSize = _buffer.Length + DEFAULT_BUFFER_LENGTH;
             if (bufferSize > _maxBufferSize)
             {
-                throw new Exception("Exceeded maximum buffer size");
+                throw new Exception(Strings.ExceededMaxBufferSize);
             }
             char[] tempArray = new char[bufferSize];
             Array.Copy(_buffer, tempArray, _buffer.Length);
@@ -802,7 +801,7 @@ namespace Microsoft.Data.Analysis
                     {
                         _errorLine = line.TrimEnd(newLineChars);
                         _errorLineNumber = currentLineNumber;
-                        throw new Exception($"Line {currentLineNumber} cannot be parsed with the current Delimiters");
+                        throw new Exception(string.Format(Strings.CannotParseWithDelimiters, currentLineNumber));
                     }
                     if (endHelper.FieldFinished)
                     {
@@ -820,13 +819,13 @@ namespace Microsoft.Data.Analysis
                             {
                                 _errorLine = line.TrimEnd(newLineChars);
                                 _errorLineNumber = currentLineNumber;
-                                throw new Exception($"Line {currentLineNumber} cannot be parsed with the current Delimiters");
+                                throw new Exception(string.Format(Strings.CannotParseWithDelimiters, currentLineNumber));
                             }
                             if (line.Length + newLine.Length > _maxLineSize)
                             {
                                 _errorLine = line.TrimEnd(newLineChars);
                                 _errorLineNumber = currentLineNumber;
-                                throw new Exception($"Line {currentLineNumber} cannot be read because it exceeds the max line size");
+                                throw new Exception(string.Format(Strings.LineExceedsMaxLineSize, currentLineNumber));
                             }
                             line += newLine;
                             lineEndIndex = GetEndOfLineIndex(line);
@@ -835,7 +834,7 @@ namespace Microsoft.Data.Analysis
                             {
                                 _errorLine = line.TrimEnd(newLineChars);
                                 _errorLineNumber = currentLineNumber;
-                                throw new Exception($"Line {currentLineNumber} cannot be parsed with the current Delimiters");
+                                throw new Exception(string.Format(Strings.CannotParseWithDelimiters, currentLineNumber));
                             }
                         }
                         while (!endHelper.FieldFinished);
@@ -886,9 +885,9 @@ namespace Microsoft.Data.Analysis
             StringInfo lineInfo = new StringInfo(line);
             ValidateFixedWidthLine(lineInfo, _lineNumber - 1);
             int index = 0;
-            int bound = _fieldWidths.Length - 1;
-            string[] Fields = new string[bound + 1];
-            for (int i = 0; i <= bound; i++)
+            int length = _fieldWidths.Length;
+            string[] Fields = new string[length];
+            for (int i = 0; i < length; i++)
             {
                 Fields[i] = GetFixedWidthField(lineInfo, index, _fieldWidths[i]);
                 index += _fieldWidths[i];
@@ -898,7 +897,7 @@ namespace Microsoft.Data.Analysis
 
         private string GetFixedWidthField(StringInfo line, int index, int fieldLength)
         {
-            string field = ((fieldLength > 0) ? line.SubstringByTextElements(index, fieldLength) : ((index < line.LengthInTextElements) ? line.SubstringByTextElements(index).TrimEnd(newLineChars) : string.Empty));
+            string field = (fieldLength > 0) ? line.SubstringByTextElements(index, fieldLength) : ((index < line.LengthInTextElements) ? line.SubstringByTextElements(index).TrimEnd(newLineChars) : string.Empty);
             if (_trimWhiteSpace)
             {
                 return field.Trim();
@@ -937,7 +936,7 @@ namespace Microsoft.Data.Analysis
             {
                 _errorLine = line.String;
                 _errorLineNumber = checked(_lineNumber - 1);
-                throw new Exception($"Line {lineNumber} cannot be parsed with the current FieldWidths");
+                throw new Exception(string.Format(Strings.CannotParseWithFieldWidths, lineNumber));
             }
         }
 
@@ -945,11 +944,11 @@ namespace Microsoft.Data.Analysis
         {
             if (_fieldWidths == null)
             {
-                throw new InvalidOperationException("m_FieldWidths is null");
+                throw new InvalidOperationException(Strings.NullFieldWidths);
             }
             if (_fieldWidths.Length == 0)
             {
-                throw new InvalidOperationException("m_FieldWidths is empty");
+                throw new InvalidOperationException(Strings.EmptyFieldWidths);
             }
             checked
             {
@@ -976,7 +975,7 @@ namespace Microsoft.Data.Analysis
             {
                 if (widths[i] < 1)
                 {
-                    throw new ArgumentException("All field widths, except the last element, must be greater than zero. A field width less than or equal to zero in the last element indicates the last field is of variable length.");
+                    throw new ArgumentException(Strings.InvalidFieldWidths);
                 }
             }
         }
@@ -985,11 +984,11 @@ namespace Microsoft.Data.Analysis
         {
             if (_delimiters == null)
             {
-                throw new Exception("m_Delimiters is null");
+                throw new Exception(Strings.NullDelimiters);
             }
             if (_delimiters.Length == 0)
             {
-                throw new Exception("m_Delimiters is empty");
+                throw new Exception(Strings.EmptyDelimiters);
             }
             int length = _delimiters.Length;
             StringBuilder builder = new StringBuilder();
@@ -1001,11 +1000,11 @@ namespace Microsoft.Data.Analysis
                 {
                     if (_hasFieldsEnclosedInQuotes && _delimiters[i].IndexOf('"') > -1)
                     {
-                        throw new Exception("A double quote is not a legal delimiter when HasFieldsEnclosedInQuotes is set to True.");
+                        throw new Exception(Strings.IllegalQuoteDelimiter);
                     }
-                    string EscapedDelimiter = Regex.Escape(_delimiters[i]);
-                    builder.Append(EscapedDelimiter + "|");
-                    quoteBuilder.Append(EscapedDelimiter + "|");
+                    string escapedDelimiter = Regex.Escape(_delimiters[i]);
+                    builder.Append(escapedDelimiter + "|");
+                    quoteBuilder.Append(escapedDelimiter + "|");
                 }
                 else
                 {
@@ -1040,11 +1039,11 @@ namespace Microsoft.Data.Analysis
             if (_commentTokens != null)
             {
                 string[] commentTokens = _commentTokens;
-                foreach (string Token in commentTokens)
+                foreach (string token in commentTokens)
                 {
-                    if (Token != string.Empty && (_hasFieldsEnclosedInQuotes & (_textFieldType == FieldType.Delimited)) && string.Compare(Token.Trim(), "\"", StringComparison.Ordinal) == 0)
+                    if (token != string.Empty && (_hasFieldsEnclosedInQuotes & (_textFieldType == FieldType.Delimited)) && string.Compare(token.Trim(), "\"", StringComparison.Ordinal) == 0)
                     {
-                        throw new Exception("A double quote is not a legal comment token when HasFieldsEnclosedInQuotes is set to True.");
+                        throw new Exception(Strings.IllegalQuoteDelimiter);
                     }
                 }
             }
@@ -1061,11 +1060,11 @@ namespace Microsoft.Data.Analysis
             {
                 if (delimiter == string.Empty)
                 {
-                    throw new Exception("Delimiter cannot be empty");
+                    throw new Exception(Strings.EmptyDelimiters);
                 }
                 if (delimiter.IndexOfAny(newLineChars) > -1)
                 {
-                    throw new Exception("Delimiter cannot be new line characters");
+                    throw new Exception(Strings.DelimiterCannotBeNewlineChar);
                 }
             }
         }
@@ -1133,7 +1132,7 @@ namespace Microsoft.Data.Analysis
             {
                 if (token.Length == 1 && char.IsWhiteSpace(token[0]))
                 {
-                    throw new Exception("Comment token cannot contain whitespace");
+                    throw new Exception(Strings.CommentTokenCannotContainWhitespace);
                 }
             }
         }

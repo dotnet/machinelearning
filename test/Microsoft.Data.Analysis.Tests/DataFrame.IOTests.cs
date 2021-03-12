@@ -143,6 +143,49 @@ namespace Microsoft.Data.Analysis.Tests
             ReducedRowsTest(csvDf);
         }
 
+        [Fact]
+        public void TestReadCsvSplitAcrossMultipleLines()
+        {
+            string CMT = @"""C
+MT""";
+            string verifyCMT = @"C
+MT";
+            string data = @$"{CMT},1,1,1271,3.8,CRD,17.5
+{CMT},1,1,474,1.5,CRD,8
+{CMT},1,1,637,1.4,CRD,8.5
+{CMT},1,1,181,0.6,CSH,4.5";
+
+            Stream GetStream(string streamData)
+            {
+                return new MemoryStream(Encoding.Default.GetBytes(streamData));
+            }
+            void RegularTest(DataFrame df)
+            {
+                Assert.Equal(4, df.Rows.Count);
+                Assert.Equal(7, df.Columns.Count);
+                Assert.Equal(verifyCMT, df.Columns["Column0"][3]);
+                VerifyColumnTypes(df);
+            }
+
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), header: false);
+            RegularTest(df);
+            DataFrame csvDf = DataFrame.LoadCsvFromString(data, header: false);
+            RegularTest(csvDf);
+
+            void ReducedRowsTest(DataFrame reducedRows)
+            {
+                Assert.Equal(3, reducedRows.Rows.Count);
+                Assert.Equal(7, reducedRows.Columns.Count);
+                Assert.Equal(verifyCMT, reducedRows.Columns["Column0"][2]);
+                VerifyColumnTypes(df);
+            }
+
+            DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), header: false, numberOfRowsToRead: 3);
+            ReducedRowsTest(reducedRows);
+            csvDf = DataFrame.LoadCsvFromString(data, header: false, numberOfRowsToRead: 3);
+            ReducedRowsTest(csvDf);
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
