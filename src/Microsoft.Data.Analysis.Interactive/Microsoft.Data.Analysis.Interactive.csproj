@@ -8,9 +8,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
     <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveFormattingVersion)" />
-    
-    <!-- work around https://github.com/dotnet/runtime/issues/45560 until System.Text.Json is fixed and Microsoft.DotNet.Interactive updates to the new version -->
-    <PackageReference Include=" System.Text.Encodings.Web" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>

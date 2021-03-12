@@ -8,10 +8,10 @@ using Microsoft.DotNet.Interactive.Formatting;
 
 namespace Microsoft.Data.Analysis.Interactive.Tests
 {
-    public partial class DataFrameInteractiveTests
+    public class DataFrameInteractiveTests
     {
-        private const string BUTTON_HTML_PART = "button onclick";
-        private const string TABLE_HTML_PART = "<table";
+        private const string ButtonHtmlPart = "button onclick";
+        private const string TableHtmlPart = "<table";
 
         public static DataFrame MakeDataFrameWithTwoColumns(int length, bool withNulls = true)
         {
@@ -35,8 +35,8 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
             DataFrameKernelExtension.RegisterDataFrame();
             var html = dataFrame.ToDisplayString("text/html");
 
-            Assert.Contains(TABLE_HTML_PART, html);
-            Assert.DoesNotContain(BUTTON_HTML_PART, html);
+            Assert.Contains(TableHtmlPart, html);
+            Assert.DoesNotContain(ButtonHtmlPart, html);
         }
 
         [Fact]
@@ -46,8 +46,8 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
             DataFrameKernelExtension.RegisterDataFrame();
             var html = dataFrame.ToDisplayString("text/html");
 
-            Assert.Contains(TABLE_HTML_PART, html);
-            Assert.Contains(BUTTON_HTML_PART, html);
+            Assert.Contains(TableHtmlPart, html);
+            Assert.Contains(ButtonHtmlPart, html);
         }
 
         [Fact]
@@ -57,8 +57,8 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
             DataFrameKernelExtension.RegisterDataFrame();
             var html = dataFrame.Info().ToDisplayString("text/html");
 
-            Assert.Contains(TABLE_HTML_PART, html);
-            Assert.DoesNotContain(BUTTON_HTML_PART, html);
+            Assert.Contains(TableHtmlPart, html);
+            Assert.DoesNotContain(ButtonHtmlPart, html);
         }
     }
 }
