@@ -266,5 +266,17 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.True(df.Columns[i].ElementwiseEquals(newDf.Columns[i]).All());
             }
         }
+
+        [Fact]
+        public void TestDataFrameFromIDataView_SelectColumnsAndRows()
+        {
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
+            IDataView dfAsIDataView = df;
+            DataFrame newDf = dfAsIDataView.ToDataFrame(5, "Int", "Double");
+            Assert.Equal(5, newDf.Rows.Count);
+            Assert.Equal(2, newDf.Columns.Count);
+            Assert.True(df.Columns["Int"].ElementwiseEquals(newDf.Columns["Int"]).All());
+            Assert.True(df.Columns["Double"].ElementwiseEquals(newDf.Columns["Double"]).All());
+        }
     }
 }
