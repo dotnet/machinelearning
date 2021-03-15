@@ -24,10 +24,10 @@ namespace Microsoft.Data.Analysis.Interactive
 
         public static void RegisterDataFrame()
         {
-            Formatter<DataFrame>.Register((df, writer) =>
+            Formatter.Register<DataFrame>((df, writer) =>
             {
-                const int MAX = 10000;
-                const int SIZE = 10;
+                const int maxRowCount = 10000;
+                const int rowsPerPage = 25;
 
                 var uniqueId = DateTime.Now.Ticks;
 
@@ -37,15 +37,15 @@ namespace Microsoft.Data.Analysis.Interactive
                 };
                 header.AddRange(df.Columns.Select(c => (IHtmlContent)th(c.Name)));
 
-                if (df.Rows.Count > SIZE)
+                if (df.Rows.Count > rowsPerPage)
                 {
-                    var maxMessage = df.Rows.Count > MAX ? $" (showing a max of {MAX} rows)" : string.Empty;
+                    var maxMessage = df.Rows.Count > maxRowCount ? $" (showing a max of {maxRowCount} rows)" : string.Empty;
                     var title = h3[style: "text-align: center;"]($"DataFrame - {df.Rows.Count} rows {maxMessage}");
 
                     // table body
-                    var maxRows = Math.Min(MAX, df.Rows.Count);
+                    var rowCount = Math.Min(maxRowCount, df.Rows.Count);
                     var rows = new List<List<IHtmlContent>>();
-                    for (var index = 0; index < maxRows; index++)
+                    for (var index = 0; index < rowCount; index++)
                     {
                         var cells = new List<IHtmlContent>
                         {
@@ -58,29 +58,29 @@ namespace Microsoft.Data.Analysis.Interactive
                         rows.Add(cells);
                     }
 
-                    //navigator      
+                    //navigator
                     var footer = new List<IHtmlContent>();
                     BuildHideRowsScript(uniqueId);
 
-                    var paginateScriptFirst = BuildHideRowsScript(uniqueId) + GotoPageIndex(uniqueId, 0) + BuildPageScript(uniqueId, SIZE);
+                    var paginateScriptFirst = BuildHideRowsScript(uniqueId) + GotoPageIndex(uniqueId, 0) + BuildPageScript(uniqueId, rowsPerPage);
                     footer.Add(button[style: "margin: 2px;", onclick: paginateScriptFirst]("⏮"));
 
-                    var paginateScriptPrevTen = BuildHideRowsScript(uniqueId) + UpdatePageIndex(uniqueId, -10, (maxRows - 1) / SIZE) + BuildPageScript(uniqueId, SIZE);
+                    var paginateScriptPrevTen = BuildHideRowsScript(uniqueId) + UpdatePageIndex(uniqueId, -10, (rowCount - 1) / rowsPerPage) + BuildPageScript(uniqueId, rowsPerPage);
                     footer.Add(button[style: "margin: 2px;", onclick: paginateScriptPrevTen]("⏪"));
 
-                    var paginateScriptPrev = BuildHideRowsScript(uniqueId) + UpdatePageIndex(uniqueId, -1, (maxRows - 1) / SIZE) + BuildPageScript(uniqueId, SIZE);
+                    var paginateScriptPrev = BuildHideRowsScript(uniqueId) + UpdatePageIndex(uniqueId, -1, (rowCount - 1) / rowsPerPage) + BuildPageScript(uniqueId, rowsPerPage);
                     footer.Add(button[style: "margin: 2px;", onclick: paginateScriptPrev]("◀️"));
 
                     footer.Add(b[style: "margin: 2px;"]("Page"));
                     footer.Add(b[id: $"page_{uniqueId}", style: "margin: 2px;"]("1"));
 
-                    var paginateScriptNext = BuildHideRowsScript(uniqueId) + UpdatePageIndex(uniqueId, 1, (maxRows - 1) / SIZE) + BuildPageScript(uniqueId, SIZE);
+                    var paginateScriptNext = BuildHideRowsScript(uniqueId) + UpdatePageIndex(uniqueId, 1, (rowCount - 1) / rowsPerPage) + BuildPageScript(uniqueId, rowsPerPage);
                     footer.Add(button[style: "margin: 2px;", onclick: paginateScriptNext]("▶️"));
 
-                    var paginateScriptNextTen = BuildHideRowsScript(uniqueId) + UpdatePageIndex(uniqueId, 10, (maxRows - 1) / SIZE) + BuildPageScript(uniqueId, SIZE);
+                    var paginateScriptNextTen = BuildHideRowsScript(uniqueId) + UpdatePageIndex(uniqueId, 10, (rowCount - 1) / rowsPerPage) + BuildPageScript(uniqueId, rowsPerPage);
                     footer.Add(button[style: "margin: 2px;", onclick: paginateScriptNextTen]("⏩"));
 
-                    var paginateScriptLast = BuildHideRowsScript(uniqueId) + GotoPageIndex(uniqueId, (maxRows - 1) / SIZE) + BuildPageScript(uniqueId, SIZE);
+                    var paginateScriptLast = BuildHideRowsScript(uniqueId) + GotoPageIndex(uniqueId, (rowCount - 1) / rowsPerPage) + BuildPageScript(uniqueId, rowsPerPage);
                     footer.Add(button[style: "margin: 2px;", onclick: paginateScriptLast]("⏭️"));
 
                     //table
@@ -93,7 +93,7 @@ namespace Microsoft.Data.Analysis.Interactive
                     writer.Write(t);
 
                     //show first page
-                    writer.Write($"<script>{BuildPageScript(uniqueId, SIZE)}</script>");
+                    writer.Write($"<script>{BuildPageScript(uniqueId, rowsPerPage)}</script>");
                 }
                 else
                 {

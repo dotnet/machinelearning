@@ -26,3 +26,8 @@ dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
 # The MSML_RelaxTestNaming suppressor for VSTHRD200 is not active for CodeAnalyzer.Tests, so we disable it altogether.
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = none
+
+# Xml project files
+[*.{csproj}]
+indent_size = 2
+charset = utf-8

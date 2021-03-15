@@ -33,8 +33,8 @@
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
-    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.20410.1</MicrosoftDotNetInteractiveVersion>
-    <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.20410.1</MicrosoftDotNetInteractiveFormattingVersion>
+    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.21155.3</MicrosoftDotNetInteractiveVersion>
+    <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.21155.3</MicrosoftDotNetInteractiveFormattingVersion>
     <ApacheArrowVersion>2.0.0</ApacheArrowVersion>
     <SystemTextEncodingVersion>4.3.0</SystemTextEncodingVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
