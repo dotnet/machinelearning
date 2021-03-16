@@ -256,14 +256,24 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestDataFrameFromIDataView_SelectRows()
         {
             DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
-            df.Columns.Remove("Char"); // Because chars are returned as uint16 by IDataView, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
+            df.Columns.Remove("Char"); // Because chars are returned as uint16 by DataViewSchema, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
+            df.Columns.Remove("Decimal"); // Because decimal is returned as double by DataViewSchema, so end up comparing DecimalDataFrameColumn to DoubleDataFrameColumn and fail asserts
             IDataView dfAsIDataView = df;
             DataFrame newDf = dfAsIDataView.ToDataFrame(5);
             Assert.Equal(5, newDf.Rows.Count);
-            Assert.Equal(dfAsIDataView.Schema.Count, newDf.Columns.Count);
-            for (int i = 0; i < df.Columns.Count; i++)
+            Assert.Equal(df.Columns.Count, newDf.Columns.Count);
+            for (int i = 0; i < newDf.Columns.Count; i++)
             {
-                Assert.True(df.Columns[i].ElementwiseEquals(newDf.Columns[i]).All());
+                Assert.Equal(5, newDf.Columns[i].Length);
+                Assert.Equal(df.Columns[i].Name, newDf.Columns[i].Name);
+            }
+            Assert.Equal(dfAsIDataView.Schema.Count, newDf.Columns.Count);
+            for (int c = 0; c < df.Columns.Count; c++)
+            {
+                for (int r = 0; r < 5; r++)
+                {
+                    Assert.Equal(df.Columns[c][r], newDf.Columns[c][r]);
+                }
             }
         }
 
@@ -274,9 +284,70 @@ namespace Microsoft.Data.Analysis.Tests
             IDataView dfAsIDataView = df;
             DataFrame newDf = dfAsIDataView.ToDataFrame(5, "Int", "Double");
             Assert.Equal(5, newDf.Rows.Count);
+            for (int i = 0; i < newDf.Columns.Count; i++)
+            {
+                Assert.Equal(5, newDf.Columns[i].Length);
+            }
             Assert.Equal(2, newDf.Columns.Count);
-            Assert.True(df.Columns["Int"].ElementwiseEquals(newDf.Columns["Int"]).All());
-            Assert.True(df.Columns["Double"].ElementwiseEquals(newDf.Columns["Double"]).All());
+            for (int r = 0; r < 5; r++)
+            {
+                Assert.Equal(df.Columns["Int"][r], newDf.Columns["Int"][r]);
+                Assert.Equal(df.Columns["Double"][r], newDf.Columns["Double"][r]);
+            }
         }
+
+        private class InputData
+        {
+            public string Name { get; set; }
+            public bool FilterNext { get; set; }
+            public float Value { get; set; }
+        }
+
+        private IDataView GetASampleIDataView()
+        {
+            var mlContext = new MLContext();
+
+            // Get a small dataset as an IEnumerable.
+            var enumerableOfData = new[]
+            {
+                new InputData() { Name = "Joey", FilterNext = false, Value = 1.0f },
+                new InputData() { Name = "Chandler", FilterNext = false , Value = 2.0f},
+                new InputData() { Name = "Ross", FilterNext = false , Value = 3.0f},
+                new InputData() { Name = "Monica", FilterNext = true , Value = 4.0f},
+                new InputData() { Name = "Rachel", FilterNext = true , Value = 5.0f},
+                new InputData() { Name = "Phoebe", FilterNext = false , Value = 6.0f},
+            };
+
+            IDataView data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
+            return data;
+        }
+
+        [Fact]
+        public void TestDataFrameFromIDataView_MLData()
+        {
+            IDataView data = GetASampleIDataView();
+            DataFrame df = data.ToDataFrame();
+            Assert.Equal(6, df.Rows.Count);
+            Assert.Equal(3, df.Columns.Count);
+            foreach (var column in df.Columns)
+            {
+                Assert.Equal(6, column.Length);
+            }
+
+            void VerifyDataFrameColumnAndDataViewColumnValues<T>(string columnName)
+            {
+                int cc = 0;
+                var nameDataViewColumn = data.GetColumn<T>(columnName);
+                foreach (var value in nameDataViewColumn)
+                {
+                    Assert.Equal(value, df.Columns[columnName][cc++]);
+                }
+            }
+
+            VerifyDataFrameColumnAndDataViewColumnValues<string>("Name");
+            VerifyDataFrameColumnAndDataViewColumnValues<bool>("FilterNext");
+            VerifyDataFrameColumnAndDataViewColumnValues<float>("Value");
+        }
+
     }
 }

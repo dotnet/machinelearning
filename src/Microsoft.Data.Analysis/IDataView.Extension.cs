@@ -4,21 +4,23 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML;
+using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 
-namespace Microsoft.Data.Analysis
+namespace Microsoft.ML
 {
     public static class IDataViewExtensions
     {
-        public static DataFrame ToDataFrame(this IDataView dataView, long maxRows = -1)
+        private const int defaultMaxRows = 100;
+
+        public static DataFrame ToDataFrame(this IDataView dataView, long maxRows = defaultMaxRows)
         {
             return ToDataFrame(dataView, maxRows, null);
         }
 
         public static DataFrame ToDataFrame(this IDataView dataView, params string[] selectColumns)
         {
-            return ToDataFrame(dataView, -1, selectColumns);
+            return ToDataFrame(dataView, defaultMaxRows, selectColumns);
         }
 
         public static DataFrame ToDataFrame(this IDataView dataView, long maxRows, params string[] selectColumns)
@@ -94,17 +96,28 @@ namespace Microsoft.Data.Analysis
                 }
                 else
                 {
-                    throw new NotSupportedException(nameof(type));
+                    throw new NotSupportedException(String.Format(Microsoft.Data.Strings.NotSupportedColumnType, type.RawType.Name));
                 }
             }
 
+            List<Delegate> activeColumnDelegates = new List<Delegate>();
+
             DataFrame ret = new DataFrame(columns);
             DataViewRowCursor cursor = dataView.GetRowCursor(activeColumns);
-            while (cursor.MoveNext())
+            int columnIndex = 0;
+            foreach (DataViewSchema.Column column in activeColumns)
             {
+                Delegate valueGetter = columns[columnIndex].GetValueGetterUsingCursor(cursor, column);
+                activeColumnDelegates.Add(valueGetter);
+                columnIndex++;
+            }
+            while (cursor.MoveNext() && cursor.Position < maxRows)
+            {
+                columnIndex = 0;
                 foreach (DataViewSchema.Column column in activeColumns)
                 {
-                    ret[column.Name].AddValueUsingCursor(cursor, column);
+                    columns[columnIndex].AddValueUsingCursor(cursor, column, activeColumnDelegates[columnIndex]);
+                    columnIndex++;
                 }
             }
 

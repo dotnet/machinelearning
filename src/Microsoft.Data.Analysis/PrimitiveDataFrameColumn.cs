@@ -776,17 +776,13 @@ namespace Microsoft.Data.Analysis
         private static ValueGetter<double> CreateDecimalValueGetterDelegate(DataViewRowCursor cursor, PrimitiveDataFrameColumn<decimal> column) =>
             (ref double value) => value = (double?)column[cursor.Position] ?? double.NaN;
 
-        private ValueGetter<T> getter = null;
-
-        protected internal override void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column column)
+        internal override void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column column, Delegate getter)
         {
             long row = cursor.Position;
             T value = default;
-            if (getter == null)
-            {
-                getter = cursor.GetGetter<T>(column);
-            }
-            getter(ref value);
+            Debug.Assert(getter != null, "Excepted getter to be valid");
+            (getter as ValueGetter<T>)(ref value);
+
             if (Length > row)
             {
                 this[row] = value;
@@ -799,6 +795,11 @@ namespace Microsoft.Data.Analysis
             {
                 throw new IndexOutOfRangeException(nameof(row));
             }
+        }
+
+        internal override Delegate GetValueGetterUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn)
+        {
+            return cursor.GetGetter<T>(schemaColumn);
         }
     }
 }

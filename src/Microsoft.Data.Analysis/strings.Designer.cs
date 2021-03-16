@@ -259,6 +259,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} is not a supported column type..
+        /// </summary>
+        internal static string NotSupportedColumnType {
+            get {
+                return ResourceManager.GetString("NotSupportedColumnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to numeric column.
         /// </summary>
         internal static string NumericColumnType {

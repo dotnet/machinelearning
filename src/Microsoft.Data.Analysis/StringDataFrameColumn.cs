@@ -468,17 +468,14 @@ namespace Microsoft.Data.Analysis
         private ValueGetter<ReadOnlyMemory<char>> CreateValueGetterDelegate(DataViewRowCursor cursor) =>
             (ref ReadOnlyMemory<char> value) => value = this[cursor.Position].AsMemory();
 
-        private ValueGetter<ReadOnlyMemory<char>> getter = null;
-
-        protected internal override void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn)
+        internal override void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn, Delegate getter)
         {
             long row = cursor.Position;
             ReadOnlyMemory<char> value = default;
-            if (getter == null)
-            {
-                getter = cursor.GetGetter<ReadOnlyMemory<char>>(schemaColumn);
-            }
-            getter(ref value);
+            Debug.Assert(getter != null, "Excepted getter to be valid");
+
+            (getter as ValueGetter<ReadOnlyMemory<char>>)(ref value);
+
             if (Length > row)
             {
                 this[row] = value.ToString();
@@ -491,6 +488,10 @@ namespace Microsoft.Data.Analysis
             {
                 throw new IndexOutOfRangeException(nameof(row));
             }
+        }
+        internal override Delegate GetValueGetterUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn)
+        {
+            return cursor.GetGetter<ReadOnlyMemory<char>>(schemaColumn);
         }
     }
 }

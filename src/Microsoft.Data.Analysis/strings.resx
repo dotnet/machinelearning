@@ -183,6 +183,9 @@
   <data name="NonSeekableStream" xml:space="preserve">
     <value>Expected a seekable stream</value>
   </data>
+  <data name="NotSupportedColumnType" xml:space="preserve">
+    <value>{0} is not a supported column type.</value>
+  </data>
   <data name="NumericColumnType" xml:space="preserve">
     <value>numeric column</value>
   </data>
