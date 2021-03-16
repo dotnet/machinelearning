@@ -8,14 +8,15 @@ pr: none
 # no CI builds
 trigger: none
 
-# scheduled trigger, runs at UTC 8:00 every day which is midnight of GMT-8 
+# scheduled trigger, runs at UTC 8:00 every day which is midnight of GMT-8
 schedules:
 - cron: "0 8 * * *"
   displayName: Nightly Build at midnight
   branches:
     include:
     - master
-    - releases/1.0
+    - main
+    - releases/1.5.5
     - features/automl
     - features/integrationPackage
   always: true

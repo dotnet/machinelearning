@@ -8,14 +8,15 @@ pr: none
 # no CI builds
 trigger: none
 
-# scheduled trigger, runs at UTC 8:00 every day which is midnight of GMT-8 
+# scheduled trigger, runs at UTC 8:00 every day which is midnight of GMT-8
 schedules:
 - cron: "0 8 * * *"
   displayName: outer loop build at midnight
   branches:
     include:
     - master
-    - releases/1.0
+    - main
+    - releases/1.5.5
     - features/automl
     - features/integrationPackage
   always: true
@@ -25,7 +26,7 @@ resources:
   containers:
   - container: CentosContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
-  
+
   - container: UbuntuContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-20200515184230-2c829e8
 
