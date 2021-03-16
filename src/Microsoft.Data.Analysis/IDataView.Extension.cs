@@ -100,12 +100,12 @@ namespace Microsoft.ML
 
             using (DataViewRowCursor cursor = dataView.GetRowCursor(activeColumns))
             {
-                List<Delegate> activeColumnDelegates = new List<Delegate>();
+                Delegate[] activeColumnDelegates = new Delegate[activeColumns.Count];
                 int columnIndex = 0;
                 foreach (DataViewSchema.Column column in activeColumns)
                 {
                     Delegate valueGetter = columns[columnIndex].GetValueGetterUsingCursor(cursor, column);
-                    activeColumnDelegates.Add(valueGetter);
+                    activeColumnDelegates[columnIndex] = valueGetter;
                     columnIndex++;
                 }
                 while (cursor.MoveNext() && cursor.Position < maxRows)
