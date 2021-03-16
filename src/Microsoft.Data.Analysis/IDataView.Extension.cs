@@ -37,8 +37,6 @@ namespace Microsoft.ML
             List<DataViewSchema.Column> activeColumns = new List<DataViewSchema.Column>();
             foreach (DataViewSchema.Column column in schema)
             {
-                long length = maxRows >= 0 ? maxRows : long.MaxValue;
-                length = Math.Min(length, dataView.GetRowCount() ?? 0);
                 if (column.IsHidden || (selectColumnsSet != null && !selectColumnsSet.Contains(column.Name)))
                 {
                     continue;
@@ -48,51 +46,51 @@ namespace Microsoft.ML
                 DataViewType type = column.Type;
                 if (type == BooleanDataViewType.Instance)
                 {
-                    columns.Add(new BooleanDataFrameColumn(column.Name, length));
+                    columns.Add(new BooleanDataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.Byte)
                 {
-                    columns.Add(new ByteDataFrameColumn(column.Name, length));
+                    columns.Add(new ByteDataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.Double)
                 {
-                    columns.Add(new DoubleDataFrameColumn(column.Name, length));
+                    columns.Add(new DoubleDataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.Single)
                 {
-                    columns.Add(new SingleDataFrameColumn(column.Name, length));
+                    columns.Add(new SingleDataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.Int32)
                 {
-                    columns.Add(new Int32DataFrameColumn(column.Name, length));
+                    columns.Add(new Int32DataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.Int64)
                 {
-                    columns.Add(new Int64DataFrameColumn(column.Name, length));
+                    columns.Add(new Int64DataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.SByte)
                 {
-                    columns.Add(new SByteDataFrameColumn(column.Name, length));
+                    columns.Add(new SByteDataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.Int16)
                 {
-                    columns.Add(new Int16DataFrameColumn(column.Name, length));
+                    columns.Add(new Int16DataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.UInt32)
                 {
-                    columns.Add(new UInt32DataFrameColumn(column.Name, length));
+                    columns.Add(new UInt32DataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.UInt64)
                 {
-                    columns.Add(new UInt64DataFrameColumn(column.Name, length));
+                    columns.Add(new UInt64DataFrameColumn(column.Name));
                 }
                 else if (type == NumberDataViewType.UInt16)
                 {
-                    columns.Add(new UInt16DataFrameColumn(column.Name, length));
+                    columns.Add(new UInt16DataFrameColumn(column.Name));
                 }
                 else if (type == TextDataViewType.Instance)
                 {
-                    columns.Add(new StringDataFrameColumn(column.Name, length));
+                    columns.Add(new StringDataFrameColumn(column.Name));
                 }
                 else
                 {
@@ -102,7 +100,6 @@ namespace Microsoft.ML
 
             List<Delegate> activeColumnDelegates = new List<Delegate>();
 
-            DataFrame ret = new DataFrame(columns);
             DataViewRowCursor cursor = dataView.GetRowCursor(activeColumns);
             int columnIndex = 0;
             foreach (DataViewSchema.Column column in activeColumns)
@@ -121,7 +118,7 @@ namespace Microsoft.ML
                 }
             }
 
-            return ret;
+            return new DataFrame(columns);
         }
     }
 
