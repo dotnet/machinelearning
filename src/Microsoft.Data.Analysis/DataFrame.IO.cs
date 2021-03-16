@@ -183,7 +183,7 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(string.Format(Strings.ExpectedEitherGuessRowsOrDataTypes, nameof(guessRows), nameof(dataTypes)));
             }
 
-            TextReader textReader = wrappedReader.TextReader;
+            TextReader textReader = wrappedReader.GetTextReader();
             TextFieldParser parser = new TextFieldParser(textReader);
             parser.SetDelimiters(separator.ToString());
 
@@ -244,36 +244,38 @@ namespace Microsoft.Data.Analysis
             DataFrame ret = new DataFrame(columns);
 
             // Fill values.
-            textReader = wrappedReader.TextReader;
-            parser = new TextFieldParser(textReader);
-            parser.SetDelimiters(separator.ToString());
-
-            rowline = 0;
-            while ((fields = parser.ReadFields()) != null && (numberOfRowsToRead == -1 || rowline < numberOfRowsToRead))
+            using (textReader = wrappedReader.GetTextReader())
             {
-                string[] spl = fields;
-                if (header && rowline == 0)
+                parser = new TextFieldParser(textReader);
+                parser.SetDelimiters(separator.ToString());
+
+                rowline = 0;
+                while ((fields = parser.ReadFields()) != null && (numberOfRowsToRead == -1 || rowline < numberOfRowsToRead))
                 {
-                    // Skips.
+                    string[] spl = fields;
+                    if (header && rowline == 0)
+                    {
+                        // Skips.
+                    }
+                    else
+                    {
+                        ret.Append(spl, inPlace: true);
+                    }
+                    ++rowline;
                 }
-                else
+
+                if (addIndexColumn)
                 {
-                    ret.Append(spl, inPlace: true);
+                    PrimitiveDataFrameColumn<int> indexColumn = new PrimitiveDataFrameColumn<int>("IndexColumn", columns[0].Length);
+                    for (int i = 0; i < columns[0].Length; i++)
+                    {
+                        indexColumn[i] = i;
+                    }
+                    columns.Insert(0, indexColumn);
                 }
-                ++rowline;
+
             }
 
-            if (addIndexColumn)
-            {
-                PrimitiveDataFrameColumn<int> indexColumn = new PrimitiveDataFrameColumn<int>("IndexColumn", columns[0].Length);
-                for (int i = 0; i < columns[0].Length; i++)
-                {
-                    indexColumn[i] = i;
-                }
-                columns.Insert(0, indexColumn);
-            }
-
-            textReader.Dispose();
             return ret;
         }
 
@@ -300,12 +302,9 @@ namespace Microsoft.Data.Analysis
                 _stream = null;
             }
 
-            public long InitialPosition => _initialPosition;
-
             // Returns a new TextReader. If the wrapped object is a stream, the stream is reset to its initial position. 
-            public TextReader TextReader
+            public TextReader GetTextReader()
             {
-                get
                 {
                     if (_stream != null)
                     {

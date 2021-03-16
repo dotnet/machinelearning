@@ -101,6 +101,11 @@ namespace Microsoft.Data.Analysis.Tests
             }
         }
 
+        private static Stream GetStream(string streamData)
+        {
+            return new MemoryStream(Encoding.Default.GetBytes(streamData));
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -114,10 +119,6 @@ namespace Microsoft.Data.Analysis.Tests
 {CMT},1,1,637,1.4,CRD,8.5
 {CMT},1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void RegularTest(DataFrame df)
             {
                 Assert.Equal(4, df.Rows.Count);
@@ -155,10 +156,6 @@ MT";
 {CMT},1,1,637,1.4,CRD,8.5
 {CMT},1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void RegularTest(DataFrame df)
             {
                 Assert.Equal(4, df.Rows.Count);
@@ -198,10 +195,6 @@ MT";
 {CMT},1,1,637,1.4,CRD,8.5
 {CMT},1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void RegularTest(DataFrame df)
             {
                 Assert.Equal(4, df.Rows.Count);
@@ -292,10 +285,6 @@ CMT,1,1,474,1.5,CRD,8
 CMT,1,1,637,1.4,CRD,8.5
 CMT,1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             string data = header ? headerLine + dataLines : dataLines;
             DataFrame df = DataFrame.LoadCsv(GetStream(data),
@@ -346,10 +335,6 @@ CMT,1,1,637,1.4,CRD,8.5
 ,,,,,,
 CMT,1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void Verify(DataFrame df)
             {
                 Assert.Equal(5, df.Rows.Count);
@@ -409,10 +394,6 @@ CMT|1|1|637|1.4|CRD|8.5
 ||||||
 CMT|1|1|181|0.6|CSH|4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void Verify(DataFrame df)
             {
                 Assert.Equal(5, df.Rows.Count);
@@ -452,10 +433,6 @@ CMT;1;1;637;1.4;CRD;8.5
 ;;;;;;
 CMT;1;1;181;0.6;CSH;4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void Verify(DataFrame df)
             {
                 Assert.Equal(5, df.Rows.Count);
@@ -494,10 +471,6 @@ CMT,1,1,474,1.5,CRD,8
 CMT,1,1,637,1.4,CRD,8.5
 CMT,1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void Verify(DataFrame df)
             {
                 Assert.Equal(4, df.Rows.Count);
@@ -527,11 +500,6 @@ CMT,1,1,474,1.5,CRD,8,0
 CMT,1,1,637,1.4,CRD,8.5,0
 CMT,1,1,181,0.6,CSH,4.5,0";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
-
             Assert.Throws<IndexOutOfRangeException>(() => DataFrame.LoadCsv(GetStream(data)));
             Assert.Throws<IndexOutOfRangeException>(() => DataFrame.LoadCsvFromString(data));
         }
@@ -544,11 +512,6 @@ CMT,1,1,1271,3.8,CRD
 CMT,1,1,474,1.5,CRD
 CMT,1,1,637,1.4,CRD
 CMT,1,1,181,0.6,CSH";
-
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             void Verify(DataFrame df)
             {
@@ -580,11 +543,6 @@ null,null,null,null
 Null,Null,Null,Null
 null,null,null,null
 null,null,null,null";
-
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             void Verify(DataFrame df)
             {
@@ -628,11 +586,6 @@ CMT,1,null,637
 Null,,,
 ,,,
 CMT,1,1,null";
-
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             void Verify(DataFrame df)
             {
@@ -695,11 +648,6 @@ CMT,1,null,637
 Null,,,
 ,,,
 CMT,1,1,null";
-
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             void Verify(DataFrame df)
             {
@@ -918,10 +866,6 @@ Null,
 ,
 CMT,";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             DataFrame df = DataFrame.LoadCsv(GetStream(data));
             Assert.Equal(6, df.Rows.Count);
             Assert.Equal(2, df.Columns.Count);
