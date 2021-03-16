@@ -253,14 +253,14 @@ namespace Microsoft.Data.Analysis
         /// <param name="cursor">The row cursor which has the current position</param>
         /// <param name="schemaColumn">The <see cref="DataViewSchema.Column"/> in <see cref="DataViewSchema"/></param>
         /// <param name="ValueGetter">The cached ValueGetter for this column.</param>
-        internal virtual void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn, Delegate ValueGetter) => throw new NotImplementedException();
+        protected internal virtual void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn, Delegate ValueGetter) => throw new NotImplementedException();
 
         /// <summary>
         /// Returns the ValueGetter for each active column in <paramref name="cursor"/> as a delegate to be cached.
         /// </summary>
         /// <param name="cursor">The row cursor which has the current position</param>
         /// <param name="schemaColumn">The <see cref="DataViewSchema.Column"/> in <see cref="DataViewSchema"/></param>
-        internal virtual Delegate GetValueGetterUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn) => throw new NotImplementedException();
+        protected internal virtual Delegate GetValueGetterUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn) => throw new NotImplementedException();
 
         /// <summary>
         /// Clamps values beyond the specified thresholds

@@ -98,23 +98,24 @@ namespace Microsoft.ML
                 }
             }
 
-            List<Delegate> activeColumnDelegates = new List<Delegate>();
-
-            DataViewRowCursor cursor = dataView.GetRowCursor(activeColumns);
-            int columnIndex = 0;
-            foreach (DataViewSchema.Column column in activeColumns)
+            using (DataViewRowCursor cursor = dataView.GetRowCursor(activeColumns))
             {
-                Delegate valueGetter = columns[columnIndex].GetValueGetterUsingCursor(cursor, column);
-                activeColumnDelegates.Add(valueGetter);
-                columnIndex++;
-            }
-            while (cursor.MoveNext() && cursor.Position < maxRows)
-            {
-                columnIndex = 0;
+                List<Delegate> activeColumnDelegates = new List<Delegate>();
+                int columnIndex = 0;
                 foreach (DataViewSchema.Column column in activeColumns)
                 {
-                    columns[columnIndex].AddValueUsingCursor(cursor, column, activeColumnDelegates[columnIndex]);
+                    Delegate valueGetter = columns[columnIndex].GetValueGetterUsingCursor(cursor, column);
+                    activeColumnDelegates.Add(valueGetter);
                     columnIndex++;
+                }
+                while (cursor.MoveNext() && cursor.Position < maxRows)
+                {
+                    columnIndex = 0;
+                    foreach (DataViewSchema.Column column in activeColumns)
+                    {
+                        columns[columnIndex].AddValueUsingCursor(cursor, column, activeColumnDelegates[columnIndex]);
+                        columnIndex++;
+                    }
                 }
             }
 

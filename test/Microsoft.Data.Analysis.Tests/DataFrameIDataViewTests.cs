@@ -322,6 +322,20 @@ namespace Microsoft.Data.Analysis.Tests
             return data;
         }
 
+        private void VerifyDataFrameColumnAndDataViewColumnValues<T>(string columnName, IDataView data, DataFrame df, int maxRows = -1)
+        {
+            int cc = 0;
+            var nameDataViewColumn = data.GetColumn<T>(columnName);
+            foreach (var value in nameDataViewColumn)
+            {
+                if (maxRows != -1 && cc >= maxRows)
+                {
+                    return;
+                }
+                Assert.Equal(value, df.Columns[columnName][cc++]);
+            }
+        }
+
         [Fact]
         public void TestDataFrameFromIDataView_MLData()
         {
@@ -334,20 +348,60 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Equal(6, column.Length);
             }
 
-            void VerifyDataFrameColumnAndDataViewColumnValues<T>(string columnName)
-            {
-                int cc = 0;
-                var nameDataViewColumn = data.GetColumn<T>(columnName);
-                foreach (var value in nameDataViewColumn)
-                {
-                    Assert.Equal(value, df.Columns[columnName][cc++]);
-                }
-            }
-
-            VerifyDataFrameColumnAndDataViewColumnValues<string>("Name");
-            VerifyDataFrameColumnAndDataViewColumnValues<bool>("FilterNext");
-            VerifyDataFrameColumnAndDataViewColumnValues<float>("Value");
+            VerifyDataFrameColumnAndDataViewColumnValues<string>("Name", data, df);
+            VerifyDataFrameColumnAndDataViewColumnValues<bool>("FilterNext", data, df);
+            VerifyDataFrameColumnAndDataViewColumnValues<float>("Value", data, df);
         }
 
+        [Fact]
+        public void TestDataFrameFromIDataView_MLData_SelectColumns()
+        {
+            IDataView data = GetASampleIDataView();
+            DataFrame df = data.ToDataFrame("Name", "Value");
+            Assert.Equal(6, df.Rows.Count);
+            Assert.Equal(2, df.Columns.Count);
+            foreach (var column in df.Columns)
+            {
+                Assert.Equal(6, column.Length);
+            }
+
+            VerifyDataFrameColumnAndDataViewColumnValues<string>("Name", data, df);
+            VerifyDataFrameColumnAndDataViewColumnValues<float>("Value", data, df);
+        }
+
+        [Theory]
+        [InlineData(3)]
+        [InlineData(0)]
+        public void TestDataFrameFromIDataView_MLData_SelectRows(int maxRows)
+        {
+            IDataView data = GetASampleIDataView();
+            DataFrame df = data.ToDataFrame(maxRows);
+            Assert.Equal(maxRows, df.Rows.Count);
+            Assert.Equal(3, df.Columns.Count);
+            foreach (var column in df.Columns)
+            {
+                Assert.Equal(maxRows, column.Length);
+            }
+
+            VerifyDataFrameColumnAndDataViewColumnValues<string>("Name", data, df, maxRows);
+            VerifyDataFrameColumnAndDataViewColumnValues<bool>("FilterNext", data, df, maxRows);
+            VerifyDataFrameColumnAndDataViewColumnValues<float>("Value", data, df, maxRows);
+        }
+
+        [Fact]
+        public void TestDataFrameFromIDataView_MLData_SelectColumnsAndRows()
+        {
+            IDataView data = GetASampleIDataView();
+            DataFrame df = data.ToDataFrame(3, "Name", "Value");
+            Assert.Equal(3, df.Rows.Count);
+            Assert.Equal(2, df.Columns.Count);
+            foreach (var column in df.Columns)
+            {
+                Assert.Equal(3, column.Length);
+            }
+
+            VerifyDataFrameColumnAndDataViewColumnValues<string>("Name", data, df, 3);
+            VerifyDataFrameColumnAndDataViewColumnValues<float>("Value", data, df, 3);
+        }
     }
 }
