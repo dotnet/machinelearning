@@ -60,7 +60,7 @@ if "%VisualStudioVersion%"=="16.0" (
 :MissingVersion
 :: Can't find VS 2015, 2017 or 2019
 echo Error: Visual Studio 2015, 2017 or 2019 required
-echo        Please see https://github.com/dotnet/machinelearning/tree/master/Documentation for build instructions.
+echo        Please see https://github.com/dotnet/machinelearning/tree/main/Documentation for build instructions.
 exit /b 1
 
 :VS2019

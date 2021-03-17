@@ -74,7 +74,7 @@ namespace Samples.Dynamic.ModelOperations
             //However, you can also specify a custom OpSet version by using the following code
             //Currently, we support OpSet versions 9 for most transformers, but there are certain transformers that require a higher OpSet version
             //Please refer to the following link for most update information of what OpSet version we support
-            //https://github.com/dotnet/machinelearning/blob/master/src/Microsoft.ML.OnnxConverter/OnnxExportExtensions.cs
+            //https://github.com/dotnet/machinelearning/blob/main/src/Microsoft.ML.OnnxConverter/OnnxExportExtensions.cs
             int customOpSetVersion = 9;
             using (var stream = File.Create("sample_onnx_conversion_2.onnx"))
                 mlContext.Model.ConvertToOnnx(transformer, originalData, customOpSetVersion, stream);

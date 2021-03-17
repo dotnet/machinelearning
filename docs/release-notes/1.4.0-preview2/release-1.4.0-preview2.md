@@ -10,9 +10,9 @@
   - GPU support on Windows and Linux ([#4270](https://github.com/dotnet/machinelearning/pull/4270), [#4277](https://github.com/dotnet/machinelearning/pull/4277))
   - Upgraded [TensorFlow .NET](https://github.com/SciSharp/TensorFlow.NET) version to 0.11.3 ([#4205](https://github.com/dotnet/machinelearning/pull/4205))
 
-  [In-memory image inferencing sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/ResnetV2101TransferLearningTrainTestSplit.cs)  
-  [Early stopping sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/ResnetV2101TransferLearningEarlyStopping.cs)  
-  [GPU samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples.GPU)  
+  [In-memory image inferencing sample](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/ResnetV2101TransferLearningTrainTestSplit.cs)
+  [Early stopping sample](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/ResnetV2101TransferLearningEarlyStopping.cs)
+  [GPU samples](https://github.com/dotnet/machinelearning/tree/main/docs/samples/Microsoft.ML.Samples.GPU)
 
 - **New ONNX Exporters (1.4.0-preview2)**
   - LpNormNormalizing transformer ([#4161](https://github.com/dotnet/machinelearning/pull/4161))
@@ -39,13 +39,13 @@ None.
 ## **Enhancements**
 - Improve exception message in LightGBM ([#4214](https://github.com/dotnet/machinelearning/pull/4214))
 - FeaturizeText should allow only outputColumnName to be defined ([#4211](https://github.com/dotnet/machinelearning/pull/4211))
-- Fix NgramExtractingTransformer GetSlotNames to not allocate a new delegate on every invoke ([#4247](https://github.com/dotnet/machinelearning/pull/4247)) 
+- Fix NgramExtractingTransformer GetSlotNames to not allocate a new delegate on every invoke ([#4247](https://github.com/dotnet/machinelearning/pull/4247))
 - Resurrect broken code coverage build and re-enable code coverage for pull request ([#4261](https://github.com/dotnet/machinelearning/pull/4261))
 - NimbusML entrypoint for permutation feature importance ([#4232](https://github.com/dotnet/machinelearning/pull/4232))
 - Reuse memory when copying outputs from TensorFlow graph ([#4260](https://github.com/dotnet/machinelearning/pull/4260))
 - DateTime to DateTime standard conversion ([#4273](https://github.com/dotnet/machinelearning/pull/4273))
 - CodeCov version upgraded to 1.7.2 ([#4291](https://github.com/dotnet/machinelearning/pull/4291))
- 
+
 ## **CLI and AutoML API**
 None.
 

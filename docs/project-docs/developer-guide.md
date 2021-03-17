@@ -45,7 +45,7 @@ build.cmd -test
 
 **Note**: Before working on individual projects or test projects you **must** run `build` from the root once before beginning that work. It is also a good idea to run `build` whenever you pull a large set of unknown changes into your branch.
 
-Under the src directory is a set of directories, each of which represents a particular assembly in ML.NET.  
+Under the src directory is a set of directories, each of which represents a particular assembly in ML.NET.
 
 For example the src\Microsoft.MachineLearning.Core directory holds the source code for the Microsoft.MachineLearning.Core.dll assembly.
 
@@ -89,7 +89,7 @@ Steps to update `core_manifest.json` and `core_ep-list.tsv`:
 ### Running specifics unit tests on CI
 
 It may be necessary to run only specific unit tests on CI, and perhaps even run these tests back to back multiple times. The steps to run one or more unit tests are as follows:
-1. Set `runSpecific: true` and `innerLoop: false` in [.vsts-dotnet-ci.yml](https://github.com/dotnet/machinelearning/blob/master/.vsts-dotnet-ci.yml) per each build you'd like to run the specifics tests on CI.
+1. Set `runSpecific: true` and `innerLoop: false` in [.vsts-dotnet-ci.yml](https://github.com/dotnet/machinelearning/blob/main/.vsts-dotnet-ci.yml) per each build you'd like to run the specifics tests on CI.
 2. Import `Microsoft.ML.TestFrameworkCommon.Attributes` in the unit test files that contain specific unit tests to be run.
 3. Add the `[TestCategory("RunSpecificTest")]` to the unit test(s) you'd like to run specifically.
 

@@ -44,7 +44,7 @@ namespace Microsoft.ML.Transforms.Text
     // and open source implementation:
     // https://github.com/Microsoft/LightLDA
     //
-    // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
+    // See <a href="https://github.com/dotnet/machinelearning/blob/main/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
     // for an example on how to use LatentDirichletAllocationTransformer.
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting a <see cref="LatentDirichletAllocationEstimator"/>.

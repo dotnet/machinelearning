@@ -1,7 +1,7 @@
 # [ML.NET](http://dot.net/ml) 1.3.1
 
 ## **New Features**
-- **Deep Neural Networks Training (PREVIEW)** ([#4057](https://github.com/dotnet/machinelearning/pull/4057))  
+- **Deep Neural Networks Training (PREVIEW)** ([#4057](https://github.com/dotnet/machinelearning/pull/4057))
   Introduces in-preview 0.15.1 `Microsoft.ML.DNN` package that enables full DNN model retraining and transfer learning in .NET using C# bindings for tensorflow provided by Tensorflow .NET. The goal of this package is to allow high level DNN training and scoring tasks such as image classification, text classification, object detection, etc using simple yet powerful APIs that are framework agnostic but currently they only uses Tensorflow as the backend. The below APIs are in early preview and we hope to get customer feedback that we can incorporate in the next iteration.
 
   ![DNN stack](dnn_stack.jpg)
@@ -43,21 +43,21 @@
 
   [Design specification](https://github.com/dotnet/machinelearning/blob/cd591dd492833964b6829e8bb2411fb81665ac6d/docs/specs/DNN/dnn_api_spec.md)
 
-  [Image classification (Inception V3) sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/InceptionV3TransferLearning.cs)
+  [Image classification (Inception V3) sample](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/InceptionV3TransferLearning.cs)
 
-  [Image classification (Resnet V2 101) sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/ResnetV2101TransferLearning.cs)
+  [Image classification (Resnet V2 101) sample](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/ResnetV2101TransferLearning.cs)
 
-- **Database Loader (PREVIEW)** ([#4035](https://github.com/dotnet/machinelearning/pull/4035))  
-  Introduces Database loader that enables training on databases. This loader supports any relational database supported by System.Data in .NET Framework or .NET Core, meaning that you can use many RDBMS such as SQL Server, Azure SQL Database, Oracle, PostgreSQL, MySQL, etc. This feature is in early preview and can be accessed via `Microsoft.ML.Experimental` nuget. 
+- **Database Loader (PREVIEW)** ([#4035](https://github.com/dotnet/machinelearning/pull/4035))
+  Introduces Database loader that enables training on databases. This loader supports any relational database supported by System.Data in .NET Framework or .NET Core, meaning that you can use many RDBMS such as SQL Server, Azure SQL Database, Oracle, PostgreSQL, MySQL, etc. This feature is in early preview and can be accessed via `Microsoft.ML.Experimental` nuget.
 
-  [Design specification](https://github.com/dotnet/machinelearning/pull/3857) 
-  
-  [Sample](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/DatabaseLoaderTests.cs)  
+  [Design specification](https://github.com/dotnet/machinelearning/pull/3857)
+
+  [Sample](https://github.com/dotnet/machinelearning/blob/main/test/Microsoft.ML.Tests/DatabaseLoaderTests.cs)
 
   ```cs
   public static DatabaseLoader CreateDatabaseLoader(this DataOperationsCatalog catalog,
             params DatabaseLoader.Column[] columns)
-  ```    
+  ```
 
 ## **Bug Fixes**
 ### Serious
@@ -82,7 +82,7 @@ None
 - Farewell to the Static API ([4009](https://github.com/dotnet/machinelearning/pull/4009))
 
 - AVX and FMA intrinsics in Factorization Machine ([3940](https://github.com/dotnet/machinelearning/pull/3940))
- 
+
 ## **CLI and AutoML API**
   - Bug fixes.
 

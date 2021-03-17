@@ -15,10 +15,10 @@ ML.NET's repository takes a dependency of the MlNetMklDeps nuget, which contains
       * native (contains windows ia32 binaries)
 
 The .nuspec can be found on this folder:
-https://github.com/dotnet/machinelearning/tree/master/docs/building/MlNetMklDeps
+https://github.com/dotnet/machinelearning/tree/main/docs/building/MlNetMklDeps
 
 If actually publishing a new version of MlNetMklDeps, remember to update this other file to document any changes:
-https://github.com/dotnet/machinelearning/blob/master/docs/building/MlNetMklDeps/version.md
+https://github.com/dotnet/machinelearning/blob/main/docs/building/MlNetMklDeps/version.md
 
 # Instructions to build the binaries using Intel's MKL SDK
 ML.NET MKL implementation uses Intel MKL Custom Builder to produce the binaries for the functions that we select. Follow the instructions below to produce the binaries for each platform, which will then be added to the MlNetMklDeps nuget described on the previus section.
@@ -65,5 +65,5 @@ https://software.intel.com/en-us/mkl
 4. Run `make libintel64 name=libMklImports` (add `threading=sequential` if you are building without openmp)
 5. Copy `libMklImports.dylib` from the builder directory to the folder containing the OSX binaries.
 6. Fix the id and the rpath running the following commands:
-   * `sudo install_name_tool -id "@loader_path/libMklImports.dylib" libMklImports.dylib` 
+   * `sudo install_name_tool -id "@loader_path/libMklImports.dylib" libMklImports.dylib`
    * `sudo install_name_tool -id "@rpath/libMklImports.dylib" libMklImports.dylib`
