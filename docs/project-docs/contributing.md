@@ -6,7 +6,7 @@ This document describes contribution guidelines that are specific to Machine Lea
 Coding Style Changes
 --------------------
 
-We intend to bring dotnet/machinelearning into full conformance with the style guidelines described in [Coding Style](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md). We plan to do that with tooling, in a holistic way. In the meantime, please:
+We intend to bring dotnet/machinelearning into full conformance with the style guidelines described in [Coding Style](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md). We plan to do that with tooling, in a holistic way. In the meantime, please:
 
 * **DO NOT** send PRs for style changes. For example, do not send PRs that are focused on changing usage of ```Int32``` to ```int```.
 * **DO NOT** send PRs for upgrading code to use newer language features, though it's ok to use newer language features as part of new code that's written.  For example, it's ok to use expression-bodied members as part of new code you write, but do not send a PR focused on changing existing properties or methods to use the feature.
