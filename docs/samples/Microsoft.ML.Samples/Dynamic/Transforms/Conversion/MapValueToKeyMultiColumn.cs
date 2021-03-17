@@ -8,7 +8,7 @@ namespace Samples.Dynamic
     {
         /// This example demonstrates the use of the ValueToKeyMappingEstimator, by
         /// mapping strings to KeyType values. For more on ML.NET KeyTypes see:
-        /// https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewTypeSystem.md#key-types 
+        /// https://github.com/dotnet/machinelearning/blob/main/docs/code/IDataViewTypeSystem.md#key-types
         /// It is possible to have multiple values map to the same category.
         public static void Example()
         {
@@ -64,7 +64,7 @@ namespace Samples.Dynamic
             // are not found in the lookup IDataView they will get mapped to the
             // missing value, 0. The keyData are shared among the columns, therefore
             // the keys are not contiguous for the column. Create the lookup map
-            // data IEnumerable.  
+            // data IEnumerable.
             var lookupData = new[] {
                 new LookupMap { Key = "0-4yrs" },
                 new LookupMap { Key = "6-11yrs" },

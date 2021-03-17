@@ -1,23 +1,23 @@
-﻿# Entry Points And Helper Classes 
+﻿# Entry Points And Helper Classes
 
 ## Overview
 
 Entry points are a way to interface with ML.NET components, by specifying an execution graph of connected inputs and outputs of those components.
-Both the manifest describing available components and their inputs/outputs, and an "experiment" graph description, are expressed in JSON. 
-The recommended way of interacting with ML.NET through other, non-.NET programming languages, is by composing, and exchanging pipelines or experiment graphs.  
+Both the manifest describing available components and their inputs/outputs, and an "experiment" graph description, are expressed in JSON.
+The recommended way of interacting with ML.NET through other, non-.NET programming languages, is by composing, and exchanging pipelines or experiment graphs.
 
-Through the documentation, we also refer to entry points as 'entry points nodes', and that is because they are the nodes of the graph representing the experiment. 
-The graph 'variables', the various values of the experiment graph JSON properties, serve to describe the relationship between the entry point nodes. 
-The 'variables' are therefore the edges of the DAG (Directed Acyclic Graph). 
+Through the documentation, we also refer to entry points as 'entry points nodes', and that is because they are the nodes of the graph representing the experiment.
+The graph 'variables', the various values of the experiment graph JSON properties, serve to describe the relationship between the entry point nodes.
+The 'variables' are therefore the edges of the DAG (Directed Acyclic Graph).
 
-All of ML.NET entry points are described by their manifest. The manifest is another JSON object that documents and describes the structure of an entry points. 
-Manifests are referenced to understand what an entry point does, and how it should be constructed, in a graph.  
+All of ML.NET entry points are described by their manifest. The manifest is another JSON object that documents and describes the structure of an entry points.
+Manifests are referenced to understand what an entry point does, and how it should be constructed, in a graph.
 
 This document briefly describes the structure of the entry points, the structure of an entry point manifest, and mentions the ML.NET classes that help construct an entry point graph.
 
 ## EntryPoint manifest - the definition of an entry point
 
-The components manifest is build by scanning the ML.NET assemblies through reflection and searching for types having the: `SignatureEntryPointModule` signature in their `LoadableClass` assembly  attribute definition. 
+The components manifest is build by scanning the ML.NET assemblies through reflection and searching for types having the: `SignatureEntryPointModule` signature in their `LoadableClass` assembly  attribute definition.
 An example of an entry point manifest object, specifically for the `ColumnTypeConverter` transform, is:
 
 ```javascript
@@ -115,7 +115,7 @@ An example of an entry point manifest object, specifically for the `ColumnTypeCo
 	    {
             "Name": "OutputData",
             "Type": "DataView",
-            "Desc": "Transformed dataset" 
+            "Desc": "Transformed dataset"
         },
         {
             "Name": "Model",
@@ -134,7 +134,7 @@ The respective entry point, constructed based on this manifest would be:
     {
         "Name": "Transforms.ColumnTypeConverter",
         "Inputs": {
-            "Column": [{ 
+            "Column": [{
             "Name": "Features",
                     "Source": "Features"
                 }],
@@ -220,11 +220,11 @@ parameter.
 
 ## How to create an entry point for an existing ML.NET component
 
-1. Add a `LoadableClass` assembly attribute with the `SignatureEntryPointModule` signature as shown [here](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L26).  
+1. Add a `LoadableClass` assembly attribute with the `SignatureEntryPointModule` signature as shown [here](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L26).
 2. Create a public static method, that:
     1. Takes an object representing the arguments of the component you want to expose as shown [here](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L416)
-    2. Initializes and runs the component, returning one of the nested classes of  [`Microsoft.ML.EntryPoints.CommonOutputs`](https://github.com/dotnet/machinelearning/blob/master/src/Microsoft.ML.Data/EntryPoints/CommonOutputs.cs)
+    2. Initializes and runs the component, returning one of the nested classes of  [`Microsoft.ML.EntryPoints.CommonOutputs`](https://github.com/dotnet/machinelearning/blob/main/src/Microsoft.ML.Data/EntryPoints/CommonOutputs.cs)
     3. Is annotated with the [`TlcModule.EntryPoint`](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L411) attribute
 
-For an example of a transformer as an entrypoint, see [OneHotVectorizer](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.Transforms/OneHotEncoding.cs#L283). 
+For an example of a transformer as an entrypoint, see [OneHotVectorizer](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.Transforms/OneHotEncoding.cs#L283).
 For a trainer-estimator, see [LogisticRegression](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L411).

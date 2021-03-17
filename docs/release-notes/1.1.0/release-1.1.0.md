@@ -1,6 +1,6 @@
-# [ML.NET](http://dot.net/ml) 1.1.0 
+# [ML.NET](http://dot.net/ml) 1.1.0
 ## **New Features**
-- **Image type support in IDataView**  
+- **Image type support in IDataView**
    [PR#3263](https://github.com/dotnet/machinelearning/pull/3263) added support
   for in-memory image as a type in IDataView. Previously it was not possible to
   use an image directly in IDataView, and the user had to specify the file path
@@ -14,16 +14,16 @@
   [3460](https://github.com/dotnet/machinelearning/issues/3460),
   [2121](https://github.com/dotnet/machinelearning/issues/2121),
   [2495](https://github.com/dotnet/machinelearning/issues/2495),
-  [3784](https://github.com/dotnet/machinelearning/issues/3784).  
+  [3784](https://github.com/dotnet/machinelearning/issues/3784).
 
-  Image type support in IDataView was a much requested feature by the users.  
+  Image type support in IDataView was a much requested feature by the users.
 
     [Sample to convert gray scale image
     in-Memory](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayScaleInMemory.cs)
     | [Sample for custom mapping with in-memory using custom
     type](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingWithInMemoryCustomType.cs)
 
-- **Super-Resolution based Anomaly Detector (preview, please provide feedback)**  
+- **Super-Resolution based Anomaly Detector (preview, please provide feedback)**
    [PR#3693](https://github.com/dotnet/machinelearning/pull/3693) adds a new
    anomaly detection algorithm to the
    [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
@@ -44,11 +44,11 @@
     SR | 0.601 | 0.670 | 0.634 | 2625 | 4370 | 3915 | WindowSize=64,   BackAddWindowSize=5, LookaheadWindowSize=5, AveragingWindowSize=3,   JudgementWindowSize=64, Threshold=0.45
 
     [Sample for anomaly detection by
-    SRCNN](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnn.cs)
+    SRCNN](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnn.cs)
     | [Sample for anomaly detection by SRCNN using batch
-    prediction](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnnBatchPrediction.cs)
+    prediction](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnnBatchPrediction.cs)
 
-- **Time Series Forecasting (preview, please provide feedback)**  
+- **Time Series Forecasting (preview, please provide feedback)**
    [PR#1900](https://github.com/dotnet/machinelearning/pull/1900) introduces a
    framework for time series forecasting models and exposes an API for Singular
    Spectrum Analysis(SSA) based forecasting model in the
@@ -61,18 +61,18 @@
    requested feature by the github community since September 2018. With this
    change
    [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
-   nuget is feature complete for RTM.  
+   nuget is feature complete for RTM.
 
     [Sample for
-    forecasting](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecasting.cs)
+    forecasting](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecasting.cs)
     | [Sample for forecasting using confidence
-    intervals](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/ForecastingWithConfidenceInterval.cs)
+    intervals](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/ForecastingWithConfidenceInterval.cs)
 
 ## **Bug Fixes**
 ### Serious
 - **Math Kernel Library fails to load with latest libomp:** Fixed by
   [PR#3721](https://github.com/dotnet/machinelearning/pull/3721) this bug made
-  it impossible for anyone to check code into master branch because it was
+  it impossible for anyone to check code into main branch because it was
   causing build failures.
 
 - **Transform Wrapper fails at deserialization:** Fixed by
@@ -80,13 +80,13 @@
   affected first party(1P) customer. A model trained using
   [NimbusML](https://github.com/microsoft/NimbusML)(Python bindings for
   [ML.NET](http://dot.net/ml)) and then loaded for scoring/inferencing using
-  ML.NET will hit this bug. 
+  ML.NET will hit this bug.
 
 - **Index out of bounds exception in KeyToVector transformer:** Fixed by
   [PR#3763](https://github.com/dotnet/machinelearning/pull/3763) this bug closes
   following github issues:
   [3757](https://github.com/dotnet/machinelearning/issues/3757),[1751](https://github.com/dotnet/machinelearning/issues/1751),[2678](https://github.com/dotnet/machinelearning/issues/2678).
-  It affected first party customer and also github users. 
+  It affected first party customer and also github users.
 
 ### Other
 - Download images only when not present on disk and print warning messages when
@@ -125,7 +125,7 @@ None
 - Sample for WithOnFitDelegate by
   [PR#3738](https://github.com/dotnet/machinelearning/pull/3738)
 - Sample for loading data using text loader using various techniques by
-  [PR#3793](https://github.com/dotnet/machinelearning/pull/3793)  
+  [PR#3793](https://github.com/dotnet/machinelearning/pull/3793)
 
 ## **Remarks**
 - [Microsoft.ML.TensorFlow](https://www.nuget.org/packages/Microsoft.ML.TensorFlow/),

@@ -9,7 +9,7 @@ The CLI will be branded as the ML.NET CLI since this CLI will also have addition
 The .NET AutoML API (.NET based) will be part of the [ML.NET](https://github.com/dotnet/machinelearning) API.
 AutoML features will be used for certain important foundational features of the ML.NET CLI.
 
-This specs-doc focuses most of all on the CLI features related to AutoML, but it will also consider (in less detail) the scenarios where AutoML is not needed, so the CLI syntax will be consistent end-to-end for all the possible scenarios in the future. 
+This specs-doc focuses most of all on the CLI features related to AutoML, but it will also consider (in less detail) the scenarios where AutoML is not needed, so the CLI syntax will be consistent end-to-end for all the possible scenarios in the future.
 
 # Problem to solve
 
@@ -17,9 +17,9 @@ Customers (.NET developers) have tolds us through many channels that they can ge
 
 The subset of .NET developers who at the same time are skilled on data science and machine learning in general is very small compared to the total number of regular .NET developers.
 
-We need a way to enable regular .NET developers to easily use [ML.NET](https://github.com/dotnet/machinelearning) to create custom models solving typical ML scenarios in the enterprise. 
+We need a way to enable regular .NET developers to easily use [ML.NET](https://github.com/dotnet/machinelearning) to create custom models solving typical ML scenarios in the enterprise.
 
-If we don't provide a really simple way to use [ML.NET](https://github.com/dotnet/machinelearning) for regular developers (almost no data science knowledge at all), then we won't be able to really "democratize" machine learning for .NET developers. 
+If we don't provide a really simple way to use [ML.NET](https://github.com/dotnet/machinelearning) for regular developers (almost no data science knowledge at all), then we won't be able to really "democratize" machine learning for .NET developers.
 
 ## Evidence
 
@@ -66,24 +66,24 @@ The business goals are the following, depending on the possible scenarios:
 
 The goals for the features is to automate the following steps when building a model to achieve the above business goals:
 
-**Foundational features:** 
+**Foundational features:**
 
 - Provide an end-to-end **ML.NET CLI** for developers (i.e. *"mlnet new"*) to generate either the final trained model and the pipeline's C#/ML.NET implementation code in a similar fashion to the [.NET Core CLI](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x). The CLI is also a foundation upon which higher-level tools, such as Integrated Development Environments (IDEs) can rest.
 - Automatic selection of best columns (input variables) to be used by the model
-- Automatic featurization and feature engineering 
+- Automatic featurization and feature engineering
 - Automatic learner sweeping and selection
 - Automatic hyperparameter sweeping and selection
-  
+
 
 # Solution
 
-The solution that can target any kind of developer and fits especially well when generating code is a CLI (Command-Line Interface). 
+The solution that can target any kind of developer and fits especially well when generating code is a CLI (Command-Line Interface).
 
 The main support reasons are:
 
 - A CLI can be the foundation where other higher level tooling (UI, IDEs) can also rest on.
 - A CLI makes sense as a tool for "code generation". For the end-user experience, just using a C# API to generate C# code would not make sense and would feel a bit weird for the developer experience used to .NET approaches.
-- A CLI is aligned to modern cross-platform frameworks experience such as .NET Core, Python, Node, etc. 
+- A CLI is aligned to modern cross-platform frameworks experience such as .NET Core, Python, Node, etc.
 
 ## Positioning the CLI and AutoML in ML.NET
 
@@ -110,7 +110,7 @@ The .NET AutoML API will be used for the most important foundational features th
 - The CLI proposed here will not provide for “continue sweeping” after sweeping has ended.
 - When running locally with the by default behavior (no Azure), the CLI will be able to work without needing to make any remote service call or requiring any authentication from the user.
 - The CLI will provide feedback output (such as % work done or high level details on what's happening under the covers) while working on the long-running tasks.
-- The ML.NET CLI will be aligned and integrated to the [.NET Core CLI](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x). A good approach is to implement the ML.NET CLI as a [.NET Core Global Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools) (i.e. named "mlnet" package) on top of the "dotnet CLI". 
+- The ML.NET CLI will be aligned and integrated to the [.NET Core CLI](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x). A good approach is to implement the ML.NET CLI as a [.NET Core Global Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools) (i.e. named "mlnet" package) on top of the "dotnet CLI".
   - [System-Command-Line](https://github.com/dotnet/command-line-api) package can precisely help on those typical CLI console apps features (CLI plumbing) so if can be implemented a lot easier than by implementing a CLI app from scratch in features like command line parsing, invocation and rendering of terminal output. Otherwise, a CLI implementation starting from scratch can be significantly more costly to develop.
 
 ### CLI default behaviour and overridability
@@ -136,13 +136,13 @@ The conditions for each version are incremental on top of previous versions.
 
 - NuGet package available at any private NuGet feed ([Azure DevOps?](https://docs.microsoft.com/en-us/azure/devops/artifacts/get-started-nuget?view=azure-devops&tabs=new-nav) [MyGet?](https://docs.myget.org/docs/reference/security)) with daily drops from CI/CD pipelines.
 
-- Add telemetry for the CLI NuGet package. 
+- Add telemetry for the CLI NuGet package.
 
 - Minimum MVP functionality for users to test custom datasets. Implementation of the CLI arguments especified for v0.1 in the syntax section and code generation section.
 
 - Documentation: Have needed documentation for users to get started autonomously and provide feedback (Installation, getting started and test without help from the dev team).
 
-- Test with ML.NET Samples: Quality of generated code/models targeting the samples should improve the current published samples. 
+- Test with ML.NET Samples: Quality of generated code/models targeting the samples should improve the current published samples.
 
 Nice to have for v0.1:
 
@@ -188,7 +188,7 @@ Nice to have for v0.1:
     - `weight-column`  // indicates the weight/importance of training example. Related: `sample_weight` argument for training data such as in [Python AutoML here](https://docs.microsoft.com/en-us/python/api/azureml-train-automl/azureml.train.automl.automl?view=azure-ml-py).
 
 - Add additonal commands to do *"machine learning without code"*:
-    - *train*: It will only generate the best model .ZIP file. For example: 
+    - *train*: It will only generate the best model .ZIP file. For example:
         - `mlnet train --ml-task Regression --dataset "/MyDataSets/Sales.csv"`
     - *predict*: Having a serialized model .ZIP file, you can test a single prediction. For example:
 
@@ -229,7 +229,7 @@ Nice to have for v0.1:
 
 ## Tool name
 
-**mlnet** 
+**mlnet**
 
 ## Installing the tool
 
@@ -255,9 +255,9 @@ mlnet
 
 - A new project or group of projects (by default, a single console app) with the generated .NET code.
 - The "best model" (or multiple "best models") as serialized files.
-- An analysis report of the generated models. 
+- An analysis report of the generated models.
 
-By default (with no app template parameter), the CLI will create a single console application containing either the training code and the model scoring code. However, in next ML.NET CLI versions (heading v1.0), when the user provides an app-type template argument (such as `mlnet new web`), it will be able to generate different application type projects (web, console, desktop, Unity, etc.) for the model scoring code. 
+By default (with no app template parameter), the CLI will create a single console application containing either the training code and the model scoring code. However, in next ML.NET CLI versions (heading v1.0), when the user provides an app-type template argument (such as `mlnet new web`), it will be able to generate different application type projects (web, console, desktop, Unity, etc.) for the model scoring code.
 
 ## Examples
 
@@ -293,7 +293,7 @@ Create and train a model based on parameters specified in the .rsp file plus mor
 
 (*Release v1.0 examples*)
 
-CLI command specifying to run AutoML compute in Azure's cloud 
+CLI command specifying to run AutoML compute in Azure's cloud
 
 ` mlnet new --ml-task BinaryClassification --dataset "/MyDataSets/Cars.csv" --label-column-name "InsuranceRisk" --azure-automl-service-key "key-value"`
 
@@ -304,7 +304,7 @@ Syntax should be aligned to [dotnet new](https://docs.microsoft.com/en-us/dotnet
 #### Syntax
 
 ```console
-mlnet new 
+mlnet new
 
 --------------- (v0.1) -------------------
 
@@ -380,7 +380,7 @@ There should be a pre-validation of the arguments with basic rules in the CLI to
 
 `--ml-task` (string) (*Release 0.1*)
 
-A single string providing the ML problem to solve. For instance, any of the following depending on the supported tasks in .NET AutoML: 
+A single string providing the ML problem to solve. For instance, any of the following depending on the supported tasks in .NET AutoML:
 
 *Release 0.1*
 - `regression` - Choose if the ML Model will be used to predict a numeric value
@@ -417,7 +417,7 @@ This argument provides the filepath to either one of the following:
 
 File path pointing to the test dataset file, for example when using a 80% - 20% approach when making regular validations to obtain accuracy metrics.
 
-If using `--test-dataset`, then `--dataset` is also required. 
+If using `--test-dataset`, then `--dataset` is also required.
 
 The `--test-dataset` argument is optional unless the --validation-dataset is used. In that case, the user must use the three arguments.
 
@@ -431,7 +431,7 @@ If using a `validation dataset`, this is how the behaviour should be:
 
 - The `test-dataset` and `--dataset` arguments are also required.
 
-- The `validation-dataset` dataset is used to estimate prediction error for model selection. 
+- The `validation-dataset` dataset is used to estimate prediction error for model selection.
 
 - The `test-dataset` is used for assessment of the generalization error of the final chosen model. Ideally, the test set should be kept in a “vault,” and be brought out only at the end of the data analysis.
 
@@ -439,7 +439,7 @@ Basically, when using a `validation dataset` plus the `test dataset`, the valida
 
 1. In the first part you just look at your models and select the best performing approach using the validation data (=validation)
 2. Then you estimate the accuracy of the selected approach (=test).
-	
+
 Hence, the separation of data could be 80/10/10 or 75/15/10. For example:
 
 - `training-dataset` file should have 75% of the data.
@@ -452,7 +452,7 @@ In any case, those percentages will be decided by the user using the CLI who wil
 
 `--label-column-name` (string) (*Release 0.1*)
 
-With this argument, a specifc objective/target column (the variable that you want to predict) can be specified by using the column's name set in the dataset's header. 
+With this argument, a specifc objective/target column (the variable that you want to predict) can be specified by using the column's name set in the dataset's header.
 
 If you do not explicitly specify a label column, the CLI will automatically infer what's the label column in the dataset (To be implemented in v0.2 or v1.0).
 
@@ -475,11 +475,11 @@ This argument is used only for supervised ML task such as a *classification prob
 `--has-header` (bool) (*Release 0.1*)
 
 Specify if the dataset file(s) have a header row.
-Possible values are: 
+Possible values are:
 - `true`
 - `false`
 
-The by default value is `true`. 
+The by default value is `true`.
 
 In order to use the `--label-column-name` argument you need to have a header in the file.
 
@@ -498,7 +498,7 @@ Therefore, if `--max-exploration-time` is very short (say less than 1 minute), t
 
 `--name` (string) (*Release 0.1*)
 
-The name for the created output project or solution. If no name is specified, the name 'Sample' is used. 
+The name for the created output project or solution. If no name is specified, the name 'Sample' is used.
 
 The ML.NET model file (.ZIP file) will get the same name, as well.
 
@@ -514,11 +514,11 @@ Location/folder to place the generated output. The default is the current direct
 
 `--verbosity` (string) - (*Release 0.1*)
 
-Sets the verbosity level of the in the std output. 
+Sets the verbosity level of the in the std output.
 
 Allowed values are:
 
-- `q[uiet]` 
+- `q[uiet]`
 - `m[inimal]`  (by default)
 - `diag[nostic]` (logging information level)
 
@@ -586,13 +586,13 @@ Path to .YAML file (internally it might be easier and more robust to internally 
 
 All these parameters must be optional (opt-in). If not provided by the user, AutoML should infer all of them based on the provided dataset.
 
-However, this advanced configuration allows the users with knowledge on its dataset and ML skills to provide "shortcuts" and improvements so AutoML can work on a more oppinionated direction for a specific model in less time.  
+However, this advanced configuration allows the users with knowledge on its dataset and ML skills to provide "shortcuts" and improvements so AutoML can work on a more oppinionated direction for a specific model in less time.
 
-These parameters should be similar to the ones provided by the .NET AutoML API, probably also similar to the [Python AutoMLConfig class](https://docs.microsoft.com/en-us/python/api/azureml-train-automl/azureml.train.automl.automlconfig(class)?view=azure-ml-py) where the user can drill down and specify more specific configuration such as number of `iterations`, `primary-metric`, `n_cross_validations`, `enable_cache`, etc. 
+These parameters should be similar to the ones provided by the .NET AutoML API, probably also similar to the [Python AutoMLConfig class](https://docs.microsoft.com/en-us/python/api/azureml-train-automl/azureml.train.automl.automlconfig(class)?view=azure-ml-py) where the user can drill down and specify more specific configuration such as number of `iterations`, `primary-metric`, `n_cross_validations`, `enable_cache`, etc.
 
 In cases where a parameter in this file coincides with a CLI argument (i.e. label-column-name, etc.), the parameter in the .YAML file will be overriden by the CLI argument which has higher priority.
 
-*TO BE DEFINED*: If there's a 1:1 mapping between the first level of paramenters in the .YAML file and the CLI arguments, how do we deal with expected syntax/naming of the args?: 
+*TO BE DEFINED*: If there's a 1:1 mapping between the first level of paramenters in the .YAML file and the CLI arguments, how do we deal with expected syntax/naming of the args?:
     - `--test-dataset` vs. `test_dataset`
 
 *IMPORTANT: The whole list and explanation of each advanced AutoML config parameters still have to be defined.*
@@ -675,11 +675,11 @@ Sample JSON
 **Matching CLI arguments with first level of .YAML file elements**
 
 The first level items in the YAML file must match the CLI arguments.
-The CLI arguments will always override the items in the YAML file. 
+The CLI arguments will always override the items in the YAML file.
 
 **Embeding .YAML text as inline text in the CLI** (v1.0)
 
-Since the first level elements of the .YAML file should match the arguments, it should be possible to embed YAML text directly in-line as arguments, in a similar way than the original MAML.exe CLI does. 
+Since the first level elements of the .YAML file should match the arguments, it should be possible to embed YAML text directly in-line as arguments, in a similar way than the original MAML.exe CLI does.
 
 Sample CLI command with embeded extended:
 
@@ -691,15 +691,15 @@ mlnet new --ml-task Regression --dataset "/MyDataSets/Sales.csv" --label-column 
 ----------------------------------------------------------
 `@args-response-file` (string) (*Release 0.2*)
 
-Path to `.rsp` file containing the arguments/parameters to be used by the CLI. 
+Path to `.rsp` file containing the arguments/parameters to be used by the CLI.
 
 In this case we use the `@` syntax so it is consistent to other CLIs using the `.rsp` files, such as the [C# Compiler Options](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/response-file-compiler-option), etc.
 
 This `.rsp` file should provide the same arguments than the ones supported by the CLI command (`mlnet new` arguments), except the `--args-config-file` argument, logically.
 
-The advantage of using an `.rsp` file for loading existing arguments, compared to a .YAML or .JSON file, is that we can use exactly the same argument names than the ones used in the CLI, such as `--label-column-name`, `--test-dataset` instead of having to map argument names to JSON-style names such as `labelColumnName` or `testDataset` or .YAML style and having to maitain two different schemas. 
+The advantage of using an `.rsp` file for loading existing arguments, compared to a .YAML or .JSON file, is that we can use exactly the same argument names than the ones used in the CLI, such as `--label-column-name`, `--test-dataset` instead of having to map argument names to JSON-style names such as `labelColumnName` or `testDataset` or .YAML style and having to maitain two different schemas.
 
-The parameters provided in the `.rsp` file will be overriden by any parameter provided in the CLI command itself. 
+The parameters provided in the `.rsp` file will be overriden by any parameter provided in the CLI command itself.
 
 *Sample .rsp file with CLI arguments and optional configuration*
 
@@ -730,11 +730,11 @@ Lists application types supported, such as 'console', 'web', etc.
 
 *NOTE: For the 0.1 preview version, only the `console` app-type (by default) will be implemented.*
 
-The app-type project to generate the code when the command is invoked. 
+The app-type project to generate the code when the command is invoked.
 
 If `--app-type` argument is not provided, the `console` template will be used by default.
 
-The command `new` will contain a default list of templates. Use `--list-app-types` to obtain a list of the available templates. The following table shows the templates that could come built-in with the ML.NET CLI. 
+The command `new` will contain a default list of templates. Use `--list-app-types` to obtain a list of the available templates. The following table shows the templates that could come built-in with the ML.NET CLI.
 
 The default language for the template is shown inside the brackets.
 
@@ -783,8 +783,8 @@ As introduced, the CLI will generate the following assets as result of the opera
 The training code for a single generated console app project should be similar to the following sample app:
 
 - Sentiment Analysis sample: https://github.com/dotnet/machinelearning-samples/blob/master/samples/csharp/getting-started/BinaryClassification_SentimentAnalysis/SentimentAnalysis/SentimentAnalysisConsoleApp/Program.cs
-   
-   Notes: 
+
+   Notes:
     - This sample code is evolving when upgrading to upcoming preview versions, such as 0.10, 0.11, etc.)
     - Columns being loaded, instead of being explicit in the TextLoader, they should use a class such as this:
 
@@ -796,7 +796,7 @@ For v0.1, it must load data from text file using the data-structure (observation
 // Read the data into a data view.
 var dataView = mlContext.Data.ReadFromTextFile<InspectedRow>(dataPath, hasHeader: true);
 
-// The data model. This type will be used from multiple code. 
+// The data model. This type will be used from multiple code.
 private class InspectedRow
 {
     [LoadColumn(0)]
@@ -819,7 +819,7 @@ When having tens, hundreds or thousands of contiguous numeric columns (usually o
                 hasHeader: true
             );
 
-            var trainData = reader.Read(trainDatasetFileNamePath));            
+            var trainData = reader.Read(trainDatasetFileNamePath));
 ```
 
 Rules to follow:
@@ -844,11 +844,11 @@ If you have more than a few dozens of columns, those columns should be grouped i
 
 Related sample code is available in the following ML.NET tests:
 
-Loading data: 
-https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/ScenariosWithDirectInstantiation/TensorflowTests.cs#L375
+Loading data:
+https://github.com/dotnet/machinelearning/blob/main/test/Microsoft.ML.Tests/ScenariosWithDirectInstantiation/TensorflowTests.cs#L375
 
 Data observation class:
-https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/ScenariosWithDirectInstantiation/TensorflowTests.cs#L700
+https://github.com/dotnet/machinelearning/blob/main/test/Microsoft.ML.Tests/ScenariosWithDirectInstantiation/TensorflowTests.cs#L700
 
 ### Generated code for solution with multiple projects (Since v1.0)
 
@@ -857,12 +857,12 @@ By v1.0, the CLI should be able to generate solutions with multiple projects. Fo
 Solution:
 - Training project: Console project with model-training ML.NET code
 - Class library project with common code (Data/Observation class, Prediction class, etc.)
-- End-user project with model-scoring ML.NET code, such as any of the following (Depending on the supported app-types): 
+- End-user project with model-scoring ML.NET code, such as any of the following (Depending on the supported app-types):
     - Web app project (ASP.NET Core Razor app)
     - Web API project (ASP.NET Core Web API)
     - Console project
     - Unity project
-    - WPF project 
+    - WPF project
 
 ## Results report (HTML)
 
@@ -885,7 +885,7 @@ The visualization of results by class is very nice.
     - Clustering plotting showing the identified clusters per model.
     - Other related plotting for Ranking, Recommendations and Anomaly detection.
 
-It is important to always show reports and visual charts comparing quality metrics and performance for the best ranked models, meaning having reports with comparisons between multiple models.   
+It is important to always show reports and visual charts comparing quality metrics and performance for the best ranked models, meaning having reports with comparisons between multiple models.
 
 Some report results can be comparable to the [results in AutoML for Python](https://docs.microsoft.com/en-us/azure/machine-learning/service/tutorial-auto-train-models#explore-the-results):
 
@@ -902,17 +902,17 @@ Some report results can be comparable to the [results in AutoML for Python](http
 
 ### Results/reports: Viewable and exportable (v1.0 or vNext)
 
-Results (reports) should be both viewable and exportable. Often you want to do results processing automation so would be nice to export the reports data as a .json file, then later can be viewed by a vieweer. 
+Results (reports) should be both viewable and exportable. Often you want to do results processing automation so would be nice to export the reports data as a .json file, then later can be viewed by a vieweer.
 
 Comparable references from other CLIs:
 
 - TLC exe's results processor and result visualization tab.
-- [Uber Ludwig](https://uber.github.io/ludwig/getting_started/#programmatic-api): 
+- [Uber Ludwig](https://uber.github.io/ludwig/getting_started/#programmatic-api):
     `ludwig visualize --visualization compare_performance --test_statistics path/to/test_statistics_model_1.json path/to/test_statistics_model_2.json`
 
 # Open questions
 
-- If there's a 1:1 mapping between the first level of paramenters in the .YAML file and the CLI arguments, how do we deal with expected syntax/naming of the args? Same IDs/text?: 
+- If there's a 1:1 mapping between the first level of paramenters in the .YAML file and the CLI arguments, how do we deal with expected syntax/naming of the args? Same IDs/text?:
     - `--test-dataset` vs. `test_dataset`
 
 - If we were using a sub-command for the ML-Task (such as `mlnet new regression`) instead of a regular argument (such as `mlnet new --ml-task regression`), how can a sub-command be specified in the response file?

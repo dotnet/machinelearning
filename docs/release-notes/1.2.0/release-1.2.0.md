@@ -1,6 +1,6 @@
 # [ML.NET](http://dot.net/ml) 1.2.0
 ## **General Availability**
-- **Microsoft.ML.TimeSeries**  
+- **Microsoft.ML.TimeSeries**
     - Anomaly detection algorithms (Spike and Change Point):
       - Independent and identically distributed.
       - Singular spectrum analysis.
@@ -10,17 +10,17 @@
     - Prediction Engine for online learning
       - Enables updating time series model with new observations at scoring so that the user does not have to re-train the time series with old data each time.
 
-     [Samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries)
+     [Samples](https://github.com/dotnet/machinelearning/tree/main/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries)
 
-- **Microsoft.ML.OnnxTransformer**  
+- **Microsoft.ML.OnnxTransformer**
    Enables scoring of ONNX models in the learning pipeline. Uses ONNX Runtime v0.4.
-      
-   [Sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyOnnxModel.cs)
 
-- **Microsoft.ML.TensorFlow**  
-   Enables scoring of TensorFlow models in the learning pipeline. Uses TensorFlow v1.13. Very useful for image and text classification. Users can featurize images or text using DNN models and feed the result into a classical machine learning model like a decision tree or logistic regression trainer. 
+   [Sample](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyOnnxModel.cs)
 
-   [Samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow)
+- **Microsoft.ML.TensorFlow**
+   Enables scoring of TensorFlow models in the learning pipeline. Uses TensorFlow v1.13. Very useful for image and text classification. Users can featurize images or text using DNN models and feed the result into a classical machine learning model like a decision tree or logistic regression trainer.
+
+   [Samples](https://github.com/dotnet/machinelearning/tree/main/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow)
 
 ## **New Features**
 - **Tree-based featurization** ([#3812](https://github.com/dotnet/machinelearning/pull/3812))
@@ -29,13 +29,13 @@
   - The leaves it falls into. It's a binary vector with ones happens at the indexes of reached leaves,
   - The paths that the input vector passes before hitting the leaves, and
   - The reached leaves values.
-  
+
   Here are two references.
   - [p. 9](https://www.csie.ntu.edu.tw/~r01922136/kaggle-2014-criteo.pdf) (a Kaggle solution adopted by FB below).
   - [Section 3](http://www.quinonero.net/Publications/predicting-clicks-facebook.pdf). (Facebook)
   - [Section of Entity-level personalization with GLMix](https://engineering.linkedin.com/blog/2019/04/ai-behind-linkedin-recruiter-search-and-recommendation-systems). (LinkedIn)
 
-  [Samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization)
+  [Samples](https://github.com/dotnet/machinelearning/tree/main/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization)
 
 - **Microsoft.Extensions.ML integration package.** ([#3827](https://github.com/dotnet/machinelearning/pull/3827))
 
@@ -51,7 +51,7 @@
 ### Serious
 - **Time series Sequential Transform needs to have a binding mechanism:** This bug made it impossible to use time series in NimbusML. ([#3875](https://github.com/dotnet/machinelearning/pull/3875))
 
-- **Build errors resulting from upgrading to VS2019 compilers:** The default CMAKE_C_FLAG for debug configuration sets /ZI to generate a PDB capable of edit and continue. In the new compilers, this is incompatible with /guard:cf which we set for security reasons. ([#3894](https://github.com/dotnet/machinelearning/pull/3894)) 
+- **Build errors resulting from upgrading to VS2019 compilers:** The default CMAKE_C_FLAG for debug configuration sets /ZI to generate a PDB capable of edit and continue. In the new compilers, this is incompatible with /guard:cf which we set for security reasons. ([#3894](https://github.com/dotnet/machinelearning/pull/3894))
 
 - **LightGBM Evaluation metric parameters:** In LightGbm EvaluateMetricType where if a user specified EvaluateMetricType.Default, the metric would not get added to the options Dictionary, and LightGbmWrappedTraining would throw because of that. ([#3815](https://github.com/dotnet/machinelearning/pull/3815))
 
@@ -66,10 +66,10 @@ None
 - Fixes the Hardcoded Sigmoid value from -0.5 to the value specified during training. ([#3850](https://github.com/dotnet/machinelearning/pull/3850))
 - Fix TextLoader constructor and add exception message. ([#3788](https://github.com/dotnet/machinelearning/pull/3788))
 - Introduce the `FixZero` argument to the LogMeanVariance normalizer. ([#3916](https://github.com/dotnet/machinelearning/pull/3916))
-- Ensembles trainer now work with ITrainerEstimators instead of ITrainers. ([#3796](https://github.com/dotnet/machinelearning/pull/3796)) 
+- Ensembles trainer now work with ITrainerEstimators instead of ITrainers. ([#3796](https://github.com/dotnet/machinelearning/pull/3796))
 - LightGBM Unbalanced Data Argument. ([#3925](https://github.com/dotnet/machinelearning/pull/3925))
 - Tree based trainers implement ICanGetSummaryAsIDataView. ([#3892](https://github.com/dotnet/machinelearning/pull/3892))
- 
+
 - **CLI and AutoML API**
   - Internationalization fixes to generate proper [ML.NET](dot.net/ml) C# code. ([#3725](https://github.com/dotnet/machinelearning/pull/3725))
   - Automatic Cross Validation for small datasets, and CV stability fixes. ([#3794](https://github.com/dotnet/machinelearning/pull/3794))

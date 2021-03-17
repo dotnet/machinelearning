@@ -6,7 +6,7 @@ resources:
   containers:
   - container: CentosContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
-
+g
 phases:
 ################################################################################
 - phase: Linux
