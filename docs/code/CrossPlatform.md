@@ -161,7 +161,7 @@ I think initially we should annotate that they don't work on non x86/x64 devices
 In order to fully test everything we need to, we would also need to change how we test to use the Helix testing servers. Currently, Helix doesn't have the capability to test Apple's new M1 code, but that is in the works.
 
 ### Mobile Support
-.NET Core 6 will allow us to run nativly on mobile. Since we are making these changes before .NET 6 is released, I propose we don't include that work as of yet. As long as we handle the native binaries correctly and make sure ML.NET provides descriptive error methods, we should be able to have mobile support as soon as .NET Core 6 releases for everything that currently has a software fallback. Since the native projects we are proposing to keep build for Arm64, they should work on mobile as well.
+.NET Core 6 will allow us to run natively on mobile. Since we are making these changes before .NET 6 is released, I propose we don't include that work as of yet. As long as we handle the native binaries correctly and make sure ML.NET provides descriptive error methods, we should be able to have mobile support as soon as .NET Core 6 releases for everything that currently has a software fallback. Since the native projects we are proposing to keep build for Arm64, they should work on mobile as well.
 
 ### Support Grid
 This is what I propose for the support grid. Since .NET Core 2.1 is end-of-life this year, I am putting much less emphasis on it. Since .NET Core 5 will be out of support before .NET Core 3.1 will be, I am putting less CI emphasis on .NET Core 5.
