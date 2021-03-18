@@ -394,7 +394,7 @@ namespace Microsoft.ML.Data
     /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
     /// The images to load need to be in the formats supported by <xref:System.Drawing.Bitmap>.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.</a>
+    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started) in the machinelearning-samples github repository.</a>
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>

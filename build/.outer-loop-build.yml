@@ -14,7 +14,6 @@ schedules:
   displayName: outer loop build at midnight
   branches:
     include:
-    - master
     - main
     - releases/1.5.5
     - features/automl

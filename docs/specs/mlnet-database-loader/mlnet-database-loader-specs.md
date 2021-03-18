@@ -1,7 +1,7 @@
 # Specs for ML.NET Relational Database Loader
 
-This specs-doc focuses on the features needed for the base **ML.NET API**, most of all. 
-The scenarios related to ML.NET **AutoML API**, the **CLI** and **VS Model Builder** will also be considered and covered in this document by in a significantly less detail since there should be different spec docs for those additional tools and APIs. 
+This specs-doc focuses on the features needed for the base **ML.NET API**, most of all.
+The scenarios related to ML.NET **AutoML API**, the **CLI** and **VS Model Builder** will also be considered and covered in this document by in a significantly less detail since there should be different spec docs for those additional tools and APIs.
 
 # Problem to solve
 
@@ -11,7 +11,7 @@ ML.NET 1.0 and 1.1 only supports the [IDataView LoadFromEnumerable()](https://do
 
 Within the 'databases scope' problem there are multiple areas.
 
-The **scope** for this feature is initially limited to **relational databases** with higher priority on SQL Server and Azure SQL Database, but one of the goals is to make this loader/connector compatible with any relational database which is supported by .NET providers. 
+The **scope** for this feature is initially limited to **relational databases** with higher priority on SQL Server and Azure SQL Database, but one of the goals is to make this loader/connector compatible with any relational database which is supported by .NET providers.
 
 - Scope to support in this feature:
     - Relational Databases, such as:
@@ -49,11 +49,11 @@ The business goals are the following, depending on the possible scenarios:
 
 - Ability for developers to load and automatically stream data from relational databases in order to train/evaluate ML.NET models.
 - The code to load from a database should be extremely easy, a single line of code in most cases.
-- Tooling (Model Builder in VS and the CLI) and AutoML API should also support this feature.  
+- Tooling (Model Builder in VS and the CLI) and AutoML API should also support this feature.
 
 # Solution
 
-The solution is to create an ML.NET database loader classes supporting the above scenarios. 
+The solution is to create an ML.NET database loader classes supporting the above scenarios.
 
 The main supported features are:
 
@@ -69,7 +69,7 @@ The main supported features are:
 
   - Cross-validation scenario. Single database source. Internally it'll be split in multiple folds (such as 5 folds) for multiple trains and tests. This should be transparent from a database connection point of view which only needs one database source.
 
-- **Additional support for AutoML API, CLI and Model Builder:** Loading data from databases should be supported by AutoML API, Model Builder in VS and the ML.NET CLI. 
+- **Additional support for AutoML API, CLI and Model Builder:** Loading data from databases should be supported by AutoML API, Model Builder in VS and the ML.NET CLI.
 
 --------------------------------------
 
@@ -101,7 +101,7 @@ The way to support those frameworks would be by creating a **.NET Standard 2.0 l
         - PostgreSQL providers - Test on:
         - Npgsql open source ADO.NET Data Provider for PostgreSQL
 
-    This ML.NET database loader won't probably need Entity Framework, but for a relationship, see [EF providers](https://docs.microsoft.com/en-us/ef/core/providers/) for a relationship to ADO.NET providers. 
+    This ML.NET database loader won't probably need Entity Framework, but for a relationship, see [EF providers](https://docs.microsoft.com/en-us/ef/core/providers/) for a relationship to ADO.NET providers.
 
     - **P2 RDBMS support/tested priorities:**
 
@@ -112,8 +112,8 @@ The way to support those frameworks would be by creating a **.NET Standard 2.0 l
         - Data Provider for EntityClient Provider (Entity Data Model (EDM))
 
 - **CRITICAL: Implement support for 'handle and continue' after transient errors happening in Azure SQL Database (or any DB):** When using Azure SQL Database as the source of your training database, because databases in Azure SQL DB can be moved to different servers across the internal Azure SQL Database cluster, transient failures (usually for just a few seconds) in the form of connectivity exceptions can happen. Even further, by design in Azure SQL Database, if a process is blocking too many resources in SQL, sometimes the database connection can be thrown away in favor of other customers/databases.
-There are several strategies in order to handle database transient errors (see [Working with SQL Database connection issues and transient errors](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-connectivity-issues)) like doing a 'Retry strategy' and start with a new connection again. But that strategy is only okay for short/fast queries. That simple strategy which throws away all the progress made and start the same query again wouldn't be good when training with a very large table because it could mean that the training operation "never finishes" if you have at least one transient error on every "training try". 
-We'll need to come up with a reasonably general pattern (probably something that reasons about primary keys), but this scenario is not simple. 
+There are several strategies in order to handle database transient errors (see [Working with SQL Database connection issues and transient errors](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-connectivity-issues)) like doing a 'Retry strategy' and start with a new connection again. But that strategy is only okay for short/fast queries. That simple strategy which throws away all the progress made and start the same query again wouldn't be good when training with a very large table because it could mean that the training operation "never finishes" if you have at least one transient error on every "training try".
+We'll need to come up with a reasonably general pattern (probably something that reasons about primary keys), but this scenario is not simple.
 
     See [related issue](https://github.com/dotnet/machinelearning-samples/issues/507)
 
@@ -123,17 +123,17 @@ We'll need to come up with a reasonably general pattern (probably something that
 
     2. RDBMS-server running database and .NET code using ML.NET code
 
-- **NuGet packages and libraries design**: 
+- **NuGet packages and libraries design**:
 The implementation of this feature should be packaged following the following approach, which is aligned and consistent to the current approach used by the .NET Framework and .NET Core in the System.Data.Common and System.Data.SqlClient:
 
     - Implementation code with NO depedencies to specific database providers (such as SQL Server, Oracle, MySQL, etc.) will be packaged in the same NuGet package and library than the existing TextLoader-related classes which is in the Microsoft.ML.Data library. This code is basically the foundational API for the Database loader where the user has to provide any specific database connection (so dependencies are taken in user's code).
     - Implementation code WITH dependencies to data proviers (such as SQL Server, Oracle, MySQL, etc.) that might be created when creating additional convenient APIs where the user only needs to provide a connection string and table-name or SQL statement, will be placed in a segregated class library and NuGet package, so that ML.NET core packages don't depend on specific database providers.
-    
+
 - **Support for sparse data**: The database loader should support sparse data, at least up to the maximum number of columns in SQL Server (1,024 columns per nonwide table, 30,000 columns per wide table or 4,096 columns per SELECT statement).
 
-    ML.NET supports sparse data such as in the following example using a [sparse matrix](https://en.wikipedia.org/wiki/Sparse_matrix) of thousands or even millions of columns even when in this example only 200 columns have real data (sparse data): 
+    ML.NET supports sparse data such as in the following example using a [sparse matrix](https://en.wikipedia.org/wiki/Sparse_matrix) of thousands or even millions of columns even when in this example only 200 columns have real data (sparse data):
 
-    - [ML.NET sample using millions of columns with sparse data](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started/LargeDatasets)
+    - [ML.NET sample using millions of columns with sparse data](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started/LargeDatasets)
 
     SQL Server supports [Sparse columns](https://docs.microsoft.com/en-us/sql/relational-databases/tables/use-sparse-columns?view=sql-server-2017), however, it is just a way to optimize storage for null values. It still needs to have a real column created in the table per each logical column (i.e. 1,000 columns defined in the SQL table) even when it might not have data.
 
@@ -180,7 +180,7 @@ Example code using it:
 MLContext mlContext = new MLContext();
 
 //Example loading from a SQL Server or SQL Azure database with a SQL query sentence
-IDataView trainingDataView = mlContext.Data.LoadFromDbSqlQuery<ModelInputData, SqlConnection>(connString: myConnString, sqlQuerySentence: "Select * from InputMLModelDataset where InputMLModelDataset.CompanyName = 'MSFT'"); 
+IDataView trainingDataView = mlContext.Data.LoadFromDbSqlQuery<ModelInputData, SqlConnection>(connString: myConnString, sqlQuerySentence: "Select * from InputMLModelDataset where InputMLModelDataset.CompanyName = 'MSFT'");
 ```
 
 **2. (Foundational method) Data loading from a database with a System.Data.IDataReader object:**
@@ -229,8 +229,8 @@ Example code using it:
 MLContext mlContext = new MLContext();
 
 //Example loading from a SQL Server or SQL Azure database table
-IDataView trainingDataView = mlContext.Data.LoadFromDbTable<ModelInputData, SqlConnection>(connString: myConnString, 
-                                                                                                 tableName: "TrainingDataTable"); 
+IDataView trainingDataView = mlContext.Data.LoadFromDbTable<ModelInputData, SqlConnection>(connString: myConnString,
+                                                                                                 tableName: "TrainingDataTable");
 ```
 
 **4. ('Nice to have') Data loading from a database view:**
@@ -248,8 +248,8 @@ Example code using it:
 MLContext mlContext = new MLContext();
 
 //Example loading from a SQL Server or SQL Azure database view
-IDataView trainingDataView = mlContext.Data.LoadFromDbView<ModelInputData, SqlConnection>(connString: myConnString, 
-                                                                                                viewName: "TrainingDatabaseView"); 
+IDataView trainingDataView = mlContext.Data.LoadFromDbView<ModelInputData, SqlConnection>(connString: myConnString,
+                                                                                                viewName: "TrainingDatabaseView");
 ```
 
 ## Support connectivity from .NET assemblies embedded into the RDBMS server
@@ -258,7 +258,7 @@ As introduced, the database loader should not only support remote/network connec
 
 The only difference is the way you define the connection string, which simply provides **'context' string** (instead of server name, user, etc. when using the network), such as:
 
-- Code example running on [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017)  
+- Code example running on [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017)
 
     ```
     //SQL Server
@@ -273,7 +273,7 @@ The only difference is the way you define the connection string, which simply pr
     ```
     //Oracle
     OracleConnection con = new OracleConnection();
-    con.ConnectionString = "context connection=true"; 
+    con.ConnectionString = "context connection=true";
     ```
 
     - See here an [exampleof a C# stored procedure in Oracle ](https://www.oracle.com/technetwork/articles/dotnet/williams-sps-089817.html?printOnly=1)
@@ -286,7 +286,7 @@ ML.NET won't implement components creating concrete database objects such as **C
 
 Also, note that  the fact that ML.NET will be supported to be used within user components using CLR integration, that doesn't mean that the user can do it on any RDBMS. There are RDBMS such as Azure SQL Database with single databases and elastic pools and other RDBMS that don't support that feature. Other RDBMS suchas SQL Server on-premises or Azure SQL Database Managed Instances, Oracle, etc. do support it.
 
-For instance: 
+For instance:
 
 - [Feature comparison: Azure SQL Database versus SQL Server](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-features)
 
@@ -295,7 +295,7 @@ For instance:
 There can be two different approaches here:
 
 - Use similar input data classes/types to ML.NET 1.x input data classes
-- Use similar input data classes/types to Entity Framework POCO entity data model classes  
+- Use similar input data classes/types to Entity Framework POCO entity data model classes
 
 ## Approach A: Using ML.NET input data classes
 
@@ -358,7 +358,7 @@ This last approach is similar to the Entity Framework POCO entity class approach
 
 ## Approach B: Using Entity Framework POCO entity data model classes
 
-When using Entity Framework, a POCO entity is a class that doesn't depend on any framework-specific base class. This is also why they are persistence-ignorant objects following the [persistence ignorance principle](https://deviq.com/persistence-ignorance/). 
+When using Entity Framework, a POCO entity is a class that doesn't depend on any framework-specific base class. This is also why they are persistence-ignorant objects following the [persistence ignorance principle](https://deviq.com/persistence-ignorance/).
 
 It is like any other normal .NET CLR class, which is why it is called POCO ("Plain Old CLR Object").
 
@@ -373,7 +373,7 @@ public class ModelInputData
     public byte[]  Photo { get; set; }
     public decimal Height { get; set; }
     public float Weight { get; set; }
-        
+
     public StudentAddress StudentAddress { get; set; }
     public Grade Grade { get; set; }
 }
@@ -387,10 +387,10 @@ Cons:
 - EF does not support loading many columns at the same time into a single vector column.
 - EF requires a mandatory ID property in the POCO class
 - ML.NET might not support certain .NET types allowed by EF POCO classes (i.e. DateTime, etc.).
-- ML.NET doesn't support embedded/navigation/relationship entity types such as `StudentAddress` in the sample above, neither complex-types in EF. 
+- ML.NET doesn't support embedded/navigation/relationship entity types such as `StudentAddress` in the sample above, neither complex-types in EF.
 - Input data classes won't be consistent/similar to ML.NET input data classes when using dataset files.
 
-### Selected approach for input data class when reading from a database 
+### Selected approach for input data class when reading from a database
 
 *TO BE DISCUSSED/CONFIRMED:*
 
@@ -406,7 +406,7 @@ Supporting the same scope of POCO entities supported by entity Framework seems p
 Sample CLI command:
 
 ```
-> mlnet auto-train --task regression --db-conn-string "YOUR-DATABASE-CONNECTION-STRING" --db-table "MyTrainingDbTable" --label-column-name Price 
+> mlnet auto-train --task regression --db-conn-string "YOUR-DATABASE-CONNECTION-STRING" --db-table "MyTrainingDbTable" --label-column-name Price
 ```
 
 **2. CLI training from a database view:**
@@ -414,7 +414,7 @@ Sample CLI command:
 Sample CLI command:
 
 ```
-> mlnet auto-train --task regression --db-conn-string "YOUR-DATABASE-CONNECTION-STRING" --db-view "MyTrainingDbView" --label-column-name Price 
+> mlnet auto-train --task regression --db-conn-string "YOUR-DATABASE-CONNECTION-STRING" --db-view "MyTrainingDbView" --label-column-name Price
 ```
 
 **3. CLI training from a database with a SQL query sentence:**
@@ -422,7 +422,7 @@ Sample CLI command:
 Sample CLI command:
 
 ```
-> mlnet auto-train --task regression --db-conn-string "YOUR-DATABASE-CONNECTION-STRING" --sql-query "SELECT * FROM MyTrainingDbTable WHERE Company = 'MSFT'" --label-column-name Price 
+> mlnet auto-train --task regression --db-conn-string "YOUR-DATABASE-CONNECTION-STRING" --sql-query "SELECT * FROM MyTrainingDbTable WHERE Company = 'MSFT'" --label-column-name Price
 ```
 
 
@@ -434,10 +434,10 @@ For ML.NET AutoML the C# code to use is the same than for regular ML.NET code si
 MLContext mlContext = new MLContext();
 
 //Load train dataset from a database table
-IDataView trainDataView = mlContext.Data.LoadFromDatabaseTable<ModelInputData, SqlConnection>(connString: myConnString, tableName: "MyTrainDataTable"); 
+IDataView trainDataView = mlContext.Data.LoadFromDatabaseTable<ModelInputData, SqlConnection>(connString: myConnString, tableName: "MyTrainDataTable");
 
 //Load train dataset from a database table
-IDataView testDataView = mlContext.Data.LoadFromDatabaseTable<ModelInputData, SqlConnection>(connString: myConnString, tableName: "MyTestDataTable"); 
+IDataView testDataView = mlContext.Data.LoadFromDatabaseTable<ModelInputData, SqlConnection>(connString: myConnString, tableName: "MyTestDataTable");
 
 // Run AutoML experiment
 var progressHandler = new BinaryExperimentProgressHandler();
@@ -447,7 +447,7 @@ ExperimentResult<BinaryClassificationMetrics> experimentResult = mlContext.Auto(
     .Execute(trainingDataView, progressHandler: progressHandler);
 ```
 
-Therefore, most of the code above is regular AutoML API code and the only pieces of code using the DatabaseLoader are using the same API than when using regular ML.NET code for loading data from a database. 
+Therefore, most of the code above is regular AutoML API code and the only pieces of code using the DatabaseLoader are using the same API than when using regular ML.NET code for loading data from a database.
 
 # Model Builder for Visual Studio mock UI samples
 
@@ -458,7 +458,7 @@ TBD
 
 # Open questions
 
-- QUESTION 1 TBD: 
+- QUESTION 1 TBD:
 
 
 # References

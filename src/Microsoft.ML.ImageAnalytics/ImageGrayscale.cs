@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms.Image
     /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,
     /// a technique known as [data augmentation](http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf).
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
+    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started) in the machinelearning-samples github repository.
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>

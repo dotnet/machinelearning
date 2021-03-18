@@ -65,14 +65,14 @@
 
   [Design specification](https://github.com/dotnet/machinelearning/pull/3857)
 
-  [Sample](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started/DatabaseLoader)
+  [Sample](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started/DatabaseLoader)
 
   [How to doc](https://docs.microsoft.com/en-us/dotnet/machine-learning/how-to-guides/load-data-ml-net#load-data-from-a-relational-database)
 
 - **General Availability of PredictionEnginePool for scalable deployment**
   When deploying an ML model into multi-threaded and scalable .NET Core web applications and services (such as ASP .NET Core web apps, WebAPIs or an Azure Function) it is recommended to use the PredictionEnginePool instead of directly creating the PredictionEngine object on every request due to performance and scalability reasons. For further background information on why the PredictionEnginePool is recommended, read [this](https://devblogs.microsoft.com/cesardelatorre/how-to-optimize-and-run-ml-net-models-on-scalable-asp-net-core-webapis-or-web-apps/) blog post.
 
-  [Sample](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/end-to-end-apps/ScalableMLModelOnWebAPI-IntegrationPkg)
+  [Sample](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/end-to-end-apps/ScalableMLModelOnWebAPI-IntegrationPkg)
 
 - **General Availability of Enhanced for .NET Core 3.0**
   This means ML .NET can take advantage of the new features when running in a .NET Core 3.0 application. The first new feature we are using is the new hardware intrinsics feature, which allows .NET code to accelerate math operations by using processor specific instructions.

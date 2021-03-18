@@ -782,7 +782,7 @@ As introduced, the CLI will generate the following assets as result of the opera
 
 The training code for a single generated console app project should be similar to the following sample app:
 
-- Sentiment Analysis sample: https://github.com/dotnet/machinelearning-samples/blob/master/samples/csharp/getting-started/BinaryClassification_SentimentAnalysis/SentimentAnalysis/SentimentAnalysisConsoleApp/Program.cs
+- Sentiment Analysis sample: https://github.com/dotnet/machinelearning-samples/blob/main/samples/csharp/getting-started/BinaryClassification_SentimentAnalysis/SentimentAnalysis/SentimentAnalysisConsoleApp/Program.cs
 
    Notes:
     - This sample code is evolving when upgrading to upcoming preview versions, such as 0.10, 0.11, etc.)

@@ -22,7 +22,7 @@ See the [API Reference documentation](https://docs.microsoft.com/en-us/dotnet/ap
 
 We have a GitHub repo with [ML.NET sample apps](https://github.com/dotnet/machinelearning-samples) with many scenarios such as Sentiment analysis, Fraud detection, Product Recommender, Price Prediction, Anomaly Detection, Image Classification, Object Detection and many more.
 
-In addition to the ML.NET samples provided by Microsoft, we're also highlighting many more samples created by the community showcased in this separate page [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/master/docs/COMMUNITY-SAMPLES.md)
+In addition to the ML.NET samples provided by Microsoft, we're also highlighting many more samples created by the community showcased in this separate page [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/main/docs/COMMUNITY-SAMPLES.md)
 
 
 ## ML.NET videos playlist at YouTube
