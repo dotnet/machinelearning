@@ -31,7 +31,7 @@ Currently, while .NET is able to run on many different platforms and architectur
 The goal is to enable ML.NET to run everywhere that .NET itself is able to run.
 
 ## 2. Current status
-There are several problems complicating us from moving to a fully cross-platform solution. At a high level thes include:
+There are several problems complicating us from moving to a fully cross-platform solution. At a high level these include:
 1. We only build and test for a subset of platforms that .NET supports.
 2. Native components must be explicitly built for additional architectures which we wish to support. This limits our ability to support new platforms without doing work.
 3. Building our native components for new platforms faces challenges due to lack of support for those components dependencies. This limits our ability to support the current set of platforms.
