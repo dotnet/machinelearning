@@ -40,7 +40,7 @@ There are several problems complicating us from moving to a fully cross-platform
 ### 2.1 Problems
 ML.NET has a hard dependency on x86/x64. Some of the dependency is on Intel MKL, while other parts depend on x86/x64 SIMD instructions. To make things easier I will refer to these as just the x86/x64 dependencies. This is to perform many optimized math functions and enables several transformers/trainers to be run natively for improved performance. The problem is that these dependencies can only run on x86/x64 machines and are the main blockers for expanding to other architectures. While you can run the managed code on other architectures, there is no good way to know which parts will run and which ones wont. This includes the build process as well, which currently has these same hard dependencies and building on non x86/x64 machines is not supported.
 
-ML.NET also has dependencies on things that either don't build on other architectures or have to be compiled by the user if its wanted. For example:
+ML.NET also has dependencies on things that either don't build on other architectures or have to be compiled by the user if it's wanted. For example:
  - LightGBM
  - TensorFlow
  - OnnxRuntime
