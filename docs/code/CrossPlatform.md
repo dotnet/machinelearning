@@ -89,7 +89,7 @@ Of these 6, only LdaNative builds successfully for other architectures without c
 As mentioned above, there are several 3rd party packages that don't have support for non x86/x64 machines.
  - LightGBM. LightGBM doesn't offer packages for non x86/x64. I was able to build the code for Arm64, but we would either have to build it ourselves, convince them to create more packages for us, or annotate that this doesn't work on non x86/64 machines.
  - TensorFlow. The full version of TensorFlow only runs on x86/x64. There is a [lite](https://www.tensorflow.org/lite/guide/build_arm64) version that supports Arm64, and you can install it directly with python, but this isn't the full version so not all models will run. We would also have to verify if the C# library we use to interface with TensorFlow will work with the lite version.
- - OnnxRuntime. OnnxRuntime doesn't have prebuilt packages for more than just x86/x64. It does support Arm, but we have to build it ourselves or get the OnnxRuntime team to package Arm assemblies. This is the same situation as with LightGBM.
+ - ONNX Runtime. ONNX Runtime doesn't have prebuilt packages for more than just x86/x64. It does support Arm, but we have to build it ourselves or get the ONNX Runtime team to package Arm assemblies. This is the same situation as with LightGBM.
 
 
 ## 3 Possible Solutions
