@@ -183,73 +183,74 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(string.Format(Strings.ExpectedEitherGuessRowsOrDataTypes, nameof(guessRows), nameof(dataTypes)));
             }
 
-            TextReader textReader = wrappedReader.GetTextReader();
-            TextFieldParser parser = new TextFieldParser(textReader);
-            parser.SetDelimiters(separator.ToString());
-
-            var linesForGuessType = new List<string[]>();
-            long rowline = 0;
-            int numberOfColumns = dataTypes?.Length ?? 0;
-
-            if (header == true && numberOfRowsToRead != -1)
-            {
-                numberOfRowsToRead++;
-            }
-
             List<DataFrameColumn> columns;
-            // First pass: schema and number of rows.
-
             string[] fields;
-            while ((fields = parser.ReadFields()) != null)
+            using (var textReader = wrappedReader.GetTextReader())
             {
-                if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
+                TextFieldParser parser = new TextFieldParser(textReader);
+                parser.SetDelimiters(separator.ToString());
+
+                var linesForGuessType = new List<string[]>();
+                long rowline = 0;
+                int numberOfColumns = dataTypes?.Length ?? 0;
+
+                if (header == true && numberOfRowsToRead != -1)
                 {
-                    if (linesForGuessType.Count < guessRows || (header && rowline == 0))
+                    numberOfRowsToRead++;
+                }
+
+                // First pass: schema and number of rows.
+                while ((fields = parser.ReadFields()) != null)
+                {
+                    if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
                     {
-                        string[] spl = fields;
-                        if (header && rowline == 0)
+                        if (linesForGuessType.Count < guessRows || (header && rowline == 0))
                         {
-                            if (columnNames == null)
+                            string[] spl = fields;
+                            if (header && rowline == 0)
                             {
-                                columnNames = spl;
+                                if (columnNames == null)
+                                {
+                                    columnNames = spl;
+                                }
+                            }
+                            else
+                            {
+                                linesForGuessType.Add(spl);
+                                numberOfColumns = Math.Max(numberOfColumns, spl.Length);
                             }
                         }
-                        else
-                        {
-                            linesForGuessType.Add(spl);
-                            numberOfColumns = Math.Max(numberOfColumns, spl.Length);
-                        }
+                    }
+                    ++rowline;
+                    if (rowline == guessRows || guessRows == 0)
+                    {
+                        break;
                     }
                 }
-                ++rowline;
-                if (rowline == guessRows || guessRows == 0)
+
+                if (rowline == 0)
                 {
-                    break;
+                    throw new FormatException(Strings.EmptyFile);
                 }
-            }
 
-            if (rowline == 0)
-            {
-                throw new FormatException(Strings.EmptyFile);
-            }
-
-            columns = new List<DataFrameColumn>(numberOfColumns);
-            // Guesses types or looks up dataTypes and adds columns.
-            for (int i = 0; i < numberOfColumns; ++i)
-            {
-                Type kind = dataTypes == null ? GuessKind(i, linesForGuessType) : dataTypes[i];
-                columns.Add(CreateColumn(kind, columnNames, i));
+                columns = new List<DataFrameColumn>(numberOfColumns);
+                // Guesses types or looks up dataTypes and adds columns.
+                for (int i = 0; i < numberOfColumns; ++i)
+                {
+                    Type kind = dataTypes == null ? GuessKind(i, linesForGuessType) : dataTypes[i];
+                    columns.Add(CreateColumn(kind, columnNames, i));
+                }
             }
 
             DataFrame ret = new DataFrame(columns);
 
             // Fill values.
-            using (textReader = wrappedReader.GetTextReader())
+            using (var textReader = wrappedReader.GetTextReader())
             {
-                parser = new TextFieldParser(textReader);
+                TextFieldParser parser = new TextFieldParser(textReader);
                 parser.SetDelimiters(separator.ToString());
 
-                rowline = 0;
+                long rowline = 0;
                 while ((fields = parser.ReadFields()) != null && (numberOfRowsToRead == -1 || rowline < numberOfRowsToRead))
                 {
                     string[] spl = fields;
@@ -305,16 +306,14 @@ namespace Microsoft.Data.Analysis
             // Returns a new TextReader. If the wrapped object is a stream, the stream is reset to its initial position. 
             public TextReader GetTextReader()
             {
+                if (_stream != null)
                 {
-                    if (_stream != null)
-                    {
-                        _stream.Seek(_initialPosition, SeekOrigin.Begin);
-                        return new StreamReader(_stream, _encoding, detectEncodingFromByteOrderMarks: true, DefaultStreamReaderBufferSize, leaveOpen: true);
-                    }
-                    else
-                    {
-                        return new StringReader(_csvString);
-                    }
+                    _stream.Seek(_initialPosition, SeekOrigin.Begin);
+                    return new StreamReader(_stream, _encoding, detectEncodingFromByteOrderMarks: true, DefaultStreamReaderBufferSize, leaveOpen: true);
+                }
+                else
+                {
+                    return new StringReader(_csvString);
                 }
 
             }
