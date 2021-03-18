@@ -155,7 +155,7 @@ My suggestion would be to start with the hybrid approach. It will require the le
 We should also target .NET 5 so that we gain access to the Arm64 intrinsics. Rather than implementing special-purpose native libraries to take advantage of architecture-specific instructions we should instead enhance performance ensuring our managed implementation leverage intrinsics.
 
 ### 3rd Party Dependencies
-I think initially we should annotate that they don't work on non x86/x64 devices. This includes logging an error when they try and run an unsupported 3rd party dependency, and then failing gracefully with a helpful and descriptive error. The user should be able to compile the 3rd party dependency, for the ones that support it, and have ML.NET still be able to pick it up and run it if it exists. OnnxRuntime is something that we will probably want, but we can look more into this as we get requests for it in the future.
+I think initially we should annotate that they don't work on non x86/x64 devices. This includes logging an error when they try and run an unsupported 3rd party dependency, and then failing gracefully with a helpful and descriptive error. The user should be able to compile the 3rd party dependency, for the ones that support it, and have ML.NET still be able to pick it up and run it if it exists. ONNX Runtime is something that we will probably want, but we can look more into this as we get requests for it in the future.
 
 ### Helix
 In order to fully test everything we need to, we would also need to change how we test to use the Helix testing servers. Currently, Helix doesn't have the capability to test Apple's new M1 code, but that is in the works.
