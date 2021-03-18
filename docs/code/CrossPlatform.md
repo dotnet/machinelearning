@@ -43,7 +43,7 @@ ML.NET has a hard dependency on x86/x64. Some of the dependency is on Intel MKL,
 ML.NET also has dependencies on things that either don't build on other architectures or have to be compiled by the user if it's wanted. For example:
  - LightGBM
  - TensorFlow
- - OnnxRuntime
+ - ONNX Runtime
 
 I will go over these in more depth below.
 
