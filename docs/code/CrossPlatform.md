@@ -48,10 +48,10 @@ ML.NET also has dependencies on things that either don't build on other architec
 I will go over these in more depth below.
 
 ### 2.2 Build
-Since ML.NET has a hard dependency on x86/x64, the build process assumes it's running there. For example, the build process will try and copy native dlls without checking if they exist because it assumes the build for them succeeded or that they are available. The build process will need to be modified so that it doesn't fail when it can't find these files. It does the same copy for our own Native dlls, so this will need to be fixed for those as well.
+Since ML.NET has a hard dependency on x86/x64, the build process assumes it's running there. For example, the build process will try and copy native DLLs without checking if they exist because it assumes the build for them succeeded or that they are available. The build process will need to be modified so that it doesn't fail when it can't find these files. It does the same copy for our own Native DLLs, so this will need to be fixed for those as well.
 
 ### 2.3 Managed Code
-Since ML.NET has a hard dependency on x86/x64, the managed code imports dlls without checking whether or not they exist. If the dlls don't exist you get a hard failure. For example, if certain columns are active the `MulticlassClassificationScorer` will call `CalculateIntermediateVariablesNative` which is loaded from `CpuMathNative`, but all of this is done without any checks to see if the DLL actually exists. The tests also run into this probleb. The base test class imports and sets up Intel MKL even if the test itself does not need it.
+Since ML.NET has a hard dependency on x86/x64, the managed code imports DLLs without checking whether or not they exist. If the DLLs don't exist you get a hard failure. For example, if certain columns are active, the `MulticlassClassificationScorer` will call `CalculateIntermediateVariablesNative` which is loaded from `CpuMathNative`, but all of this is done without any checks to see if the DLL actually exists. The tests also run into this problem, for instance, the base test class imports and sets up Intel MKL even if the test itself does not need it.
 
 ### 2.4 Native Projects
 ML.NET has 6 native projects. They are:
