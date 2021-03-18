@@ -71,7 +71,7 @@ ML.NET has 6 native projects. They are:
  - MatrixFactorizationNative
    - No software fallback.
    - Currently we are hardcoding the "USESSE" flag which requires x86/x64 SIMD commands. Removing this flag allows MatrixFactorizationNative to build for other platforms.
-   - Small amount of work required to change the build process and verify its working.
+   - Small amount of work required to change the build process and verify it's working.
    - Large/Xlarge amount of work to have a managed fallback. This uses libmf, so we would have to not only port our code, but we would have to understand which parts of libmf are being used and port those as well.
    - This was created before we had hardware intrinsics so we used native code for performance as well as take advantage of libmf.
  - MklProxyNative
