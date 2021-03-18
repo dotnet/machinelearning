@@ -95,7 +95,7 @@ As mentioned above, there are several 3rd party packages that don't have support
 ## 3 Possible Solutions
 We have several possible options we can use to resolve this:
  - Eliminate ML.NET native components and implement all functionality in managed code.
- - Keep ML.NET native components and rewrite them to a avoid problematic dependencies completely.
+ - Keep ML.NET native components and rewrite them to avoid problematic dependencies completely.
  - Keep ML.NET native components and ifdef/rewrite to avoid problematic dependencies on platforms/architectures only where they are not supported.
  - Hybrid approach of replacement code and software fallback. This is the approach I recommend.
 
