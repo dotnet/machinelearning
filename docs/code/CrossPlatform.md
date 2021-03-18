@@ -79,7 +79,7 @@ ML.NET has 6 native projects. They are:
    - Small amount of work required to change the build process to exclude this as needed.
  - SymSgdNative
    - No managed fallback.
-   - Medium amount of work required to have a managed fallback. Only about 500 lines of code plus having to implmement 4 vector operations.
+   - Medium amount of work required to have a managed fallback. Only about 500 lines of code plus having to implement 4 vector operations.
    - Small amount of work required port to other platforms. Only uses 4 Intel MKL methods which we can replace. I was only able to find 2 direct replacements on other architectures, but we could easily write our own for either those 2 or even all 4.
    - This was created before we had hardware intrinsics so we used native code for performance as well as take advantage of IntelMKL.
 
