@@ -27,19 +27,11 @@
             <AutoGen>True</AutoGen>
             <DependentUpon>DataFrameColumn.BinaryOperationTests.tt</DependentUpon>
         </Compile>
-        <Compile Update="Strings.Designer.cs">
-          <DesignTime>True</DesignTime>
-          <AutoGen>True</AutoGen>
-          <DependentUpon>Strings.resx</DependentUpon>
-        </Compile>
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Update="Strings.resx">
-            <Generator>ResXFileCodeGenerator</Generator>
-            <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-            <CustomToolNamespace>Microsoft.Data</CustomToolNamespace>
-        </EmbeddedResource>
+        <Compile Include="../../src/Microsoft.Data.Analysis/Strings.Designer.cs" />
+        <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Strings.resx" LogicalName="Microsoft.Data.Analysis.Strings.resources" />
     </ItemGroup>
 
 </Project>
