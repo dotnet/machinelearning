@@ -16,7 +16,7 @@ namespace Microsoft.Data.Analysis
         bool IDataView.CanShuffle => false;
 
         private DataViewSchema _schema;
-        internal DataViewSchema DataViewSchema
+        private DataViewSchema DataViewSchema
         {
             get
             {
@@ -70,29 +70,22 @@ namespace Microsoft.Data.Analysis
             private bool _disposed;
             private long _position;
             private readonly DataFrame _dataFrame;
-            private readonly List<Delegate> _getters;
-            private Dictionary<int, int> _columnIndexToGetterIndex;
+            private readonly Delegate[] _getters;
 
             public RowCursor(DataFrame dataFrame, bool[] activeColumns)
             {
                 Debug.Assert(dataFrame != null);
                 Debug.Assert(activeColumns != null);
 
-                _columnIndexToGetterIndex = new Dictionary<int, int>();
                 _position = -1;
                 _dataFrame = dataFrame;
-                _getters = new List<Delegate>();
-                for (int i = 0; i < Schema.Count; i++)
+                _getters = new Delegate[Schema.Count];
+                for (int i = 0; i < _getters.Length; i++)
                 {
                     if (!activeColumns[i])
-                    {
                         continue;
-                    }
-
-                    Delegate getter = CreateGetterDelegate(i);
-                    _getters.Add(getter);
-                    Debug.Assert(getter != null);
-                    _columnIndexToGetterIndex[i] = _getters.Count - 1;
+                    _getters[i] = CreateGetterDelegate(i);
+                    Debug.Assert(_getters[i] != null);
                 }
             }
 
@@ -103,15 +96,11 @@ namespace Microsoft.Data.Analysis
             protected override void Dispose(bool disposing)
             {
                 if (_disposed)
-                {
                     return;
-                }
-
                 if (disposing)
                 {
                     _position = -1;
                 }
-
                 _disposed = true;
                 base.Dispose(disposing);
             }
@@ -127,7 +116,7 @@ namespace Microsoft.Data.Analysis
                 if (!IsColumnActive(column))
                     throw new ArgumentOutOfRangeException(nameof(column));
 
-                return (ValueGetter<TValue>)_getters[_columnIndexToGetterIndex[column.Index]];
+                return (ValueGetter<TValue>)_getters[column.Index];
             }
 
             public override ValueGetter<DataViewRowId> GetIdGetter()
@@ -137,15 +126,13 @@ namespace Microsoft.Data.Analysis
 
             public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                return _getters[_columnIndexToGetterIndex[column.Index]] != null;
+                return _getters[column.Index] != null;
             }
 
             public override bool MoveNext()
             {
                 if (_disposed)
-                {
                     return false;
-                }
                 _position++;
                 return _position < _dataFrame.Rows.Count;
             }

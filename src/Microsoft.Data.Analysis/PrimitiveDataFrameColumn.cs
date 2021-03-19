@@ -776,7 +776,7 @@ namespace Microsoft.Data.Analysis
         private static ValueGetter<double> CreateDecimalValueGetterDelegate(DataViewRowCursor cursor, PrimitiveDataFrameColumn<decimal> column) =>
             (ref double value) => value = (double?)column[cursor.Position] ?? double.NaN;
 
-        protected internal override void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column column, Delegate getter)
+        protected internal override void AddValueUsingCursor(DataViewRowCursor cursor, Delegate getter)
         {
             long row = cursor.Position;
             T value = default;

@@ -252,25 +252,41 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.True(df.Columns["Double"].ElementwiseEquals(newDf.Columns["Double"]).All());
         }
 
-        [Fact]
-        public void TestDataFrameFromIDataView_SelectRows()
+        [Theory]
+        [InlineData(10, 5)]
+        [InlineData(110, 100)]
+        [InlineData(110, -1)]
+        public void TestDataFrameFromIDataView_SelectRows(int dataFrameSize, int rowSize)
         {
-            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(dataFrameSize, withNulls: false);
             df.Columns.Remove("Char"); // Because chars are returned as uint16 by DataViewSchema, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
             df.Columns.Remove("Decimal"); // Because decimal is returned as double by DataViewSchema, so end up comparing DecimalDataFrameColumn to DoubleDataFrameColumn and fail asserts
             IDataView dfAsIDataView = df;
-            DataFrame newDf = dfAsIDataView.ToDataFrame(5);
-            Assert.Equal(5, newDf.Rows.Count);
+            DataFrame newDf;
+            if (rowSize == 100)
+            {
+                // Test default
+                newDf = dfAsIDataView.ToDataFrame();
+            }
+            else
+            {
+                newDf = dfAsIDataView.ToDataFrame(rowSize);
+            }
+            if (rowSize == -1)
+            {
+                rowSize = dataFrameSize;
+            }
+            Assert.Equal(rowSize, newDf.Rows.Count);
             Assert.Equal(df.Columns.Count, newDf.Columns.Count);
             for (int i = 0; i < newDf.Columns.Count; i++)
             {
-                Assert.Equal(5, newDf.Columns[i].Length);
+                Assert.Equal(rowSize, newDf.Columns[i].Length);
                 Assert.Equal(df.Columns[i].Name, newDf.Columns[i].Name);
             }
             Assert.Equal(dfAsIDataView.Schema.Count, newDf.Columns.Count);
             for (int c = 0; c < df.Columns.Count; c++)
             {
-                for (int r = 0; r < 5; r++)
+                for (int r = 0; r < rowSize; r++)
                 {
                     Assert.Equal(df.Columns[c][r], newDf.Columns[c][r]);
                 }

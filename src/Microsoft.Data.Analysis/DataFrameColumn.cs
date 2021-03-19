@@ -251,15 +251,14 @@ namespace Microsoft.Data.Analysis
         /// Appends a value to this <see cref="DataFrameColumn"/> using <paramref name="cursor"/>
         /// </summary>
         /// <param name="cursor">The row cursor which has the current position</param>
-        /// <param name="schemaColumn">The <see cref="DataViewSchema.Column"/> in <see cref="DataViewSchema"/></param>
         /// <param name="ValueGetter">The cached ValueGetter for this column.</param>
-        protected internal virtual void AddValueUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn, Delegate ValueGetter) => throw new NotImplementedException();
+        protected internal virtual void AddValueUsingCursor(DataViewRowCursor cursor, Delegate ValueGetter) => throw new NotImplementedException();
 
         /// <summary>
         /// Returns the ValueGetter for each active column in <paramref name="cursor"/> as a delegate to be cached.
         /// </summary>
         /// <param name="cursor">The row cursor which has the current position</param>
-        /// <param name="schemaColumn">The <see cref="DataViewSchema.Column"/> in <see cref="DataViewSchema"/></param>
+        /// <param name="schemaColumn">The <see cref="DataViewSchema.Column"/> to return the ValueGetter for.</param>
         protected internal virtual Delegate GetValueGetterUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn) => throw new NotImplementedException();
 
         /// <summary>
