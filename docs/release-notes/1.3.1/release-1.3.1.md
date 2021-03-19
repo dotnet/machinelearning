@@ -73,7 +73,7 @@
 - **Stop LightGbm Warning for Default Metric Input:** Fixes warning, LightGBM `Warning Unknown parameter metric=` is produced when the default metric is used. ([#3965](https://github.com/dotnet/machinelearning/pull/40079))
 
 ## **Samples**
-- [**Fraud Detection using the anomaly detection PCA trainer**](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started/AnomalyDetection_CreditCardFraudDetection)
+- [**Fraud Detection using the anomaly detection PCA trainer**](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started/AnomalyDetection_CreditCardFraudDetection)
 
 ## **Breaking Changes**
 None

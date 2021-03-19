@@ -27,7 +27,7 @@ Building from Source
 Repo of Samples
 ====================
 
-- [ML.NET Samples](https://github.com/dotnet/machinelearning-samples/blob/master/README.md)
+- [ML.NET Samples](https://github.com/dotnet/machinelearning-samples/blob/main/README.md)
 
 Extensions for ML.NET
 ====================
