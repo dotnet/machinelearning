@@ -206,18 +206,17 @@ namespace Microsoft.Data.Analysis
                     {
                         if (linesForGuessType.Count < guessRows || (header && rowline == 0))
                         {
-                            string[] spl = fields;
                             if (header && rowline == 0)
                             {
                                 if (columnNames == null)
                                 {
-                                    columnNames = spl;
+                                    columnNames = fields;
                                 }
                             }
                             else
                             {
-                                linesForGuessType.Add(spl);
-                                numberOfColumns = Math.Max(numberOfColumns, spl.Length);
+                                linesForGuessType.Add(fields);
+                                numberOfColumns = Math.Max(numberOfColumns, fields.Length);
                             }
                         }
                     }
@@ -253,14 +252,13 @@ namespace Microsoft.Data.Analysis
                 long rowline = 0;
                 while ((fields = parser.ReadFields()) != null && (numberOfRowsToRead == -1 || rowline < numberOfRowsToRead))
                 {
-                    string[] spl = fields;
                     if (header && rowline == 0)
                     {
                         // Skips.
                     }
                     else
                     {
-                        ret.Append(spl, inPlace: true);
+                        ret.Append(fields, inPlace: true);
                     }
                     ++rowline;
                 }
