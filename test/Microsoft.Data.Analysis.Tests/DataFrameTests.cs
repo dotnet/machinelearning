@@ -62,10 +62,12 @@ namespace Microsoft.Data.Analysis.Tests
 
                 // write the current length to (index + 1)
                 int offsetIndex = (i + 1) * 4;
-                offsetMemory[offsetIndex++] = (byte)(3 * validStringsIndex);
-                offsetMemory[offsetIndex++] = 0;
-                offsetMemory[offsetIndex++] = 0;
-                offsetMemory[offsetIndex++] = 0;
+                int offsetValue = 3 * validStringsIndex;
+                byte[] offsetValueBytes = BitConverter.GetBytes(offsetValue);
+                offsetMemory[offsetIndex++] = offsetValueBytes[0];
+                offsetMemory[offsetIndex++] = offsetValueBytes[1];
+                offsetMemory[offsetIndex++] = offsetValueBytes[2];
+                offsetMemory[offsetIndex++] = offsetValueBytes[3];
             }
 
             int nullCount = withNulls ? 1 : 0;

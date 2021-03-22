@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.Data.Analysis
 {
     public partial class DataFrame : IDataView
-    {        
+    {
         // TODO: support shuffling
         bool IDataView.CanShuffle => false;
 
@@ -53,6 +53,7 @@ namespace Microsoft.Data.Analysis
 
             return new RowCursor(this, activeColumns);
         }
+
         DataViewRowCursor IDataView.GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand)
         {
             return GetRowCursorCore(columnsNeeded);
