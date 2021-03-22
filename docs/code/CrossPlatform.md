@@ -10,10 +10,9 @@
 		- [2.4 Native Projects](#24-native-projects)
 		- [2.5 3rd Party Dependencies](#25-3rd-party-dependencies)
 	- [3 Possible Solutions](#3-possible-solutions)
-		- [3.1 Eliminate native components](#31-eliminate-native-components)
-		- [3.2 Rewrite native components to work on other platforms](#32-rewrite-native-components-to-work-on-other-platforms)
-		- [3.3 Rewrite native components to be only managed code](#33-rewrite-native-components-to-be-only-managed-code)
-		- [3.4 Hybrid Between Finding Replacements and Software Fallbacks](#34-hybrid-between-finding-replacements-and-software-fallbacks)
+		- [3.1 Rewrite native components to work on other platforms](#31-rewrite-native-components-to-work-on-other-platforms)
+		- [3.2 Rewrite native components to be only managed code](#32-rewrite-native-components-to-be-only-managed-code)
+		- [3.3 Hybrid Between Finding Replacements and Software Fallbacks](#33-hybrid-between-finding-replacements-and-software-fallbacks)
 	- [My Suggestion](#my-suggestion)
 		- [Improving managed fallback through intrinsics](#improving-managed-fallback-through-intrinsics)
 		- [3rd Party Dependencies](#3rd-party-dependencies)
@@ -36,6 +35,7 @@ There are several problems complicating us from moving to a fully cross-platform
 2. Native components must be explicitly built for additional architectures which we wish to support. This limits our ability to support new platforms without doing work.
 3. Building our native components for new platforms faces challenges due to lack of support for those components dependencies. This limits our ability to support the current set of platforms.
 4. Some of our external dependencies have limited support for .NET's supported platforms.
+5. Some things we use internally are optomized for x86/x64 and wont work well on other platforms. For example various components are parallelized but current webassembly targets are single threaded. It's likely some changes will be necessary to various algorithms to work well in these environments.
 
 ### 2.1 Problems
 ML.NET has a hard dependency on x86/x64. Some of the dependency is on Intel MKL, while other parts depend on x86/x64 SIMD instructions. To make things easier I will refer to these as just the x86/x64 dependencies. This is to perform many optimized math functions and enables several transformers/trainers to be run natively for improved performance. The problem is that these dependencies can only run on x86/x64 machines and are the main blockers for expanding to other architectures. While you can run the managed code on other architectures, there is no good way to know which parts will run and which ones wont. This includes the build process as well, which currently has these same hard dependencies and building on non x86/x64 machines is not supported.
@@ -59,11 +59,11 @@ ML.NET has 6 native projects. They are:
    - Partial managed fallback when using NetCore 3.1.
    - A large amount of work would be required to port the native code to other platforms. We would have to change all the SIMD instructions for each platform.
    - A small amount of work required for a full managed fallback.
-   - This was created before we had hardware intrinsics so we used native code for performance. The managed fallback uses x86/x64 intrinsics where possible.
+   - This was created before we had hardware intrinsics so we used native code for performance. The managed fallback uses x86/x64 intrinsics if the hardware supports it, otherwise it has a plain managed fallback without intrinsics if needed.
  - FastTreeNative
    - Full managed fallback by changing a C# compiler flag. This flag is hardcoded to always use the native code.
    - Small amount of work required to change build process and verify it's correct.
-   - This was created before we had hardware intrinsics so we used native code for performance. The managed fallback does not use hardware intrinsics, so this will be slower than the native solution.
+   - This was created before we had hardware intrinsics so we used native code for performance. The managed fallback does not currently use hardware intrinsics, so this will be slower than the native solution. Hardware intrinsics could be added to improve performance.
  - LdaNative
    - No managed fallback, but builds successfully on non x86/x64 without changes.
    - Large amount of work to have a managed fallback. This solution is about 3000 lines of code not including any code from the dependencies.
@@ -94,7 +94,6 @@ As mentioned above, there are several 3rd party packages that don't have support
 
 ## 3 Possible Solutions
 We have several possible options we can use to resolve this:
- - Eliminate ML.NET native components and implement all functionality in managed code.
  - Keep ML.NET native components and rewrite them to avoid problematic dependencies completely.
  - Keep ML.NET native components and ifdef/rewrite to avoid problematic dependencies on platforms/architectures only where they are not supported.
  - Hybrid approach of replacement code and software fallback. This is the approach I recommend.
@@ -103,10 +102,7 @@ None of these approaches resolve the 3rd party dependency issues. These solution
 
 I have lots more info about our dependency on x86/x64 in another document if required.
 
-### 3.1 Eliminate native components
-This is the most complicated solution and provides the least amount of short term benefit. Since x86/x64 run fine and gain performance benefits with these components, it doesn't make sense to spend the time to fully remove it. This is a possible solution, but not one that I would recommend, so I am not going to give more details on it unless we explicitly decide to go this route.
-
-### 3.2 Rewrite native components to work on other platforms
+### 3.1 Rewrite native components to work on other platforms
 This will still allow us to gain the benefits of the X86/x64 SIMD instructions and Intel MKL on architectures that support it but will also keep the benefits of native code in the other places. The downside is that we would have to build the native code for, potentially, a lot of different architectures.
 
 At a high level, this solution would require us to:
@@ -122,7 +118,7 @@ At a high level, this solution would require us to:
 
 I was unable to find all the replacements we would need. We would end up having to write many native methods ourselves with this approach.
 
-### 3.3 Rewrite native components to be only managed code
+### 3.2 Rewrite native components to be only managed code
 This will truly allow ML.NET to run anywhere that .NET runs. The only downside is the speed of execution, and the time to rewrite the existing native code we have.  If we restrict new architectures to .NET core 3.1 or newer, we will have an easier time with the software fallbacks as some of this code has already been written. This solution will also require a lot of code rewrite from native code to managed code.
 
 At a high level, this solution would require us to:
@@ -135,7 +131,7 @@ At a high level, this solution would require us to:
  - MklProxyNative can be ignored. It is not needed with software fallbacks. We will need to modify the build to exclude it as needed.
  - SymSgdNative would need to be re-written.
 
-### 3.4 Hybrid Between Finding Replacements and Software Fallbacks
+### 3.3 Hybrid Between Finding Replacements and Software Fallbacks
 Since some of the native code already has replacements and some of the code already has software fallbacks, we can leverage this work by doing a hybrid between the prior 2 solutions.
 
 At a high level, this solution would require us to:
@@ -149,7 +145,7 @@ At a high level, this solution would require us to:
  - SymSgdNative needs to be either re-written in managed code, or re-write 4 Intel MKL methods. The 4 methods are just dealing with vector manipulation and shouldn't be hard to do.
 
 ## My Suggestion
-My suggestion would be to start with the hybrid approach. It will require the least amount of work to get ML.NET running elsewhere, while still being able to support a large majority of devices out of the gate. This solution will still limit the platforms we can run-on to what we build the native components for, initially Arm64 devices, but we can do a generic Arm64 compile so it should work for all Arm64 v8 devices. The goal is to eventually have a general purpose implementation which can work everywhere .NET does and accelerated components to increase performance where possible, such as running on Web Assembly and when .NET 6 comes out on mobile as well.
+My suggestion would be to start with the hybrid approach. It will require the least amount of work to get ML.NET running elsewhere, while still being able to support a large majority of devices out of the gate. This solution will still limit the platforms we can run-on to what we build the native components for, initially Arm64 devices, but we can do a generic Arm64 compile so it should work for all Arm64 v8 devices. The goal is to eventually have a managed implementation which can work everywhere .NET does and accelerated components to increase performance where possible. This could include native components in some cases or hardware intrinsics in others.
 
 ### Improving managed fallback through intrinsics
 We should also target .NET 5 so that we gain access to the Arm64 intrinsics. Rather than implementing special-purpose native libraries to take advantage of architecture-specific instructions we should instead enhance performance ensuring our managed implementation leverage intrinsics.
@@ -158,7 +154,7 @@ We should also target .NET 5 so that we gain access to the Arm64 intrinsics. Rat
 I think initially we should annotate that they don't work on non x86/x64 devices. This includes logging an error when they try and run an unsupported 3rd party dependency, and then failing gracefully with a helpful and descriptive error. The user should be able to compile the 3rd party dependency, for the ones that support it, and have ML.NET still be able to pick it up and run it if it exists. ONNX Runtime is something that we will probably want, but we can look more into this as we get requests for it in the future.
 
 ### Helix
-In order to fully test everything we need to, we would also need to change how we test to use the Helix testing servers. Currently, Helix doesn't have the capability to test Apple's new M1 code, but that is in the works.
+In order to fully test everything we need to, we would also need to change how we test to use the Helix testing servers. Currently, Helix doesn't have the capability to test Apple's new M1 code, but that is in the works. We will be building once for each architecture/platform combination, and then fan out and submit one job for each framework version we want to test. We will also be cross-targeting builds. For example we can build on normal linux to target arm linux and then run those tests using Helix.
 
 ### Mobile Support
 .NET Core 6 will allow us to run natively on mobile. Since we are making these changes before .NET 6 is released, I propose we don't include that work as of yet. As long as we handle the native binaries correctly and make sure ML.NET provides descriptive error methods, we should be able to have mobile support as soon as .NET Core 6 releases for everything that currently has a software fallback. Since the native projects we are proposing to keep build for Arm64, they should work on mobile as well.
