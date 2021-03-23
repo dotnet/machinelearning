@@ -101,24 +101,29 @@ namespace Microsoft.Data.Analysis.Tests
             }
         }
 
-        [Fact]
-        public void TestReadCsvWithHeader()
+        private static Stream GetStream(string streamData)
         {
-            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
-CMT,1,1,1271,3.8,CRD,17.5
-CMT,1,1,474,1.5,CRD,8
-CMT,1,1,637,1.4,CRD,8.5
-CMT,1,1,181,0.6,CSH,4.5";
+            return new MemoryStream(Encoding.Default.GetBytes(streamData));
+        }
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestReadCsvWithHeader(bool useQuotes)
+        {
+            string CMT = useQuotes ? @"""C,MT""" : "CMT";
+            string verifyCMT = useQuotes ? "C,MT" : "CMT";
+            string data = @$"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
+{CMT},1,1,1271,3.8,CRD,17.5
+{CMT},1,1,474,1.5,CRD,8
+{CMT},1,1,637,1.4,CRD,8.5
+{CMT},1,1,181,0.6,CSH,4.5";
+
             void RegularTest(DataFrame df)
             {
                 Assert.Equal(4, df.Rows.Count);
                 Assert.Equal(7, df.Columns.Count);
-                Assert.Equal("CMT", df.Columns["vendor_id"][3]);
+                Assert.Equal(verifyCMT, df.Columns["vendor_id"][3]);
                 VerifyColumnTypes(df);
             }
             DataFrame df = DataFrame.LoadCsv(GetStream(data));
@@ -130,7 +135,7 @@ CMT,1,1,181,0.6,CSH,4.5";
             {
                 Assert.Equal(3, reducedRows.Rows.Count);
                 Assert.Equal(7, reducedRows.Columns.Count);
-                Assert.Equal("CMT", reducedRows.Columns["vendor_id"][2]);
+                Assert.Equal(verifyCMT, reducedRows.Columns["vendor_id"][2]);
                 VerifyColumnTypes(df);
             }
             DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), numberOfRowsToRead: 3);
@@ -140,22 +145,22 @@ CMT,1,1,181,0.6,CSH,4.5";
         }
 
         [Fact]
-        public void TestReadCsvNoHeader()
+        public void TestReadCsvSplitAcrossMultipleLines()
         {
-            string data = @"CMT,1,1,1271,3.8,CRD,17.5
-CMT,1,1,474,1.5,CRD,8
-CMT,1,1,637,1.4,CRD,8.5
-CMT,1,1,181,0.6,CSH,4.5";
+            string CMT = @"""C
+MT""";
+            string verifyCMT = @"C
+MT";
+            string data = @$"{CMT},1,1,1271,3.8,CRD,17.5
+{CMT},1,1,474,1.5,CRD,8
+{CMT},1,1,637,1.4,CRD,8.5
+{CMT},1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void RegularTest(DataFrame df)
             {
                 Assert.Equal(4, df.Rows.Count);
                 Assert.Equal(7, df.Columns.Count);
-                Assert.Equal("CMT", df.Columns["Column0"][3]);
+                Assert.Equal(verifyCMT, df.Columns["Column0"][3]);
                 VerifyColumnTypes(df);
             }
 
@@ -168,7 +173,46 @@ CMT,1,1,181,0.6,CSH,4.5";
             {
                 Assert.Equal(3, reducedRows.Rows.Count);
                 Assert.Equal(7, reducedRows.Columns.Count);
-                Assert.Equal("CMT", reducedRows.Columns["Column0"][2]);
+                Assert.Equal(verifyCMT, reducedRows.Columns["Column0"][2]);
+                VerifyColumnTypes(df);
+            }
+
+            DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), header: false, numberOfRowsToRead: 3);
+            ReducedRowsTest(reducedRows);
+            csvDf = DataFrame.LoadCsvFromString(data, header: false, numberOfRowsToRead: 3);
+            ReducedRowsTest(csvDf);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestReadCsvNoHeader(bool useQuotes)
+        {
+            string CMT = useQuotes ? @"""C,MT""" : "CMT";
+            string verifyCMT = useQuotes ? "C,MT" : "CMT";
+            string data = @$"{CMT},1,1,1271,3.8,CRD,17.5
+{CMT},1,1,474,1.5,CRD,8
+{CMT},1,1,637,1.4,CRD,8.5
+{CMT},1,1,181,0.6,CSH,4.5";
+
+            void RegularTest(DataFrame df)
+            {
+                Assert.Equal(4, df.Rows.Count);
+                Assert.Equal(7, df.Columns.Count);
+                Assert.Equal(verifyCMT, df.Columns["Column0"][3]);
+                VerifyColumnTypes(df);
+            }
+
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), header: false);
+            RegularTest(df);
+            DataFrame csvDf = DataFrame.LoadCsvFromString(data, header: false);
+            RegularTest(csvDf);
+
+            void ReducedRowsTest(DataFrame reducedRows)
+            {
+                Assert.Equal(3, reducedRows.Rows.Count);
+                Assert.Equal(7, reducedRows.Columns.Count);
+                Assert.Equal(verifyCMT, reducedRows.Columns["Column0"][2]);
                 VerifyColumnTypes(df);
             }
 
@@ -241,10 +285,6 @@ CMT,1,1,474,1.5,CRD,8
 CMT,1,1,637,1.4,CRD,8.5
 CMT,1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             string data = header ? headerLine + dataLines : dataLines;
             DataFrame df = DataFrame.LoadCsv(GetStream(data),
@@ -295,10 +335,6 @@ CMT,1,1,637,1.4,CRD,8.5
 ,,,,,,
 CMT,1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void Verify(DataFrame df)
             {
                 Assert.Equal(5, df.Rows.Count);
@@ -358,10 +394,6 @@ CMT|1|1|637|1.4|CRD|8.5
 ||||||
 CMT|1|1|181|0.6|CSH|4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void Verify(DataFrame df)
             {
                 Assert.Equal(5, df.Rows.Count);
@@ -401,10 +433,6 @@ CMT;1;1;637;1.4;CRD;8.5
 ;;;;;;
 CMT;1;1;181;0.6;CSH;4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void Verify(DataFrame df)
             {
                 Assert.Equal(5, df.Rows.Count);
@@ -443,10 +471,6 @@ CMT,1,1,474,1.5,CRD,8
 CMT,1,1,637,1.4,CRD,8.5
 CMT,1,1,181,0.6,CSH,4.5";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             void Verify(DataFrame df)
             {
                 Assert.Equal(4, df.Rows.Count);
@@ -476,11 +500,6 @@ CMT,1,1,474,1.5,CRD,8,0
 CMT,1,1,637,1.4,CRD,8.5,0
 CMT,1,1,181,0.6,CSH,4.5,0";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
-
             Assert.Throws<IndexOutOfRangeException>(() => DataFrame.LoadCsv(GetStream(data)));
             Assert.Throws<IndexOutOfRangeException>(() => DataFrame.LoadCsvFromString(data));
         }
@@ -493,11 +512,6 @@ CMT,1,1,1271,3.8,CRD
 CMT,1,1,474,1.5,CRD
 CMT,1,1,637,1.4,CRD
 CMT,1,1,181,0.6,CSH";
-
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             void Verify(DataFrame df)
             {
@@ -529,11 +543,6 @@ null,null,null,null
 Null,Null,Null,Null
 null,null,null,null
 null,null,null,null";
-
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             void Verify(DataFrame df)
             {
@@ -577,11 +586,6 @@ CMT,1,null,637
 Null,,,
 ,,,
 CMT,1,1,null";
-
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             void Verify(DataFrame df)
             {
@@ -644,11 +648,6 @@ CMT,1,null,637
 Null,,,
 ,,,
 CMT,1,1,null";
-
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
 
             void Verify(DataFrame df)
             {
@@ -867,10 +866,6 @@ Null,
 ,
 CMT,";
 
-            Stream GetStream(string streamData)
-            {
-                return new MemoryStream(Encoding.Default.GetBytes(streamData));
-            }
             DataFrame df = DataFrame.LoadCsv(GetStream(data));
             Assert.Equal(6, df.Rows.Count);
             Assert.Equal(2, df.Columns.Count);

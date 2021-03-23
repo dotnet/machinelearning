@@ -70,6 +70,24 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Line {0} cannot be parsed with the current Delimiters..
+        /// </summary>
+        internal static string CannotParseWithDelimiters {
+            get {
+                return ResourceManager.GetString("CannotParseWithDelimiters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Line {0} cannot be parsed with the current FieldWidths..
+        /// </summary>
+        internal static string CannotParseWithFieldWidths {
+            get {
+                return ResourceManager.GetString("CannotParseWithFieldWidths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot resize down.
         /// </summary>
         internal static string CannotResizeDown {
@@ -88,11 +106,29 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Comment token cannot contain whitespace.
+        /// </summary>
+        internal static string CommentTokenCannotContainWhitespace {
+            get {
+                return ResourceManager.GetString("CommentTokenCannotContainWhitespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to DataType.
         /// </summary>
         internal static string DataType {
             get {
                 return ResourceManager.GetString("DataType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delimiter cannot be new line characters.
+        /// </summary>
+        internal static string DelimiterCannotBeNewlineChar {
+            get {
+                return ResourceManager.GetString("DelimiterCannotBeNewlineChar", resourceCulture);
             }
         }
         
@@ -115,11 +151,38 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delimiters is empty..
+        /// </summary>
+        internal static string EmptyDelimiters {
+            get {
+                return ResourceManager.GetString("EmptyDelimiters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FieldWidths is empty..
+        /// </summary>
+        internal static string EmptyFieldWidths {
+            get {
+                return ResourceManager.GetString("EmptyFieldWidths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Empty file.
         /// </summary>
         internal static string EmptyFile {
             get {
                 return ResourceManager.GetString("EmptyFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exceeded maximum buffer size..
+        /// </summary>
+        internal static string ExceededMaxBufferSize {
+            get {
+                return ResourceManager.GetString("ExceededMaxBufferSize", resourceCulture);
             }
         }
         
@@ -147,6 +210,24 @@ namespace Microsoft.Data {
         internal static string ExpectedEitherGuessRowsOrDataTypes {
             get {
                 return ResourceManager.GetString("ExpectedEitherGuessRowsOrDataTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} not found..
+        /// </summary>
+        internal static string FileNotFound {
+            get {
+                return ResourceManager.GetString("FileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A double quote is not a legal delimiter when HasFieldsEnclosedInQuotes is set to True..
+        /// </summary>
+        internal static string IllegalQuoteDelimiter {
+            get {
+                return ResourceManager.GetString("IllegalQuoteDelimiter", resourceCulture);
             }
         }
         
@@ -187,11 +268,29 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All field widths, except the last element, must be greater than zero. A field width less than or equal to zero in the last element indicates the last field is of variable length..
+        /// </summary>
+        internal static string InvalidFieldWidths {
+            get {
+                return ResourceManager.GetString("InvalidFieldWidths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Line {0} has less columns than expected.
         /// </summary>
         internal static string LessColumnsThatExpected {
             get {
                 return ResourceManager.GetString("LessColumnsThatExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Line {0} cannot be read because it exceeds the max line size..
+        /// </summary>
+        internal static string LineExceedsMaxLineSize {
+            get {
+                return ResourceManager.GetString("LineExceedsMaxLineSize", resourceCulture);
             }
         }
         
@@ -266,6 +365,24 @@ namespace Microsoft.Data {
                 return ResourceManager.GetString("NotSupportedColumnType", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delimiters is null..
+        /// </summary>
+        internal static string NullDelimiters {
+            get {
+                return ResourceManager.GetString("NullDelimiters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FieldWidths is null..
+        /// </summary>
+        internal static string NullFieldWidths {
+            get {
+                return ResourceManager.GetString("NullFieldWidths", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to numeric column.
@@ -277,11 +394,29 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} must be greater than 0.
+        /// </summary>
+        internal static string PositiveNumberOfCharacters {
+            get {
+                return ResourceManager.GetString("PositiveNumberOfCharacters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot span multiple buffers.
         /// </summary>
         internal static string SpansMultipleBuffers {
             get {
                 return ResourceManager.GetString("SpansMultipleBuffers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stream doesn&apos;t support reading.
+        /// </summary>
+        internal static string StreamDoesntSupportReading {
+            get {
+                return ResourceManager.GetString("StreamDoesntSupportReading", resourceCulture);
             }
         }
     }

@@ -120,14 +120,26 @@
   <data name="BadColumnCast" xml:space="preserve">
     <value>Cannot cast column holding {0} values to type {1}</value>
   </data>
+  <data name="CannotParseWithDelimiters" xml:space="preserve">
+    <value>Line {0} cannot be parsed with the current Delimiters.</value>
+  </data>
+  <data name="CannotParseWithFieldWidths" xml:space="preserve">
+    <value>Line {0} cannot be parsed with the current FieldWidths.</value>
+  </data>
   <data name="CannotResizeDown" xml:space="preserve">
     <value>Cannot resize down</value>
   </data>
   <data name="ColumnIndexOutOfRange" xml:space="preserve">
     <value>Index cannot be greater than the Column's Length</value>
   </data>
+  <data name="CommentTokenCannotContainWhitespace" xml:space="preserve">
+    <value>Comment token cannot contain whitespace</value>
+  </data>
   <data name="DataType" xml:space="preserve">
     <value>DataType</value>
+  </data>
+  <data name="DelimiterCannotBeNewlineChar" xml:space="preserve">
+    <value>Delimiter cannot be new line characters</value>
   </data>
   <data name="DescriptionMethodLength" xml:space="preserve">
     <value>Length (excluding null values)</value>
@@ -135,8 +147,17 @@
   <data name="DuplicateColumnName" xml:space="preserve">
     <value>DataFrame already contains a column called {0}</value>
   </data>
+  <data name="EmptyDelimiters" xml:space="preserve">
+    <value>Delimiters is empty.</value>
+  </data>
+  <data name="EmptyFieldWidths" xml:space="preserve">
+    <value>FieldWidths is empty.</value>
+  </data>
   <data name="EmptyFile" xml:space="preserve">
     <value>Empty file</value>
+  </data>
+  <data name="ExceededMaxBufferSize" xml:space="preserve">
+    <value>Exceeded maximum buffer size.</value>
   </data>
   <data name="ExceedsNumberOfColumns" xml:space="preserve">
     <value>Parameter.Count exceeds the number of columns({0}) in the DataFrame </value>
@@ -146,6 +167,12 @@
   </data>
   <data name="ExpectedEitherGuessRowsOrDataTypes" xml:space="preserve">
     <value>Expected either {0} or {1} to be provided</value>
+  </data>
+  <data name="FileNotFound" xml:space="preserve">
+    <value>{0} not found.</value>
+  </data>
+  <data name="IllegalQuoteDelimiter" xml:space="preserve">
+    <value>A double quote is not a legal delimiter when HasFieldsEnclosedInQuotes is set to True.</value>
   </data>
   <data name="ImmutableColumn" xml:space="preserve">
     <value>Column is immutable</value>
@@ -159,8 +186,14 @@
   <data name="InvalidColumnName" xml:space="preserve">
     <value>Column does not exist</value>
   </data>
+  <data name="InvalidFieldWidths" xml:space="preserve">
+    <value>All field widths, except the last element, must be greater than zero. A field width less than or equal to zero in the last element indicates the last field is of variable length.</value>
+  </data>
   <data name="LessColumnsThatExpected" xml:space="preserve">
     <value>Line {0} has less columns than expected</value>
+  </data>
+  <data name="LineExceedsMaxLineSize" xml:space="preserve">
+    <value>Line {0} cannot be read because it exceeds the max line size.</value>
   </data>
   <data name="MapIndicesExceedsColumnLenth" xml:space="preserve">
     <value>MapIndices exceeds column length</value>
@@ -186,10 +219,22 @@
   <data name="NotSupportedColumnType" xml:space="preserve">
     <value>{0} is not a supported column type.</value>
   </data>
+  <data name="NullDelimiters" xml:space="preserve">
+    <value>Delimiters is null.</value>
+  </data>
+  <data name="NullFieldWidths" xml:space="preserve">
+    <value>FieldWidths is null.</value>
+  </data>
   <data name="NumericColumnType" xml:space="preserve">
     <value>numeric column</value>
   </data>
+  <data name="PositiveNumberOfCharacters" xml:space="preserve">
+    <value>{0} must be greater than 0</value>
+  </data>
   <data name="SpansMultipleBuffers" xml:space="preserve">
     <value>Cannot span multiple buffers</value>
+  </data>
+  <data name="StreamDoesntSupportReading" xml:space="preserve">
+    <value>Stream doesn't support reading</value>
   </data>
 </root>
