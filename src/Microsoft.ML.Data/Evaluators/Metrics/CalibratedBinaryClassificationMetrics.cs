@@ -37,7 +37,7 @@ namespace Microsoft.ML.Data
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
         /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
-        /// $LogLossReduction = \frac{LogLoss(prior) - LogLoss(classifier)}{LogLoss(prior)}
+        /// $LogLossReduction = \frac{LogLoss(prior) - LogLoss(classifier)}{LogLoss(prior)}$
         /// This metric can be interpreted as the advantage of the classifier over a random prediction.
         /// For example, if the RIG equals 0.2, it can be interpreted as "the probability of a correct prediction is
         /// 20% better than random guessing".
