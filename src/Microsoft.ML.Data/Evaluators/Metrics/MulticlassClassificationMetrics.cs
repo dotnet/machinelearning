@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
         /// The log-loss metric is computed as follows:
-        /// $LogLoss = - \frac{1}{m} \sum_{i = 1}^m log(p_i),
+        /// $LogLoss = - \frac{1}{m} \sum_{i = 1}^m log(p_i)$,
         /// where $m$ is the number of instances in the test set and
         /// $p_i$ is the probability returned by the classifier
         /// of the instance belonging to the true class.
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
         /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
-        /// $LogLossReduction = \frac{LogLoss(prior) - LogLoss(classifier)}{LogLoss(prior)}
+        /// $LogLossReduction = \frac{LogLoss(prior) - LogLoss(classifier)}{LogLoss(prior)}$
         /// This metric can be interpreted as the advantage of the classifier over a random prediction.
         /// For example, if the RIG equals 0.2, it can be interpreted as "the probability of a correct prediction is
         /// 20% better than random guessing".
