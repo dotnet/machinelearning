@@ -56,7 +56,7 @@ Since ML.NET has a hard dependency on x86/x64, the managed code imports DLLs wit
 ### 2.4 Native Projects
 ML.NET has 6 native projects. They are:
  - CpuMathNative
-   - Partial managed fallback when using NetCore 3.1.
+   - Partial managed fallback when using .NET Core 3.1 or later.
    - A large amount of work would be required to port the native code to other platforms. We would have to change all the SIMD instructions for each platform.
    - A small amount of work required for a full managed fallback.
    - This was created before we had hardware intrinsics so we used native code for performance. The managed fallback uses x86/x64 intrinsics if the hardware supports it, otherwise it has a plain managed fallback without intrinsics if needed.
