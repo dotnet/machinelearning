@@ -137,7 +137,7 @@ Since some of the native code already has replacements and some of the code alre
 At a high level, this solution would require us to:
  - Fix the build so it's not hardcoded to look for any native dependencies or binaries.
  - Fix the managed code so that if it can't find the native binaries, the code behaves correctly and performs the software fallback. This includes software fallbacks and/or description error messages.
- - CpuMathNative mostly has software fallbacks already in place for .NET core 3.1, so only a little work is needed.
+ - CpuMathNative mostly has software fallbacks already in place for .NET Core 3.1 and later, so only a little work is needed.
  - FastTreeNative has a flag for a software fallback. We would need to conditionally enable this. Alternatively, we could change the C# code so the software fallback is always enabled for the cases when it can't find the native binaries.
  - LdaNative builds just find without x86/x64 dependencies, so no replacements would need to be found.
  - MatrixFactorizationNative builds with the "USESSE" flag that requires x86/x64. We can conditionally enable/disable that flag and no other work would be required.
