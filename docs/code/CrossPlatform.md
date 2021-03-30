@@ -25,7 +25,7 @@ ML.NET is an open-source machine learning framework which makes machine learning
 
 ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications using .NET.
 
-Currently, while .NET is able to run on many different platforms and architectures, ML.NET is only able to run on Windows, Mac, and Linux, either x86 or x64. This excludes many architectures such as Arm, Arm64, M1, and web assembly, places that .NET is currently able to run.
+Currently, while .NET is able to run on many different platforms and architectures, ML.NET is only able to run on Windows, Mac, and Linux, either x86 or x64. This excludes many architectures such as Arm, Arm64, Apple Silicon, and web assembly (WASM), places that .NET is currently able to run.
 
 The goal is to enable ML.NET to run everywhere that .NET itself is able to run.
 
