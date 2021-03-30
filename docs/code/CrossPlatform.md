@@ -124,7 +124,7 @@ This will truly allow ML.NET to run anywhere that .NET runs. The only downside i
 At a high level, this solution would require us to:
  - Fix the build so it's not hardcoded to look for any native dependencies or binaries.
  - Fix the managed code so that if it can't find the native binaries, the code behaves correctly and performs the software fallback.
- - CpuMathNative mostly has software fallbacks already in place for .NET core 3.1, so only a little work is needed.
+ - CpuMathNative mostly has software fallbacks already in place for .NET Core 3.1 and later, so only a little work is needed.
  - FastTreeNative has a flag for a software fallback. We would need to conditionally enable this. Alternatively, we could change the C# code so the software fallback is always enabled for the cases when it can't find the native binaries.
  - LdaNative would need to be re-written.
  - MatrixFactorizationNative would need to be re-written.
