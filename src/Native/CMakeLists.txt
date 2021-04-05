@@ -193,9 +193,13 @@ function(install_library_and_symbols targetName)
     endif()
 endfunction()
 
-add_subdirectory(CpuMathNative)
-add_subdirectory(FastTreeNative)
+if(NOT ${ARCHITECTURE} MATCHES "Arm64")
+    add_subdirectory(CpuMathNative)
+    add_subdirectory(FastTreeNative)
+    add_subdirectory(MklProxyNative)
+endif()
+
+add_subdirectory(SymSgdNative)
 add_subdirectory(LdaNative)
 add_subdirectory(MatrixFactorizationNative)
-add_subdirectory(SymSgdNative)
-add_subdirectory(MklProxyNative)
+

@@ -29,7 +29,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="CpuMathNative" />
   </ItemGroup>
   
   <ItemGroup>

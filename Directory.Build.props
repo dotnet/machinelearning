@@ -28,7 +28,6 @@
     <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
     <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
-    <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
     <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
     <StrongNameKeyId>Open</StrongNameKeyId>
   </PropertyGroup>

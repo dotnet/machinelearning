@@ -5,6 +5,7 @@
     <IncludeInPackage>Microsoft.ML.FastTree</IncludeInPackage>
     <PackageDescription>ML.NET component for FastTree</PackageDescription>
     <DefineConstants>$(DefineConstants);NO_STORE;CORECLR</DefineConstants>
+    <DefineConstants Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'">$(DefineConstants);USE_FASTTREENATIVE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>

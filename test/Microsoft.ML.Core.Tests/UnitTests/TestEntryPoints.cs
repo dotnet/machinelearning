@@ -2123,7 +2123,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [NotSupportedOnArm]
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -4225,7 +4225,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [NotSupportedOnArm]
         public void EntryPointLinearPredictorSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");

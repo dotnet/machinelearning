@@ -2,14 +2,19 @@ project (MatrixFactorizationNative)
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 add_definitions(-DUSEOMP)
 
-if(not CMAKE_GENERATOR_PLATFORM matches "Arm64")
+if(NOT ${ARCHITECTURE} MATCHES "Arm64")
     add_definitions(-DUSESSE)
 endif()
 
 include_directories(libmf)
 
 if(UNIX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -pthread -std=c++0x -march=native")
+    if(NOT ${ARCHITECTURE} MATCHES "Arm64")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -pthread -std=c++0x -march=native")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -pthread -std=c++0x")
+    endif()
+
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
     if (APPLE)
         include_directories("/usr/local/opt/libomp/include")

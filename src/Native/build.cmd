@@ -68,8 +68,10 @@ exit /b 1
 set __PlatformToolset=v142
 set __VSVersion=16 2019
 if NOT "%__BuildArch%" == "arm64" (
-    :: Set the environment for the native build
-    call "%VS160COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+    if NOT "%__BuildArch%" == "arm" (
+        :: Set the environment for the native build
+        call "%VS160COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+    )
 )
 goto :SetupDirs
 
@@ -78,8 +80,10 @@ goto :SetupDirs
 set __PlatformToolset=v141
 set __VSVersion=15 2017
 if NOT "%__BuildArch%" == "arm64" (
-    :: Set the environment for the native build
-    call "%VS150COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+    if NOT "%__BuildArch%" == "arm" (
+        :: Set the environment for the native build
+        call "%VS150COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+    )
 )
 goto :SetupDirs
 
@@ -88,8 +92,9 @@ goto :SetupDirs
 set __PlatformToolset=v140
 set __VSVersion=14 2015
 if NOT "%__BuildArch%" == "arm64" (
-    :: Set the environment for the native build
-    call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" %__VCBuildArch%
+    if NOT "%__BuildArch%" == "arm" (
+        :: Set the environment for the native build
+        call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" %__VCBuildArch%
 )
 
 :SetupDirs

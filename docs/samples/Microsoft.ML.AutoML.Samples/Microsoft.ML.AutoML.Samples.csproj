@@ -16,7 +16,7 @@
     </ProjectReference>
 
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
-    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="FastTreeNative" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />

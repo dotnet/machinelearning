@@ -6,11 +6,11 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="CpuMathNative" />
   </ItemGroup>
 
   <ItemGroup>
-    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklImports" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
   

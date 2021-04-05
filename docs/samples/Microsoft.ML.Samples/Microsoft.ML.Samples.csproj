@@ -34,12 +34,12 @@
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
 
-    <NativeAssemblyReference Include="CpuMathNative" />
-    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="CpuMathNative" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
-    <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklProxyNative" />
     <None Include="Dynamic\Trainers\BinaryClassification\FastForest.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

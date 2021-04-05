@@ -7,18 +7,15 @@
   </ItemGroup>
 
   <Target Name="CopyNativeAssembiles" AfterTargets="CopyFilesToOutputDirectory">
-    <Message Text="$(Platform)"/>
+    <Message Text="$(TargetArchitecture)"/>
     <PropertyGroup>
 		<LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
 		<LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
 		<LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
 		<LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
 
-    <TargetArchitecture>$(Platform)</TargetArchitecture>
-		<TargetArchitecture Condition="'$(Platform)' == ''">x64</TargetArchitecture>
-		<NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
 		<BinDir Condition="'$(BinDir)'==''">$([MSBuild]::NormalizeDirectory('$(RepoRoot)', 'artifacts', 'bin'))</BinDir>
-		<NativeOutputPath>$(BinDir)Native\$(NativeTargetArchitecture).$(Configuration)\</NativeOutputPath>
+		<NativeOutputPath>$(BinDir)Native\$(TargetArchitecture).$(Configuration)\</NativeOutputPath>
 
 		<Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
 		<PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
