@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectSpikeBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction)" />
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectSpikeBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Double,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction)" />
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         internal SsaSpikeEstimator(IHostEnvironment env,
             string outputColumnName,
-            int confidence,
+            double confidence,
             int pvalueHistoryLength,
             int trainingWindowSize,
             int seasonalityWindowSize,

@@ -52,7 +52,7 @@ namespace Samples.Dynamic
             // Setup SsaChangePointDetector arguments
             var inputColumnName = nameof(TimeSeriesData.Value);
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
-            int confidence = 95;
+            double confidence = 95;
             int changeHistoryLength = 8;
 
             // Train the change point detector.

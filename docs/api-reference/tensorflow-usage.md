@@ -1,6 +1,6 @@
 ## Using TensorFlow based APIs
-In order to run any TensorFlow based ML.Net APIs you must first add a NuGet dependency 
-on the TensorFlow redist library. There are currently two versions you can use. One which is 
+In order to run any TensorFlow based ML.Net APIs you must first add a NuGet dependency
+on the TensorFlow redist library. There are currently two versions you can use. One which is
 compiled for GPU support, and one which has CPU support only.
 
 ### CPU only
@@ -22,18 +22,18 @@ As of now TensorFlow does not support running on GPUs for MacOS, so we cannot su
 You must have at least one CUDA compatible GPU, for a list of compatible GPUs see
 [Nvidia's Guide](https://developer.nvidia.com/cuda-gpus).
 
-Install [CUDA v10.0](https://developer.nvidia.com/cuda-10.0-download-archive) and [CUDNN v7.6.4](https://developer.nvidia.com/rdp/cudnn-download). 
+Install [CUDA v10.1](https://developer.nvidia.com/cuda-10.1-download-archive-update2) and [CUDNN v7.6.4](https://developer.nvidia.com/rdp/cudnn-download).
 
-Make sure you install CUDA v10.0, not any other newer version.
+Make sure you install CUDA v10.1, not any other newer version.
 After downloading CUDNN v7.6.4 .zip file and unpacking it, you need to do the following steps:
 
-`copy <CUDNN_zip_files_path>\cuda\bin\cudnn64_7.dll to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\bin`
+`copy <CUDNN_zip_files_path>\cuda\bin\cudnn64_7.dll to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\bin`
 
 For C/C++ development:
 
-`Copy <CUDNN_zip_files_path>\cuda\ include\cudnn.h to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include`
+`Copy <CUDNN_zip_files_path>\cuda\ include\cudnn.h to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include`
 
-`Copy <CUDNN_zip_files_path>\cuda\lib\x64\cudnn.lib to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\lib\x64`
+`Copy <CUDNN_zip_files_path>\cuda\lib\x64\cudnn.lib to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\lib\x64`
 
 For further details in cuDNN you can follow the [cuDNN Installation guide](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#installwindows).
 

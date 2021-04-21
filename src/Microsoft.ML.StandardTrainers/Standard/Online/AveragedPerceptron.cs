@@ -12,6 +12,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
+using static Microsoft.ML.Trainers.AveragedLinearOptions;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -76,6 +77,11 @@ namespace Microsoft.ML.Trainers
 
         private readonly Options _args;
 
+        internal class AveragedPerceptronDefault : AveragedDefault
+        {
+            public new const int NumberOfIterations = 10;
+        }
+
         /// <summary>
         /// Options for the <see cref="AveragedPerceptronTrainer"/> as used in
         /// <see cref="Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, Options)"/>.
@@ -84,7 +90,7 @@ namespace Microsoft.ML.Trainers
         {
             public Options()
             {
-                NumberOfIterations = 10;
+                NumberOfIterations = AveragedPerceptronDefault.NumberOfIterations;
             }
 
             /// <summary>
@@ -166,10 +172,10 @@ namespace Microsoft.ML.Trainers
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
-            float learningRate = Options.AveragedDefault.LearningRate,
-            bool decreaseLearningRate = Options.AveragedDefault.DecreaseLearningRate,
-            float l2Regularization = Options.AveragedDefault.L2Regularization,
-            int numberOfIterations = Options.AveragedDefault.NumberOfIterations)
+            float learningRate = AveragedPerceptronDefault.LearningRate,
+            bool decreaseLearningRate = AveragedPerceptronDefault.DecreaseLearningRate,
+            float l2Regularization = AveragedPerceptronDefault.L2Regularization,
+            int numberOfIterations = AveragedPerceptronDefault.NumberOfIterations)
             : this(env, new Options
             {
                 LabelColumnName = labelColumnName,

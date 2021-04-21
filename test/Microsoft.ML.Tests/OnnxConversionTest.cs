@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests
 
             // Step 3: Check ONNX model's text format. This test will be not necessary if Step 2 can run on Linux and
             // Mac to support cross-platform tests.
-            
+
             CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
 
             Done();
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void KmeansOnnxConversionTest()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
 
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Tests
                 new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
                 new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.None, columns: new[] { ("OriginalText", "text") }));
             var onnxFileName = $"TextNormalizing.onnx";
-            
+
             TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("NormText"), new ColumnComparison("UpperText"), new ColumnComparison("OriginalText") });
 
             Done();
@@ -788,7 +788,7 @@ namespace Microsoft.ML.Tests
             .Append(mlContext.Transforms.NormalizeMinMax("Features"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
 
-            var model = pipeline.Fit(data);
+            using var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
             var onnxConversionContext = new OnnxContextImpl(mlContext, "A Simple Pipeline", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
@@ -1154,7 +1154,7 @@ namespace Microsoft.ML.Tests
 
             // IsNaN outputs a binary tensor. Support for this has been added in the latest version
             // of Onnxruntime, but that hasn't been released yet.
-            // So we need to convert its type to Int32 until then. 
+            // So we need to convert its type to Int32 until then.
             // ConvertType part of the pipeline can be removed once we pick up a new release of the Onnx runtime
 
             var pipeline = mlContext.Transforms.IndicateMissingValues(new[] { new InputOutputColumnPair("MissingIndicator", "Features"), })
@@ -1205,6 +1205,165 @@ namespace Microsoft.ML.Tests
                 var onnxFileName = "ValueToKey.onnx";
 
                 TestPipeline(pipeline, dataViews[j], onnxFileName, new ColumnComparison[] { new ColumnComparison("Key") });
+            }
+            Done();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        // Due to lack of support in OnnxRuntime, String => String mappings are not supported
+        public void ValueMappingOnnxConversionTest([CombinatorialValues(DataKind.Int64, DataKind.Int32, DataKind.UInt32, DataKind.UInt64,
+        DataKind.UInt16, DataKind.Int16, DataKind.Double, DataKind.String, DataKind.Boolean)]
+        DataKind keyType, [CombinatorialValues(true, false)] bool treatValuesAsKeyType)
+        {
+            var mlContext = new MLContext(seed: 1);
+            string filePath = (keyType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt")
+                : GetDataPath("type-conversion.txt");
+
+            TextLoader.Column[] columnsVector = new[]
+            {
+                new TextLoader.Column("Keys", keyType, 0, 2)
+            };
+            TextLoader.Column[] columnsScalar = new[]
+            {
+                new TextLoader.Column("Keys", keyType, 0)
+            };
+            IDataView[] dataViews =
+            {
+                mlContext.Data.LoadFromTextFile(filePath, columnsScalar, separatorChar: '\t'), //scalar
+                mlContext.Data.LoadFromTextFile(filePath, columnsVector , separatorChar: '\t') //vector
+            };
+            List<IEstimator<ITransformer>> pipelines = new List<IEstimator<ITransformer>>();
+
+            if (keyType == DataKind.Single)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, int> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, long> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, short> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, uint> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, ushort> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, ulong> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, string> { { 3, "True" }, { 23, "False" } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, float> { { 3, 6 }, { 23, 46 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, double> { { 3, 698 }, { 23, 7908 } }, "Keys", treatValuesAsKeyType));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<float, bool> { { 3, false }, { 23, true } }, "Keys", treatValuesAsKeyType));
+            }
+            else if (keyType == DataKind.Double)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, int> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, uint> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, ushort> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, ulong> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, string> { { 3, "True" }, { 23, "False" } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, float> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, long> { { 3, 698 }, { 23, 7908 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, double> { { 3, 698 }, { 23, 7908 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<double, bool> { { 3, true }, { 23, false } }, "Keys"));
+            }
+            else if (keyType == DataKind.Boolean)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, int> { { true, 6 }, { false, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, short> { { true, 6 }, { false, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, uint> { { true, 6 }, { false, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, ushort> { { true, 6 }, { false, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, ulong> { { true, 6 }, { false, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, string> { { true, "True" }, { false, "False" } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, float> { { true, 6 }, { false, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, long> { { true, 698 }, { false, 7908 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, double> { { true, 698 }, { false, 7908 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<bool, bool> { { false, true }, { true, false } }, "Keys"));
+            }
+            else if (keyType == DataKind.String)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, int> { { "3", 3 }, { "23", 23 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, short> { { "3", 3 }, { "23", 23 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, uint> { { "3", 6 }, { "23", 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, ushort> { { "3", 6 }, { "23", 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, ulong> { { "3", 6 }, { "23", 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, float> { { "3", 6 }, { "23", 23 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, double> { { "3", 6 }, { "23", 23 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, long> { { "3", 3 }, { "23", 23 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<string, bool> { { "3", true }, { "23", false } }, "Keys"));
+            }
+            else if (keyType == DataKind.Int32)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, short> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, int> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, long> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, ushort> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, uint> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, ulong> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, string> { { 3, "True" }, { 23, "False" } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, float> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<int, double> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+            }
+            else if (keyType == DataKind.Int16)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, short> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, int> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, long> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, ushort> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, uint> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, ulong> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, string> { { 3, "True" }, { 23, "False" } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, float> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<short, double> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+            }
+            else if (keyType == DataKind.Int64)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, short> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, int> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, long> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, ushort> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, uint> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, ulong> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, string> { { 3, "True" }, { 23, "False" } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, float> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<long, double> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+            }
+            else if (keyType == DataKind.UInt32)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, short> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, int> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, long> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, ushort> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, uint> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, ulong> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, string> { { 3, "True" }, { 23, "False" } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, float> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<uint, double> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+            }
+            else if (keyType == DataKind.UInt16)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, short> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, int> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, long> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, ushort> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, uint> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, ulong> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, string> { { 3, "True" }, { 23, "False" } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, float> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ushort, double> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+            }
+            else if (keyType == DataKind.UInt64)
+            {
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, short> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, int> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, long> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, ushort> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, uint> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, ulong> { { 3, 6 }, { 23, 46 } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, string> { { 3, "True" }, { 23, "False" } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, float> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+                pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, double> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
+            }
+            foreach (IEstimator<ITransformer> pipeline in pipelines) 
+            {
+                for (int j = 0; j < dataViews.Length; j++)
+                {
+                    var onnxFileName = "ValueMapping.onnx";
+                    TestPipeline(pipeline, dataViews[j], onnxFileName, new ColumnComparison[] { new ColumnComparison("Value") });
+                }
             }
             Done();
         }
@@ -1323,9 +1482,12 @@ namespace Microsoft.ML.Tests
                             weighting: weighting)),
 
                 mlContext.Transforms.Text.ProduceWordBags("Tokens", "Text",
-                                        ngramLength: ngramLength,
-                                        useAllLengths: useAllLength,
-                                        weighting: weighting)
+                            ngramLength: ngramLength,
+                            useAllLengths: useAllLength,
+                            weighting: weighting),
+
+                mlContext.Transforms.Text.TokenizeIntoWords("Tokens0", "Text")
+                .Append(mlContext.Transforms.Text.ProduceWordBags("Tokens", "Tokens0"))
             };
 
             for (int i = 0; i < pipelines.Length; i++)
@@ -1346,7 +1508,7 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxFilePath, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    var columnName = i == pipelines.Length - 1 ? "Tokens" : "NGrams";
+                    var columnName = i >= pipelines.Length - 2 ? "Tokens" : "NGrams";
                     CompareResults(columnName, columnName, transformedData, onnxResult, 3);
 
                     VBuffer<ReadOnlyMemory<char>> mlNetSlots = default;
@@ -1537,6 +1699,46 @@ namespace Microsoft.ML.Tests
             var onnxFileName = "copycolumns.onnx";
 
             TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Target") });
+
+            Done();
+        }
+
+        [Fact]
+        public void SelectiveExportOnnxTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            var dataView = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
+                separatorChar: ';',
+                hasHeader: true);
+
+            var mlpipeline = mlContext.Transforms.CopyColumns("Target1", "Target");
+            var onnxFileName = "copycolumns.onnx";
+
+            var mlmodel = mlpipeline.Fit(dataView);
+
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            using (var stream = File.Create(onnxModelPath))
+            {
+                mlContext.Model.ConvertToOnnx(mlmodel, dataView, stream, "Target1");
+            }
+
+            var model = new OnnxCSharpToProtoWrapper.ModelProto();
+            using (var modelStream = File.OpenRead(onnxModelPath))
+            using (var codedStream = Google.Protobuf.CodedInputStream.CreateWithLimits(modelStream, Int32.MaxValue, 10))
+                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(codedStream);
+
+            Assert.True(model.Graph.Output.Count == 1);
+            Assert.Equal("Target1.output", model.Graph.Output[0].Name);
+
+            // Make sure that even though the column wasn't passed to ONNX, that it can still be used directly from ML.Net
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+            var loadedModel = pipeline.Fit(dataView);
+
+            // Getting the preview will cause an issue if there is an error since ONNX is no longer exporting that column.
+            var loadedData = loadedModel.Transform(dataView).Preview(1);
+            Assert.Equal((Single)140.66, loadedData.ColumnView[1].Values[0]);
 
             Done();
         }
@@ -1803,7 +2005,7 @@ namespace Microsoft.ML.Tests
             }
             Done();
         }
-        
+
         [Fact]
         public void OneHotHashEncodingOnnxConversionWithCustomOpSetVersionTest()
         {
@@ -2026,7 +2228,7 @@ namespace Microsoft.ML.Tests
         private void TestPipeline<TLastTransformer>(EstimatorChain<TLastTransformer> pipeline, IDataView dataView, string onnxFileName, ColumnComparison[] columnsToCompare, string onnxTxtName = null, string onnxTxtSubDir = null)
             where TLastTransformer : class, ITransformer
         {
-            var model = pipeline.Fit(dataView);
+            using var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = ML.Model.ConvertToOnnxProtobuf(model, dataView);
 

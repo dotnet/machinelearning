@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <NoWarn>$(NoWarn);MSML_ParameterLocalVarName;MSML_PrivateFieldName;MSML_ExtendBaseTestClass;MSML_GeneralName</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
+        <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+        <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
+        <Compile Include="..\..\src\Microsoft.Data.Analysis\TextFieldParser.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="DataFrameColumn.BinaryOperationTests.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>DataFrameColumn.BinaryOperationTests.cs</LastGenOutput>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="DataFrameColumn.BinaryOperationTests.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>DataFrameColumn.BinaryOperationTests.tt</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="../../src/Microsoft.Data.Analysis/Strings.Designer.cs" />
+        <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Strings.resx" LogicalName="Microsoft.Data.Analysis.Strings.resources" />
+    </ItemGroup>
+
+</Project>

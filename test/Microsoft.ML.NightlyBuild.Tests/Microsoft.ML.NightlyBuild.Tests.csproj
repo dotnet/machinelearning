@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
@@ -11,7 +11,7 @@
   <Import Project="..\NightlyBuildDependency.props" />
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.ML.Functional.Tests\**\*.cs" />
+    <Compile Include="..\Microsoft.ML.IntegrationTests\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,14 @@
+<Project>
+    <ItemGroup Condition="'$(SignBinaries)' == 'true'">
+        <ItemsToSign Remove="@(ItemsToSign)" />
+        <ItemsToSign Include="$(ArtifactsDir)pkgassets\**\*.dll" />
+        <FileExtensionSignInfo Include="*.dll" CertificateName="Microsoft400" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(SignNugetPackages)' == 'true'">
+        <ItemsToSign Remove="@(ItemsToSign)" />
+        <ItemsToSign Include="$(ArtifactsDir)packages\**\*.nupkg" />
+        <ItemsToSign Include="$(ArtifactsDir)packages\**\*.snupkg" />
+        <FileExtensionSignInfo Include="*.nupkg" CertificateName="NuGet" />
+        <FileExtensionSignInfo Include="*.snupkg" CertificateName="NuGet" />
+    </ItemGroup>
+</Project>

@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
@@ -22,7 +24,7 @@ namespace Microsoft.ML.Data
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
         /// The log-loss metric is computed as follows:
-        /// $LogLoss = - \frac{1}{m} \sum_{i = 1}^m log(p_i),
+        /// $LogLoss = - \frac{1}{m} \sum_{i = 1}^m log(p_i)$,
         /// where $m$ is the number of instances in the test set and
         /// $p_i$ is the probability returned by the classifier
         /// of the instance belonging to the true class.
@@ -39,7 +41,7 @@ namespace Microsoft.ML.Data
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
         /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
-        /// $LogLossReduction = \frac{LogLoss(prior) - LogLoss(classifier)}{LogLoss(prior)}
+        /// $LogLossReduction = \frac{LogLoss(prior) - LogLoss(classifier)}{LogLoss(prior)}$
         /// This metric can be interpreted as the advantage of the classifier over a random prediction.
         /// For example, if the RIG equals 0.2, it can be interpreted as "the probability of a correct prediction is
         /// 20% better than random guessing".
@@ -71,15 +73,21 @@ namespace Microsoft.ML.Data
         public double MicroAccuracy { get; }
 
         /// <summary>
-        /// If <see cref="TopKPredictionCount"/> is positive, this is the relative number of examples where
-        /// the true label is one of the top-k predicted labels by the predictor.
+        /// Convenience method for "TopKAccuracyForAllK[TopKPredictionCount - 1]". If <see cref="TopKPredictionCount"/> is positive,
+        /// this is the relative number of examples where
+        /// the true label is one of the top K predicted labels by the predictor.
         /// </summary>
-        public double TopKAccuracy { get; }
+        public double TopKAccuracy => TopKAccuracyForAllK?.LastOrDefault() ?? 0;
 
         /// <summary>
-        /// If positive, this indicates the K in <see cref="TopKAccuracy"/>.
+        /// If positive, this indicates the K in <see cref="TopKAccuracy"/> and <see cref="TopKAccuracyForAllK"/>.
         /// </summary>
         public int TopKPredictionCount { get; }
+
+        /// <summary>
+        /// Returns the top K accuracy for all K from 1 to the value of TopKPredictionCount.
+        /// </summary>
+        public IReadOnlyList<double> TopKAccuracyForAllK { get; }
 
         /// <summary>
         /// Gets the log-loss of the classifier for each class. Log-loss measures the performance of a classifier
@@ -115,8 +123,9 @@ namespace Microsoft.ML.Data
             LogLoss = FetchDouble(MulticlassClassificationEvaluator.LogLoss);
             LogLossReduction = FetchDouble(MulticlassClassificationEvaluator.LogLossReduction);
             TopKPredictionCount = topKPredictionCount;
+
             if (topKPredictionCount > 0)
-                TopKAccuracy = FetchDouble(MulticlassClassificationEvaluator.TopKAccuracy);
+                TopKAccuracyForAllK = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.AllTopKAccuracy).DenseValues().ToImmutableArray();
 
             var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
             PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();
@@ -124,20 +133,20 @@ namespace Microsoft.ML.Data
         }
 
         internal MulticlassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
-            int topKPredictionCount, double topKAccuracy, double[] perClassLogLoss)
+            int topKPredictionCount, double[] topKAccuracies, double[] perClassLogLoss)
         {
             MicroAccuracy = accuracyMicro;
             MacroAccuracy = accuracyMacro;
             LogLoss = logLoss;
             LogLossReduction = logLossReduction;
             TopKPredictionCount = topKPredictionCount;
-            TopKAccuracy = topKAccuracy;
+            TopKAccuracyForAllK = topKAccuracies;
             PerClassLogLoss = perClassLogLoss.ToImmutableArray();
         }
 
         internal MulticlassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
-            int topKPredictionCount, double topKAccuracy, double[] perClassLogLoss, ConfusionMatrix confusionMatrix)
-            : this(accuracyMicro, accuracyMacro, logLoss, logLossReduction, topKPredictionCount, topKAccuracy, perClassLogLoss)
+            int topKPredictionCount, double[] topKAccuracies, double[] perClassLogLoss, ConfusionMatrix confusionMatrix)
+            : this(accuracyMicro, accuracyMacro, logLoss, logLossReduction, topKPredictionCount, topKAccuracies, perClassLogLoss)
         {
             ConfusionMatrix = confusionMatrix;
         }

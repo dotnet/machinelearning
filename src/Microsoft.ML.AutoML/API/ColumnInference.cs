@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.ML.Data;
+using Newtonsoft.Json;
 
 namespace Microsoft.ML.AutoML
 {
@@ -20,6 +21,7 @@ namespace Microsoft.ML.AutoML
         /// Can be used to instantiate a new <see cref="TextLoader" /> to load
         /// data into an <see cref="IDataView" />.
         /// </remarks>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
         public TextLoader.Options TextLoaderOptions { get; internal set; }
 
         /// <summary>
@@ -31,6 +33,7 @@ namespace Microsoft.ML.AutoML
         /// See <typeref cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
         /// for example.</para>
         /// </remarks>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
         public ColumnInformation ColumnInformation { get; internal set; }
     }
 
@@ -90,31 +93,36 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Categorical data columns should generally be columns that contain a small number of unique values.
         /// </remarks>
-        public ICollection<string> CategoricalColumnNames { get; }
+        [JsonProperty]
+        public ICollection<string> CategoricalColumnNames { get; private set; }
 
         /// <summary>
         /// The dataset columns that are numeric.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
-        public ICollection<string> NumericColumnNames { get; }
+        [JsonProperty]
+        public ICollection<string> NumericColumnNames { get; private set; }
 
         /// <summary>
         /// The dataset columns that are text.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
-        public ICollection<string> TextColumnNames { get; }
+        [JsonProperty]
+        public ICollection<string> TextColumnNames { get; private set; }
 
         /// <summary>
         /// The dataset columns that AutoML should ignore.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
-        public ICollection<string> IgnoredColumnNames { get; }
+        [JsonProperty]
+        public ICollection<string> IgnoredColumnNames { get; private set; }
 
         /// <summary>
         /// The dataset columns that are image paths.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
-        public ICollection<string> ImagePathColumnNames { get; }
+        [JsonProperty]
+        public ICollection<string> ImagePathColumnNames { get; private set; }
 
         public ColumnInformation()
         {

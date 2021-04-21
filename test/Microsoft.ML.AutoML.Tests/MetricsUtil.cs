@@ -21,7 +21,7 @@ namespace Microsoft.ML.AutoML.Test
 
         public static MulticlassClassificationMetrics CreateMulticlassClassificationMetrics(
             double accuracyMicro, double accuracyMacro, double logLoss,
-            double logLossReduction, int topK, double topKAccuracy,
+            double logLossReduction, int topK, double[] topKAccuracy,
             double[] perClassLogLoss)
         {
             return CreateInstance<MulticlassClassificationMetrics>(accuracyMicro,

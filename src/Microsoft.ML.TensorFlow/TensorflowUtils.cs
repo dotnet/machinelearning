@@ -12,8 +12,10 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Transforms;
+using NumSharp;
 using Tensorflow;
 using static Tensorflow.Binding;
+using Utils = Microsoft.ML.Internal.Utilities.Utils;
 
 namespace Microsoft.ML.TensorFlow
 {
@@ -30,7 +32,7 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         internal const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
-        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, Graph graph, string opType = null)
+        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, Graph graph, bool treatOutputAsBatched, string opType = null)
         {
             var schemaBuilder = new DataViewSchema.Builder();
             foreach (Operation op in graph)
@@ -49,13 +51,6 @@ namespace Microsoft.ML.TensorFlow
                 // (https://github.com/dotnet/machinelearning/issues/2156) when the operator has no outputs.
                 if (mlType == null || op.NumOutputs <= 0)
                     continue;
-
-                // Construct the final ML.NET type of a Tensorflow variable.
-                var tensorShape = op.output.TensorShape.dims;
-                var columnType = new VectorDataViewType(mlType);
-                if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
-                    (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
-                    columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
 
                 // There can be at most two metadata fields.
                 //  1. The first field always presents. Its value is this operator's type. For example,
@@ -81,7 +76,41 @@ namespace Microsoft.ML.TensorFlow
                         (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 
-                schemaBuilder.AddColumn(op.name, columnType, metadataBuilder.ToAnnotations());
+                // Construct the final ML.NET type of a Tensorflow variable.
+                var tensorShape = op.output.TensorShape.dims;
+
+                if (tensorShape == null)
+                {
+                    // primitive column type
+                    schemaBuilder.AddColumn(op.name, mlType, metadataBuilder.ToAnnotations());
+                }
+                else
+                {
+                    // vector column type
+                    DataViewType columnType = new VectorDataViewType(mlType);
+                    if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
+                        (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
+                        // treatOutputAsBatched == true means that if the first dimension is greater
+                        // than 0 we take the tensor shape as is. If the first value is less then 0, we treat it as the batch input so we can
+                        // ignore it for the shape of the ML.NET vector. I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as
+                        // batch input, and so the ML.NET data type will be a vector of length 5.
+                        if (treatOutputAsBatched)
+                        {
+                            columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
+                        }
+                        // When treatOutputAsBatched is false, if the first value is less than 0 we want to set it to 0. TensorFlow
+                        // represents an unknown size as -1, but ML.NET represents it as 0 so we need to convert it.
+                        // I.E. if the input dimensions are [-1, 5], ML.NET will read the -1 as a dimension of unknown length, and so the ML.NET
+                        // data type will be a vector of 2 dimensions, where the first dimension is unknown and the second has a length of 5.
+                        else
+                        {
+                            if (tensorShape[0] < 0)
+                                tensorShape[0] = 0;
+                            columnType = new VectorDataViewType(mlType, tensorShape);
+                        }
+
+                    schemaBuilder.AddColumn(op.name, columnType, metadataBuilder.ToAnnotations());
+                }
             }
             return schemaBuilder.ToSchema();
         }
@@ -96,10 +125,11 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
-        internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath)
+        /// <param name="treatOutputAsBatched">If the first dimension of the output is unknown, should it be treated as batched or not.</param>
+        internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath, bool treatOutputAsBatched = true)
         {
-            using var model = LoadTensorFlowModel(env, modelPath);
-            return GetModelSchema(env, model.Session.graph);
+            using var model = LoadTensorFlowModel(env, modelPath, treatOutputAsBatched);
+            return GetModelSchema(env, model.Session.graph, treatOutputAsBatched);
         }
 
         /// <summary>
@@ -107,11 +137,12 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">The model to load.</param>
+        /// <param name="treatOutputAsBatched">If the first dimension of the output is unknown, should it be treated as batched or not.</param>
         /// <returns></returns>
-        internal static TensorFlowModel LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        internal static TensorFlowModel LoadTensorFlowModel(IHostEnvironment env, string modelPath, bool treatOutputAsBatched = true)
         {
             var session = GetSession(env, modelPath);
-            return new TensorFlowModel(env, session, modelPath);
+            return new TensorFlowModel(env, session, modelPath, treatOutputAsBatched: treatOutputAsBatched);
         }
 
         internal static PrimitiveDataViewType Tf2MlNetType(TF_DataType type)
@@ -410,6 +441,76 @@ namespace Microsoft.ML.TensorFlow
             }
         }
 
+        internal static Tensor CastDataAndReturnAsTensor<T>(T[] data, TensorShape tfShape)
+        {
+            var dims = tfShape.dims.Select(x => (long)x).ToArray();
+
+            if (typeof(T) == typeof(sbyte))
+                return new Tensor((sbyte[])(object)data, dims, TF_DataType.TF_INT8);
+            else if (typeof(T) == typeof(long))
+                return new Tensor((long[])(object)data, dims, TF_DataType.TF_INT64);
+            else if (typeof(T) == typeof(Int32))
+                return new Tensor((Int32[])(object)data, dims, TF_DataType.TF_INT32);
+            else if (typeof(T) == typeof(Int16))
+                return new Tensor((Int16[])(object)data, dims, TF_DataType.TF_INT16);
+            else if (typeof(T) == typeof(byte))
+                return new Tensor((byte[])(object)data, dims, TF_DataType.TF_UINT8);
+            else if (typeof(T) == typeof(ulong))
+                return new Tensor((ulong[])(object)data, dims, TF_DataType.TF_UINT64);
+            else if (typeof(T) == typeof(UInt32))
+                return new Tensor((UInt32[])(object)data, dims, TF_DataType.TF_UINT32);
+            else if (typeof(T) == typeof(UInt16))
+                return new Tensor((UInt16[])(object)data, dims, TF_DataType.TF_UINT16);
+            else if (typeof(T) == typeof(bool))
+                return new Tensor((bool[])(object)data, dims, TF_DataType.TF_BOOL);
+            else if (typeof(T) == typeof(float))
+                return new Tensor((float[])(object)data, dims, TF_DataType.TF_FLOAT);
+            else if (typeof(T) == typeof(double))
+                return new Tensor((double[])(object)data, dims, TF_DataType.TF_DOUBLE);
+            else if (typeof(T) == typeof(ReadOnlyMemory<char>))
+            {
+                string[] strings = new string[data.Length];
+                for (int i = 0; i < strings.Length; i++)
+                {
+                    strings[i] = data[i].ToString();
+                }
+
+                return new Tensor(strings);
+            }
+
+            return new Tensor(new NDArray(data, tfShape));
+        }
+
+        internal static Tensor CastDataAndReturnAsTensor<T>(T data)
+        {
+            if (typeof(T) == typeof(sbyte))
+                return new Tensor((sbyte)(object)data, TF_DataType.TF_INT8);
+            else if (typeof(T) == typeof(long))
+                return new Tensor((long)(object)data, TF_DataType.TF_INT64);
+            else if (typeof(T) == typeof(Int32))
+                return new Tensor((Int32)(object)data, TF_DataType.TF_INT32);
+            else if (typeof(T) == typeof(Int16))
+                return new Tensor((Int16)(object)data, TF_DataType.TF_INT16);
+            else if (typeof(T) == typeof(byte))
+                return new Tensor((byte)(object)data, TF_DataType.TF_UINT8);
+            else if (typeof(T) == typeof(ulong))
+                return new Tensor((ulong)(object)data, TF_DataType.TF_UINT64);
+            else if (typeof(T) == typeof(UInt32))
+                return new Tensor((UInt32)(object)data, TF_DataType.TF_UINT32);
+            else if (typeof(T) == typeof(UInt16))
+                return new Tensor((UInt16)(object)data, TF_DataType.TF_UINT16);
+            else if (typeof(T) == typeof(bool))
+                return new Tensor((bool)(object)data, TF_DataType.TF_BOOL);
+            else if (typeof(T) == typeof(float))
+                return new Tensor((float)(object)data, TF_DataType.TF_FLOAT);
+            else if (typeof(T) == typeof(double))
+                return new Tensor((double)(object)data, TF_DataType.TF_DOUBLE);
+            else if (typeof(T) == typeof(ReadOnlyMemory<char>))
+                return new Tensor(data.ToString());
+
+            throw new ArgumentException($"Unsupported data type of {typeof(T)} to convert to Tensor.");
+        }
+
         /// <summary>
         /// Use the runner class to easily configure inputs, outputs and targets to be passed to the session runner.
         /// </summary>
@@ -491,7 +592,7 @@ namespace Microsoft.ML.TensorFlow
                     {
                         c_api.TF_SessionRun(_session, null, _inputs, _inputValues,
                              _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
-                            _operations.Length, IntPtr.Zero, _status);
+                            _operations.Length, IntPtr.Zero, _status.Handle);
                     }
                     catch (Exception ex)
                     {

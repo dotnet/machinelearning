@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ApprovalTests;
+using ApprovalTests.Namers;
+using ApprovalTests.Reporters;
 using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -221,6 +225,20 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal("id", result.ColumnInformation.LabelColumnName);
             Assert.Equal("description", result.ColumnInformation.TextColumnNames.First());
             Assert.Equal("animal", result.ColumnInformation.CategoricalColumnNames.First());
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        public void Wiki_column_inference_result_should_be_serializable()
+        {
+            var wiki = Path.Combine("TestData", "wiki-column-inference.json");
+            using (var stream = new StreamReader(wiki))
+            {
+                var json = stream.ReadToEnd();
+                var columnInferenceResults = JsonConvert.DeserializeObject<ColumnInferenceResults>(json);
+                Approvals.Verify(JsonConvert.SerializeObject(columnInferenceResults, Formatting.Indented));
+            }
         }
     }
 }

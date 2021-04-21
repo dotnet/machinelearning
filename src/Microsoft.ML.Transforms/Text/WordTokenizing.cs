@@ -415,10 +415,10 @@ namespace Microsoft.ML.Transforms.Text
                     string[] separators = column.SeparatorsArray.Select(c => c.ToString()).ToArray();
                     tokenizerNode.AddAttribute("separators", separators);
 
-                    opType = "Squeeze";
-                    var squeezeOutput = ctx.AddIntermediateVariable(_type, column.Name);
-                    var squeezeNode = ctx.CreateNode(opType, intermediateVar, squeezeOutput, ctx.GetNodeName(opType), "");
-                    squeezeNode.AddAttribute("axes", new long[] { 1 });
+                    opType = "Reshape";
+                    var shape = ctx.AddInitializer(new long[] { 1, -1 }, new long[] { 2 }, "Shape");
+                    var reshapeOutput = ctx.AddIntermediateVariable(new VectorDataViewType(TextDataViewType.Instance, 1), column.Name);
+                    var reshapeNode = ctx.CreateNode(opType, new[] { intermediateVar, shape }, new[] { reshapeOutput }, ctx.GetNodeName(opType), "");
                 }
             }
         }

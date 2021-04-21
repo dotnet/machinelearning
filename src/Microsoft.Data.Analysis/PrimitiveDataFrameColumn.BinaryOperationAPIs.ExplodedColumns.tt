@@ -1,0 +1,606 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="ColumnArithmeticTemplate.ttinclude"#>
+<#@ include file="PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from DataFrameColumn.BinaryOperationAPIs.ExplodedColumns.tt. Do not modify directly
+
+using System;
+using System.Collections.Generic;
+
+namespace Microsoft.Data.Analysis
+{
+<# 
+bool supportedInPlace(string type1, string type2)
+{
+    string ret = GetBinaryOperationReturnType(type1, type2);
+    if (ret == type1)
+    {
+        return true;
+    }
+    return false;
+}
+#>
+<# 
+void GenerateAllBinaryCombinationsForMethod()
+{
+    HashSet<string> visited = new HashSet<string> { };
+ foreach (TypeCombination outer in BinaryOperationCombinations.binaryOperationCombinations) 
+ {
+    string outerColumnType = outer.ThisColumnType;
+    if (visited.Contains(outerColumnType))
+    {
+        continue;
+    }
+    visited.Add(outerColumnType);
+    string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
+#>
+    public partial class <#=fullOuterColumnType#>
+    {
+<#
+    foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations.Where((ACombination) => ACombination.ThisColumnType == outerColumnType)) 
+    {
+        foreach (MethodConfiguration method in methodConfiguration)
+        {
+        if (method.MethodType == MethodType.Binary && method.IsNumeric)
+        {
+            string methodName = method.MethodName;
+            string returnType = types.ReturnColumnType;
+            string columnType = types.ThisColumnType;
+            string otherColumnType = types.OtherColumnType;
+
+            string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+            string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+            string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+            string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+#>
+<#
+            if (supportedInPlace(columnType, otherColumnType))
+            {
+#>
+        public <#=fullReturnType#> <#=methodName#>(<#=fullOtherColumnType#> column, bool inPlace = false)
+<#
+            }
+            else
+            {
+#>
+        public <#=fullReturnType#> <#=methodName#>(<#=fullOtherColumnType#> column)
+<#
+            }
+#>
+        {
+<#
+    if (columnType == otherColumnType)
+    {
+        // Handle the straightforward cases such as int + int resulting in int
+        if (fullReturnType == fullColumnType || fullReturnType == fullOtherColumnType)
+        {
+#>
+            return <#=methodName#>Implementation(column, inPlace);
+<#
+        }
+        else
+        {
+            // Cases such as byte + byte resulting in int. Needs 2 clones
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(other<#=returnType#>Column, inPlace: true);
+<#
+        }
+    }
+    else
+    {
+        // Handle the straightforward cases
+        if (fullReturnType == fullColumnType || fullReturnType == fullOtherColumnType)
+        {
+            primitiveTypeToPrimitivityLevelMap.TryGetValue(columnType, out int columnTypeLevel);
+            primitiveTypeToPrimitivityLevelMap.TryGetValue(otherColumnType, out int otherColumnTypeLevel);
+            if (otherColumnTypeLevel > columnTypeLevel)
+            {
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(column, inPlace: true);
+<#
+            }
+            else
+            {
+#>
+            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            return <#=methodName#>Implementation(other<#=returnType#>Column, inPlace);
+<#
+            }
+        }
+        else
+        {
+            // Cases such as byte + short resulting in int. Needs 2 clones
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(other<#=returnType#>Column, inPlace: true);
+<#
+        }
+    }
+#>
+        }
+<# 
+    } 
+    }
+    }
+#>
+    }
+<# 
+}
+}
+#>
+<# 
+void GenerateAllBinaryScalarCombinationsForMethod()
+{
+    HashSet<string> visited = new HashSet<string> { };
+ foreach (TypeCombination outer in BinaryOperationCombinations.binaryOperationCombinations) 
+ {
+    string outerColumnType = outer.ThisColumnType;
+    if (visited.Contains(outerColumnType))
+    {
+        continue;
+    }
+    visited.Add(outerColumnType);
+    string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
+#>
+    public partial class <#=fullOuterColumnType#>
+    {
+<#
+    foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations.Where((ACombination) => ACombination.ThisColumnType == outerColumnType)) 
+    { 
+        foreach (MethodConfiguration method in methodConfiguration)
+        {
+        if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
+        {
+            string methodName = method.MethodName;
+            string returnType = types.ReturnColumnType;
+            string columnType = types.ThisColumnType;
+            string valueType = types.OtherColumnType;
+
+            string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+            string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+
+            string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+
+#>
+<#
+            if (supportedInPlace(columnType, valueType))
+            {
+#>
+        public <#=fullReturnType#> <#=methodName#>(<#=valueType#> value, bool inPlace = false)
+<#
+            }
+            else
+            {
+#>
+        public <#=fullReturnType#> <#=methodName#>(<#=valueType#> value)
+<#
+    }
+#>
+        {
+<#
+    if (columnType == valueType)
+    {
+        // Handle the straightforward cases such as int + int resulting in int
+        if (fullReturnType == fullColumnType)
+        {
+#>
+            return <#=methodName#>Implementation(value, inPlace);
+<#
+        }
+        else
+        {
+            // Cases such as byte + byte resulting in int. Needs 2 clones
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+<#
+        }
+    }
+    else
+    {
+        // Handle the straightforward cases
+        if (fullReturnType == fullColumnType)
+        {
+            primitiveTypeToPrimitivityLevelMap.TryGetValue(columnType, out int columnTypeLevel);
+            primitiveTypeToPrimitivityLevelMap.TryGetValue(valueType, out int valueTypeLevel);
+            if (valueTypeLevel > columnTypeLevel)
+            {
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+<#
+            }
+            else
+            {
+#>
+            <#=returnType#> convertedValue = (<#=returnType#>)value;
+            return <#=methodName#>Implementation(convertedValue, inPlace);
+<#
+            }
+        }
+        else
+        {
+            // Cases such as byte + short resulting in int. Needs 2 clones
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+<#
+        }
+    }
+#>
+        }
+<# 
+        }
+        if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
+        {
+            string methodName = "Reverse" + method.MethodName;
+            string returnType = types.ReturnColumnType;
+            string columnType = types.ThisColumnType;
+            string valueType = types.OtherColumnType;
+
+            string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+            string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+
+            string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+
+#>
+<#
+            if (supportedInPlace(columnType, valueType))
+            {
+#>
+        public <#=fullReturnType#> <#=methodName#>(<#=valueType#> value, bool inPlace = false)
+<#
+            }
+            else
+            {
+#>
+        public <#=fullReturnType#> <#=methodName#>(<#=valueType#> value)
+<#
+    }
+#>
+        {
+<#
+    if (columnType == valueType)
+    {
+        // Handle the straightforward cases such as int + int resulting in int
+        if (fullReturnType == fullColumnType)
+        {
+#>
+            return <#=methodName#>Implementation(value, inPlace);
+<#
+        }
+        else
+        {
+            // Cases such as byte + byte resulting in int. Needs 2 clones
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+<#
+        }
+    }
+    else
+    {
+        // Handle the straightforward cases
+        if (fullReturnType == fullColumnType)
+        {
+            primitiveTypeToPrimitivityLevelMap.TryGetValue(columnType, out int columnTypeLevel);
+            primitiveTypeToPrimitivityLevelMap.TryGetValue(valueType, out int valueTypeLevel);
+            if (valueTypeLevel > columnTypeLevel)
+            {
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+<#
+            }
+            else
+            {
+#>
+            <#=returnType#> convertedValue = (<#=returnType#>)value;
+            return <#=methodName#>Implementation(convertedValue, inPlace);
+<#
+            }
+        }
+        else
+        {
+            // Cases such as byte + short resulting in int. Needs 2 clones
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+<#
+        }
+    }
+#>
+        }
+<# 
+        }
+        } 
+    }
+#>
+    }
+<# 
+}
+}
+#>
+<#
+void GenerateAllBinaryBitwiseOperationsForMethod(string methodName)
+{
+#>
+    public partial class BooleanDataFrameColumn
+    {
+        public BooleanDataFrameColumn <#=methodName#>(BooleanDataFrameColumn column, bool inPlace = false)
+        {
+            if (column.Length != Length)
+            {
+                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
+            }
+            BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
+            retColumn.ColumnContainer.<#=methodName#>(column.ColumnContainer);
+            return retColumn;
+        }
+    }
+<#
+}
+#>
+<#
+void GenerateAllBinaryScalarBitwiseOperationsForMethod(string methodName)
+{
+#>
+    public partial class BooleanDataFrameColumn
+    {
+        public new BooleanDataFrameColumn <#=methodName#>(bool value, bool inPlace = false)
+        {
+            BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
+            retColumn.ColumnContainer.<#=methodName#>(value);
+            return retColumn;
+        }
+    }
+<#
+}
+#>
+<#
+        GenerateAllBinaryCombinationsForMethod();
+        GenerateAllBinaryScalarCombinationsForMethod();
+foreach (MethodConfiguration method in methodConfiguration)
+{
+    if (method.MethodType == MethodType.Binary && method.IsBitwise)
+    {
+        GenerateAllBinaryBitwiseOperationsForMethod(method.MethodName);
+    }
+    else if (method.MethodType == MethodType.BinaryScalar && method.IsBitwise)
+    {
+        GenerateAllBinaryScalarBitwiseOperationsForMethod(method.MethodName);
+    }
+}
+#>
+<# 
+void GenerateAllComparisonCombinationsForMethod()
+{
+    HashSet<string> visited = new HashSet<string> { };
+ foreach (TypeCombination outer in ComparisonOperationCombinations.comparisonOperationCombinations) 
+ {
+    string outerColumnType = outer.ThisColumnType;
+    if (visited.Contains(outerColumnType))
+    {
+        continue;
+    }
+    visited.Add(outerColumnType);
+    string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
+#>
+    public partial class <#=fullOuterColumnType#>
+    {
+<#
+    foreach (TypeCombination types in ComparisonOperationCombinations.comparisonOperationCombinations.Where((ACombination) => ACombination.ThisColumnType == outerColumnType)) 
+ {
+foreach (MethodConfiguration method in methodConfiguration)
+{
+    if (method.MethodType == MethodType.ComparisonScalar)
+    {
+    string methodName = method.MethodName;
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+    string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
+    string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
+
+#>
+        public <#=fullReturnType#> <#=methodName#>(<#=fullOtherColumnType#> column)
+        {
+<#
+    if (columnType == otherColumnType)
+    {
+#>
+            return <#=methodName#>Implementation(column);
+<#
+    }
+    else
+    {
+        primitiveTypeToPrimitivityLevelMap.TryGetValue(columnType, out int columnTypeLevel);
+        primitiveTypeToPrimitivityLevelMap.TryGetValue(otherColumnType, out int otherColumnTypeLevel);
+        if (otherColumnTypeLevel > columnTypeLevel)
+        {
+#>
+            <#=fullOtherColumnType#> <#=otherColumnType#>Column = CloneAs<#=capitalizedOtherColumnType#>Column();
+            return <#=otherColumnType#>Column.<#=methodName#>Implementation(column);
+<#
+        }
+        else
+        {
+#>
+            <#=fullColumnType#> other<#=columnType#>Column = column.CloneAs<#=capitalizedColumnType#>Column();
+            return <#=methodName#>Implementation(other<#=columnType#>Column);
+<#
+        }
+#>
+<#
+    }
+#>
+        }
+<# 
+ }
+ }
+ }
+#>
+    }
+<# 
+ }
+ }
+#>
+
+<# 
+void GenerateAllComparisonScalarCombinationsForMethod()
+{
+    HashSet<string> visited = new HashSet<string> { };
+ foreach (TypeCombination outer in ComparisonOperationCombinations.comparisonOperationCombinations) 
+ {
+    string outerColumnType = outer.ThisColumnType;
+    if (visited.Contains(outerColumnType))
+    {
+        continue;
+    }
+    visited.Add(outerColumnType);
+    string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
+#>
+    public partial class <#=fullOuterColumnType#>
+    {
+<#
+    foreach (TypeCombination types in ComparisonOperationCombinations.comparisonOperationCombinations.Where((ACombination) => ACombination.ThisColumnType == outerColumnType)) 
+{
+foreach (MethodConfiguration method in methodConfiguration)
+{
+    if (method.MethodType == MethodType.Comparison)
+    {
+    string methodName = method.MethodName;
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+    string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
+    string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
+#>
+        public <#=fullReturnType#> <#=methodName#>(<#=otherColumnType#> value)
+        {
+<#
+    if (columnType == otherColumnType)
+    {
+#>
+            return <#=methodName#>Implementation(value);
+<#
+    }
+    else
+    {
+        primitiveTypeToPrimitivityLevelMap.TryGetValue(columnType, out int columnTypeLevel);
+        primitiveTypeToPrimitivityLevelMap.TryGetValue(otherColumnType, out int otherColumnTypeLevel);
+        if (otherColumnTypeLevel > columnTypeLevel)
+        {
+#>
+            <#=fullOtherColumnType#> <#=otherColumnType#>Column = CloneAs<#=capitalizedOtherColumnType#>Column();
+            return <#=otherColumnType#>Column.<#=methodName#>Implementation(value);
+<#
+        }
+        else
+        {
+#>
+            <#=columnType#> other<#=columnType#>Value = (<#=columnType#>)value;
+            return <#=methodName#>Implementation(other<#=columnType#>Value);
+<#
+        }
+#>
+<#
+    }
+#>
+        }
+<# 
+ }
+ }
+ }
+#>
+    }
+<# 
+}
+}
+#>
+<#
+        GenerateAllComparisonCombinationsForMethod();
+        GenerateAllComparisonScalarCombinationsForMethod();
+#>
+
+<#
+void GenerateAllBinaryShiftCombinationsForMethod(string methodName)
+{
+    foreach (var type in typeConfiguration)
+    {
+        if (!type.SupportsNumeric || !type.SupportsBitwise || type.TypeName == "char")
+        {
+            continue;
+        }
+        
+        string returnType = GetBinaryShiftOperationReturnType(type);
+        if (returnType == string.Empty)
+        {
+            continue;
+        }
+        string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+        string fullColumnType = GetCapitalizedPrimitiveTypes(type.TypeName) + "DataFrameColumn";
+        string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+#>
+    public partial class <#=fullColumnType#>
+    {
+        public new <#=fullReturnType#> <#=methodName#>(int value, bool inPlace = false)
+        {
+<#
+            if (fullColumnType == fullReturnType)
+            {
+#>
+            var result = (PrimitiveDataFrameColumn<<#=returnType#>>)base.<#=methodName#>(value, inPlace);
+            return new <#=fullReturnType#>(result.Name, result.ColumnContainer);
+<#
+            }
+            else
+            {
+#>
+            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            var result = (PrimitiveDataFrameColumn<<#=returnType#>>)(<#=returnType#>Column.<#=methodName#>(value, inPlace));
+            return new <#=fullReturnType#>(result.Name, result.ColumnContainer);
+<#
+            }
+#>
+        }
+    }
+<#
+    }
+}
+#>
+<#
+foreach (MethodConfiguration method in methodConfiguration)
+{
+    if (method.MethodType == MethodType.BinaryInt)
+    {
+        GenerateAllBinaryShiftCombinationsForMethod(method.MethodName);
+    }
+}
+#>
+}

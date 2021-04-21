@@ -81,7 +81,7 @@ namespace Microsoft.ML.TestFramework
             Cleanup();
             Process proc = Process.GetCurrentProcess();
             Console.WriteLine($"Finished test: {FullTestName} " +
-                $"with memory usage {proc.PrivateMemorySize64.ToString("N", CultureInfo.InvariantCulture)}");
+                $"with memory usage {proc.WorkingSet64.ToString("N", CultureInfo.InvariantCulture)}");
         }
 
         protected virtual void Initialize()

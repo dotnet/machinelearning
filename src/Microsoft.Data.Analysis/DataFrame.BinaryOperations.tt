@@ -1,0 +1,136 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="ColumnArithmeticTemplate.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from DataFrameBinaryOperations.tt. Do not modify directly
+
+using System;
+using System.Collections.Generic;
+
+namespace Microsoft.Data.Analysis
+{
+    public partial class DataFrame
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+<# if (method.IsBitwise == true) { #>
+        /// <summary>
+        /// <#=method.MethodComments#>
+        /// </summary>
+        public DataFrame <#=method.MethodName#>(bool value, bool inPlace = false)
+<# } else { #>
+        /// <summary>
+        /// <#=method.MethodComments#>
+        /// </summary>
+        public DataFrame <#=method.MethodName#><T>(T value, bool inPlace = false)
+            where T : unmanaged
+<# } #>
+<# } #>
+<# if (method.MethodType == MethodType.ComparisonScalar) { #>
+        /// <summary>
+        /// <#=method.MethodComments#>
+        /// </summary>
+        public DataFrame <#=method.MethodName#><T>(T value)
+            where T : unmanaged
+<# } #>
+<# if (method.MethodType == MethodType.Binary) {#>
+<# if (method.IsBitwise == true) { #>
+        public DataFrame <#=method.MethodName#>(IReadOnlyList<bool> values, bool inPlace = false)
+<# } else { #>
+        public DataFrame <#=method.MethodName#><T>(IReadOnlyList<T> values, bool inPlace = false)
+            where T : unmanaged
+<# } #>
+<# } #>
+<# if (method.MethodType == MethodType.Comparison) {#>
+        public DataFrame <#=method.MethodName#><T>(IReadOnlyList<T> values)
+            where T : unmanaged
+<# } #>
+<# if (method.MethodType == MethodType.BinaryInt ) {#>
+        /// <summary>
+        /// <#=method.MethodComments#>
+        /// </summary>
+        public DataFrame <#=method.MethodName#>(int value, bool inPlace = false)
+<# } #>
+        {
+<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.BinaryInt) {#>
+<# } else { #>
+            if (values.Count != Columns.Count)
+            {
+                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(values));
+            }
+<# } #>
+<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.Binary || method.MethodType == MethodType.BinaryInt) {#>
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+<# } else { #>
+            DataFrame retDataFrame = new DataFrame();
+<# } #>
+
+<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.Binary || method.MethodType == MethodType.BinaryInt) {#>
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+<# } else { #>
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+<# } #>
+<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.BinaryInt) {#>
+                DataFrameColumn newColumn = baseColumn.<#=method.MethodName#>(value, inPlace);
+<# } else if (method.MethodType == MethodType.Binary) { #>
+                DataFrameColumn newColumn = baseColumn.<#=method.MethodName#>(values[i], inPlace);
+<# } else if (method.MethodType == MethodType.ComparisonScalar) { #>
+                DataFrameColumn newColumn = baseColumn.<#=method.MethodName#>(value);
+<# } else { #>
+                DataFrameColumn newColumn = baseColumn.<#=method.MethodName#>(values[i]);
+<# } #>
+<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.Binary || method.MethodType == MethodType.BinaryInt) {#>
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+<# } else { #>
+                retDataFrame.Columns.Insert(i, newColumn);
+<# } #>
+            }
+            return retDataFrame;
+        }
+<# } #>
+
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+<# if (method.IsBitwise == true) { #>
+        /// <summary>
+        /// <#=method.GetReverseMethodComments()#>
+        /// </summary>
+        public DataFrame Reverse<#=method.MethodName#>(bool value, bool inPlace = false)
+<# } else { #>
+        /// <summary>
+        /// <#=method.GetReverseMethodComments()#>
+        /// </summary>
+        public DataFrame Reverse<#=method.MethodName#><T>(T value, bool inPlace = false)
+            where T : unmanaged
+<# } #>
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.Reverse<#=method.MethodName#>(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
+<# } #>
+<# } #>
+    }
+}

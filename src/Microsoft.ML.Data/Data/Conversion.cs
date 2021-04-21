@@ -950,8 +950,8 @@ namespace Microsoft.ML.Data.Conversion
         public void Convert(in R8 src, ref TX dst) => dst = src.ToString("G17", CultureInfo.InvariantCulture).AsMemory();
         public void Convert(in BL src, ref TX dst) => dst = src.ToString().AsMemory();
         public void Convert(in TS src, ref TX dst) => dst = string.Format("{0:c}", src).AsMemory();
-        public void Convert(in DT src, ref TX dst) => string.Format("{0:o}", src).AsMemory();
-        public void Convert(in DZ src, ref TX dst) => string.Format("{0:o}", src).AsMemory();
+        public void Convert(in DT src, ref TX dst) => dst = string.Format("{0:o}", src).AsMemory();
+        public void Convert(in DZ src, ref TX dst) => dst = string.Format("{0:o}", src).AsMemory();
         #endregion ToTX
 
         #region ToBL

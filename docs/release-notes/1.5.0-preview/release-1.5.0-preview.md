@@ -3,7 +3,7 @@
 ## **New Features (IN-PREVIEW, please provide feedback)**
 - **Export-to-ONNX for below components:**
     - WordTokenizingTransformer ([#4451](https://github.com/dotnet/machinelearning/pull/4451))
-    - NgramExtractingTransformer ([#4451](https://github.com/dotnet/machinelearning/pull/4451)) 
+    - NgramExtractingTransformer ([#4451](https://github.com/dotnet/machinelearning/pull/4451))
     - OptionalColumnTransform ([#4454](https://github.com/dotnet/machinelearning/pull/4454))
     - KeyToValueMappingTransformer ([#4455](https://github.com/dotnet/machinelearning/pull/4455))
     - LbfgsMaximumEntropyMulticlassTrainer ([4462](https://github.com/dotnet/machinelearning/pull/4462))
@@ -17,13 +17,13 @@
 
 - **DateTime Transformer** ([#4521](https://github.com/dotnet/machinelearning/pull/4521))
 - **Loader and Saver for [SVMLight file format](http://svmlight.joachims.org/)** ([#4190](https://github.com/dotnet/machinelearning/pull/4190))
-  
-  [Sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingSvmLight.cs)
-- **Expression transformer** ([#4548](https://github.com/dotnet/machinelearning/pull/4548))  
+
+  [Sample](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingSvmLight.cs)
+- **Expression transformer** ([#4548](https://github.com/dotnet/machinelearning/pull/4548))
   The expression transformer takes the expression in the form of text using syntax of a simple expression language, and performs the operation defined in the expression on the input columns in each row of the data. The transformer supports having a vector input column, in which case it applies the expression to each slot of the vector independently. The expression language is extendable to user defined operations.
-  
-  [Sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Expression.cs)
-  
+
+  [Sample](https://github.com/dotnet/machinelearning/blob/main/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Expression.cs)
+
 ## **Bug Fixes**
 - Fix using permutation feature importance with Binary Prediction Transformer and CalibratedModelParametersBase loaded from disk. ([#4306](https://github.com/dotnet/machinelearning/pull/4306))
 - Fixed model saving and loading of OneVersusAllTrainer to include SoftMax. ([#4472](https://github.com/dotnet/machinelearning/pull/4472))
@@ -55,7 +55,7 @@
 - Create SafeBoosterHandle and SafeDataSetHandle. ([#4539](https://github.com/dotnet/machinelearning/pull/4539))
 - Add IterationDataAttribute. ([#4561](https://github.com/dotnet/machinelearning/pull/4561))
 - Add tests for ParameterSet equality. ([#4550](https://github.com/dotnet/machinelearning/pull/4550))
-- Add a test handler for AppDomain.UnhandledException. ([#4557](https://github.com/dotnet/machinelearning/commit/f1f8942a8272a9c87373d11bc89467461c8ecad1))  
+- Add a test handler for AppDomain.UnhandledException. ([#4557](https://github.com/dotnet/machinelearning/commit/f1f8942a8272a9c87373d11bc89467461c8ecad1))
 
 ## **Breaking Changes**
 None

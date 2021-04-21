@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.AutoML.Utils;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
@@ -248,7 +249,15 @@ namespace Microsoft.ML.AutoML
             var nullableColumn = trainData.Schema.GetColumnOrNull(columnName);
             if (nullableColumn == null)
             {
-                throw new ArgumentException($"Provided {columnPurpose} column '{columnName}' not found in training data.");
+                var closestNamed = ClosestNamed(trainData, columnName, 7);
+
+                var exceptionMessage = $"Provided {columnPurpose} column '{columnName}' not found in training data.";
+                if (closestNamed != string.Empty)
+                {
+                    exceptionMessage += $" Did you mean '{closestNamed}'.";
+                }
+
+                throw new ArgumentException(exceptionMessage);
             }
 
             if(allowedTypes == null)
@@ -270,6 +279,23 @@ namespace Microsoft.ML.AutoML
                         $"but only types {string.Join(", ", allowedTypes)} are allowed.");
                 }
             }
+        }
+
+        private static string ClosestNamed(IDataView trainData, string columnName, int maxAllowableEditDistance = int.MaxValue)
+        {
+            var minEditDistance = int.MaxValue;
+            var closestNamed = string.Empty;
+            foreach (var column in trainData.Schema)
+            {
+                var editDistance = StringEditDistance.GetLevenshteinDistance(column.Name, columnName);
+                if (editDistance < minEditDistance)
+                {
+                    minEditDistance = editDistance;
+                    closestNamed = column.Name;
+                }
+            }
+
+            return minEditDistance <= maxAllowableEditDistance ? closestNamed : string.Empty;
         }
 
         private static string FindFirstDuplicate(IEnumerable<string> values)

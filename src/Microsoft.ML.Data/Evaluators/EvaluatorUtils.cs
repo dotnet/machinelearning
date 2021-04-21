@@ -1035,7 +1035,13 @@ namespace Microsoft.ML.Data
                         names = editor.Commit();
                     }
                     foreach (var name in names.Items(all: true))
-                        metricNames.Add(string.Format("{0}{1}", metricName, name.Value));
+                    {
+                        var tryNaming = string.Format(metricName, name.Value);
+                        if (tryNaming == metricName) // metricName wasn't a format string, so just append slotname
+                            tryNaming = (string.Format("{0}{1}", metricName, name.Value));
+
+                        metricNames.Add(tryNaming);
+                    }
                 }
             }
             ch.Assert(metricNames.Count == metricCount);

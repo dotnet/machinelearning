@@ -498,7 +498,7 @@ namespace Microsoft.ML.Transforms.Image
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImagePixelExtractingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// converts image into vector of known size of floats or bytes. Size and data type depends on specified parameters.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
+    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started) in the machinelearning-samples github repository.
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>

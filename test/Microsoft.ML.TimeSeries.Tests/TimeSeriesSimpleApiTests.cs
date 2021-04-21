@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data((float)(5 + i * 1.1)));
 
             // Build the pipeline
-            var learningPipeline = ML.Transforms.DetectIidChangePoint("Data", "Value", 80, size);
+            var learningPipeline = ML.Transforms.DetectIidChangePoint("Data", "Value", 80.0d, size);
 
             // Train
             var detector = learningPipeline.Fit(dataView);
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data(i * 100));
 
             // Build the pipeline
-            var learningPipeline = ML.Transforms.DetectChangePointBySsa("Data", "Value", 95, changeHistorySize, maxTrainingSize, seasonalitySize);
+            var learningPipeline = ML.Transforms.DetectChangePointBySsa("Data", "Value", 95.0d, changeHistorySize, maxTrainingSize, seasonalitySize);
             // Train
             var detector = learningPipeline.Fit(dataView);
             // Transform
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data(5));
 
             // Build the pipeline
-            var learningPipeline = ML.Transforms.DetectIidSpike("Data", "Value", 80, pvalHistoryLength);
+            var learningPipeline = ML.Transforms.DetectIidSpike("Data", "Value", 80.0d, pvalHistoryLength);
             // Train
             var detector = learningPipeline.Fit(dataView);
             // Transform
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data(5));
 
             // Build the pipeline
-            var learningPipeline = ML.Transforms.DetectSpikeBySsa("Data", "Value", 80, changeHistoryLength, trainingWindowSize, seasonalityWindowSize);
+            var learningPipeline = ML.Transforms.DetectSpikeBySsa("Data", "Value", 80.0d, changeHistoryLength, trainingWindowSize, seasonalityWindowSize);
             // Train
             var detector = learningPipeline.Fit(dataView);
             // Transform

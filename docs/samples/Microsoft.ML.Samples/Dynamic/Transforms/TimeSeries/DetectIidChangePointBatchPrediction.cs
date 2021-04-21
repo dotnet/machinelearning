@@ -53,7 +53,7 @@ namespace Samples.Dynamic
 
             // The transformed data.
             var transformedData = ml.Transforms.DetectIidChangePoint(
-                outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView)
+                outputColumnName, inputColumnName, 95.0d, Size / 4).Fit(dataView)
                 .Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of
