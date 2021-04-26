@@ -252,9 +252,9 @@ namespace Microsoft.Data.Analysis
                 // Hash the column with the smaller RowCount 
                 long leftRowCount = Rows.Count;
                 long rightRowCount = other.Rows.Count;
-                DataFrame longerDataFrame = leftRowCount <= rightRowCount ? other : this;
-                DataFrame shorterDataFrame = ReferenceEquals(longerDataFrame, this) ? other : this;
-                DataFrameColumn hashColumn = (leftRowCount <= rightRowCount) ? Columns[leftJoinColumn] : other.Columns[rightJoinColumn];
+
+                var leftColumnIsSmaller = (leftRowCount <= rightRowCount);
+                DataFrameColumn hashColumn = leftColumnIsSmaller ? Columns[leftJoinColumn] : other.Columns[rightJoinColumn];
                 DataFrameColumn otherColumn = ReferenceEquals(hashColumn, Columns[leftJoinColumn]) ? other.Columns[rightJoinColumn] : Columns[leftJoinColumn];
                 Dictionary<TKey, ICollection<long>> multimap = hashColumn.GroupColumnValues<TKey>();
 
@@ -270,23 +270,21 @@ namespace Microsoft.Data.Analysis
                             {
                                 if (hashColumn[row] == null)
                                 {
-                                    leftRowIndices.Append(row);
-                                    rightRowIndices.Append(i);
+                                    leftRowIndices.Append(leftColumnIsSmaller ? row : i);
+                                    rightRowIndices.Append(leftColumnIsSmaller ? i : row);
                                 }
                             }
                             else
                             {
                                 if (hashColumn[row] != null)
                                 {
-                                    leftRowIndices.Append(row);
-                                    rightRowIndices.Append(i);
+                                    leftRowIndices.Append(leftColumnIsSmaller ? row : i);
+                                    rightRowIndices.Append(leftColumnIsSmaller ? i : row);
                                 }
                             }
                         }
                     }
                 }
-                leftDataFrame = shorterDataFrame;
-                rightDataFrame = longerDataFrame;
             }
             else if (joinAlgorithm == JoinAlgorithm.FullOuter)
             {
@@ -366,4 +364,5 @@ namespace Microsoft.Data.Analysis
         }
 
     }
+
 }

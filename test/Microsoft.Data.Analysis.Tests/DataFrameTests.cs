@@ -1579,6 +1579,25 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Throws<ArgumentException>(()=> df.Sample(13));
         }
 
+        [Theory]
+        [InlineData(1, 2)]
+        [InlineData(2, 1)]
+        public void TestDataCorrectnessForInnerMerge(int leftCount, int rightCount)
+        {
+            DataFrame left = MakeDataFrameWithNumericColumns(leftCount, false);
+            DataFrameColumn leftStringColumn = new StringDataFrameColumn("String", Enumerable.Range(0, leftCount).Select(x => "Left"));
+            left.Columns.Insert(left.Columns.Count, leftStringColumn);
+
+            DataFrame right = MakeDataFrameWithNumericColumns(rightCount, false);
+            DataFrameColumn rightStringColumn = new StringDataFrameColumn("String", Enumerable.Range(0, rightCount).Select(x => "Right"));
+            right.Columns.Insert(right.Columns.Count, rightStringColumn);
+
+            DataFrame merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.Inner);
+
+            Assert.Equal("Left", (string)merge.Columns["String_left"][0]);
+            Assert.Equal("Right", (string)merge.Columns["String_right"][0]);
+        }
+
         [Fact]
         public void TestMerge()
         {
