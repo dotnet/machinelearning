@@ -28,7 +28,7 @@ namespace Microsoft.ML.AutoML
         private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly IChannel _logger;
 
-        private readonly string _operationCancelledMessage = "OperationCanceledException has been caught after maximum experiment time" +
+        private const string _operationCancelledMessage = "OperationCanceledException has been caught after maximum experiment time" +
                         "was reached, and the running MLContext was stopped. Details: {0}";
 
         private Timer _maxExperimentTimeTimer;
