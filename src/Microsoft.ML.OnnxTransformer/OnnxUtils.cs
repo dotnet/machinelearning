@@ -143,14 +143,9 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         private readonly InferenceSession _session;
         /// <summary>
-        /// Indicates if <see cref="ModelFile"/> is a temporal file created by <see cref="CreateFromBytes(byte[], int?, bool, IDictionary{string, int[]})"/>
-        /// or <see cref="CreateFromBytes(byte[])"/>. If <see langword="true"/>, <see cref="Dispose(bool)"/> should delete <see cref="ModelFile"/>.
-        /// </summary>
-        private bool _ownModelFile;
-        /// <summary>
         /// The location where the used ONNX model loaded from.
         /// </summary>
-        internal string ModelFile { get; }
+        internal FileStream ModelStream { get; }
         /// <summary>
         /// The ONNX model's information from ONNXRuntime's perspective. ML.NET can change the input and output of that model in some ways.
         /// For example, ML.NET can shuffle the inputs so that the i-th ONNX input becomes the j-th input column of <see cref="OnnxTransformer"/>.
@@ -172,9 +167,7 @@ namespace Microsoft.ML.Transforms.Onnx
         public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
             bool ownModelFile=false, IDictionary<string, int[]> shapeDictionary = null)
         {
-            ModelFile = modelFile;
             // If we don't own the model file, _disposed should be false to prevent deleting user's file.
-            _ownModelFile = ownModelFile;
             _disposed = false;
 
             if (gpuDeviceId != null)
@@ -202,9 +195,15 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 // Load ONNX model file and parse its input and output schema. The reason of doing so is that ONNXRuntime
                 // doesn't expose full type information via its C# APIs.
-                ModelFile = modelFile;
                 var model = new OnnxCSharpToProtoWrapper.ModelProto();
-                using (var modelStream = File.OpenRead(modelFile))
+                // If we own the model file set the DeleteOnClose flag so it is always deleted.
+                if (ownModelFile)
+                    ModelStream = new FileStream(modelFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.DeleteOnClose);
+                else
+                    ModelStream = new FileStream(modelFile, FileMode.Open, FileAccess.Read);
+
+                // The CodedInputStream auto closes the stream, and we need to make sure that our main stream stays open, so creating a new one here.
+                using (var modelStream = new FileStream(modelFile, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read))
                 using (var codedStream = Google.Protobuf.CodedInputStream.CreateWithLimits(modelStream, Int32.MaxValue, 10))
                     model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(codedStream);
 
@@ -366,7 +365,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Flag used to indicate if the unmanaged resources (aka the model file <see cref="ModelFile"/>
+        /// Flag used to indicate if the unmanaged resources (aka the model file handle <see cref="ModelStream"/>
         /// and <see cref="_session"/>) have been deleted.
         /// </summary>
         private bool _disposed;
@@ -378,8 +377,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// There are two unmanaged resources we can dispose, <see cref="_session"/> and <see cref="ModelFile"/>
-        /// if <see cref="_ownModelFile"/> is <see langword="true"/>.
+        /// There are two unmanaged resources we can dispose, <see cref="_session"/> and <see cref="ModelStream"/>
         /// </summary>
         /// <param name="disposing"></param>
         private void Dispose(bool disposing)
@@ -391,9 +389,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     // First, we release the resource token by ONNXRuntime.
                     _session.Dispose();
-                    // Second, we delete the model file if that file is not created by the user.
-                    if (_ownModelFile && File.Exists(ModelFile))
-                        File.Delete(ModelFile);
+                    // Second, Dispose of the model file stream.
+                    ModelStream.Dispose();
                 }
                 _disposed = true;
             }

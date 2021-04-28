@@ -304,7 +304,7 @@ namespace Microsoft.ML.Transforms.Onnx
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            ctx.SaveBinaryStream("OnnxModel", w => { w.WriteByteArray(File.ReadAllBytes(Model.ModelFile)); });
+            ctx.SaveBinaryStream("OnnxModel", w => { w.WriteByteArray(File.ReadAllBytes(Model.ModelStream.Name)); });
 
             Host.CheckNonEmpty(Inputs, nameof(Inputs));
             ctx.Writer.Write(Inputs.Length);
