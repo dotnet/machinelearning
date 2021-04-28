@@ -63,7 +63,7 @@ jobs:
         continueOnError: true
     # Extra MacOS step required to install OS-specific dependencies
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
-      - script: brew update && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb && brew link libomp --force
+      - script: brew update && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
         displayName: Install MacOS build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"

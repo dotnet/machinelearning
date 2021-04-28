@@ -56,3 +56,5 @@ $ brew update && brew install cmake https://raw.githubusercontent.com/dotnet/mac
 ```
 
 Please note that newer versions of Homebrew [don't allow installing directly from a URL](https://github.com/Homebrew/brew/issues/8791). If you run into this issue, you may need to download libomp.rb first and install it with the local file instead.
+
+Also, libomp version 7.0.0 doesn't have a cask for Big Sur. You can work around this by downloading the libomp.rb file and then calling `brew install libomp.rb --build-from-source --formula`.
