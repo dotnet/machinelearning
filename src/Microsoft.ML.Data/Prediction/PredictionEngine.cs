@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
-
     /// <summary>
     /// Utility class to run the pipeline to completion and produce a strongly-typed IEnumerable as a result.
     /// Doesn't allocate memory for every row: instead, yields the same row object on every step.
@@ -19,7 +17,6 @@ namespace Microsoft.ML
         where TDst : class, new()
     {
         private readonly ICursorable<TDst> _cursorablePipe;
-        private long _counter;
 
         internal PipeEngine(IHostEnvironment env, IDataView pipe, bool ignoreMissingColumns, SchemaDefinition schemaDefinition = null)
         {
@@ -28,12 +25,10 @@ namespace Microsoft.ML
             env.AssertValueOrNull(schemaDefinition);
 
             _cursorablePipe = env.AsCursorable<TDst>(pipe, ignoreMissingColumns, schemaDefinition);
-            _counter = 0;
         }
 
         public IEnumerable<TDst> RunPipe(bool reuseRowObject)
         {
-            var curCounter = _counter;
             using (var cursor = _cursorablePipe.GetCursor())
             {
                 TDst row = null;
@@ -44,15 +39,8 @@ namespace Microsoft.ML
 
                     cursor.FillValues(row);
                     yield return row;
-                    if (curCounter != _counter)
-                        throw Contracts.Except("An attempt was made to keep iterating after the pipe has been reset.");
                 }
             }
-        }
-
-        public void Reset()
-        {
-            _counter++;
         }
     }
 
@@ -113,19 +101,6 @@ namespace Microsoft.ML
 
         [BestFriend]
         private protected ITransformer Transformer { get; }
-
-        [BestFriend]
-        private static Func<DataViewSchema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
-        {
-            env.CheckValue(modelStream, nameof(modelStream));
-            return schema =>
-            {
-                var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, new EmptyDataView(env, schema));
-                var transformer = new TransformWrapper(env, pipe);
-                env.CheckParam(((ITransformer)transformer).IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
-                return ((ITransformer)transformer).GetRowToRowMapper(schema);
-            };
-        }
 
         [BestFriend]
         private protected PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
