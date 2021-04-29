@@ -331,6 +331,15 @@ namespace Microsoft.Data.Analysis
         /// </summary>
         public virtual DataFrameColumn Description() => throw new NotImplementedException();
 
+        /// <summary>
+        /// Returns the indices of non-null values that, when applied, result in this column being sorted in ascending order. Also returns the indices of null values in <paramref name="nullIndices"/>.
+        /// </summary>
+        /// <param name="nullIndices">Indices of values that are <see langword="null"/>.</param>
+        internal virtual PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Returns the indices of non-null values that, when applied, result in this column being sorted in ascending order
+        /// </summary>
         internal virtual PrimitiveDataFrameColumn<long> GetAscendingSortIndices() => throw new NotImplementedException();
 
         internal delegate long GetBufferSortIndex(int bufferIndex, int sortIndex);
