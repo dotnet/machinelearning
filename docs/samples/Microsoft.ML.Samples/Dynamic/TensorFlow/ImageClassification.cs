@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.ML;
@@ -129,7 +130,7 @@ namespace Samples.Dynamic
             Stream inStream = File.OpenRead(path);
             Stream gzipStream = new GZipInputStream(inStream);
 
-            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
+            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream, Encoding.ASCII);
             tarArchive.ExtractContents(targetDir);
             tarArchive.Close();
 
