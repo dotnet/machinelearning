@@ -313,7 +313,7 @@ namespace Microsoft.Data.Analysis
 
         public override DataFrame ValueCounts()
         {
-            Dictionary<T, ICollection<long>> groupedValues = GroupColumnValues<T>();
+            Dictionary<T, ICollection<long>> groupedValues = GroupColumnValues<T>(out HashSet<long> _);
             PrimitiveDataFrameColumn<T> keys = new PrimitiveDataFrameColumn<T>("Values");
             PrimitiveDataFrameColumn<long> counts = new PrimitiveDataFrameColumn<long>("Counts");
             foreach (KeyValuePair<T, ICollection<long>> keyValuePair in groupedValues)
@@ -520,32 +520,41 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override GroupBy GroupBy(int columnIndex, DataFrame parent)
         {
-            Dictionary<T, ICollection<long>> dictionary = GroupColumnValues<T>();
+            Dictionary<T, ICollection<long>> dictionary = GroupColumnValues<T>(out HashSet<long> _);
             return new GroupBy<T>(parent, columnIndex, dictionary);
         }
 
-        public override Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>()
+        public override Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>(out HashSet<long> nullIndices)
         {
             if (typeof(TKey) == typeof(T))
             {
                 Dictionary<T, ICollection<long>> multimap = new Dictionary<T, ICollection<long>>(EqualityComparer<T>.Default);
+                nullIndices = new HashSet<long>();
                 for (int b = 0; b < _columnContainer.Buffers.Count; b++)
                 {
                     ReadOnlyDataFrameBuffer<T> buffer = _columnContainer.Buffers[b];
                     ReadOnlySpan<T> readOnlySpan = buffer.ReadOnlySpan;
+                    ReadOnlySpan<byte> nullBitMapSpan = _columnContainer.NullBitMapBuffers[b].ReadOnlySpan;
                     long previousLength = b * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
                     for (int i = 0; i < readOnlySpan.Length; i++)
                     {
                         long currentLength = i + previousLength;
-                        bool containsKey = multimap.TryGetValue(readOnlySpan[i], out ICollection<long> values);
-                        if (containsKey)
+                        if (_columnContainer.IsValid(nullBitMapSpan, i))
                         {
-                            values.Add(currentLength);
+                            bool containsKey = multimap.TryGetValue(readOnlySpan[i], out ICollection<long> values);
+                            if (containsKey)
+                            {
+                                values.Add(currentLength);
+                            }
+                            else
+                            {
+                                multimap.Add(readOnlySpan[i], new List<long>() { currentLength });
+                            }
                         }
                         else
                         {
-                            multimap.Add(readOnlySpan[i], new List<long>() { currentLength });
-                        }
+                            nullIndices.Add(currentLength);
+                        }    
                     }
                 }
                 return multimap as Dictionary<TKey, ICollection<long>>;

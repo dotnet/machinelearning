@@ -203,7 +203,12 @@ namespace Microsoft.Data.Analysis
             return Clone(sortIndices, !ascending, NullCount);
         }
 
-        public virtual Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>() => throw new NotImplementedException();
+        /// <summary>
+        /// Groups the rows of this column by their value.
+        /// </summary>
+        /// <typeparam name="TKey">The type of data held by this column</typeparam>
+        /// <returns>A mapping of value(<typeparamref name="TKey"/>) to the indices containing this value</returns>
+        public virtual Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>(out HashSet<long> nullIndices) => throw new NotImplementedException();
 
         /// <summary>
         /// Returns a DataFrame containing counts of unique values

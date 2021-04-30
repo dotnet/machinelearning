@@ -398,31 +398,40 @@ namespace Microsoft.Data.Analysis
 
         public override DataFrame ValueCounts()
         {
-            Dictionary<string, ICollection<long>> groupedValues = GroupColumnValues<string>();
+            Dictionary<string, ICollection<long>> groupedValues = GroupColumnValues<string>(out HashSet<long> _);
             return ValueCountsImplementation(groupedValues);
         }
 
         public override GroupBy GroupBy(int columnIndex, DataFrame parent)
         {
-            Dictionary<string, ICollection<long>> dictionary = GroupColumnValues<string>();
+            Dictionary<string, ICollection<long>> dictionary = GroupColumnValues<string>(out HashSet<long> _);
             return new GroupBy<string>(parent, columnIndex, dictionary);
         }
 
-        public override Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>()
+        public override Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>(out HashSet<long> nullIndices)
         {
             if (typeof(TKey) == typeof(string))
             {
                 Dictionary<string, ICollection<long>> multimap = new Dictionary<string, ICollection<long>>(EqualityComparer<string>.Default);
+                nullIndices = new HashSet<long>();
                 for (long i = 0; i < Length; i++)
                 {
-                    bool containsKey = multimap.TryGetValue(this[i] ?? default, out ICollection<long> values);
-                    if (containsKey)
+                    string str = this[i];
+                    if (str != null)
                     {
-                        values.Add(i);
+                        bool containsKey = multimap.TryGetValue(this[i], out ICollection<long> values);
+                        if (containsKey)
+                        {
+                            values.Add(i);
+                        }
+                        else
+                        {
+                            multimap.Add(this[i] ?? default, new List<long>() { i });
+                        }
                     }
                     else
                     {
-                        multimap.Add(this[i] ?? default, new List<long>() { i });
+                        nullIndices.Add(i);
                     }
                 }
                 return multimap as Dictionary<TKey, ICollection<long>>;
