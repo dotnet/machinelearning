@@ -554,7 +554,7 @@ namespace Microsoft.Data.Analysis
                         else
                         {
                             nullIndices.Add(currentLength);
-                        }    
+                        }
                     }
                 }
                 return multimap as Dictionary<TKey, ICollection<long>>;

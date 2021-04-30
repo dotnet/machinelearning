@@ -345,37 +345,6 @@ namespace Microsoft.Data.Analysis
                         rightRowIndices.Append(otherColumnNullIndex);
                     }
                 }
-
-                //// Now handle the null rows
-                //IEnumerator<long?> thisColumnNullIndicesEnumerator = thisColumnNullIndices.GetEnumerator();
-                //HashSet<long>.Enumerator otherColumnNullIndicesEnumerator = otherColumnNullIndices.GetEnumerator();
-                //while (thisColumnNullIndicesEnumerator.MoveNext() && otherColumnNullIndicesEnumerator.MoveNext())
-                //{
-                //    long? thisColumnNullIndex = thisColumnNullIndicesEnumerator.Current;
-                //    long otherColumnNullIndex = otherColumnNullIndicesEnumerator.Current;
-                //    leftRowIndices.Append(thisColumnNullIndex);
-                //    rightRowIndices.Append(otherColumnNullIndex);
-                //}
-                //while (!otherColumnNullIndicesEnumerator.MoveNext())
-                //{
-                //    long? thisColumnNullIndex = thisColumnNullIndicesEnumerator.Current;
-                //    leftRowIndices.Append(thisColumnNullIndex);
-                //    rightRowIndices.Append(null);
-                //    if (!thisColumnNullIndicesEnumerator.MoveNext())
-                //    {
-                //        break;
-                //    }
-                //}
-                //while (!thisColumnNullIndicesEnumerator.MoveNext())
-                //{
-                //    long otherColumnNullIndex = otherColumnNullIndicesEnumerator.Current;
-                //    leftRowIndices.Append(null);
-                //    rightRowIndices.Append(otherColumnNullIndex);
-                //    if (!otherColumnNullIndicesEnumerator.MoveNext())
-                //    {
-                //        break;
-                //    }
-                //}
             }
             else
                 throw new NotImplementedException(nameof(joinAlgorithm));
