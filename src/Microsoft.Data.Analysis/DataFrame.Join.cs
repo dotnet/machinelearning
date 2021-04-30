@@ -243,35 +243,31 @@ namespace Microsoft.Data.Analysis
                 long leftRowCount = Rows.Count;
                 long rightRowCount = other.Rows.Count;
 
-                var leftColumnIsSmaller = (leftRowCount <= rightRowCount);
+                bool leftColumnIsSmaller = leftRowCount <= rightRowCount;
                 DataFrameColumn hashColumn = leftColumnIsSmaller ? Columns[leftJoinColumn] : other.Columns[rightJoinColumn];
                 DataFrameColumn otherColumn = ReferenceEquals(hashColumn, Columns[leftJoinColumn]) ? other.Columns[rightJoinColumn] : Columns[leftJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = hashColumn.GroupColumnValues<TKey>();
+                Dictionary<TKey, ICollection<long>> multimap = hashColumn.GroupColumnValues<TKey>(out HashSet<long> smallerDataFrameColumnNullIndices);
 
                 for (long i = 0; i < otherColumn.Length; i++)
                 {
                     var otherColumnValue = otherColumn[i];
-                    TKey otherColumnValueOrDefault = (TKey)(otherColumnValue == null ? default(TKey) : otherColumnValue);
-                    if (multimap.TryGetValue(otherColumnValueOrDefault, out ICollection<long> rowNumbers))
+                    if (otherColumnValue != null)
                     {
-                        foreach (long row in rowNumbers)
+                        if (multimap.TryGetValue((TKey)otherColumnValue, out ICollection<long> rowNumbers))
                         {
-                            if (otherColumnValue == null)
+                            foreach (long row in rowNumbers)
                             {
-                                if (hashColumn[row] == null)
-                                {
-                                    leftRowIndices.Append(leftColumnIsSmaller ? row : i);
-                                    rightRowIndices.Append(leftColumnIsSmaller ? i : row);
-                                }
+                                leftRowIndices.Append(leftColumnIsSmaller ? row : i);
+                                rightRowIndices.Append(leftColumnIsSmaller ? i : row);
                             }
-                            else
-                            {
-                                if (hashColumn[row] != null)
-                                {
-                                    leftRowIndices.Append(leftColumnIsSmaller ? row : i);
-                                    rightRowIndices.Append(leftColumnIsSmaller ? i : row);
-                                }
-                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (long nullIndex in smallerDataFrameColumnNullIndices)
+                        {
+                            leftRowIndices.Append(leftColumnIsSmaller ? nullIndex : i);
+                            rightRowIndices.Append(leftColumnIsSmaller ? i : nullIndex);
                         }
                     }
                 }

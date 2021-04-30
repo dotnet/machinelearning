@@ -1152,7 +1152,7 @@ namespace Microsoft.Data.Analysis.Tests
                 if (originalColumn.Name == "Bool")
                     continue;
                 DataFrameColumn headColumn = head.Columns[originalColumn.Name];
-                Assert.Equal(originalColumn[5], headColumn[verify[5]]);
+                Assert.Equal(originalColumn[7], headColumn[verify[5]]);
             }
             Assert.Equal(6, head.Rows.Count);
 
@@ -1569,14 +1569,14 @@ namespace Microsoft.Data.Analysis.Tests
 
             // all sampled rows should be unique.
             HashSet<int?> uniqueRowValues = new HashSet<int?>();
-            foreach(int? value in sampled.Columns["Int"])
+            foreach (int? value in sampled.Columns["Int"])
             {
                 uniqueRowValues.Add(value);
             }
             Assert.Equal(uniqueRowValues.Count, sampled.Rows.Count);
 
             // should throw exception as sample size is greater than dataframe rows
-            Assert.Throws<ArgumentException>(()=> df.Sample(13));
+            Assert.Throws<ArgumentException>(() => df.Sample(13));
         }
 
         [Theory]
@@ -1658,7 +1658,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(16, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
             Assert.Null(merge.Columns["Int_left"][12]);
-            Assert.Null(merge.Columns["Int_left"][5]);
+            Assert.Null(merge.Columns["Int_left"][15]);
             VerifyMerge(merge, left, right, JoinAlgorithm.FullOuter);
 
             // Inner merge 
@@ -1727,7 +1727,63 @@ namespace Microsoft.Data.Analysis.Tests
             for (long i = 0; i < matchedLeftOrRightRowsNullOtherRows.Length; i++)
             {
                 int rowIndex = matchedLeftOrRightRowsNullOtherRows[i];
-                MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, rowIndex, null);
+                if (leftLength > 5)
+                {
+                    MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, rowIndex, null);
+                }
+                else
+                {
+                    MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, null, rowIndex);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMergeEdgeCases_Inner()
+        {
+            DataFrame left = MakeDataFrameWithAllMutableColumnTypes(5);
+            DataFrame right = MakeDataFrameWithAllMutableColumnTypes(10);
+            left["Int"][3] = null;
+            right["Int"][6] = null;
+            // Creates this case:
+            /*
+             * Left:    Right:
+             * 0        0
+             * 1        1
+             * null(2)  2
+             * null(3)  3
+             * 4        4
+             *          null(5)
+             *          null(6)
+             *          7
+             *          8
+             *          9
+             */
+            /*
+             * Merge will result in a DataFrame like:
+             * Int_Left Int_Right
+             * 0        0
+             * 1        1
+             * 4        4
+             * null(2)  null(5)
+             * null(3)  null(5)
+             * null(2)  null(6)
+             * null(3)  null(6)
+             */
+
+            DataFrame merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.Inner);
+            Assert.Equal(7, merge.Rows.Count);
+            Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
+
+            int[] mergeRows = new int[] { 0, 1, 2, 3, 4, 5, 6 };
+            int[] leftRows = new int[] { 0, 1, 4, 2, 3, 2, 3 };
+            int[] rightRows = new int[] { 0, 1, 4, 5, 5, 6, 6 };
+            for (long i = 0; i < mergeRows.Length; i++)
+            {
+                int rowIndex = mergeRows[i];
+                int leftRowIndex = leftRows[i];
+                int rightRowIndex = rightRows[i];
+                MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, leftRowIndex, rightRowIndex);
             }
         }
 
