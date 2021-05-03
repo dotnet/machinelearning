@@ -815,10 +815,10 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Sort by "Int" in descending order
             sortedDf = df.OrderByDescending("Int");
-            Assert.Null(sortedDf.Columns["Int"][19]);
-            Assert.Equal(-1, sortedDf.Columns["Int"][18]);
-            Assert.Equal(100, sortedDf.Columns["Int"][1]);
-            Assert.Equal(2000, sortedDf.Columns["Int"][0]);
+            Assert.Null(sortedDf.Columns["Int"][0]);
+            Assert.Equal(-1, sortedDf.Columns["Int"][19]);
+            Assert.Equal(100, sortedDf.Columns["Int"][2]);
+            Assert.Equal(2000, sortedDf.Columns["Int"][1]);
 
             // Sort by "String" in ascending order
             sortedDf = df.OrderBy("String");
@@ -829,9 +829,9 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Sort by "String" in descending order
             sortedDf = df.OrderByDescending("String");
-            Assert.Null(sortedDf.Columns["Int"][19]);
-            Assert.Equal(8, sortedDf.Columns["Int"][1]);
-            Assert.Equal(9, sortedDf.Columns["Int"][0]);
+            Assert.Null(sortedDf.Columns["Int"][0]);
+            Assert.Equal(8, sortedDf.Columns["Int"][2]);
+            Assert.Equal(9, sortedDf.Columns["Int"][1]);
         }
 
         [Fact]
