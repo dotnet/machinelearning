@@ -611,7 +611,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Save the trained model into file.
             ITransformer loadedModel = null;
-            var tempPath = Path.GetTempFileName();
+            var tempPath = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
             using (var file = new SimpleFileHandle(Env, tempPath, true, true))
             {
                 using (var fs = file.CreateWriteStream())
@@ -668,7 +668,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Save the trained model into file and then load it back.
             ITransformer loadedModel = null;
-            var tempPath = Path.GetTempFileName();
+            var tempPath = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
             using (var file = new SimpleFileHandle(Env, tempPath, true, true))
             {
                 using (var fs = file.CreateWriteStream())

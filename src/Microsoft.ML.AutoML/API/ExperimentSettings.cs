@@ -66,7 +66,7 @@ namespace Microsoft.ML.AutoML
         {
             MaxExperimentTimeInSeconds = 24 * 60 * 60;
             CancellationToken = default;
-            CacheDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.AutoML"));
+            CacheDirectory = new DirectoryInfo(Path.Combine(MLContext.TempFilePath, "Microsoft.ML.AutoML"));
             CacheBeforeTrainer = CacheBeforeTrainer.Auto;
             MaxModels = int.MaxValue;
         }

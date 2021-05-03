@@ -34,7 +34,7 @@ namespace Microsoft.ML.Scenarios
         public static string assetsPath;
         internal static void CreateParentWorkspacePathForImageClassification()
         {
-            tempFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            tempFolder = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
             assetsPath = Path.Combine(tempFolder, "assets");
             parentWorkspacePath = Path.Combine(assetsPath, "cached");
             // Delete if the workspace path already exists
@@ -1678,7 +1678,7 @@ namespace Microsoft.ML.Scenarios
 
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
-            Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
+            Assert.True(File.Exists(Path.Combine(MLContext.TempFilePath, "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
 
             (loadedModel as IDisposable)?.Dispose();
         }
@@ -1961,7 +1961,7 @@ namespace Microsoft.ML.Scenarios
 
         private static string GetTemporaryDirectory()
         {
-            string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            string tempDirectory = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);
             return tempDirectory;
         }

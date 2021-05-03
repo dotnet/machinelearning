@@ -487,7 +487,7 @@ namespace Microsoft.ML.Vision
         private readonly bool _cleanupWorkspace;
         private int _classCount;
         private Graph Graph => _session.graph;
-        private static readonly string _resourcePath = Path.Combine(Path.GetTempPath(), "MLNET");
+        private static readonly string _resourcePath = Path.Combine(MLContext.TempFilePath, "MLNET");
         private readonly string _sizeFile;
 
         /// <summary>

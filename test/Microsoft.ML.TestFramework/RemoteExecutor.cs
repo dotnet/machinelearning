@@ -199,6 +199,6 @@ namespace Microsoft.ML.TestFramework
         public bool CheckExitCode { get; set; } = true;
         public int TimeOut { get; set; } = RemoteExecutor.FailWaitTimeoutMilliseconds;
         public int ExpectedExitCode { get; set; } = RemoteExecutor.SuccessExitCode;
-        public string ExceptionFile { get; } = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        public string ExceptionFile { get; } = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
     }
 }

@@ -244,7 +244,7 @@ namespace Microsoft.ML.Tests
             var result = model.Transform(data);
 
             // save and reload the model
-            var tempPath = Path.GetTempFileName();
+            var tempPath = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
             ML.Model.Save(model, data.Schema, tempPath);
             var loadedModel = ML.Model.Load(tempPath, out DataViewSchema modelSchema);
             (loadedModel as IDisposable)?.Dispose();
@@ -966,7 +966,7 @@ namespace Microsoft.ML.Tests
 
             // Save the trained ONNX transformer into file and then load it back.
             ITransformer loadedModel = null;
-            var tempPath = Path.GetTempFileName();
+            var tempPath = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
             using (var file = new SimpleFileHandle(Env, tempPath, true, true))
             {
                 // Save.

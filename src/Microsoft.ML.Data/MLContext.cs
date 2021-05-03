@@ -79,6 +79,13 @@ namespace Microsoft.ML
         /// </summary>
         public ComponentCatalog ComponentCatalog => _env.ComponentCatalog;
 
+        private static string _tempFilePath = System.IO.Path.GetTempPath();
+        public static string TempFilePath
+        {
+            get { return _tempFilePath; }
+            set { _tempFilePath = value; }
+        }
+
         /// <summary>
         /// Create the ML context.
         /// </summary>
