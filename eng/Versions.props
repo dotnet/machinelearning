@@ -40,7 +40,7 @@
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
 
-  <!-- Build/infrastructure Dependencies -->
+    <!-- Build/infrastructure Dependencies -->
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
     <CodecovVersion>1.9.0</CodecovVersion>
     <CoverletCollectorVersion>1.2.1</CoverletCollectorVersion>

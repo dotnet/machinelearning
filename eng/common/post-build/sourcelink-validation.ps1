@@ -144,27 +144,11 @@ $ValidatePackage = {
 
   if ($FailedFiles -eq 0) {
     Write-Host 'Passed.'
-    return [pscustomobject]@{
-      result = 0
-      packagePath = $PackagePath
-    }
+    return 0
   }
   else {
     Write-PipelineTelemetryError -Category 'SourceLink' -Message "$PackagePath has broken SourceLink links."
-    return [pscustomobject]@{
-      result = 1
-      packagePath = $PackagePath
-    }
-  }
-}
-
-function CheckJobResult(
-    $result, 
-    $packagePath,
-    [ref]$ValidationFailures) {
-  if ($jobResult.result -ne '0') {
-    Write-PipelineTelemetryError -Category 'SourceLink' -Message "$packagePath has broken SourceLink links."
-    $ValidationFailures.Value++
+    return 1
   }
 }
 
@@ -227,8 +211,10 @@ function ValidateSourceLinkLinks {
       }
 
       foreach ($Job in @(Get-Job -State 'Completed')) {
-        $jobResult = Wait-Job -Id $Job.Id | Receive-Job
-        CheckJobResult $jobResult.result $jobResult.packagePath ([ref]$ValidationFailures)
+        $jobResult = Receive-Job -Id $Job.Id
+        if ($jobResult -ne '0') {
+          $ValidationFailures++
+        }
         Remove-Job -Id $Job.Id
       }
     }
