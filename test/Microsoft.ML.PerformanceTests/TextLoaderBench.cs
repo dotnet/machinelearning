@@ -29,7 +29,7 @@ namespace Microsoft.ML.PerformanceTests
         public void SetupData()
         {
             _mlContext = new MLContext(seed: 1);
-            var path = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
+            var path = Path.GetTempFileName();
             Console.WriteLine($"Created dataset in temporary file:\n{path}\n");
             path = RandomFile.CreateRandomFile(path, _numRows, _numColumns, _maxWordLength);
 

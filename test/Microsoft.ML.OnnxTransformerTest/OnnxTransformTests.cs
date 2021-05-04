@@ -244,7 +244,7 @@ namespace Microsoft.ML.Tests
             var result = model.Transform(data);
 
             // save and reload the model
-            var tempPath = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
+            var tempPath = Path.GetTempFileName();
             ML.Model.Save(model, data.Schema, tempPath);
             var loadedModel = ML.Model.Load(tempPath, out DataViewSchema modelSchema);
             (loadedModel as IDisposable)?.Dispose();
@@ -681,7 +681,7 @@ namespace Microsoft.ML.Tests
             var modelInBytes = File.ReadAllBytes(modelFile);
 
             // Create ONNX model from the byte[].
-            var onnxModel = OnnxModel.CreateFromBytes(modelInBytes);
+            var onnxModel = OnnxModel.CreateFromBytes(modelInBytes, ML);
 
             // Check if a temporal file is crated for storing the byte[].
             Assert.True(File.Exists(onnxModel.ModelStream.Name));
@@ -966,7 +966,7 @@ namespace Microsoft.ML.Tests
 
             // Save the trained ONNX transformer into file and then load it back.
             ITransformer loadedModel = null;
-            var tempPath = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
+            var tempPath = Path.GetTempFileName();
             using (var file = new SimpleFileHandle(Env, tempPath, true, true))
             {
                 // Save.

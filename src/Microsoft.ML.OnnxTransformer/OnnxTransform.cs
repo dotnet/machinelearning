@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     // Entering this region means that the byte[] is passed as the model. To feed that byte[] to ONNXRuntime, we need
                     // to create a temporal file to store it and then call ONNXRuntime's API to load that file.
-                    Model = OnnxModel.CreateFromBytes(modelBytes, options.GpuDeviceId, options.FallbackToCpu, shapeDictionary: shapeDictionary);
+                    Model = OnnxModel.CreateFromBytes(modelBytes, env, options.GpuDeviceId, options.FallbackToCpu, shapeDictionary: shapeDictionary);
                 }
             }
             catch (OnnxRuntimeException e)

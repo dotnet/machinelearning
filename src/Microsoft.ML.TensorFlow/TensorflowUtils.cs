@@ -630,9 +630,9 @@ namespace Microsoft.ML.TensorFlow
             }
         }
 
-        internal static string GetTemporaryDirectory()
+        internal static string GetTemporaryDirectory(IHostEnvironment env)
         {
-            string tempDirectory = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
+            string tempDirectory = Path.Combine((env as IHostEnvironmentInternal).TempFilePath, Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);
             return tempDirectory;
         }

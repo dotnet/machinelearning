@@ -637,9 +637,9 @@ namespace Microsoft.ML.Tests
         public void LoadingPredictorModelAndOnnxConversionTest()
         {
             string dataPath = GetDataPath("iris.txt");
-            string modelPath = MLContext.TempFilePath + Guid.NewGuid().ToString() + ".model.bin";
-            string onnxPath = MLContext.TempFilePath + Guid.NewGuid().ToString() + ".model.onnx";
-            string onnxJsonPath = MLContext.TempFilePath + Guid.NewGuid().ToString() + ".model.onnx.json";
+            string modelPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.bin";
+            string onnxPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.onnx";
+            string onnxJsonPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.onnx.json";
 
             string inputGraph = string.Format(@"
             {{

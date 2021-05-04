@@ -487,7 +487,7 @@ namespace Microsoft.ML.Vision
         private readonly bool _cleanupWorkspace;
         private int _classCount;
         private Graph Graph => _session.graph;
-        private static readonly string _resourcePath = Path.Combine(MLContext.TempFilePath, "MLNET");
+        private readonly string _resourcePath;
         private readonly string _sizeFile;
 
         /// <summary>
@@ -531,10 +531,11 @@ namespace Microsoft.ML.Vision
             Host.CheckNonEmpty(options.ScoreColumnName, nameof(options.ScoreColumnName));
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
             tf.compat.v1.disable_eager_execution();
+            _resourcePath = Path.Combine((env as IHostEnvironmentInternal).TempFilePath, "MLNET");
 
             if (string.IsNullOrEmpty(options.WorkspacePath))
             {
-                options.WorkspacePath = GetTemporaryDirectory();
+                options.WorkspacePath = GetTemporaryDirectory(env);
                 _cleanupWorkspace = true;
             }
 
@@ -1322,9 +1323,9 @@ namespace Microsoft.ML.Vision
         private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
             var modelFileName = ModelFileName[arch];
-            var modelFilePath = Path.Combine(_resourcePath, modelFileName);
+            var modelFilePath = Path.Combine((env as IHostEnvironmentInternal).TempFilePath, "MLNET", modelFileName);
             int timeout = 10 * 60 * 1000;
-            DownloadIfNeeded(env, @"meta\" + modelFileName, _resourcePath, modelFileName, timeout);
+            DownloadIfNeeded(env, @"meta\" + modelFileName, Path.Combine((env as IHostEnvironmentInternal).TempFilePath, "MLNET"), modelFileName, timeout);
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 

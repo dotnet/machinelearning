@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms
                 return new TensorFlowTransformer(env, LoadTFSession(env, modelBytes), outputs, inputs, null, false, addBatchDimensionInput, treatOutputAsBatched: treatOutputAsBatched);
             }
 
-            var tempDirPath = Path.GetFullPath(Path.Combine(MLContext.TempFilePath, nameof(TensorFlowTransformer) + "_" + Guid.NewGuid()));
+            var tempDirPath = Path.GetFullPath(Path.Combine((env as IHostEnvironmentInternal).TempFilePath, nameof(TensorFlowTransformer) + "_" + Guid.NewGuid()));
             CreateFolderWithAclIfNotExists(env, tempDirPath);
             try
             {

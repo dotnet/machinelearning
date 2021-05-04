@@ -93,9 +93,11 @@ namespace Microsoft.ML.Runtime
     /// query progress.
     /// </summary>
     [BestFriend]
-    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, ISeededEnvironment, IChannelProvider, ICancelable
+    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironmentInternal, IChannelProvider, ICancelable
         where TEnv : HostEnvironmentBase<TEnv>
     {
+        public string TempFilePath { get; set; }
+
         void ICancelable.CancelExecution()
         {
             lock (_cancelLock)
@@ -360,6 +362,7 @@ namespace Microsoft.ML.Runtime
             string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
+            TempFilePath = Path.GetTempPath();
             Seed = seed;
             _rand = RandomUtils.Create(Seed);
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
@@ -377,6 +380,7 @@ namespace Microsoft.ML.Runtime
             string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
+            TempFilePath = Path.GetTempPath();
             Contracts.CheckValue(source, nameof(source));
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();

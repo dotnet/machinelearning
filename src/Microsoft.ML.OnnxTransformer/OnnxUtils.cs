@@ -321,33 +321,35 @@ namespace Microsoft.ML.Transforms.Onnx
 
         /// <summary>
         /// Create an OnnxModel from a byte[]. Usually, a ONNX model is consumed by <see cref="OnnxModel"/> as a file.
-        /// With <see cref="CreateFromBytes(byte[])"/> and <see cref="CreateFromBytes(byte[], int?, bool, IDictionary{string, int[]})"/>,
+        /// With <see cref="CreateFromBytes(byte[], IHostEnvironment)"/> and <see cref="CreateFromBytes(byte[], IHostEnvironment, int?, bool, IDictionary{string, int[]})"/>,
         /// it's possible to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
         /// </summary>
         /// <param name="modelBytes">Bytes of the serialized model</param>
-        public static OnnxModel CreateFromBytes(byte[] modelBytes)
+        /// <param name="env">IHostEnvironment</param>
+        public static OnnxModel CreateFromBytes(byte[] modelBytes, IHostEnvironment env)
         {
-            return CreateFromBytes(modelBytes, null, false);
+            return CreateFromBytes(modelBytes, env, null, false);
         }
 
         /// <summary>
         /// Create an OnnxModel from a byte[]. Set execution to GPU if required.
         /// Usually, a ONNX model is consumed by <see cref="OnnxModel"/> as a file.
-        /// With <see cref="CreateFromBytes(byte[])"/> and
-        /// <see cref="CreateFromBytes(byte[], int?, bool, IDictionary{string, int[]})"/>,
+        /// With <see cref="CreateFromBytes(byte[], IHostEnvironment)"/> and
+        /// <see cref="CreateFromBytes(byte[], IHostEnvironment, int?, bool, IDictionary{string, int[]})"/>,
         /// it's possible to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
         /// </summary>
         /// <param name="modelBytes">Bytes of the serialized model.</param>
+        /// <param name="env">IHostEnvironment</param>
         /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If true, resumes CPU execution quietly upon GPU error.</param>
         /// <param name="shapeDictionary">User-provided shapes. If the key "myTensorName" is associated
         /// with the value [1, 3, 5], the shape of "myTensorName" will be set to [1, 3, 5].
         /// The shape loaded from <paramref name="modelBytes"/> would be overwritten.</param>
         /// <returns>An <see cref="OnnxModel"/></returns>
-        public static OnnxModel CreateFromBytes(byte[] modelBytes, int? gpuDeviceId = null, bool fallbackToCpu = false,
+        public static OnnxModel CreateFromBytes(byte[] modelBytes, IHostEnvironment env, int? gpuDeviceId = null, bool fallbackToCpu = false,
             IDictionary<string, int[]> shapeDictionary = null)
         {
-            var tempModelFile = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
+            var tempModelFile = Path.Combine((env as IHostEnvironmentInternal).TempFilePath, Path.GetRandomFileName());
             File.WriteAllBytes(tempModelFile, modelBytes);
             return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu,
                 ownModelFile: true, shapeDictionary: shapeDictionary);

@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests
             pipe.GetOutputSchema(SchemaShape.Create(data.Schema));
             var model = pipe.Fit(data);
 
-            var tempPath = Path.Combine(MLContext.TempFilePath, Path.GetRandomFileName());
+            var tempPath = Path.GetTempFileName();
             using (var file = new SimpleFileHandle(env, tempPath, true, true))
             {
                 using (var fs = file.CreateWriteStream())

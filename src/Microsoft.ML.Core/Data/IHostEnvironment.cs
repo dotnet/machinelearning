@@ -83,12 +83,17 @@ namespace Microsoft.ML.Runtime
     }
 
     [BestFriend]
-    internal interface ISeededEnvironment : IHostEnvironment
+    internal interface IHostEnvironmentInternal : IHostEnvironment
     {
         /// <summary>
         /// The seed property that, if assigned, makes components requiring randomness behave deterministically.
         /// </summary>
         int? Seed { get; }
+
+        /// <summary>
+        /// The location for the temp files created by ML.NET
+        /// </summary>
+        string TempFilePath { get; set; }
     }
 
     /// <summary>
