@@ -9,7 +9,7 @@
 
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsIntegrationTestProject>true</IsIntegrationTestProject>
-    
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,10 +38,11 @@
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
-    <NativeAssemblyReference Include="SymSgdNative" />
+    <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="SymSgdNative" />
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklProxyNative" />
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm' And '$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
   <ItemGroup>

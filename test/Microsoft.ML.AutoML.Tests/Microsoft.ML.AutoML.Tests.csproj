@@ -5,13 +5,13 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="ApprovalTests" Version="5.2.4" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="TestData\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -21,15 +21,16 @@
     </None>
   </ItemGroup>
 
+  <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->
   <ItemGroup>
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklProxyNative" />
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="CpuMathNative" />
-    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'"Include="SymSgdNative" />
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm' And '$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
 </Project>

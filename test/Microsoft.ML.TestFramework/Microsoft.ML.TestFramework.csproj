@@ -28,7 +28,7 @@
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklProxyNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm' And '$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
   <ItemGroup>

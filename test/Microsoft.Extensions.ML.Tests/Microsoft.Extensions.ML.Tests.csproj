@@ -19,13 +19,13 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="$(MicrosoftExtensionsTestPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsTestPackageVersion)" />
   </ItemGroup>
-    
+
   <ItemGroup>
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="CpuMathNative" />
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm' And '$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="testdata.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -197,9 +197,10 @@ if(NOT ${ARCHITECTURE} MATCHES "Arm64")
     add_subdirectory(CpuMathNative)
     add_subdirectory(FastTreeNative)
     add_subdirectory(MklProxyNative)
+    # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
+    add_subdirectory(SymSgdNative)
 endif()
 
-add_subdirectory(SymSgdNative)
 add_subdirectory(LdaNative)
 add_subdirectory(MatrixFactorizationNative)
 

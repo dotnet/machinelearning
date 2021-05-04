@@ -34,7 +34,7 @@
   <ItemGroup>
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="CpuMathNative" />
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm'" Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'Arm64' And '$(TargetArchitecture)' != 'Arm' And '$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
   <ItemGroup>
