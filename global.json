@@ -1,6 +1,6 @@
 {
   "tools": {
-    "dotnet": "5.0.202",
+    "dotnet": "6.0.100-preview.3.21202.5",
     "runtimes": {
       "dotnet/x64": [
         "$(MicrosoftNETCorePlatformsVersion)",
