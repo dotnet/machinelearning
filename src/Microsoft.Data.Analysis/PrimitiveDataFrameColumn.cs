@@ -225,7 +225,7 @@ namespace Microsoft.Data.Analysis
             // Not the most efficient implementation. Using a selection algorithm here would be O(n) instead of O(nLogn)
             if (Length == 0)
                 return 0;
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices();
+            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
             long middle = sortIndices.Length / 2;
             double middleValue = (double)Convert.ChangeType(this[sortIndices[middle].Value].Value, typeof(double));
             if (Length % 2 == 0)

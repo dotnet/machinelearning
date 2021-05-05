@@ -171,14 +171,8 @@ namespace Microsoft.Data.Analysis
 
         public new StringDataFrameColumn Sort(bool ascending = true)
         {
-            PrimitiveDataFrameColumn<long> columnSortIndices = GetAscendingSortIndices();
+            PrimitiveDataFrameColumn<long> columnSortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
             return Clone(columnSortIndices, !ascending, NullCount);
-        }
-
-        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices()
-        {
-            PrimitiveDataFrameColumn<long> columnSortIndices = GetSortIndices(Comparer<string>.Default, out Int64DataFrameColumn _);
-            return columnSortIndices;
         }
 
         internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices)

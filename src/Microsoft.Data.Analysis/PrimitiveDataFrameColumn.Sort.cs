@@ -14,15 +14,8 @@ namespace Microsoft.Data.Analysis
     {
         public new PrimitiveDataFrameColumn<T> Sort(bool ascending = true)
         {
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices();
+            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
             return Clone(sortIndices, !ascending, NullCount);
-        }
-
-        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices()
-        {
-            // The return sortIndices contains only the non null indices. 
-            Int64DataFrameColumn sortIndices = GetSortIndices(Comparer<T>.Default, out Int64DataFrameColumn _);
-            return sortIndices;
         }
 
         internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices)
