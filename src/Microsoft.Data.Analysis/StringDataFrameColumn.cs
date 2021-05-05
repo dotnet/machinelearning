@@ -419,14 +419,14 @@ namespace Microsoft.Data.Analysis
                     string str = this[i];
                     if (str != null)
                     {
-                        bool containsKey = multimap.TryGetValue(this[i], out ICollection<long> values);
+                        bool containsKey = multimap.TryGetValue(str, out ICollection<long> values);
                         if (containsKey)
                         {
                             values.Add(i);
                         }
                         else
                         {
-                            multimap.Add(this[i] ?? default, new List<long>() { i });
+                            multimap.Add(str, new List<long>() { i });
                         }
                     }
                     else

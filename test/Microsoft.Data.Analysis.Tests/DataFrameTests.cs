@@ -1700,7 +1700,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Theory]
         [InlineData(10, 5, JoinAlgorithm.Left)]
         [InlineData(5, 10, JoinAlgorithm.Right)]
-        public void TestMergeEdgeCases_Left(int leftLength, int rightLength, JoinAlgorithm joinAlgorithm)
+        public void TestMergeEdgeCases_LeftOrRight(int leftLength, int rightLength, JoinAlgorithm joinAlgorithm)
         {
             DataFrame left = MakeDataFrameWithAllMutableColumnTypes(leftLength);
             if (leftLength > 5)
@@ -1851,6 +1851,21 @@ namespace Microsoft.Data.Analysis.Tests
                 int rightRowIndex = rightRows[i];
                 MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, null, rightRowIndex);
             }
+        }
+
+        [Fact]
+        public void TestMerge_Issue5778()
+        {
+            DataFrame left = MakeDataFrameWithAllMutableColumnTypes(2, false);
+            DataFrame right = MakeDataFrameWithAllMutableColumnTypes(1);
+
+            DataFrame merge = left.Merge<int>(right, "Int", "Int");
+
+            Assert.Equal(2, merge.Rows.Count);
+            Assert.Equal(0, (int)merge.Columns["Int_left"][0]);
+            Assert.Equal(1, (int)merge.Columns["Int_left"][1]);
+            MatchRowsOnMergedDataFrame(merge, left, right, 0, 0, 0);
+            MatchRowsOnMergedDataFrame(merge, left, right, 1, 1, 0);
         }
 
         [Fact]
