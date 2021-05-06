@@ -33,7 +33,7 @@ else()
     endif()
 endif()
 
-if(NOT ${ARCHITECTURE} MATCHES "Arm64")
+if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
 endif()
 

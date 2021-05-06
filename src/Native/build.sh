@@ -53,7 +53,7 @@ while [ "$1" != "" ]; do
         --mkllibrpath)
             shift
             __mkllibrpath=$1
-            ;;          
+            ;;
         --stripsymbols)
             __strip_argument="-DSTRIP_SYMBOLS=true"
             ;;
@@ -102,6 +102,13 @@ if [ ! -f $__versionSourceFile ]; then
 fi
 
 __cmake_defines="${__cmake_defines} -DVERSION_FILE_PATH:STRING=${__versionSourceFile}"
+
+OS=$(uname -m)
+
+if [[ ( $OS == "amd64" || $OS == "x86_x64" ) && ( $__build_arch == "arm64" || $__build_arch == "arm" ) ]]; then
+    __cmake_defines="${__cmake_defines} -DCMAKE_TOOLCHAIN_FILE=$(PWD)/../../eng/common/cross/toolchain.cmake"
+    export TARGET_BUILD_ARCH=$__build_arch
+fi
 
 cd "$__IntermediatesDir"
 

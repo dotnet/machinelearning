@@ -193,7 +193,7 @@ function(install_library_and_symbols targetName)
     endif()
 endfunction()
 
-if(NOT ${ARCHITECTURE} MATCHES "Arm64")
+if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(CpuMathNative)
     add_subdirectory(FastTreeNative)
     add_subdirectory(MklProxyNative)
