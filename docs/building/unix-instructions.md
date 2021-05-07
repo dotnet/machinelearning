@@ -53,7 +53,7 @@ export ROOTFS_DIR=<new rootfs location>
 ./build.sh -c Release-netcoreapp3_1 /p:TargetArchitecture=<target architecture>
 ```
 
-Note that the `<target architecture>` will usually be arm or arm64 and the `<ubuntu distro name>` is bionic for 18.04.
+Note that the `<target architecture>` will usually be Arm or Arm64 and the `<ubuntu distro name>` is bionic for 18.04.
 
 ### macOS
 

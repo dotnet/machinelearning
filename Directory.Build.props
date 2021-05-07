@@ -7,7 +7,7 @@
   <Import Project="eng/ExternalBenchmarkDataFiles.props" />
   <Import Project="eng/TensorflowMetaFiles.props" />
 
-  <PropertyGroup> 
+  <PropertyGroup>
     <DefineConstants Condition="'$(Platform)' == 'Arm64'">$(DefineConstants);ARM64</DefineConstants>
   </PropertyGroup>
 
@@ -27,7 +27,7 @@
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
-    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
+    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</TargetArchitecture>
     <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
     <StrongNameKeyId>Open</StrongNameKeyId>
   </PropertyGroup>
