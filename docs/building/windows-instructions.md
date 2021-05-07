@@ -73,13 +73,13 @@ You can use the Developer Command Prompt, Powershell or work in any regular cmd.
 
 From a (non-admin) Command Prompt window based on what you want to target:
 
-- `build.cmd /p:TargetArchitecture=Arm`
-- `build.cmd /p:TargetArchitecture=Arm64`
+- `build.cmd /p:TargetArchitecture=arm`
+- `build.cmd /p:TargetArchitecture=arm64`
 
 You can then pack them into nugets, pick the same target architecture you built with:
 
-- `build.cmd /p:TargetArchitecture=Arm -pack`
-- `build.cmd /p:TargetArchitecture=Arm64 -pack`
+- `build.cmd /p:TargetArchitecture=arm -pack`
+- `build.cmd /p:TargetArchitecture=arm64 -pack`
 
 ## Running Tests
 
