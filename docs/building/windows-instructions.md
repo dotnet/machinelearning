@@ -67,7 +67,7 @@ From a (non-admin) Command Prompt window:
 
 **Note**: Before working on individual projects or test projects you **must** run `build.cmd` from the root once before beginning that work. It is also a good idea to run `build.cmd` whenever you pull a large set of unknown changes into your branch.
 
-### Cross compiling for ARM From the Command Line
+### Cross compiling for ARM
 
 You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2019" or similar in your start menu.
 
