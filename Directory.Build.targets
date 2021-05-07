@@ -7,25 +7,24 @@
   </ItemGroup>
 
   <Target Name="CopyNativeAssembiles" AfterTargets="CopyFilesToOutputDirectory">
-    <Message Text="$(TargetArchitecture)"/>
     <PropertyGroup>
-		<LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
-		<LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
-		<LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
-		<LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
+      <LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
+      <LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
+      <LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
+      <LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
 
-		<BinDir Condition="'$(BinDir)'==''">$([MSBuild]::NormalizeDirectory('$(RepoRoot)', 'artifacts', 'bin'))</BinDir>
-		<NativeOutputPath>$(BinDir)Native\$(TargetArchitecture).$(Configuration)\</NativeOutputPath>
+      <BinDir Condition="'$(BinDir)'==''">$([MSBuild]::NormalizeDirectory('$(RepoRoot)', 'artifacts', 'bin'))</BinDir>
+      <NativeOutputPath>$(BinDir)Native\$(TargetArchitecture).$(Configuration)\</NativeOutputPath>
 
-		<Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
-		<PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
-		<OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(MSBuildProjectName)\Debug</OutputPath>
-	</PropertyGroup>
+      <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
+      <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
+      <OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(MSBuildProjectName)\Debug</OutputPath>
+	  </PropertyGroup>
 
 		<ItemGroup>
-		<NativeAssemblyReference>
-			<FullAssemblyPath>$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
-		</NativeAssemblyReference>
+      <NativeAssemblyReference>
+        <FullAssemblyPath>$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
+      </NativeAssemblyReference>
 		</ItemGroup>
 
 		<Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
