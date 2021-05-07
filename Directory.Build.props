@@ -8,10 +8,6 @@
   <Import Project="eng/TensorflowMetaFiles.props" />
 
   <PropertyGroup>
-    <DefineConstants Condition="'$(Platform)' == 'Arm64'">$(DefineConstants);ARM64</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup>
 	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
   </PropertyGroup>
 
@@ -28,8 +24,13 @@
     <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
     <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</TargetArchitecture>
+    <TargetArchitecture>$(TargetArchitecture.ToLower())</TargetArchitecture>
     <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
     <StrongNameKeyId>Open</StrongNameKeyId>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants Condition="'$(TargetPlatform)' == 'arm64'">$(DefineConstants);ARM64</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>
