@@ -17,8 +17,16 @@ if(UNIX)
 
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
     if (APPLE)
-        include_directories("/usr/local/opt/libomp/include")
-        link_directories("/usr/local/opt/libomp/lib")
+        # Apple silicon and Intel macs store brew in different locations, this finds it no matter where it is.
+        execute_process(
+            COMMAND brew --prefix libomp 
+            RESULT_VARIABLE BREW_LIBOMP
+            OUTPUT_VARIABLE BREW_LIBOMP_PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+        include_directories("${BREW_LIBOMP_PREFIX}/include")
+        link_directories("${BREW_LIBOMP_PREFIX}/lib")
     endif()
 endif()
 

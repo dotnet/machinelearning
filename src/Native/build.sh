@@ -63,7 +63,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-__cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath} -DMKL_LIB_RPATH=${__mkllibrpath} -DARCHITECTURE=${__build_arch}"
+__cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath} -DMKL_LIB_RPATH=${__mkllibrpath}"
 
 __IntermediatesDir="$__baseIntermediateOutputPath/Native/$__build_arch.$__configuration"
 __BinDir="$__rootBinPath/Native/$__build_arch.$__configuration"
@@ -103,12 +103,22 @@ fi
 
 __cmake_defines="${__cmake_defines} -DVERSION_FILE_PATH:STRING=${__versionSourceFile}"
 
-OS=$(uname -m)
+OS_ARCH=$(uname -m)
+OS=$(uname)
 
-if [[ ( $OS == "amd64" || $OS == "x86_64" ) && ( $__build_arch == "arm64" || $__build_arch == "arm" ) ]] ; then
+# If we are cross compiling on Linux we need to set the CMAKE_TOOLCHAIN_FILE
+if [[ ( $OS_ARCH == "amd64" || $OS_ARCH == "x86_64" ) && ( $__build_arch == "arm64" || $__build_arch == "arm" ) && $OS != "Darwin" ]] ; then
     __cmake_defines="${__cmake_defines} -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../../eng/common/cross/toolchain.cmake"
     export TARGET_BUILD_ARCH=$__build_arch
+
+# If we are on a Mac we need to let it know the cross architecture to build for.
+# We use x64 for our 64 bit code, but Mac defines it as x86_64.
+elif [[  $OS == "Darwin" && $__build_arch == "x64" ]] ; then
+    __build_arch="x86_64"
 fi
+
+# Set the ARCHITECTURE for all builds
+__cmake_defines="${__cmake_defines} -DARCHITECTURE=${__build_arch}"
 
 cd "$__IntermediatesDir"
 
