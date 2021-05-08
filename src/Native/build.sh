@@ -105,8 +105,8 @@ __cmake_defines="${__cmake_defines} -DVERSION_FILE_PATH:STRING=${__versionSource
 
 OS=$(uname -m)
 
-if [[ ( $OS == "amd64" || $OS == "x86_x64" ) && ( $__build_arch == "arm64" || $__build_arch == "arm" ) ]]; then
-    __cmake_defines="${__cmake_defines} -DCMAKE_TOOLCHAIN_FILE=$(PWD)/../../eng/common/cross/toolchain.cmake"
+if [[ ( $OS == "amd64" || $OS == "x86_64" ) && ( $__build_arch == "arm64" || $__build_arch == "arm" ) ]] ; then
+    __cmake_defines="${__cmake_defines} -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../../eng/common/cross/toolchain.cmake"
     export TARGET_BUILD_ARCH=$__build_arch
 fi
 
