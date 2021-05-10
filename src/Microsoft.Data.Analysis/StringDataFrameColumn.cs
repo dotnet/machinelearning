@@ -171,25 +171,32 @@ namespace Microsoft.Data.Analysis
 
         public new StringDataFrameColumn Sort(bool ascending = true)
         {
-            PrimitiveDataFrameColumn<long> columnSortIndices = GetAscendingSortIndices();
+            PrimitiveDataFrameColumn<long> columnSortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
             return Clone(columnSortIndices, !ascending, NullCount);
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices()
+        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices)
         {
-            GetSortIndices(Comparer<string>.Default, out PrimitiveDataFrameColumn<long> columnSortIndices);
+            PrimitiveDataFrameColumn<long> columnSortIndices = GetSortIndices(Comparer<string>.Default, out nullIndices);
             return columnSortIndices;
         }
 
-        private void GetSortIndices(Comparer<string> comparer, out PrimitiveDataFrameColumn<long> columnSortIndices)
+        private PrimitiveDataFrameColumn<long> GetSortIndices(Comparer<string> comparer, out Int64DataFrameColumn columnNullIndices)
         {
             List<int[]> bufferSortIndices = new List<int[]>(_stringBuffers.Count);
+            columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
+            long nullIndicesSlot = 0;
             foreach (List<string> buffer in _stringBuffers)
             {
                 var sortIndices = new int[buffer.Count];
                 for (int i = 0; i < buffer.Count; i++)
                 {
                     sortIndices[i] = i;
+                    if (buffer[i] == null)
+                    {
+                        columnNullIndices[nullIndicesSlot] = i + bufferSortIndices.Count * int.MaxValue;
+                        nullIndicesSlot++;
+                    }
                 }
                 // TODO: Refactor the sort routine to also work with IList?
                 string[] array = buffer.ToArray();
@@ -227,11 +234,12 @@ namespace Microsoft.Data.Analysis
                     heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferSortIndex.Item1, new List<ValueTuple<int, int>>() { (valueAndBufferSortIndex.Item2, i) });
                 }
             }
-            columnSortIndices = new PrimitiveDataFrameColumn<long>("SortIndices");
+            PrimitiveDataFrameColumn<long> columnSortIndices = new PrimitiveDataFrameColumn<long>("SortIndices");
             GetBufferSortIndex getBufferSortIndex = new GetBufferSortIndex((int bufferIndex, int sortIndex) => (bufferSortIndices[bufferIndex][sortIndex]) + bufferIndex * bufferSortIndices[0].Length);
             GetValueAndBufferSortIndexAtBuffer<string> getValueAtBuffer = new GetValueAndBufferSortIndexAtBuffer<string>((int bufferIndex, int sortIndex) => GetFirstNonNullValueStartingAtIndex(bufferIndex, sortIndex));
             GetBufferLengthAtIndex getBufferLengthAtIndex = new GetBufferLengthAtIndex((int bufferIndex) => bufferSortIndices[bufferIndex].Length);
             PopulateColumnSortIndicesWithHeap(heapOfValueAndListOfTupleOfSortAndBufferIndex, columnSortIndices, getBufferSortIndex, getValueAtBuffer, getBufferLengthAtIndex);
+            return columnSortIndices;
         }
 
         public new StringDataFrameColumn Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)

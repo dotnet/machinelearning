@@ -815,10 +815,10 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Sort by "Int" in descending order
             sortedDf = df.OrderByDescending("Int");
-            Assert.Null(sortedDf.Columns["Int"][19]);
-            Assert.Equal(-1, sortedDf.Columns["Int"][18]);
-            Assert.Equal(100, sortedDf.Columns["Int"][1]);
-            Assert.Equal(2000, sortedDf.Columns["Int"][0]);
+            Assert.Null(sortedDf.Columns["Int"][0]);
+            Assert.Equal(-1, sortedDf.Columns["Int"][19]);
+            Assert.Equal(100, sortedDf.Columns["Int"][2]);
+            Assert.Equal(2000, sortedDf.Columns["Int"][1]);
 
             // Sort by "String" in ascending order
             sortedDf = df.OrderBy("String");
@@ -829,9 +829,9 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Sort by "String" in descending order
             sortedDf = df.OrderByDescending("String");
-            Assert.Null(sortedDf.Columns["Int"][19]);
-            Assert.Equal(8, sortedDf.Columns["Int"][1]);
-            Assert.Equal(9, sortedDf.Columns["Int"][0]);
+            Assert.Null(sortedDf.Columns["Int"][0]);
+            Assert.Equal(8, sortedDf.Columns["Int"][2]);
+            Assert.Equal(9, sortedDf.Columns["Int"][1]);
         }
 
         [Fact]
@@ -918,6 +918,43 @@ namespace Microsoft.Data.Analysis.Tests
             sortedIntColumn = intColumn.Sort(ascending: false);
             Assert.Equal(4, sortedIntColumn[0]);
             Assert.Null(sortedIntColumn[9]);
+        }
+
+        [Fact]
+        public void TestSortWithDifferentNullCountsInColumns()
+        {
+            DataFrame dataFrame = MakeDataFrameWithAllMutableColumnTypes(10);
+            dataFrame["Int"][3] = null;
+            dataFrame["String"][3] = null;
+            DataFrame sorted = dataFrame.OrderBy("Int");
+            void Verify(DataFrame sortedDataFrame)
+            {
+                Assert.Equal(10, sortedDataFrame.Rows.Count);
+                DataFrameRow lastRow = sortedDataFrame.Rows[sortedDataFrame.Rows.Count - 1];
+                DataFrameRow penultimateRow = sortedDataFrame.Rows[sortedDataFrame.Rows.Count - 2];
+                foreach (object value in lastRow)
+                {
+                    Assert.Null(value);
+                }
+                
+                for (int i = 0; i < sortedDataFrame.Columns.Count; i++)
+                {
+                    string columnName = sortedDataFrame.Columns[i].Name;
+                    if (columnName != "String" && columnName != "Int")
+                    {
+                        Assert.Equal(dataFrame[columnName][3], penultimateRow[i]);
+                    }
+                    else if (columnName == "String" || columnName == "Int")
+                    {
+                        Assert.Null(penultimateRow[i]);
+                    }
+                }
+            }
+
+            Verify(sorted);
+
+            sorted = dataFrame.OrderBy("String");
+            Verify(sorted);
         }
 
         private void VerifyJoin(DataFrame join, DataFrame left, DataFrame right, JoinAlgorithm joinAlgorithm)
