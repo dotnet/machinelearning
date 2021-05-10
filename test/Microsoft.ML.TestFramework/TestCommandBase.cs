@@ -669,7 +669,7 @@ namespace Microsoft.ML.RunTests
         }
     }
 
-    // REVIEW: This class doesn't really belong in a file called TestCommandBase. 
+    // REVIEW: This class doesn't really belong in a file called TestCommandBase.
     //                 And the name of this class isn't real suggestive or accurate.
     public sealed partial class TestDmCommand : TestSteppedDmCommandBase
     {
@@ -712,9 +712,9 @@ namespace Microsoft.ML.RunTests
                 string.Format(
                     @"train data={{{0}}}
                      loader=Text{{
-                        header=+ 
-                        col=NumFeatures:Num:9-14 
-                        col=CatFeaturesText:TX:0~* 
+                        header=+
+                        col=NumFeatures:Num:9-14
+                        col=CatFeaturesText:TX:0~*
                         col=Label:Num:0}}
                     xf=Categorical{{col=CatFeatures:CatFeaturesText}}
                     xf=Concat{{col=Features:NumFeatures,CatFeatures}}
@@ -958,7 +958,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        // Purpose of this test is to validate what our code correctly handle situation with 
+        // Purpose of this test is to validate what our code correctly handle situation with
         // multiple different FastTree (Ranking and Classification for example) instances in different threads.
         // FastTree internally fails if we try to run it simultaneously and if this happens we wouldn't get model file for training.
         [TestCategory(Cat)]
@@ -1978,7 +1978,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [NotSupportedOnArm]
+        [Fact]
         public void CommandTrainingBinaryFactorizationMachineWithInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
@@ -1994,7 +1994,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [NotSupportedOnArm]
+        [Fact]
         public void CommandTrainingBinaryFieldAwareFactorizationMachineWithInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";
@@ -2029,7 +2029,7 @@ namespace Microsoft.ML.RunTests
             }
 
             // see https://github.com/dotnet/machinelearning/issues/404
-            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
+            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision: 4));
             else
@@ -2063,7 +2063,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [NotSupportedOnArm]
+        [Fact]
         public void CommandTrainingBinaryFactorizationMachineWithValidationAndInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
@@ -2093,7 +2093,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [NotSupportedOnArm]
+        [Fact]
         public void CommandTrainingBinaryFieldAwareFactorizationMachineWithValidationAndInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";

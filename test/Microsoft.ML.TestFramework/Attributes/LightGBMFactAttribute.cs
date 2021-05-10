@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using static System.Runtime.InteropServices.RuntimeInformation;
-using System.Runtime.InteropServices;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.TestFramework.Attributes
@@ -21,8 +19,7 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            var architecture = ProcessArchitecture;
-            return Environment.Is64BitProcess && architecture != Architecture.Arm64 && architecture != Architecture.Arm;
+            return Environment.Is64BitProcess;
         }
     }
 }

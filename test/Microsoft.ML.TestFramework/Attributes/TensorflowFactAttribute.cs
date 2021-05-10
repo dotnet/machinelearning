@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using static System.Runtime.InteropServices.RuntimeInformation;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.TestFramework.Attributes
@@ -21,13 +20,9 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            var architecture = ProcessArchitecture;
-
             return Environment.Is64BitProcess &&
                    ( RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                     AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23))) &&
-                    architecture != Architecture.Arm64 && architecture != Architecture.Arm;;
-                   
+                     AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)));
         }
     }
 }
