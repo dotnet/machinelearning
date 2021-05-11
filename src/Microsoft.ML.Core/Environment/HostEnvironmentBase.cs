@@ -96,8 +96,6 @@ namespace Microsoft.ML.Runtime
     internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironmentInternal, IChannelProvider, ICancelable
         where TEnv : HostEnvironmentBase<TEnv>
     {
-        public string TempFilePath { get; set; }
-
         void ICancelable.CancelExecution()
         {
             lock (_cancelLock)
@@ -328,6 +326,10 @@ namespace Microsoft.ML.Runtime
             }
         }
 
+#pragma warning disable MSML_NoInstanceInitializers // Need this to have a default value incase the user doesn't set it.
+        public string TempFilePath { get; set; } = System.IO.Path.GetTempPath();
+#pragma warning restore MSML_NoInstanceInitializers
+
         protected readonly TEnv Root;
         // This is non-null iff this environment was a fork of another. Disposing a fork
         // doesn't free temp files. That is handled when the master is disposed.
@@ -362,7 +364,6 @@ namespace Microsoft.ML.Runtime
             string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
-            TempFilePath = Path.GetTempPath();
             Seed = seed;
             _rand = RandomUtils.Create(Seed);
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
@@ -380,7 +381,6 @@ namespace Microsoft.ML.Runtime
             string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
-            TempFilePath = Path.GetTempPath();
             Contracts.CheckValue(source, nameof(source));
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();

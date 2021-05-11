@@ -51,7 +51,7 @@ namespace Microsoft.ML.AutoML.Test
             {
                 case TaskType.Classification:
 
-                    var mcs = new MulticlassExperimentSettings
+                    var mcs = new MulticlassExperimentSettings(_context)
                     {
                         OptimizingMetric = MulticlassClassificationMetric.MicroAccuracy,
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.AutoML.Test
 
                 case TaskType.Regression:
 
-                    var rs = new RegressionExperimentSettings
+                    var rs = new RegressionExperimentSettings(_context)
                     {
                         OptimizingMetric = RegressionMetric.RSquared,
 
@@ -95,7 +95,7 @@ namespace Microsoft.ML.AutoML.Test
 
                 case TaskType.Recommendation:
 
-                    var recommendationSettings = new RecommendationExperimentSettings
+                    var recommendationSettings = new RecommendationExperimentSettings (_context)
                     {
                         OptimizingMetric = RegressionMetric.RSquared,
 

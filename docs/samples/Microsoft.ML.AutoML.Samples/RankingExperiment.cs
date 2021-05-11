@@ -28,7 +28,7 @@ namespace Microsoft.ML.AutoML.Samples
             // STEP 2: Run AutoML experiment
             Console.WriteLine($"Running AutoML recommendation experiment for {ExperimentTime} seconds...");
             ExperimentResult<RankingMetrics> experimentResult = mlContext.Auto()
-                .CreateRankingExperiment(new RankingExperimentSettings() { MaxExperimentTimeInSeconds = ExperimentTime })
+                .CreateRankingExperiment(new RankingExperimentSettings(mlContext) { MaxExperimentTimeInSeconds = ExperimentTime })
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation()
                     {

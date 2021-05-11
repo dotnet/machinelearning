@@ -39,6 +39,16 @@ namespace Microsoft.ML.AutoML
             OptimizingMetric = MulticlassClassificationMetric.MicroAccuracy;
             Trainers = Enum.GetValues(typeof(MulticlassClassificationTrainer)).OfType<MulticlassClassificationTrainer>().ToList();
         }
+
+        /// <summary>
+        /// Initializes a new instances of <see cref="MulticlassExperimentSettings"/> using the temp file location provided to the MLContext.
+        /// </summary>
+        public MulticlassExperimentSettings(MLContext context) :
+            base(context)
+        {
+            OptimizingMetric = MulticlassClassificationMetric.MicroAccuracy;
+            Trainers = Enum.GetValues(typeof(MulticlassClassificationTrainer)).OfType<MulticlassClassificationTrainer>().ToList();
+        }
     }
 
     /// <summary>

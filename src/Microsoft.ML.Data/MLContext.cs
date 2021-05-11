@@ -80,7 +80,7 @@ namespace Microsoft.ML
         public ComponentCatalog ComponentCatalog => _env.ComponentCatalog;
 
         /// <summary>
-        /// The location for the temp files created by ML.NET
+        /// Gets or sets the location for the temp files created by ML.NET.
         /// </summary>
         public string TempFilePath
         {

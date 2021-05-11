@@ -60,13 +60,25 @@ namespace Microsoft.ML.AutoML
         internal int MaxModels;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ExperimentSettings"/>.
+        /// Initializes a new instance of <see cref="ExperimentSettings"/> using the default temp file location.
         /// </summary>
         public ExperimentSettings()
         {
             MaxExperimentTimeInSeconds = 24 * 60 * 60;
             CancellationToken = default;
             CacheDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.AutoML"));
+            CacheBeforeTrainer = CacheBeforeTrainer.Auto;
+            MaxModels = int.MaxValue;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ExperimentSettings"/> using the temp file location provided to the MLContext.
+        /// </summary>
+        public ExperimentSettings(MLContext context)
+        {
+            MaxExperimentTimeInSeconds = 24 * 60 * 60;
+            CancellationToken = default;
+            CacheDirectory = new DirectoryInfo(Path.Combine(context.TempFilePath, "Microsoft.ML.AutoML"));
             CacheBeforeTrainer = CacheBeforeTrainer.Auto;
             MaxModels = int.MaxValue;
         }

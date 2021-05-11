@@ -349,7 +349,7 @@ namespace Microsoft.ML.Transforms.Onnx
         public static OnnxModel CreateFromBytes(byte[] modelBytes, IHostEnvironment env, int? gpuDeviceId = null, bool fallbackToCpu = false,
             IDictionary<string, int[]> shapeDictionary = null)
         {
-            var tempModelFile = Path.Combine((env as IHostEnvironmentInternal).TempFilePath, Path.GetRandomFileName());
+            var tempModelFile = Path.Combine(((IHostEnvironmentInternal)env).TempFilePath, Path.GetRandomFileName());
             File.WriteAllBytes(tempModelFile, modelBytes);
             return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu,
                 ownModelFile: true, shapeDictionary: shapeDictionary);

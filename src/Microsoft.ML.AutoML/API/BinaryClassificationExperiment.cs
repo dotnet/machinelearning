@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
@@ -33,6 +34,16 @@ namespace Microsoft.ML.AutoML
         /// Initializes a new instance of <see cref="BinaryExperimentSettings"/>.
         /// </summary>
         public BinaryExperimentSettings()
+        {
+            OptimizingMetric = BinaryClassificationMetric.Accuracy;
+            Trainers = Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="BinaryExperimentSettings"/> using the temp file location provided to the MLContext.
+        /// </summary>
+        public BinaryExperimentSettings(MLContext context) :
+            base(context)
         {
             OptimizingMetric = BinaryClassificationMetric.Accuracy;
             Trainers = Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();

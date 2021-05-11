@@ -35,7 +35,21 @@ namespace Microsoft.ML.AutoML
         /// </value>
         public uint OptimizationMetricTruncationLevel { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="RankingExperimentSettings"/>.
+        /// </summary>
         public RankingExperimentSettings()
+        {
+            OptimizingMetric = RankingMetric.Ndcg;
+            Trainers = Enum.GetValues(typeof(RankingTrainer)).OfType<RankingTrainer>().ToList();
+            OptimizationMetricTruncationLevel = 10;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="RankingExperimentSettings"/> using the temp file location provided to the MLContext.
+        /// </summary>
+        public RankingExperimentSettings(MLContext context) :
+            base(context)
         {
             OptimizingMetric = RankingMetric.Ndcg;
             Trainers = Enum.GetValues(typeof(RankingTrainer)).OfType<RankingTrainer>().ToList();
