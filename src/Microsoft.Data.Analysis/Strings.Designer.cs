@@ -365,7 +365,7 @@ namespace Microsoft.Data {
                 return ResourceManager.GetString("NotSupportedColumnType", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delimiters is null..
         /// </summary>
@@ -417,6 +417,15 @@ namespace Microsoft.Data {
         internal static string StreamDoesntSupportReading {
             get {
                 return ResourceManager.GetString("StreamDoesntSupportReading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to convert value for column: {0} row: {1}: {2}.
+        /// </summary>
+        internal static string ValueConversionError {
+            get {
+                return ResourceManager.GetString("ValueConversionError", resourceCulture);
             }
         }
     }

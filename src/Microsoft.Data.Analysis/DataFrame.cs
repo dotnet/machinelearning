@@ -511,7 +511,15 @@ namespace Microsoft.Data.Analysis
                     }
                     if (value != null)
                     {
-                        value = Convert.ChangeType(value, column.DataType);
+                        try
+                        {
+                            value = Convert.ChangeType(value, column.DataType);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new ArgumentException(string.Format(Strings.ValueConversionError, column.Name, ret.Columns.RowCount + 1, ex.Message), ex);
+                        }
+
                         if (value is null)
                         {
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), value.GetType().ToString());
