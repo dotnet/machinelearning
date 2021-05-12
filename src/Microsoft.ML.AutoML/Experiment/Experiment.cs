@@ -56,7 +56,7 @@ namespace Microsoft.ML.AutoML
             _experimentSettings = experimentSettings;
             _metricsAgent = metricsAgent;
             _trainerAllowList = trainerAllowList;
-            _modelDirectory = GetModelDirectory(_experimentSettings.CacheDirectory);
+            _modelDirectory = GetModelDirectory(new DirectoryInfo(Path.Combine(_context.TempFilePath,_experimentSettings.CacheDirectoryName)));
             _datasetColumnInfo = datasetColumnInfo;
             _runner = runner;
             _logger = logger;

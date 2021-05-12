@@ -38,16 +38,6 @@ namespace Microsoft.ML.AutoML
             OptimizingMetric = BinaryClassificationMetric.Accuracy;
             Trainers = Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
         }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="BinaryExperimentSettings"/> using the temp file location provided to the MLContext.
-        /// </summary>
-        public BinaryExperimentSettings(MLContext context) :
-            base(context)
-        {
-            OptimizingMetric = BinaryClassificationMetric.Accuracy;
-            Trainers = Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
-        }
     }
 
     /// <summary>

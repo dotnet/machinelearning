@@ -185,7 +185,7 @@ namespace Microsoft.ML.AutoML.Test
                 int maxModels = culture == "en-US" ? 1 : 75;
                 var context = new MLContext(1);
 
-                var experimentSettings = new RegressionExperimentSettings(context) { MaxModels = maxModels };
+                var experimentSettings = new RegressionExperimentSettings() { MaxModels = maxModels };
 
                 if (!Environment.Is64BitProcess)
                 {
@@ -232,7 +232,7 @@ namespace Microsoft.ML.AutoML.Test
             trainDataView = mlContext.Data.SkipRows(trainDataView, 500);
 
             // STEP 2: Run AutoML experiment
-            var settings = new RankingExperimentSettings(mlContext)
+            var settings = new RankingExperimentSettings()
             {
                 MaxExperimentTimeInSeconds = 5,
                 OptimizationMetricTruncationLevel = 3

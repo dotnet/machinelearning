@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public RegressionExperiment CreateRegressionExperiment(uint maxExperimentTimeInSeconds)
         {
-            return new RegressionExperiment(_context, new RegressionExperimentSettings(_context)
+            return new RegressionExperiment(_context, new RegressionExperimentSettings()
             {
                 MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
             });
@@ -69,7 +69,7 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public BinaryClassificationExperiment CreateBinaryClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
-            return new BinaryClassificationExperiment(_context, new BinaryExperimentSettings(_context)
+            return new BinaryClassificationExperiment(_context, new BinaryExperimentSettings()
             {
                 MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
             });
@@ -104,7 +104,7 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
-            return new MulticlassClassificationExperiment(_context, new MulticlassExperimentSettings(_context)
+            return new MulticlassClassificationExperiment(_context, new MulticlassExperimentSettings()
             {
                 MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
             });
@@ -139,7 +139,7 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public RecommendationExperiment CreateRecommendationExperiment(uint maxExperimentTimeInSeconds)
         {
-            return new RecommendationExperiment(_context, new RecommendationExperimentSettings(_context)
+            return new RecommendationExperiment(_context, new RecommendationExperimentSettings()
             {
                 MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
             });
@@ -174,7 +174,7 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public RankingExperiment CreateRankingExperiment(uint maxExperimentTimeInSeconds)
         {
-            return new RankingExperiment(_context, new RankingExperimentSettings(_context)
+            return new RankingExperiment(_context, new RankingExperimentSettings()
             {
                 MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
             });

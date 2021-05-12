@@ -39,16 +39,6 @@ namespace Microsoft.ML.AutoML
             OptimizingMetric = RegressionMetric.RSquared;
             Trainers = Enum.GetValues(typeof(RegressionTrainer)).OfType<RegressionTrainer>().ToList();
         }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="RegressionExperimentSettings"/> using the temp file location provided to the MLContext.
-        /// </summary>
-        public RegressionExperimentSettings(MLContext context) :
-            base(context)
-        {
-            OptimizingMetric = RegressionMetric.RSquared;
-            Trainers = Enum.GetValues(typeof(RegressionTrainer)).OfType<RegressionTrainer>().ToList();
-        }
     }
 
     /// <summary>
