@@ -60,7 +60,7 @@ namespace Microsoft.ML.AutoML
         internal int MaxModels;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ExperimentSettings"/> using the default temp file location.
+        /// Initializes a new instance of <see cref="ExperimentSettings"/>.
         /// </summary>
         public ExperimentSettings()
         {
