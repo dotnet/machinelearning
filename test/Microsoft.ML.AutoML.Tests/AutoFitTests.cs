@@ -183,9 +183,8 @@ namespace Microsoft.ML.AutoML.Test
                 // Furthermore, these issues might only occur after ~70
                 // iterations, so setting the internal maxModels parameter.
                 int maxModels = culture == "en-US" ? 1 : 75;
-                var context = new MLContext(1);
 
-                var experimentSettings = new RegressionExperimentSettings() { MaxModels = maxModels };
+                var experimentSettings = new RegressionExperimentSettings { MaxModels = maxModels };
 
                 if (!Environment.Is64BitProcess)
                 {
@@ -193,6 +192,7 @@ namespace Microsoft.ML.AutoML.Test
                     experimentSettings.Trainers.Remove(RegressionTrainer.LightGbm);
                 }
 
+                var context = new MLContext(1);
                 var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
                 var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
                 var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);

@@ -56,7 +56,7 @@ namespace Microsoft.ML.AutoML
             _experimentSettings = experimentSettings;
             _metricsAgent = metricsAgent;
             _trainerAllowList = trainerAllowList;
-            _modelDirectory = GetModelDirectory(new DirectoryInfo(Path.Combine(_context.TempFilePath,_experimentSettings.CacheDirectoryName)));
+            _modelDirectory = GetModelDirectory(_context.TempFilePath, _experimentSettings.CacheDirectoryName);
             _datasetColumnInfo = datasetColumnInfo;
             _runner = runner;
             _logger = logger;
@@ -220,14 +220,14 @@ namespace Microsoft.ML.AutoML
             return iterationResults;
         }
 
-        private static DirectoryInfo GetModelDirectory(DirectoryInfo rootDir)
+        private static DirectoryInfo GetModelDirectory(string tempDirectory, string cacheDirectoryName)
         {
-            if (rootDir == null)
+            if (cacheDirectoryName == null)
             {
                 return null;
             }
 
-            var experimentDirFullPath = Path.Combine(rootDir.FullName, $"experiment_{Path.GetRandomFileName()}");
+            var experimentDirFullPath = Path.Combine(tempDirectory, cacheDirectoryName, $"experiment_{Path.GetRandomFileName()}");
             var experimentDirInfo = new DirectoryInfo(experimentDirFullPath);
             if (!experimentDirInfo.Exists)
             {

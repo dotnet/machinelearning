@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         private readonly InferenceSession _session;
         /// <summary>
-        /// The location where the used ONNX model loaded from.
+        /// The FileStream holding onto the loaded ONNX model.
         /// </summary>
         internal FileStream ModelStream { get; }
         /// <summary>

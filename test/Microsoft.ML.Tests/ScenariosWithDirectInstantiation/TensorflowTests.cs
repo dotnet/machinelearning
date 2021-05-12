@@ -1678,7 +1678,7 @@ namespace Microsoft.ML.Scenarios
 
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
-            Assert.True(File.Exists(Path.Combine(_mlContext.TempFilePath, "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
+            Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
 
             (loadedModel as IDisposable)?.Dispose();
         }
