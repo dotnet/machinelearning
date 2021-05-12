@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
                     null, false, addBatchDimensionInput, 1);
             }
 
-            var tempDirPath = Path.GetFullPath(Path.Combine((env as IHostEnvironmentInternal).TempFilePath, nameof(DnnRetrainTransformer) + "_" + Guid.NewGuid()));
+            var tempDirPath = Path.GetFullPath(Path.Combine(((IHostEnvironmentInternal)env).TempFilePath, nameof(DnnRetrainTransformer) + "_" + Guid.NewGuid()));
             CreateFolderWithAclIfNotExists(env, tempDirPath);
             try
             {

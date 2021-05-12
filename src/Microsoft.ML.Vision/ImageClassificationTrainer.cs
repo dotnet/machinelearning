@@ -531,7 +531,7 @@ namespace Microsoft.ML.Vision
             Host.CheckNonEmpty(options.ScoreColumnName, nameof(options.ScoreColumnName));
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
             tf.compat.v1.disable_eager_execution();
-            _resourcePath = Path.Combine((env as IHostEnvironmentInternal).TempFilePath, "MLNET");
+            _resourcePath = Path.Combine(((IHostEnvironmentInternal)env).TempFilePath, "MLNET");
 
             if (string.IsNullOrEmpty(options.WorkspacePath))
             {
@@ -1320,12 +1320,12 @@ namespace Microsoft.ML.Vision
 
         }
 
-        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
+        private TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
             var modelFileName = ModelFileName[arch];
-            var modelFilePath = Path.Combine((env as IHostEnvironmentInternal).TempFilePath, "MLNET", modelFileName);
+            var modelFilePath = Path.Combine(_resourcePath, "MLNET", modelFileName);
             int timeout = 10 * 60 * 1000;
-            DownloadIfNeeded(env, @"meta\" + modelFileName, Path.Combine((env as IHostEnvironmentInternal).TempFilePath, "MLNET"), modelFileName, timeout);
+            DownloadIfNeeded(env, @"meta\" + modelFileName, Path.Combine(_resourcePath, "MLNET"), modelFileName, timeout);
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 
