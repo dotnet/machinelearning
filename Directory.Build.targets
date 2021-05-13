@@ -27,7 +27,15 @@
       </NativeAssemblyReference>
 		</ItemGroup>
 
-		<Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
+    <PropertyGroup>
+      <ShouldCopyx64>false</ShouldCopyx64>
+      <ShouldCopyx64 Condition="'$(TargetArchitecture)' == 'x86' Or '$(TargetArchitecture)' == 'x64'">true</ShouldCopyx64>
+      <ShouldCopyArm>false</ShouldCopyArm>
+      <ShouldCopyArm Condition="('$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm') And %(NativeAssemblyReference.Item) == %(TargetsArm.Identity)">true</ShouldCopyArm>
+    </PropertyGroup>
+
+		<Copy Condition="$(ShouldCopyx64) or $(ShouldCopyArm)"
+      SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
 			DestinationFolder="$(OutDir)"
 			OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
 			Retries="$(CopyRetryCount)"

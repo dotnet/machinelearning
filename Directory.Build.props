@@ -29,8 +29,13 @@
     <StrongNameKeyId>Open</StrongNameKeyId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <TargetsArm Include="LdaNative" />
+    <TargetsArm Include="MatrixFactorizationNative" />
+  </ItemGroup>
+
   <PropertyGroup>
-    <DefineConstants Condition="'$(TargetPlatform)' == 'arm64'">$(DefineConstants);ARM64</DefineConstants>
+    <DefineConstants Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'">$(DefineConstants);ARM64</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>

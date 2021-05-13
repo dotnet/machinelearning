@@ -9,17 +9,17 @@ endif()
 include_directories(libmf)
 
 if(UNIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -pthread -std=c++0x")
+
     if(NOT ${ARCHITECTURE} MATCHES "arm.*")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -pthread -std=c++0x -march=native")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -pthread -std=c++0x")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
     endif()
 
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
     if (APPLE)
         # Apple silicon and Intel macs store brew in different locations, this finds it no matter where it is.
         execute_process(
-            COMMAND brew --prefix libomp 
+            COMMAND brew --prefix libomp
             RESULT_VARIABLE BREW_LIBOMP
             OUTPUT_VARIABLE BREW_LIBOMP_PREFIX
             OUTPUT_STRIP_TRAILING_WHITESPACE

@@ -7,10 +7,10 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
 
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="FastTreeNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="CpuMathNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm' And '$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
   <ItemGroup>
     <None Update="xunit.runner.json">

@@ -108,7 +108,7 @@ OS=$(uname)
 
 # If we are cross compiling on Linux we need to set the CMAKE_TOOLCHAIN_FILE
 if [[ ( $OS_ARCH == "amd64" || $OS_ARCH == "x86_64" ) && ( $__build_arch == "arm64" || $__build_arch == "arm" ) && $OS != "Darwin" ]] ; then
-    __cmake_defines="${__cmake_defines} -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../../eng/common/cross/toolchain.cmake"
+    __cmake_defines="${__cmake_defines} -DCMAKE_TOOLCHAIN_FILE=$RootRepo/eng/common/cross/toolchain.cmake"
     export TARGET_BUILD_ARCH=$__build_arch
 
 # If we are on a Mac we need to let it know the cross architecture to build for.

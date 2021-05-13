@@ -28,12 +28,12 @@
     <ProjectReference Include="..\..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
 
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="CpuMathNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="FastTreeNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="SymSgdNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="MklProxyNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
 
   </ItemGroup>
 

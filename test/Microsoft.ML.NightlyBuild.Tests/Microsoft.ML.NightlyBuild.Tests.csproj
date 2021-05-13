@@ -16,14 +16,14 @@
 
   <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->
   <ItemGroup>
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="CpuMathNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="FastTreeNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="SymSgdNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="MklProxyNative" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm' And '$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
   <ItemGroup>

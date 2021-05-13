@@ -24,10 +24,11 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         public override IntArrayType Type { get { return IntArrayType.Dense; } }
 
-        protected DenseIntArray(int length)
+        protected DenseIntArray(int length, PerformSumup sumupHandler = null)
         {
             Contracts.Assert(length >= 0);
             Length = length;
+            SumupHandler = sumupHandler;
         }
 
         public override int Length { get; }
@@ -70,7 +71,6 @@ namespace Microsoft.ML.Trainers.FastTree
             return newArrays;
         }
 
-#if USE_FASTTREENATIVE
         internal const string NativePath = "FastTreeNative";
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static extern unsafe int C_Sumup_float(
@@ -110,8 +110,6 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
         }
-
-#endif
 
         public override IIntArrayForwardIndexer GetIndexer()
         {
@@ -391,18 +389,21 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(len)
         {
             _data = new byte[len];
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public Dense8BitIntArray(byte[] buffer, ref int position)
             : base(buffer.ToInt(ref position))
         {
             _data = buffer.ToByteArray(ref position);
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public Dense8BitIntArray(int len, IEnumerable<int> values)
             : base(len)
         {
             _data = values.Select(i => (byte)i).ToArray(len);
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         /// <summary>
@@ -445,8 +446,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-#if USE_FASTTREENATIVE
-        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        private void SumupNative(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -456,7 +456,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
         }
-#endif
+
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram) => SumupHandler(input, histogram);
     }
 
     /// <summary>
@@ -475,12 +476,14 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(len)
         {
             _data = new byte[(len + 1) / 2]; // Even length = half the bytes. Odd length = half the bytes+0.5.
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public Dense4BitIntArray(int len, IEnumerable<int> values)
             : base(len)
         {
             _data = new byte[(len + 1) / 2];
+            SetupSumupHandler(SumupNative, base.Sumup);
 
             int currentIndex = 0;
             bool upper = true;
@@ -505,6 +508,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(buffer.ToInt(ref position))
         {
             _data = buffer.ToByteArray(ref position);
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         /// <summary>
@@ -565,8 +569,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-#if USE_FASTTREENATIVE
-        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public void SumupNative(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -576,7 +579,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
         }
-#endif
+
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram) => SumupHandler(input, histogram);
     }
 
     /// <summary>
@@ -592,18 +596,21 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(len)
         {
             _data = new ushort[len];
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public Dense16BitIntArray(int len, IEnumerable<int> values)
             : base(len)
         {
             _data = values.Select(i => (ushort)i).ToArray(len);
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public Dense16BitIntArray(byte[] buffer, ref int position)
             : base(buffer.ToInt(ref position))
         {
             _data = buffer.ToUShortArray(ref position);
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public override unsafe void Callback(Action<IntPtr> callback)
@@ -648,8 +655,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 _data[index] = (ushort)value;
             }
         }
-#if USE_FASTTREENATIVE
-        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
+
+        public void SumupNative(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -660,7 +667,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
         }
-#endif
+
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram) => SumupHandler(input, histogram);
+
     }
 
     /// <summary>
@@ -676,18 +685,21 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(len)
         {
             _data = new int[len];
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public Dense32BitIntArray(int len, IEnumerable<int> values)
             : base(len)
         {
             _data = values.ToArray(len);
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public Dense32BitIntArray(byte[] buffer, ref int position)
             : base(buffer.ToInt(ref position))
         {
             _data = buffer.ToIntArray(ref position);
+            SetupSumupHandler(SumupNative, base.Sumup);
         }
 
         public override unsafe void Callback(Action<IntPtr> callback)
@@ -733,8 +745,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-#if USE_FASTTREENATIVE
-        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public void SumupNative(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -745,6 +756,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
         }
-#endif
+
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram) => SumupHandler(input, histogram);
     }
 }
