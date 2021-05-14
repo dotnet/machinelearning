@@ -99,6 +99,11 @@ namespace Microsoft.Data.Analysis
             {
                 return (IPrimitiveColumnComputation<T>)new UShortComputation();
             }
+            else if (typeof(T) == typeof(DateTime)) 
+            {
+                return (IPrimitiveColumnComputation<T>)new DateTimeComputation();
+            }
+
             throw new NotSupportedException();
         }
     }
