@@ -35,10 +35,6 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DefineConstants Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'">$(DefineConstants);ARM64</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
     <PkgDir>$(RepoRoot)pkg/</PkgDir>
   </PropertyGroup>

@@ -32,7 +32,6 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
-    <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->
     <NativeAssemblyReference Include="SymSgdNative"/>
     <NativeAssemblyReference Include="MklImports"/>
     <NativeAssemblyReference Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm' And '$(OS)' == 'Windows_NT'" Include="libiomp5md"/>

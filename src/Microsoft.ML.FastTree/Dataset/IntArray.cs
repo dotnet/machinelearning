@@ -42,28 +42,15 @@ namespace Microsoft.ML.Trainers.FastTree
         private static extern void NonExistantMethod();
 
         /// <summary>
-        /// Lazy bool that checks if the FastTreeNative dll exists so we know if we should use the native code
+        /// Lazy bool that checks if we are on x86/x64 so we know if we should use the native code
         /// or the managed fallbacks.
         /// </summary>
         public static Lazy<bool> UseFastTreeNative = new(() =>
         {
-            try
-            {
-                NonExistantMethod();
-            }
-            // If the entry point isn't found then the dll exists and we should use the managed code.
-            catch(EntryPointNotFoundException)
-            {
+            if (RuntimeInformation.ProcessArchitecture == Architecture.X64 || RuntimeInformation.ProcessArchitecture == Architecture.X86)
                 return true;
-            }
-            // If any other error is returned we should use the managed fallbacks.
-            catch
-            {
+            else
                 return false;
-            }
-
-            // We will never hit this but we need to have it so every path has a return value. Defaulting to managed fallbacks.
-            return false;
         });
 
         /// <summary>
