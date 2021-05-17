@@ -459,7 +459,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             using (Timer.Time(TimerEvent.SumupSparse))
             {
-                if (UseFastTreeNative.Value) {
+                if (UseFastTreeNative) {
                     var callbackIntArray = _values as DenseDataCallbackIntArray;
                     if (callbackIntArray != null)
                     {

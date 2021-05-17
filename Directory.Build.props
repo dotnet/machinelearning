@@ -29,11 +29,6 @@
     <StrongNameKeyId>Open</StrongNameKeyId>
   </PropertyGroup>
 
-  <ItemGroup>
-    <TargetsArm Include="LdaNative" />
-    <TargetsArm Include="MatrixFactorizationNative" />
-  </ItemGroup>
-
   <PropertyGroup>
     <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
     <PkgDir>$(RepoRoot)pkg/</PkgDir>

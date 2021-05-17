@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
@@ -34,24 +33,11 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public abstract int Length { get; }
 
-        // We can test if the dll is present by calling into a non-existant method.
-        // If we get an EntryPointNotFoundException then the dll exists and we can use the native code.
-        // If we get a DllNotFoundException then the dll doesn't exist and we should use the managed fallbacks.
-        private const string NativePath = "FastTreeNative";
-        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        private static extern void NonExistantMethod();
-
         /// <summary>
-        /// Lazy bool that checks if we are on x86/x64 so we know if we should use the native code
+        /// Bool that checks if we are on x86/x64 so we know if we should use the native code
         /// or the managed fallbacks.
         /// </summary>
-        public static Lazy<bool> UseFastTreeNative = new(() =>
-        {
-            if (RuntimeInformation.ProcessArchitecture == Architecture.X64 || RuntimeInformation.ProcessArchitecture == Architecture.X86)
-                return true;
-            else
-                return false;
-        });
+        public static bool UseFastTreeNative => RuntimeInformation.ProcessArchitecture == Architecture.X64 || RuntimeInformation.ProcessArchitecture == Architecture.X86;
 
         /// <summary>
         /// Returns the number of bytes written by the member ToByteArray()
@@ -228,7 +214,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected PerformSumup SumupHandler { get; set; }
 
         // Helper to setup the SumupHandler for the derived classes that need it.
-        protected void SetupSumupHandler(PerformSumup native, PerformSumup managed) => SumupHandler = UseFastTreeNative.Value ? native : managed;
+        protected void SetupSumupHandler(PerformSumup native, PerformSumup managed) => SumupHandler = UseFastTreeNative ? native : managed;
 
         public virtual void Sumup(SumupInputData input, FeatureHistogram histogram)
         {

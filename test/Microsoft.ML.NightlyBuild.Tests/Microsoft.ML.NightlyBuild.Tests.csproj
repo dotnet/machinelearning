@@ -14,7 +14,6 @@
     <Compile Include="..\Microsoft.ML.IntegrationTests\**\*.cs" />
   </ItemGroup>
 
-  <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />

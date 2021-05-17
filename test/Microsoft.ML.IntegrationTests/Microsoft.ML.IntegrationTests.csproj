@@ -9,7 +9,7 @@
 
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsIntegrationTestProject>true</IsIntegrationTestProject>
-
+    
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,7 +38,6 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
-    <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="MklImports" />

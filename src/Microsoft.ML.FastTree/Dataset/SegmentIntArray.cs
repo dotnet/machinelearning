@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// never have to check again.
         /// </summary>
         public static Lazy<PerformSegmentFindOptimalCost> SegmentFindOptimalCost = new(() => {
-            if (UseFastTreeNative.Value)
+            if (UseFastTreeNative)
                 return NativeSegmentFindOptimalCost;
             else
                 return ManagedSegmentFindOptimalCost;
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// never have to check again.
         /// </summary>
         public static Lazy<PerformSegmentFindOptimalPath> SegmentFindOptimalPath = new(() => {
-            if (UseFastTreeNative.Value)
+            if (UseFastTreeNative)
                 return NativeSegmentFindOptimalPath;
             else
                 return ManagedSegmentFindOptimalPath;

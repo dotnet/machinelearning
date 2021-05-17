@@ -27,11 +27,16 @@
       </NativeAssemblyReference>
 		</ItemGroup>
 
+    <ItemGroup>
+      <NativeAssembliesTargettingArm Include="LdaNative" />
+      <NativeAssembliesTargettingArm Include="MatrixFactorizationNative" />
+    </ItemGroup>
+
     <PropertyGroup>
       <ShouldCopyx64>false</ShouldCopyx64>
       <ShouldCopyx64 Condition="'$(TargetArchitecture)' == 'x86' Or '$(TargetArchitecture)' == 'x64'">true</ShouldCopyx64>
       <ShouldCopyArm>false</ShouldCopyArm>
-      <ShouldCopyArm Condition="('$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm') And %(NativeAssemblyReference.Item) == %(TargetsArm.Identity)">true</ShouldCopyArm>
+      <ShouldCopyArm Condition="('$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm') And %(NativeAssemblyReference.Item) == %(NativeAssembliesTargettingArm.Identity)">true</ShouldCopyArm>
     </PropertyGroup>
 
 		<Copy Condition="$(ShouldCopyx64) or $(ShouldCopyArm)"

@@ -793,7 +793,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         // calculates the permutation that orders "scores" in descending order, without modifying "scores"
                         Array.Copy(_oneTwoThree, permutation, numDocuments);
 
-                        if (IntArray.UseFastTreeNative.Value)
+                        if (IntArray.UseFastTreeNative)
                         {
                             PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
                             // Get how far about baseline our current

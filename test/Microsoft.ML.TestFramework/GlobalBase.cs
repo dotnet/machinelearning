@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 // Every unit test assembly should call GlobalBase.AssemblyInit() before running any tests.
-// Test assembly should have following test also.
-//
+// Test assembly should have following test also. 
+//    
 //    public void AssertHandlerTest()
-//    {
+//    { 
 //        GlobalBase.AssertHandlerTest();
 //    }
 
