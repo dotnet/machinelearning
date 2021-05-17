@@ -1323,9 +1323,9 @@ namespace Microsoft.ML.Vision
         private TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
             var modelFileName = ModelFileName[arch];
-            var modelFilePath = Path.Combine(_resourcePath, "MLNET", modelFileName);
+            var modelFilePath = Path.Combine(_resourcePath, modelFileName);
             int timeout = 10 * 60 * 1000;
-            DownloadIfNeeded(env, @"meta\" + modelFileName, Path.Combine(_resourcePath, "MLNET"), modelFileName, timeout);
+            DownloadIfNeeded(env, @"meta\" + modelFileName, _resourcePath, modelFileName, timeout);
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 
