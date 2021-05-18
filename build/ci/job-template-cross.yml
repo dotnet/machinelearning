@@ -15,10 +15,6 @@ parameters:
 
 jobs:
   - job: ${{ parameters.name }}
-    variables:
-    - name: ROOTFS_DIR
-      value: '/crossrootfs/${{ parameters.architecture }}'
-
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
       timeoutInMinutes: 30
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
@@ -39,6 +35,7 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
+      ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
