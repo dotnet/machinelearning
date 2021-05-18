@@ -13,12 +13,12 @@ parameters:
   container: ''
   useVSTestTask: false
 
-variables:
-- name: ROOTFS_DIR
-  value: '/crossrootfs/$(architecture)'
-
 jobs:
   - job: ${{ parameters.name }}
+    variables:
+    - name: ROOTFS_DIR
+      value: '/crossrootfs/${{ parameters.architecture }}'
+
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
       timeoutInMinutes: 30
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
