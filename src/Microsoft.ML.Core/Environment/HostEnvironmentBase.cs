@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime
     /// query progress.
     /// </summary>
     [BestFriend]
-    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, ISeededEnvironment, IChannelProvider, ICancelable
+    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironmentInternal, IChannelProvider, ICancelable
         where TEnv : HostEnvironmentBase<TEnv>
     {
         void ICancelable.CancelExecution()
@@ -325,6 +325,10 @@ namespace Microsoft.ML.Runtime
                     _listenerAction -= listenerFunc;
             }
         }
+
+#pragma warning disable MSML_NoInstanceInitializers // Need this to have a default value incase the user doesn't set it.
+        public string TempFilePath { get; set; } = System.IO.Path.GetTempPath();
+#pragma warning restore MSML_NoInstanceInitializers
 
         protected readonly TEnv Root;
         // This is non-null iff this environment was a fork of another. Disposing a fork
