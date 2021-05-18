@@ -57,6 +57,10 @@ __UbuntuPackages+=" libssl-dev"
 __UbuntuPackages+=" zlib1g-dev"
 __UbuntuPackages+=" libldap2-dev"
 
+# ML.NET dependencies
+__UbuntuPackages+=" libomp5"
+__UbuntuPackages+=" libomp-dev"
+
 __AlpinePackages+=" curl-dev"
 __AlpinePackages+=" krb5-dev"
 __AlpinePackages+=" openssl-dev"
