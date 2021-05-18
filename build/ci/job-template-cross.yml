@@ -14,7 +14,8 @@ parameters:
   useVSTestTask: false
 
 variables:
-  ROOTFS_DIR: '/crossrootfs/$(architecture)'
+- name: ROOTFS_DIR
+  value: '/crossrootfs/$(architecture)'
 
 jobs:
   - job: ${{ parameters.name }}
