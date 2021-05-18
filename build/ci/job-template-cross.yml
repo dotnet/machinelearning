@@ -35,7 +35,8 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
-      ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
+      ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604' }}:
+        ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
@@ -78,7 +79,7 @@ jobs:
           targetType: inline
           script: cd packages;find . -type d -path "*/runtimes/linux-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
         displayName: Clean up non-MacOS runtime folders of NuGet Packages to save disk space
-    - ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1804') }}:
+    - ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604') }}:
       - task: Bash@3
         inputs:
           targetType: inline

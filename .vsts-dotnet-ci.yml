@@ -36,7 +36,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1804
+      name: Hosted Ubuntu 1604
 
 - template: /build/ci/job-template-cross.yml
   parameters:
@@ -57,7 +57,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1804
+      name: Hosted Ubuntu 1604
 
 
 - template: /build/ci/job-template.yml
