@@ -1,0 +1,123 @@
+# This just runs the cross builds. No testing, so the testing sections have been removed.
+# When helix has been integrated into job-template.yml, we can remove this file and only use that one.
+parameters:
+  name: ''
+  architecture: x64
+  buildScript: ''
+  pool: {}
+  customMatrixes: ''
+  codeCoverage: false
+  nightlyBuild: false
+  innerLoop: false
+  runSpecific: false
+  container: ''
+  useVSTestTask: false
+
+variables:
+  ROOTFS_DIR: '/crossrootfs/$(architecture)'
+
+jobs:
+  - job: ${{ parameters.name }}
+    ${{ if eq(parameters.nightlyBuild, 'true') }}:
+      timeoutInMinutes: 30
+    ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
+      timeoutInMinutes: 90
+    ${{ if eq(parameters.codeCoverage, 'true') }}:
+      timeoutInMinutes: 120
+    cancelTimeoutInMinutes: 10
+    variables:
+      dotnetPath: $(Build.SourcesDirectory)/.dotnet/dotnet
+      nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
+      nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
+      nightlyBuildRunPath: $(Build.SourcesDirectory)/artifacts/bin/Microsoft.ML.NightlyBuild.Tests/$(_configuration)/$(_targetFramework)
+      runNightlyBuildProj: $(Build.SourcesDirectory)/test/run-night-build-tests.proj
+      packageUpdaterProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
+      versionFilePath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
+      PROCDUMP_PATH: '$(Build.SourcesDirectory)/Tools/ProcDump/'
+      ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+        spaceValue: ' '
+      ${{ if eq(parameters.buildScript, './build.sh') }}:
+        spaceValue: '%20'
+    strategy:
+      matrix:
+        ${{ if eq(parameters.customMatrixes, '') }}:
+          Debug_Build:
+            _configuration: Debug
+            _config_short: D
+            _includeBenchmarkData: false
+            _targetFramework: netcoreapp2.1
+          Release_Build:
+            _configuration: Release
+            _config_short: R
+            _includeBenchmarkData: true
+            _targetFramework: netcoreapp2.1
+        ${{ if ne(parameters.customMatrixes, '') }}:
+          ${{ insert }}: ${{ parameters.customMatrixes }}
+
+    pool: ${{ parameters.pool }}
+    ${{ if ne(parameters.container, '') }}:
+      container: ${{ parameters.container }}
+
+    steps:
+    # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
+    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
+      - script: |
+          rm -rf /usr/local/bin/2to3
+        displayName: MacOS Homebrew bug Workaround
+        continueOnError: true
+    # Extra MacOS step required to install OS-specific dependencies
+    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
+      - script: brew update && brew install mono-libgdiplus && brew install libomp && brew link libomp --force
+        displayName: Install MacOS build dependencies
+    - ${{ if eq(parameters.container, 'UbuntuCrossArm64Container') }}:
+      - bash: echo $ROOTFS_DIR
+        displayName: echo cross root path
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      displayName: Build
+    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
+      - task: Bash@3
+        inputs:
+          targetType: inline
+          script: cd packages;find . -type d -path "*/runtimes/linux-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
+        displayName: Clean up non-MacOS runtime folders of NuGet Packages to save disk space
+    - ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1804') }}:
+      - task: Bash@3
+        inputs:
+          targetType: inline
+          script: cd packages;find . -type d -path "*/runtimes/osx-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
+        displayName: Clean up non-Linux runtime folders of NuGet Packages to save disk space
+    - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+      - script: dir /s "$(Build.SourcesDirectory)"
+        displayName: show bin folder disk usage
+      - task: PowerShell@2
+        inputs:
+          targetType: inline
+          script: Get-ChildItem -Path  '$(Build.SourcesDirectory)\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
+        displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
+    - task: CopyFiles@2
+      displayName: Stage build logs
+      condition: not(succeeded())
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)
+        contents: 'artifacts/log/**'
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: CopyFiles@2
+      displayName: Stage process dump and pdb if any
+      condition: not(succeeded())
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)
+        contents: |
+          *.dmp
+          CrashDumps/*.dmp
+          artifacts/bin/**/*.pdb
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: PublishBuildArtifacts@1
+      displayName: Publish build and test logs
+      condition: not(succeeded())
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)
+        artifactName: ${{ parameters.name }} $(_config_short)
+        artifactType: container
+    - ${{ if eq(parameters.nightlyBuild, 'false') }}:
+      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+        displayName: Build Packages
