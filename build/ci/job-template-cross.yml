@@ -35,7 +35,7 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
-      ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604' }}:
+      ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604') }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
     strategy:
       matrix:
