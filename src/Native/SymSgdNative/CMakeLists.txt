@@ -33,7 +33,9 @@ else()
     endif()
 endif()
 
-find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
+if(NOT ${ARCHITECTURE} MATCHES "arm.*")
+    find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
+endif()
 
 add_definitions(-DUSE_OMP)
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})

@@ -459,25 +459,26 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             using (Timer.Time(TimerEvent.SumupSparse))
             {
-#if USE_FASTTREENATIVE
-                var callbackIntArray = _values as DenseDataCallbackIntArray;
-                if (callbackIntArray != null)
-                {
-                    unsafe
+                if (UseFastTreeNative) {
+                    var callbackIntArray = _values as DenseDataCallbackIntArray;
+                    if (callbackIntArray != null)
                     {
-                        fixed (byte* pDeltas = _deltas)
+                        unsafe
                         {
-                            byte* pDeltas2 = pDeltas;
-                            callbackIntArray.Callback(pValues =>
+                            fixed (byte* pDeltas = _deltas)
                             {
-                                SumupCPlusPlusSparse(input, histogram, (byte*)pValues, pDeltas2, _deltas.Length,
-                                    _values.BitsPerItem);
-                            });
+                                byte* pDeltas2 = pDeltas;
+                                callbackIntArray.Callback(pValues =>
+                                {
+                                    SumupCPlusPlusSparse(input, histogram, (byte*)pValues, pDeltas2, _deltas.Length,
+                                        _values.BitsPerItem);
+                                });
+                            }
                         }
+                        return;
                     }
-                    return;
                 }
-#endif
+
                 if (input.DocIndices == null)
                     SumupRoot(input, histogram);
                 else
@@ -485,7 +486,6 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-#if USE_FASTTREENATIVE
         internal const string NativePath = "FastTreeNative";
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static extern unsafe int C_SumupDeltaSparse_float(int numBits, byte* pValues, byte* pDeltas, int numDeltas, int* pIndices, float* pSampleOutputs, double* pSampleOutputWeights,
@@ -519,7 +519,6 @@ namespace Microsoft.ML.Trainers.FastTree
                     throw Contracts.Except("CSumup sumupdeltasparse {0}", rv);
             }
         }
-#endif
 
         private class DeltaSparseIntArrayIndexer : IIntArrayForwardIndexer
         {

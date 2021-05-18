@@ -487,10 +487,10 @@ namespace Microsoft.ML.RunTests
 
         /// <summary>
         /// This test checks that the run-time behavior of LightGBM does not change by modifying the flags
-        /// used by LightGBM with <see cref="CursOpt.AllFeatures"/>, and that this change does not affect 
-        /// the features extracted during validation. This is done by checking that an older LightGbm model 
+        /// used by LightGBM with <see cref="CursOpt.AllFeatures"/>, and that this change does not affect
+        /// the features extracted during validation. This is done by checking that an older LightGbm model
         /// trained with <see cref="CursOpt.Features"/> produces the same baselines as it did before this change.
-        /// 
+        ///
         /// </summary>
         [LightGBMFact]
         [TestCategory("Binary")]
@@ -1342,7 +1342,7 @@ namespace Microsoft.ML.RunTests
                         float diff = scale * (2 * rgen.NextFloat() - 1) / 3;
                         boundCost += diff * diff;
                         noisyInstances.Add(new Instance(inst.Features, inst.Label + diff, inst.Name, false) { Id = inst.Id });
-                        // Make sure this solver also works, when we have 
+                        // Make sure this solver also works, when we have
                         if (subdefined && 2 * noisyInstances.Count >= model.Length)
                             break;
                     }
@@ -1783,8 +1783,8 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
-            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 4);
+            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 4);
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).
@@ -2030,7 +2030,7 @@ output Out [3] from H all;
 
 #if OLD_TESTS // REVIEW: Need to port Tremble to the new world.
         /// <summary>
-        /// A test for tremble binary classifier using logistic regression 
+        /// A test for tremble binary classifier using logistic regression
         /// in leaf and interior nodes
         /// </summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
@@ -2049,7 +2049,7 @@ output Out [3] from H all;
         }
 
         /// <summary>
-        /// A test for tremble multi-class classifier using logistic regression 
+        /// A test for tremble multi-class classifier using logistic regression
         /// in leaf and interior nodes
         /// </summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
@@ -2074,7 +2074,7 @@ output Out [3] from H all;
         [TestCategory("TrembleDecisionTree"), Priority(2)]
         public void BinaryClassifierDecisionTreeTest()
         {
-            var binaryPredictors = new[] { TestLearners.BinaryDecisionTreeDefault, TestLearners.BinaryDecisionTreeGini, 
+            var binaryPredictors = new[] { TestLearners.BinaryDecisionTreeDefault, TestLearners.BinaryDecisionTreeGini,
                 TestLearners.BinaryDecisionTreePruning, TestLearners.BinaryDecisionTreeModified };
             var binaryClassificationDatasets = new List<TestDataset>();
             binaryClassificationDatasets.Add(TestDatasets.breastCancer);
@@ -2093,7 +2093,7 @@ output Out [3] from H all;
         [TestCategory("TrembleDecisionTree"), Priority(2)]
         public void BinaryClassifierDecisionTreeWeightingTest()
         {
-            var binaryPredictors = new[] { TestLearners.BinaryDecisionTreeDefault, TestLearners.BinaryDecisionTreeGini, 
+            var binaryPredictors = new[] { TestLearners.BinaryDecisionTreeDefault, TestLearners.BinaryDecisionTreeGini,
                 TestLearners.BinaryDecisionTreePruning, TestLearners.BinaryDecisionTreeModified, TestLearners.BinaryDecisionTreeRewt };
             var binaryClassificationDatasets = GetDatasetsForClassificationWeightingPredictorsTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets);
@@ -2108,7 +2108,7 @@ output Out [3] from H all;
         [TestCategory("TrembleDecisionTree"), Priority(2)]
         public void MulticlassClassificationDecisionTreeTest()
         {
-            var multiClassPredictors = new[] { TestLearners.MulticlassDecisionTreeDefault, TestLearners.MulticlassDecisionTreeGini, 
+            var multiClassPredictors = new[] { TestLearners.MulticlassDecisionTreeDefault, TestLearners.MulticlassDecisionTreeGini,
                 TestLearners.MulticlassDecisionTreePruning, TestLearners.MulticlassDecisionTreeModified };
             var multiClassClassificationDatasets = new List<TestDataset>();
             multiClassClassificationDatasets.Add(TestDatasets.iris);
@@ -2127,7 +2127,7 @@ output Out [3] from H all;
         [TestCategory("TrembleDecisionTree"), Priority(2)]
         public void MulticlassifierDecisionTreeWeightingTest()
         {
-            var multiClassPredictors = new[] { TestLearners.MulticlassDecisionTreeDefault, TestLearners.MulticlassDecisionTreeGini, 
+            var multiClassPredictors = new[] { TestLearners.MulticlassDecisionTreeDefault, TestLearners.MulticlassDecisionTreeGini,
                 TestLearners.MulticlassDecisionTreePruning, TestLearners.MulticlassDecisionTreeModified };
             var binaryClassificationDatasets = new List<TestDataset>(GetDatasetsForClassificationWeightingPredictorsTest());
             RunAllTests(multiClassPredictors, binaryClassificationDatasets);

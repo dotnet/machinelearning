@@ -9,7 +9,7 @@ You can build ML.NET either via the command line or by using Visual Studio.
 2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path.
 
 ### Visual Studio 2019 Installation
-We have successfully verified the below build instructions for Visual Studio version 16.4 and higher. 
+We have successfully verified the below build instructions for Visual Studio version 16.4 and higher.
 
 #### Visual Studio 2019 - 'Workloads' based install
 
@@ -37,6 +37,12 @@ The following are the minimum requirements:
   * .NET Framework 4.6 Targeting Pack
   * Windows Universal CRT SDK
 
+#### Visual Studio 2019 - Cross compilation for ARM
+
+If you want to cross compile for arm you will also need from the 'Individual components' section:
+  * MSVC v142 - VS 2019 C++ ARM build tools
+  * MSVC v142 - VS 2019 C++ ARM64 build tools
+
 ## Building Instructions
 
 In order to fetch dependencies which come through Git submodules the following command needs to be run before building: `git submodule update --init`.
@@ -51,7 +57,7 @@ After successfully running the command, the project can be built directly from t
 
 ### Building From the Command Line
 
-You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2019" or similar in your start menu. 
+You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2019" or similar in your start menu.
 
 From a (non-admin) Command Prompt window:
 
@@ -60,6 +66,20 @@ From a (non-admin) Command Prompt window:
 - `build.cmd -pack` builds the assemblies and generates the corresponding NuGet packages with the assemblies in `artifacts\packages`"
 
 **Note**: Before working on individual projects or test projects you **must** run `build.cmd` from the root once before beginning that work. It is also a good idea to run `build.cmd` whenever you pull a large set of unknown changes into your branch.
+
+### Cross compiling for ARM
+
+You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2019" or similar in your start menu.
+
+From a (non-admin) Command Prompt window based on what you want to target:
+
+- `build.cmd /p:TargetArchitecture=arm`
+- `build.cmd /p:TargetArchitecture=arm64`
+
+You can then pack them into nugets, pick the same target architecture you built with:
+
+- `build.cmd /p:TargetArchitecture=arm -pack`
+- `build.cmd /p:TargetArchitecture=arm64 -pack`
 
 ## Running Tests
 
