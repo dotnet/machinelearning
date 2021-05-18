@@ -115,7 +115,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: macOS-10.15
+      vmImage: macOS-10.15
 
 - template: /build/ci/job-template.yml
   parameters:
