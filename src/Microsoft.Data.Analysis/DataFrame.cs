@@ -517,7 +517,7 @@ namespace Microsoft.Data.Analysis
                         }
                         catch (Exception ex)
                         {
-                            throw new ArgumentException(string.Format(Strings.ValueConversionError, column.Name, ret.Columns.RowCount + 1, ex.Message), ex);
+                            throw new FormatException(string.Format(Strings.ValueConversionError, column.Name, ret.Columns.RowCount + 1, ex.Message), ex);
                         }
 
                         if (value is null)
