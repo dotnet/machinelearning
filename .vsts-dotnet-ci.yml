@@ -100,7 +100,7 @@ jobs:
 - template: /build/ci/job-template-cross.yml
   parameters:
     architecture: arm64
-    name: MacOS_x64_NetCoreApp21
+    name: MacOS_x64_cross_arm64_NetCoreApp21
     buildScript: ./build.sh
     customMatrixes:
       Debug_Build:
