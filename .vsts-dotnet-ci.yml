@@ -97,6 +97,26 @@ jobs:
     pool:
       name: Hosted macOS
 
+- template: /build/ci/job-template-cross.yml
+  parameters:
+    architecture: arm64
+    name: MacOS_x64_NetCoreApp21
+    buildScript: ./build.sh
+    customMatrixes:
+      Debug_Build:
+        _configuration: Debug-netcoreapp3_1
+        _config_short: DI
+        _includeBenchmarkData: false
+        _targetFramework: netcoreapp3.1
+      Release_Build:
+        _configuration: Release-netcoreapp3_1
+        _config_short: RI
+        _includeBenchmarkData: true
+        _targetFramework: netcoreapp3.1
+    innerLoop: true
+    pool:
+      name: Hosted macOS
+
 - template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetCoreApp31
