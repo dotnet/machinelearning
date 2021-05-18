@@ -681,16 +681,15 @@ namespace Microsoft.ML.Tests
             var modelInBytes = File.ReadAllBytes(modelFile);
 
             // Create ONNX model from the byte[].
-            var onnxModel = OnnxModel.CreateFromBytes(modelInBytes);
+            var onnxModel = OnnxModel.CreateFromBytes(modelInBytes, ML);
 
             // Check if a temporal file is crated for storing the byte[].
-            Assert.True(File.Exists(onnxModel.ModelFile));
+            Assert.True(File.Exists(onnxModel.ModelStream.Name));
 
             // Delete the temporal file.
             onnxModel.Dispose();
-
             // Make sure the temporal file is deleted.
-            Assert.False(File.Exists(onnxModel.ModelFile));
+            Assert.False(File.Exists(onnxModel.ModelStream.Name));
         }
 
         [OnnxFact]
@@ -703,13 +702,13 @@ namespace Microsoft.ML.Tests
             var onnxModel = new OnnxModel(modelFile);
 
             // Check if a temporal file is crated for storing the byte[].
-            Assert.True(File.Exists(onnxModel.ModelFile));
+            Assert.True(File.Exists(onnxModel.ModelStream.Name));
 
             // Don't delete the temporal file!
             onnxModel.Dispose();
 
             // Make sure the temporal file still exists.
-            Assert.True(File.Exists(onnxModel.ModelFile));
+            Assert.True(File.Exists(onnxModel.ModelStream.Name));
         }
 
         private class OnnxMapInput
@@ -859,7 +858,7 @@ namespace Microsoft.ML.Tests
                     }
                 });
 
-            // Define a ONNX transform, trains it, and apply it to the input data. 
+            // Define a ONNX transform, trains it, and apply it to the input data.
             var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outa", "outb" }, new[] { "ina", "inb" },
                 modelFile, shapeDictionary, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
         }

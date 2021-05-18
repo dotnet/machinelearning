@@ -31,6 +31,9 @@ namespace Microsoft.ML.AutoML
         /// </value>
         public ICollection<RegressionTrainer> Trainers { get; }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="RegressionExperimentSettings"/>.
+        /// </summary>
         public RegressionExperimentSettings()
         {
             OptimizingMetric = RegressionMetric.RSquared;
