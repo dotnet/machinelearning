@@ -8,6 +8,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -75,7 +76,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();

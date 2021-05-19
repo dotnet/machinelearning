@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void FeatureContributionEstimatorWorkout()
         {
             var data = GetSparseDataset();
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         }
 
         // Tests for regression trainers that implement IFeatureContributionMapper interface.
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestOrdinaryLeastSquaresRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.Ols(), GetSparseDataset(numberOfInstances: 100), "LeastSquaresRegression");
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestSSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(

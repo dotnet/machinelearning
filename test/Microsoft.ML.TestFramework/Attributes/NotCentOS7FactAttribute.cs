@@ -39,7 +39,7 @@ namespace Microsoft.ML.TestFramework.Attributes
                     }
                 }
             }
-            return true;
+            return true && Microsoft.ML.TestFrameworkCommon.Utility.NativeLibrary.NativeLibraryExists("Featurizers");
         }
     }
 } 

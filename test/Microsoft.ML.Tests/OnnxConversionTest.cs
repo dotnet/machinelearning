@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void RegressionTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void BinaryClassificationTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestVectorWhiteningOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -321,14 +321,14 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void PlattCalibratorOnnxConversionTest()
         {
             CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Platt(),
                 ML.BinaryClassification.Calibrators.Platt(scoreColumnName: "ScoreX"));
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void FixedPlattCalibratorOnnxConversionTest()
         {
             // Below, FixedPlattCalibrator is utilized by defining slope and offset in Platt's constructor with sample values.
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Tests
                 ML.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f, scoreColumnName: "ScoreX"));
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void NaiveCalibratorOnnxConversionTest()
         {
             CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Naive(),
@@ -1631,7 +1631,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("lightgbm")]
         public void MulticlassTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1703,7 +1703,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("onnxruntime")]
         public void SelectiveExportOnnxTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1917,7 +1917,7 @@ namespace Microsoft.ML.Tests
             public float[] MyFeatureVector;
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void NonDefaultColNamesBinaryClassificationOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1955,7 +1955,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("lightgbm")]
         public void NonDefaultColNamesMultiClassificationOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);

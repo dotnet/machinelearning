@@ -4225,7 +4225,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void EntryPointLinearPredictorSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");

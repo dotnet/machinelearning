@@ -27,7 +27,7 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
             }
             finally
             {
-                nativeLibrary.Dispose();
+                nativeLibrary?.Dispose();
             }
         }
 

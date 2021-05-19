@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
@@ -20,7 +21,9 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return Environment.Is64BitProcess && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)));
+            return (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)))
+            && Microsoft.ML.TestFrameworkCommon.Utility.NativeLibrary.NativeLibraryExists("onnxruntime");
         }
     }
 }
