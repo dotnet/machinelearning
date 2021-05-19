@@ -1194,7 +1194,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {

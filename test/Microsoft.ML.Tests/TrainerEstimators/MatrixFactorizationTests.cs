@@ -130,8 +130,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             double linuxTolerance = Math.Pow(10, -5);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
+                double expectedLinuxMeanSquaredError = default;
                 // Linux case
-                double expectedLinuxMeanSquaredError = 0.6127260028273948; // Linux baseline
+                if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                    expectedLinuxMeanSquaredError = 0.6189030607775502; // Linux Arm64 baseline
+                else
+                    expectedLinuxMeanSquaredError = 0.6127260028273948; // Linux x86/x64 baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedLinuxMeanSquaredError - linuxTolerance, expectedLinuxMeanSquaredError + linuxTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))

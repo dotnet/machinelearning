@@ -9,6 +9,10 @@
       "dotnet/x86": [
         "$(MicrosoftNETCorePlatformsVersion)",
         "$(MicrosoftNETCore3PlatformsVersion)"
+      ],
+      "dotnet/arm64": [
+        "$(MicrosoftNETCorePlatformsVersion)",
+        "$(MicrosoftNETCore3PlatformsVersion)"
       ]
     }
   },

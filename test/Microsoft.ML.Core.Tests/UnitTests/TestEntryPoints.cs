@@ -2123,7 +2123,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
