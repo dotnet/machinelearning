@@ -34,9 +34,10 @@ steps:
       WaitForWorkItemCompletion: ${{ parameters.WaitForWorkItemCompletion }}
       HelixBaseUri: ${{ parameters.HelixBaseUri }}
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      Creator: ${{ parameters.Creator }}
     condition: and(${{ parameters.condition }}, eq(variables['Agent.Os'], 'Windows_NT'))
     continueOnError: ${{ parameters.continueOnError }}
-  - script: $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh $BUILD_SOURCESDIRECTORY/eng/common/helixpublish.proj /t:Test /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\${{ parameters.Configuration }}\SendToHelix.binlog /p:Configuration=${{ parameters.Configuration }} /p:TargetArchitecture=${{ parameters.Architecture }} /p:ErrorOnDuplicatePublishOutputFiles=false /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages -warnAsError 0
+  - script: $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh $BUILD_SOURCESDIRECTORY/eng/helix.proj /t:Test /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\${{ parameters.Configuration }}\SendToHelix.binlog /p:Configuration=${{ parameters.Configuration }} /p:TargetArchitecture=${{ parameters.Architecture }} /p:ErrorOnDuplicatePublishOutputFiles=false /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages -warnAsError 0
     displayName: ${{ parameters.DisplayNamePrefix }} (Unix)
     env:
       BuildConfig: ${{ parameters.Configuration }}
@@ -52,5 +53,6 @@ steps:
       WaitForWorkItemCompletion: ${{ parameters.WaitForWorkItemCompletion }}
       HelixBaseUri: ${{ parameters.HelixBaseUri }}
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      Creator: ${{ parameters.Creator }}
     condition: and(${{ parameters.condition }}, ne(variables['Agent.Os'], 'Windows_NT'))
     continueOnError: ${{ parameters.continueOnError }}
