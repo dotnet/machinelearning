@@ -10,7 +10,7 @@
 		<HelixBuild Condition="'$(HelixBuild)' == ''">$(BUILD_BUILDNUMBER)</HelixBuild>
     <HelixBuild Condition="'$(HelixBuild)' == ''">default</HelixBuild>
 
-    <WaitForWorkItemCompletion Condition="'$(WaitForWorkItemCompletion)' != 'false'">true</WaitForWorkItemCompletion>
+    <WaitForWorkItemCompletion>true</WaitForWorkItemCompletion>
     <CancelHelixJobsIfBuildCancelled Condition="'$(CancelHelixJobsIfBuildCancelled)' != 'false'">true</CancelHelixJobsIfBuildCancelled>
     <FailOnWorkItemFailure Condition="'$(FailOnWorkItemFailure)' != 'false'">true</FailOnWorkItemFailure>
 
@@ -23,12 +23,9 @@
     <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
 
     <!-- Enable reporting of test results to azure dev ops -->
-    <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter>
+    <!-- <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter> -->
     <!-- 'true' to produce a build error when tests fail. Default 'true' -->
     <FailOnTestFailure>true</FailOnTestFailure>
-
-    <WaitForWorkItemCompletion>true</WaitForWorkItemCompletion>
-
 	</PropertyGroup>
 
   <ItemGroup>
