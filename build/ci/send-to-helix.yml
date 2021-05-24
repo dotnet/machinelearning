@@ -1,0 +1,54 @@
+# Please remember to update the documentation if you make changes to these parameters!
+parameters:
+  HelixSource: 'pr/default'              # required -- sources must start with pr/, official/, prodcon/, or agent/
+  HelixType: 'tests/default/'            # required -- Helix telemetry which identifies what type of data this is; should include "test" for clarity and must end in '/'
+  HelixBuild: $(Build.BuildNumber)       # required -- the build number Helix will use to identify this -- automatically set to the AzDO build number
+  HelixTargetQueues: ''                  # required -- semicolon delimited list of Helix queues to test on; see https://helix.dot.net/ for a list of queues
+  HelixAccessToken: ''                   # required -- access token to make Helix API requests; should be provided by the appropriate variable group
+  Configuration: 'Debug'
+  Architecture: 'x64'
+  HelixConfiguration: ''                 # optional -- additional property attached to a job
+  IncludeDotNetCli: true                 # optional -- true will download a version of the .NET CLI onto the Helix machine as a correlation payload; requires DotNetCliPackageType and DotNetCliVersion
+  EnableXUnitReporter: true              # optional -- true enables XUnit result reporting to Mission Control
+  WaitForWorkItemCompletion: true        # optional -- true will make the task wait until work items have been completed and fail the build if work items fail. False is "fire and forget."
+  HelixBaseUri: 'https://helix.dot.net/' # optional -- sets the Helix API base URI (allows targeting int)
+  DisplayNamePrefix: 'Run Tests'         # optional -- rename the beginning of the displayName of the steps in AzDO
+  continueOnError: false                 # optional -- determines whether to continue the build if the step errors; defaults to false
+
+steps:
+  - powershell: 'powershell "$env:BUILD_SOURCESDIRECTORY\eng\common\msbuild.ps1 $env:BUILD_SOURCESDIRECTORY\eng\helix.proj /t:Test /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\${{ paramters.Configuration }}\SendToHelix.binlog /p:Configuration=${{ paramters.Configuration }} /p:TargetArchitecture=${{ paramters.Architecture }} /p:ErrorOnDuplicatePublishOutputFiles=false /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages -warnAsError 0"'
+    displayName: ${{ parameters.DisplayNamePrefix }} (Windows)
+    env:
+      BuildConfig: ${{ parameters.Configuration }}
+      BuildArchitecture: ${{ parameters.Architecture }}
+      HelixSource: ${{ parameters.HelixSource }}
+      HelixType: ${{ parameters.HelixType }}
+      HelixBuild: ${{ parameters.HelixBuild }}
+      HelixConfiguration:  ${{ parameters.HelixConfiguration }}
+      HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
+      HelixAccessToken: ${{ parameters.HelixAccessToken }}
+      IncludeDotNetCli: ${{ parameters.IncludeDotNetCli }}
+      EnableXUnitReporter: ${{ parameters.EnableXUnitReporter }}
+      WaitForWorkItemCompletion: ${{ parameters.WaitForWorkItemCompletion }}
+      HelixBaseUri: ${{ parameters.HelixBaseUri }}
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    condition: and(${{ parameters.condition }}, eq(variables['Agent.Os'], 'Windows_NT'))
+    continueOnError: ${{ parameters.continueOnError }}
+  - script: $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh $BUILD_SOURCESDIRECTORY/eng/common/helixpublish.proj /t:Test /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\${{ paramters.Configuration }}\SendToHelix.binlog /p:Configuration=${{ paramters.Configuration }} /p:TargetArchitecture=${{ paramters.Architecture }} /p:ErrorOnDuplicatePublishOutputFiles=false /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages -warnAsError 0
+    displayName: ${{ parameters.DisplayNamePrefix }} (Unix)
+    env:
+      BuildConfig: ${{ parameters.Configuration }}
+      BuildArchitecture: ${{ parameters.Architecture }}
+      HelixSource: ${{ parameters.HelixSource }}
+      HelixType: ${{ parameters.HelixType }}
+      HelixBuild: ${{ parameters.HelixBuild }}
+      HelixConfiguration:  ${{ parameters.HelixConfiguration }}
+      HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
+      HelixAccessToken: ${{ parameters.HelixAccessToken }}
+      IncludeDotNetCli: ${{ parameters.IncludeDotNetCli }}
+      EnableXUnitReporter: ${{ parameters.EnableXUnitReporter }}
+      WaitForWorkItemCompletion: ${{ parameters.WaitForWorkItemCompletion }}
+      HelixBaseUri: ${{ parameters.HelixBaseUri }}
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    condition: and(${{ parameters.condition }}, ne(variables['Agent.Os'], 'Windows_NT'))
+    continueOnError: ${{ parameters.continueOnError }}

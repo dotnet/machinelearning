@@ -464,6 +464,23 @@ namespace Microsoft.ML.RunTests
         {
             return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Both, modelPath, ctx.ModelPath(), null, extraArgs, toCompare);
         }
+        
+        /// <summary>
+        /// Run one command loading the datafile loaded as defined by a model file, and comparing
+        /// against standard output. This utility method will both load and save a model.
+        /// </summary>
+        /// <param name="ctx">The run context from which we can generate our output paths</param>
+        /// <param name="cmdName">The loadname of the <see cref="ICommand"/></param>
+        /// <param name="dataPath">The path to the input data</param>
+        /// <param name="modelPath">The model to load</param>
+        /// <param name="extraArgs">Arguments passed to the command</param>
+        /// <param name="toCompare">Extra output paths to compare to baseline, besides the
+        /// stdout</param>
+        /// <returns>Whether this test succeeded.</returns>
+        protected bool TestInOutCore(RunContextBase ctx, string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default, params PathArgument[] toCompare)
+        {
+            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Both, modelPath, ctx.ModelPath(), null, extraArgs, digitsOfPrecision, parseOption, toCompare);
+        }
 
         /// <summary>
         /// Run two commands, one with the loader arguments, the second with the loader loaded
@@ -666,6 +683,11 @@ namespace Microsoft.ML.RunTests
         protected bool TestInOutCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, params PathArgument[] toCompare)
         {
             return TestInOutCore(Params, cmdName, dataPath, modelPath, extraArgs, toCompare);
+        }
+        
+        protected bool TestInOutCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, params PathArgument[] toCompare)
+        {
+            return TestInOutCore(Params, cmdName, dataPath, modelPath, extraArgs, digitsOfPrecision, NumberParseOption.Default, toCompare);
         }
     }
 
@@ -1986,10 +2008,10 @@ namespace Microsoft.ML.RunTests
             string data = GetDataPath(TestDatasets.breastCancer.trainFilename);
             OutputPath model = ModelPath();
 
-            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, 6);
 
             _step++;
-            TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
+            TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data, 6);
             Done();
         }
 
@@ -2005,7 +2027,7 @@ namespace Microsoft.ML.RunTests
             TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision: 5);
 
             _step++;
-            TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
+            TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data, 6);
             Done();
         }
 
@@ -2071,7 +2093,7 @@ namespace Microsoft.ML.RunTests
             string data = GetDataPath(TestDatasets.breastCancer.trainFilename);
             OutputPath model = ModelPath();
 
-            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, 6);
 
             _step++;
             OutputPath outputPath = StdoutPath();
@@ -2101,7 +2123,7 @@ namespace Microsoft.ML.RunTests
             string data = GetDataPath(TestDatasets.breastCancer.trainFilename);
             OutputPath model = ModelPath();
 
-            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, 6);
 
             _step++;
             OutputPath outputPath = StdoutPath();

@@ -17,6 +17,10 @@ namespace Microsoft.ML.CodeGenerator.Tests
     {
         public TemplateTest(ITestOutputHelper output) : base(output)
         {
+            if (DiffEngine.BuildServerDetector.Detected)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
         }
 
         [Fact]

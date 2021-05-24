@@ -39,6 +39,10 @@ namespace mlnet.Tests
 
         public ConsoleCodeGeneratorTests(ITestOutputHelper output) : base(output)
         {
+            if (DiffEngine.BuildServerDetector.Detected)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
         }
 
         [Fact]
