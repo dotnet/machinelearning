@@ -1,4 +1,7 @@
 #TODO: Need to update build documentation.
+variables:
+- group: DotNet-HelixApi-Access
+
 parameters:
   name: ''
   architecture: x64
@@ -12,9 +15,6 @@ parameters:
   container: ''
   useVSTestTask: false
   helixQueue: ''
-
-variables:
-- group: DotNet-HelixApi-Access
 
 jobs:
   - job: ${{ parameters.name }}
@@ -144,10 +144,10 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - ${{ if eq(${{ parameters.codeCoverage }}, True) }}:
+        - ${{ if eq($(parameters.codeCoverage), True) }}:
           - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages /p:Coverage=${{ parameters.codeCoverage }}
             displayName: Run CI Tests.
-        - ${{ if eq(${{ parameters.codeCoverage }}, False) }}:
+        - ${{ if eq($(parameters.codeCoverage), False) }}:
           - template: /build/ci/send-to-helix.yml
             displayName: Send to Helix
             parameters:
