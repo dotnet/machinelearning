@@ -147,7 +147,6 @@ jobs:
             displayName: Run CI Tests.
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml
-            displayName: Send to Helix
             parameters:
               HelixAccessToken: $(HelixApiAccessToken)
               HelixTargetQueues: $(parameters.helixQueue)
