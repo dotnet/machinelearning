@@ -10,6 +10,9 @@ resources:
   - container: UbuntuContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-20200515184230-2c829e8
 
+variables:
+- group: DotNet-HelixApi-Access
+
 jobs:
 - template: /build/ci/job-template.yml
   parameters:

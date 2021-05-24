@@ -1,6 +1,4 @@
 #TODO: Need to update build documentation.
-variables:
-- group: DotNet-HelixApi-Access
 
 parameters:
   name: ''
