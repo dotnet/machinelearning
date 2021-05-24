@@ -11,7 +11,7 @@ parameters:
   IncludeDotNetCli: true                 # optional -- true will download a version of the .NET CLI onto the Helix machine as a correlation payload; requires DotNetCliPackageType and DotNetCliVersion
   EnableXUnitReporter: true              # optional -- true enables XUnit result reporting to Mission Control
   WaitForWorkItemCompletion: true        # optional -- true will make the task wait until work items have been completed and fail the build if work items fail. False is "fire and forget."
-  HelixBaseUri: 'https://helix.dot.net/' # optional -- sets the Helix API base URI (allows targeting int)
+  HelixBaseUri: ' ' # optional -- sets the Helix API base URI (allows targeting int)
   Creator: 'ML.NET'                      # optional -- if the build is external, use this to specify who is sending the job
   DisplayNamePrefix: 'Run Helix Tests'   # optional -- rename the beginning of the displayName of the steps in AzDO
   continueOnError: false                 # optional -- determines whether to continue the build if the step errors; defaults to false
@@ -37,7 +37,7 @@ steps:
       Creator: ${{ parameters.Creator }}
     condition: and(${{ parameters.condition }}, eq(variables['Agent.Os'], 'Windows_NT'))
     continueOnError: ${{ parameters.continueOnError }}
-  - script: $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh $BUILD_SOURCESDIRECTORY/eng/helix.proj /t:Test /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\${{ parameters.Configuration }}\SendToHelix.binlog /p:Configuration=${{ parameters.Configuration }} /p:TargetArchitecture=${{ parameters.Architecture }} /p:ErrorOnDuplicatePublishOutputFiles=false /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages -warnAsError 0
+  - script: $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh $BUILD_SOURCESDIRECTORY/eng/helix.proj /t:Test /bl:$env:BUILD_SOURCESDIRECTORY/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog /p:Configuration=${{ parameters.Configuration }} /p:TargetArchitecture=${{ parameters.Architecture }} /p:ErrorOnDuplicatePublishOutputFiles=false /p:RestorePackagesPath=$(Build.SourcesDirectory)/packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)/packages -warnAsError 0
     displayName: ${{ parameters.DisplayNamePrefix }} (Unix)
     env:
       BuildConfig: ${{ parameters.Configuration }}
