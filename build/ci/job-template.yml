@@ -148,7 +148,6 @@ jobs:
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml
             parameters:
-              HelixAccessToken: $(HelixApiAccessToken)
               HelixTargetQueues: $(parameters.helixQueue)
               Configuration: $(_configuration)
               Architecture: ${{ parameters.architecture }}
