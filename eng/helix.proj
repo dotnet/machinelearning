@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" InitialTargets="CreateHelixWorkItems">
 	<Choose>
 		<When Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))">
 		<PropertyGroup>
@@ -87,8 +87,8 @@
     </HelixCorrelationPayload>
   </ItemGroup>
 
-	<Target Name="CreateHelixWorkItems" BeforeTargets="StartTestRuns">
-  		<Message Text="Creating Helix work items with packages" Importance="High" />
+	<Target Name="CreateHelixWorkItems">
+  	<Message Text="Creating Helix work items with packages" Importance="High" />
 
 		<MSBuild Projects="@(MyProjects)"
 			Targets="GetTargetFrameworks"
