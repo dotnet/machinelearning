@@ -33,7 +33,7 @@
     <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
 
     <!-- Enable reporting of test results to azure dev ops -->
-    <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter>
+    <!-- <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter> -->
     <!-- 'true' to produce a build error when tests fail. Default 'true' -->
     <FailOnTestFailure>true</FailOnTestFailure>
 	</PropertyGroup>
@@ -62,6 +62,7 @@
       <!-- PackageVersion of xunit.runner.console to use -->
       <XUnitRunnerVersion>2.4.0</XUnitRunnerVersion>
       <!-- Additional command line arguments to pass to xunit.console.exe -->
+      <XUnitArguments>-notrait Category=SkipInCI</XUnitArguments>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -99,13 +100,9 @@
 
     <MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
       Targets="Publish"
-      Properties="PublishDir=$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish"
       RemoveProperties="TargetFramework;RuntimeIdentifier">
         <Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
     </MSBuild>
-
-    <Message Text="$(PublishDir)" Importance="High" />
-    <Message Text="AFTER" Importance="High" />
 
   <PropertyGroup>
     <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
@@ -113,11 +110,14 @@
   </PropertyGroup>
 
 		<ItemGroup>
-			<HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
-        <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish</PayloadDirectory>
-        <Command Condition="$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $HELIX_CORRELATION_PAYLOAD/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI</Command>
-        <Command Condition="!$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json %HELIX_CORRELATION_PAYLOAD%/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI</Command>
-      </HelixWorkItem >
+			<XUnitProject  Include="%(ProjectsWithTargetFramework.Identity)">
+				<PublishTargetFramework>%(ProjectsWithTargetFramework.TargetFrameworks)</PublishTargetFramework>
+        <PublishDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish</PublishDirectory>
+        <TargetPath>%(ProjectsWithTargetFramework.Filename).dll</TargetPath>
+        <RuntimeTargetFramework>netcoreapp2.0</RuntimeTargetFramework>
+			</XUnitProject >
+
+      <CallTarget Targets="CreateXUnitWorkItems"/>
 		</ItemGroup>
 	</Target>
 </Project>
