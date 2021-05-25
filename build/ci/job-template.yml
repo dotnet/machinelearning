@@ -57,8 +57,6 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
-    - script: SET
-      displayName: Print env vars
     # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: |
