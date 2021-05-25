@@ -33,7 +33,7 @@
     <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
 
     <!-- Enable reporting of test results to azure dev ops -->
-    <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter>
+    <!-- <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter> -->
     <!-- 'true' to produce a build error when tests fail. Default 'true' -->
     <FailOnTestFailure>true</FailOnTestFailure>
 	</PropertyGroup>
@@ -99,9 +99,13 @@
 
     <MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
       Targets="Publish"
+      Properties="PublishDir=$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish"
       RemoveProperties="TargetFramework;RuntimeIdentifier">
         <Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
     </MSBuild>
+
+    <Message Text="$(PublishDir)" Importance="High" />
+    <Message Text="AFTER" Importance="High" />
 
   <PropertyGroup>
     <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
