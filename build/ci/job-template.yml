@@ -149,7 +149,7 @@ jobs:
           - template: /build/ci/send-to-helix.yml
             parameters:
               HelixTargetQueues: ${{ parameters.helixQueue }}
-              Configuration: ${{ _configuration }}
+              Configuration: $(_configuration)
               Architecture: ${{ parameters.architecture }}
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
