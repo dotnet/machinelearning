@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
-  <Choose>
-    <When Condition="$(HelixTargetQueue.ToLowerInvariant().Contains('windows'))">
-      <PropertyGroup>
-        <IsPosixShell>false</IsPosixShell>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <IsPosixShell>true</IsPosixShell>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
+	<Choose>
+		<When Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))">
+		<PropertyGroup>
+			<IsPosixShell>false</IsPosixShell>
+		</PropertyGroup>
+		</When>
+		<Otherwise>
+		<PropertyGroup>
+			<IsPosixShell>true</IsPosixShell>
+		</PropertyGroup>
+		</Otherwise>
+	</Choose>
 
 	<PropertyGroup>
 		<HelixSourcePrefix>pr/</HelixSourcePrefix>
@@ -18,37 +18,37 @@
 		<HelixSource Condition="'$(BUILD_SOURCEBRANCH)' != ''">$(HelixSource)/$(BUILD_SOURCEBRANCH)</HelixSource>
 
 		<HelixBuild Condition="'$(HelixBuild)' == ''">$(BUILD_BUILDNUMBER)</HelixBuild>
-    <HelixBuild Condition="'$(HelixBuild)' == ''">default</HelixBuild>
+		<HelixBuild Condition="'$(HelixBuild)' == ''">default</HelixBuild>
 
-    <WaitForWorkItemCompletion>true</WaitForWorkItemCompletion>
-    <CancelHelixJobsIfBuildCancelled Condition="'$(CancelHelixJobsIfBuildCancelled)' != 'false'">true</CancelHelixJobsIfBuildCancelled>
-    <FailOnWorkItemFailure Condition="'$(FailOnWorkItemFailure)' != 'false'">true</FailOnWorkItemFailure>
+		<WaitForWorkItemCompletion>true</WaitForWorkItemCompletion>
+		<CancelHelixJobsIfBuildCancelled Condition="'$(CancelHelixJobsIfBuildCancelled)' != 'false'">true</CancelHelixJobsIfBuildCancelled>
+		<FailOnWorkItemFailure Condition="'$(FailOnWorkItemFailure)' != 'false'">true</FailOnWorkItemFailure>
 
-    <!-- Read global.json so we know the version of the dotnet cli we need -->
-    <GlobalJsonContent>$([System.IO.File]::ReadAllText('$(RepoRoot)global.json'))</GlobalJsonContent>
-    <DotNetCliPackageType>sdk</DotNetCliPackageType>
-    <DotNetCliVersion>$([System.Text.RegularExpressions.Regex]::Match($(GlobalJsonContent), '(%3F&lt;="dotnet": ").*(%3F=")'))</DotNetCliVersion>
+		<!-- Read global.json so we know the version of the dotnet cli we need -->
+		<GlobalJsonContent>$([System.IO.File]::ReadAllText('$(RepoRoot)global.json'))</GlobalJsonContent>
+		<DotNetCliPackageType>sdk</DotNetCliPackageType>
+		<DotNetCliVersion>$([System.Text.RegularExpressions.Regex]::Match($(GlobalJsonContent), '(%3F&lt;="dotnet": ").*(%3F=")'))</DotNetCliVersion>
 
-    <!-- The other DotNetCliRuntimes are figured out correctly by the queue name -->
-    <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+		<!-- The other DotNetCliRuntimes are figured out correctly by the queue name -->
+		<DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
 
-    <!-- Enable reporting of test results to azure dev ops -->
-    <!-- <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter> -->
-    <!-- 'true' to produce a build error when tests fail. Default 'true' -->
-    <FailOnTestFailure>true</FailOnTestFailure>
+		<!-- Enable reporting of test results to azure dev ops -->
+		<EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter>
+		<!-- 'true' to produce a build error when tests fail. Default 'true' -->
+		<FailOnTestFailure>true</FailOnTestFailure>
 	</PropertyGroup>
 
-  <ItemGroup>
-    <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)">
-      <PackageType>runtime</PackageType>
-      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
-    </AdditionalDotNetPackage>
+	<ItemGroup>
+		<AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)">
+		<PackageType>runtime</PackageType>
+		<DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+		</AdditionalDotNetPackage>
 
-    <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)">
-      <PackageType>runtime</PackageType>
-      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
-    </AdditionalDotNetPackage>
-  </ItemGroup>
+		<AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)">
+		<PackageType>runtime</PackageType>
+		<DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+		</AdditionalDotNetPackage>
+	</ItemGroup>
 
 	<PropertyGroup Condition="'$(HelixType)' == ''">
 		<!-- For PRs we want helixtype to be the same for all frameworks except package testing-->
@@ -56,23 +56,22 @@
 		<HelixType>test/unit/cli/$(TestScope)/</HelixType>
  	</PropertyGroup>
 
-  <PropertyGroup>
-      <!-- TargetFramework of the xunit.runner.dll to use when running the tests -->
-      <XUnitRuntimeTargetFramework>netcoreapp2.0</XUnitRuntimeTargetFramework>
-      <!-- PackageVersion of xunit.runner.console to use -->
-      <XUnitRunnerVersion>2.4.0</XUnitRunnerVersion>
-      <!-- Additional command line arguments to pass to xunit.console.exe -->
-      <XUnitArguments>-notrait Category=SkipInCI</XUnitArguments>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- TargetFramework of the xunit.runner.dll to use when running the tests -->
+		<XUnitRuntimeTargetFramework>netcoreapp2.0</XUnitRuntimeTargetFramework>
+		<!-- PackageVersion of xunit.runner.console to use -->
+		<XUnitRunnerVersion>2.4.0</XUnitRunnerVersion>
+		<!-- Additional command line arguments to pass to xunit.console.exe -->
+	</PropertyGroup>
 
 	<ItemGroup>
 		<MyProjects Include="..\test\**\*.csproj" />
-    <MyProjects Include="..\test\**\*.fsproj" />
-    <MyProjects Remove="..\test\Microsoft.ML.NightlyBuild.Tests\Microsoft.ML.NightlyBuild.Tests.csproj" />
-    <MyProjects Remove="..\test\Microsoft.ML.CpuMath.PerformanceTests\Microsoft.ML.CpuMath.PerformanceTests.csproj" />
-    <MyProjects Remove="..\test\Microsoft.ML.PerformanceTests\Microsoft.ML.PerformanceTests.csproj" />
-    <MyProjects Remove="..\test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
-    <MyProjects Remove="..\test\Microsoft.ML.Benchmarks.Tests\Microsoft.ML.Benchmarks.Tests.csproj" />
+		<MyProjects Include="..\test\**\*.fsproj" />
+		<MyProjects Remove="..\test\Microsoft.ML.NightlyBuild.Tests\Microsoft.ML.NightlyBuild.Tests.csproj" />
+		<MyProjects Remove="..\test\Microsoft.ML.CpuMath.PerformanceTests\Microsoft.ML.CpuMath.PerformanceTests.csproj" />
+		<MyProjects Remove="..\test\Microsoft.ML.PerformanceTests\Microsoft.ML.PerformanceTests.csproj" />
+		<MyProjects Remove="..\test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
+		<MyProjects Remove="..\test\Microsoft.ML.Benchmarks.Tests\Microsoft.ML.Benchmarks.Tests.csproj" />
 	</ItemGroup>
 
   <ItemGroup>
@@ -98,27 +97,25 @@
 				<Output TaskParameter="TargetOutputs" ItemName="ProjectsWithTargetFramework" />
 		</MSBuild>
 
-    <MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
-      Targets="Publish"
-      Properties="PublishDir=$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish"
-      RemoveProperties="TargetFramework;RuntimeIdentifier">
-        <Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
-    </MSBuild>
+		<MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
+			Targets="Publish"
+			Properties="PublishDir=$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish"
+			RemoveProperties="TargetFramework;RuntimeIdentifier">
+				<Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
+		</MSBuild>
 
-  <PropertyGroup>
-    <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
-    <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
-  </PropertyGroup>
+		<PropertyGroup>
+			<HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
+			<HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
+		</PropertyGroup>
 
 		<ItemGroup>
-			<XUnitProject  Include="%(ProjectsWithTargetFramework.Identity)">
-				<PublishTargetFramework>%(ProjectsWithTargetFramework.TargetFrameworks)</PublishTargetFramework>
-        <PublishDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish</PublishDirectory>
-        <TargetPath>%(ProjectsWithTargetFramework.Filename).dll</TargetPath>
-        <RuntimeTargetFramework>netcoreapp2.0</RuntimeTargetFramework>
-			</XUnitProject >
-
-      <CallTarget Targets="CreateXUnitWorkItems"/>
+			<HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
+				<PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish</PayloadDirectory>
+				<Command Condition="$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $HELIX_CORRELATION_PAYLOAD/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+				<Command Condition="!$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json %HELIX_CORRELATION_PAYLOAD%/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+				<Command Condition="$(BuildConfig.EndsWith('-netfx'))">%HELIX_CORRELATION_PAYLOAD%/xunit-runner/tools/net461/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+			</HelixWorkItem >
 		</ItemGroup>
 	</Target>
 </Project>
