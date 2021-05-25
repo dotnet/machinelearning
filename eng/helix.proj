@@ -100,6 +100,7 @@
 
     <MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
       Targets="Publish"
+      Properties="PublishDir=$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish"
       RemoveProperties="TargetFramework;RuntimeIdentifier">
         <Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
     </MSBuild>
