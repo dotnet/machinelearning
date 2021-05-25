@@ -1,18 +1,8 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
-  <Choose>
-    <When Condition="$(HelixTargetQueue.ToLowerInvariant().Contains('windows'))">
-      <PropertyGroup>
-        <IsPosixShell>false</IsPosixShell>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <IsPosixShell>true</IsPosixShell>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
 
 	<PropertyGroup>
+    <HelixTargetQueue>$(HelixTargetQueues)</HelixTargetQueue>
+
 		<HelixSourcePrefix>pr/</HelixSourcePrefix>
 		<HelixSource Condition="'$(HelixSource)' == ''">$(HelixSourcePrefix)dotnet/machinelearning</HelixSource>
 		<HelixSource Condition="'$(BUILD_SOURCEBRANCH)' != ''">$(HelixSource)/$(BUILD_SOURCEBRANCH)</HelixSource>
@@ -62,7 +52,6 @@
       <!-- PackageVersion of xunit.runner.console to use -->
       <XUnitRunnerVersion>2.4.0</XUnitRunnerVersion>
       <!-- Additional command line arguments to pass to xunit.console.exe -->
-      <XUnitArguments>-notrait Category=SkipInCI</XUnitArguments>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -110,14 +99,11 @@
   </PropertyGroup>
 
 		<ItemGroup>
-			<XUnitProject  Include="%(ProjectsWithTargetFramework.Identity)">
-				<PublishTargetFramework>%(ProjectsWithTargetFramework.TargetFrameworks)</PublishTargetFramework>
-        <PublishDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish</PublishDirectory>
-        <TargetPath>%(ProjectsWithTargetFramework.Filename).dll</TargetPath>
-        <RuntimeTargetFramework>netcoreapp2.0</RuntimeTargetFramework>
-			</XUnitProject >
-
-      <CallTarget Targets="CreateXUnitWorkItems"/>
+			<HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
+        <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish</PayloadDirectory>
+        <Command Condition="$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $HELIX_CORRELATION_PAYLOAD/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI</Command>
+        <Command Condition="!$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json %HELIX_CORRELATION_PAYLOAD%/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI</Command>
+      </HelixWorkItem >
 		</ItemGroup>
 	</Target>
 </Project>
