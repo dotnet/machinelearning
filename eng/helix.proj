@@ -32,8 +32,6 @@
 		<!-- The other DotNetCliRuntimes are figured out correctly by the queue name -->
 		<DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
 
-		<!-- Enable reporting of test results to azure dev ops -->
-		<EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter>
 		<!-- 'true' to produce a build error when tests fail. Default 'true' -->
 		<FailOnTestFailure>true</FailOnTestFailure>
 	</PropertyGroup>
@@ -89,7 +87,9 @@
     </HelixCorrelationPayload>
   </ItemGroup>
 
-	<Target Name="CreateHelixWorkItems" BeforeTargets="CoreTest">
+	<Target Name="CreateHelixWorkItems" BeforeTargets="StartTestRuns">
+  		<Message Text="Creating Helix work items with packages" Importance="High" />
+
 		<MSBuild Projects="@(MyProjects)"
 			Targets="GetTargetFrameworks"
 			BuildInParallel="$(BuildInParallel)"
