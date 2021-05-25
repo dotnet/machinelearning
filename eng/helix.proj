@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
 	<PropertyGroup>
-  	<HelixTargetQueue>$(HelixTargetQueues)</HelixTargetQueue>
+  	<HelixTargetQueue>$(HelixTargetQueue)</HelixTargetQueue>
 
 		<HelixSourcePrefix>pr/</HelixSourcePrefix>
 		<HelixSource Condition="'$(HelixSource)' == ''">$(HelixSourcePrefix)dotnet/machinelearning</HelixSource>
@@ -23,7 +23,7 @@
     <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
 
     <!-- Enable reporting of test results to azure dev ops -->
-    <!-- <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter> -->
+    <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter>
     <!-- 'true' to produce a build error when tests fail. Default 'true' -->
     <FailOnTestFailure>true</FailOnTestFailure>
 	</PropertyGroup>

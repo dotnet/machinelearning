@@ -27,7 +27,7 @@ steps:
       HelixType: ${{ parameters.HelixType }}
       HelixBuild: ${{ parameters.HelixBuild }}
       HelixConfiguration:  ${{ parameters.HelixConfiguration }}
-      HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
+      HelixTargetQueue: ${{ parameters.HelixTargetQueues }}
       HelixAccessToken: ${{ parameters.HelixAccessToken }}
       IncludeDotNetCli: ${{ parameters.IncludeDotNetCli }}
       EnableXUnitReporter: ${{ parameters.EnableXUnitReporter }}
@@ -46,7 +46,7 @@ steps:
       HelixType: ${{ parameters.HelixType }}
       HelixBuild: ${{ parameters.HelixBuild }}
       HelixConfiguration:  ${{ parameters.HelixConfiguration }}
-      HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
+      HelixTargetQueue: ${{ parameters.HelixTargetQueues }}
       HelixAccessToken: ${{ parameters.HelixAccessToken }}
       IncludeDotNetCli: ${{ parameters.IncludeDotNetCli }}
       EnableXUnitReporter: ${{ parameters.EnableXUnitReporter }}
