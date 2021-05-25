@@ -1,8 +1,18 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+  <Choose>
+    <When Condition="$(HelixTargetQueue.ToLowerInvariant().Contains('windows'))">
+      <PropertyGroup>
+        <IsPosixShell>false</IsPosixShell>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <IsPosixShell>true</IsPosixShell>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
 	<PropertyGroup>
-    <HelixTargetQueue>$(HelixTargetQueues)</HelixTargetQueue>
-
 		<HelixSourcePrefix>pr/</HelixSourcePrefix>
 		<HelixSource Condition="'$(HelixSource)' == ''">$(HelixSourcePrefix)dotnet/machinelearning</HelixSource>
 		<HelixSource Condition="'$(BUILD_SOURCEBRANCH)' != ''">$(HelixSource)/$(BUILD_SOURCEBRANCH)</HelixSource>
