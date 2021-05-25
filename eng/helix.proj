@@ -13,8 +13,6 @@
   </Choose>
 
 	<PropertyGroup>
-  	<HelixTargetQueues>$(HelixTargetQueues)</HelixTargetQueues>
-
 		<HelixSourcePrefix>pr/</HelixSourcePrefix>
 		<HelixSource Condition="'$(HelixSource)' == ''">$(HelixSourcePrefix)dotnet/machinelearning</HelixSource>
 		<HelixSource Condition="'$(BUILD_SOURCEBRANCH)' != ''">$(HelixSource)/$(BUILD_SOURCEBRANCH)</HelixSource>
