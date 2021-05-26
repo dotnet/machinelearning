@@ -103,10 +103,6 @@
 				<Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
 		</MSBuild>
 
-    <ZipDirectory SourceDirectory="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(Configuration)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish"
-      DestinationFile="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(Configuration)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish.zip"
-      Overwrite="true" />
-
 		<PropertyGroup>
 			<HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
 			<HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
@@ -114,7 +110,7 @@
 
 		<ItemGroup>
 			<HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
-				<PayloadArchive>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish.zip</PayloadArchive>
+				<PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish</PayloadDirectory>
 				<Command Condition="$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $HELIX_CORRELATION_PAYLOAD/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
 				<Command Condition="!$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json %HELIX_CORRELATION_PAYLOAD%/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
 				<Command Condition="$(BuildConfig.EndsWith('-netfx'))">%HELIX_CORRELATION_PAYLOAD%/xunit-runner/tools/net461/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
