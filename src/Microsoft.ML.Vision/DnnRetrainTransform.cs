@@ -605,7 +605,7 @@ namespace Microsoft.ML.Transforms
         internal static TensorShape GetTensorShape(TF_Output output, Graph graph, Status status = null)
         {
             if (graph == IntPtr.Zero)
-                new ObjectDisposedException(nameof(graph));
+                throw new ObjectDisposedException(nameof(graph));
 
             var cstatus = status == null ? new Status() : status;
             var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus.Handle);
