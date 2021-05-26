@@ -4,6 +4,7 @@
     <AssemblyName>Microsoft.ML.Tests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrongNameKeyId>Test</StrongNameKeyId>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
   <!-- Import the test signing certificate -->

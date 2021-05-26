@@ -5,6 +5,7 @@
     <PublicSign>false</PublicSign>
     <SourceLink></SourceLink>
     <PlatformTarget>$(TargetArchitecture)</PlatformTarget>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
   <ItemGroup>

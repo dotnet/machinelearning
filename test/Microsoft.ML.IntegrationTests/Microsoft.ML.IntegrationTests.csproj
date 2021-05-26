@@ -9,7 +9,7 @@
 
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsIntegrationTestProject>true</IsIntegrationTestProject>
-    
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
   <ItemGroup>

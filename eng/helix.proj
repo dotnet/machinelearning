@@ -69,6 +69,8 @@
 		<MyProjects Remove="..\test\Microsoft.ML.CpuMath.PerformanceTests\Microsoft.ML.CpuMath.PerformanceTests.csproj" />
 		<MyProjects Remove="..\test\Microsoft.ML.PerformanceTests\Microsoft.ML.PerformanceTests.csproj" />
 		<MyProjects Remove="..\test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
+		<MyProjects Remove="..\test\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj" />
+		<MyProjects Remove="..\test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj" />
 		<MyProjects Remove="..\test\Microsoft.ML.Benchmarks.Tests\Microsoft.ML.Benchmarks.Tests.csproj" />
 	</ItemGroup>
 

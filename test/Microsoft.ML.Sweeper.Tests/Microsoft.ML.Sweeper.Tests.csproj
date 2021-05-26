@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <DefineConstants>CORECLR</DefineConstants>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj" />

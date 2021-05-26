@@ -2,6 +2,7 @@
   <PropertyGroup>
     <DefineConstants>CORECLR</DefineConstants>
     <StrongNameKeyId>Test</StrongNameKeyId>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
     <!-- Import the test signing certificate -->
