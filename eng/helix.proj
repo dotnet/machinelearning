@@ -106,7 +106,7 @@
 		</MSBuild>
 
 		<PropertyGroup>
-			<HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;ls</HelixPreCommands>
+			<HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;ls</HelixPreCommands>
 			<HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;dir</HelixPreCommands>
 		</PropertyGroup>
 
