@@ -45,14 +45,10 @@ namespace Microsoft.ML.Data
             }
 
             List<string> concatenated = new List<string>();
-            if (paths != null)
-            {
-                foreach (string path in paths)
-                    foreach (string rPath in StreamUtils.ExpandWildCards(path))
-                        concatenated.Add(rPath);
-            }
-            else
-                concatenated = null;
+
+            foreach (string path in paths)
+                foreach (string rPath in StreamUtils.ExpandWildCards(path))
+                    concatenated.Add(rPath);
 
             if (concatenated != null && concatenated.Count > 0)
             {
