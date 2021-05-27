@@ -100,8 +100,7 @@
 		</MSBuild>
 
 		<MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
-			Targets="Publish"
-			Properties="NoBuild=true">
+			Targets="Publish">
 				<Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
 		</MSBuild>
 

@@ -6,7 +6,7 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
     {
         private readonly string _library;
 
-        public NativeDependencyTheory(string library) : base($"This test requires a native library ${library} that wasn't found.")
+        public NativeDependencyTheory(string library) : base($"This test requires a native library {library} that wasn't found.")
         {
             _library = library;
         }
