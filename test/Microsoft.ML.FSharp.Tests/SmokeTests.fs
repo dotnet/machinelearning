@@ -158,7 +158,7 @@ module SmokeTest3 =
 
         let testDataPath =
             if String.IsNullOrEmpty SmokeTest1.TestDataDir then __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
-            else SmokeTest1.TestDataDir + @"/testwwwwww/data/wikipedia-detox-250-line-data.tsv"
+            else SmokeTest1.TestDataDir + @"/test/data/wikipedia-detox-250-line-data.tsv"
 
         let ml = MLContext(seed = new System.Nullable<int>(1))
         let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
