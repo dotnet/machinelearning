@@ -362,7 +362,7 @@ namespace Microsoft.Data.Analysis
         {
             int columnIndex = _columnCollection.IndexOf(columnName);
             if (columnIndex == -1)
-                throw new ArgumentException(Strings.InvalidColumnName, nameof(columnName));
+                throw new ArgumentException(String.Format(Strings.InvalidColumnName, columnName), nameof(columnName));
 
             DataFrameColumn column = _columnCollection[columnIndex];
             return column.GroupBy(columnIndex, this);
@@ -573,7 +573,7 @@ namespace Microsoft.Data.Analysis
                 int index = ret.Columns.IndexOf(columnName);
                 if (index == -1)
                 {
-                    throw new ArgumentException(Strings.InvalidColumnName, nameof(columnName));
+                    throw new ArgumentException(String.Format(Strings.InvalidColumnName, columnName), nameof(columnName));
                 }
 
                 DataFrameColumn column = ret.Columns[index];

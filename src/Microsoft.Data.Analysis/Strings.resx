@@ -184,7 +184,7 @@
     <value>Inconsistent null bitmaps and NullCounts</value>
   </data>
   <data name="InvalidColumnName" xml:space="preserve">
-    <value>Column does not exist</value>
+    <value>Column '{0}' does not exist</value>
   </data>
   <data name="InvalidFieldWidths" xml:space="preserve">
     <value>All field widths, except the last element, must be greater than zero. A field width less than or equal to zero in the last element indicates the last field is of variable length.</value>
