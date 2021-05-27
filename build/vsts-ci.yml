@@ -263,22 +263,31 @@ phases:
       nuGetFeedType: external
       publishFeedCredentials: machinelearning-dnceng-public-feed
 
-  - task: MSBuild@1
-    displayName: Publish Symbols to SymWeb Symbol Server
+  # Upload symbols to symweb && MSDL
+  - script: eng\common\CIBuild.cmd 
+              -configuration $(BuildConfig)
+              -warnAsError 0
+              /bl:artifacts\log\$(BuildConfig)\uploadSymbols.binlog
+              /p:Build=False
+              /p:Test=False
+              /p:Pack=False
+              /p:Sign=False
+              /p:Publish=True
+              /p:OfficialBuildId=$(OfficialBuildId)
+              /p:DotNetFinalVersionKind=$(DotnetVersionKind)
+              /p:DotNetSymbolServerTokenMsdl=$(MsdlSymbolServerPAT)
+              /p:DotNetSymbolServerTokenSymWeb=$(SymwebSymbolServerPAT)
+              /p:PublishToSymbolServer=true
+    displayName: Publish to symbol server
+    condition: and(succeeded(), eq(variables['_SignType'], 'real'), eq(variables['BuildConfig'], 'Release'))
+  
+  - task: PublishBuildArtifacts@1
+    displayName: Publish log
     inputs:
-      solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
-      msbuildVersion: 15.0
+      PathtoPublish: 'artifacts\log\$(BuildConfig)'
+      ArtifactName: 'log'
     continueOnError: true
-
-  - task: MSBuild@1
-    displayName: Publish Symbols to Msdl Symbol Server
-    inputs:
-      solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
-      msbuildVersion: 15.0
-    continueOnError: true
-
+  
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
     displayName: Dotnet Server Shutdown
