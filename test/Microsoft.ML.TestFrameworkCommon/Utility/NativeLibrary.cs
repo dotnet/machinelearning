@@ -18,7 +18,19 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
             NativeLibrary nativeLibrary = default;
             try
             {
-                nativeLibrary = new NativeLibrary(name);
+                string prefix = default;
+                string extension = default;
+                if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+                    prefix = "lib";
+                
+                if (Environment.OSVersion.Platform == PlatformID.Unix)
+                    extension = ".so";
+                else if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+                    extension = ".dylib";
+                else
+                    extension = ".dll";
+
+                nativeLibrary = new NativeLibrary(prefix + name + extension);
                 return true;
             }
             catch
