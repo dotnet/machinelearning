@@ -101,13 +101,14 @@
 
 		<MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
 			Targets="Publish"
-			Properties="NoBuild=true;PublishDir=$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish">
+			Properties="NoBuild=true">
 				<Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
 		</MSBuild>
 
 		<PropertyGroup>
-			<HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;export HELIX_PYTHONPATH=python3; ls</HelixPreCommands>
+			<HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;ls</HelixPreCommands>
 			<HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%;dir</HelixPreCommands>
+			<HelixPostCommands Condition="$(IsPosixShell)">$(HelixPostCommands);export HELIX_PYTHONPATH=python3;python3 -m pip install virtualenv</HelixPostCommands>
 		</PropertyGroup>
 
 		<ItemGroup>
