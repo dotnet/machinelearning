@@ -17,7 +17,7 @@ namespace Microsoft.ML.CodeGenerator.Tests
     {
         public TemplateTest(ITestOutputHelper output) : base(output)
         {
-            if (DiffEngine.BuildServerDetector.Detected)
+            if (DiffEngine.BuildServerDetector.Detected || Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
             {
                 Approvals.UseAssemblyLocationForApprovedFiles();
             }

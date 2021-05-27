@@ -232,7 +232,8 @@ namespace Microsoft.ML.AutoML.Test
         [UseApprovalSubdirectory("ApprovalTests")]
         public void Wiki_column_inference_result_should_be_serializable()
         {
-            if (DiffEngine.BuildServerDetector.Detected)
+            // DiffEngine can't check for Helix, so the environment variable checks for helix.
+            if (DiffEngine.BuildServerDetector.Detected || Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
             {
                 Approvals.UseAssemblyLocationForApprovedFiles();
             }
