@@ -14,7 +14,7 @@ namespace Microsoft.ML
     /// create components for data preparation, feature enginering, training, prediction, model evaluation.
     /// It also allows logging, execution control, and the ability set repeatable random numbers.
     /// </summary>
-    public sealed class MLContext : ISeededEnvironment
+    public sealed class MLContext : IHostEnvironmentInternal
     {
         // REVIEW: consider making LocalEnvironment and MLContext the same class instead of encapsulation.
         private readonly LocalEnvironment _env;
@@ -80,6 +80,15 @@ namespace Microsoft.ML
         public ComponentCatalog ComponentCatalog => _env.ComponentCatalog;
 
         /// <summary>
+        /// Gets or sets the location for the temp files created by ML.NET.
+        /// </summary>
+        public string TempFilePath
+        {
+            get { return _env.TempFilePath; }
+            set { _env.TempFilePath = value; }
+        }
+
+        /// <summary>
         /// Create the ML context.
         /// </summary>
         /// <param name="seed">Seed for MLContext's random number generator. See the remarks for more details.</param>
@@ -140,7 +149,7 @@ namespace Microsoft.ML
         IChannel IChannelProvider.Start(string name) => _env.Start(name);
         IPipe<TMessage> IChannelProvider.StartPipe<TMessage>(string name) => _env.StartPipe<TMessage>(name);
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
-        int? ISeededEnvironment.Seed => _env.Seed;
+        int? IHostEnvironmentInternal.Seed => _env.Seed;
 
         [BestFriend]
         internal void CancelExecution() => ((ICancelable)_env).CancelExecution();

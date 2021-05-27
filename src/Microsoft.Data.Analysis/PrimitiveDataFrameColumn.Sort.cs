@@ -14,20 +14,21 @@ namespace Microsoft.Data.Analysis
     {
         public new PrimitiveDataFrameColumn<T> Sort(bool ascending = true)
         {
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices();
+            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
             return Clone(sortIndices, !ascending, NullCount);
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices()
+        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices)
         {
-            // The return sortIndices contains only the non null indices. 
-            GetSortIndices(Comparer<T>.Default, out PrimitiveDataFrameColumn<long> sortIndices);
+            Int64DataFrameColumn sortIndices = GetSortIndices(Comparer<T>.Default, out nullIndices);
             return sortIndices;
         }
 
-        private void GetSortIndices(IComparer<T> comparer, out PrimitiveDataFrameColumn<long> columnSortIndices)
+        private Int64DataFrameColumn GetSortIndices(IComparer<T> comparer, out Int64DataFrameColumn columnNullIndices)
         {
             List<List<int>> bufferSortIndices = new List<List<int>>(_columnContainer.Buffers.Count);
+            columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
+            long nullIndicesSlot = 0;
             // Sort each buffer first
             for (int b = 0; b < _columnContainer.Buffers.Count; b++)
             {
@@ -35,15 +36,24 @@ namespace Microsoft.Data.Analysis
                 ReadOnlySpan<byte> nullBitMapSpan = _columnContainer.NullBitMapBuffers[b].ReadOnlySpan;
                 int[] sortIndices = new int[buffer.Length];
                 for (int i = 0; i < buffer.Length; i++)
+                {
                     sortIndices[i] = i;
+                }
                 IntrospectiveSort(buffer.ReadOnlySpan, buffer.Length, sortIndices, comparer);
                 // Bug fix: QuickSort is not stable. When PrimitiveDataFrameColumn has null values and default values, they move around
                 List<int> nonNullSortIndices = new List<int>();
                 for (int i = 0; i < sortIndices.Length; i++)
                 {
-                    if (_columnContainer.IsValid(nullBitMapSpan, sortIndices[i]))
+                    int localSortIndex = sortIndices[i];
+                    if (_columnContainer.IsValid(nullBitMapSpan, localSortIndex))
+                    {
                         nonNullSortIndices.Add(sortIndices[i]);
-
+                    }
+                    else
+                    {
+                        columnNullIndices[nullIndicesSlot] = localSortIndex + b * _columnContainer.Buffers[0].Length;
+                        nullIndicesSlot++;
+                    }
                 }
                 bufferSortIndices.Add(nonNullSortIndices);
             }
@@ -90,11 +100,13 @@ namespace Microsoft.Data.Analysis
                     heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferIndex.Item1, new List<ValueTuple<int, int>>() { (valueAndBufferIndex.Item2, i) });
                 }
             }
-            columnSortIndices = new PrimitiveDataFrameColumn<long>("SortIndices");
+            Int64DataFrameColumn columnSortIndices = new Int64DataFrameColumn("SortIndices");
             GetBufferSortIndex getBufferSortIndex = new GetBufferSortIndex((int bufferIndex, int sortIndex) => (bufferSortIndices[bufferIndex][sortIndex]) + bufferIndex * bufferSortIndices[0].Count);
             GetValueAndBufferSortIndexAtBuffer<T> getValueAndBufferSortIndexAtBuffer = new GetValueAndBufferSortIndexAtBuffer<T>((int bufferIndex, int sortIndex) => GetFirstNonNullValueAndBufferIndexStartingAtIndex(bufferIndex, sortIndex));
             GetBufferLengthAtIndex getBufferLengthAtIndex = new GetBufferLengthAtIndex((int bufferIndex) => bufferSortIndices[bufferIndex].Count);
             PopulateColumnSortIndicesWithHeap(heapOfValueAndListOfTupleOfSortAndBufferIndex, columnSortIndices, getBufferSortIndex, getValueAndBufferSortIndexAtBuffer, getBufferLengthAtIndex);
+
+            return columnSortIndices;
         }
     }
 }

@@ -335,7 +335,7 @@ namespace Microsoft.Data.Analysis
 
             int shuffleLowerLimit = 0;
             int shuffleUpperLimit = (int)Math.Min(Int32.MaxValue, Rows.Count);
-            
+
             int[] shuffleArray = Enumerable.Range(0, shuffleUpperLimit).ToArray();
             Random rand = new Random();
             while (shuffleLowerLimit < numberOfRows)
@@ -349,7 +349,7 @@ namespace Microsoft.Data.Analysis
             ArraySegment<int> segment = new ArraySegment<int>(shuffleArray, 0, shuffleLowerLimit);
 
             PrimitiveDataFrameColumn<int> indices = new PrimitiveDataFrameColumn<int>("indices", segment);
-            
+
             return Clone(indices);
         }
 
@@ -623,12 +623,16 @@ namespace Microsoft.Data.Analysis
         private DataFrame Sort(string columnName, bool isAscending)
         {
             DataFrameColumn column = Columns[columnName];
-            DataFrameColumn sortIndices = column.GetAscendingSortIndices();
+            PrimitiveDataFrameColumn<long> sortIndices = column.GetAscendingSortIndices(out Int64DataFrameColumn nullIndices);
+            for (long i = 0; i < nullIndices.Length; i++)
+            {
+                sortIndices.Append(nullIndices[i]);
+            }
             List<DataFrameColumn> newColumns = new List<DataFrameColumn>(Columns.Count);
             for (int i = 0; i < Columns.Count; i++)
             {
                 DataFrameColumn oldColumn = Columns[i];
-                DataFrameColumn newColumn = oldColumn.Clone(sortIndices, !isAscending, oldColumn.NullCount);
+                DataFrameColumn newColumn = oldColumn.Clone(sortIndices, !isAscending);
                 Debug.Assert(newColumn.NullCount == oldColumn.NullCount);
                 newColumns.Add(newColumn);
             }

@@ -39,6 +39,22 @@ sudo apt-get install libssl1.0.0 libicu55
 sudo apt-get install libomp-dev
 ```
 
+#### Cross compiling for ARM
+
+Cross compilation is only supported on an Ubuntu host, 18.x and newer, and only .Net Core 3.1 or newer. You will need to install debootstrap and qemu-user-static to facilitate the process. Once they are installed you will need to build the cross compiling rootfs. We provide a script, `build-rootfs.sh`, to do this. You will also need to set the ROOTFS_DIR environment variable to the location of the rootfs you just created. The general process is as follows:
+
+```sh
+sudo apt-get update
+sudo apt-get install debootstrap qemu-user-static
+sudo ./eng/common/cross/build-rootfs.sh <target architecture> <ubuntu distro name> --rootfsdir <new rootfs location>
+export ROOTFS_DIR=<new rootfs location>
+
+# The cross compiling environment is now setup and you can proceed with a normal build
+./build.sh -c Release-netcoreapp3_1 /p:TargetArchitecture=<target architecture>
+```
+
+Note that the `<target architecture>` will usually be arm or arm64 and the `<ubuntu distro name>` is bionic for 18.04.
+
 ### macOS
 
 macOS 10.13 (High Sierra) or higher is needed to build dotnet/machinelearning. We are using a .NET Core 3.1 SDK to build, which supports 10.13 or higher.

@@ -80,6 +80,11 @@ else()
     add_definitions(-Werror) # treat warnings as errors
 endif()
 
+# Set the architecture we are compiling for on APPLE. This lets you cross target from x86_64 -> arm64.
+if(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES ${ARCHITECTURE})
+endif()
+
 # Older CMake doesn't support CMAKE_CXX_STANDARD and GCC/Clang need a switch to enable C++ 11
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "(Clang|GNU)")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -193,9 +198,14 @@ function(install_library_and_symbols targetName)
     endif()
 endfunction()
 
-add_subdirectory(CpuMathNative)
-add_subdirectory(FastTreeNative)
+if(NOT ${ARCHITECTURE} MATCHES "arm.*")
+    add_subdirectory(CpuMathNative)
+    add_subdirectory(FastTreeNative)
+    add_subdirectory(MklProxyNative)
+    # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
+    add_subdirectory(SymSgdNative)
+endif()
+
 add_subdirectory(LdaNative)
 add_subdirectory(MatrixFactorizationNative)
-add_subdirectory(SymSgdNative)
-add_subdirectory(MklProxyNative)
+

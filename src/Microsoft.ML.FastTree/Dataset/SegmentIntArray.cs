@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -40,10 +41,38 @@ namespace Microsoft.ML.Trainers.FastTree
             get { return IntArrayType.Segmented; }
         }
 
+        // Delegate defintions so we can store a reference to the native or managed method so we only have to check it once.
+        public delegate void PerformSegmentFindOptimalPath(uint[] array, int len, int bitsNeeded, out long bits, out int transitions);
+        public delegate void PerformSegmentFindOptimalCost(uint[] array, int len, int bitsNeeded, out long bits);
+
+        /// <summary>
+        /// Used so we can set either the native or managed SegmentFindOptimalCost method one time and then
+        /// never have to check again.
+        /// </summary>
+        public static Lazy<PerformSegmentFindOptimalCost> SegmentFindOptimalCost = new(() => {
+            if (UseFastTreeNative)
+                return NativeSegmentFindOptimalCost;
+            else
+                return ManagedSegmentFindOptimalCost;
+        });
+
+        /// <summary>
+        /// Used so we can set either the native or managed SegmentFindOptimalPath method one time and then
+        /// never have to check again.
+        /// </summary>
+        public static Lazy<PerformSegmentFindOptimalPath> SegmentFindOptimalPath = new(() => {
+            if (UseFastTreeNative)
+                return NativeSegmentFindOptimalPath;
+            else
+                return ManagedSegmentFindOptimalPath;
+        });
+
         public SegmentIntArray(int length, IEnumerable<int> values)
         {
             using (Timer.Time(TimerEvent.SparseConstruction))
             {
+                SetupSumupHandler(SumupCPlusPlus, base.Sumup);
+
                 uint[] vals = new uint[length];
                 uint pos = 0;
                 uint max = 0;
@@ -65,7 +94,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 int maxbits = BitsForValue(max);
                 int transitions;
                 long bits;
-                SegmentFindOptimalPath(vals, vals.Length, maxbits, out bits, out transitions);
+                SegmentFindOptimalPath.Value(vals, vals.Length, maxbits, out bits, out transitions);
                 var b = FromWorkArray(vals, vals.Length, bits, transitions);
                 _segType = b._segType;
                 _segLength = b._segLength;
@@ -388,8 +417,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new SegmentIntArray(st, sl, data, len);
         }
 
-#if USE_FASTTREENATIVE
-        public static void SegmentFindOptimalPath(uint[] array, int len, int bitsNeeded, out long bits, out int transitions)
+        public static void NativeSegmentFindOptimalPath(uint[] array, int len, int bitsNeeded, out long bits, out int transitions)
         {
             if (bitsNeeded <= 15)
             {
@@ -409,7 +437,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public static void SegmentFindOptimalCost(uint[] array, int len, int bitsNeeded, out long bits)
+        public static void NativeSegmentFindOptimalCost(uint[] array, int len, int bitsNeeded, out long bits)
         {
             if (bitsNeeded <= 15)
             {
@@ -546,20 +574,18 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
         }
-#else // when not USE_FASTTREENATIVE
-        public static void SegmentFindOptimalPath(uint[] array, int len, int bitsNeeded, out long bits, out int transitions)
+        public static void ManagedSegmentFindOptimalPath(uint[] array, int len, int bitsNeeded, out long bits, out int transitions)
         {
             uint max;
             StatsOfBestEncoding(array, bitsNeeded, true, out bits, out transitions, out max);
         }
 
-        public static void SegmentFindOptimalCost(uint[] array, int len, int bitsNeeded, out long bits)
+        public static void ManagedSegmentFindOptimalCost(uint[] array, int len, int bitsNeeded, out long bits)
         {
             int transitions;
             uint max;
             StatsOfBestEncoding(array, bitsNeeded, false, out bits, out transitions, out max);
         }
-#endif // USE_FASTTREENATIVE
 
         public override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
@@ -567,11 +593,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 if (_length == 0)
                     return;
-#if USE_FASTTREENATIVE
-                SumupCPlusPlus(input, histogram);
-#else
-                base.Sumup(input, histogram);
-#endif
+                SumupHandler(input, histogram);
             }
         }
 

@@ -35,6 +35,9 @@ namespace Microsoft.ML.AutoML
         /// </value>
         public uint OptimizationMetricTruncationLevel { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="RankingExperimentSettings"/>.
+        /// </summary>
         public RankingExperimentSettings()
         {
             OptimizingMetric = RankingMetric.Ndcg;
