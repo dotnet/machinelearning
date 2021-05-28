@@ -107,11 +107,15 @@
 		<PropertyGroup>
 			<HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;ls</HelixPreCommands>
 			<HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%;dir</HelixPreCommands>
-			<HelixPostCommands Condition="$(IsPosixShell) AND $(HelixTargetQueues.Contains('centos-7'))">export HELIX_PYTHONPATH=python3;yum -y install python3-pip;python3 -m pip install virtualenv;$(HelixPostCommands)</HelixPostCommands>
-			<HelixPostCommands Condition="$(IsPosixShell) AND $(HelixTargetQueues.Contains('ubuntu-16'))">export HELIX_PYTHONPATH=python3;apt-get update;apt-get install python3-pip -y;python3 -m pip install virtualenv;$(HelixPostCommands)</HelixPostCommands>
 			<PublishFolder>publish</PublishFolder>
 			<PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">win-$(BuildArchitecture)</PublishFolder>
 		</PropertyGroup>
+
+		<!-- Copy libiomp5.dylib to the publish folders for OSX-->
+		<Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib')"
+			DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)">
+		</Copy>
 
 		<ItemGroup>
 			<HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
