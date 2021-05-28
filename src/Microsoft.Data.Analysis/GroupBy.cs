@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Data.Analysis
 {
@@ -70,7 +72,7 @@ namespace Microsoft.Data.Analysis
         public abstract DataFrame Mean(params string[] columnNames);
     }
 
-    public class GroupBy<TKey> : GroupBy
+    public class GroupBy<TKey> : GroupBy 
     {
         private int _groupByColumnIndex;
         private IDictionary<TKey, ICollection<long>> _keyToRowIndicesMap;
@@ -464,5 +466,12 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        public IEnumerable<IGrouping<TKey, DataFrameRow>> Groupings
+        {
+            get 
+            {
+                return _keyToRowIndicesMap.Select(kvp => new Grouping<TKey>(kvp.Key, kvp.Value.Select(index => _dataFrame.Rows[index]).ToArray()));
+            }
+        }
     }
 }
