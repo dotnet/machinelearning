@@ -99,15 +99,6 @@
 				<Output TaskParameter="TargetOutputs" ItemName="ProjectsWithTargetFramework" />
 		</MSBuild>
 
-		<!-- Copy libiomp5.dylib to the publish folders for OSX-->
-		<Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
-			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib"
-			Retries="10"
-			OverwriteReadOnlyFiles="true"
-			RetryDelayMilliseconds="10"
-			DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish">
-		</Copy>
-
 		<MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
 			Targets="Publish">
 				<Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
@@ -119,6 +110,31 @@
 			<PublishFolder>publish</PublishFolder>
 			<PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">win-$(BuildArchitecture)</PublishFolder>
 		</PropertyGroup>
+
+		<!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
+		<Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib"
+			Retries="10"
+			OverwriteReadOnlyFiles="true"
+			RetryDelayMilliseconds="10"
+			DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)">
+		</Copy>
+
+		<!-- Remove the native libraries for other OS to save on payload size -->
+		<ItemGroup>
+			<WindowsFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)\runtimes\win*\**\*.*"/>
+			<LinuxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)\runtimes\linux*\**\*.*"/>
+			<OsxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)\runtimes\osx*\**\*.*"/>
+		</ItemGroup>
+
+		<Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))"
+			Files="@(LinuxFiles);@(OsxFiles)" />
+
+		<Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+			Files="@(LinuxFiles);@(WindowsFiles)" />
+
+		<Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))"
+			Files="@(WindowsFiles);@(OsxFiles)" />
 
 		<ItemGroup>
 			<HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
