@@ -198,7 +198,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
                 var items = base.GetAnnotationTypesCore(iinfo);
                 if (!UseCounter[iinfo])
-                    items.Prepend(BooleanDataViewType.Instance.GetPair(AnnotationUtils.Kinds.IsNormalized));
+                    items = items.Prepend(BooleanDataViewType.Instance.GetPair(AnnotationUtils.Kinds.IsNormalized));
                 return items;
             }
 
