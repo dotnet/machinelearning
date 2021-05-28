@@ -20,9 +20,9 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
             {
                 string prefix = default;
                 string extension = default;
-                if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+                if ((Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX) && !name.StartsWith("lib"))
                     prefix = "lib";
-                
+
                 if (Environment.OSVersion.Platform == PlatformID.Unix)
                     extension = ".so";
                 else if (Environment.OSVersion.Platform == PlatformID.MacOSX)

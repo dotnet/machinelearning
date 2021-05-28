@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Tests
                 pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, float> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
                 pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, double> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
             }
-            foreach (IEstimator<ITransformer> pipeline in pipelines) 
+            foreach (IEstimator<ITransformer> pipeline in pipelines)
             {
                 for (int j = 0; j < dataViews.Length; j++)
                 {
@@ -1631,7 +1631,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [NativeDependencyFact("lightgbm")]
+        [NativeDependencyFact("lib_lightgbm")]
         public void MulticlassTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1955,7 +1955,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [NativeDependencyFact("lightgbm")]
+        [NativeDependencyFact("lib_lightgbm")]
         public void NonDefaultColNamesMultiClassificationOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);

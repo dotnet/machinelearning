@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 double expectedLinuxMeanSquaredError = default;
 
                 // Linux case
-                if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64 || RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                if(RuntimeInformation.ProcessArchitecture == Architecture.Arm || RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
                     expectedLinuxMeanSquaredError = 0.6189030607775502; // Linux Arm64 baseline
                 else
                     expectedLinuxMeanSquaredError = 0.6127260028273948; // Linux x86/x64 baseline
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 double expectedWindowsMeanSquaredError = default;
 
                 // Windows case
-                if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64 || RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                if (RuntimeInformation.ProcessArchitecture == Architecture.Arm || RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
                     expectedWindowsMeanSquaredError = 0.6003216395399613; // Windows Arm baseline
                 else
                     expectedWindowsMeanSquaredError = 0.600329985097577; // Windows x86/x64 baseline
