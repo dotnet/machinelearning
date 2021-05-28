@@ -120,6 +120,9 @@
   <data name="BadColumnCast" xml:space="preserve">
     <value>Cannot cast column holding {0} values to type {1}</value>
   </data>
+  <data name="BadColumnCastDuringGrouping" xml:space="preserve">
+    <value>Cannot cast elements of column '{0}' type of {1} to type {2} used as TKey in grouping </value>
+  </data>
   <data name="CannotParseWithDelimiters" xml:space="preserve">
     <value>Line {0} cannot be parsed with the current Delimiters.</value>
   </data>
