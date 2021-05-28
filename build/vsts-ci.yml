@@ -278,6 +278,7 @@ phases:
               /p:DotNetSymbolServerTokenMsdl=$(MsdlSymbolServerPAT)
               /p:DotNetSymbolServerTokenSymWeb=$(SymwebSymbolServerPAT)
               /p:PublishToSymbolServer=true
+              /p:ArtifactsSymStoreDirectory=$(Build.SourcesDirectory)/artifacts/pkgassets/
     displayName: Publish to symbol server
     condition: and(succeeded(), eq(variables['_SignType'], 'real'), eq(variables['BuildConfig'], 'Release'))
   
