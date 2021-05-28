@@ -90,8 +90,6 @@
   </ItemGroup>
 
 	<Target Name="CreateHelixWorkItems">
-  	<Message Text="Creating Helix work items with packages" Importance="High" />
-
 		<MSBuild Projects="@(MyProjects)"
 			Targets="GetTargetFrameworks"
 			BuildInParallel="$(BuildInParallel)"
@@ -111,9 +109,9 @@
 			<PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">win-$(BuildArchitecture)</PublishFolder>
 		</PropertyGroup>
 
-		<!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
+		<!-- Copy libiomp5.dylib, libomp.dylib, and libc++.1.dylib to the publish folders for OSX-->
 		<Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
-			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib"
+			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;/usr/lib/libc++.1.dylib"
 			Retries="10"
 			OverwriteReadOnlyFiles="true"
 			RetryDelayMilliseconds="10"
