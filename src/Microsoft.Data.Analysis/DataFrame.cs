@@ -367,10 +367,11 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn column = _columnCollection[columnIndex];
             return column.GroupBy(columnIndex, this);
         }
-
+                
         /// <summary>
         /// Groups the rows of the <see cref="DataFrame"/> by unique values in the <paramref name="columnName"/> column.
         /// </summary>
+        /// <typeparam name="TKey">Type of column used for grouping</typeparam>
         /// <param name="columnName">The column used to group unique values</param>
         /// <returns>A GroupBy object that stores the group information.</returns>
         public GroupBy<TKey> GroupBy<TKey>(string columnName)
