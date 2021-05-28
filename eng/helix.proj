@@ -99,6 +99,12 @@
 				<Output TaskParameter="TargetOutputs" ItemName="ProjectsWithTargetFramework" />
 		</MSBuild>
 
+		<!-- Copy libiomp5.dylib to the publish folders for OSX-->
+		<Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib"
+			DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\publish">
+		</Copy>
+
 		<MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
 			Targets="Publish">
 				<Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
@@ -110,12 +116,6 @@
 			<PublishFolder>publish</PublishFolder>
 			<PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">win-$(BuildArchitecture)</PublishFolder>
 		</PropertyGroup>
-
-		<!-- Copy libiomp5.dylib to the publish folders for OSX-->
-		<Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
-			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib"
-			DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)">
-		</Copy>
 
 		<ItemGroup>
 			<HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
