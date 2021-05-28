@@ -113,7 +113,7 @@
 
 		<!-- Copy libiomp5.dylib to the publish folders for OSX-->
 		<Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
-			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib')"
+			SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib"
 			DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)">
 		</Copy>
 
