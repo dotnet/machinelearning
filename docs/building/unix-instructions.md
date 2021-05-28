@@ -46,6 +46,7 @@ Cross compilation is only supported on an Ubuntu host, 18.x and newer, and only 
 ```sh
 sudo apt-get update
 sudo apt-get install debootstrap qemu-user-static
+sudo apt-get install binutils-aarch64-linux-gnu
 sudo ./eng/common/cross/build-rootfs.sh <target architecture> <ubuntu distro name> --rootfsdir <new rootfs location>
 export ROOTFS_DIR=<new rootfs location>
 
@@ -54,6 +55,8 @@ export ROOTFS_DIR=<new rootfs location>
 ```
 
 Note that the `<target architecture>` will usually be arm or arm64 and the `<ubuntu distro name>` is bionic for 18.04.
+
+Alternatively, use the following Docker image which contains all the software packages and configurations required to cross-compile for ARM `mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64-20210519131124-2e59a5f`.
 
 ### macOS
 
