@@ -16,31 +16,42 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
         public static bool NativeLibraryExists(string name)
         {
             NativeLibrary nativeLibrary = default;
+            string extension = default;
+            string prefix = "lib";
+
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+                extension = ".so";
+            else if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+                extension = ".dylib";
+            else
+                extension = ".dll";
+
             try
             {
-                string prefix = default;
-                string extension = default;
-                if ((Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX) && !name.StartsWith("lib"))
-                    prefix = "lib";
-
-                if (Environment.OSVersion.Platform == PlatformID.Unix)
-                    extension = ".so";
-                else if (Environment.OSVersion.Platform == PlatformID.MacOSX)
-                    extension = ".dylib";
-                else
-                    extension = ".dll";
-
-                nativeLibrary = new NativeLibrary(prefix + name + extension);
+                // Try the native name as is.
+                nativeLibrary = new NativeLibrary(name + extension);
                 return true;
             }
             catch
             {
-                return false;
+                // If that didn't load, dispose of the first attempt and try appending lib in front
+                try
+                {
+                    nativeLibrary?.Dispose();
+                    nativeLibrary = new NativeLibrary(prefix + name + extension);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
             finally
             {
                 nativeLibrary?.Dispose();
             }
+
+            return false;
         }
 
         /// <summary>
