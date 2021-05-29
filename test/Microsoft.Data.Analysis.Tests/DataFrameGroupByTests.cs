@@ -33,12 +33,11 @@ namespace Microsoft.Data.Analysis.Tests
             var evenGroup = grouping.Where(gr => gr.Key == "even").FirstOrDefault();
             Assert.NotNull(evenGroup);
             Assert.Equal(length / 2 + length % 2, evenGroup.Count());
-
-            
         }
 
         [Fact]
         public void TestGroupingWithTKey_CornerCases()
+        {
         {
             //Check corner cases
             var df = MakeTestDataFrameWithParityAndTensColumns(0);
