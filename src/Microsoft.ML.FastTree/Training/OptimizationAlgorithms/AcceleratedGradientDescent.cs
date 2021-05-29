@@ -54,12 +54,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         internal override void UpdateScores(ScoreTracker t, InternalRegressionTree tree)
         {
-            if (t == TrainingScores)
-            {
-                return;
-                //Special optimized routine for updating TrainingScores is implemented as part of TrainingItearation
-            }
-            else
+            if (t != TrainingScores)
                 base.UpdateScores(t, tree);
         }
 
