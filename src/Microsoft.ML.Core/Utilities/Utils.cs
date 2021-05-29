@@ -285,25 +285,25 @@ namespace Microsoft.ML.Internal.Utilities
         public static int FindIndexSorted(this IList<int> input, int min, int lim, int value)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Count);
+            Contracts.Assert(0 <= min && min <= lim && lim <= input.Count);
 
             int minCur = min;
             int limCur = lim;
             while (minCur < limCur)
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
-                Contracts.Assert(minCur <= mid & mid < limCur);
+                Contracts.Assert(minCur <= mid && mid < limCur);
 
                 if (input[mid] >= value)
                     limCur = mid;
                 else
                     minCur = mid + 1;
 
-                Contracts.Assert(min <= minCur & minCur <= limCur & limCur <= lim);
+                Contracts.Assert(min <= minCur && minCur <= limCur && limCur <= lim);
                 Contracts.Assert(minCur == min || input[minCur - 1] < value);
                 Contracts.Assert(limCur == lim || input[limCur] >= value);
             }
-            Contracts.Assert(min <= minCur & minCur == limCur & limCur <= lim);
+            Contracts.Assert(min <= minCur && minCur == limCur && limCur <= lim);
             Contracts.Assert(minCur == min || input[minCur - 1] < value);
             Contracts.Assert(limCur == lim || input[limCur] >= value);
 
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Internal.Utilities
         public static int FindIndexSorted(this IList<float> input, int min, int lim, float value)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Count);
+            Contracts.Assert(0 <= min && min <= lim && lim <= input.Count);
             Contracts.Assert(!float.IsNaN(value));
 
             int minCur = min;
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Internal.Utilities
             while (minCur < limCur)
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
-                Contracts.Assert(minCur <= mid & mid < limCur);
+                Contracts.Assert(minCur <= mid && mid < limCur);
                 Contracts.Assert(!float.IsNaN(input[mid]));
 
                 if (input[mid] >= value)
@@ -335,11 +335,11 @@ namespace Microsoft.ML.Internal.Utilities
                 else
                     minCur = mid + 1;
 
-                Contracts.Assert(min <= minCur & minCur <= limCur & limCur <= lim);
+                Contracts.Assert(min <= minCur && minCur <= limCur && limCur <= lim);
                 Contracts.Assert(minCur == min || input[minCur - 1] < value);
                 Contracts.Assert(limCur == lim || input[limCur] >= value);
             }
-            Contracts.Assert(min <= minCur & minCur == limCur & limCur <= lim);
+            Contracts.Assert(min <= minCur && minCur == limCur && limCur <= lim);
             Contracts.Assert(minCur == min || input[minCur - 1] < value);
             Contracts.Assert(limCur == lim || input[limCur] >= value);
 
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Internal.Utilities
         public static int FindIndexSorted(this Double[] input, int min, int lim, Double value)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
+            Contracts.Assert(0 <= min && min <= lim && lim <= input.Length);
             Contracts.Assert(!Double.IsNaN(value));
 
             int minCur = min;
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Internal.Utilities
             while (minCur < limCur)
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
-                Contracts.Assert(minCur <= mid & mid < limCur);
+                Contracts.Assert(minCur <= mid && mid < limCur);
                 Contracts.Assert(!Double.IsNaN(input[mid]));
 
                 if (input[mid] >= value)
@@ -371,11 +371,11 @@ namespace Microsoft.ML.Internal.Utilities
                 else
                     minCur = mid + 1;
 
-                Contracts.Assert(min <= minCur & minCur <= limCur & limCur <= lim);
+                Contracts.Assert(min <= minCur && minCur <= limCur && limCur <= lim);
                 Contracts.Assert(minCur == min || input[minCur - 1] < value);
                 Contracts.Assert(limCur == lim || input[limCur] >= value);
             }
-            Contracts.Assert(min <= minCur & minCur == limCur & limCur <= lim);
+            Contracts.Assert(min <= minCur && minCur == limCur && limCur <= lim);
             Contracts.Assert(minCur == min || input[minCur - 1] < value);
             Contracts.Assert(limCur == lim || input[limCur] >= value);
 
@@ -390,25 +390,25 @@ namespace Microsoft.ML.Internal.Utilities
         public static int FindIndexSorted<T>(this T[] input, int min, int lim, Func<T, bool> func)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
+            Contracts.Assert(0 <= min && min <= lim && lim <= input.Length);
 
             int minCur = min;
             int limCur = lim;
             while (minCur < limCur)
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
-                Contracts.Assert(minCur <= mid & mid < limCur);
+                Contracts.Assert(minCur <= mid && mid < limCur);
 
                 if (func(input[mid]))
                     limCur = mid;
                 else
                     minCur = mid + 1;
 
-                Contracts.Assert(min <= minCur & minCur <= limCur & limCur <= lim);
+                Contracts.Assert(min <= minCur && minCur <= limCur && limCur <= lim);
                 Contracts.Assert(minCur == min || !func(input[minCur - 1]));
                 Contracts.Assert(limCur == lim || func(input[limCur]));
             }
-            Contracts.Assert(min <= minCur & minCur == limCur & limCur <= lim);
+            Contracts.Assert(min <= minCur && minCur == limCur && limCur <= lim);
             Contracts.Assert(minCur == min || !func(input[minCur - 1]));
             Contracts.Assert(limCur == lim || func(input[limCur]));
 
@@ -423,25 +423,25 @@ namespace Microsoft.ML.Internal.Utilities
         public static int FindIndexSorted<T, TValue>(this T[] input, int min, int lim, Func<T, TValue, bool> func, TValue value)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
+            Contracts.Assert(0 <= min && min <= lim && lim <= input.Length);
 
             int minCur = min;
             int limCur = lim;
             while (minCur < limCur)
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
-                Contracts.Assert(minCur <= mid & mid < limCur);
+                Contracts.Assert(minCur <= mid && mid < limCur);
 
                 if (func(input[mid], value))
                     limCur = mid;
                 else
                     minCur = mid + 1;
 
-                Contracts.Assert(min <= minCur & minCur <= limCur & limCur <= lim);
+                Contracts.Assert(min <= minCur && minCur <= limCur && limCur <= lim);
                 Contracts.Assert(minCur == min || !func(input[minCur - 1], value));
                 Contracts.Assert(limCur == lim || func(input[limCur], value));
             }
-            Contracts.Assert(min <= minCur & minCur == limCur & limCur <= lim);
+            Contracts.Assert(min <= minCur && minCur == limCur && limCur <= lim);
             Contracts.Assert(minCur == min || !func(input[minCur - 1], value));
             Contracts.Assert(limCur == lim || func(input[limCur], value));
 
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Internal.Utilities
 
         public static void FillIdentity(Span<int> a, int lim)
         {
-            Contracts.Assert(0 <= lim & lim <= a.Length);
+            Contracts.Assert(0 <= lim && lim <= a.Length);
 
             for (int i = 0; i < lim; ++i)
                 a[i] = i;
@@ -491,8 +491,8 @@ namespace Microsoft.ML.Internal.Utilities
             for (int i = 0; i < perm.Length; i++)
             {
                 int j = perm[i];
-                Contracts.Assert(0 <= j & j < perm.Length);
-                Contracts.Assert(res[j] == 0 & (j != perm[0] | i == 0));
+                Contracts.Assert(0 <= j && j < perm.Length);
+                Contracts.Assert(res[j] == 0 && (j != perm[0] || i == 0));
                 res[j] = i;
             }
             return res;

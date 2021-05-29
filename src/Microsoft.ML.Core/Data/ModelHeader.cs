@@ -517,7 +517,7 @@ namespace Microsoft.ML
 
                         long offsetPrev = offset;
                         offset = offsets[i];
-                        Contracts.CheckDecode(offsetPrev <= offset & offset <= header.CbStringChars);
+                        Contracts.CheckDecode(offsetPrev <= offset && offset <= header.CbStringChars);
                         Contracts.CheckDecode(offset % sizeof(char) == 0);
                         long cch = (offset - offsetPrev) / sizeof(char);
                         Contracts.CheckDecode(cch < int.MaxValue);

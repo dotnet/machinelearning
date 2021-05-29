@@ -274,7 +274,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public static uint MurmurHash(uint hash, StringBuilder data, int ichMin, int ichLim, bool toUpper = false)
         {
-            Contracts.Assert(0 <= ichMin & ichMin <= ichLim & ichLim <= Utils.Size(data));
+            Contracts.Assert(0 <= ichMin && ichMin <= ichLim && ichLim <= Utils.Size(data));
 
             uint seed = hash;
 

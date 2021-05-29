@@ -90,7 +90,7 @@ namespace Microsoft.ML.Internal.Utilities
         public BigArray(long size = 0)
         {
             // Verifies the preconditional invariant that BlockSize is a power of two.
-            Contracts.Assert(BlockSize > 1 & (BlockSize & (BlockSize - 1)) == 0, "Block size is not a power of two.");
+            Contracts.Assert(BlockSize > 1 && (BlockSize & (BlockSize - 1)) == 0, "Block size is not a power of two.");
 
             Contracts.CheckParam(size >= 0, nameof(size), "Must be non-negative.");
             if (size == 0)
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Internal.Utilities
             int blockCount = (int)longBlockCount;
             int lastBlockSize = (int)(((size - 1) & BlockSizeMinusOne) + 1);
             Contracts.Assert(blockCount > 0);
-            Contracts.Assert(0 < lastBlockSize & lastBlockSize <= BlockSize);
+            Contracts.Assert(0 < lastBlockSize && lastBlockSize <= BlockSize);
             _length = size;
             _entries = new T[blockCount][];
             for (int i = 0; i < blockCount - 1; i++)
@@ -223,10 +223,10 @@ namespace Microsoft.ML.Internal.Utilities
             }
 
             var longBlockCount = ((newLength - 1) >> BlockSizeBits) + 1;
-            Contracts.Assert(0 < longBlockCount & longBlockCount <= Utils.ArrayMaxSize);
+            Contracts.Assert(0 < longBlockCount && longBlockCount <= Utils.ArrayMaxSize);
             int newBlockCount = (int)longBlockCount;
             int newLastBlockLength = (int)(((newLength - 1) & BlockSizeMinusOne) + 1);
-            Contracts.Assert(0 < newLastBlockLength & newLastBlockLength <= BlockSize);
+            Contracts.Assert(0 < newLastBlockLength && newLastBlockLength <= BlockSize);
 
             if (_length == 0)
             {
@@ -243,12 +243,12 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.Assert(curBlockCount > 0);
             int curLastBlockSize = Utils.Size(_entries[curBlockCount - 1]);
             int curLastBlockLength = (int)(((_length - 1) & BlockSizeMinusOne) + 1);
-            Contracts.Assert(0 < curLastBlockLength & curLastBlockLength <= curLastBlockSize & curLastBlockSize <= BlockSize);
+            Contracts.Assert(0 < curLastBlockLength && curLastBlockLength <= curLastBlockSize && curLastBlockSize <= BlockSize);
 
             if (newLength < _length)
             {
                 // Shrink to a smaller array
-                Contracts.Assert(newBlockCount < curBlockCount | (newBlockCount == curBlockCount & newLastBlockLength < curLastBlockLength));
+                Contracts.Assert(newBlockCount < curBlockCount || (newBlockCount == curBlockCount && newLastBlockLength < curLastBlockLength));
                 Array.Resize(ref _entries, newBlockCount);
                 Array.Resize(ref _entries[newBlockCount - 1], newLastBlockLength);
             }

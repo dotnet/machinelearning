@@ -172,7 +172,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(len > 0);
 
             int cind = ctx.Reader.ReadInt32();
-            Host.CheckDecode(0 <= cind & cind < len);
+            Host.CheckDecode(0 <= cind && cind < len);
             var indices = ctx.Reader.ReadIntArray(cind);
 
             // Verify monotonicity of indices.

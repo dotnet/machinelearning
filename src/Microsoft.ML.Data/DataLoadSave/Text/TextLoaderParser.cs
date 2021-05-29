@@ -117,14 +117,14 @@ namespace Microsoft.ML.Data
             public Func<RowSet, ColumnPipe> GetCreatorOne(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
-                Contracts.Assert(0 <= index & index < _creatorsOne.Length);
+                Contracts.Assert(0 <= index && index < _creatorsOne.Length);
                 return _creatorsOne[index];
             }
 
             public Func<RowSet, ColumnPipe> GetCreatorVec(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
-                Contracts.Assert(0 <= index & index < _creatorsOne.Length);
+                Contracts.Assert(0 <= index && index < _creatorsOne.Length);
                 return _creatorsVec[index];
             }
         }
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Data
                 public bool Consume(int index, ref ReadOnlyMemory<char> text)
                 {
                     AssertValid();
-                    Contracts.Assert(_indexPrev < index & index < _size);
+                    Contracts.Assert(_indexPrev < index && index < _size);
 
                     TItem tmp = default(TItem);
                     bool f = _conv(in text, out tmp);
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Data
                 {
                     Contracts.AssertValue(Spans);
                     Contracts.AssertValue(Indices);
-                    Contracts.Assert(0 <= Count & Count <= Indices.Length & Indices.Length <= Spans.Length);
+                    Contracts.Assert(0 <= Count && Count <= Indices.Length && Indices.Length <= Spans.Length);
                 }
 
                 [Conditional("DEBUG")]
@@ -814,7 +814,7 @@ namespace Microsoft.ML.Data
                             for (; isrc < isrcLim; isrc++)
                             {
                                 var srcCur = header.Indices[isrc];
-                                Contracts.Assert(min <= srcCur & srcCur < lim);
+                                Contracts.Assert(min <= srcCur && srcCur < lim);
                                 bldr.AddFeature(indexBase + srcCur, ReadOnlyMemoryUtils.TrimWhiteSpace(header.Spans[isrc]));
                             }
                         }
@@ -862,7 +862,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(rows);
                 Contracts.Assert(irow >= 0);
                 Contracts.Assert(helper is HelperImpl);
-                Contracts.Assert(active == null | Utils.Size(active) == _infos.Length);
+                Contracts.Assert(active == null || Utils.Size(active) == _infos.Length);
 
                 var impl = (HelperImpl)helper;
                 var lineSpan = text.AsMemory();
@@ -1364,7 +1364,7 @@ namespace Microsoft.ML.Data
 
             private void ProcessItems(RowSet rows, int irow, bool[] active, FieldSet fields, int srcLim, long line)
             {
-                Contracts.Assert(active == null | Utils.Size(active) == _infos.Length);
+                Contracts.Assert(active == null || Utils.Size(active) == _infos.Length);
                 fields.AssertValid();
 
                 Contracts.Assert(0 <= irow && irow < rows.Count);
@@ -1427,7 +1427,7 @@ namespace Microsoft.ML.Data
                         for (; isrc < isrcLim; isrc++)
                         {
                             var srcCur = fields.Indices[isrc];
-                            Contracts.Assert(min <= srcCur & srcCur < lim);
+                            Contracts.Assert(min <= srcCur && srcCur < lim);
                             if (!v.Consume(irow, indexBase + srcCur, ref fields.Spans[isrc]))
                             {
                                 if (!v.HasNA)

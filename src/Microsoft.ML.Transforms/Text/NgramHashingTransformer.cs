@@ -691,7 +691,7 @@ namespace Microsoft.ML.Transforms.Text
                 public NGram(uint[] ngram, int lim, int srcCol)
                 {
                     Contracts.AssertValue(ngram);
-                    Contracts.Assert(1 <= lim & lim <= ngram.Length);
+                    Contracts.Assert(1 <= lim && lim <= ngram.Length);
                     Contracts.Assert(0 <= srcCol);
 
                     Grams = ngram;

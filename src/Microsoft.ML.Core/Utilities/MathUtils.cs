@@ -736,8 +736,8 @@ namespace Microsoft.ML.Internal.Utilities
         {
             const Double epsilon = 1e-12f;
             Contracts.Assert(len > 0);
-            Contracts.Assert(aIdx >= 0 & aIdx <= a.Length - len);
-            Contracts.Assert(bIdx >= 0 & bIdx <= b.Length - len);
+            Contracts.Assert(aIdx >= 0 && aIdx <= a.Length - len);
+            Contracts.Assert(bIdx >= 0 && bIdx <= b.Length - len);
 
             Double ab = 0;
             Double a2 = 0;
@@ -751,7 +751,7 @@ namespace Microsoft.ML.Internal.Utilities
             }
 
             Double similarity = ab / (Math.Sqrt(a2 * b2) + epsilon);
-            Contracts.Assert(-1 - epsilon <= similarity & similarity <= 1 + epsilon);
+            Contracts.Assert(-1 - epsilon <= similarity && similarity <= 1 + epsilon);
             if (Math.Abs(similarity) > 1)
                 return similarity > 1 ? 1 : -1;
 

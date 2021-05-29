@@ -34,7 +34,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             var q = new FixedSizeQueue<Single>(capacity);
             int count = reader.ReadInt32();
 
-            host.CheckDecode(0 <= count & count <= capacity);
+            host.CheckDecode(0 <= count && count <= capacity);
 
             for (int index = 0; index < count; index++)
                 q.AddLast(reader.ReadSingle());
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             var q = new FixedSizeQueue<double>(capacity);
             int count = reader.ReadInt32();
 
-            host.CheckDecode(0 <= count & count <= capacity);
+            host.CheckDecode(0 <= count && count <= capacity);
 
             for (int index = 0; index < count; index++)
                 q.AddLast(reader.ReadDouble());
