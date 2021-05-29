@@ -463,32 +463,32 @@ namespace Microsoft.ML.Transforms
                 }
             }
             else {
-               ctx.SaveBinaryStream("TFSavedModel", w =>
-               {
-                   // only these files need to be saved.
-                   var modelFilePaths = new List<string>
-                   {
-                       Path.Combine(_savedModelPath, DefaultModelFileNames.Graph),
-                       Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Index)
-                   };
-                   modelFilePaths.AddRange(Directory.GetFiles(Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder), DefaultModelFileNames.Data, SearchOption.TopDirectoryOnly));
+                ctx.SaveBinaryStream("TFSavedModel", w =>
+                {
+                    // only these files need to be saved.
+                    var modelFilePaths = new List<string>
+                    {
+                        Path.Combine(_savedModelPath, DefaultModelFileNames.Graph),
+                        Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Index)
+                    };
+                    modelFilePaths.AddRange(Directory.GetFiles(Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder), DefaultModelFileNames.Data, SearchOption.TopDirectoryOnly));
 
-                   w.Write(modelFilePaths.Count);
+                    w.Write(modelFilePaths.Count);
 
-                   foreach (var fullPath in modelFilePaths)
-                   {
-                       var relativePath = fullPath.Substring(_savedModelPath.Length + 1);
-                       w.Write(relativePath);
+                    foreach (var fullPath in modelFilePaths)
+                    {
+                        var relativePath = fullPath.Substring(_savedModelPath.Length + 1);
+                        w.Write(relativePath);
 
-                       using (var fs = new FileStream(fullPath, FileMode.Open))
-                       {
-                           long fileLength = fs.Length;
-                           w.Write(fileLength);
-                           long actualWritten = fs.CopyRange(w.BaseStream, fileLength);
-                           Host.Assert(actualWritten == fileLength);
-                       }
-                   }
-               });
+                        using (var fs = new FileStream(fullPath, FileMode.Open))
+                        {
+                            long fileLength = fs.Length;
+                            w.Write(fileLength);
+                            long actualWritten = fs.CopyRange(w.BaseStream, fileLength);
+                            Host.Assert(actualWritten == fileLength);
+                        }
+                    }
+                });
             }
 
             Host.AssertNonEmpty(Inputs);
