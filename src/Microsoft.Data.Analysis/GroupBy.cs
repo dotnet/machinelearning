@@ -72,8 +72,35 @@ namespace Microsoft.Data.Analysis
         public abstract DataFrame Mean(params string[] columnNames);
     }
 
-    public class GroupBy<TKey> : GroupBy 
+    public class GroupBy<TKey> : GroupBy
     {
+        #region Internal class that implements IGrouping LINQ interface
+        internal class Grouping : IGrouping<TKey, DataFrameRow>
+        {
+            private readonly TKey _key;
+            private readonly IEnumerable<DataFrameRow> _rows;
+
+            public Grouping(TKey key, IEnumerable<DataFrameRow> rows)
+            {
+                _key = key;
+                _rows = rows;
+            }
+
+            public TKey Key => _key;
+
+            public IEnumerator<DataFrameRow> GetEnumerator()
+            {
+                return _rows.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _rows.GetEnumerator();
+            }
+        }
+
+        #endregion
+
         private int _groupByColumnIndex;
         private IDictionary<TKey, ICollection<long>> _keyToRowIndicesMap;
         private DataFrame _dataFrame;
@@ -468,9 +495,9 @@ namespace Microsoft.Data.Analysis
 
         public IEnumerable<IGrouping<TKey, DataFrameRow>> Groupings
         {
-            get 
+            get
             {
-                return _keyToRowIndicesMap.Select(kvp => new Grouping<TKey>(kvp.Key, kvp.Value.Select(index => _dataFrame.Rows[index]).ToArray()));
+                return _keyToRowIndicesMap.Select(kvp => new Grouping(kvp.Key, kvp.Value.Select(index => _dataFrame.Rows[index])));
             }
         }
     }

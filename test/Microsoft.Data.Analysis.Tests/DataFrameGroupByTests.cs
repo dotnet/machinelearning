@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +15,10 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestGroupingWithTKeyTypeofString()
         {
-            int lenght = 11;
+            const int lenght = 11;
 
             //Create test dataframe (numbers starting from 0 up to lenght)
-            DataFrame df = MakeTestDataFrame(lenght);
+            DataFrame df = MakeTestDataFrameWithParityAndTensColumns(lenght);
             
             var grouping = df.GroupBy<string>("Parity").Groupings;
 
@@ -30,26 +34,32 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.NotNull(evenGroup);
             Assert.Equal(lenght / 2 + lenght % 2, evenGroup.Count());
 
+            
+        }
+
+        [Fact]
+        public void TestGroupingWithTKey_CornerCases()
+        {
             //Check corner cases
-            lenght = 0;
-            df = MakeTestDataFrame(lenght);
-            grouping = df.GroupBy<string>("Parity").Groupings;
+            var df = MakeTestDataFrameWithParityAndTensColumns(0);
+            var grouping = df.GroupBy<string>("Parity").Groupings;
             Assert.Empty(grouping);
 
-            lenght = 1;
-            df = MakeTestDataFrame(lenght);
+           
+            df = MakeTestDataFrameWithParityAndTensColumns(1);
             grouping = df.GroupBy<string>("Parity").Groupings;
             Assert.Single(grouping);
             Assert.Equal("even", grouping.First().Key);
         }
-        
+
+
         [Fact]
         public void TestGroupingWithTKeyPrimitiveType()
         {
             const int lenght = 55;
 
             //Create test dataframe (numbers starting from 0 up to lenght)
-            DataFrame df = MakeTestDataFrame(lenght);
+            DataFrame df = MakeTestDataFrameWithParityAndTensColumns(lenght);
 
             //Group elements by int column, that contain the amount of full tens in each int
             var groupings = df.GroupBy<int>("Tens").Groupings.ToDictionary(g => g.Key, g => g.ToList());
@@ -80,20 +90,19 @@ namespace Microsoft.Data.Analysis.Tests
 
         [Fact]
         public void TestGroupingWithTKeyOfWrongType()
-        {
-            const int lenght = 5;
+        {           
 
             var message = string.Empty;
 
             //Create test dataframe (numbers starting from 0 up to lenght)
-            DataFrame df = MakeTestDataFrame(lenght);
+            DataFrame df = MakeTestDataFrameWithParityAndTensColumns(1);
 
             //Use wrong type for grouping
             Assert.Throws<InvalidCastException>(() => df.GroupBy<double>("Tens"));
         }
 
 
-        private DataFrame MakeTestDataFrame(int length)
+        private DataFrame MakeTestDataFrameWithParityAndTensColumns(int length)
         {
             DataFrame df = DataFrameTests.MakeDataFrameWithNumericColumns(length, false);
             DataFrameColumn parityColumn = new StringDataFrameColumn("Parity", Enumerable.Range(0, length).Select(x => x % 2 == 0 ? "even" : "odd"));
