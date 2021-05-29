@@ -110,12 +110,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Contracts.CheckValue(env, nameof(env));
             env.CheckParam(stream != null, nameof(stream));
 
-            if (Transformer is ITransformerChainAccessor)
+            if (Transformer is ITransformerChainAccessor transformerChainAccessor)
             {
 
-                new TransformerChain<ITransformer>
-                (((ITransformerChainAccessor)Transformer).Transformers,
-                ((ITransformerChainAccessor)Transformer).Scopes).SaveTo(env, stream);
+                new TransformerChain<ITransformer>(transformerChainAccessor.Transformers, transformerChainAccessor.Scopes).SaveTo(env, stream);
             }
             else
                 Transformer.SaveTo(env, stream);
@@ -125,9 +123,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             ITransformer[] transformersClone = null;
             TransformerScope[] scopeClone = null;
-            if (transformer is ITransformerChainAccessor)
+            if (transformer is ITransformerChainAccessor transformerChainAccessor)
             {
-                ITransformerChainAccessor accessor = (ITransformerChainAccessor)transformer;
+                ITransformerChainAccessor accessor = transformerChainAccessor;
                 transformersClone = accessor.Transformers.Select(x => x).ToArray();
                 scopeClone = accessor.Scopes.Select(x => x).ToArray();
                 int index = 0;
@@ -220,8 +218,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private bool IsRowToRowMapper(ITransformer transformer)
         {
-            if (transformer is ITransformerChainAccessor)
-                return ((ITransformerChainAccessor)transformer).Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
+            if (transformer is ITransformerChainAccessor transformerChainAccessor)
+                return transformerChainAccessor.Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
             else
                 return transformer.IsRowToRowMapper || transformer is IStatefulTransformer;
         }
@@ -233,8 +231,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 " method called despite " + nameof(IsRowToRowMapper) + " being false. or transformer not being " + nameof(IStatefulTransformer));
 
             if (!(InputTransformer is ITransformerChainAccessor))
-                if (InputTransformer is IStatefulTransformer)
-                    return ((IStatefulTransformer)InputTransformer).GetStatefulRowToRowMapper(inputSchema);
+                if (InputTransformer is IStatefulTransformer statefulTransformer)
+                    return statefulTransformer.GetStatefulRowToRowMapper(inputSchema);
                 else
                     return InputTransformer.GetRowToRowMapper(inputSchema);
 

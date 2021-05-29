@@ -64,8 +64,8 @@ namespace Microsoft.ML.RunTests
 
             public override bool Equals(DataViewTypeAttribute other)
             {
-                if (other is AlienTypeAttributeAttribute)
-                    return RaceId == ((AlienTypeAttributeAttribute)other).RaceId;
+                if (other is AlienTypeAttributeAttribute alienTypeAttributeAttribute)
+                    return RaceId == alienTypeAttributeAttribute.RaceId;
                 return false;
             }
 
