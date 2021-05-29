@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms
                     return false;
                 default:
                     throw env.Except("Unsupported hide option specified");
-            };
+            }
         }
 
         /// <summary>
