@@ -1830,37 +1830,39 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame left = MakeDataFrameWithAllMutableColumnTypes(5);
             left["Int"][3] = null;
             DataFrame right = MakeDataFrameWithAllMutableColumnTypes(5);
-            // Creates this case:
-            /*
-             * Left:    Right:
-             * 0        0
-             * 1        5
-             * null(2)  null(7)
-             * null(3)  null(8)
-             * 4        6
-             */
-            /*
-             * Merge will result in a DataFrame like:
-             * Int_Left     Int_Right
-             * 0            0
-             * 1            null
-             * 4            null 
-             * null         5
-             * null         6
-             * null(2)      null(7)
-             * null(2)      null(8)
-             * null(3)      null(7)
-             * null(3)      null(8)
-             */
             right["Int"][1] = 5;
             right["Int"][3] = null;
             right["Int"][4] = 6;
+
+            // Creates this case:
+            /*
+             * Left:    Right:    RowIndex:
+             * 0        0         0
+             * 1        5         1
+             * null     null      2
+             * null(3)  null(3)   3 
+             * 4        6         4
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             * Int_left:    Int_right:        Merged:    Index:
+             * 0            0                 0 - 0      0       
+             * 1            null              1 - N      1
+             * null         null              2 - 2      2
+             * null         null(3)           2 - 3      3
+             * null(3)      null              3 - 2      4
+             * null(3)      null(3)           3 - 3      5
+             * 4            null              4 - N      6
+             * null         5                 N - 1      7
+             * null         6                 N - 4      8
+             */
 
             DataFrame merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.FullOuter);
             Assert.Equal(9, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
 
-            int[] mergeRows = new int[] { 0, 5, 6, 7, 8 };
+            int[] mergeRows = new int[] { 0, 2, 3, 4, 5 };
             int[] leftRows = new int[] { 0, 2, 2, 3, 3 };
             int[] rightRows = new int[] { 0, 2, 3, 2, 3 };
             for (long i = 0; i < mergeRows.Length; i++)
@@ -1871,7 +1873,7 @@ namespace Microsoft.Data.Analysis.Tests
                 MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, leftRowIndex, rightRowIndex);
             }
 
-            mergeRows = new int[] { 1, 2 };
+            mergeRows = new int[] { 1, 6 };
             leftRows = new int[] { 1, 4 };
             for (long i = 0; i < mergeRows.Length; i++)
             {
@@ -1880,7 +1882,7 @@ namespace Microsoft.Data.Analysis.Tests
                 MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, leftRowIndex, null);
             }
 
-            mergeRows = new int[] { 3, 4 };
+            mergeRows = new int[] { 7, 8 };
             rightRows = new int[] { 1, 4 };
             for (long i = 0; i < mergeRows.Length; i++)
             {
