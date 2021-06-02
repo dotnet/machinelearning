@@ -50,8 +50,6 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
             {
                 nativeLibrary?.Dispose();
             }
-
-            return false;
         }
 
         /// <summary>

@@ -105,6 +105,7 @@
 		<PropertyGroup>
 			<HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;ls</HelixPreCommands>
 			<HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%;dir</HelixPreCommands>
+			<HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" libSymSgdNative.dylib</HelixPreCommands>
 			<PublishFolder>publish</PublishFolder>
 			<PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">win-$(BuildArchitecture)</PublishFolder>
 		</PropertyGroup>
