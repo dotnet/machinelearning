@@ -494,7 +494,7 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns the collection of Grouping objects, where each object represent as set fo DataFrameRows having the same Key
+        /// Returns a collection of Grouping objects, where each object represent a set of DataFrameRows having the same Key
         /// </summary>
         public IEnumerable<IGrouping<TKey, DataFrameRow>> Groupings
         {
