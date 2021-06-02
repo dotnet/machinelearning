@@ -75,7 +75,7 @@ namespace Microsoft.Data.Analysis
     public class GroupBy<TKey> : GroupBy
     {
         #region Internal class that implements IGrouping LINQ interface
-        internal class Grouping : IGrouping<TKey, DataFrameRow>
+        private class Grouping : IGrouping<TKey, DataFrameRow>
         {
             private readonly TKey _key;
             private readonly IEnumerable<DataFrameRow> _rows;
@@ -493,6 +493,9 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <summary>
+        /// Returns the collection of Grouping objects, where each object represent as set fo DataFrameRows having the same Key
+        /// </summary>
         public IEnumerable<IGrouping<TKey, DataFrameRow>> Groupings
         {
             get
