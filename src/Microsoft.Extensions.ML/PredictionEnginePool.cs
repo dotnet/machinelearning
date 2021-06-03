@@ -50,6 +50,11 @@ namespace Microsoft.Extensions.ML
         /// </param>
         public ITransformer GetModel(string modelName)
         {
+            if (!_namedPools.ContainsKey(modelName))
+            {
+                AddPool(modelName);
+            }
+
             return _namedPools[modelName].Loader.GetModel();
         }
 
@@ -95,14 +100,20 @@ namespace Microsoft.Extensions.ML
                     throw new ArgumentException("You need to configure a default, not named, model before you use this method.");
                 }
 
-               return _defaultEnginePool.PredictionEnginePool.Get();
+                return _defaultEnginePool.PredictionEnginePool.Get();
             }
 
+            var pool = AddPool(modelName);
+            return pool.PredictionEnginePool.Get();
+        }
+
+        private PoolLoader<TData, TPrediction> AddPool(string modelName)
+        {
             //Here we are in the world of named models where the model hasn't been built yet.
             var options = _predictionEngineOptions.Create(modelName);
             var pool = new PoolLoader<TData, TPrediction>(_serviceProvider, options);
             pool = _namedPools.GetOrAdd(modelName, pool);
-            return pool.PredictionEnginePool.Get();
+            return pool;
         }
 
         /// <summary>
