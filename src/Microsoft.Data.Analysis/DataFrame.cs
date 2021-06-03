@@ -376,16 +376,13 @@ namespace Microsoft.Data.Analysis
         /// <returns>A GroupBy object that stores the group information.</returns>
         public GroupBy<TKey> GroupBy<TKey>(string columnName)
         {
-            int columnIndex = _columnCollection.IndexOf(columnName);
-            if (columnIndex == -1)
-                throw new ArgumentException(String.Format(Strings.InvalidColumnName, columnName), nameof(columnName));
-
-            DataFrameColumn column = _columnCollection[columnIndex];
-
-            var group = column.GroupBy(columnIndex, this) as GroupBy<TKey>;
+            GroupBy<TKey> group = GroupBy(columnName) as GroupBy<TKey>;
 
             if (group == null)
-                throw new InvalidCastException(String.Format(Strings.BadColumnCast, columnName, column.DataType, typeof(TKey)));
+            {
+                DataFrameColumn column = this[columnName];
+                throw new InvalidCastException(String.Format(Strings.BadColumnCastDuringGrouping, columnName, column.DataType, typeof(TKey)));
+            }
 
             return group;
         }
