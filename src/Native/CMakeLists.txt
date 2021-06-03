@@ -73,6 +73,14 @@ else()
     add_compile_options(-fPIC)
     add_compile_options(-fvisibility=hidden)
     add_definitions(-Werror) # treat warnings as errors
+
+    # On Unix CMAKE_BUILD_TYPE is not passed in as just Debug/Release, so manually adding the extra flags
+    if(${CMAKE_BUILD_TYPE} MATCHES "Debug*")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
+    endif()
+
 endif()
 
 # Set the architecture we are compiling for on APPLE. This lets you cross target from x86_64 -> arm64.
@@ -203,4 +211,3 @@ endif()
 
 add_subdirectory(LdaNative)
 add_subdirectory(MatrixFactorizationNative)
-
