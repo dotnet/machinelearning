@@ -125,11 +125,12 @@ namespace Microsoft.Data.Analysis.Tests
             return df;
         }
 
+        internal static DateTime SampleDateTime = new DateTime(2021, 06, 04);
         public static DataFrame MakeDataFrameWithNumericStringAndDateTimeColumns(int length, bool withNulls = true)
         {
             DataFrame df = MakeDataFrameWithNumericAndStringColumns(length, withNulls);
 
-            DataFrameColumn dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", Enumerable.Range(0, length).Select(x => new DateTime(2021, 06, 04).AddDays(x)));
+            DataFrameColumn dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", Enumerable.Range(0, length).Select(x => SampleDateTime.AddDays(x)));
             df.Columns.Insert(df.Columns.Count, dateTimeColumn);
             if (withNulls)
             {
@@ -852,7 +853,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Throws<NotSupportedException>(() => df.Columns["DateTime"].Any());
 
             // Test the computation results
-            var maxDate = DateTime.Today.AddDays(100);
+            var maxDate = SampleDateTime.AddDays(100);
             df.Columns["DateTime"][0] = maxDate;
             DataFrameColumn dateTimeColumn = df.Columns["DateTime"].CumulativeMax();
             for (int i = 0; i < dateTimeColumn.Length; i++)
