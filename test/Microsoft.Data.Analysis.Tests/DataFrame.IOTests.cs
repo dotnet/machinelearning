@@ -398,19 +398,22 @@ CMT,1,1,637,1.4,CRD,8.5,3-june-2020
 ,,,,,,,
 CMT,1,1,181,0.6,CSH,4.5,4-june-2020";
 
-            void Verify(DataFrame df)
+            void Verify(DataFrame df, bool verifyDataTypes)
             {
                 Assert.Equal(5, df.Rows.Count);
                 Assert.Equal(8, df.Columns.Count);
 
-                Assert.True(typeof(string) == df.Columns[0].DataType);
-                Assert.True(typeof(short) == df.Columns[1].DataType);
-                Assert.True(typeof(int) == df.Columns[2].DataType);
-                Assert.True(typeof(long) == df.Columns[3].DataType);
-                Assert.True(typeof(float) == df.Columns[4].DataType);
-                Assert.True(typeof(string) == df.Columns[5].DataType);
-                Assert.True(typeof(double) == df.Columns[6].DataType);
-                Assert.True(typeof(DateTime) == df.Columns[7].DataType);
+                if (verifyDataTypes)
+                {
+                    Assert.True(typeof(string) == df.Columns[0].DataType);
+                    Assert.True(typeof(short) == df.Columns[1].DataType);
+                    Assert.True(typeof(int) == df.Columns[2].DataType);
+                    Assert.True(typeof(long) == df.Columns[3].DataType);
+                    Assert.True(typeof(float) == df.Columns[4].DataType);
+                    Assert.True(typeof(string) == df.Columns[5].DataType);
+                    Assert.True(typeof(double) == df.Columns[6].DataType);
+                    Assert.True(typeof(DateTime) == df.Columns[7].DataType);
+                }
 
                 Assert.Equal("vendor_id", df.Columns[0].Name);
                 Assert.Equal("rate_code", df.Columns[1].Name);
@@ -445,9 +448,14 @@ CMT,1,1,181,0.6,CSH,4.5,4-june-2020";
             }
 
             DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(short), typeof(int), typeof(long), typeof(float), typeof(string), typeof(double), typeof(DateTime) });
-            Verify(df);
+            Verify(df, true);
             df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(short), typeof(int), typeof(long), typeof(float), typeof(string), typeof(double), typeof(DateTime) });
-            Verify(df);
+            Verify(df, true);
+            // Verify without dataTypes
+            df = DataFrame.LoadCsv(GetStream(data));
+            Verify(df, false);
+            df = DataFrame.LoadCsvFromString(data);
+            Verify(df, false);
         }
 
         [Fact]

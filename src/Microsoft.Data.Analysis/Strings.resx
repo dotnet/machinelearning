@@ -237,7 +237,4 @@
   <data name="StreamDoesntSupportReading" xml:space="preserve">
     <value>Stream doesn't support reading</value>
   </data>
-  <data name="ValueConversionError" xml:space="preserve">
-    <value>Unable to convert value for column: {0} row: {1}: {2}</value>
-  </data>
 </root>

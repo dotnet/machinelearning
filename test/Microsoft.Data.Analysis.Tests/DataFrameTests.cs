@@ -129,7 +129,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             DataFrame df = MakeDataFrameWithNumericAndStringColumns(length, withNulls);
 
-            DataFrameColumn dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", Enumerable.Range(0, length).Select(x => DateTime.Today.AddDays(x)));
+            DataFrameColumn dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", Enumerable.Range(0, length).Select(x => new DateTime(2021, 06, 04).AddDays(x)));
             df.Columns.Insert(df.Columns.Count, dateTimeColumn);
             if (withNulls)
             {

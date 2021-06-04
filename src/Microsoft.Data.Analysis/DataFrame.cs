@@ -511,14 +511,7 @@ namespace Microsoft.Data.Analysis
                     }
                     if (value != null)
                     {
-                        try
-                        {
-                            value = Convert.ChangeType(value, column.DataType);
-                        }
-                        catch (Exception ex)
-                        {
-                            throw new FormatException(string.Format(Strings.ValueConversionError, column.Name, ret.Columns.RowCount + 1, ex.Message), ex);
-                        }
+                        value = Convert.ChangeType(value, column.DataType);
 
                         if (value is null)
                         {

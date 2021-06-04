@@ -419,14 +419,5 @@ namespace Microsoft.Data {
                 return ResourceManager.GetString("StreamDoesntSupportReading", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to convert value for column: {0} row: {1}: {2}.
-        /// </summary>
-        internal static string ValueConversionError {
-            get {
-                return ResourceManager.GetString("ValueConversionError", resourceCulture);
-            }
-        }
     }
 }
