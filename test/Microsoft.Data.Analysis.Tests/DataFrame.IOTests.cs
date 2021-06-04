@@ -445,6 +445,13 @@ CMT,1,1,181,0.6,CSH,4.5,4-june-2020";
                 Assert.Equal("", nullRow[5]);
                 Assert.Null(nullRow[6]);
                 Assert.Null(nullRow[7]);
+
+                var dateTimeColumn = df.Columns["date"];
+                Assert.Equal(new DateTime(2020, 06, 01), dateTimeColumn[0]);
+                Assert.Equal(new DateTime(2020, 06, 02), dateTimeColumn[1]);
+                Assert.Equal(new DateTime(2020, 06, 03), dateTimeColumn[2]);
+                Assert.Null(dateTimeColumn[3]);
+                Assert.Equal(new DateTime(2020, 06, 04), dateTimeColumn[4]);
             }
 
             DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(short), typeof(int), typeof(long), typeof(float), typeof(string), typeof(double), typeof(DateTime) });
