@@ -362,10 +362,29 @@ namespace Microsoft.Data.Analysis
         {
             int columnIndex = _columnCollection.IndexOf(columnName);
             if (columnIndex == -1)
-                throw new ArgumentException(Strings.InvalidColumnName, nameof(columnName));
+                throw new ArgumentException(String.Format(Strings.InvalidColumnName, columnName), nameof(columnName));
 
             DataFrameColumn column = _columnCollection[columnIndex];
             return column.GroupBy(columnIndex, this);
+        }
+                
+        /// <summary>
+        /// Groups the rows of the <see cref="DataFrame"/> by unique values in the <paramref name="columnName"/> column.
+        /// </summary>
+        /// <typeparam name="TKey">Type of column used for grouping</typeparam>
+        /// <param name="columnName">The column used to group unique values</param>
+        /// <returns>A GroupBy object that stores the group information.</returns>
+        public GroupBy<TKey> GroupBy<TKey>(string columnName)
+        {
+            GroupBy<TKey> group = GroupBy(columnName) as GroupBy<TKey>;
+
+            if (group == null)
+            {
+                DataFrameColumn column = this[columnName];
+                throw new InvalidCastException(String.Format(Strings.BadColumnCastDuringGrouping, columnName, column.DataType, typeof(TKey)));
+            }
+
+            return group;
         }
 
         // In GroupBy and ReadCsv calls, columns get resized. We need to set the RowCount to reflect the true Length of the DataFrame. This does internal validation
@@ -573,7 +592,7 @@ namespace Microsoft.Data.Analysis
                 int index = ret.Columns.IndexOf(columnName);
                 if (index == -1)
                 {
-                    throw new ArgumentException(Strings.InvalidColumnName, nameof(columnName));
+                    throw new ArgumentException(String.Format(Strings.InvalidColumnName, columnName), nameof(columnName));
                 }
 
                 DataFrameColumn column = ret.Columns[index];

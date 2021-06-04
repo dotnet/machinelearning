@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 // The CodedInputStream auto closes the stream, and we need to make sure that our main stream stays open, so creating a new one here.
                 using (var modelStream = new FileStream(modelFile, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read))
-                using (var codedStream = Google.Protobuf.CodedInputStream.CreateWithLimits(modelStream, Int32.MaxValue, 10))
+                using (var codedStream = Google.Protobuf.CodedInputStream.CreateWithLimits(modelStream, Int32.MaxValue, 100))
                     model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(codedStream);
 
                 // Parse actual input and output types stored in the loaded ONNX model to get their DataViewType's.
