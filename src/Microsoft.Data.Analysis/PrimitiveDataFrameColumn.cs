@@ -810,5 +810,10 @@ namespace Microsoft.Data.Analysis
         {
             return cursor.GetGetter<T>(schemaColumn);
         }
+
+        public override Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
+        {
+            return GetGroupedOccurrences<T>(other, out otherColumnNullIndices);
+        }
     }
 }

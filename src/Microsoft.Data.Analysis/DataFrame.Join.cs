@@ -149,21 +149,21 @@ namespace Microsoft.Data.Analysis
 
             retainedRowIndices = new PrimitiveDataFrameColumn<long>("RetainedIndices");
             supplementaryRowIndices = new PrimitiveDataFrameColumn<long>("SupplementaryIndices");
+                                   
 
-            // First hash supplementary dataframe   
-            DataFrameColumn supplementaryColumn = supplementaryDataFame.Columns[supplemetaryJoinColumnName];
-            Dictionary<TKey, ICollection<long>> multimap = supplementaryColumn.GroupColumnValues<TKey>(out HashSet<long> supplementaryColumnNullIndices);
-
-            // Go over the records in this dataframe and match with the dictionary 
+            // Get occurrences of values in join column of the retained dataframe in join column of the supplementary dataframe
             DataFrameColumn retainedColumn = retainedDataFrame.Columns[retainedJoinColumnName];
+
+            DataFrameColumn supplementaryColumn = supplementaryDataFame.Columns[supplemetaryJoinColumnName];
+            var occurrences = retainedColumn.GetGroupedOccurrences(supplementaryColumn, out HashSet<long> supplementaryColumnNullIndices);
 
             for (long i = 0; i < retainedColumn.Length; i++)
             {
                 var retainedValue = retainedColumn[i];
                 if (retainedValue != null)
                 {
-                    //Get all rows from supplementary dataframe that sutisfy JOIN condition
-                    if (multimap.TryGetValue((TKey)retainedValue, out ICollection<long> rowIndices))
+                    //Get all row indexes from supplementary dataframe that sutisfy JOIN condition
+                    if (occurrences.TryGetValue(i, out ICollection<long> rowIndices))
                     {
                         foreach (long rowIndex in rowIndices)
                         {
@@ -215,6 +215,9 @@ namespace Microsoft.Data.Analysis
         /// <returns></returns> 
         public DataFrame Merge<TKey>(DataFrame other, string leftJoinColumn, string rightJoinColumn, string leftSuffix = "_left", string rightSuffix = "_right", JoinAlgorithm joinAlgorithm = JoinAlgorithm.Left)
         {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
             //In Outer join the joined dataframe retains each row — even if no other matching row exists in supplementary dataframe.
             //Outer joins subdivide further into left outer joins (left dataframe is retained), right outer joins (rightdataframe is retained), in full outer both are retained
 
