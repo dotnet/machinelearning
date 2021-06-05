@@ -141,6 +141,16 @@ namespace Microsoft.Data.Analysis
             }
             return ret;
         }
+
+        private static bool IsAnyNullValueInColumns (IReadOnlyCollection<DataFrameColumn> columns, long index)
+        {
+            foreach (var column in columns)
+            {
+                if (column[index] == null)
+                    return true;
+            }
+            return false;
+        }
                       
         private static HashSet<long> Merge(DataFrame retainedDataFrame, DataFrame supplementaryDataFrame, string[] retainedJoinColumnNames, string[] supplemetaryJoinColumnNames, out PrimitiveDataFrameColumn<long> retainedRowIndices, out PrimitiveDataFrameColumn<long> supplementaryRowIndices, bool isInner = false, bool calculateIntersection = false)
         {
@@ -161,6 +171,8 @@ namespace Microsoft.Data.Analysis
             // Get occurrences of values in columns used for join in the retained and supplementary dataframes
             Dictionary<long, long> retainedIndicesReverseMapping = null; 
             Dictionary<long, ICollection<long>> rowOccurrences = null;
+
+            HashSet<long> supplementaryJoinColumnsNullIndices = new HashSet<long>();
 
             for (int colNameIndex =  0; colNameIndex < retainedJoinColumnNames.Length; colNameIndex++)
             {
@@ -186,6 +198,8 @@ namespace Microsoft.Data.Analysis
 
                 var newOccurrences = shrinkedRetainedColumn.GetGroupedOccurrences(supplementaryColumn, out HashSet<long> supplementaryColumnNullIndices);
 
+                supplementaryJoinColumnsNullIndices.UnionWith(supplementaryColumnNullIndices);
+                
                 // shrink join result on current column by previouse join columns (if any)
                 if (rowOccurrences != null)
                 {
@@ -199,23 +213,22 @@ namespace Microsoft.Data.Analysis
                             shrinkedOccurences.Add(kvp.Key, newValue);
                         }
                     }
-
                     newOccurrences = shrinkedOccurences;
                 }
-
                 rowOccurrences = newOccurrences;
             }
 
             //Restore occurences
-            occurrences = rowOccurrences.ToDictionary(kvp => retainedIndicesReverseMapping[kvp.Key], kvp => kvp.Value);
+            occurrences = rowOccurrences.ToDictionary(kvp => retainedIndicesReverseMapping == null ? kvp.Key : retainedIndicesReverseMapping[kvp.Key], kvp => kvp.Value);
             
             retainedRowIndices = new Int64DataFrameColumn("RetainedIndices");
             supplementaryRowIndices = new Int64DataFrameColumn("SupplementaryIndices");
-                        
+
+            //Perform Merging 
+            var retainJoinColumns = retainedJoinColumnNames.Select(name => retainedDataFrame.Columns[name]).ToArray();
             for (long i = 0; i < retainedDataFrame.Columns.RowCount; i++)
             {
-                 //retainedColumn[i]; //TODO check for null all joined columns
-                if (true)
+                if (!IsAnyNullValueInColumns(retainJoinColumns, i))
                 {
                     //Get all row indexes from supplementary dataframe that sutisfy JOIN condition
                     if (occurrences.TryGetValue(i, out ICollection<long> rowIndices))
@@ -245,14 +258,13 @@ namespace Microsoft.Data.Analysis
                     }
                 }
                 else
-                {
-                    /*
-                    foreach (long row in supplementaryColumnNullIndices)
+                {                    
+                    foreach (long row in supplementaryJoinColumnsNullIndices)
                     {
                         retainedRowIndices.Append(i);
                         supplementaryRowIndices.Append(row);
                     }
-                    */
+                    
                 }
             }
                     
