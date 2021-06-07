@@ -1705,7 +1705,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(merge.Columns["Int_right"][2], right.Columns["Int"][2]);
             VerifyMerge(merge, left, right, JoinAlgorithm.Inner);
         }
-        
+
         private void MatchRowsOnMergedDataFrame(DataFrame merge, DataFrame left, DataFrame right, long mergeRow, long? leftRow, long? rightRow)
         {
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
@@ -1774,7 +1774,6 @@ namespace Microsoft.Data.Analysis.Tests
                 }
             }
         }
-
 
         [Fact]
         public void TestMergeEdgeCases_Inner()
@@ -2237,7 +2236,6 @@ namespace Microsoft.Data.Analysis.Tests
                 }
             }
         }
-              
         
         [Fact]
         public void TestColumnCreationFromExisitingColumn()

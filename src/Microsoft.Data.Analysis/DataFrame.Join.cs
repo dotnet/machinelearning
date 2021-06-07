@@ -344,7 +344,6 @@ namespace Microsoft.Data.Analysis
                                 
                 //Step 2
                 //Do RIGHT JOIN to retain all data from supplementary DataFrame too (take into account data intersection from the first step to avoid duplicates)
-                                
                 for (long i = 0; i < supplementaryDataFrame.Columns.RowCount; i++)
                 {
                     var columns = supplementaryJoinColumns.Select(name => supplementaryDataFrame.Columns[name]).ToArray();
