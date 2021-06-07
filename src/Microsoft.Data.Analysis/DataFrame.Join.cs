@@ -151,7 +151,22 @@ namespace Microsoft.Data.Analysis
             }
             return false;
         }
-                      
+
+        /// <summary> 
+        /// Merge DataFrames with a database style join (for backward compatibility)
+        /// </summary> 
+        /// <param name="other"></param> 
+        /// <param name="leftJoinColumn"></param> 
+        /// <param name="rightJoinColumn"></param> 
+        /// <param name="leftSuffix"></param> 
+        /// <param name="rightSuffix"></param> 
+        /// <param name="joinAlgorithm"></param> 
+        /// <returns></returns> 
+        public DataFrame Merge<TKey>(DataFrame other, string leftJoinColumn, string rightJoinColumn, string leftSuffix = "_left", string rightSuffix = "_right", JoinAlgorithm joinAlgorithm = JoinAlgorithm.Left)
+        {
+            return Merge(other, new[] { leftJoinColumn }, new[] { rightJoinColumn }, leftSuffix, rightSuffix, joinAlgorithm);
+        }
+
         private static HashSet<long> Merge(DataFrame retainedDataFrame, DataFrame supplementaryDataFrame, string[] retainedJoinColumnNames, string[] supplemetaryJoinColumnNames, out PrimitiveDataFrameColumn<long> retainedRowIndices, out PrimitiveDataFrameColumn<long> supplementaryRowIndices, bool isInner = false, bool calculateIntersection = false)
         {
             if (retainedJoinColumnNames == null)
@@ -269,23 +284,7 @@ namespace Microsoft.Data.Analysis
                     
             return intersection;
         }
-
-        /// <summary> 
-        /// Merge DataFrames with a database style join (for backward compatibility)
-        /// </summary> 
-        /// <param name="other"></param> 
-        /// <param name="leftJoinColumn"></param> 
-        /// <param name="rightJoinColumn"></param> 
-        /// <param name="leftSuffix"></param> 
-        /// <param name="rightSuffix"></param> 
-        /// <param name="joinAlgorithm"></param> 
-        /// <returns></returns> 
-        public DataFrame Merge<TKey>(DataFrame other, string leftJoinColumn, string rightJoinColumn, string leftSuffix = "_left", string rightSuffix = "_right", JoinAlgorithm joinAlgorithm = JoinAlgorithm.Left)
-        {
-            return Merge(other, new[] { leftJoinColumn }, new[] { rightJoinColumn }, leftSuffix, rightSuffix, joinAlgorithm);
-        }
-        
-            
+                    
         public DataFrame Merge(DataFrame other, string[] leftJoinColumns, string[] rightJoinColumns, string leftSuffix = "_left", string rightSuffix = "_right", JoinAlgorithm joinAlgorithm = JoinAlgorithm.Left)
         {
             if (other == null)
