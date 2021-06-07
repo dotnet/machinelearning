@@ -37,8 +37,7 @@ namespace Microsoft.Data.Analysis.Tests
 
         [Fact]
         public void TestGroupingWithTKey_CornerCases()
-        {
-        {
+        {        
             //Check corner cases
             var df = MakeTestDataFrameWithParityAndTensColumns(0);
             var grouping = df.GroupBy<string>("Parity").Groupings;
@@ -99,7 +98,6 @@ namespace Microsoft.Data.Analysis.Tests
             //Use wrong type for grouping
             Assert.Throws<InvalidCastException>(() => df.GroupBy<double>("Tens"));
         }
-
 
         private DataFrame MakeTestDataFrameWithParityAndTensColumns(int length)
         {
