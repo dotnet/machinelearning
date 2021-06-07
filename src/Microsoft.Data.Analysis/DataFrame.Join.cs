@@ -264,7 +264,6 @@ namespace Microsoft.Data.Analysis
                         retainedRowIndices.Append(i);
                         supplementaryRowIndices.Append(row);
                     }
-                    
                 }
             }
                     
@@ -342,16 +341,14 @@ namespace Microsoft.Data.Analysis
                 var retainedJoinColumns = isLeftDataFrameRetained ? leftJoinColumns : rightJoinColumns;
 
                 var intersection = Merge(retainedDataFrame, supplementaryDataFrame, retainedJoinColumns, supplementaryJoinColumns, out retainedRowIndices, out supplementaryRowIndices, calculateIntersection: true);
-
-                /*
+                                
                 //Step 2
                 //Do RIGHT JOIN to retain all data from supplementary DataFrame too (take into account data intersection from the first step to avoid duplicates)
-                DataFrameColumn supplementaryColumn = supplementaryDataFrame.Columns[supplementaryJoinColumn];
-
-                for (long i = 0; i < supplementaryColumn.Length; i++)
+                                
+                for (long i = 0; i < supplementaryDataFrame.Columns.RowCount; i++)
                 {
-                    var value = supplementaryColumn[i];
-                    if (value != null)
+                    var columns = supplementaryJoinColumns.Select(name => supplementaryDataFrame.Columns[name]).ToArray();
+                    if (!IsAnyNullValueInColumns(columns, i))
                     {
                         if (!intersection.Contains(i))
                         {
@@ -360,7 +357,6 @@ namespace Microsoft.Data.Analysis
                         }
                     }
                 }
-                */
             }
             else
                 throw new NotImplementedException(nameof(joinAlgorithm));
