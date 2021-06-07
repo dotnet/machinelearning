@@ -161,7 +161,7 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentNullException(nameof(supplemetaryJoinColumnNames));
 
             if (retainedJoinColumnNames.Length != supplemetaryJoinColumnNames.Length)
-                throw new ArgumentException("", nameof(retainedJoinColumnNames));  //TODO provide correct message for the exception
+                throw new ArgumentException(Strings.MismatchedArrayLengths, nameof(retainedJoinColumnNames));  
             
 
             HashSet<long> intersection = calculateIntersection ? new HashSet<long>() : null;

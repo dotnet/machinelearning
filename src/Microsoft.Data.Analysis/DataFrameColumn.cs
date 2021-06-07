@@ -228,7 +228,7 @@ namespace Microsoft.Data.Analysis
         protected Dictionary<long, ICollection<long>> GetGroupedOccurrences<TKey>(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
         {
             if (this.DataType != other.DataType)
-                throw new ArgumentException(); //TODO provide appropriate exception text
+                throw new ArgumentException(String.Format(Strings.MismatchedColumnValueType, this.DataType), nameof(other));
 
             // First hash other column   
             Dictionary<TKey, ICollection<long>> multimap = other.GroupColumnValues<TKey>(out otherColumnNullIndices);
