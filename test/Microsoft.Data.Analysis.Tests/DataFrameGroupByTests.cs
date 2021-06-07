@@ -15,10 +15,10 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestGroupingWithTKeyTypeofString()
         {
-            const int length = 11;
+            const int lenght = 11;
 
             //Create test dataframe (numbers starting from 0 up to lenght)
-            DataFrame df = MakeTestDataFrameWithParityAndTensColumns(length);
+            DataFrame df = MakeTestDataFrameWithParityAndTensColumns(lenght);
             
             var grouping = df.GroupBy<string>("Parity").Groupings;
 
@@ -28,16 +28,18 @@ namespace Microsoft.Data.Analysis.Tests
             //Check number of elements in each group
             var oddGroup = grouping.Where(gr => gr.Key == "odd").FirstOrDefault();
             Assert.NotNull(oddGroup);
-            Assert.Equal(length/2, oddGroup.Count());
+            Assert.Equal(lenght/2, oddGroup.Count());
 
             var evenGroup = grouping.Where(gr => gr.Key == "even").FirstOrDefault();
             Assert.NotNull(evenGroup);
-            Assert.Equal(length / 2 + length % 2, evenGroup.Count());
+            Assert.Equal(lenght / 2 + lenght % 2, evenGroup.Count());
+
+            
         }
 
         [Fact]
         public void TestGroupingWithTKey_CornerCases()
-        {        
+        {
             //Check corner cases
             var df = MakeTestDataFrameWithParityAndTensColumns(0);
             var grouping = df.GroupBy<string>("Parity").Groupings;
@@ -54,10 +56,10 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestGroupingWithTKeyPrimitiveType()
         {
-            const int length = 55;
+            const int lenght = 55;
 
             //Create test dataframe (numbers starting from 0 up to lenght)
-            DataFrame df = MakeTestDataFrameWithParityAndTensColumns(length);
+            DataFrame df = MakeTestDataFrameWithParityAndTensColumns(lenght);
 
             //Group elements by int column, that contain the amount of full tens in each int
             var groupings = df.GroupBy<int>("Tens").Groupings.ToDictionary(g => g.Key, g => g.ToList());
@@ -66,7 +68,7 @@ namespace Microsoft.Data.Analysis.Tests
             int numberColumnsCount = df.Columns.Count - 2; //except "Parity" and "Tens" columns
             
             //Check each group
-            for (int i = 0; i < length / 10; i++)
+            for (int i = 0; i < lenght / 10; i++)
             {
                 Assert.Equal(10, groupings[i].Count());
 
@@ -83,7 +85,7 @@ namespace Microsoft.Data.Analysis.Tests
             }
 
             //Last group should contain smaller amount of items
-            Assert.Equal(length % 10, groupings[length / 10].Count());
+            Assert.Equal(lenght % 10, groupings[lenght / 10].Count());
         }
 
         [Fact]
@@ -98,6 +100,7 @@ namespace Microsoft.Data.Analysis.Tests
             //Use wrong type for grouping
             Assert.Throws<InvalidCastException>(() => df.GroupBy<double>("Tens"));
         }
+
 
         private DataFrame MakeTestDataFrameWithParityAndTensColumns(int length)
         {

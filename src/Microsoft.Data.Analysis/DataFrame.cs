@@ -384,6 +384,7 @@ namespace Microsoft.Data.Analysis
                 throw new InvalidCastException(String.Format(Strings.BadColumnCastDuringGrouping, columnName, column.DataType, typeof(TKey)));
             }
 
+
             return group;
         }
 
