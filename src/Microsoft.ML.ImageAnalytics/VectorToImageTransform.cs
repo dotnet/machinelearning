@@ -335,8 +335,7 @@ namespace Microsoft.ML.Transforms.Image
                 var sourceItemType = sourceType.GetItemType();
                 if (sourceItemType == NumberDataViewType.Single || sourceItemType == NumberDataViewType.Double)
                     return GetterFromType<float>(NumberDataViewType.Single, input, iinfo, ex, needScale);
-                else
-                    if (sourceItemType == NumberDataViewType.Byte)
+                else if (sourceItemType == NumberDataViewType.Byte)
                     return GetterFromType<byte>(NumberDataViewType.Byte, input, iinfo, ex, false);
                 else
                     throw Contracts.Except("We only support float, double or byte arrays");
