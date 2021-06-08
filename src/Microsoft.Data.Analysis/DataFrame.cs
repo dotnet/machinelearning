@@ -534,7 +534,7 @@ namespace Microsoft.Data.Analysis
 
                         if (value is null)
                         {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), value.GetType().ToString());
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), column.Name);
                         }
                     }
                     cachedObjectConversions.Add(value);
@@ -603,7 +603,7 @@ namespace Microsoft.Data.Analysis
                     value = Convert.ChangeType(value, column.DataType);
                     if (value is null)
                     {
-                        throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), value.GetType().ToString());
+                        throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), column.Name);
                     }
                 }
                 cachedObjectConversions.Add(value);
