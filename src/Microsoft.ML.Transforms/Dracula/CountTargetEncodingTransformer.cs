@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
                 else if (transformer is TransformerChain<ITransformer> chain)
                 {
                     var transformerChain = ((ITransformerChainAccessor)chain).Transformers;
-                    for (int i = transformerChain.Length - 1; i >= 0; i++)
+                    for (int i = transformerChain.Length - 1; i >= 0; i--)
                     {
                         countTableTransformer = transformerChain[i] as CountTableTransformer;
                         if (countTableTransformer == null)
