@@ -21,8 +21,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             writer.Write(queue.Count);
             for (int index = 0; index < queue.Count; index++)
                 writer.Write(queue[index]);
-
-            return;
         }
 
         internal static FixedSizeQueue<Single> DeserializeFixedSizeQueueSingle(BinaryReader reader, IHost host)
@@ -52,8 +50,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             writer.Write(queue.Count);
             for (int index = 0; index < queue.Count; index++)
                 writer.Write(queue[index]);
-
-            return;
         }
 
         internal static FixedSizeQueue<double> DeserializeFixedSizeQueueDouble(BinaryReader reader, IHost host)

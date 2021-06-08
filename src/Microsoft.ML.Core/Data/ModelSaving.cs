@@ -51,7 +51,6 @@ namespace Microsoft.ML
                 {
                     sb.SaveAsBinary(writer);
                 }
-                return;
             }
         }
 

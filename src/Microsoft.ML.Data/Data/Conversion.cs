@@ -1365,7 +1365,6 @@ namespace Microsoft.ML.Data.Conversion
 
             result = (long)sVal;
             Contracts.Assert(0 <= result && result <= long.MaxValue);
-            return;
         }
 
         /// <summary>
