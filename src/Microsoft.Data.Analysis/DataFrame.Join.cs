@@ -180,29 +180,32 @@ namespace Microsoft.Data.Analysis
             
 
             HashSet<long> intersection = calculateIntersection ? new HashSet<long>() : null;
-                        
-            Dictionary<long, ICollection<long>> occurrences = null;
 
             // Get occurrences of values in columns used for join in the retained and supplementary dataframes
-            Dictionary<long, long> retainedIndicesReverseMapping = null; 
-            Dictionary<long, ICollection<long>> rowOccurrences = null;
-
+            Dictionary<long, ICollection<long>> occurrences = null;
+            Dictionary<long, long> retainedIndicesReverseMapping = null;
+            
             HashSet<long> supplementaryJoinColumnsNullIndices = new HashSet<long>();
 
+            
             for (int colNameIndex =  0; colNameIndex < retainedJoinColumnNames.Length; colNameIndex++)
             {
                 DataFrameColumn shrinkedRetainedColumn = retainedDataFrame.Columns[retainedJoinColumnNames[colNameIndex]];
 
                 //shrink retained column by row occurrences from previouse step
-                if (rowOccurrences != null)
+                if (occurrences != null)
                 {
-                    var shrinkedRetainedIndices = rowOccurrences.Keys.ToArray();
-                                                            
-                    var newRetainedIndicesReverseMapping = new Dictionary<long, long>();
+                    //only rows with occurences from previose step should go for futher processing
+                    var shrinkedRetainedIndices = occurrences.Keys.ToArray();
+
+                    //create reverse mapping of index of the row in the shrinked column to the index of this row in the original dataframe (new index -> original index)
+                    var newRetainedIndicesReverseMapping = new Dictionary<long, long>(shrinkedRetainedIndices.Length);
+
                     for (int i = 0; i < shrinkedRetainedIndices.Length; i++)
-                    { 
+                    {
                         //store reverse mapping to restore original dataframe indices from indices in shrinked row
-                        newRetainedIndicesReverseMapping.Add(i, retainedIndicesReverseMapping != null ? retainedIndicesReverseMapping[shrinkedRetainedIndices[i]] : shrinkedRetainedIndices[i] );
+                        var originalIndex = shrinkedRetainedIndices[i];
+                        newRetainedIndicesReverseMapping.Add(i, originalIndex);
                     }
 
                     retainedIndicesReverseMapping = newRetainedIndicesReverseMapping;
@@ -211,18 +214,24 @@ namespace Microsoft.Data.Analysis
                 
                 DataFrameColumn supplementaryColumn = supplementaryDataFrame.Columns[supplemetaryJoinColumnNames[colNameIndex]];
 
+                //Find occurrenses on current step (join column)
                 var newOccurrences = shrinkedRetainedColumn.GetGroupedOccurrences(supplementaryColumn, out HashSet<long> supplementaryColumnNullIndices);
+
+                //Convert indices from in key from local (shrinked row) to indices in original dataframe
+                if (retainedIndicesReverseMapping != null)
+                    newOccurrences = newOccurrences.ToDictionary(kvp => retainedIndicesReverseMapping[kvp.Key], kvp => kvp.Value);
 
                 supplementaryJoinColumnsNullIndices.UnionWith(supplementaryColumnNullIndices);
                 
                 // shrink join result on current column by previouse join columns (if any)
-                if (rowOccurrences != null)
+                // (we have to remove occurrences that doesn't exist in previouse columns, because JOIN happens only if ALL left and right columns in JOIN are matched)
+                if (occurrences != null)
                 {
                     var shrinkedOccurences = new Dictionary<long, ICollection<long>>();
 
                     foreach (var kvp in newOccurrences)
                     {
-                        var newValue = kvp.Value.Where(i => rowOccurrences[retainedIndicesReverseMapping[kvp.Key]].Contains(i)).ToArray();
+                        var newValue = kvp.Value.Where(i => occurrences[kvp.Key].Contains(i)).ToArray();
                         if (newValue.Any())
                         {
                             shrinkedOccurences.Add(kvp.Key, newValue);
@@ -230,11 +239,9 @@ namespace Microsoft.Data.Analysis
                     }
                     newOccurrences = shrinkedOccurences;
                 }
-                rowOccurrences = newOccurrences;
-            }
 
-            //Restore occurences
-            occurrences = rowOccurrences.ToDictionary(kvp => retainedIndicesReverseMapping == null ? kvp.Key : retainedIndicesReverseMapping[kvp.Key], kvp => kvp.Value);
+                occurrences = newOccurrences;
+            }
             
             retainedRowIndices = new Int64DataFrameColumn("RetainedIndices");
             supplementaryRowIndices = new Int64DataFrameColumn("SupplementaryIndices");
