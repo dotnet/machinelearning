@@ -584,7 +584,7 @@ namespace Microsoft.ML.TensorFlow
             public Tensor[] Run()
             {
                 if (_session == IntPtr.Zero)
-                    new ObjectDisposedException(nameof(_session));
+                    throw new ObjectDisposedException(nameof(_session));
 
                 unsafe
                 {
