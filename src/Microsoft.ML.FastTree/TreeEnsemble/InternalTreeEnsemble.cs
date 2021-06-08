@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers.FastTree
             sb.Append("\nWeights=");
             if (_firstInputInitializationContent != null)
             {
-                sb.AppendFormat("1");
+                sb.Append("1");
             }
 
             if (NumTrees > 0)
