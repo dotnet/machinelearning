@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Data.Analysis
 {
@@ -141,10 +142,18 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        // TODO: Merge API with an "On" parameter that merges on a column common to 2 dataframes 
+        private static bool IsAnyNullValueInColumns (IReadOnlyCollection<DataFrameColumn> columns, long index)
+        {
+            foreach (var column in columns)
+            {
+                if (column[index] == null)
+                    return true;
+            }
+            return false;
+        }
 
         /// <summary> 
-        /// Merge DataFrames with a database style join 
+        /// Merge DataFrames with a database style join (for backward compatibility)
         /// </summary> 
         /// <param name="other"></param> 
         /// <param name="leftJoinColumn"></param> 
@@ -155,207 +164,220 @@ namespace Microsoft.Data.Analysis
         /// <returns></returns> 
         public DataFrame Merge<TKey>(DataFrame other, string leftJoinColumn, string rightJoinColumn, string leftSuffix = "_left", string rightSuffix = "_right", JoinAlgorithm joinAlgorithm = JoinAlgorithm.Left)
         {
-            // A simple hash join 
-            DataFrame ret = new DataFrame();
-            DataFrame leftDataFrame = this;
-            DataFrame rightDataFrame = other;
+            return Merge(other, new[] { leftJoinColumn }, new[] { rightJoinColumn }, leftSuffix, rightSuffix, joinAlgorithm);
+        }
 
-            // The final table size is not known until runtime 
-            long rowNumber = 0;
-            PrimitiveDataFrameColumn<long> leftRowIndices = new PrimitiveDataFrameColumn<long>("LeftIndices");
-            PrimitiveDataFrameColumn<long> rightRowIndices = new PrimitiveDataFrameColumn<long>("RightIndices");
-            if (joinAlgorithm == JoinAlgorithm.Left)
+        private static HashSet<long> Merge(DataFrame retainedDataFrame, DataFrame supplementaryDataFrame, string[] retainedJoinColumnNames, string[] supplemetaryJoinColumnNames, out PrimitiveDataFrameColumn<long> retainedRowIndices, out PrimitiveDataFrameColumn<long> supplementaryRowIndices, bool isInner = false, bool calculateIntersection = false)
+        {
+            if (retainedJoinColumnNames == null)
+                throw new ArgumentNullException(nameof(retainedJoinColumnNames));
+
+            if (supplemetaryJoinColumnNames == null)
+                throw new ArgumentNullException(nameof(supplemetaryJoinColumnNames));
+
+            if (retainedJoinColumnNames.Length != supplemetaryJoinColumnNames.Length)
+                throw new ArgumentException(Strings.MismatchedArrayLengths, nameof(retainedJoinColumnNames));  
+            
+
+            HashSet<long> intersection = calculateIntersection ? new HashSet<long>() : null;
+
+            // Get occurrences of values in columns used for join in the retained and supplementary dataframes
+            Dictionary<long, ICollection<long>> occurrences = null;
+            Dictionary<long, long> retainedIndicesReverseMapping = null;
+            
+            HashSet<long> supplementaryJoinColumnsNullIndices = new HashSet<long>();
+
+            
+            for (int colNameIndex =  0; colNameIndex < retainedJoinColumnNames.Length; colNameIndex++)
             {
-                // First hash other dataframe on the rightJoinColumn 
-                DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = otherColumn.GroupColumnValues<TKey>(out HashSet<long> otherColumnNullIndices);
+                DataFrameColumn shrinkedRetainedColumn = retainedDataFrame.Columns[retainedJoinColumnNames[colNameIndex]];
 
-                // Go over the records in this dataframe and match with the dictionary 
-                DataFrameColumn thisColumn = Columns[leftJoinColumn];
-
-                for (long i = 0; i < thisColumn.Length; i++)
+                //shrink retained column by row occurrences from previouse step
+                if (occurrences != null)
                 {
-                    var thisColumnValue = thisColumn[i];
-                    if (thisColumnValue != null)
+                    //only rows with occurences from previose step should go for futher processing
+                    var shrinkedRetainedIndices = occurrences.Keys.ToArray();
+
+                    //create reverse mapping of index of the row in the shrinked column to the index of this row in the original dataframe (new index -> original index)
+                    var newRetainedIndicesReverseMapping = new Dictionary<long, long>(shrinkedRetainedIndices.Length);
+
+                    for (int i = 0; i < shrinkedRetainedIndices.Length; i++)
                     {
-                        if (multimap.TryGetValue((TKey)thisColumnValue, out ICollection<long> rowNumbers))
-                        {
-                            foreach (long row in rowNumbers)
-                            {
-                                leftRowIndices.Append(i);
-                                rightRowIndices.Append(row);
-                            }
-                        }
-                        else
-                        {
-                            leftRowIndices.Append(i);
-                            rightRowIndices.Append(null);
-                        }
+                        //store reverse mapping to restore original dataframe indices from indices in shrinked row
+                        var originalIndex = shrinkedRetainedIndices[i];
+                        newRetainedIndicesReverseMapping.Add(i, originalIndex);
                     }
-                    else
-                    {
-                        foreach (long row in otherColumnNullIndices)
-                        {
-                            leftRowIndices.Append(i);
-                            rightRowIndices.Append(row);
-                        }
-                    }
+
+                    retainedIndicesReverseMapping = newRetainedIndicesReverseMapping;
+                    shrinkedRetainedColumn = shrinkedRetainedColumn.Clone(new Int64DataFrameColumn("Indices", shrinkedRetainedIndices));
                 }
-            }
-            else if (joinAlgorithm == JoinAlgorithm.Right)
-            {
-                DataFrameColumn thisColumn = Columns[leftJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = thisColumn.GroupColumnValues<TKey>(out HashSet<long> thisColumnNullIndices);
+                
+                DataFrameColumn supplementaryColumn = supplementaryDataFrame.Columns[supplemetaryJoinColumnNames[colNameIndex]];
 
-                DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
-                for (long i = 0; i < otherColumn.Length; i++)
+                //Find occurrenses on current step (join column)
+                var newOccurrences = shrinkedRetainedColumn.GetGroupedOccurrences(supplementaryColumn, out HashSet<long> supplementaryColumnNullIndices);
+
+                //Convert indices from in key from local (shrinked row) to indices in original dataframe
+                if (retainedIndicesReverseMapping != null)
+                    newOccurrences = newOccurrences.ToDictionary(kvp => retainedIndicesReverseMapping[kvp.Key], kvp => kvp.Value);
+
+                supplementaryJoinColumnsNullIndices.UnionWith(supplementaryColumnNullIndices);
+                
+                // shrink join result on current column by previouse join columns (if any)
+                // (we have to remove occurrences that doesn't exist in previouse columns, because JOIN happens only if ALL left and right columns in JOIN are matched)
+                if (occurrences != null)
                 {
-                    var otherColumnValue = otherColumn[i];
-                    if (otherColumnValue != null)
+                    var shrinkedOccurences = new Dictionary<long, ICollection<long>>();
+
+                    foreach (var kvp in newOccurrences)
                     {
-                        if (multimap.TryGetValue((TKey)otherColumnValue, out ICollection<long> rowNumbers))
+                        var newValue = kvp.Value.Where(i => occurrences[kvp.Key].Contains(i)).ToArray();
+                        if (newValue.Any())
                         {
-                            foreach (long row in rowNumbers)
-                            {
-                                leftRowIndices.Append(row);
-                                rightRowIndices.Append(i);
-                            }
-                        }
-                        else
-                        {
-                            leftRowIndices.Append(null);
-                            rightRowIndices.Append(i);
+                            shrinkedOccurences.Add(kvp.Key, newValue);
                         }
                     }
-                    else
-                    {
-                        foreach (long thisColumnNullIndex in thisColumnNullIndices)
-                        {
-                            leftRowIndices.Append(thisColumnNullIndex);
-                            rightRowIndices.Append(i);
-                        }
-                    }
+                    newOccurrences = shrinkedOccurences;
                 }
+
+                occurrences = newOccurrences;
             }
-            else if (joinAlgorithm == JoinAlgorithm.Inner)
+            
+            retainedRowIndices = new Int64DataFrameColumn("RetainedIndices");
+            supplementaryRowIndices = new Int64DataFrameColumn("SupplementaryIndices");
+
+            //Perform Merging 
+            var retainJoinColumns = retainedJoinColumnNames.Select(name => retainedDataFrame.Columns[name]).ToArray();
+            for (long i = 0; i < retainedDataFrame.Columns.RowCount; i++)
             {
-                // Hash the column with the smaller RowCount 
-                long leftRowCount = Rows.Count;
-                long rightRowCount = other.Rows.Count;
-
-                bool leftColumnIsSmaller = leftRowCount <= rightRowCount;
-                DataFrameColumn hashColumn = leftColumnIsSmaller ? Columns[leftJoinColumn] : other.Columns[rightJoinColumn];
-                DataFrameColumn otherColumn = ReferenceEquals(hashColumn, Columns[leftJoinColumn]) ? other.Columns[rightJoinColumn] : Columns[leftJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = hashColumn.GroupColumnValues<TKey>(out HashSet<long> smallerDataFrameColumnNullIndices);
-
-                for (long i = 0; i < otherColumn.Length; i++)
+                if (!IsAnyNullValueInColumns(retainJoinColumns, i))
                 {
-                    var otherColumnValue = otherColumn[i];
-                    if (otherColumnValue != null)
+                    //Get all row indexes from supplementary dataframe that sutisfy JOIN condition
+                    if (occurrences.TryGetValue(i, out ICollection<long> rowIndices))
                     {
-                        if (multimap.TryGetValue((TKey)otherColumnValue, out ICollection<long> rowNumbers))
+                        foreach (long supplementaryRowIndex in rowIndices)
                         {
-                            foreach (long row in rowNumbers)
-                            {
-                                leftRowIndices.Append(leftColumnIsSmaller ? row : i);
-                                rightRowIndices.Append(leftColumnIsSmaller ? i : row);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (long nullIndex in smallerDataFrameColumnNullIndices)
-                        {
-                            leftRowIndices.Append(leftColumnIsSmaller ? nullIndex : i);
-                            rightRowIndices.Append(leftColumnIsSmaller ? i : nullIndex);
-                        }
-                    }
-                }
-            }
-            else if (joinAlgorithm == JoinAlgorithm.FullOuter)
-            {
-                DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = otherColumn.GroupColumnValues<TKey>(out HashSet<long> otherColumnNullIndices);
-                Dictionary<TKey, long> intersection = new Dictionary<TKey, long>(EqualityComparer<TKey>.Default);
+                            retainedRowIndices.Append(i);
+                            supplementaryRowIndices.Append(supplementaryRowIndex);
 
-                // Go over the records in this dataframe and match with the dictionary 
-                DataFrameColumn thisColumn = Columns[leftJoinColumn];
-                Int64DataFrameColumn thisColumnNullIndices = new Int64DataFrameColumn("ThisColumnNullIndices");
-
-                for (long i = 0; i < thisColumn.Length; i++)
-                {
-                    var thisColumnValue = thisColumn[i];
-                    if (thisColumnValue != null)
-                    {
-                        if (multimap.TryGetValue((TKey)thisColumnValue, out ICollection<long> rowNumbers))
-                        {
-                            foreach (long row in rowNumbers)
+                            //store intersection if required
+                            if (calculateIntersection)
                             {
-                                leftRowIndices.Append(i);
-                                rightRowIndices.Append(row);
-                                if (!intersection.ContainsKey((TKey)thisColumnValue))
+                                if (!intersection.Contains(supplementaryRowIndex))
                                 {
-                                    intersection.Add((TKey)thisColumnValue, rowNumber);
+                                    intersection.Add(supplementaryRowIndex);
                                 }
                             }
                         }
-                        else
-                        {
-                            leftRowIndices.Append(i);
-                            rightRowIndices.Append(null);
-                        }
                     }
                     else
                     {
-                        thisColumnNullIndices.Append(i);
-                    }
-                }
-                for (long i = 0; i < otherColumn.Length; i++)
-                {
-                    var value = otherColumn[i];
-                    if (value != null)
-                    {
-                        if (!intersection.ContainsKey((TKey)value))
-                        {
-                            leftRowIndices.Append(null);
-                            rightRowIndices.Append(i);
-                        }
-                    }
-                }
+                        if (isInner)
+                            continue;
 
-                // Now handle the null rows
-                foreach (long? thisColumnNullIndex in thisColumnNullIndices)
-                {
-                    foreach (long otherColumnNullIndex in otherColumnNullIndices)
-                    {
-                        leftRowIndices.Append(thisColumnNullIndex.Value);
-                        rightRowIndices.Append(otherColumnNullIndex);
-                    }
-                    if (otherColumnNullIndices.Count == 0)
-                    {
-                        leftRowIndices.Append(thisColumnNullIndex.Value);
-                        rightRowIndices.Append(null);
+                        retainedRowIndices.Append(i);
+                        supplementaryRowIndices.Append(null);
                     }
                 }
-                if (thisColumnNullIndices.Length == 0)
-                {
-                    foreach (long otherColumnNullIndex in otherColumnNullIndices)
+                else
+                {                    
+                    foreach (long row in supplementaryJoinColumnsNullIndices)
                     {
-                        leftRowIndices.Append(null);
-                        rightRowIndices.Append(otherColumnNullIndex);
+                        retainedRowIndices.Append(i);
+                        supplementaryRowIndices.Append(row);
+                    }
+                }
+            }
+                    
+            return intersection;
+        }
+                    
+        public DataFrame Merge(DataFrame other, string[] leftJoinColumns, string[] rightJoinColumns, string leftSuffix = "_left", string rightSuffix = "_right", JoinAlgorithm joinAlgorithm = JoinAlgorithm.Left)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            //In Outer join the joined dataframe retains each row — even if no other matching row exists in supplementary dataframe.
+            //Outer joins subdivide further into left outer joins (left dataframe is retained), right outer joins (rightdataframe is retained), in full outer both are retained
+
+            PrimitiveDataFrameColumn<long> retainedRowIndices;
+            PrimitiveDataFrameColumn<long> supplementaryRowIndices;
+            DataFrame supplementaryDataFrame;
+            DataFrame retainedDataFrame;
+            bool isLeftDataFrameRetained;
+
+            if (joinAlgorithm == JoinAlgorithm.Left || joinAlgorithm == JoinAlgorithm.Right)
+            {
+                isLeftDataFrameRetained = (joinAlgorithm == JoinAlgorithm.Left);
+
+                supplementaryDataFrame = isLeftDataFrameRetained ? other : this;
+                var supplementaryJoinColumns = isLeftDataFrameRetained ? rightJoinColumns : leftJoinColumns;
+
+                retainedDataFrame = isLeftDataFrameRetained ? this : other;
+                var retainedJoinColumns = isLeftDataFrameRetained ? leftJoinColumns : rightJoinColumns;
+
+                Merge(retainedDataFrame, supplementaryDataFrame, retainedJoinColumns, supplementaryJoinColumns, out retainedRowIndices, out supplementaryRowIndices);
+
+            }
+            else if (joinAlgorithm == JoinAlgorithm.Inner)
+            {
+                // use as supplementary (for Hashing) the dataframe with the smaller RowCount 
+                isLeftDataFrameRetained = (Rows.Count > other.Rows.Count);
+
+                supplementaryDataFrame = isLeftDataFrameRetained ? other : this;
+                var supplementaryJoinColumns = isLeftDataFrameRetained ? rightJoinColumns : leftJoinColumns;
+
+                retainedDataFrame = isLeftDataFrameRetained ? this : other;
+                var retainedJoinColumns = isLeftDataFrameRetained ? leftJoinColumns : rightJoinColumns;
+
+                Merge(retainedDataFrame, supplementaryDataFrame, retainedJoinColumns, supplementaryJoinColumns, out retainedRowIndices, out supplementaryRowIndices, true);
+            }
+            else if (joinAlgorithm == JoinAlgorithm.FullOuter)
+            {
+                //In full outer join we would like to retain data from both side, so we do it into 2 steps: one first we do LEFT JOIN and then add lost data from the RIGHT side
+                
+                //Step 1
+                //Do LEFT JOIN
+                isLeftDataFrameRetained = true;
+
+                supplementaryDataFrame = isLeftDataFrameRetained ? other : this;
+                var supplementaryJoinColumns = isLeftDataFrameRetained ? rightJoinColumns : leftJoinColumns;
+
+                retainedDataFrame = isLeftDataFrameRetained ? this : other;
+                var retainedJoinColumns = isLeftDataFrameRetained ? leftJoinColumns : rightJoinColumns;
+
+                var intersection = Merge(retainedDataFrame, supplementaryDataFrame, retainedJoinColumns, supplementaryJoinColumns, out retainedRowIndices, out supplementaryRowIndices, calculateIntersection: true);
+                                
+                //Step 2
+                //Do RIGHT JOIN to retain all data from supplementary DataFrame too (take into account data intersection from the first step to avoid duplicates)
+                for (long i = 0; i < supplementaryDataFrame.Columns.RowCount; i++)
+                {
+                    var columns = supplementaryJoinColumns.Select(name => supplementaryDataFrame.Columns[name]).ToArray();
+                    if (!IsAnyNullValueInColumns(columns, i))
+                    {
+                        if (!intersection.Contains(i))
+                        {
+                            retainedRowIndices.Append(null);
+                            supplementaryRowIndices.Append(i);
+                        }
                     }
                 }
             }
             else
                 throw new NotImplementedException(nameof(joinAlgorithm));
-
-            for (int i = 0; i < leftDataFrame.Columns.Count; i++)
+                                    
+            DataFrame ret = new DataFrame();
+                       
+            //insert columns from left dataframe (this)
+            for (int i = 0; i < this.Columns.Count; i++)
             {
-                ret.Columns.Insert(i, leftDataFrame.Columns[i].Clone(leftRowIndices));
+                ret.Columns.Insert(i, this.Columns[i].Clone(isLeftDataFrameRetained ? retainedRowIndices : supplementaryRowIndices));
             }
-            for (int i = 0; i < rightDataFrame.Columns.Count; i++)
+
+            //insert columns from right dataframe (other)
+            for (int i = 0; i < other.Columns.Count; i++)
             {
-                DataFrameColumn column = rightDataFrame.Columns[i].Clone(rightRowIndices);
+                DataFrameColumn column = other.Columns[i].Clone(isLeftDataFrameRetained ? supplementaryRowIndices : retainedRowIndices);
                 SetSuffixForDuplicatedColumnNames(ret, column, leftSuffix, rightSuffix);
                 ret.Columns.Insert(ret.Columns.Count, column);
             }

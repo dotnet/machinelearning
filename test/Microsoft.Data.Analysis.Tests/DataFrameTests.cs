@@ -1830,37 +1830,39 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame left = MakeDataFrameWithAllMutableColumnTypes(5);
             left["Int"][3] = null;
             DataFrame right = MakeDataFrameWithAllMutableColumnTypes(5);
-            // Creates this case:
-            /*
-             * Left:    Right:
-             * 0        0
-             * 1        5
-             * null(2)  null(7)
-             * null(3)  null(8)
-             * 4        6
-             */
-            /*
-             * Merge will result in a DataFrame like:
-             * Int_Left     Int_Right
-             * 0            0
-             * 1            null
-             * 4            null 
-             * null         5
-             * null         6
-             * null(2)      null(7)
-             * null(2)      null(8)
-             * null(3)      null(7)
-             * null(3)      null(8)
-             */
             right["Int"][1] = 5;
             right["Int"][3] = null;
             right["Int"][4] = 6;
 
+            // Creates this case:
+            /*
+             * Left:    Right:    RowIndex:
+             * 0        0         0
+             * 1        5         1
+             * null     null      2
+             * null(3)  null(3)   3 
+             * 4        6         4
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             * Int_left:    Int_right:        Merged:    Index:
+             * 0            0                 0 - 0      0       
+             * 1            null              1 - N      1
+             * null         null              2 - 2      2
+             * null         null(3)           2 - 3      3
+             * null(3)      null              3 - 2      4
+             * null(3)      null(3)           3 - 3      5
+             * 4            null              4 - N      6
+             * null         5                 N - 1      7
+             * null         6                 N - 4      8
+             */
+
             DataFrame merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.FullOuter);
             Assert.Equal(9, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
-
-            int[] mergeRows = new int[] { 0, 5, 6, 7, 8 };
+                        
+            int[] mergeRows = new int[] { 0, 2, 3, 4, 5 };
             int[] leftRows = new int[] { 0, 2, 2, 3, 3 };
             int[] rightRows = new int[] { 0, 2, 3, 2, 3 };
             for (long i = 0; i < mergeRows.Length; i++)
@@ -1871,7 +1873,7 @@ namespace Microsoft.Data.Analysis.Tests
                 MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, leftRowIndex, rightRowIndex);
             }
 
-            mergeRows = new int[] { 1, 2 };
+            mergeRows = new int[] { 1, 6 };
             leftRows = new int[] { 1, 4 };
             for (long i = 0; i < mergeRows.Length; i++)
             {
@@ -1880,13 +1882,423 @@ namespace Microsoft.Data.Analysis.Tests
                 MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, leftRowIndex, null);
             }
 
-            mergeRows = new int[] { 3, 4 };
+            mergeRows = new int[] { 7, 8 };
             rightRows = new int[] { 1, 4 };
             for (long i = 0; i < mergeRows.Length; i++)
             {
                 int rowIndex = mergeRows[i];
                 int rightRowIndex = rightRows[i];
                 MatchRowsOnMergedDataFrame(merge, left, right, rowIndex, null, rightRowIndex);
+            }
+        }
+
+        [Fact]
+        public void TestMerge_ByTwoColumns_Complex_LeftJoin()
+        {
+            //Test left merge by to int type columns
+
+            //Arrange
+            var left = new DataFrame();
+            left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2, 3, 4, 5 }));
+            left.Columns.Add (new Int32DataFrameColumn("G1", new[] { 0, 1, 1, 2, 2, 3 }));
+            left.Columns.Add (new Int32DataFrameColumn("G2", new[] { 3, 1, 2, 1, 2, 1}));
+
+            var right = new DataFrame();
+            right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2, 3 }));
+            right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 1, 2 }));
+            right.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 2, 1, 1 }));
+
+            // Creates this case:
+            /*  -------------------------
+             *     Left     |     Right
+             *   I  G1 G2   |   I  G1 G2
+             *  -------------------------
+             *   0  0  3    |   0  1  1           
+             *   1  1  1    |   1  1  2   
+             *   2  1  2    |   2  1  1
+             *   3  2  1    |   3  2  1
+             *   4  2  2    
+             *   5  3  1
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             *   IL G1 G2     IR              Merged:
+             *  -------------------------
+             *   0  0  3                      0 - N
+             *   1  1  1       0  1  1        1 - 0
+             *   1  1  1       2  1  1        1 - 2
+             *   2  1  2       1  1  2        2 - 1
+             *   3  2  1       3  2  1        3 - 3
+             *   4  2  2                      4 - N
+             *   5  3  1                      5 - N
+             */
+
+            //Act
+            var merge = left.Merge(right, new[] { "G1", "G2" }, new[] { "G1", "G2" });
+
+            //Assert
+            var expectedMerged = new (int? Left, int? Right)[] {
+                (0, null),
+                (1, 0),
+                (1, 2),
+                (2, 1),
+                (3, 3),
+                (4, null),
+                (5, null)
+            };
+
+            Assert.Equal(expectedMerged.Length, merge.Rows.Count);
+            Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
+          
+            for (long i = 0; i < expectedMerged.Length; i++)
+            {               
+                MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
+            }
+
+        }
+
+        [Fact]
+        public void TestMerge_ByTwoColumns_Simple_ManyToMany_LeftJoin()
+        {            
+            //Test left merge by to int type columns
+
+            //Arrange
+            var left = new DataFrame();
+            left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 3 }));
+            left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 3 }));
+            
+            var right = new DataFrame();
+            right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 0 }));
+            right.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 0 }));
+
+            // Creates this case:
+            /*  ---------------------------
+             *     Left    |    Right
+             *   I  G1 G2  |   I  G1 G2 
+             *  ---------------------------
+             *   0  1  1   |   0  1  1    
+             *   1  1  1   |   1  1  1  
+             *   2  3  3   |   2  0  0 
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             *   IL G1 G2     IR           Merged:
+             *  -------------------------
+             *   0  1  1      0  1  1       0 - 0
+             *   0  1  1      1  1  1       0 - 1
+             *   1  1  1      0  1  1       1 - 0
+             *   1  1  1      1  1  1       1 - 1
+             *   2  3  3                    2 - N
+             */
+
+            //Act
+            var merge = left.Merge(right, new[] { "G1", "G2" }, new[] { "G1", "G2" });
+
+            //Assert
+            var expectedMerged = new (int? Left, int? Right)[] {
+                (0, 0),
+                (0, 1),
+                (1, 0),
+                (1, 1),
+                (2, null)
+            };
+
+            Assert.Equal(expectedMerged.Length, merge.Rows.Count);
+            Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
+
+            for (long i = 0; i < expectedMerged.Length; i++)
+            {
+                MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
+            }
+        }
+
+        [Fact]
+        public void TestMerge_ByTwoColumns_Simple_ManyToMany_RightJoin()
+        {
+            //Test left merge by to int type columns
+
+            //Arrange
+            var left = new DataFrame();
+            left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 3 }));
+            left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 3 }));
+
+            var right = new DataFrame();
+            right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 0 }));
+            right.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 0 }));
+
+            // Creates this case:
+            /*  ---------------------------
+             *     Left    |    Right
+             *   I  G1 G2  |   I  G1 G2 
+             *  ---------------------------
+             *   0  1  1   |   0  1  1    
+             *   1  1  1   |   1  1  1  
+             *   2  3  3   |   2  0  0 
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             *   IL G1 G2     IR           Merged:
+             *  -------------------------
+             *   0  1  1      0  1  1       0 - 0
+             *   1  1  1      0  1  1       1 - 0
+             *   0  1  1      1  1  1       0 - 1
+             *   1  1  1      1  1  1       1 - 1
+             *                2  0  0       N - 2
+             */
+
+            //Act
+            var merge = left.Merge(right, new[] { "G1", "G2" }, new[] { "G1", "G2" }, joinAlgorithm: JoinAlgorithm.Right);
+
+            //Assert
+            var expectedMerged = new (int? Left, int? Right)[] {
+                (0, 0),
+                (1, 0),
+                (0, 1),
+                (1, 1),
+                (null, 2)
+            };
+
+            Assert.Equal(expectedMerged.Length, merge.Rows.Count);
+            Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
+
+            for (long i = 0; i < expectedMerged.Length; i++)
+            {
+                MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
+            }
+        }
+
+        [Fact]
+        public void TestMerge_ByTwoColumns_Simple_ManyToMany_InnerJoin()
+        {
+            //Test left merge by to int type columns
+
+            //Arrange
+            var left = new DataFrame();
+            left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 3 }));
+            left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 3 }));
+
+            var right = new DataFrame();
+            right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 0 }));
+            right.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 0 }));
+
+            // Creates this case:
+            /*  ---------------------------
+             *     Left    |    Right
+             *   I  G1 G2  |   I  G1 G2 
+             *  ---------------------------
+             *   0  1  1   |   0  1  1    
+             *   1  1  1   |   1  1  1  
+             *   2  3  3   |   2  0  0 
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             *   IL G1 G2     IR           Merged:
+             *  -------------------------
+             *   0  1  1      0  1  1       0 - 0
+             *   1  1  1      0  1  1       1 - 0
+             *   0  1  1      1  1  1       0 - 1
+             *   1  1  1      1  1  1       1 - 1
+             */
+
+            //Act
+            var merge = left.Merge(right, new[] { "G1", "G2" }, new[] { "G1", "G2" }, joinAlgorithm: JoinAlgorithm.Inner);
+
+            //Assert
+            var expectedMerged = new (int? Left, int? Right)[] {
+                (0, 0),
+                (1, 0),
+                (0, 1),
+                (1, 1)
+            };
+
+            Assert.Equal(expectedMerged.Length, merge.Rows.Count);
+            Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
+
+            for (long i = 0; i < expectedMerged.Length; i++)
+            {
+                MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
+            }
+        }
+
+        [Fact]
+        public void TestMerge_ByTwoColumns_Simple_ManyToMany_OuterJoin()
+        {
+            //Test left merge by to int type columns
+
+            //Arrange
+            var left = new DataFrame();
+            left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 3 }));
+            left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 3 }));
+
+            var right = new DataFrame();
+            right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 0 }));
+            right.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 0 }));
+
+            // Creates this case:
+            /*  ---------------------------
+             *     Left    |    Right
+             *   I  G1 G2  |   I  G1 G2 
+             *  ---------------------------
+             *   0  1  1   |   0  1  1    
+             *   1  1  1   |   1  1  1  
+             *   2  3  3   |   2  0  0 
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             *   IL G1 G2     IR           Merged:
+             *  -------------------------
+             *   0  1  1      0  1  1       0 - 0
+             *   0  1  1      1  1  1       0 - 1
+             *   1  1  1      0  1  1       1 - 0
+             *   1  1  1      1  1  1       1 - 1
+             *   2  3  3                    2 - N
+             *                2  0  0       N - 2
+             */
+
+            //Act
+            var merge = left.Merge(right, new[] { "G1", "G2" }, new[] { "G1", "G2" }, joinAlgorithm: JoinAlgorithm.FullOuter);
+
+            //Assert
+            var expectedMerged = new (int? Left, int? Right)[] {
+                (0, 0),
+                (0, 1),
+                (1, 0),
+                (1, 1),
+                (2, null),
+                (null, 2)
+            };
+
+            Assert.Equal(expectedMerged.Length, merge.Rows.Count);
+            Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
+
+            for (long i = 0; i < expectedMerged.Length; i++)
+            {
+                MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
+            }
+        }
+
+        [Fact]
+        public void TestMerge_ByThreeColumns_OneToOne_LeftJoin()
+        {
+            //Test merge by LEFT join of int and string columns 
+
+            //Arrange
+            var left = new DataFrame();
+            left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 2 }));
+            left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 2, 1 }));
+            left.Columns.Add(new StringDataFrameColumn("G3", new[] { "A", "B", "C" }));
+
+            var right = new DataFrame();
+            right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 0, 1, 1 }));
+            right.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 2 }));
+            right.Columns.Add(new StringDataFrameColumn("G3", new[] { "Z", "Y", "B" }));
+
+            // Creates this case:
+            /*  -----------------------------
+             *      Left      |      Right
+             *   I  G1 G2 G3  |   I  G1 G2 G3
+             *  ------------------------------
+             *   0  1  1  A   |   0  0  1  Z  
+             *   1  1  2  B   |   1  1  1  Y
+             *   2  2  1  C   |   2  1  2  B
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             *   IL G1 G2 G3    IR              Merged:
+             *  -------------------------       
+             *   0  1  1  A                      0 - N
+             *   1  1  2  B     2  1  2  B       1 - 2
+             *   2  2  1  C                      2 - N
+             */
+
+            //Act
+            var merge = left.Merge(right, new[] { "G1", "G2", "G3" }, new[] { "G1", "G2", "G3" });
+
+            //Assert
+            var expectedMerged = new (int? Left, int? Right)[] {
+                (0, null),
+                (1, 2),
+                (2, null)
+            };
+
+            Assert.Equal(expectedMerged.Length, merge.Rows.Count);
+            Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
+
+            for (long i = 0; i < expectedMerged.Length; i++)
+            {
+                MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
+            }
+        }
+
+        [Fact]
+        public void TestMerge_ByThreeColumns_OneToOne_RightJoin()
+        {
+            //Test merge by RIGHT join of int and string columns 
+
+            //Arrange
+            var left = new DataFrame();
+            left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 2 }));
+            left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 2, 1 }));
+            left.Columns.Add(new StringDataFrameColumn("G3", new[] { "A", "B", "C" }));
+
+            var right = new DataFrame();
+            right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
+            right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 0, 1, 1 }));
+            right.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 2 }));
+            right.Columns.Add(new StringDataFrameColumn("G3", new[] { "Z", "Y", "B" }));
+
+            // Creates this case:
+            /*  -----------------------------
+             *      Left      |      Right
+             *   I  G1 G2 G3  |   I  G1 G2 G3
+             *  ------------------------------
+             *   0  1  1  A   |   0  0  1  Z  
+             *   1  1  2  B   |   1  1  1  Y
+             *   2  2  1  C   |   2  1  2  B
+             */
+
+            /*
+             * Merge will result in a DataFrame like:
+             *   IL G1 G2 G3    IR              Merged:
+             *  -------------------------       
+             *                  0  0  1  Z       N - 0
+             *                  1  1  1  Y       N - 1
+             *   1  1  2  B     2  1  2  B       1 - 2
+             */
+
+            //Act
+            var merge = left.Merge(right, new[] { "G1", "G2", "G3" }, new[] { "G1", "G2", "G3" }, joinAlgorithm: JoinAlgorithm.Right);
+
+            //Assert
+            var expectedMerged = new (int? Left, int? Right)[] {
+                (null, 0),
+                (null, 1),
+                (1, 2)
+            };
+
+            Assert.Equal(expectedMerged.Length, merge.Rows.Count);
+            Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
+
+            for (long i = 0; i < expectedMerged.Length; i++)
+            {
+                MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
             }
         }
 
@@ -2114,7 +2526,7 @@ namespace Microsoft.Data.Analysis.Tests
                 }
             }
         }
-
+        
         [Fact]
         public void TestColumnCreationFromExisitingColumn()
         {
