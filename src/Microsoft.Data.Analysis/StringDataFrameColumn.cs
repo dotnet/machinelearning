@@ -374,7 +374,7 @@ namespace Microsoft.Data.Analysis
         {
             if (mapIndices is null)
             {
-                StringDataFrameColumn ret = new StringDataFrameColumn(Name, mapIndices is null ? Length : mapIndices.Length);
+                StringDataFrameColumn ret = new StringDataFrameColumn(Name, Length);
                 for (long i = 0; i < Length; i++)
                 {
                     ret[i] = this[i];
