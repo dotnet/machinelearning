@@ -88,7 +88,7 @@ namespace Microsoft.ML.Transforms.Onnx
             [Argument(ArgumentType.Multiple, HelpText = "Shapes used to overwrite shapes loaded from ONNX file.", SortOrder = 5)]
             public CustomShapeInfo[] CustomShapeInfos;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Recursion limit.", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Protobuf CodedInputStream recursion limit.", SortOrder = 6)]
             public int RecursionLimit = 100;
         }
 
