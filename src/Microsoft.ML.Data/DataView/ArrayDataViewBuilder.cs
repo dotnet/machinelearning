@@ -410,7 +410,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public override void CopyOut(int index, ref TOut value)
             {
-                Contracts.Assert(0 <= index & index < _values.Length);
+                Contracts.Assert(0 <= index && index < _values.Length);
                 CopyOut(in _values[index], ref value);
             }
         }

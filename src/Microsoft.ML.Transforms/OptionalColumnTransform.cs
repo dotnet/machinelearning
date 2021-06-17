@@ -179,7 +179,7 @@ namespace Microsoft.ML.Transforms
 
             protected override DataViewType GetColumnTypeCore(int iinfo)
             {
-                Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
+                Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                 return ColumnTypes[iinfo];
             }
 

@@ -657,7 +657,7 @@ namespace Microsoft.ML.Transforms
                     int slot = 0;
                     foreach (var nstr in _pool)
                     {
-                        Contracts.Assert(0 <= nstr.Id & nstr.Id < editor.Values.Length);
+                        Contracts.Assert(0 <= nstr.Id && nstr.Id < editor.Values.Length);
                         Contracts.Assert(nstr.Id == slot);
                         editor.Values[nstr.Id] = nstr.Value;
                         slot++;

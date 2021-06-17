@@ -546,7 +546,7 @@ namespace Microsoft.ML.Transforms.Image
                 planes = (planes & 0x05) + ((planes >> 1) & 0x05);
                 planes = (planes & 0x03) + ((planes >> 2) & 0x03);
                 Planes = (byte)planes;
-                Contracts.Assert(0 < Planes & Planes <= 4);
+                Contracts.Assert(0 < Planes && Planes <= 4);
 
                 if (ctx.Header.ModelVerWritten <= VectorToImageConvertingTransformer.BeforeOrderVersion)
                     Order = ImagePixelExtractingEstimator.ColorsOrder.ARGB;

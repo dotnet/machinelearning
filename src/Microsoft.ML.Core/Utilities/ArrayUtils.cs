@@ -48,25 +48,25 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public static int FindIndexSorted(ReadOnlySpan<int> input, int min, int lim, int value)
         {
-            Debug.Assert(0 <= min & min <= lim & lim <= input.Length);
+            Debug.Assert(0 <= min && min <= lim && lim <= input.Length);
 
             int minCur = min;
             int limCur = lim;
             while (minCur < limCur)
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
-                Debug.Assert(minCur <= mid & mid < limCur);
+                Debug.Assert(minCur <= mid && mid < limCur);
 
                 if (input[mid] >= value)
                     limCur = mid;
                 else
                     minCur = mid + 1;
 
-                Debug.Assert(min <= minCur & minCur <= limCur & limCur <= lim);
+                Debug.Assert(min <= minCur && minCur <= limCur && limCur <= lim);
                 Debug.Assert(minCur == min || input[minCur - 1] < value);
                 Debug.Assert(limCur == lim || input[limCur] >= value);
             }
-            Debug.Assert(min <= minCur & minCur == limCur & limCur <= lim);
+            Debug.Assert(min <= minCur && minCur == limCur && limCur <= lim);
             Debug.Assert(minCur == min || input[minCur - 1] < value);
             Debug.Assert(limCur == lim || input[limCur] >= value);
 

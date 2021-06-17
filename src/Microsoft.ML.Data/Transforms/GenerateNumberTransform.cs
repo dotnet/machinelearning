@@ -189,13 +189,13 @@ namespace Microsoft.ML.Transforms
 
             protected override DataViewType GetColumnTypeCore(int iinfo)
             {
-                Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
+                Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                 return UseCounter[iinfo] ? NumberDataViewType.Int64 : NumberDataViewType.Single;
             }
 
             protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
             {
-                Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
+                Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                 var items = base.GetAnnotationTypesCore(iinfo);
                 if (!UseCounter[iinfo])
                     items = items.Prepend(BooleanDataViewType.Instance.GetPair(AnnotationUtils.Kinds.IsNormalized));
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms
 
             protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
             {
-                Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
+                Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                 if (kind == AnnotationUtils.Kinds.IsNormalized && !UseCounter[iinfo])
                     return BooleanDataViewType.Instance;
                 return base.GetAnnotationTypeCore(kind, iinfo);
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Transforms
 
             protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
             {
-                Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
+                Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                 if (kind == AnnotationUtils.Kinds.IsNormalized && !UseCounter[iinfo])
                 {
                     AnnotationUtils.Marshal<bool, TValue>(IsNormalized, iinfo, ref value);
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms
 
             private void IsNormalized(int iinfo, ref bool dst)
             {
-                Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
+                Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                 dst = true;
             }
 

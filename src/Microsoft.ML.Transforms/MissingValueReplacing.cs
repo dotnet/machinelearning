@@ -750,7 +750,7 @@ namespace Microsoft.ML.Transforms
                         Host.Assert(iivDst <= iivSrc);
                         var srcVal = srcValues[iivSrc];
                         int iv = srcIndices[iivSrc];
-                        Host.Assert(ivPrev < iv & iv < srcSize);
+                        Host.Assert(ivPrev < iv && iv < srcSize);
                         ivPrev = iv;
 
                         if (!isNA(in srcVal))
@@ -824,7 +824,7 @@ namespace Microsoft.ML.Transforms
                         Host.Assert(iivDst <= iivSrc);
                         var srcVal = srcValues[iivSrc];
                         int iv = srcIndices[iivSrc];
-                        Host.Assert(ivPrev < iv & iv < srcSize);
+                        Host.Assert(ivPrev < iv && iv < srcSize);
                         ivPrev = iv;
 
                         if (!isNA(in srcVal))

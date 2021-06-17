@@ -71,7 +71,7 @@ namespace Microsoft.ML.Transforms
                     else
                         ivLim = iv;
                 }
-                Contracts.Assert(0 <= ivMin & ivMin <= map.Count);
+                Contracts.Assert(0 <= ivMin && ivMin <= map.Count);
                 Contracts.Assert(ivMin == map.Count || value < map[ivMin]);
                 Contracts.Assert(ivMin == 0 || value >= map[ivMin - 1]);
                 return ivMin;

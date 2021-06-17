@@ -633,8 +633,8 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(!Double.IsNaN(rSquaredAdjusted) || standardErrors == null);
             // Nullity or not must be consistent between the statistics.
             Contracts.Assert((standardErrors == null) == (tValues == null) && (tValues == null) == (pValues == null));
-            Contracts.Assert(0 <= rSquared & rSquared <= 1);
-            Contracts.Assert(Double.IsNaN(rSquaredAdjusted) | (0 <= rSquaredAdjusted & rSquaredAdjusted <= 1));
+            Contracts.Assert(0 <= rSquared && rSquared <= 1);
+            Contracts.Assert(Double.IsNaN(rSquaredAdjusted) || (0 <= rSquaredAdjusted && rSquaredAdjusted <= 1));
             if (standardErrors != null)
             {
                 // If not null, the input arrays must have one value for each parameter.
@@ -713,15 +713,15 @@ namespace Microsoft.ML.Trainers
             //     double[#parameters]: t-statistics per parameter
             //     double[#parameters]: p-values per parameter
 
-            Contracts.Assert(0 <= RSquared & RSquared <= 1);
+            Contracts.Assert(0 <= RSquared && RSquared <= 1);
             ctx.Writer.Write(RSquared);
-            Contracts.Assert(Double.IsNaN(RSquaredAdjusted) | (0 <= RSquaredAdjusted && RSquaredAdjusted <= 1));
+            Contracts.Assert(Double.IsNaN(RSquaredAdjusted) || (0 <= RSquaredAdjusted && RSquaredAdjusted <= 1));
             ctx.Writer.Write(RSquaredAdjusted);
-            Contracts.Assert(!Double.IsNaN(RSquaredAdjusted) | !HasStatistics);
+            Contracts.Assert(!Double.IsNaN(RSquaredAdjusted) || !HasStatistics);
             ctx.Writer.WriteBoolByte(HasStatistics);
             if (!HasStatistics)
             {
-                Contracts.Assert(_standardErrors == null & _tValues == null & _pValues == null);
+                Contracts.Assert(_standardErrors == null && _tValues == null && _pValues == null);
                 return;
             }
             Contracts.Assert(Weight.Length + 1 == _standardErrors.Length);
