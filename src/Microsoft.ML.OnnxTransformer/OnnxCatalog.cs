@@ -26,7 +26,6 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -37,9 +36,8 @@ namespace Microsoft.ML
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string modelFile,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false,
-            int recursionLimit = 100)
-        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), modelFile, gpuDeviceId, fallbackToCpu, recursionLimit: recursionLimit);
+            bool fallbackToCpu = false)
+        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the input column.
@@ -59,7 +57,6 @@ namespace Microsoft.ML
         /// </param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -71,10 +68,9 @@ namespace Microsoft.ML
             string modelFile,
             IDictionary<string, int[]> shapeDictionary,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false,
-            int recursionLimit = 100)
+            bool fallbackToCpu = false)
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), modelFile, gpuDeviceId, fallbackToCpu,
-            shapeDictionary: shapeDictionary, recursionLimit);
+            shapeDictionary: shapeDictionary);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
@@ -87,7 +83,6 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -100,10 +95,9 @@ namespace Microsoft.ML
             string inputColumnName,
             string modelFile,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false,
-            int recursionLimit = 100)
+            bool fallbackToCpu = false)
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName },
-            modelFile, gpuDeviceId, fallbackToCpu, recursionLimit: recursionLimit);
+            modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
@@ -120,7 +114,6 @@ namespace Microsoft.ML
         /// </param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -134,10 +127,9 @@ namespace Microsoft.ML
             string modelFile,
             IDictionary<string, int[]> shapeDictionary,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false,
-            int recursionLimit = 100)
+            bool fallbackToCpu = false)
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName },
-            modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary: shapeDictionary, recursionLimit);
+            modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary: shapeDictionary);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
@@ -150,16 +142,39 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string[] outputColumnNames,
             string[] inputColumnNames,
             string modelFile,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false,
-            int recursionLimit = 100)
+            bool fallbackToCpu = false)
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames,
-            modelFile, gpuDeviceId, fallbackToCpu, recursionLimit: recursionLimit);
+            modelFile, gpuDeviceId, fallbackToCpu);
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
+        /// <param name="inputColumnNames">The input columns.</param>
+        /// <param name="modelFile">The path of the file containing the ONNX model.</param>
+        /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelFile"/>.
+        /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
+        /// is particularly useful for working with variable dimension inputs and outputs.
+        /// </param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
+            string[] outputColumnNames,
+            string[] inputColumnNames,
+            string modelFile,
+            IDictionary<string, int[]> shapeDictionary,
+            int? gpuDeviceId = null,
+            bool fallbackToCpu = false)
+        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames,
+            modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary: shapeDictionary);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
