@@ -1739,7 +1739,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FastForest")]
-        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved.")] //[Fact]
+        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved.")]
         public void CommandTrainScoreEvaluateQuantileRegression()
         {
             RunMTAThread(() =>

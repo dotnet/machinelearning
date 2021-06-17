@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved.")] //[Fact]
+        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved.")]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
