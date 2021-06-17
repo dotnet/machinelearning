@@ -21,7 +21,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         {
         }
 
-        [Fact(Skip = "Temporarily skipping while helix issues are resolved.")]
+        [Fact(Skip = "Temporarily skipping while helix issues are resolved. Tracked in issue #5845")]
         [TestCategory("ResourceDownload")]
         public async Task TestDownloadError()
         {

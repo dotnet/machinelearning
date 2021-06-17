@@ -1739,7 +1739,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FastForest")]
-        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved.")]
+        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved. Tracked in issue #5845")]
         public void CommandTrainScoreEvaluateQuantileRegression()
         {
             RunMTAThread(() =>
@@ -2085,7 +2085,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved.")]
+        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved. Tracked in issue #5845")]
         public void CommandTrainingBinaryFactorizationMachineWithValidationAndInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
@@ -2115,7 +2115,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved.")]
+        [Fact(Skip = "Temporarily skipping while Intel/AMD difference is resolved. Tracked in issue #5845")]
         public void CommandTrainingBinaryFieldAwareFactorizationMachineWithValidationAndInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";
