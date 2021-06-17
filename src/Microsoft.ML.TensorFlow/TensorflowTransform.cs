@@ -537,6 +537,7 @@ namespace Microsoft.ML.Transforms
             private readonly bool[] _isInputVector;
             private readonly TensorShape[] _fullySpecifiedShapes;
             private readonly ConcurrentBag<Runner> _runners;
+            private readonly OutputCache _outputCache;
 
             public Mapper(TensorFlowTransformer parent, DataViewSchema inputSchema) :
                    base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
@@ -546,6 +547,7 @@ namespace Microsoft.ML.Transforms
                 _inputColIndices = new int[_parent.Inputs.Length];
                 _isInputVector = new bool[_parent.Inputs.Length];
                 _fullySpecifiedShapes = new TensorShape[_parent.Inputs.Length];
+                _outputCache = new OutputCache();
                 for (int i = 0; i < _parent.Inputs.Length; i++)
                 {
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
@@ -655,13 +657,12 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
                 Host.AssertValue(input);
 
-                var outputCache = new OutputCache();
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
                 var type = Tf2MlNetType(_parent.TFOutputTypes[iinfo]).RawType;
                 Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
                 var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, _outputCache);
             }
 
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T : unmanaged
