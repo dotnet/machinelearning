@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests
                 }));
 
             var onnxFileName = "model.onnx";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Regression", "Adult");
+            var subDir = Path.Combine("Onnx", "Regression", "Adult");
             var onnxTextName = "SimplePipeline.txt";
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a model file and a text file.
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Tests
 
 
             var onnxFileName = "model.onnx";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Cluster", "BreastCancer");
+            var subDir = Path.Combine("Onnx", "Cluster", "BreastCancer");
             var onnxTextName = "Kmeans.txt";
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a model file and a text file.
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Tests
             {
                 var onnxModelFileName = $"{estimator}.onnx";
                 var onnxTxtFileName = $"{estimator}.txt";
-                var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Regression", "Adult");
+                var subDir = Path.Combine("Onnx", "Regression", "Adult");
 
                 // Step 2: Convert ML.NET model to ONNX format and save it as a model file and a text file.
                 TestPipeline(estimator, dataView, onnxModelFileName, new ColumnComparison[] { new ColumnComparison("Score", 3) }, onnxTxtFileName, subDir);
@@ -432,7 +432,7 @@ namespace Microsoft.ML.Tests
             var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numberOfThreads=1 numberOfLeaves=8 numberOfTrees=3} seed=1";
             Assert.Equal(0, Maml.Main(new[] { "train " + trainingPathArgs + trainingArgs }));
 
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+            var subDir = Path.Combine("Onnx", "BinaryClassification", "BreastCancer");
             var onnxTextName = "ModelWithLessIO.txt";
             var onnxFileName = "ModelWithLessIO.onnx";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
@@ -574,7 +574,7 @@ namespace Microsoft.ML.Tests
 
             var onnxFileName = "LogisticRegressionSaveModelToOnnxTest.onnx";
             var onnxTextName = "LogisticRegressionSaveModelToOnnxTest.txt";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+            var subDir = Path.Combine("Onnx", "BinaryClassification", "BreastCancer");
 
             TestPipeline(pipeline, cachedTrainData, onnxFileName, null, onnxTextName, subDir);
 
@@ -600,7 +600,7 @@ namespace Microsoft.ML.Tests
 
             var onnxFileName = "LightGbmBinaryClassificationOnnxConversionTest.onnx";
             var onnxTextName = "LightGbmBinaryClassificationOnnxConversionTest.txt";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+            var subDir = Path.Combine("Onnx", "BinaryClassification", "BreastCancer");
 
             TestPipeline(pipeline, cachedTrainData, onnxFileName, null, onnxTextName, subDir);
 
@@ -625,7 +625,7 @@ namespace Microsoft.ML.Tests
 
             var onnxFileName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.onnx";
             var onnxTextName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.txt";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "MultiClassClassification", "BreastCancer");
+            var subDir = Path.Combine("Onnx", "MultiClassClassification", "BreastCancer");
 
             TestPipeline(pipeline, data, onnxFileName, new ColumnComparison[] { new ColumnComparison("PredictedLabel"), new ColumnComparison("Score") }, onnxTextName, subDir);
 
@@ -807,7 +807,7 @@ namespace Microsoft.ML.Tests
                 // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
                 // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
                 // can support Linux and Mac.
-                var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+                var subDir = Path.Combine("Onnx", "BinaryClassification", "BreastCancer");
                 var onnxTextName = "ExcludeVariablesInOnnxConversion.txt";
                 var onnxFileName = "ExcludeVariablesInOnnxConversion.onnx";
                 var onnxTextPath = GetOutputPath(subDir, onnxTextName);
@@ -846,7 +846,7 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.Text.ApplyWordEmbedding("Embed", embedNetworkPath, "Tokens");
             var onnxFileName = "SmallWordEmbed.onnx";
             var onnxTextName = "SmallWordEmbed.txt";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms", "Sentiment");
+            var subDir = Path.Combine("Onnx", "Transforms", "Sentiment");
 
             TestPipeline(pipeline, data, onnxFileName, null, onnxTextName, subDir);
 
@@ -1162,7 +1162,7 @@ namespace Microsoft.ML.Tests
 
             var onnxFileName = "IndicateMissingValues.onnx";
             var onnxTextName = "IndicateMissingValues.txt";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
+            var subDir = Path.Combine("Onnx", "Transforms");
 
             TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("MissingIndicator") }, onnxTextName, subDir);
 
@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Tests
                 pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, float> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
                 pipelines.Add(mlContext.Transforms.Conversion.MapValue("Value", new Dictionary<ulong, double> { { 3, 6.435f }, { 23, 23.534f } }, "Keys"));
             }
-            foreach (IEstimator<ITransformer> pipeline in pipelines) 
+            foreach (IEstimator<ITransformer> pipeline in pipelines)
             {
                 for (int j = 0; j < dataViews.Length; j++)
                 {
@@ -1891,7 +1891,7 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Size").Append(mlContext.Transforms.SelectColumns(new[] { "Size", "Shape", "Thickness", "Label" }));
             var onnxFileName = "selectcolumns.onnx";
             var onnxTxtName = "SelectColumns.txt";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
+            var subDir = Path.Combine("Onnx", "Transforms");
             TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("Size"), new ColumnComparison("Shape"), new ColumnComparison("Thickness"), new ColumnComparison("Label") }, onnxTxtName, subDir);
 
             CheckEquality(subDir, onnxTxtName, digitsOfPrecision: 1);

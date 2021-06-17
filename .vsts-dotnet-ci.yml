@@ -30,6 +30,7 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
+    helixQueue: Ubuntu.1604.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-helix-20210528183707-dde38af
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -39,6 +40,7 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
+    helixQueue: Ubuntu.1604.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-helix-20210528184647-dde38af
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -47,6 +49,7 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted macOS
+    helixQueue: OSX.1015.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -67,6 +70,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
       name: Hosted VS2017
+    helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -76,6 +80,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
+    helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -96,6 +101,7 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name: Hosted VS2017
+    helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -106,3 +112,4 @@ jobs:
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
+    helixQueue: Windows.10.Amd64.Open

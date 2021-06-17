@@ -8,13 +8,6 @@ set(RESOURCES)
 include_directories("$ENV{__IntermediatesDir}")
 
 if(WIN32)
-    # There seems to be a bug in the latest VS2019
-    # which is adding /ZI (which conflicts with /guard:cf) instead of /Zi.
-	message("CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
-	message("In a future version, if the CMake that ships with VS2019 no longer contains the /ZI flag, delete this message block and the two lines below.")
-    string(REPLACE "/ZI" "/Zi" CMAKE_C_FLAGS_DEBUG  ${CMAKE_C_FLAGS_DEBUG})
-    string(REPLACE "/ZI" "/Zi" CMAKE_CXX_FLAGS_DEBUG  ${CMAKE_CXX_FLAGS_DEBUG})
-
     add_definitions(-DWIN32)
     add_definitions(-D_WIN32=1)
     add_definitions(-DUNICODE -D_UNICODE)
@@ -58,6 +51,8 @@ if(WIN32)
 
     # Debug build specific flags
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/NOVCFEATURE")
+    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:vcompd.lib /DEFAULTLIB:vcomp.lib")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:vcompd.lib /DEFAULTLIB:vcomp.lib")
 
     # Release build specific flags
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
@@ -78,6 +73,14 @@ else()
     add_compile_options(-fPIC)
     add_compile_options(-fvisibility=hidden)
     add_definitions(-Werror) # treat warnings as errors
+
+    # On Unix CMAKE_BUILD_TYPE is not passed in as just Debug/Release, so manually adding the extra flags
+    if(${CMAKE_BUILD_TYPE} MATCHES "Debug*")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
+    endif()
+
 endif()
 
 # Set the architecture we are compiling for on APPLE. This lets you cross target from x86_64 -> arm64.
@@ -208,4 +211,3 @@ endif()
 
 add_subdirectory(LdaNative)
 add_subdirectory(MatrixFactorizationNative)
-

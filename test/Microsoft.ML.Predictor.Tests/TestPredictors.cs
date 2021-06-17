@@ -277,7 +277,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [Fact(Skip = "Temporarily skipping while helix issues are resolved.")] //[Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {

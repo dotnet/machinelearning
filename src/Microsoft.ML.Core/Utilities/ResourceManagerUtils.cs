@@ -214,7 +214,7 @@ namespace Microsoft.ML.Internal.Utilities
             var filePath = Path.Combine(absDir, fileName);
             error = null;
 
-            if (!Directory.Exists(appDataBaseDir))
+            if (!Directory.Exists(appDataBaseDir) && string.IsNullOrEmpty(envDir))
             {
                 try
                 {
@@ -239,6 +239,9 @@ namespace Microsoft.ML.Internal.Utilities
                 try
                 {
                     Directory.CreateDirectory(absDir);
+                    // On unix, create with 0700 perms as per XDG base dir spec
+                    if (Environment.OSVersion.Platform == PlatformID.Unix)
+                        chmod(appDataBaseDir, 448);
                 }
                 catch (Exception e)
                 {

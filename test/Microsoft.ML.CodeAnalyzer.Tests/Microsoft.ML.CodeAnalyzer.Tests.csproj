@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="xunit.runner.json">
+    <None Update="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
