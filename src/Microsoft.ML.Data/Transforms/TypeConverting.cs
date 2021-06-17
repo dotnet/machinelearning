@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
                     kind = tempResultType.Value;
                 }
                 cols[i] = new TypeConvertingEstimator.ColumnOptions(item.Name, kind.ToDataKind(), item.Source ?? item.Name, keyCount);
-            };
+            }
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }
 

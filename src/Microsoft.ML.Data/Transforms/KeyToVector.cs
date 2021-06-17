@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms
                     item.Name,
                     item.Source ?? item.Name,
                     item.Bag ?? options.Bag);
-            };
+            }
             return new KeyToVectorMappingTransformer(env, cols).MakeDataTransform(input);
         }
 

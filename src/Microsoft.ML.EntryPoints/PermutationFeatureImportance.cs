@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms
                     TopKAccuracyStdErr = pMetric.TopKAccuracy.StandardError,
                     PerClassLogLoss = pMetric.PerClassLogLoss.Select(x => x.Mean).ToArray(),
                     PerClassLogLossStdErr = pMetric.PerClassLogLoss.Select(x => x.StandardError).ToArray()
-                }); ;
+                });
             }
 
             // Convert unknown size vectors to known size.
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Transforms
             foreach (var value in slotValues)
             {
                 slotNames.Add(value.ToString());
-            };
+            }
 
             return slotNames.ToArray();
         }

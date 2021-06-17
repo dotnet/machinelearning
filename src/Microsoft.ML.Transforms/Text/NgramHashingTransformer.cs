@@ -355,7 +355,7 @@ namespace Microsoft.ML.Transforms.Text
                         item.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts,
                         item.RehashUnigrams ?? options.RehashUnigrams
                         );
-                };
+                }
             }
             return new NgramHashingTransformer(env, input, cols).MakeDataTransform(input);
         }

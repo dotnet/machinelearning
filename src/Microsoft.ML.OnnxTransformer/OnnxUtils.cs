@@ -315,7 +315,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 // Along a specific axis, if any of left or right have unknown dimension, the overwriting can happen.
                 if (l != r && l > 0 && r > 0)
                     return false;
-            };
+            }
             return true;
         }
 

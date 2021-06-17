@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                     ptrArrayValues[i] = (double*)gcValues[i].AddrOfPinnedObject().ToPointer();
                     gcIndices[i] = GCHandle.Alloc(sampleIndicesPerColumn[i], GCHandleType.Pinned);
                     ptrArrayIndices[i] = (int*)gcIndices[i].AddrOfPinnedObject().ToPointer();
-                };
+                }
                 fixed (double** ptrValues = ptrArrayValues)
                 fixed (int** ptrIndices = ptrArrayIndices)
                 {
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                         gcValues[i].Free();
                     if (gcIndices[i].IsAllocated)
                         gcIndices[i].Free();
-                };
+                }
             }
             // Before adding examples (i.e., feature vectors of the original data set), the original labels, weights, and groups are added.
             SetLabel(labels);

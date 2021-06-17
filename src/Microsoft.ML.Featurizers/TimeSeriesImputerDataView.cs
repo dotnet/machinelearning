@@ -749,7 +749,7 @@ namespace Microsoft.ML.Transforms
 
                 var sharedState = new SharedColumnState();
 
-                _allColumns = _schema.Select(x => TypedColumn.CreateTypedColumn(x, dataColumns, allImputedColumnNames, sharedState)).ToDictionary(x => x.Column.Name); ;
+                _allColumns = _schema.Select(x => TypedColumn.CreateTypedColumn(x, dataColumns, allImputedColumnNames, sharedState)).ToDictionary(x => x.Column.Name);
                 _allColumns[IsRowImputedColumnName] = new BoolTypedColumn(_schema[IsRowImputedColumnName], false, true, sharedState);
 
                 foreach (var column in _allColumns.Values)

@@ -1796,7 +1796,7 @@ namespace Microsoft.ML.Trainers
                     NumberDataViewType.Single,
                     false,
                     new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))));
-            };
+            }
 
             return outCols.ToArray();
         }

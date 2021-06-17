@@ -429,7 +429,7 @@ namespace Microsoft.ML.Transforms.Text
                         item.Weighting ?? options.Weighting,
                         maxNumTerms,
                         item.Source ?? item.Name);
-                };
+                }
             }
             return new NgramExtractingTransformer(env, input, cols).MakeDataTransform(input);
         }

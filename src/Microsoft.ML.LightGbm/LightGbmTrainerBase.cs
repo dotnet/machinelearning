@@ -851,7 +851,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 nonZeroCntPerColumn[i] = 0;
                 sampleValuePerColumn[i] = new double[estimateNonZeroCnt];
                 sampleIndicesPerColumn[i] = new int[estimateNonZeroCnt];
-            };
+            }
             using (var cursor = factory.Create())
             {
                 int step = 1;

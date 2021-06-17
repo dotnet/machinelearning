@@ -447,7 +447,7 @@ namespace Microsoft.ML.Transforms
                     (MissingValueReplacingEstimator.ReplacementMode)(item.Kind ?? options.ReplacementKind),
                     item.Slot ?? options.ImputeBySlot,
                     item.ReplacementString);
-            };
+            }
             return new MissingValueReplacingTransformer(env, input, cols).MakeDataTransform(input);
         }
 
