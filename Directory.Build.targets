@@ -37,7 +37,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="CopyNativeAssembilesPublish" AfterTargets="Publish" DependsOnTargets="SetCopyProperties">
+  <Target Name="CopyNativeAssembliesPublish" AfterTargets="Publish" DependsOnTargets="SetCopyProperties">
     <Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
 			DestinationFolder="$(OutDir)\publish"
 			OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
