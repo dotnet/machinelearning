@@ -18,7 +18,7 @@ parameters:
   condition: succeeded()                 # optional -- condition for step to execute; defaults to succeeded()
 
 steps:
-  - powershell: '$env:Path = "$env:BUILD_SOURCESDIRECTORY\.dotnet;$env:Path"; powershell "$env:BUILD_SOURCESDIRECTORY\eng\common\msbuild.ps1 $env:BUILD_SOURCESDIRECTORY\eng\helix.proj /t:Test /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\${{ parameters.Configuration }}\SendToHelix.binlog /p:Configuration=${{ parameters.Configuration }} /p:TargetArchitecture=${{ parameters.Architecture }} -warnAsError 0"'
+  - powershell: 'powershell "$env:BUILD_SOURCESDIRECTORY\eng\common\msbuild.ps1 $env:BUILD_SOURCESDIRECTORY\eng\helix.proj /t:Test /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\${{ parameters.Configuration }}\SendToHelix.binlog /p:Configuration=${{ parameters.Configuration }} /p:TargetArchitecture=${{ parameters.Architecture }} -warnAsError 0"'
     displayName: ${{ parameters.DisplayNamePrefix }} (Windows)
     env:
       BuildConfig: ${{ parameters.Configuration }}
@@ -37,7 +37,7 @@ steps:
       Creator: ${{ parameters.Creator }}
     condition: and(${{ parameters.condition }}, eq(variables['Agent.Os'], 'Windows_NT'))
     continueOnError: ${{ parameters.continueOnError }}
-  - script: export PATH=$BUILD_SOURCESDIRECTORY/.dotnet:$PATH && $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh $BUILD_SOURCESDIRECTORY/eng/helix.proj /t:Test /bl:$BUILD_SOURCESDIRECTORY/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog /p:Configuration=${{ parameters.Configuration }} /p:TargetArchitecture=${{ parameters.Architecture }} --warnAsError false
+  - script: $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh $BUILD_SOURCESDIRECTORY/eng/helix.proj /t:Test /bl:$BUILD_SOURCESDIRECTORY/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog /p:Configuration=${{ parameters.Configuration }} /p:TargetArchitecture=${{ parameters.Architecture }} --warnAsError false
     displayName: ${{ parameters.DisplayNamePrefix }} (Unix)
     env:
       BuildConfig: ${{ parameters.Configuration }}
