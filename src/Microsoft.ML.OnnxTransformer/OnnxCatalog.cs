@@ -110,7 +110,7 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelFile"/>.
         /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
-        /// is particullarly useful for working with variable dimension inputs and outputs.
+        /// is particularly useful for working with variable dimension inputs and outputs.
         /// </param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>

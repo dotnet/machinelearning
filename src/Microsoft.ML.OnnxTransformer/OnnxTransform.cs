@@ -129,7 +129,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 modelSignature: "ONNXSCOR",
                 // version 10001 is single input & output.
                 // version 10002 = multiple inputs & outputs
-                verWrittenCur: 0x00010002,
+                // version 10003 = custom protobuf recursion limit
+                verWrittenCur: 0x00010003,
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
