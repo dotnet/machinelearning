@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -370,47 +372,64 @@ namespace Microsoft.ML.Transforms.Image
                         int position = 0;
                         ImagePixelExtractingEstimator.GetOrder(ex.Order, ex.Colors, out int a, out int r, out int b, out int g);
 
-                        for (int y = 0; y < height; ++y)
-                            for (int x = 0; x < width; x++)
+                        BitmapData bmpData = null;
+                        try
+                        {
+                            bmpData = dst.LockBits(new Rectangle(0, 0, dst.Width, dst.Height), ImageLockMode.ReadOnly, dst.PixelFormat);
+                            for (int y = 0; y < height; ++y)
                             {
-                                float red = ex.DefaultRed;
-                                float green = ex.DefaultGreen;
-                                float blue = ex.DefaultBlue;
-                                float alpha = ex.DefaultAlpha;
-                                if (ex.InterleavedColors)
+                                byte[] row = new byte[bmpData.Stride];
+                                int ix = 0;
+                                for (int x = 0; x < width; x++)
                                 {
-                                    if (ex.Alpha)
-                                        alpha = Convert.ToSingle(values[position + a]);
-                                    if (ex.Red)
-                                        red = Convert.ToSingle(values[position + r]);
-                                    if (ex.Green)
-                                        green = Convert.ToSingle(values[position + g]);
-                                    if (ex.Blue)
-                                        blue = Convert.ToSingle(values[position + b]);
-                                    position += ex.Planes;
+                                    float red = ex.DefaultRed;
+                                    float green = ex.DefaultGreen;
+                                    float blue = ex.DefaultBlue;
+                                    float alpha = ex.DefaultAlpha;
+                                    if (ex.InterleavedColors)
+                                    {
+                                        if (ex.Alpha)
+                                            alpha = Convert.ToSingle(values[position + a]);
+                                        if (ex.Red)
+                                            red = Convert.ToSingle(values[position + r]);
+                                        if (ex.Green)
+                                            green = Convert.ToSingle(values[position + g]);
+                                        if (ex.Blue)
+                                            blue = Convert.ToSingle(values[position + b]);
+                                        position += ex.Planes;
+                                    }
+                                    else
+                                    {
+                                        position = y * width + x;
+                                        if (ex.Alpha) alpha = Convert.ToSingle(values[position + cpix * a]);
+                                        if (ex.Red) red = Convert.ToSingle(values[position + cpix * r]);
+                                        if (ex.Green) green = Convert.ToSingle(values[position + cpix * g]);
+                                        if (ex.Blue) blue = Convert.ToSingle(values[position + cpix * b]);
+                                    }
+                                    if (!needScale)
+                                    {
+                                        row[ix++] = (byte)blue;
+                                        row[ix++] = (byte)green;
+                                        row[ix++] = (byte)red;
+                                        row[ix++] = (byte)alpha;
+                                    }
+                                    else
+                                    {
+                                        row[ix++] = (byte)Math.Round(blue * scale - offset);
+                                        row[ix++] = (byte)Math.Round(green * scale - offset);
+                                        row[ix++] = (byte)Math.Round(red * scale - offset);
+                                        row[ix++] = (byte)(ex.Alpha ? Math.Round(alpha * scale - offset) : 0);
+                                    }
                                 }
-                                else
-                                {
-                                    position = y * width + x;
-                                    if (ex.Alpha) alpha = Convert.ToSingle(values[position + cpix * a]);
-                                    if (ex.Red) red = Convert.ToSingle(values[position + cpix * r]);
-                                    if (ex.Green) green = Convert.ToSingle(values[position + cpix * g]);
-                                    if (ex.Blue) blue = Convert.ToSingle(values[position + cpix * b]);
-                                }
-                                Color pixel;
-                                if (!needScale)
-                                    pixel = Color.FromArgb((int)alpha, (int)red, (int)green, (int)blue);
-                                else
-                                {
-                                    pixel = Color.FromArgb(
-                                        ex.Alpha ? (int)Math.Round(alpha * scale - offset) : 0,
-                                        (int)Math.Round(red * scale - offset),
-                                        (int)Math.Round(green * scale - offset),
-                                        (int)Math.Round(blue * scale - offset));
-                                }
-                                dst.SetPixel(x, y, pixel);
-                                dst.Tag = nameof(VectorToImageConvertingTransformer);
+                                Marshal.Copy(row, 0, bmpData.Scan0 + y * bmpData.Stride, bmpData.Stride);
                             }
+                            dst.Tag = nameof(VectorToImageConvertingTransformer);
+                        }
+                        finally
+                        {
+                            if (bmpData != null)
+                                dst.UnlockBits(bmpData);
+                        }
                     };
             }
 
