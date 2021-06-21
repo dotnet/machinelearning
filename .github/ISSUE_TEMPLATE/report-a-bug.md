@@ -9,7 +9,8 @@ assignees: ''
 
 **System Information (please complete the following information):**
  - OS & Version: [e.g. Windows 10] 
- - ML.NET Version : [e.g. ML.NET v1.5.5]
+ - ML.NET Version: [e.g. ML.NET v1.5.5]
+ - .NET Version: [e.g. .NET 5.0]
 
 **Describe the bug**
 A clear and concise description of what the bug is.
