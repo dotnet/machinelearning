@@ -664,14 +664,14 @@ namespace Microsoft.ML.Transforms
                 }
                 disposer = () =>
                 {
-                    (outputCacher as IDisposable)?.Dispose();
+                    outputCacher.Dispose();
                 };
                 return result;
             }
 
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
-            private class OutputCache
+            private class OutputCache : IDisposable
             {
                 public long Position;
                 public Dictionary<string, Tensor> Outputs;
@@ -679,6 +679,17 @@ namespace Microsoft.ML.Transforms
                 {
                     Position = -1;
                     Outputs = new Dictionary<string, Tensor>();
+                }
+
+                private bool _isDisposed;
+
+                public void Dispose()
+                {
+                    if (_isDisposed)
+                        return;
+                    foreach (var tensor in Outputs.Values)
+                        tensor.Dispose();
+                    _isDisposed = true;
                 }
             }
 
