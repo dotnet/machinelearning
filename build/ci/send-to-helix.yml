@@ -30,9 +30,8 @@ steps:
             /p:HelixSource=${{ parameters.HelixSource }}
             /p:HelixType=${{ parameters.HelixType }}
             /p:HelixBuild=${{ parameters.HelixBuild }}
-            /p:HelixConfiguration= ${{ parameters.HelixConfiguration }}
-            /p:HelixTargetQueues=${{ parameters.HelixTargetQueues }}
-            /p:HelixAccessToken=${{ parameters.HelixAccessToken }}
+            /p:HelixConfiguration="${{ parameters.HelixConfiguration }}"
+            /p:HelixAccessToken="${{ parameters.HelixAccessToken }}"
             /p:IncludeDotNetCli=${{ parameters.IncludeDotNetCli }}
             /p:EnableXUnitReporter=${{ parameters.EnableXUnitReporter }}
             /p:WaitForWorkItemCompletion=${{ parameters.WaitForWorkItemCompletion }}
@@ -42,4 +41,5 @@ steps:
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       Creator: ${{ parameters.Creator }}
+      HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
     continueOnError: ${{ parameters.continueOnError }}
