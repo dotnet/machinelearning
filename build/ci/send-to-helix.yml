@@ -20,9 +20,9 @@ parameters:
 
 steps:
   - script: ${{ parameters.MsBuildScript}}
-            $(Build.SourcesDirectory)\eng\helix.proj
+            $(Build.SourcesDirectory)/eng/helix.proj
             /t:Test
-            /bl:$(Build.SourcesDirectory)\artifacts\log\${{ parameters.Configuration }}\SendToHelix.binlog
+            /bl:$(Build.SourcesDirectory)/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog
             /p:Configuration=${{ parameters.Configuration }}
             /p:TargetArchitecture=${{ parameters.Architecture }}
             /p:BuildConfig=${{ parameters.Configuration }}
