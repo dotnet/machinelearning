@@ -38,13 +38,13 @@
 
   <ItemGroup>
     <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)">
-    <PackageType>runtime</PackageType>
-    <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+      <PackageType>runtime</PackageType>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
     </AdditionalDotNetPackage>
 
     <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)">
-    <PackageType>runtime</PackageType>
-    <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+      <PackageType>runtime</PackageType>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
     </AdditionalDotNetPackage>
   </ItemGroup>
 
@@ -52,7 +52,7 @@
     <!-- For PRs we want helixtype to be the same for all frameworks except package testing-->
     <TestScope Condition="'$(TestScope)' == ''">innerloop</TestScope>
     <HelixType>test/unit/cli/$(TestScope)/</HelixType>
-   </PropertyGroup>
+  </PropertyGroup>
 
   <PropertyGroup>
     <!-- TargetFramework of the xunit.runner.dll to use when running the tests -->
@@ -111,6 +111,8 @@
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "$HELIX_WORKITEM_ROOT/libomp.dylib" runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands>
       <PublishFolder></PublishFolder>
       <PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">\win-$(BuildArchitecture)</PublishFolder>
+      <HelixCorrelationPayloadPath Condition="$(IsPosixShell)">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayload>
+      <HelixCorrelationPayloadPath Condition="!$(IsPosixShell)">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayload>
     </PropertyGroup>
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
@@ -141,9 +143,8 @@
     <ItemGroup>
       <HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
         <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)</PayloadDirectory>
-        <Command Condition="$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $HELIX_CORRELATION_PAYLOAD/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
-        <Command Condition="!$(IsPosixShell)">dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json %HELIX_CORRELATION_PAYLOAD%/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
-        <Command Condition="$(BuildConfig.EndsWith('-netfx')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'netcoreapp3.1'">%HELIX_CORRELATION_PAYLOAD%/xunit-runner/tools/net461/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Command Condition="$(BuildConfig.EndsWith('-netfx')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'netcoreapp3.1'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net461/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Timeout>01:00:00</Timeout>
         <Timeout Condition="'$(WorkItemTimeout)' != ''">$(WorkItemTimeout)</Timeout>
       </HelixWorkItem >
