@@ -8,6 +8,7 @@ parameters:
   Configuration: 'Debug'
   Architecture: 'x64'
   MsBuildScript: ''
+  WarnAsError: ''
   HelixConfiguration: ''                 # optional -- additional property attached to a job
   IncludeDotNetCli: true                 # optional -- true will download a version of the .NET CLI onto the Helix machine as a correlation payload; requires DotNetCliPackageType and DotNetCliVersion
   EnableXUnitReporter: true              # optional -- true enables XUnit result reporting to Mission Control
@@ -36,7 +37,7 @@ steps:
             /p:EnableXUnitReporter=${{ parameters.EnableXUnitReporter }}
             /p:WaitForWorkItemCompletion=${{ parameters.WaitForWorkItemCompletion }}
             /p:HelixBaseUri=${{ parameters.HelixBaseUri }}
-            -warnAsError 0
+            ${{ parameters.WarnAsError }}
     displayName: ${{ parameters.DisplayNamePrefix }}
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
