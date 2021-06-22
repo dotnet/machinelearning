@@ -375,7 +375,7 @@ namespace Microsoft.ML.Transforms.Image
                         BitmapData bmpData = null;
                         try
                         {
-                            bmpData = dst.LockBits(new Rectangle(0, 0, dst.Width, dst.Height), ImageLockMode.ReadOnly, dst.PixelFormat);
+                            bmpData = dst.LockBits(new Rectangle(0, 0, dst.Width, dst.Height), ImageLockMode.WriteOnly, dst.PixelFormat);
                             for (int y = 0; y < height; ++y)
                             {
                                 byte[] row = new byte[bmpData.Stride];
