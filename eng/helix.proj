@@ -111,8 +111,8 @@
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "$HELIX_WORKITEM_ROOT/libomp.dylib" runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands>
       <PublishFolder></PublishFolder>
       <PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">\win-$(BuildArchitecture)</PublishFolder>
-      <HelixCorrelationPayloadPath Condition="$(IsPosixShell)">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayload>
-      <HelixCorrelationPayloadPath Condition="!$(IsPosixShell)">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayload>
+      <HelixCorrelationPayloadPath Condition="$(IsPosixShell)">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayloadPath>
+      <HelixCorrelationPayloadPath Condition="!$(IsPosixShell)">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
     </PropertyGroup>
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
