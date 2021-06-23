@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 // version 10002 = multiple inputs & outputs
                 // version 10003 = custom protobuf recursion limit
                 verWrittenCur: 0x00010003,
-                verReadableCur: 0x00010002,
+                verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
             loaderAssemblyName: typeof(OnnxTransformer).Assembly.FullName);
@@ -189,13 +189,15 @@ namespace Microsoft.ML.Transforms.Onnx
             }
 
             int recursionLimit;
-            try
+
+            // Recursion limit change
+            if (ctx.Header.ModelVerWritten >= 0x00010003)
             {
                 recursionLimit = ctx.Reader.ReadInt32();
             }
-            catch (EndOfStreamException)
+            else
             {
-                //default if not written inside ONNX model
+                // Default if not written inside ONNX model
                 recursionLimit = 100;
             }
 
