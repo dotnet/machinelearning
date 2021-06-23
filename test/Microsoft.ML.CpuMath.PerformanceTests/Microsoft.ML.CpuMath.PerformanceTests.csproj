@@ -6,35 +6,29 @@
     <!--
     work around https://github.com/dotnet/sdk/issues/3044
     The netfx configuration will set the RuntimeIdentifier, but this causes restore issues on 3.0.
-    Blanking out RuntimeIdenifier (which isn't needed here) works around the issue.  
+    Blanking out RuntimeIdenifier (which isn't needed here) works around the issue.
     -->
     <RuntimeIdentifier></RuntimeIdentifier>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsUnitTestProject>false</IsUnitTestProject>
-    <IsPerformanceTestProject>true</IsPerformanceTestProject>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Remove="BenchmarkDotNet.Artifacts\**" />
     <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
     <None Remove="BenchmarkDotNet.Artifacts\**" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <None Update="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+
 </Project>

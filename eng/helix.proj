@@ -1,0 +1,153 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" InitialTargets="CreateHelixWorkItems">
+  <Choose>
+    <When Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))">
+    <PropertyGroup>
+      <IsPosixShell>false</IsPosixShell>
+    </PropertyGroup>
+    </When>
+    <Otherwise>
+    <PropertyGroup>
+      <IsPosixShell>true</IsPosixShell>
+    </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <PropertyGroup>
+    <HelixSourcePrefix>pr/</HelixSourcePrefix>
+    <HelixSource Condition="'$(HelixSource)' == ''">$(HelixSourcePrefix)dotnet/machinelearning</HelixSource>
+    <HelixSource Condition="'$(BUILD_SOURCEBRANCH)' != ''">$(HelixSource)/$(BUILD_SOURCEBRANCH)</HelixSource>
+
+    <HelixBuild Condition="'$(HelixBuild)' == ''">$(BUILD_BUILDNUMBER)</HelixBuild>
+    <HelixBuild Condition="'$(HelixBuild)' == ''">default</HelixBuild>
+
+    <WaitForWorkItemCompletion>true</WaitForWorkItemCompletion>
+    <CancelHelixJobsIfBuildCancelled Condition="'$(CancelHelixJobsIfBuildCancelled)' != 'false'">true</CancelHelixJobsIfBuildCancelled>
+    <FailOnWorkItemFailure Condition="'$(FailOnWorkItemFailure)' != 'false'">true</FailOnWorkItemFailure>
+
+    <!-- Read global.json so we know the version of the dotnet cli we need -->
+    <GlobalJsonContent>$([System.IO.File]::ReadAllText('$(RepoRoot)global.json'))</GlobalJsonContent>
+    <DotNetCliPackageType>sdk</DotNetCliPackageType>
+    <DotNetCliVersion>$([System.Text.RegularExpressions.Regex]::Match($(GlobalJsonContent), '(%3F&lt;="dotnet": ").*(%3F=")'))</DotNetCliVersion>
+
+    <!-- The other DotNetCliRuntimes are figured out correctly by the queue name -->
+    <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+
+    <!-- 'true' to produce a build error when tests fail. Default 'true' -->
+    <FailOnTestFailure>true</FailOnTestFailure>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)">
+      <PackageType>runtime</PackageType>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+    </AdditionalDotNetPackage>
+
+    <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)">
+      <PackageType>runtime</PackageType>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+    </AdditionalDotNetPackage>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(HelixType)' == ''">
+    <!-- For PRs we want helixtype to be the same for all frameworks except package testing-->
+    <TestScope Condition="'$(TestScope)' == ''">innerloop</TestScope>
+    <HelixType>test/unit/cli/$(TestScope)/</HelixType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- TargetFramework of the xunit.runner.dll to use when running the tests -->
+    <XUnitRuntimeTargetFramework>netcoreapp2.0</XUnitRuntimeTargetFramework>
+    <!-- PackageVersion of xunit.runner.console to use -->
+    <XUnitRunnerVersion>2.4.0</XUnitRunnerVersion>
+    <!-- Additional command line arguments to pass to xunit.console.exe -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <MyProjects Include="..\test\**\*.csproj" />
+    <MyProjects Include="..\test\**\*.fsproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.NightlyBuild.Tests\Microsoft.ML.NightlyBuild.Tests.csproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.CpuMath.PerformanceTests\Microsoft.ML.CpuMath.PerformanceTests.csproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.PerformanceTests\Microsoft.ML.PerformanceTests.csproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
+    <MyProjects Remove="..\test\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.Benchmarks.Tests\Microsoft.ML.Benchmarks.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <HelixCorrelationPayload Include="xunit-runner">
+      <Uri>https://api.nuget.org/v3-flatcontainer/xunit.runner.console/$(XUnitRunnerVersion)/xunit.runner.console.$(XUnitRunnerVersion).nupkg</Uri>
+      <Destination>xunit-runner</Destination>
+    </HelixCorrelationPayload>
+
+    <HelixCorrelationPayload Include="$(BUILD_SOURCESDIRECTORY)\test\data">
+      <Destination>test\data</Destination>
+    </HelixCorrelationPayload>
+
+    <HelixCorrelationPayload Include="$(BUILD_SOURCESDIRECTORY)\test\BaselineOutput">
+      <Destination>test\BaselineOutput</Destination>
+    </HelixCorrelationPayload>
+  </ItemGroup>
+
+  <Target Name="CreateHelixWorkItems">
+    <MSBuild Projects="@(MyProjects)"
+      Targets="GetTargetFrameworks"
+      BuildInParallel="$(BuildInParallel)"
+      RemoveProperties="TargetFramework;RuntimeIdentifier">
+        <Output TaskParameter="TargetOutputs" ItemName="ProjectsWithTargetFramework" />
+    </MSBuild>
+
+    <!-- <MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
+      Targets="Publish">
+        <Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
+    </MSBuild> -->
+
+    <PropertyGroup>
+      <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;sudo chmod -R 777 $HELIX_WORKITEM_ROOT;sudo chown -R $USER:$(id -g) $HELIX_WORKITEM_ROOT</HelixPreCommands>
+      <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%</HelixPreCommands>
+
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" libSymSgdNative.dylib</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "$HELIX_WORKITEM_ROOT/libomp.dylib" runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "$HELIX_WORKITEM_ROOT/libomp.dylib" runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands>
+      <PublishFolder></PublishFolder>
+      <PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">\win-$(BuildArchitecture)</PublishFolder>
+      <HelixCorrelationPayloadPath Condition="$(IsPosixShell)">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayloadPath>
+      <HelixCorrelationPayloadPath Condition="!$(IsPosixShell)">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
+    </PropertyGroup>
+
+    <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
+    <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+      SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;"
+      Retries="10"
+      OverwriteReadOnlyFiles="true"
+      RetryDelayMilliseconds="10"
+      DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)">
+    </Copy>
+
+    <!-- Remove the native libraries for other OS to save on payload size -->
+    <ItemGroup>
+      <WindowsFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\win*\**\*.*"/>
+      <LinuxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\linux*\**\*.*"/>
+      <OsxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx*\**\*.*"/>
+    </ItemGroup>
+
+    <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))"
+      Files="@(LinuxFiles);@(OsxFiles)" />
+
+    <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+      Files="@(LinuxFiles);@(WindowsFiles)" />
+
+    <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))"
+      Files="@(WindowsFiles);@(OsxFiles)" />
+
+    <ItemGroup>
+      <HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
+        <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)</PayloadDirectory>
+        <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Command Condition="$(BuildConfig.EndsWith('-netfx')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'netcoreapp3.1'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net461/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Timeout>01:00:00</Timeout>
+        <Timeout Condition="'$(WorkItemTimeout)' != ''">$(WorkItemTimeout)</Timeout>
+      </HelixWorkItem >
+    </ItemGroup>
+  </Target>
+</Project>

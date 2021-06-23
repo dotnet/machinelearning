@@ -6,7 +6,7 @@
     <PackageReference Include="coverlet.msbuild" Version="2.9.0" PrivateAssets="all" />
   </ItemGroup>
 
-  <Target Name="CopyNativeAssembiles" AfterTargets="CopyFilesToOutputDirectory">
+  <Target Name="SetCopyProperties">
     <PropertyGroup>
       <LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
       <LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
@@ -33,7 +33,23 @@
       <NativeAssemblyReference Remove="FastTreeNative"/>
       <NativeAssemblyReference Remove="SymSgdNative"/>
       <NativeAssemblyReference Remove="MklProxyNative"/>
+      <NativeAssemblyReference Remove="libiomp5md"/>
     </ItemGroup>
+  </Target>
+
+  <Target Name="CopyNativeAssembliesPublish" AfterTargets="Publish" DependsOnTargets="SetCopyProperties">
+    <Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
+			DestinationFolder="$(OutDir)\publish"
+			OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+			Retries="$(CopyRetryCount)"
+			RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+			UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
+			UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
+		    <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+		</Copy>
+  </Target>
+
+  <Target Name="CopyNativeAssembiles" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="SetCopyProperties">
 
 		<Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
 			DestinationFolder="$(OutDir)"
@@ -42,9 +58,10 @@
 			RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
 			UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
 			UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
-		<Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+		    <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
 		</Copy>
   </Target>
+
   <PropertyGroup Condition="'$(Coverage)' == 'true'">
     <!-- https://github.com/tonerdo/coverlet/issues/363 -->
     <DeterministicSourcePaths>false</DeterministicSourcePaths>
@@ -54,7 +71,7 @@
 
     <CollectCoverage>true</CollectCoverage>
     <SingleHit>true</SingleHit>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <CoverletOutputFormat>opencover</CoverletOutputFormat>
     <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\coverage.opencover.xml</CoverletOutput>
     <Include></Include>

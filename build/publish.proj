@@ -1,5 +1,5 @@
 <Project>
-  
+
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
 
   <PropertyGroup>
@@ -8,8 +8,8 @@
     <NuGetPushTimeoutSeconds Condition="'$(NuGetPushTimeoutSeconds)' == ''">600</NuGetPushTimeoutSeconds>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\$(PublishSymbolsPackage.ToLower())\$(MicrosoftSymbolUploaderBuildTaskVersion)\build\PublishSymbols.targets" />
-  
+  <Import Project="$(NuGetPackageRoot)$(PublishSymbolsPackage.ToLower())\$(MicrosoftSymbolUploaderBuildTaskVersion)\build\PublishSymbols.targets" />
+
   <Target Name="PublishSymbolPackages"
           Condition="'$(EnablePublishSymbols)'=='true'"
           DependsOnTargets="SetupPublishSymbols">

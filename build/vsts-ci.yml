@@ -234,10 +234,10 @@ phases:
   # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
   # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
   # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
-  - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:OfficialBuildId=$(OfficialBuildId) /p:DotNetFinalVersionKind=$(DotnetVersionKind)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+  - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:OfficialBuildId=$(OfficialBuildId) /p:DotNetFinalVersionKind=$(DotnetVersionKind)
     displayName: Build Packages
 
-  - script: ./sign.cmd /p:SignNugetPackages=true  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+  - script: ./sign.cmd /p:SignNugetPackages=true
     displayName: sign packages
     continueOnError: false
 
@@ -267,7 +267,7 @@ phases:
     displayName: Publish Symbols to SymWeb Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT)
       msbuildVersion: 15.0
     continueOnError: true
 
@@ -275,7 +275,7 @@ phases:
     displayName: Publish Symbols to Msdl Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)
       msbuildVersion: 15.0
     continueOnError: true
 

@@ -1,4 +1,5 @@
 #TODO: Need to update build documentation.
+
 parameters:
   name: ''
   architecture: x64
@@ -11,6 +12,7 @@ parameters:
   runSpecific: false
   container: ''
   useVSTestTask: false
+  helixQueue: ''
 
 jobs:
   - job: ${{ parameters.name }}
@@ -68,7 +70,7 @@ jobs:
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }}
       displayName: Build
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - task: Bash@3
@@ -85,11 +87,12 @@ jobs:
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
       - script: dir /s "$(Build.SourcesDirectory)"
         displayName: show bin folder disk usage
-      - task: PowerShell@2
-        inputs:
-          targetType: inline
-          script: Get-ChildItem -Path  '$(Build.SourcesDirectory)\packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
-        displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
+      # - ${{ if eq(parameters.codeCoverage, 'true') }}:
+      #   - task: PowerShell@2
+      #     inputs:
+      #       targetType: inline
+      #       script: Get-ChildItem -Path  '$(Build.SourcesDirectory)\.packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
+      #     displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
@@ -113,11 +116,10 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          # TODO: Code coverage needs to be fixed.
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages /p:Coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:Coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages /p:Coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -141,8 +143,21 @@ jobs:
               collectDumpOn: onAbortOnly
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
-        - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI'  /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages /p:Coverage=${{ parameters.codeCoverage }}
-          displayName: Run CI Tests.
+        - ${{ if eq(parameters.codeCoverage, True) }}:
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }}
+            displayName: Run CI Tests.
+        - ${{ if eq(parameters.codeCoverage, False) }}:
+          - template: /build/ci/send-to-helix.yml
+            parameters:
+              HelixTargetQueues: ${{ parameters.helixQueue }}
+              Configuration: $(_configuration)
+              Architecture: ${{ parameters.architecture }}
+              ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+                MsBuildScript: 'powershell $(Build.SourcesDirectory)/eng/common/msbuild.ps1'
+                WarnAsError: '-warnAsError 0'
+              ${{ if eq(parameters.buildScript, './build.sh') }}:
+                MsBuildScript: '$(Build.SourcesDirectory)/eng/common/msbuild.sh'
+                WarnAsError: '--warnAsError false'
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
@@ -193,6 +208,18 @@ jobs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
+    - ${{ if eq(parameters.buildScript, './build.sh') }}:
+      - task: Bash@3
+        inputs:
+          targetType: inline
+          script: find ./artifacts/bin -type d -path "*/runtimes"  -exec rm -rv {} +;
+        displayName: Clean up runtime folder for package (Unix)
+    - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+      - task: PowerShell@2
+        inputs:
+          targetType: inline
+          script: Get-ChildItem -Path  '.\artifacts\bin' -Recurse | Where-Object {$_.FullName -like "*runtimes*"} | Remove-Item -Recurse -Confirm:$false -Force
+        displayName: Clean up runtime folder for package (Unix)
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:RestorePackagesPath=$(Build.SourcesDirectory)\packages /p:NUGET_PACKAGES=$(Build.SourcesDirectory)\packages
+      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }}
         displayName: Build Packages

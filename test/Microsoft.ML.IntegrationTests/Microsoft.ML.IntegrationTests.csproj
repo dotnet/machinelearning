@@ -9,7 +9,6 @@
 
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsIntegrationTestProject>true</IsIntegrationTestProject>
-    
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,9 +48,4 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimePackageVersion)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 </Project>

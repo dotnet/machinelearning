@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
   </ItemGroup>
@@ -19,19 +18,16 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="$(MicrosoftExtensionsTestPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsTestPackageVersion)" />
   </ItemGroup>
-    
+
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="testdata.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
