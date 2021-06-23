@@ -637,9 +637,41 @@ namespace Microsoft.ML.Transforms
                 _runners = new ConcurrentBag<Runner>();
             }
 
+            private Delegate CreateGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, OutputCache outputCache)
+            {
+                Host.AssertValue(input);
+
+                var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
+
+                var type = Tf2MlNetType(_parent.TFOutputTypes[iinfo]).RawType;
+                Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
+                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
+                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+            }
+
+            public override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                Contracts.Assert(input.Schema == InputSchema);
+
+                OutputCache outputCacher = new OutputCache();
+
+                int n = OutputColumns.Value.Length;
+                var result = new Delegate[n];
+                for (int i = 0; i < n; i++) {
+                    if (!activeOutput(i))
+                        continue;
+                    result[i] = CreateGetter(input, i, activeOutput, outputCacher);
+                }
+                disposer = () =>
+                {
+                    outputCacher.Dispose();
+                };
+                return result;
+            }
+
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
-            private class OutputCache
+            private class OutputCache : IDisposable
             {
                 public long Position;
                 public Dictionary<string, Tensor> Outputs;
@@ -648,21 +680,21 @@ namespace Microsoft.ML.Transforms
                     Position = -1;
                     Outputs = new Dictionary<string, Tensor>();
                 }
+
+                private bool _isDisposed;
+
+                public void Dispose()
+                {
+                    if (_isDisposed)
+                        return;
+                    foreach (var tensor in Outputs.Values)
+                        tensor.Dispose();
+                    _isDisposed = true;
+                }
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
-            {
-                disposer = null;
-                Host.AssertValue(input);
-
-                var outputCache = new OutputCache();
-                var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
-
-                var type = Tf2MlNetType(_parent.TFOutputTypes[iinfo]).RawType;
-                Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
-                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
-            }
+                => throw new NotImplementedException("This should never be called!");
 
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T : unmanaged
             {
