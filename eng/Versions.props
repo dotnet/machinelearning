@@ -19,7 +19,7 @@
     <SystemThreadingChannelsPackageVersion>4.7.1</SystemThreadingChannelsPackageVersion>
     <!-- Other/External dependencies -->
     <GoogleProtobufPackageVersion>3.10.1</GoogleProtobufPackageVersion>
-    <LightGBMPackageVersion>3.1.1</LightGBMPackageVersion>
+    <LightGBMPackageVersion>2.3.1</LightGBMPackageVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
     <MicrosoftMLOnnxRuntimePackageVersion>1.6.0</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.9</MlNetMklDepsPackageVersion>
