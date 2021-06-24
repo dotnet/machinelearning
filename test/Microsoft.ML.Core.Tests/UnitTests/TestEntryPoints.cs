@@ -1194,7 +1194,7 @@ namespace Microsoft.ML.RunTests
             var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
-                        
+
             var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
@@ -2123,7 +2123,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -3674,7 +3674,7 @@ namespace Microsoft.ML.RunTests
                         'TrainingData': '$data2',
                         'TestingData': '$TestData',
                         'TransformModel': '$transform',
-                        'Nodes': [                          
+                        'Nodes': [
                           {
                             'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
@@ -3802,7 +3802,7 @@ namespace Microsoft.ML.RunTests
                         'TrainingData': '$data3',
                         'TestingData': '$TestData',
                         'TransformModel': '$CombinedModel',
-                        'Nodes': [                          
+                        'Nodes': [
                           {
                             'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
@@ -3835,7 +3835,7 @@ namespace Microsoft.ML.RunTests
                         'TrainingData': '$data3',
                         'TestingData': '$TestData',
                         'TransformModel': '$CombinedModel',
-                        'Nodes': [                          
+                        'Nodes': [
                           {
                             'Name': 'Trainers.StochasticGradientDescentBinaryClassifier',
                             'Inputs': {
@@ -3964,7 +3964,7 @@ namespace Microsoft.ML.RunTests
                         'TransformModel': '$CombinedModel',
                         'Kind': 'SignatureBinaryClassifierTrainer',
                         'NumFolds': 3,
-                        'Nodes': [                          
+                        'Nodes': [
                           {
                             'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
@@ -4052,7 +4052,7 @@ namespace Microsoft.ML.RunTests
                         'PerInstanceMetrics': '$PerInstanceMetrics2',
                         'ConfusionMatrix': '$ConfusionMatrix2'
                       }
-                    },   
+                    },
                   ]
                 }";
 
@@ -4225,7 +4225,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void EntryPointLinearPredictorSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -6891,10 +6891,10 @@ namespace Microsoft.ML.RunTests
                 Assert.Equal(10, ndcgArray.Length);
                 Assert.True(ndcgArray[0] > 0);
                 Assert.True(ndcgArray[1] > 0);
-                Assert.True(ndcgArray[2] > 0);                
+                Assert.True(ndcgArray[2] > 0);
                 Assert.True(ndcgArray[3] > 0);
                 Assert.True(ndcgArray[4] > 0);
-                Assert.True(ndcgArray[5] > 0);                
+                Assert.True(ndcgArray[5] > 0);
                 Assert.True(ndcgArray[6] > 0);
                 Assert.True(ndcgArray[7] > 0);
                 Assert.True(ndcgArray[8] > 0);

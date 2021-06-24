@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.RunTests
 {
@@ -277,7 +278,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact(Skip = "Temporarily skipping while helix issues are resolved. Tracked in issue #5845")]
+        [NativeDependencyFact("MklImports")]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {
@@ -1193,7 +1194,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
@@ -2170,7 +2171,7 @@ output Out [3] from H all;
         /// <summary>
         /// A test for field-aware factorization machine.
         /// </summary>
-        [Fact]
+        [NativeDependencyFact("CpuMathNative")]
         [TestCategory("Binary")]
         [TestCategory("FieldAwareFactorizationMachine")]
         public void BinaryClassifierFieldAwareFactorizationMachineTest()

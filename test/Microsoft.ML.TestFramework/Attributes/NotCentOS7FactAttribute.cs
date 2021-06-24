@@ -19,6 +19,12 @@ namespace Microsoft.ML.TestFramework.Attributes
         }
         protected override bool IsEnvironmentSupported()
         {
+            // Featurizers.dll must exist
+            if(!Microsoft.ML.TestFrameworkCommon.Utility.NativeLibrary.NativeLibraryExists("Featurizers"))
+            {
+                return false;
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 using (Process process = new Process())
@@ -42,4 +48,4 @@ namespace Microsoft.ML.TestFramework.Attributes
             return true;
         }
     }
-} 
+}
