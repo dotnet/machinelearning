@@ -36,6 +36,8 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
+      ${{ if and(eq(parameters.pool.name, 'Hosted Ubuntu 1604'), contains('parameters.helixQueue', 'cross')) }}:
+        ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
