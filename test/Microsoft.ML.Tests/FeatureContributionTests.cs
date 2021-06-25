@@ -249,7 +249,7 @@ namespace Microsoft.ML.Tests
 
         /// <summary>
         /// Features: x1, x2vBuff(sparse vector), x3. 
-        /// y = 10x1 + 10x2vBuff + 30x3 + e.
+        /// y = 10x1 + 10x2vBuff + 20x3 + e.
         /// Within xBuff feature  2nd slot will be sparse most of the time.
         /// 2nd slot of xBuff has the least importance: Evaluation metrics do not change a lot when this slot is permuted.
         /// x3 has the biggest importance.
