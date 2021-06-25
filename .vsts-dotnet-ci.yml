@@ -37,7 +37,7 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
-    helixQueue: Ubuntu.1604.Arm64.Docker.Open
+    helixQueue: Ubuntu.1604.Arm64.Docker.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-helix-20210528184647-dde38af
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -59,7 +59,7 @@ jobs:
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
-    helixQueue: Ubuntu.1604.Arm64.Docker.Open
+    helixQueue: Ubuntu.1604.Arm64.Docker.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-helix-20210528184647-dde38af
 
 - template: /build/ci/job-template.yml
   parameters:
