@@ -31,6 +31,7 @@
 
     <!-- The other DotNetCliRuntimes are figured out correctly by the queue name -->
     <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+    <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
 
     <!-- 'true' to produce a build error when tests fail. Default 'true' -->
     <FailOnTestFailure>true</FailOnTestFailure>
@@ -40,11 +41,13 @@
     <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
     </AdditionalDotNetPackage>
 
     <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
     </AdditionalDotNetPackage>
   </ItemGroup>
 
