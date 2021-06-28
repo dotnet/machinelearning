@@ -7,9 +7,15 @@ resources:
   - container: CentosContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
 
+  - container: UbuntuCrossArmContainer
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm-20210512124625-2e59a5f
+
+  - container: UbuntuCrossArm64Container
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64-20210512124625-2e59a5f
+
 phases:
 ################################################################################
-- phase: Linux
+- phase: Linux x64
 ################################################################################
   variables:
     BuildConfig: Release
@@ -29,6 +35,66 @@ phases:
     displayName: build redist
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+    displayName: Build
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Linux package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+      artifactName: PackageAssets
+      artifactType: container
+
+################################################################################
+- phase: Linux arm
+################################################################################
+  variables:
+    BuildConfig: Release-netcoreapp3_1
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
+  queue:
+    name: DotNet-Build
+    demands:
+    - agent.os -equals linux
+    container: UbuntuCrossArmContainer
+  steps:
+  - script: ./restore.sh
+    displayName: restore all projects
+  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+    displayName: build redist
+  # Only build native assets to avoid conflicts.
+  - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
+    displayName: Build
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Linux package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+      artifactName: PackageAssets
+      artifactType: container
+
+################################################################################
+- phase: Linux arm64
+################################################################################
+  variables:
+    BuildConfig: Release-netcoreapp3_1
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
+  queue:
+    name: DotNet-Build
+    demands:
+    - agent.os -equals linux
+    container: UbuntuCrossArm64Container
+  steps:
+  - script: ./restore.sh
+    displayName: restore all projects
+  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+    displayName: build redist
+  # Only build native assets to avoid conflicts.
+  - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
     displayName: Build
 
   - task: PublishBuildArtifacts@1
