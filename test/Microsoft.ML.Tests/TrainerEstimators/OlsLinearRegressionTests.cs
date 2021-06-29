@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

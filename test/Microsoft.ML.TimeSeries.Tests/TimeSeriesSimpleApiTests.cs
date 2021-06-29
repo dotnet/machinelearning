@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 

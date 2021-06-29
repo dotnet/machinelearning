@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
