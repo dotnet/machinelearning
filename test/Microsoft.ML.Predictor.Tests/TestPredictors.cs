@@ -620,7 +620,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [NotArm32Fact("Not supported on Arm32")]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
@@ -641,7 +641,7 @@ namespace Microsoft.ML.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [Fact]
+        [NotArm32Fact("Not supported on Arm32")]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");

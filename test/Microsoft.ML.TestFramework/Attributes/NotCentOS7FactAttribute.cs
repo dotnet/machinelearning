@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Utility;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
@@ -20,7 +21,7 @@ namespace Microsoft.ML.TestFramework.Attributes
         protected override bool IsEnvironmentSupported()
         {
             // Featurizers.dll must exist
-            if(!Microsoft.ML.TestFrameworkCommon.Utility.NativeLibrary.NativeLibraryExists("Featurizers"))
+            if (!NativeLibrary.NativeLibraryExists("Featurizers"))
             {
                 return false;
             }

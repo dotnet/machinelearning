@@ -35,7 +35,7 @@ phases:
     displayName: build redist
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
-    displayName: Build
+    displayName: Build Native Assets
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Linux package assets
@@ -65,7 +65,7 @@ phases:
     displayName: build redist
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
-    displayName: Build
+    displayName: Build Native Assets
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Linux package assets
@@ -95,7 +95,7 @@ phases:
     displayName: build redist
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
-    displayName: Build
+    displayName: Build Native Assets
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Linux package assets
@@ -129,7 +129,7 @@ phases:
     displayName: build redist
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
-    displayName: Build
+    displayName: Build Native Assets
 
   - task: PublishBuildArtifacts@1
     displayName: Publish macOS package assets
@@ -173,7 +173,7 @@ phases:
     displayName: build redist
   # Only build native assets to avoid conflicts.
   - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
-    displayName: Build
+    displayName: Build Native Assets
 
   - script: ./sign.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:SignBinaries=true
     displayName: sign binaries

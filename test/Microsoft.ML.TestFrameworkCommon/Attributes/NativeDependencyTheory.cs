@@ -1,6 +1,7 @@
 ﻿using Microsoft.ML.TestFrameworkCommon.Utility;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
-namespace Microsoft.ML.TestFrameworkCommon.Attributes
+namespace Microsoft.ML.TestFramework.Attributes
 {
     public sealed class NativeDependencyTheory : EnvironmentSpecificTheoryAttribute
     {
