@@ -5,7 +5,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
-using Microsoft.ML.TestFrameworkCommon.Utility;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
@@ -24,7 +23,7 @@ namespace Microsoft.ML.TestFramework.Attributes
             return (Environment.Is64BitProcess &&
                   (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                     AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23))))
-                    && NativeLibrary.NativeLibraryExists("tensorflow");
+                    && Microsoft.ML.TestFrameworkCommon.Utility.NativeLibrary.NativeLibraryExists("tensorflow");
         }
     }
 }
