@@ -54,8 +54,7 @@ if (${ARCHITECTURE} STREQUAL "arm")
     get_target_property(MAIN_FLAGS MatrixFactorizationNative COMPILE_OPTIONS)
     list(REMOVE_ITEM MAIN_FLAGS "-mthumb")
 
-    set_target_properties(MatrixFactorizationNative
-                      PROPERTIES COMPILE_OPTIONS ${MAIN_FLAGS})
+    set_property(TARGET MatrixFactorizationNative PROPERTY COMPILE_OPTIONS ${MAIN_FLAGS})
 endif()
 
 install_library_and_symbols (MatrixFactorizationNative)
