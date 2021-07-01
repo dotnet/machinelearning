@@ -40,7 +40,7 @@ jobs:
       ${{ if and(eq(parameters.pool.name, 'Hosted Ubuntu 1604'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
       ${{ if ne(parameters.testTargetFramework, '') }}:
-        testTargetFramwork: '/p:TestTargetFramework=${{ parameters.testTargetFramework }}'
+        testTargetFramework: '/p:TestTargetFramework=${{ parameters.testTargetFramework }}'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
@@ -79,7 +79,7 @@ jobs:
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramwork)
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
       displayName: Build
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - task: Bash@3
@@ -153,7 +153,7 @@ jobs:
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - ${{ if eq(parameters.codeCoverage, True) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramwork)
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run CI Tests.
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml
@@ -164,11 +164,11 @@ jobs:
               ${{ if eq(parameters.buildScript, 'build.cmd') }}:
                 MsBuildScript: 'powershell $(Build.SourcesDirectory)/eng/common/msbuild.ps1'
                 WarnAsError: '-warnAsError 0'
-                TestTargetFramework: '$(testTargetFramwork)'
+                TestTargetFramework: '$(testTargetFramework)'
               ${{ if eq(parameters.buildScript, './build.sh') }}:
                 MsBuildScript: '$(Build.SourcesDirectory)/eng/common/msbuild.sh'
                 WarnAsError: '--warnAsError false'
-                TestTargetFramework: '$(testTargetFramwork)'
+                TestTargetFramework: '$(testTargetFramework)'
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
