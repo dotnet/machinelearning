@@ -119,7 +119,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      vmImage: macOS-10.15
+      name: Hosted macOS
     helixQueue: OSX.1100.Arm64.Open
 
 - template: /build/ci/job-template.yml
