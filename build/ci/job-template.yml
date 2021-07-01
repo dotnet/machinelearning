@@ -73,7 +73,7 @@ jobs:
       - script: brew update && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
         displayName: Install MacOS build dependencies
     # Extra Apple MacOS step required to install OS-specific dependencies
-    - ${{ if and(eq(parameters.pool.name, 'Hosted macOS'), contains(parameters.name, 'cross'))  }}:
+    - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
       - script: brew update && brew install mono-libgdiplus && brew install libomp && brew link libomp --force
         displayName: Install MacOS ARM build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
