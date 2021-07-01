@@ -13,6 +13,7 @@ parameters:
   container: ''
   useVSTestTask: false
   helixQueue: ''
+  testTargetFramework: ''
 
 jobs:
   - job: ${{ parameters.name }}
@@ -38,6 +39,8 @@ jobs:
         spaceValue: '%20'
       ${{ if and(eq(parameters.pool.name, 'Hosted Ubuntu 1604'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
+      ${{ if ne(parameters.testTargetFramework, '') }}:
+        testTargetFramwork: '/p:TestTargetFramework=${{ parameters.testTargetFramework }}'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
@@ -66,13 +69,17 @@ jobs:
         displayName: MacOS Homebrew bug Workaround
         continueOnError: true
     # Extra MacOS step required to install OS-specific dependencies
-    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
+    - ${{ if and(eq(parameters.pool.name, 'Hosted macOS'), not(contains(parameters.name, 'cross')))  }}:
       - script: brew update && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
+        displayName: Install MacOS build dependencies
+    # Extra Apple MacOS step required to install OS-specific dependencies
+    - ${{ if and(eq(parameters.pool.name, 'Hosted macOS'), contains(parameters.name, 'cross'))  }}:
+      - script: brew update && brew install mono-libgdiplus && brew install libomp && brew link libomp --force
         displayName: Install MacOS build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }}
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramwork)
       displayName: Build
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - task: Bash@3

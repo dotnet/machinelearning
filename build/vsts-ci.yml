@@ -137,6 +137,40 @@ phases:
       pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
+      
+################################################################################
+- phase: MacOS Apple Silicon
+################################################################################
+  variables:
+    BuildConfig: Release
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
+  queue:
+    name: Hosted macOS
+  steps:
+  # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
+  - script: |
+      rm -rf /usr/local/bin/2to3
+    displayName: MacOS Homebrew bug Workaround
+    continueOnError: true
+  - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install libomp.rb && brew link libomp --force
+    displayName: Install build dependencies
+  - script: ./restore.sh
+    displayName: restore all projects
+  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
+    displayName: build redist
+  # Only build native assets to avoid conflicts.
+  - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+    displayName: Build Native Assets
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish macOS package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+      artifactName: PackageAssets
+      artifactType: container
 
 ################################################################################
 - phase: Windows_x86
