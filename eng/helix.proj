@@ -38,13 +38,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)">
+    <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)" Condition="'$(BuildArchitecture)' != 'arm64' And $(HelixTargetQueues.ToLowerInvariant().Contains('OSX'))">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
     </AdditionalDotNetPackage>
 
-    <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)">
+    <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)" Condition="'$(BuildArchitecture)' != 'arm64' And $(HelixTargetQueues.ToLowerInvariant().Contains('OSX'))">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
@@ -100,11 +100,6 @@
         <Output TaskParameter="TargetOutputs" ItemName="ProjectsWithTargetFramework" />
     </MSBuild>
 
-    <!-- <MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
-      Targets="Publish">
-        <Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
-    </MSBuild> -->
-
     <PropertyGroup>
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;sudo chmod -R 777 $HELIX_WORKITEM_ROOT;sudo chown -R $(whoami) $HELIX_WORKITEM_ROOT</HelixPreCommands>
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%</HelixPreCommands>
@@ -119,11 +114,14 @@
       <PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">\win-$(BuildArchitecture)</PublishFolder>
       <HelixCorrelationPayloadPath Condition="$(IsPosixShell)">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayloadPath>
       <HelixCorrelationPayloadPath Condition="!$(IsPosixShell)">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
+
+      <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+      <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
-    <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
-      SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;"
+    <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) And $(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))"
+      SourceFiles = "$(MacFilesToCopy)"
       Retries="10"
       OverwriteReadOnlyFiles="true"
       RetryDelayMilliseconds="10"
