@@ -4,7 +4,7 @@ using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
-    class NotAppleSiliconFactAttribute : EnvironmentSpecificFactAttribute
+    public class NotAppleSiliconFactAttribute : EnvironmentSpecificFactAttribute
     {
         public NotAppleSiliconFactAttribute(string skipMessage) : base(skipMessage)
         {
