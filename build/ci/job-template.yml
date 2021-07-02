@@ -39,6 +39,8 @@ jobs:
         spaceValue: '%20'
       ${{ if and(eq(parameters.pool.name, 'Hosted Ubuntu 1604'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
+      ${{ if eq(parameters.testTargetFramework, '') }}:
+        testTargetFramework: ''
       ${{ if ne(parameters.testTargetFramework, '') }}:
         testTargetFramework: '/p:TestTargetFramework=${{ parameters.testTargetFramework }}'
     strategy:
