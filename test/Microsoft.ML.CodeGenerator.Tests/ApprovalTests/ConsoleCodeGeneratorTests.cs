@@ -20,6 +20,7 @@ using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,7 +46,7 @@ namespace mlnet.Tests
             }
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppModelBuilderCSFileContentOvaTest()
@@ -60,7 +61,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppModelBuilderCSFileContentBinaryTest()
@@ -75,7 +76,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppModelBuilderCSFileContentRegressionTest()
@@ -90,7 +91,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppModelBuilderCSFileContentRankingTest()
@@ -105,7 +106,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")    ]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ModelProjectFileContentTestOnlyStableProjects()
@@ -120,7 +121,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ModelProjectFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsumeModelContentTest()
@@ -135,7 +136,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsumeModelCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ObservationCSFileContentTest()
@@ -150,7 +151,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ModelInputCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void PredictionCSFileContentTest()
@@ -165,7 +166,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ModelOutputCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void PredictionProgramCSFileContentTest()
@@ -180,7 +181,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
 
@@ -196,7 +197,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppProjectFileContentTest()
@@ -211,7 +212,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsoleAppProjectFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureImageCodeGeneratorTest()
@@ -247,7 +248,7 @@ namespace mlnet.Tests
 
 
         // Tevin: added to test OD codeGen working
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureObjectDetectionCodeGeneratorTest()
@@ -287,7 +288,7 @@ namespace mlnet.Tests
 
 
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureCodeGeneratorTest()
@@ -322,7 +323,7 @@ namespace mlnet.Tests
             }
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ModelInputClassTest()
@@ -370,7 +371,7 @@ namespace mlnet.Tests
             Approvals.Verify(modelInputProject.File);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureModelBuilderTest()
@@ -423,7 +424,7 @@ namespace mlnet.Tests
             Approvals.Verify(azureModelBuilder.File);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelInput()
@@ -434,7 +435,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ModelInputCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelOutput()
@@ -445,7 +446,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ModelOutputCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyConsumeModel()
@@ -456,7 +457,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ConsumeModelCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelProject()
@@ -467,7 +468,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ModelProjectFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProgram()
@@ -478,7 +479,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ConsoleAppProgramCSFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProject()
@@ -489,7 +490,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ConsoleAppProjectFileContent);
         }
 
-        [Fact]
+        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyModelBuilder()
