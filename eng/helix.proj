@@ -152,6 +152,7 @@
         <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Command Condition="$(BuildConfig.EndsWith('-netfx')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'netcoreapp3.1'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net461/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Timeout>01:00:00</Timeout>
+        <Timeout Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">00:30:00</Timeout>
         <Timeout Condition="'$(WorkItemTimeout)' != ''">$(WorkItemTimeout)</Timeout>
       </HelixWorkItem >
     </ItemGroup>
