@@ -234,5 +234,5 @@ jobs:
           script: Get-ChildItem -Path  '.\artifacts\bin' -Recurse | Where-Object {$_.FullName -like "*runtimes*"} | Remove-Item -Recurse -Confirm:$false -Force
         displayName: Clean up runtime folder for package (Unix)
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }}
+      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Packages
