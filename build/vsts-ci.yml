@@ -45,7 +45,7 @@ phases:
       artifactType: container
 
 ################################################################################
-- phase: Linux arm
+- phase: Linux_arm
 ################################################################################
   variables:
     BuildConfig: Release-netcoreapp3_1
@@ -75,7 +75,7 @@ phases:
       artifactType: container
 
 ################################################################################
-- phase: Linux arm64
+- phase: Linux_arm64
 ################################################################################
   variables:
     BuildConfig: Release-netcoreapp3_1
@@ -139,7 +139,7 @@ phases:
       artifactType: container
       
 ################################################################################
-- phase: MacOS Apple Silicon
+- phase: MacOS_Apple_Silicon
 ################################################################################
   variables:
     BuildConfig: Release-netcoreapp3_1
@@ -282,9 +282,12 @@ phases:
 ################################################################################
   dependsOn:
   - Linux
+  - Linux_arm64
+  - Linux_arm64
   - MacOS
   - Windows_x86
   - Windows_x64
+  - MacOS_Apple_Silicon
   variables:
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
