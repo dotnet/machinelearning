@@ -15,7 +15,7 @@ resources:
 
 phases:
 ################################################################################
-- phase: Linux x64
+- phase: Linux_x64
 ################################################################################
   variables:
     BuildConfig: Release
@@ -281,8 +281,8 @@ phases:
 - phase: Package
 ################################################################################
   dependsOn:
-  - Linux
-  - Linux_arm64
+  - Linux_x64
+  - Linux_arm
   - Linux_arm64
   - MacOS
   - Windows_x86

@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [NativeDependencyFact("CpuMathNative")]
+        [FieldAwareFactorizationMachineFact("FieldAwareFactorizationMachine doesn't currently support non x86/x64. Github isue #5871")]
         public void FfmBinaryClassificationWithoutArguments()
         {
             var mlContext = new MLContext(seed: 0);
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.65, 1);
         }
 
-        [NativeDependencyFact("CpuMathNative")]
+        [FieldAwareFactorizationMachineFact("FieldAwareFactorizationMachine doesn't currently support non x86/x64. Github isue #5871")]
         public void FfmBinaryClassificationWithAdvancedArguments()
         {
             var mlContext = new MLContext(seed: 0);
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.9, 1);
         }
 
-        [NativeDependencyFact("CpuMathNative")]
+        [FieldAwareFactorizationMachineFact("FieldAwareFactorizationMachine doesn't currently support non x86/x64. Github isue #5871")]
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())

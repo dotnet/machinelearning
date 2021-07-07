@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Utility;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.LightGbm;
@@ -1631,7 +1632,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [NativeDependencyFact("lib_lightgbm")]
+        [Fact]
         public void MulticlassTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1663,7 +1664,7 @@ namespace Microsoft.ML.Tests
                 mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated()
             };
 
-            if (Environment.Is64BitProcess)
+            if (Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm"))
             {
                 estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm());
                 estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm(
@@ -1955,7 +1956,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [NativeDependencyFact("lib_lightgbm")]
+        [Fact]
         public void NonDefaultColNamesMultiClassificationOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1987,7 +1988,7 @@ namespace Microsoft.ML.Tests
                 mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated("Label", "MyFeatureVector")
             };
 
-            if (Environment.Is64BitProcess)
+            if (Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm"))
             {
                 estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "MyFeatureVector"));
             }

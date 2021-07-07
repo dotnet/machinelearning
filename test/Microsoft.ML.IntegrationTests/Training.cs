@@ -23,7 +23,7 @@ namespace Microsoft.ML.IntegrationTests
         /// <summary>
         /// Training: It is easy to compare trainer evaluations on the same dataset.
         /// </summary>
-        [NativeDependencyFact("CpuMathNative")]
+        [FieldAwareFactorizationMachineFact("FieldAwareFactorizationMachine doesn't currently support non x86/x64. Github isue #5871")]
         public void CompareTrainerEvaluations()
         {
             var mlContext = new MLContext(seed: 1);
@@ -121,7 +121,7 @@ namespace Microsoft.ML.IntegrationTests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [NativeDependencyFact("CpuMathNative")]
+        [FieldAwareFactorizationMachineFact("FieldAwareFactorizationMachine doesn't currently support non x86/x64. Github isue #5871")]
         public void ContinueTrainingFieldAwareFactorizationMachine()
         {
             var mlContext = new MLContext(seed: 1);
