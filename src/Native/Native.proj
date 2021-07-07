@@ -125,7 +125,7 @@
       <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT' And '$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
                           Include="$(NativeAssetsBuiltPath)\MklImports.pdb"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Condition="'$(OS)' == 'Windows_NT' And '$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="$(NativeAssetsBuiltPath)\libiomp5md$(NativeLibExtension)"
