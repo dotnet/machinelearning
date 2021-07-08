@@ -29,7 +29,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private static readonly string _disableAvx = "COMPlus_EnableAVX";
         private static readonly string _disableSse = "COMPlus_EnableSSE";
         private static readonly string _disableAvxAndSse = "COMPlus_EnableHWIntrinsic";
-
+        public static bool IsNetCore => Environment.Version.Major >= 5 || RuntimeInformation.FrameworkDescription.StartsWith(".NET Core", StringComparison.OrdinalIgnoreCase);
+        public static bool IsNetCore2OrOlder => Environment.Version.Major == 4 && Environment.Version.Minor == 0;
         public static bool SkipAvxSse => RuntimeInformation.ProcessArchitecture == Architecture.Arm || RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 
         static CpuMathUtilsUnitTests()
@@ -90,7 +91,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             _testDstVectors = new AlignedArray[] { testDstVectorAligned1, testDstVectorAligned2 };
 
-            if (SkipAvxSse)
+            if ((SkipAvxSse || IsNetCore) && !IsNetCore2OrOlder)
             {
                 _disableAvxEnvironmentVariables = new Dictionary<string, string>()
                 {
@@ -103,19 +104,6 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     { _disableSse , "0" }
                 };
             }
-
-#if NETCOREAPP3_1
-            _disableAvxEnvironmentVariables = new Dictionary<string, string>()
-            {
-                { _disableAvx , "0" }
-            };
-
-            _disableAvxAndSseEnvironmentVariables = new Dictionary<string, string>()
-            {
-                { _disableAvx , "0" },
-                { _disableSse , "0" }
-            };
-#endif
         }
 
         public CpuMathUtilsUnitTests(ITestOutputHelper output) : base(output)
