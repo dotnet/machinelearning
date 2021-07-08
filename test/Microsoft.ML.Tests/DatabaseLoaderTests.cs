@@ -187,7 +187,7 @@ namespace Microsoft.ML.Tests
             }).PredictedLabel);
         }
 
-        [NativeDependencyFact("SQLite.Interop")]
+        [X86X64FactAttribute("Onlys supports x86/x64 architectures.")]
         public void IrisSdcaMaximumEntropy()
         {
             var mlContext = new MLContext(seed: 1);
