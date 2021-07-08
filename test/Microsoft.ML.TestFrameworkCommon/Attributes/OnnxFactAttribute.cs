@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 
 namespace Microsoft.ML.TestFrameworkCommon.Attributes

@@ -12,7 +12,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;

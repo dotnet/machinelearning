@@ -2171,7 +2171,7 @@ output Out [3] from H all;
         /// <summary>
         /// A test for field-aware factorization machine.
         /// </summary>
-        [FieldAwareFactorizationMachineFact("FieldAwareFactorizationMachine doesn't currently support non x86/x64. Github isue #5871")]
+        [FieldAwareFactorizationMachineFact]
         [TestCategory("Binary")]
         [TestCategory("FieldAwareFactorizationMachine")]
         public void BinaryClassifierFieldAwareFactorizationMachineTest()

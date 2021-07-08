@@ -9,7 +9,9 @@ namespace Microsoft.ML.TestFramework.Attributes
 {
     public class FieldAwareFactorizationMachineFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public FieldAwareFactorizationMachineFactAttribute (string skipMessage) : base(skipMessage)
+        private const string SkipMessage = "FieldAwareFactorizationMachine doesn't currently support non x86/x64. https://github.com/dotnet/machinelearning/issues/5871";
+
+        public FieldAwareFactorizationMachineFactAttribute () : base(SkipMessage)
         {
         }
 

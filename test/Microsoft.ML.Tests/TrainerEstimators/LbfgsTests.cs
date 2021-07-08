@@ -8,7 +8,6 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
