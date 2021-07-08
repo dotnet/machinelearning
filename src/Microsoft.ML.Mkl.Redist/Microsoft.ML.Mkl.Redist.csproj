@@ -23,6 +23,8 @@
       <!--Include native PDBs-->
       <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb" TargetPath="..\..\runtimes\win-x86\native"/>
       <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb" TargetPath="..\..\runtimes\win-x64\native"/>
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklImports.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklImports.pdb" TargetPath="..\..\runtimes\win-x86\native\MklImports.pdb"/>
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklImports.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklImports.pdb" TargetPath="..\..\runtimes\win-x64\native\MklImports.pdb"/>
     </ItemGroup>
   </Target>
 </Project>

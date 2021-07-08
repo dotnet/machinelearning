@@ -35,6 +35,10 @@
     <NativeVersionFile>$(IntermediateOutputPath)_version.h</NativeVersionFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <NonArmOnWindows Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'">true</NonArmOnWindows>
+  </PropertyGroup>
+
   <PropertyGroup>
     <NativeLibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</NativeLibPrefix>
     <NativeLibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</NativeLibExtension>
@@ -86,7 +90,11 @@
           SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
 
-    <Copy Condition="'$(OS)' == 'Windows_NT' And '$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
+    <!-- Copy MklImports pdb over -->
+    <Copy Condition="'$(NonArmOnWindows)' == 'true'" SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\MklImports.pdb"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />
+
+    <Copy Condition="'$(NonArmOnWindows)' == 'true'" SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
 
     <ItemGroup>
@@ -121,7 +129,10 @@
       <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT' And '$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'" Include="$(NativeAssetsBuiltPath)\libiomp5md$(NativeLibExtension)"
+      <NativePackageAsset Condition="'$(NonArmOnWindows)' == 'true'"
+                          Include="$(NativeAssetsBuiltPath)\MklImports.pdb"
+                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Condition="'$(NonArmOnWindows)' == 'true'" Include="$(NativeAssetsBuiltPath)\libiomp5md$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
 
     </ItemGroup>
