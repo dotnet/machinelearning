@@ -201,6 +201,11 @@ function(install_library_and_symbols targetName)
     endif()
 endfunction()
 
+if (${ARCHITECTURE} STREQUAL "arm")
+    add_compile_options(-fPIC)
+    add_compile_options(-march=armv7-a)
+endif()
+
 if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(CpuMathNative)
     add_subdirectory(FastTreeNative)

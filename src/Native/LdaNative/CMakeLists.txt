@@ -22,12 +22,6 @@ if (${ARCHITECTURE} STREQUAL "arm")
     else()
         target_link_libraries(LdaNative atomic.a)
     endif()
-    
-    # Arcade is adding mthumbs and it sets floats to 16 bits. Need to remove it.
-    get_target_property(MAIN_FLAGS LdaNative COMPILE_OPTIONS)
-    list(REMOVE_ITEM MAIN_FLAGS "-mthumb")
-        
-    set_property(TARGET LdaNative PROPERTY COMPILE_OPTIONS ${MAIN_FLAGS})
 endif()
 
 install_library_and_symbols (LdaNative)
