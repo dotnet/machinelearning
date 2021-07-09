@@ -202,8 +202,18 @@ function(install_library_and_symbols targetName)
 endfunction()
 
 if (${ARCHITECTURE} STREQUAL "arm")
+    add_compile_options(-mthumb)
     add_compile_options(-fPIC)
     add_compile_options(-march=armv7-a)
+    
+    if (NOT DEFINED CLR_ARM_FPU_TYPE)
+        set (CLR_ARM_FPU_TYPE vfpv3)
+    endif (NOT DEFINED CLR_ARM_FPU_TYPE)
+
+    add_compile_options (-mfpu=${CLR_ARM_FPU_TYPE})
+    if (NOT DEFINED CLR_ARM_FPU_CAPABILITY)
+        set (CLR_ARM_FPU_CAPABILITY 0x7)
+    endif (NOT DEFINED CLR_ARM_FPU_CAPABILITY)
 endif()
 
 if(NOT ${ARCHITECTURE} MATCHES "arm.*")

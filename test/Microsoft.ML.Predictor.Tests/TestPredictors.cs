@@ -620,7 +620,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [NotArm32Fact("Not supported on Arm32")]
+        [NotArm32Fact("RyuJit codegen issue https://github.com/dotnet/runtime/issues/7970")]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
