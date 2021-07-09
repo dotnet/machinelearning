@@ -159,6 +159,8 @@ jobs:
             displayName: Run CI Tests.
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml
+            ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'), in(variables['Build.Reason'], 'PullRequest')) }}:
+              enabled: False
             parameters:
               HelixTargetQueues: ${{ parameters.helixQueue }}
               Configuration: $(_configuration)
