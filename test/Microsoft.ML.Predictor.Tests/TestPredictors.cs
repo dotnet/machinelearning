@@ -147,7 +147,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
@@ -159,7 +159,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
@@ -315,7 +315,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers with non-negative coefficients
         ///</summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
@@ -328,7 +328,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
@@ -1601,7 +1601,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for no calibrators
         ///</summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Calibrator")]
         public void DefaultCalibratorPerceptronTest()
         {
@@ -1613,7 +1613,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
@@ -1625,7 +1625,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {
@@ -2143,7 +2143,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmTest()
@@ -2157,7 +2157,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmNoBiasTest()
@@ -2196,7 +2196,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         public void EnsemblesMultiClassBootstrapSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=20 st=BootstrapSelector{} tp=-"), "WE-Bootstrap");
@@ -2213,7 +2213,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         public void EnsemblesBaseLearnerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=AvgPer nm=3 tp=-"), "WE-AvgPer");
@@ -2293,7 +2293,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         public void EnsemblesMultiAveragerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiAverage tp=-"), "WE-Average");
@@ -2301,7 +2301,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         public void EnsemblesMultiVotingCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiVoting tp=-"), "WE-Voting");
@@ -2309,7 +2309,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. https://github.com/dotnet/machinelearning/issues/5845")]
+        [Fact]
         public void EnsemblesMultiStackCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiStacking{bp=mlr{t-}} tp=-"), "WE-Stacking");
