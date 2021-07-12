@@ -1232,7 +1232,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [NotAppleSiliconFactAttribute("Temporarily skipping while helix issues are resolved. Tracked in issue #5845")]
+        [Fact]
         [TestCategory(Cat), TestCategory("Multiclass"), TestCategory("Logistic Regression")]
         public void CommandTrainMlrWithStats()
         {
