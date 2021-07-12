@@ -31,20 +31,24 @@
 
     <!-- The other DotNetCliRuntimes are figured out correctly by the queue name -->
     <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+    <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
+    <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm64' And $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">osx-arm64</DotNetCliRuntime>
 
     <!-- 'true' to produce a build error when tests fail. Default 'true' -->
     <FailOnTestFailure>true</FailOnTestFailure>
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)">
+    <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)" Condition="'$(BuildArchitecture)' != 'arm64' Or !$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
     </AdditionalDotNetPackage>
 
-    <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)">
+    <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)" Condition="'$(BuildArchitecture)' != 'arm64' Or !$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
     </AdditionalDotNetPackage>
   </ItemGroup>
 
@@ -97,27 +101,29 @@
         <Output TaskParameter="TargetOutputs" ItemName="ProjectsWithTargetFramework" />
     </MSBuild>
 
-    <!-- <MSBuild Projects="%(ProjectsWithTargetFramework.Identity)"
-      Targets="Publish">
-        <Output TaskParameter="TargetOutputs" PropertyName="_PublishOutputDir" />
-    </MSBuild> -->
-
     <PropertyGroup>
-      <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;sudo chmod -R 777 $HELIX_WORKITEM_ROOT;sudo chown -R $USER:$(id -g) $HELIX_WORKITEM_ROOT</HelixPreCommands>
+      <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;sudo chmod -R 777 $HELIX_WORKITEM_ROOT;sudo chown -R $(whoami) $HELIX_WORKITEM_ROOT</HelixPreCommands>
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" libSymSgdNative.dylib</HelixPreCommands>
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "$HELIX_WORKITEM_ROOT/libomp.dylib" runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "$HELIX_WORKITEM_ROOT/libomp.dylib" runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx.1100.arm64'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;</HelixPreCommands>
+
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
+
       <PublishFolder></PublishFolder>
       <PublishFolder Condition="$(BuildConfig.EndsWith('-netfx'))">\win-$(BuildArchitecture)</PublishFolder>
       <HelixCorrelationPayloadPath Condition="$(IsPosixShell)">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayloadPath>
       <HelixCorrelationPayloadPath Condition="!$(IsPosixShell)">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
+
+      <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+      <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
     <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
-      SourceFiles = "/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;"
+      SourceFiles = "$(MacFilesToCopy)"
       Retries="10"
       OverwriteReadOnlyFiles="true"
       RetryDelayMilliseconds="10"
@@ -146,6 +152,7 @@
         <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Command Condition="$(BuildConfig.EndsWith('-netfx')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'netcoreapp3.1'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net461/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Timeout>01:00:00</Timeout>
+        <Timeout Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">00:30:00</Timeout>
         <Timeout Condition="'$(WorkItemTimeout)' != ''">$(WorkItemTimeout)</Timeout>
       </HelixWorkItem >
     </ItemGroup>

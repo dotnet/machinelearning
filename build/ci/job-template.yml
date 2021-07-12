@@ -13,6 +13,7 @@ parameters:
   container: ''
   useVSTestTask: false
   helixQueue: ''
+  testTargetFramework: ''
 
 jobs:
   - job: ${{ parameters.name }}
@@ -36,6 +37,12 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
+      ${{ if and(eq(parameters.pool.name, 'Hosted Ubuntu 1604'), contains(parameters.name, 'cross')) }}:
+        ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
+      ${{ if eq(parameters.testTargetFramework, '') }}:
+        testTargetFramework: ''
+      ${{ if ne(parameters.testTargetFramework, '') }}:
+        testTargetFramework: '/p:TestTargetFramework=${{ parameters.testTargetFramework }}'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
@@ -64,13 +71,17 @@ jobs:
         displayName: MacOS Homebrew bug Workaround
         continueOnError: true
     # Extra MacOS step required to install OS-specific dependencies
-    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
+    - ${{ if and(eq(parameters.pool.name, 'Hosted macOS'), not(contains(parameters.name, 'cross')))  }}:
       - script: brew update && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
         displayName: Install MacOS build dependencies
+    # Extra Apple MacOS step required to install OS-specific dependencies
+    - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
+      - script: brew update && brew install mono-libgdiplus && brew install libomp && brew link libomp --force
+        displayName: Install MacOS ARM build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }}
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
       displayName: Build
     - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - task: Bash@3
@@ -144,7 +155,7 @@ jobs:
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - ${{ if eq(parameters.codeCoverage, True) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run CI Tests.
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml
@@ -155,9 +166,14 @@ jobs:
               ${{ if eq(parameters.buildScript, 'build.cmd') }}:
                 MsBuildScript: 'powershell $(Build.SourcesDirectory)/eng/common/msbuild.ps1'
                 WarnAsError: '-warnAsError 0'
+                TestTargetFramework: '$(testTargetFramework)'
               ${{ if eq(parameters.buildScript, './build.sh') }}:
                 MsBuildScript: '$(Build.SourcesDirectory)/eng/common/msbuild.sh'
                 WarnAsError: '--warnAsError false'
+                TestTargetFramework: '$(testTargetFramework)'
+              # Don't have M1 failures fail the build for now.
+              ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
+                continueOnError: true
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
@@ -221,5 +237,5 @@ jobs:
           script: Get-ChildItem -Path  '.\artifacts\bin' -Recurse | Where-Object {$_.FullName -like "*runtimes*"} | Remove-Item -Recurse -Confirm:$false -Force
         displayName: Clean up runtime folder for package (Unix)
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
-      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }}
+      - script: ${{ parameters.buildScript }} /p:Build=false -pack -ci -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} $(testTargetFramework)
         displayName: Build Packages

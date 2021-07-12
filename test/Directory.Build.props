@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <TargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net461</TargetFramework>
     <TargetFramework Condition="$(Configuration.EndsWith('-netcoreapp3_1'))">netcoreapp3.1</TargetFramework>
+    <TargetFramework Condition="'$(TestTargetFramework)' != ''">$(TestTargetFramework)</TargetFramework>
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461'">win-x64</RuntimeIdentifier>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

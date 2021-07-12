@@ -11,6 +11,7 @@
     <RuntimeIdentifier></RuntimeIdentifier>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsUnitTestProject>false</IsUnitTestProject>
+    <IsPerformanceTestProject>true</IsPerformanceTestProject>
   </PropertyGroup>
 
   <ItemGroup>

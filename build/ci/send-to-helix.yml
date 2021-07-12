@@ -9,6 +9,7 @@ parameters:
   Architecture: 'x64'
   MsBuildScript: ''
   WarnAsError: ''
+  TestTargetFramework: ''
   HelixConfiguration: ''                 # optional -- additional property attached to a job
   IncludeDotNetCli: true                 # optional -- true will download a version of the .NET CLI onto the Helix machine as a correlation payload; requires DotNetCliPackageType and DotNetCliVersion
   EnableXUnitReporter: true              # optional -- true enables XUnit result reporting to Mission Control
@@ -38,9 +39,12 @@ steps:
             /p:WaitForWorkItemCompletion=${{ parameters.WaitForWorkItemCompletion }}
             /p:HelixBaseUri=${{ parameters.HelixBaseUri }}
             ${{ parameters.WarnAsError }}
+            ${{ parameters.TestTargetFramework }}
     displayName: ${{ parameters.DisplayNamePrefix }}
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       Creator: ${{ parameters.Creator }}
       HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
     continueOnError: ${{ parameters.continueOnError }}
+    ${{ if and(contains(parameters.HelixTargetQueues, 'OSX.1100.Arm64.Open'), in(variables['Build.Reason'], 'PullRequest')) }}:
+      enabled: False

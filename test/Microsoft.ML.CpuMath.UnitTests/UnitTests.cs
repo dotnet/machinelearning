@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -23,13 +24,14 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private static readonly FloatEqualityComparer _comparer;
         private static readonly FloatEqualityComparerForMatMul _matMulComparer;
         private static readonly string _defaultMode = "defaultMode";
-#if NETCOREAPP3_1
         private static Dictionary<string, string> _disableAvxEnvironmentVariables;
         private static Dictionary<string, string> _disableAvxAndSseEnvironmentVariables;
         private static readonly string _disableAvx = "COMPlus_EnableAVX";
         private static readonly string _disableSse = "COMPlus_EnableSSE";
         private static readonly string _disableAvxAndSse = "COMPlus_EnableHWIntrinsic";
-#endif
+        public static bool IsNetCore => Environment.Version.Major >= 5 || RuntimeInformation.FrameworkDescription.StartsWith(".NET Core", StringComparison.OrdinalIgnoreCase);
+        public static bool IsNetCore2OrOlder => Environment.Version.Major == 4 && Environment.Version.Minor == 0;
+        public static bool SkipAvxSse => RuntimeInformation.ProcessArchitecture == Architecture.Arm || RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 
         static CpuMathUtilsUnitTests()
         {
@@ -40,7 +42,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             // Small Input Size Array
             float[] testArray3 = new float[15] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f };
             _testArrays = new float[][] { testArray1, testArray2, testArray3 };
-            _testIndexArray = new int[18] { 0, 2, 5, 6, 8, 11, 12, 13, 14, 16, 18, 21, 22, 24, 26, 27, 28, 29};
+            _testIndexArray = new int[18] { 0, 2, 5, 6, 8, 11, 12, 13, 14, 16, 18, 21, 22, 24, 26, 27, 28, 29 };
             _comparer = new FloatEqualityComparer();
             _matMulComparer = new FloatEqualityComparerForMatMul();
 
@@ -89,18 +91,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             _testDstVectors = new AlignedArray[] { testDstVectorAligned1, testDstVectorAligned2 };
 
-#if NETCOREAPP3_1
-            _disableAvxEnvironmentVariables = new Dictionary<string, string>()
+            if ((SkipAvxSse || IsNetCore) && !IsNetCore2OrOlder)
             {
-                { _disableAvx , "0" }
-            };
+                _disableAvxEnvironmentVariables = new Dictionary<string, string>()
+                {
+                    { _disableAvx , "0" }
+                };
 
-            _disableAvxAndSseEnvironmentVariables = new Dictionary<string, string>()
-            {
-                { _disableAvx , "0" },
-                { _disableSse , "0" }
-            };
-#endif
+                _disableAvxAndSseEnvironmentVariables = new Dictionary<string, string>()
+                {
+                    { _disableAvx , "0" },
+                    { _disableSse , "0" }
+                };
+            }
         }
 
         public CpuMathUtilsUnitTests(ITestOutputHelper output) : base(output)
@@ -128,56 +131,101 @@ namespace Microsoft.ML.CpuMath.UnitTests
 #endif
         }
 
-        public static TheoryData<string, string, Dictionary<string, string>> AddData() => new TheoryData<string, string, Dictionary<string, string>>()
+        public static TheoryData<string, string, Dictionary<string, string>> AddData()
         {
-            {  _defaultMode, "0", null },
-            {  _defaultMode, "1", null },
-            {  _defaultMode, "2", null },
+            if (SkipAvxSse)
+            {
+                return new TheoryData<string, string, Dictionary<string, string>>()
+                {
+                    { _disableAvxAndSse, "0", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "1", _disableAvxAndSseEnvironmentVariables },
+                };
+            }
+            else
+            {
+                return new TheoryData<string, string, Dictionary<string, string>>()
+                {
+                    {  _defaultMode, "0", null },
+                    {  _defaultMode, "1", null },
+                    {  _defaultMode, "2", null },
 #if NETCOREAPP3_1
-            { _disableAvx, "0", _disableAvxEnvironmentVariables },
-            { _disableAvx, "1", _disableAvxEnvironmentVariables },
+                    { _disableAvx, "0", _disableAvxEnvironmentVariables },
+                    { _disableAvx, "1", _disableAvxEnvironmentVariables },
 
-            { _disableAvxAndSse, "0", _disableAvxAndSseEnvironmentVariables },
-            { _disableAvxAndSse, "1", _disableAvxAndSseEnvironmentVariables },
-#endif
-        };
+                    { _disableAvxAndSse, "0", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "1", _disableAvxAndSseEnvironmentVariables },
+ #endif
+                };
+            }
+        }
 
-        public static TheoryData<string, string, string, Dictionary<string, string>> AddScaleData() => new TheoryData<string, string, string, Dictionary<string, string>>()
+        public static TheoryData<string, string, string, Dictionary<string, string>> AddScaleData()
         {
-            {  _defaultMode, "0", "1.7", null },
-            {  _defaultMode, "1", "1.7", null },
-            {  _defaultMode, "2", "1.7", null },
-            {  _defaultMode, "0", "-1.7", null },
-            {  _defaultMode, "1", "-1.7", null },
-            {  _defaultMode, "2", "-1.7", null },
+            if (SkipAvxSse)
+            {
+                return new TheoryData<string, string, string, Dictionary<string, string>>()
+                {
+                    { _disableAvxAndSse, "0", "1.7", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "1", "1.7", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "0", "-1.7", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "1", "-1.7", _disableAvxAndSseEnvironmentVariables },
+                };
+            }
+            else
+            {
+                return new TheoryData<string, string, string, Dictionary<string, string>>()
+                {
+                    { _defaultMode, "0", "1.7", null },
+                    { _defaultMode, "1", "1.7", null },
+                    { _defaultMode, "2", "1.7", null },
+                    { _defaultMode, "0", "-1.7", null },
+                    { _defaultMode, "1", "-1.7", null },
+                    { _defaultMode, "2", "-1.7", null },
 #if NETCOREAPP3_1
-            {  _disableAvx, "0", "1.7", _disableAvxEnvironmentVariables },
-            {  _disableAvx, "1", "1.7", _disableAvxEnvironmentVariables },
-            {  _disableAvx, "0", "-1.7", _disableAvxEnvironmentVariables },
-            {  _disableAvx, "1", "-1.7", _disableAvxEnvironmentVariables },
+                    {  _disableAvx, "0", "1.7", _disableAvxEnvironmentVariables },
+                    {  _disableAvx, "1", "1.7", _disableAvxEnvironmentVariables },
+                    {  _disableAvx, "0", "-1.7", _disableAvxEnvironmentVariables },
+                    {  _disableAvx, "1", "-1.7", _disableAvxEnvironmentVariables },
 
-            { _disableAvxAndSse, "0", "1.7", _disableAvxAndSseEnvironmentVariables },
-            { _disableAvxAndSse, "1", "1.7", _disableAvxAndSseEnvironmentVariables },
-            { _disableAvxAndSse, "0", "-1.7", _disableAvxAndSseEnvironmentVariables },
-            { _disableAvxAndSse, "1", "-1.7", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "0", "1.7", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "1", "1.7", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "0", "-1.7", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse, "1", "-1.7", _disableAvxAndSseEnvironmentVariables },
 #endif
-        };
+                };
+            }
+        }
 
-        public static TheoryData<string, string, string, string, Dictionary<string, string>> MatMulData => new TheoryData<string, string, string, string, Dictionary<string, string>>()
+        public static TheoryData<string, string, string, string, Dictionary<string, string>> MatMulData()
         {
-            { _defaultMode, "0", "0", "0", null },
-            { _defaultMode, "1", "1", "0", null },
-            { _defaultMode, "1", "0", "1", null },
+            if (SkipAvxSse)
+            {
+                return new TheoryData<string, string, string, string, Dictionary<string, string>>()
+                {
+                    { _disableAvxAndSse , "0", "0", "0", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse , "1", "1", "0", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse , "1", "0", "1", _disableAvxAndSseEnvironmentVariables },
+                };
+            }
+            else
+            {
+                return new TheoryData<string, string, string, string, Dictionary<string, string>>()
+                {
+                    { _defaultMode, "0", "0", "0", null },
+                    { _defaultMode, "1", "1", "0", null },
+                    { _defaultMode, "1", "0", "1", null },
 #if NETCOREAPP3_1
-            { _disableAvx, "0", "0", "0", _disableAvxEnvironmentVariables },
-            { _disableAvx, "1", "1", "0", _disableAvxEnvironmentVariables },
-            { _disableAvx, "1", "0", "1", _disableAvxEnvironmentVariables },
+                    { _disableAvx, "0", "0", "0", _disableAvxEnvironmentVariables },
+                    { _disableAvx, "1", "1", "0", _disableAvxEnvironmentVariables },
+                    { _disableAvx, "1", "0", "1", _disableAvxEnvironmentVariables },
 
-            { _disableAvxAndSse , "0", "0", "0", _disableAvxAndSseEnvironmentVariables },
-            { _disableAvxAndSse , "1", "1", "0", _disableAvxAndSseEnvironmentVariables },
-            { _disableAvxAndSse , "1", "0", "1", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse , "0", "0", "0", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse , "1", "1", "0", _disableAvxAndSseEnvironmentVariables },
+                    { _disableAvxAndSse , "1", "0", "1", _disableAvxAndSseEnvironmentVariables },
 #endif
-        };
+                };
+            }
+        }
 
         [Theory]
         [MemberData(nameof(MatMulData))]
@@ -197,7 +245,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     for (int j = 0; j < src.Size; j++)
                     {
                         dotProduct += mat[i * src.Size + j] * src[j];
-                    }                    
+                    }
                     expected[i] = dotProduct;
                 }
 
@@ -446,7 +494,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [MemberData(nameof(AddData))]
         public void AddUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutor.RemoteInvoke((arg0, arg1) => 
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
@@ -524,7 +572,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.MulElementWise(src1, src2, dst, dst.Length);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutor.SuccessExitCode; 
+                return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 

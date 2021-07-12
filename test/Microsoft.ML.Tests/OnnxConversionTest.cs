@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Utility;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.LightGbm;
@@ -185,14 +186,17 @@ namespace Microsoft.ML.Tests
             {
                 // TODO TEST_STABILITY: Sdca has developed some instability with failures in comparison against baseline. Disabling it for now.
                 //mlContext.Regression.Trainers.Sdca("Target","FeatureVector"),
-                mlContext.Regression.Trainers.Ols("Target","FeatureVector"),
                 mlContext.Regression.Trainers.OnlineGradientDescent("Target","FeatureVector"),
                 mlContext.Regression.Trainers.FastForest("Target", "FeatureVector"),
                 mlContext.Regression.Trainers.FastTree("Target", "FeatureVector"),
                 mlContext.Regression.Trainers.FastTreeTweedie("Target", "FeatureVector"),
                 mlContext.Regression.Trainers.LbfgsPoissonRegression("Target", "FeatureVector"),
             };
-            if (Environment.Is64BitProcess)
+            if (NativeLibrary.NativeLibraryExists("MklImports"))
+            {
+                estimators.Add(mlContext.Regression.Trainers.Ols("Target","FeatureVector"));
+            }
+            if (Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm"))
             {
                 estimators.Add(mlContext.Regression.Trainers.LightGbm("Target", "FeatureVector"));
             }
@@ -228,9 +232,12 @@ namespace Microsoft.ML.Tests
                 mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(),
                 mlContext.BinaryClassification.Trainers.SgdCalibrated(),
                 mlContext.BinaryClassification.Trainers.SgdNonCalibrated(),
-                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
             };
-            if (Environment.Is64BitProcess)
+            if (NativeLibrary.NativeLibraryExists("MklImports"))
+            {
+                estimators.Add(mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression());
+            }
+            if (Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm"))
             {
                 estimators.Add(mlContext.BinaryClassification.Trainers.LightGbm());
             }
@@ -247,7 +254,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestVectorWhiteningOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -321,14 +328,14 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void PlattCalibratorOnnxConversionTest()
         {
             CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Platt(),
                 ML.BinaryClassification.Calibrators.Platt(scoreColumnName: "ScoreX"));
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void FixedPlattCalibratorOnnxConversionTest()
         {
             // Below, FixedPlattCalibrator is utilized by defining slope and offset in Platt's constructor with sample values.
@@ -336,7 +343,7 @@ namespace Microsoft.ML.Tests
                 ML.BinaryClassification.Calibrators.Platt(slope: -1f, offset: -0.05f, scoreColumnName: "ScoreX"));
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void NaiveCalibratorOnnxConversionTest()
         {
             CommonCalibratorOnnxConversionTest(ML.BinaryClassification.Calibrators.Naive(),
@@ -1663,7 +1670,7 @@ namespace Microsoft.ML.Tests
                 mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated()
             };
 
-            if (Environment.Is64BitProcess)
+            if (Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm"))
             {
                 estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm());
                 estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm(
@@ -1703,7 +1710,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("onnxruntime")]
         public void SelectiveExportOnnxTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1936,9 +1943,12 @@ namespace Microsoft.ML.Tests
                 mlContext.BinaryClassification.Trainers.SdcaNonCalibrated("Label", "MyFeatureVector"),
                 mlContext.BinaryClassification.Trainers.SgdCalibrated("Label", "MyFeatureVector"),
                 mlContext.BinaryClassification.Trainers.SgdNonCalibrated("Label", "MyFeatureVector"),
-                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression("Label", "MyFeatureVector"),
             };
-            if (Environment.Is64BitProcess)
+            if (NativeLibrary.NativeLibraryExists("MklImports"))
+            {
+                estimators.Add(mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression("Label", "MyFeatureVector"));
+            }
+            if (Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm"))
             {
                 estimators.Add(mlContext.BinaryClassification.Trainers.LightGbm("Label", "MyFeatureVector"));
             }
@@ -1987,7 +1997,7 @@ namespace Microsoft.ML.Tests
                 mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated("Label", "MyFeatureVector")
             };
 
-            if (Environment.Is64BitProcess)
+            if (Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm"))
             {
                 estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "MyFeatureVector"));
             }

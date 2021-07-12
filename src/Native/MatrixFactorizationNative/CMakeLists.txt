@@ -43,4 +43,12 @@ endif()
 
 add_library(MatrixFactorizationNative SHARED ${SOURCES} ${RESOURCES})
 
+if (${ARCHITECTURE} STREQUAL "arm")
+    if (WIN32)
+        target_link_libraries(MatrixFactorizationNative shell32.lib)
+    else()
+        target_link_libraries(MatrixFactorizationNative atomic.a)
+    endif()
+endif()
+
 install_library_and_symbols (MatrixFactorizationNative)

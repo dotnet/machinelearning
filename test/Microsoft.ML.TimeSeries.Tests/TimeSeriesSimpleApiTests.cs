@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -72,7 +73,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(1);
@@ -166,7 +167,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void SsaSpikeDetection()
         {
             var env = new MLContext(1);

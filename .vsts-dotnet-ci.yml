@@ -10,7 +10,57 @@ resources:
   - container: UbuntuContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-20200515184230-2c829e8
 
+  - container: UbuntuCrossArmContainer
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm-20210512124625-2e59a5f
+
+  - container: UbuntuCrossArm64Container
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64-20210512124625-2e59a5f
+
 jobs:
+- template: /build/ci/job-template.yml
+  parameters:
+    architecture: arm
+    name: Ubuntu_x64_cross_arm_NetCoreApp31
+    buildScript: ./build.sh
+    container: UbuntuCrossArmContainer
+    customMatrixes:
+      Debug_Build:
+        _configuration: Debug-netcoreapp3_1
+        _config_short: DI
+        _includeBenchmarkData: false
+        _targetFramework: netcoreapp3.1
+      Release_Build:
+        _configuration: Release-netcoreapp3_1
+        _config_short: RI
+        _includeBenchmarkData: true
+        _targetFramework: netcoreapp3.1
+    innerLoop: true
+    pool:
+      name: Hosted Ubuntu 1604
+    helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm32v7-20210531091521-97d8652
+
+- template: /build/ci/job-template.yml
+  parameters:
+    architecture: arm64
+    name: Ubuntu_x64_cross_arm64_NetCoreApp31
+    buildScript: ./build.sh
+    container: UbuntuCrossArm64Container
+    customMatrixes:
+      Debug_Build:
+        _configuration: Debug-netcoreapp3_1
+        _config_short: DI
+        _includeBenchmarkData: false
+        _targetFramework: netcoreapp3.1
+      Release_Build:
+        _configuration: Release-netcoreapp3_1
+        _config_short: RI
+        _includeBenchmarkData: true
+        _targetFramework: netcoreapp3.1
+    innerLoop: true
+    pool:
+      name: Hosted Ubuntu 1604
+    helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm64v8-20210531091519-97d8652
+
 - template: /build/ci/job-template.yml
   parameters:
     name: Centos_x64_NetCoreApp31
@@ -50,6 +100,28 @@ jobs:
     pool:
       name: Hosted macOS
     helixQueue: OSX.1015.Amd64.Open
+
+- template: /build/ci/job-template.yml
+  parameters:
+    architecture: arm64
+    name: MacOS_cross_arm64_NetCoreApp21
+    buildScript: ./build.sh
+    customMatrixes:
+      Debug_Build:
+        _configuration: Debug-netcoreapp3_1
+        _config_short: DI
+        _includeBenchmarkData: false
+        _targetFramework: netcoreapp3.1
+      Release_Build:
+        _configuration: Release-netcoreapp3_1
+        _config_short: RI
+        _includeBenchmarkData: true
+        _targetFramework: netcoreapp3.1
+    innerLoop: true
+    pool:
+      vmImage: macOS-10.15
+    testTargetFramework: net6.0
+    helixQueue: OSX.1100.Arm64.Open
 
 - template: /build/ci/job-template.yml
   parameters:

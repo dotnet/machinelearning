@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.IntegrationTests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.IntegrationTests
         /// <summary>
         /// Training: It is easy to compare trainer evaluations on the same dataset.
         /// </summary>
-        [Fact]
+        [FieldAwareFactorizationMachineFact]
         public void CompareTrainerEvaluations()
         {
             var mlContext = new MLContext(seed: 1);
@@ -120,7 +121,7 @@ namespace Microsoft.ML.IntegrationTests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [FieldAwareFactorizationMachineFact]
         public void ContinueTrainingFieldAwareFactorizationMachine()
         {
             var mlContext = new MLContext(seed: 1);
@@ -390,7 +391,7 @@ namespace Microsoft.ML.IntegrationTests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void ContinueTrainingSymbolicStochasticGradientDescent()
         {
             var mlContext = new MLContext(seed: 1);

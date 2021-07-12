@@ -10,15 +10,21 @@ using Microsoft.ML.TestFrameworkCommon.Attributes;
 namespace Microsoft.ML.TestFramework.Attributes
 {
     /// <summary>
-    /// A fact for tests that wont run on CentOS7
+    /// A fact for the Featurizers tests that wont run on CentOS7 and need the Featurizers library.
     /// </summary>
-    public sealed class NotCentOS7FactAttribute : EnvironmentSpecificFactAttribute
+    public sealed class FeaturizersFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public NotCentOS7FactAttribute() : base("These tests are not CentOS7 compliant.")
+        public FeaturizersFactAttribute() : base("These tests are not CentOS7 compliant and need the Featurizers native library.")
         {
         }
         protected override bool IsEnvironmentSupported()
         {
+            // Featurizers.dll must exist
+            if (!Microsoft.ML.TestFrameworkCommon.Utility.NativeLibrary.NativeLibraryExists("Featurizers"))
+            {
+                return false;
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 using (Process process = new Process())
@@ -42,4 +48,4 @@ namespace Microsoft.ML.TestFramework.Attributes
             return true;
         }
     }
-} 
+}
