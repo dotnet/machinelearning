@@ -20,7 +20,6 @@ using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
@@ -328,7 +327,7 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ModelInputClassTest()
         {
-            // Test with datasets whose columns are sanitized andT sanitized. The columns of a dataset are considered
+            // Test with datasets whose columns are sanitized and not sanitized. The columns of a dataset are considered
             // sanitized if the column names are all unique and distinct, irrespective of capitalization.
             (var pipelineSanitized, var columnInferenceSanitized, var mappingSanitized) = this.GetMockedAzurePipelineAndInference();
             TestModelInput(pipelineSanitized, columnInferenceSanitized, mappingSanitized, "sanitized");
