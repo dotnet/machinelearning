@@ -11,8 +11,8 @@ namespace Microsoft.ML
 {
     /// <summary>
     /// The common context for all ML.NET operations. Once instantiated by the user, it provides a way to
-    /// create components for data preparation, feature engineering, training, prediction, model evaluation.
-    /// It also allows logging, execution control, and the ability set repeatable random numbers.
+    /// create components for data preparation, feature engineering, training, prediction, and model evaluation.
+    /// It also allows logging, execution control, and the ability to set repeatable random numbers.
     /// </summary>
     public sealed class MLContext : IHostEnvironmentInternal
     {
