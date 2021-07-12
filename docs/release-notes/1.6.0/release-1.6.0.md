@@ -1,10 +1,12 @@
 # [ML.NET](http://dot.net/ml) 1.6.0
 
 ## **New Features**
-- **Support for Arm/Arm64/Applie Silicon has been added**. ([#5789](https://github.com/dotnet/machinelearning/pull/5789)) You can now use most ML.NET on Arm/Arm64/Apple Silicon devices. Anything without a hard depdency on x86 SIMD instructions or Intel MKL are supported. 
+- **Support for Arm/Arm64/Apple Silicon has been added**. ([#5789](https://github.com/dotnet/machinelearning/pull/5789)) You can now use most ML.NET on Arm/Arm64/Apple Silicon devices. Anything without a hard depdency on x86 SIMD instructions or Intel MKL are supported.
 - **Support for specifying a temp path ML.NET will use**. ([#5782](https://github.com/dotnet/machinelearning/pull/5782)) You can now set the TempFilePath in the MLContext that it will use.
 - **Support for specifying the recursion limit to use when loading an ONNX model** ([#5840](https://github.com/dotnet/machinelearning/pull/5840)) The recursion limit defaults to 100, but you can now specify the value in case you need to use a larger number. (**Thanks @Crabzmatic**)
 - **Support for saving Tensorflow models in the SavedModel format added** ([#5797](https://github.com/dotnet/machinelearning/pull/5797)) You can now save models that use the Tensorflow SavedModel format instead of just the frozen graph format. (**Thanks @darth-vader-lg**)
+- **DataFrame Specific enhancements**
+- **Extended DataFrame GroupBy operation** ([#5821](https://github.com/dotnet/machinelearning/pull/5821)) Extend DataFrame GroupBy operation by adding new property Groupings. This property returns collection of IGrouping objects (the same way as LINQ GroupBy operation does) (**Thanks @asmirnov82**)
 
 
 ## **Enhancements**
@@ -26,6 +28,15 @@
 - Updated to latest version of Intel MKL. ([#5867](https://github.com/dotnet/machinelearning/pull/5867))
 - **AutoML.NET specific enhancements**
 - Offer suggestions for possibly mistyped label column names in AutoML ([#5624](https://github.com/dotnet/machinelearning/pull/5624)) (**Thanks @Crabzmatic**)
+- **DataFrame Specific enhancements**
+- Improve csv parsing ([#5711](https://github.com/dotnet/machinelearning/pull/5711))
+- IDataView to DataFrame ([#5712](https://github.com/dotnet/machinelearning/pull/5712))
+- Update to the latest Microsoft.DotNet.Interactive ([#5710](https://github.com/dotnet/machinelearning/pull/5710))
+- Move DataFrame to machinelearning repo ([#5641](https://github.com/dotnet/machinelearning/pull/5641))
+- Improvements to the sort routine ([#5776](https://github.com/dotnet/machinelearning/pull/5776))
+- Improvements to the Merge routine ([#5778](https://github.com/dotnet/machinelearning/pull/5778))
+- Improve DataFrame exception text ([#5819](https://github.com/dotnet/machinelearning/pull/5819)) (**Thanks @asmirnov82**)
+- Dataframe csv datetime enhancements ([#5834](https://github.com/dotnet/machinelearning/pull/5834))
 
 
 ## **Bug Fixes**
@@ -34,6 +45,8 @@
 - Use return value of method ([#5818](https://github.com/dotnet/machinelearning/pull/5818)) (**Thanks @feiyun0112**)
 - Adding throw to some exceptions that weren't throwing them originally ([#5823](https://github.com/dotnet/machinelearning/pull/5823)) (**Thanks @feiyun0112**)
 - Fixed a situation in the CountTargetEncodingTransformer where it never reached the stop condition ([#5822](https://github.com/dotnet/machinelearning/pull/5822)) (**Thanks @feiyun0112**)
+- **DataFrame Specific bug fixes**
+- Fix issue with DataFrame Merge method ([#5768](https://github.com/dotnet/machinelearning/pull/5768)) (**Thanks @asmirnov82**)
 
 
 ## **Build / Test updates**
@@ -46,7 +59,7 @@
 - Upload classic pdb to symweb ([#5816](https://github.com/dotnet/machinelearning/pull/5816))
 - Fix MacoOS CI issue ([#5854](https://github.com/dotnet/machinelearning/pull/5854))
 - Added in a Helix Integration for testing. ([#5837](https://github.com/dotnet/machinelearning/pull/5837))
-
+- Added in Helix Integration for arm/arm64/Apple Silicon for testing ([#5860](https://github.com/dotnet/machinelearning/pull/5860))
 
 ## **Documentation Updates**
 - Fixed markdown issues in MulticlassClassificationMetris and CalibratedBinaryClassificationMetrics ([#5732](https://github.com/dotnet/machinelearning/pull/5732)) (**Thanks @R0Wi**)
