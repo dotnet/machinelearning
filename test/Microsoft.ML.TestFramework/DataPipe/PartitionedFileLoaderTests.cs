@@ -6,7 +6,6 @@ using System.IO;
 using Microsoft.ML.Data;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.RunTests
 {

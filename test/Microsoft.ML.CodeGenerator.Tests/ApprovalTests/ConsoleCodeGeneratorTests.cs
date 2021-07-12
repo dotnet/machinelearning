@@ -106,7 +106,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [NotAppleSiliconFact("Model Builder not supported on Apple Silicon")    ]
+        [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ModelProjectFileContentTestOnlyStableProjects()
@@ -328,7 +328,7 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ModelInputClassTest()
         {
-            // Test with datasets whose columns are sanitized and not sanitized. The columns of a dataset are considered
+            // Test with datasets whose columns are sanitized andT sanitized. The columns of a dataset are considered
             // sanitized if the column names are all unique and distinct, irrespective of capitalization.
             (var pipelineSanitized, var columnInferenceSanitized, var mappingSanitized) = this.GetMockedAzurePipelineAndInference();
             TestModelInput(pipelineSanitized, columnInferenceSanitized, mappingSanitized, "sanitized");

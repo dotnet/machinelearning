@@ -186,7 +186,7 @@ namespace Microsoft.ML.Tests
             }).PredictedLabel);
         }
 
-        [X86X64FactAttribute("Onlys supports x86/x64 architectures.")]
+        [X86X64FactAttribute("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
         public void IrisSdcaMaximumEntropy()
         {
             var mlContext = new MLContext(seed: 1);

@@ -641,7 +641,7 @@ namespace Microsoft.ML.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [NotArm32Fact("Not supported on Arm32")]
+        [NotArm32Fact("RyuJit codegen issue https://github.com/dotnet/runtime/issues/7970")]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");

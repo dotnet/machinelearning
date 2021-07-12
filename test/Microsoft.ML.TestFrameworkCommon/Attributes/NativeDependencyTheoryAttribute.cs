@@ -7,11 +7,11 @@ using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
-    public sealed class NativeDependencyFact : EnvironmentSpecificFactAttribute
+    public sealed class NativeDependencyTheoryAttribute : EnvironmentSpecificTheoryAttribute
     {
         private readonly string _library;
 
-        public NativeDependencyFact(string library) : base($"This test requires a native library {library} that wasn't found.")
+        public NativeDependencyTheoryAttribute(string library) : base($"This test requires a native library {library} that wasn't found.")
         {
             _library = library;
         }
