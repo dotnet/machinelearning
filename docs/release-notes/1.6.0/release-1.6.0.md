@@ -62,7 +62,7 @@
 - Added in Helix Integration for arm/arm64/Apple Silicon for testing ([#5860](https://github.com/dotnet/machinelearning/pull/5860))
 
 ## **Documentation Updates**
-- Fixed markdown issues in MulticlassClassificationMetris and CalibratedBinaryClassificationMetrics ([#5732](https://github.com/dotnet/machinelearning/pull/5732)) (**Thanks @R0Wi**)
+- Fixed markdown issues in MulticlassClassificationMetrics and CalibratedBinaryClassificationMetrics ([#5732](https://github.com/dotnet/machinelearning/pull/5732)) (**Thanks @R0Wi**)
 - Update unix instructions for x-compiling on ARM ([#5811](https://github.com/dotnet/machinelearning/pull/5811))
 - Update Contribution.MD with description of help wanted tags ([#5815](https://github.com/dotnet/machinelearning/pull/5815))
 - Add Korean translation for repo readme.md ([#5780](https://github.com/dotnet/machinelearning/pull/5780)) (**Thanks @metr0jw**)
