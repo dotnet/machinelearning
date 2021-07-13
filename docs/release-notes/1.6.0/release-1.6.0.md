@@ -12,7 +12,7 @@
 ## **Enhancements**
 - Switched from using a fork of SharpZipLib to using the official package ([#5735](https://github.com/dotnet/machinelearning/pull/5735))
 - Let user specify a temp path location ([#5782](https://github.com/dotnet/machinelearning/pull/5782))
-- Clean up onnx temp models by opening with a "Delete on close" flag ([#5782](https://github.com/dotnet/machinelearning/pull/5782))
+- Clean up ONNX temp models by opening with a "Delete on close" flag ([#5782](https://github.com/dotnet/machinelearning/pull/5782))
 - Ensures the named model is loaded in a PredictionEnginePool before use ([#5833](https://github.com/dotnet/machinelearning/pull/5833)) (**Thanks @feiyun0112**)
 - Use indentation for 'if' ([#5825](https://github.com/dotnet/machinelearning/pull/5825)) (**Thanks @feiyun0112**)
 - Use Append instead of AppendFormat if we don't need formatting ([#5826](https://github.com/dotnet/machinelearning/pull/5826)) (**Thanks @feiyun0112**)
