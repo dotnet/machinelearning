@@ -57,7 +57,7 @@
 - Switched signing certificate to use dotnet certificate ([#5794](https://github.com/dotnet/machinelearning/pull/5794))
 - Building natively and cross targeting for Arm/Arm64/Apple Silicon is now supported. ([#5789](https://github.com/dotnet/machinelearning/pull/5789))
 - Upload classic pdb to symweb ([#5816](https://github.com/dotnet/machinelearning/pull/5816))
-- Fix MacoOS CI issue ([#5854](https://github.com/dotnet/machinelearning/pull/5854))
+- Fix MacOS CI issue ([#5854](https://github.com/dotnet/machinelearning/pull/5854))
 - Added in a Helix Integration for testing. ([#5837](https://github.com/dotnet/machinelearning/pull/5837))
 - Added in Helix Integration for arm/arm64/Apple Silicon for testing ([#5860](https://github.com/dotnet/machinelearning/pull/5860))
 
