@@ -1,7 +1,7 @@
 # [ML.NET](http://dot.net/ml) 1.6.0
 
 ## **New Features**
-- **Support for Arm/Arm64/Apple Silicon has been added**. ([#5789](https://github.com/dotnet/machinelearning/pull/5789)) You can now use most ML.NET on Arm/Arm64/Apple Silicon devices. Anything without a hard depdency on x86 SIMD instructions or Intel MKL are supported.
+- **Support for Arm/Arm64/Apple Silicon has been added**. ([#5789](https://github.com/dotnet/machinelearning/pull/5789)) You can now use most ML.NET on Arm/Arm64/Apple Silicon devices. Anything without a hard dependency on x86 SIMD instructions or Intel MKL are supported.
 - **Support for specifying a temp path ML.NET will use**. ([#5782](https://github.com/dotnet/machinelearning/pull/5782)) You can now set the TempFilePath in the MLContext that it will use.
 - **Support for specifying the recursion limit to use when loading an ONNX model** ([#5840](https://github.com/dotnet/machinelearning/pull/5840)) The recursion limit defaults to 100, but you can now specify the value in case you need to use a larger number. (**Thanks @Crabzmatic**)
 - **Support for saving Tensorflow models in the SavedModel format added** ([#5797](https://github.com/dotnet/machinelearning/pull/5797)) You can now save models that use the Tensorflow SavedModel format instead of just the frozen graph format. (**Thanks @darth-vader-lg**)
