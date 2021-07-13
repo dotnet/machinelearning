@@ -36,7 +36,7 @@
 - Improvements to the sort routine ([#5776](https://github.com/dotnet/machinelearning/pull/5776))
 - Improvements to the Merge routine ([#5778](https://github.com/dotnet/machinelearning/pull/5778))
 - Improve DataFrame exception text ([#5819](https://github.com/dotnet/machinelearning/pull/5819)) (**Thanks @asmirnov82**)
-- Dataframe csv datetime enhancements ([#5834](https://github.com/dotnet/machinelearning/pull/5834))
+- DataFrame csv DateTime enhancements ([#5834](https://github.com/dotnet/machinelearning/pull/5834))
 
 
 ## **Bug Fixes**
