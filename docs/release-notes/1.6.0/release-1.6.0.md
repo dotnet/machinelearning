@@ -17,7 +17,7 @@
 - Use indentation for 'if' ([#5825](https://github.com/dotnet/machinelearning/pull/5825)) (**Thanks @feiyun0112**)
 - Use Append instead of AppendFormat if we don't need formatting ([#5826](https://github.com/dotnet/machinelearning/pull/5826)) (**Thanks @feiyun0112**)
 - Cast by using is operator ([#5829](https://github.com/dotnet/machinelearning/pull/5829)) (**Thanks @feiyun0112**)
-- Removed un-neccesary return statements ([#5828](https://github.com/dotnet/machinelearning/pull/5828)) (**Thanks @feiyun0112**)
+- Removed unnecessary return statements ([#5828](https://github.com/dotnet/machinelearning/pull/5828)) (**Thanks @feiyun0112**)
 - Removed code that could never be executed ([#5808](https://github.com/dotnet/machinelearning/pull/5808)) (**Thanks @feiyun0112**)
 - Remove some empty statements ([#5827](https://github.com/dotnet/machinelearning/pull/5827)) (**Thanks @feiyun0112**)
 - Added in short-circuit logic for conditionals ([#5824](https://github.com/dotnet/machinelearning/pull/5824)) (**Thanks @feiyun0112**)
