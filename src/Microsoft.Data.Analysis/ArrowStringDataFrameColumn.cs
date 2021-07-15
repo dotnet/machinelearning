@@ -660,5 +660,10 @@ namespace Microsoft.Data.Analysis
             }
             return ret;
         }
+
+        public override Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
+        {
+            return GetGroupedOccurrences<string>(other, out otherColumnNullIndices);
+        }
     }
 }

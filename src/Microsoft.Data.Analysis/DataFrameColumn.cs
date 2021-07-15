@@ -211,6 +211,44 @@ namespace Microsoft.Data.Analysis
         public virtual Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>(out HashSet<long> nullIndices) => throw new NotImplementedException();
 
         /// <summary>
+        /// Get occurences of each value from this column in other column, grouped by this value
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="otherColumnNullIndices"></param>
+        /// <returns>A mapping of index from this column to the indices of same value in other column</returns>
+        public abstract Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices);
+
+        /// <summary>
+        /// Get occurences of each value from this column in other column, grouped by this value
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="other"></param>
+        /// <param name="otherColumnNullIndices"></param>
+        /// <returns>A mapping of index from this column to the indices of same value in other column</returns>
+        protected Dictionary<long, ICollection<long>> GetGroupedOccurrences<TKey>(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
+        {
+            if (this.DataType != other.DataType)
+                throw new ArgumentException(String.Format(Strings.MismatchedColumnValueType, this.DataType), nameof(other));
+
+            // First hash other column   
+            Dictionary<TKey, ICollection<long>> multimap = other.GroupColumnValues<TKey>(out otherColumnNullIndices);
+
+            var ret = new Dictionary<long, ICollection<long>>();
+
+            //For each value in this column find rows from other column with equal value
+            for (int i = 0; i < this.Length; i++)
+            {
+                var value = this[i];
+                if (value != null && multimap.TryGetValue((TKey)value, out ICollection<long> otherRowIndices))
+                {
+                    ret.Add(i, otherRowIndices);
+                }
+            }
+            
+            return ret;
+        }
+
+        /// <summary>
         /// Returns a DataFrame containing counts of unique values
         /// </summary>
         public virtual DataFrame ValueCounts() => throw new NotImplementedException();
