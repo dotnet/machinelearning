@@ -670,7 +670,10 @@ namespace Microsoft.ML
                 foreach (var transformer in chain.Reverse())
                 {
                     if (transformer is ISingleFeaturePredictionTransformer)
+                    {
                         lastTransformer = transformer;
+                        break;
+                    }
                 }
             }
             else lastTransformer = model as ISingleFeaturePredictionTransformer;
