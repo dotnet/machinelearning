@@ -34,4 +34,19 @@ namespace Microsoft.ML
         /// <summary>Holds information about the type of the feature column.</summary>
         DataViewType FeatureColumnType { get; }
     }
+
+    /// <summary>
+    /// An ISingleFeaturePredictionTransformer contains the name of the <see cref="FeatureColumnName"/>
+    /// and its type, <see cref="FeatureColumnType"/>. Implementations of this interface, have the ability
+    /// to score the data of an input <see cref="IDataView"/> through the <see cref="ITransformer.Transform(IDataView)"/>
+    /// </summary>
+    [BestFriend]
+    internal interface ISingleFeaturePredictionTransformer : ITransformer
+    {
+        /// <summary>The name of the feature column.</summary>
+        public string FeatureColumnName { get; }
+
+        /// <summary>Holds information about the type of the feature column.</summary>
+        public DataViewType FeatureColumnType { get; }
+    }
 }
