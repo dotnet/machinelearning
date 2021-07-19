@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
@@ -156,6 +158,56 @@ namespace Microsoft.ML
                 permutationCount,
                 useFeatureWeightFilter,
                 numberOfExamplesToUse);
+        }
+
+        public static ImmutableDictionary<string, BinaryClassificationMetricsStatistics>
+            PermutationFeatureImportance(
+                this BinaryClassificationCatalog catalog,
+                ITransformer model,
+                IDataView data,
+                string labelColumnName = DefaultColumnNames.Label,
+                bool useFeatureWeightFilter = false,
+                int? numberOfExamplesToUse = null,
+                int permutationCount = 1)
+        {
+
+            var lastTran = (model as TransformerChain<ITransformer>).LastTransformer;
+            var lastTranType = lastTran.GetType();
+            string featureColumnName = ((dynamic)lastTran).FeatureColumnName;
+            Type s = typeof(PermutationFeatureImportance<,,>);
+
+            Type[] types = { lastTranType.GenericTypeArguments[0], typeof(BinaryClassificationMetrics), typeof(BinaryClassificationMetricsStatistics) };
+            Type constructed = s.MakeGenericType(types);
+
+            Func<BinaryClassificationMetricsStatistics> resultInitializer = () => new BinaryClassificationMetricsStatistics();
+            Func<IDataView, BinaryClassificationMetrics> evaluationFunc = idv => catalog.EvaluateNonCalibrated(idv, labelColumnName);
+            Func<BinaryClassificationMetrics, BinaryClassificationMetrics, BinaryClassificationMetrics> deltaFunc = BinaryClassifierDelta;
+
+            object[] param = { catalog.GetEnvironment(),
+                lastTran,
+                data,
+                resultInitializer,
+                evaluationFunc,
+                deltaFunc,
+                featureColumnName,
+                permutationCount,
+                useFeatureWeightFilter,
+                numberOfExamplesToUse};
+
+            MethodInfo mi = constructed.GetMethod("GetImportanceMetricsMatrix", BindingFlags.Static | BindingFlags.Public);
+            var permutationFeatureImportance = (ImmutableArray<BinaryClassificationMetricsStatistics>)mi.Invoke(null, param);
+
+            VBuffer<ReadOnlyMemory<char>> nameBuffer = default;
+            data.Schema[featureColumnName].Annotations.GetValue("SlotNames", ref nameBuffer);
+            var featureColumnNames = nameBuffer.DenseValues().ToList();
+
+            var output = new Dictionary<string, BinaryClassificationMetricsStatistics>();
+            for (int i = 0; i < permutationFeatureImportance.Length; i++)
+            {
+                output.Add(featureColumnNames[i].ToString(), permutationFeatureImportance[i]);
+            }
+
+            return output.ToImmutableDictionary();
         }
 
         private static BinaryClassificationMetrics BinaryClassifierDelta(
