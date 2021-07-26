@@ -128,7 +128,7 @@
     <MicrosoftSourceLinkGitHubVersion>1.1.0-beta-20464-02</MicrosoftSourceLinkGitHubVersion>
     <MicrosoftSourceLinkAzureReposGitVersion>1.1.0-beta-20464-02</MicrosoftSourceLinkAzureReposGitVersion>
     <MicrosoftDotNetSwaggerGeneratorMSBuildVersion>6.0.0-beta.21253.2</MicrosoftDotNetSwaggerGeneratorMSBuildVersion>
-    <XliffTasksVersion>1.0.0-beta.21254.1</XliffTasksVersion>
+    <MicrosoftDotNetXliffTasksVersion>1.0.0-beta.21376.1</MicrosoftDotNetXliffTasksVersion>
     <MicrosoftDotNetMaestroTasksVersion>1.1.0-beta.20074.1</MicrosoftDotNetMaestroTasksVersion>
     <MicrosoftDotNetXHarnessCLIVersion>1.0.0-prerelease.21254.2</MicrosoftDotNetXHarnessCLIVersion>
     <MicrosoftSymbolUploaderBuildTaskVersion>1.1.225302</MicrosoftSymbolUploaderBuildTaskVersion>
