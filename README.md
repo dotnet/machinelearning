@@ -2,9 +2,10 @@
 
 [ML.NET](https://dotnet.microsoft.com/apps/machinelearning-ai/ml-dotnet) is a cross-platform open-source machine learning (ML) framework for .NET.
 
-ML.NET allows developers to easily build, train, deploy, and consume custom models in their applications using .NET, without requireming prior expertise in developing machine learning models or experience with other programming languages like Python or R. The framework provides data loading from files and databases, enables data transformations and includes many ML algorithms.
+ML.NET allows developers to easily build, train, deploy, and consume custom models in their applications using .NET, without requiring prior expertise in developing machine learning models or experience with other programming languages like Python or R. The framework provides data loading from files and databases, enables data transformations and includes many ML algorithms.
 
 With ML.NET, you can train models for the following scenarios:
+
 - Classification
 - Regression
 - Recommendation
@@ -20,20 +21,22 @@ You can also consume both TensorFlow and ONNX models within ML.NET which makes t
 ## Getting started with machine learning and ML.NET
 
 - Learn more about the [basics of ML.NET](https://dotnet.microsoft.com/apps/machinelearning-ai/ml-dotnet).
-- Build your first ML.NET model by following our [ML.NET Getting Started tutorial](https://dotnet.microsoft.com/learn/ml-dotnet/get-started-tutorial/intro)
-- Check out our [documentation and tutorials](https://docs.microsoft.com/en-us/dotnet/machine-learning/).
-- See the [API Reference documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
+- Build your first ML.NET model by following our [ML.NET Getting Started tutorial](https://dotnet.microsoft.com/learn/ml-dotnet/get-started-tutorial/intro).
+- Check out our [documentation and tutorials](https://docs.microsoft.com/dotnet/machine-learning/).
+- See the [API Reference documentation](https://docs.microsoft.com/dotnet/api/?view=ml-dotnet).
 - Clone our [ML.NET Samples GitHub repo](https://github.com/dotnet/machinelearning-samples) and run some sample apps.
-- Take a look at some [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/main/docs/COMMUNITY-SAMPLES.md)
+- Take a look at some [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/main/docs/COMMUNITY-SAMPLES.md).
 - Watch some videos on the [ML.NET videos YouTube playlist](https://aka.ms/mlnetyoutube).
 
 ## Operating systems and processor architectures supported by ML.NET
 
 ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework.
 
+ML.NET also runs on ARM64, Apple M1, and Blazor Web Assembly. However, there are some [limitations](docs/project-docs/platform-limitations).
+
 64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow and LightGBM related functionality.
 
-## ML.NET Nuget packages status
+## ML.NET NuGet packages status
 
 [![NuGet Status](https://img.shields.io/nuget/vpre/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
 
