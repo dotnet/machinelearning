@@ -1,33 +1,31 @@
 # Machine Learning for .NET
 
-[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers with the same code that powers machine learning across many Microsoft products, including Power BI, Windows Defender, and Azure.
+[ML.NET](https://dotnet.microsoft.com/apps/machinelearning-ai/ml-dotnet) is a cross-platform open-source machine learning (ML) framework for .NET.
 
-ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications using .NET, even without prior expertise in developing or tuning machine learning models. It provides data loading from files and databases, enables data transformations and includes many ML algorithms.
+ML.NET allows developers to easily build, train, deploy, and consume custom models in their applications using .NET, without requireming prior expertise in developing machine learning models or experience with other programming languages like Python or R. The framework provides data loading from files and databases, enables data transformations and includes many ML algorithms.
 
-ML.NET enables machine learning (ML) tasks like classification (for example, text classification, sentiment analysis), regression (for example, price prediction), and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
+With ML.NET, you can train models for the following scenarios:
+- Classification
+- Regression
+- Recommendation
+- Anomaly Detection
+- Time Series Forecasting
+- Clustering
+- Ranking
+- Image classification
+- Object detection
 
-## Getting started with machine learning by using ML.NET
+You can also consume both TensorFlow and ONNX models within ML.NET which makes the framework more extensible and expands the number of supported scenarios.
 
-If you are new to machine learning, start by learning the basics from this collection of resources targeting ML.NET:
+## Getting started with machine learning and ML.NET
 
-[Learn ML.NET](https://dotnet.microsoft.com/learn/ml-dotnet)
-
-## ML.NET Documentation, tutorials and reference
-
-Please check our [documentation and tutorials](https://docs.microsoft.com/en-us/dotnet/machine-learning/).
-
-See the [API Reference documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
-
-## Sample apps
-
-We have a GitHub repo with [ML.NET sample apps](https://github.com/dotnet/machinelearning-samples) with many scenarios such as Sentiment analysis, Fraud detection, Product Recommender, Price Prediction, Anomaly Detection, Image Classification, Object Detection and many more.
-
-In addition to the ML.NET samples provided by Microsoft, we're also highlighting many more samples created by the community showcased in this separate page [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/main/docs/COMMUNITY-SAMPLES.md)
-
-
-## ML.NET videos playlist at YouTube
-
-The [ML.NET videos playlist](https://aka.ms/mlnetyoutube) on YouTube contains several short videos. Each video focuses on a particular topic of ML.NET.
+- Learn more about the [basics of ML.NET](https://dotnet.microsoft.com/apps/machinelearning-ai/ml-dotnet).
+- Build your first ML.NET model by following our [ML.NET Getting Started tutorial](https://dotnet.microsoft.com/learn/ml-dotnet/get-started-tutorial/intro)
+- Check out our [documentation and tutorials](https://docs.microsoft.com/en-us/dotnet/machine-learning/).
+- See the [API Reference documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
+- Clone our [ML.NET Samples GitHub repo](https://github.com/dotnet/machinelearning-samples) and run some sample apps.
+- Take a look at some [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/main/docs/COMMUNITY-SAMPLES.md)
+- Watch some videos on the [ML.NET videos YouTube playlist](https://aka.ms/mlnetyoutube).
 
 ## Operating systems and processor architectures supported by ML.NET
 
@@ -52,7 +50,7 @@ Once you have an app, you can install the ML.NET NuGet package from the .NET Cor
 dotnet add package Microsoft.ML
 ```
 
-or from the NuGet package manager:
+or from the NuGet Package Manager:
 ```
 Install-Package Microsoft.ML
 ```
@@ -89,7 +87,8 @@ We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md
 
 ## Community
 
-Please join our community on Gitter [![Join the chat at https://gitter.im/dotnet/mlnet](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/mlnet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+- Join our community on [Discord]()
+- Tune into the [.NET Machine Learning Community Standup](https://dotnet.microsoft.com/live/community-standup) every other Wednesday at 10AM Pacific Time.
 
 This project has adopted the code of conduct defined by the [Contributor Covenant](https://contributor-covenant.org/) to clarify expected behavior in our community.
 For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
@@ -97,7 +96,7 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 ## Code examples
 
-Here is a snippet code for training a model to predict sentiment from text samples. You can find complete samples in [samples repo](https://github.com/dotnet/machinelearning-samples).
+Here is a snippet code for training a model to predict sentiment from text samples. You can find complete samples in the [samples repo](https://github.com/dotnet/machinelearning-samples).
 
 ```C#
 var dataPath = "sentiment.csv";
