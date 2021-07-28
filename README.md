@@ -30,11 +30,11 @@ You can also consume both TensorFlow and ONNX models within ML.NET which makes t
 
 ## Operating systems and processor architectures supported by ML.NET
 
-ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework.
+ML.NET runs on Windows, Linux, and macOS using .NET Core, or Windows using .NET Framework.
 
-ML.NET also runs on ARM64, Apple M1, and Blazor Web Assembly. However, there are some [limitations](docs/project-docs/platform-limitations).
+ML.NET also runs on ARM64, Apple M1, and Blazor Web Assembly. However, there are some [limitations](docs/project-docs/platform-limitations.md).
 
-64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow and LightGBM related functionality.
+64-bit is supported on all platforms. 32-bit is supported on Windows, except for TensorFlow and LightGBM related functionality.
 
 ## ML.NET NuGet packages status
 
@@ -90,7 +90,7 @@ We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md
 
 ## Community
 
-- Join our community on [Discord]()
+- Join our community on [Discord](aka.ms/dotnet-discord).
 - Tune into the [.NET Machine Learning Community Standup](https://dotnet.microsoft.com/live/community-standup) every other Wednesday at 10AM Pacific Time.
 
 This project has adopted the code of conduct defined by the [Contributor Covenant](https://contributor-covenant.org/) to clarify expected behavior in our community.
@@ -127,16 +127,11 @@ var prediction = predictionEngine.Predict(new SentimentData
 });
 Console.WriteLine("prediction: " + prediction.Prediction);
 ```
-A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
 
 ## License
 
-ML.NET is licensed under the [MIT license](LICENSE) and it is free to use commercially.
+ML.NET is licensed under the [MIT license](LICENSE), and it is free to use commercially.
 
 ## .NET Foundation
 
-ML.NET is a [.NET Foundation](https://www.dotnetfoundation.org/projects) project.
-
-There are many .NET related projects on GitHub.
-
-- [.NET home repo](https://github.com/Microsoft/dotnet) - links to 100s of .NET projects, from Microsoft and the community.
+ML.NET is a part of the [.NET Foundation](https://www.dotnetfoundation.org/projects).
