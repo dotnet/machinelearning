@@ -16,7 +16,7 @@ Project Docs
 - [Project NuGet Dependencies](https://github.com/dotnet/buildtools/blob/master/Documentation/project-nuget-dependencies.md)
 - [ML.NET Roadmap](https://github.com/dotnet/machinelearning/blob/main/README.md)
 - [ML.NET Cookbook](code/MlNetCookBook.md)
-- [ML.NET API Reference Documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet)
+- [ML.NET API Reference Documentation](https://docs.microsoft.com/dotnet/api/?view=ml-dotnet)
 
 Building from Source
 --------------------
