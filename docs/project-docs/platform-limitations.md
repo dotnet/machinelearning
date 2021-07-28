@@ -1,38 +1,16 @@
-Contributing to Machine Learning
+Platform limitations
 ======================
 
-This document describes contribution guidelines that are specific to Machine Learning. Please read [.NET Core Guidelines](https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/contributing.md) for more general .NET Core contribution guidelines.
+While ML.NET is cross-platform, there are some limitations for specific platforms as outlined in the chart below.
 
-Coding Style Changes
---------------------
+|   | Training | Inference |
+| :---- | :-----: | :---: |
+| **Windows**   | Yes | Yes |
+| **Linux** | Yes | Yes |
+| **macOS** | Yes | Yes |
+| **ARM64** / **Apple M1** | Yes, with **limitations**.</br></br>The following are *not supported*:<ul><li>Symbolic SGD</li><li>TensorFlow</li><li>OLS</li><li>TimeSeries SSA</li><li>TimeSeries SrCNN</li><li>ONNX*</li><li>Light GBM*</li></ul>\**You can add support by compiling (no pre-compiled binaries provided).* | Yes, with **limitations**.</br></br>The following are *not supported*: <ul><li>Symbolic SGD</li><li>TensorFlow</li><li>OLS</li><li>TimeSeries SSA</li><li>TimeSeries SrCNN</li><li>ONNX</li></ul>|
+| **Blazor WASM** | Yes, with **limitations**.</br></br>The following are *not supported*:<ul><li>Symbolic SGD</li><li>TensorFlow</li><li>OLS</li><li>TimeSeries SSA</li><li>TimeSeries SrCNN</li><li>ONNX</li><li>Light GBM</li><li>LDA</li><li>Matrix Factorization</li></ul> *Note: You must currently set the <code>EnableMLUnsupportedPlatformTargetCheck</code> flag to false to use ML.NET in Blazor.* | Yes, with **limitations**.</br></br>The following are *not supported*:<ul><li>Symbolic SGD</li><li>TensorFlow</li><li>OLS</li><li>TimeSeries SSA</li><li>TimeSeries SrCNN</li><li>ONNX</li><li>Light GBM</li><li>LDA</li><li>Matrix Factorization</li> |
 
-We intend to bring dotnet/machinelearning into full conformance with the style guidelines described in [Coding Style](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md). We plan to do that with tooling, in a holistic way. In the meantime, please:
+> Note: All the limitations listed above will throw a <code>DLL not found</code> exception.
 
-* **DO NOT** send PRs for style changes. For example, do not send PRs that are focused on changing usage of ```Int32``` to ```int```.
-* **DO NOT** send PRs for upgrading code to use newer language features, though it's ok to use newer language features as part of new code that's written.  For example, it's ok to use expression-bodied members as part of new code you write, but do not send a PR focused on changing existing properties or methods to use the feature.
-* **DO** give priority to the current style of the project or file you're changing even if it diverges from the general guidelines.
-
-Pull Requests
--------------
-
-* **DO** submit all code changes via pull requests (PRs) rather than through a direct commit. PRs will be reviewed and potentially merged by the repo maintainers after a peer review that includes at least one maintainer.
-* **DO** give PRs short-but-descriptive names (for example, "Improve code coverage for System.Console by 10%", not "Fix #1234")
-* **DO** refer to any relevant issues, and include [keywords](https://help.github.com/articles/closing-issues-via-commit-messages/) that automatically close issues when the PR is merged.
-* **DO** tag any users that should know about and/or review the change.
-* **DO** ensure each commit successfully builds.  The entire PR must pass all tests in the Continuous Integration (CI) system before it'll be merged.
-* **DO** address PR feedback in an additional commit(s) rather than amending the existing commits, and only rebase/squash them when necessary.  This makes it easier for reviewers to track changes.
-* **DO** assume that ["Squash and Merge"](https://github.com/blog/2141-squash-your-commits) will be used to merge your commit unless you request otherwise in the PR.
-* **DO NOT** fix merge conflicts using a merge commit. Prefer `git rebase`.
-* **DO NOT** mix independent, unrelated changes in one PR. Separate real product/test code changes from larger code formatting/dead code removal changes. Separate unrelated fixes into separate PRs, especially if they are in different assemblies.
-
-Merging Pull Requests (for contributors with write access)
-----------------------------------------------------------
-
-* **DO** use ["Squash and Merge"](https://github.com/blog/2141-squash-your-commits) by default for individual contributions unless requested by the PR author.
-  Do so, even if the PR contains only one commit. It creates a simpler history than "Create a Merge Commit".
-  Reasons that PR authors may request "Merge and Commit" may include (but are not limited to):
-
-  - The change is easier to understand as a series of focused commits. Each commit in the series must be buildable so as not to break `git bisect`.
-  - Contributor is using an e-mail address other than the primary GitHub address and wants that preserved in the history. Contributor must be willing to squash
-    the commits manually before acceptance.
-
+If you are blocked by any of these limitations or would like to see different behavior when hitting them, please let us know by [filing an issue](https://github.com/dotnet/machinelearning/issues/new?assignees=&labels=&template=suggest-a-feature.md&title=).
