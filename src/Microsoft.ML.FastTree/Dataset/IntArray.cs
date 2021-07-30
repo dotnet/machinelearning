@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
@@ -31,6 +32,12 @@ namespace Microsoft.ML.Trainers.FastTree
         /// The virtual length of the array
         /// </summary>
         public abstract int Length { get; }
+
+        /// <summary>
+        /// Bool that checks if we are on x86/x64 so we know if we should use the native code
+        /// or the managed fallbacks.
+        /// </summary>
+        public static bool UseFastTreeNative => RuntimeInformation.ProcessArchitecture == Architecture.X64 || RuntimeInformation.ProcessArchitecture == Architecture.X86;
 
         /// <summary>
         /// Returns the number of bytes written by the member ToByteArray()
@@ -198,6 +205,17 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <returns>An indexer into the array</returns>
         public abstract IIntArrayForwardIndexer GetIndexer();
 
+        // Used in the child classes so we can set either the native or managed Sumup method one time and then
+        // never have to check again.
+        protected delegate void PerformSumup(SumupInputData input, FeatureHistogram histogram);
+
+        // Handler so the child classes don't have to redefine it. If they don't have different logic for native vs managed
+        // code then they don't need to use this.
+        protected PerformSumup SumupHandler { get; set; }
+
+        // Helper to setup the SumupHandler for the derived classes that need it.
+        protected void SetupSumupHandler(PerformSumup native, PerformSumup managed) => SumupHandler = UseFastTreeNative ? native : managed;
+
         public virtual void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             Contracts.Assert((input.Weights == null) == (histogram.SumWeightsByBin == null));
@@ -313,7 +331,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 int bits = SegmentIntArray.BitsForValue((uint)maxval);
                 if (bits <= 21)
                 {
-                    SegmentIntArray.SegmentFindOptimalPath(workarray, Length,
+                    SegmentIntArray.SegmentFindOptimalPath.Value(workarray, Length,
                         bits, out segBits, out segTransitions);
                 }
             }

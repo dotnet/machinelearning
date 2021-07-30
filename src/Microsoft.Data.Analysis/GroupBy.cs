@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Data.Analysis
 {
@@ -72,6 +74,33 @@ namespace Microsoft.Data.Analysis
 
     public class GroupBy<TKey> : GroupBy
     {
+        #region Internal class that implements IGrouping LINQ interface
+        private class Grouping : IGrouping<TKey, DataFrameRow>
+        {
+            private readonly TKey _key;
+            private readonly IEnumerable<DataFrameRow> _rows;
+
+            public Grouping(TKey key, IEnumerable<DataFrameRow> rows)
+            {
+                _key = key;
+                _rows = rows;
+            }
+
+            public TKey Key => _key;
+
+            public IEnumerator<DataFrameRow> GetEnumerator()
+            {
+                return _rows.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _rows.GetEnumerator();
+            }
+        }
+
+        #endregion
+
         private int _groupByColumnIndex;
         private IDictionary<TKey, ICollection<long>> _keyToRowIndicesMap;
         private DataFrame _dataFrame;
@@ -82,7 +111,7 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(nameof(groupByColumnIndex));
             _groupByColumnIndex = groupByColumnIndex;
             _keyToRowIndicesMap = keyToRowIndices ?? throw new ArgumentException(nameof(keyToRowIndices));
-            _dataFrame = dataFrame ?? throw new ArgumentException(nameof(dataFrame));
+            _dataFrame = dataFrame;
         }
 
         private delegate void ColumnDelegate(int columnIndex, long rowIndex, ICollection<long> rows, TKey key, bool firstGroup);
@@ -464,5 +493,15 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <summary>
+        /// Returns a collection of Grouping objects, where each object represent a set of DataFrameRows having the same Key
+        /// </summary>
+        public IEnumerable<IGrouping<TKey, DataFrameRow>> Groupings
+        {
+            get
+            {
+                return _keyToRowIndicesMap.Select(kvp => new Grouping(kvp.Key, kvp.Value.Select(index => _dataFrame.Rows[index])));
+            }
+        }
     }
 }

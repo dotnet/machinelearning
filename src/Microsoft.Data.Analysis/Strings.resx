@@ -120,6 +120,9 @@
   <data name="BadColumnCast" xml:space="preserve">
     <value>Cannot cast column holding {0} values to type {1}</value>
   </data>
+  <data name="BadColumnCastDuringGrouping" xml:space="preserve">
+    <value>Cannot cast elements of column '{0}' type of {1} to type {2} used as TKey in grouping </value>
+  </data>
   <data name="CannotParseWithDelimiters" xml:space="preserve">
     <value>Line {0} cannot be parsed with the current Delimiters.</value>
   </data>
@@ -184,7 +187,7 @@
     <value>Inconsistent null bitmaps and NullCounts</value>
   </data>
   <data name="InvalidColumnName" xml:space="preserve">
-    <value>Column does not exist</value>
+    <value>Column '{0}' does not exist</value>
   </data>
   <data name="InvalidFieldWidths" xml:space="preserve">
     <value>All field widths, except the last element, must be greater than zero. A field width less than or equal to zero in the last element indicates the last field is of variable length.</value>

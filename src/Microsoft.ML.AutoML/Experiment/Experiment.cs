@@ -28,7 +28,7 @@ namespace Microsoft.ML.AutoML
         private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly IChannel _logger;
 
-        private readonly string _operationCancelledMessage = "OperationCanceledException has been caught after maximum experiment time" +
+        private const string _operationCancelledMessage = "OperationCanceledException has been caught after maximum experiment time" +
                         "was reached, and the running MLContext was stopped. Details: {0}";
 
         private Timer _maxExperimentTimeTimer;
@@ -56,7 +56,7 @@ namespace Microsoft.ML.AutoML
             _experimentSettings = experimentSettings;
             _metricsAgent = metricsAgent;
             _trainerAllowList = trainerAllowList;
-            _modelDirectory = GetModelDirectory(_experimentSettings.CacheDirectory);
+            _modelDirectory = GetModelDirectory(_context.TempFilePath, _experimentSettings.CacheDirectoryName);
             _datasetColumnInfo = datasetColumnInfo;
             _runner = runner;
             _logger = logger;
@@ -140,7 +140,7 @@ namespace Microsoft.ML.AutoML
 
             // Pseudo random number generator to result in deterministic runs with the provided main MLContext's seed and to
             // maintain variability between training iterations.
-            int? mainContextSeed = ((ISeededEnvironment)_context.Model.GetEnvironment()).Seed;
+            int? mainContextSeed = ((IHostEnvironmentInternal)_context.Model.GetEnvironment()).Seed;
             _newContextSeedGenerator = (mainContextSeed.HasValue) ? RandomUtils.Create(mainContextSeed.Value) : null;
 
             do
@@ -220,14 +220,14 @@ namespace Microsoft.ML.AutoML
             return iterationResults;
         }
 
-        private static DirectoryInfo GetModelDirectory(DirectoryInfo rootDir)
+        private static DirectoryInfo GetModelDirectory(string tempDirectory, string cacheDirectoryName)
         {
-            if (rootDir == null)
+            if (cacheDirectoryName == null)
             {
                 return null;
             }
 
-            var experimentDirFullPath = Path.Combine(rootDir.FullName, $"experiment_{Path.GetRandomFileName()}");
+            var experimentDirFullPath = Path.Combine(tempDirectory, cacheDirectoryName, $"experiment_{Path.GetRandomFileName()}");
             var experimentDirInfo = new DirectoryInfo(experimentDirFullPath);
             if (!experimentDirInfo.Exists)
             {

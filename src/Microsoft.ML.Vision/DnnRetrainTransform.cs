@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
                     null, false, addBatchDimensionInput, 1);
             }
 
-            var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), nameof(DnnRetrainTransformer) + "_" + Guid.NewGuid()));
+            var tempDirPath = Path.GetFullPath(Path.Combine(((IHostEnvironmentInternal)env).TempFilePath, nameof(DnnRetrainTransformer) + "_" + Guid.NewGuid()));
             CreateFolderWithAclIfNotExists(env, tempDirPath);
             try
             {
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Transforms
         internal static TensorShape GetTensorShape(TF_Output output, Graph graph, Status status = null)
         {
             if (graph == IntPtr.Zero)
-                new ObjectDisposedException(nameof(graph));
+                throw new ObjectDisposedException(nameof(graph));
 
             var cstatus = status == null ? new Status() : status;
             var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus.Handle);

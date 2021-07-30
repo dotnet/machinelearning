@@ -126,7 +126,12 @@ namespace Microsoft.ML.RunTests
             var configurationDirs = new List<string>();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                configurationDirs.Add("osx-x64");
+            {
+                if(RuntimeInformation.ProcessArchitecture == Architecture.X64)
+                    configurationDirs.Add("osx-x64");
+                else if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                    configurationDirs.Add("osx-arm64");
+            }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 configurationDirs.Add("linux-x64");
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

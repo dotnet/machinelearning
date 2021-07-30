@@ -23,8 +23,8 @@
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
-    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
-    <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
+    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</TargetArchitecture>
+    <TargetArchitecture>$(TargetArchitecture.ToLower())</TargetArchitecture>
     <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
     <StrongNameKeyId>Open</StrongNameKeyId>
   </PropertyGroup>

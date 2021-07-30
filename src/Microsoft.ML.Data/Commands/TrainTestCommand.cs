@@ -188,7 +188,7 @@ namespace Microsoft.ML.Data
 
             ILegacyDataLoader testPipe;
             bool hasOutfile = !string.IsNullOrEmpty(ImplOptions.OutputModelFile);
-            var tempFilePath = hasOutfile ? null : Path.GetTempFileName();
+            var tempFilePath = hasOutfile ? null : Path.Combine(((IHostEnvironmentInternal)Host).TempFilePath, Path.GetRandomFileName());
 
             using (var file = new SimpleFileHandle(ch, hasOutfile ? ImplOptions.OutputModelFile : tempFilePath, true, !hasOutfile))
             {

@@ -161,7 +161,7 @@ namespace Microsoft.Data.Analysis
                 int columnIndex = IndexOf(columnName);
                 if (columnIndex == -1)
                 {
-                    throw new ArgumentException(Strings.InvalidColumnName, nameof(columnName));
+                    throw new ArgumentException(String.Format(Strings.InvalidColumnName, columnName), nameof(columnName));
                 }
                 return this[columnIndex];
             }

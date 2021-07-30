@@ -70,6 +70,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot cast elements of column &apos;{0}&apos; type of {1} to type {2} used as TKey in grouping .
+        /// </summary>
+        internal static string BadColumnCastDuringGrouping {
+            get {
+                return ResourceManager.GetString("BadColumnCastDuringGrouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Line {0} cannot be parsed with the current Delimiters..
         /// </summary>
         internal static string CannotParseWithDelimiters {
@@ -365,7 +374,7 @@ namespace Microsoft.Data {
                 return ResourceManager.GetString("NotSupportedColumnType", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delimiters is null..
         /// </summary>

@@ -168,7 +168,7 @@ namespace Microsoft.ML.Transforms
 
         protected override DataViewType GetColumnTypeCore(int iinfo)
         {
-            Host.Assert(0 <= iinfo & iinfo < Infos.Length);
+            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             return _types[iinfo];
         }
 
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Transforms
         private static void FillValues(IExceptionContext ectx, ref VBuffer<float> buffer)
         {
             int size = buffer.Length;
-            ectx.Check(0 <= size & size < int.MaxValue / 2);
+            ectx.Check(0 <= size && size < int.MaxValue / 2);
 
             var values = buffer.GetValues();
             var editor = VBufferEditor.Create(ref buffer, size * 2, values.Length);
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Transforms
                     if (val == 0)
                         continue;
                     int iv = indices[iivSrc];
-                    ectx.Assert(ivPrev < iv & iv < size);
+                    ectx.Assert(ivPrev < iv && iv < size);
                     ivPrev = iv;
                     if (float.IsNaN(val))
                     {
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            ectx.Assert(0 <= iivDst & iivDst <= values.Length);
+            ectx.Assert(0 <= iivDst && iivDst <= values.Length);
             buffer = editor.CommitTruncated(iivDst);
         }
     }

@@ -330,8 +330,6 @@ namespace Microsoft.ML.Trainers.FastTree
                 ch.Info(GetTestGraphHeader());
             else
                 ch.Info(GetTestGraphLine());
-
-            return;
         }
 
         private protected virtual void Initialize(IChannel ch)

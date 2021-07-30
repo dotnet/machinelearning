@@ -4,13 +4,14 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestEstimatorOlsLinearRegression()
         {
             var dataView = GetRegressionPipeline();

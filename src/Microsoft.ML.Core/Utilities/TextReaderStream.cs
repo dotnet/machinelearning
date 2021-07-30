@@ -95,7 +95,6 @@ namespace Microsoft.ML.Internal.Utilities
 
         public override void Flush()
         {
-            return;
         }
 
         /// <summary>

@@ -792,119 +792,122 @@ namespace Microsoft.ML.Trainers.FastTree
                     {
                         // calculates the permutation that orders "scores" in descending order, without modifying "scores"
                         Array.Copy(_oneTwoThree, permutation, numDocuments);
-#if USE_FASTTREENATIVE
 
-                        PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
-                        // Get how far about baseline our current
-                        double baselineDcgGap = 0.0;
-                        //baselineDCGGap = ((new Random(query)).NextDouble() * 2 - 1)/inverseMaxDCG; // THIS IS EVIL CODE REMOVE LATER
-                        // Keep track of top 3 labels for later use
-                        GetTopQueryLabels(query, permutation, true);
-
-                        if (_useShiftedNdcg)
-                        {
-                            // Set non-best (rank-wise) duplicates to be ignored. Set Score to MinValue, Label to 0
-                            IgnoreNonBestDuplicates(labels, scoresToUse, permutation, Dataset.DupeIds, begin, numDocuments);
-                        }
-
-                        int numActualResults = numDocuments;
-
-                        // If the const function is ContinuousWeightedRanknet, update output scores
-                        if (_costFunctionParam == 'c')
-                        {
-                            for (int i = begin; i < begin + numDocuments; ++i)
-                            {
-                                if (pScores[i] == double.MinValue)
-                                {
-                                    numActualResults--;
-                                }
-                                else
-                                {
-                                    pScores[i] = pScores[i] * (1.0 - pLabels[i] * 1.0 / (20.0 * Dataset.DatasetSkeleton.LabelGainMap.Length));
-                                }
-                            }
-                        }
-
-                        // Continuous cost function and shifted NDCG require a re-sort and recomputation of maxDCG
-                        // (Change of scores in the former and scores and labels in the latter)
-                        if (!_useDcg && (_costFunctionParam == 'c' || _useShiftedNdcg))
+                        if (IntArray.UseFastTreeNative)
                         {
                             PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
-                            inverseMaxDcg = 1.0 / DcgCalculator.MaxDcgQuery(labels, begin, numDocuments, numDocuments, _labelCounts[query]);
-                        }
-                        // A constant related to secondary labels, which does not exist in the current codebase.
-                        const bool secondaryIsolabelExclusive = false;
-                        GetDerivatives(numDocuments, begin, pPermutation, pLabels,
-                                pScores, pLambdas, pWeights, pDiscount,
-                                inverseMaxDcg, pGainLabels,
-                                _secondaryMetricShare, secondaryIsolabelExclusive, secondaryInverseMaxDcg, pSecondaryGains,
-                                pSigmoidTable, _minScore, _maxScore, _sigmoidTable.Length, _scoreToSigmoidTableFactor,
-                                _costFunctionParam, _distanceWeight2, numActualResults, &lambdaSum, double.MinValue,
-                                _baselineAlphaCurrent, baselineDcgGap);
+                            // Get how far about baseline our current
+                            double baselineDcgGap = 0.0;
+                            //baselineDCGGap = ((new Random(query)).NextDouble() * 2 - 1)/inverseMaxDCG; // THIS IS EVIL CODE REMOVE LATER
+                            // Keep track of top 3 labels for later use
+                            GetTopQueryLabels(query, permutation, true);
 
-#else
-                        if (_useShiftedNdcg || _costFunctionParam == 'c' || _distanceWeight2 || _normalizeQueryLambdas)
-                        {
-                            throw new Exception("Shifted NDCG / ContinuousWeightedRanknet / distanceWeight2 / normalized lambdas are only supported by unmanaged code");
-                        }
-
-                        var comparer = _comparers[threadIndex];
-                        comparer.Scores = scoresToUse;
-                        comparer.Labels = labels;
-                        comparer.ScoresOffset = begin;
-                        comparer.LabelsOffset = begin;
-                        Array.Sort(permutation, 0, numDocuments, comparer);
-
-                        // go over all pairs
-                        double scoreHighMinusLow;
-                        double lambdaP;
-                        double weightP;
-                        double deltaNdcgP;
-                        for (int i = 0; i < numDocuments; ++i)
-                        {
-                            int high = begin + pPermutation[i];
-                            if (pLabels[high] == 0)
-                                continue;
-                            double deltaLambdasHigh = 0;
-                            double deltaWeightsHigh = 0;
-
-                            for (int j = 0; j < numDocuments; ++j)
+                            if (_useShiftedNdcg)
                             {
-                                // only consider pairs with different labels, where "high" has a higher label than "low"
-                                if (i == j)
-                                    continue;
-                                int low = begin + pPermutation[j];
-                                if (pLabels[high] <= pLabels[low])
-                                    continue;
-
-                                // calculate the lambdaP for this pair
-                                scoreHighMinusLow = pScores[high] - pScores[low];
-
-                                if (scoreHighMinusLow <= _minScore)
-                                    lambdaP = _minSigmoid;
-                                else if (scoreHighMinusLow >= _maxScore)
-                                    lambdaP = _maxSigmoid;
-                                else
-                                    lambdaP = _sigmoidTable[(int)((scoreHighMinusLow - _minScore) * _scoreToSigmoidTableFactor)];
-
-                                weightP = lambdaP * (2.0 - lambdaP);
-
-                                // calculate the deltaNDCGP for this pair
-                                deltaNdcgP =
-                                    (pGain[pLabels[high]] - pGain[pLabels[low]]) *
-                                    Math.Abs((pDiscount[i] - pDiscount[j])) *
-                                    inverseMaxDcg;
-
-                                // update lambdas and weights
-                                deltaLambdasHigh += lambdaP * deltaNdcgP;
-                                pLambdas[low] -= lambdaP * deltaNdcgP;
-                                deltaWeightsHigh += weightP * deltaNdcgP;
-                                pWeights[low] += weightP * deltaNdcgP;
+                                // Set non-best (rank-wise) duplicates to be ignored. Set Score to MinValue, Label to 0
+                                IgnoreNonBestDuplicates(labels, scoresToUse, permutation, Dataset.DupeIds, begin, numDocuments);
                             }
-                            pLambdas[high] += deltaLambdasHigh;
-                            pWeights[high] += deltaWeightsHigh;
+
+                            int numActualResults = numDocuments;
+
+                            // If the const function is ContinuousWeightedRanknet, update output scores
+                            if (_costFunctionParam == 'c')
+                            {
+                                for (int i = begin; i < begin + numDocuments; ++i)
+                                {
+                                    if (pScores[i] == double.MinValue)
+                                    {
+                                        numActualResults--;
+                                    }
+                                    else
+                                    {
+                                        pScores[i] = pScores[i] * (1.0 - pLabels[i] * 1.0 / (20.0 * Dataset.DatasetSkeleton.LabelGainMap.Length));
+                                    }
+                                }
+                            }
+
+                            // Continuous cost function and shifted NDCG require a re-sort and recomputation of maxDCG
+                            // (Change of scores in the former and scores and labels in the latter)
+                            if (!_useDcg && (_costFunctionParam == 'c' || _useShiftedNdcg))
+                            {
+                                PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
+                                inverseMaxDcg = 1.0 / DcgCalculator.MaxDcgQuery(labels, begin, numDocuments, numDocuments, _labelCounts[query]);
+                            }
+                            // A constant related to secondary labels, which does not exist in the current codebase.
+                            const bool secondaryIsolabelExclusive = false;
+                            GetDerivatives(numDocuments, begin, pPermutation, pLabels,
+                                    pScores, pLambdas, pWeights, pDiscount,
+                                    inverseMaxDcg, pGainLabels,
+                                    _secondaryMetricShare, secondaryIsolabelExclusive, secondaryInverseMaxDcg, pSecondaryGains,
+                                    pSigmoidTable, _minScore, _maxScore, _sigmoidTable.Length, _scoreToSigmoidTableFactor,
+                                    _costFunctionParam, _distanceWeight2, numActualResults, &lambdaSum, double.MinValue,
+                                    _baselineAlphaCurrent, baselineDcgGap);
                         }
-#endif
+                        else
+                        {
+                            if (_useShiftedNdcg || _costFunctionParam == 'c' || _distanceWeight2 || _normalizeQueryLambdas)
+                            {
+                                throw new Exception("Shifted NDCG / ContinuousWeightedRanknet / distanceWeight2 / normalized lambdas are only supported by unmanaged code");
+                            }
+
+                            var comparer = _comparers[threadIndex];
+                            comparer.Scores = scoresToUse;
+                            comparer.Labels = labels;
+                            comparer.ScoresOffset = begin;
+                            comparer.LabelsOffset = begin;
+                            Array.Sort(permutation, 0, numDocuments, comparer);
+
+                            // go over all pairs
+                            double scoreHighMinusLow;
+                            double lambdaP;
+                            double weightP;
+                            double deltaNdcgP;
+                            for (int i = 0; i < numDocuments; ++i)
+                            {
+                                int high = begin + pPermutation[i];
+                                if (pLabels[high] == 0)
+                                    continue;
+                                double deltaLambdasHigh = 0;
+                                double deltaWeightsHigh = 0;
+
+                                for (int j = 0; j < numDocuments; ++j)
+                                {
+                                    // only consider pairs with different labels, where "high" has a higher label than "low"
+                                    if (i == j)
+                                        continue;
+                                    int low = begin + pPermutation[j];
+                                    if (pLabels[high] <= pLabels[low])
+                                        continue;
+
+                                    // calculate the lambdaP for this pair
+                                    scoreHighMinusLow = pScores[high] - pScores[low];
+
+                                    if (scoreHighMinusLow <= _minScore)
+                                        lambdaP = _minSigmoid;
+                                    else if (scoreHighMinusLow >= _maxScore)
+                                        lambdaP = _maxSigmoid;
+                                    else
+                                        lambdaP = _sigmoidTable[(int)((scoreHighMinusLow - _minScore) * _scoreToSigmoidTableFactor)];
+
+                                    weightP = lambdaP * (2.0 - lambdaP);
+
+                                    // calculate the deltaNDCGP for this pair
+                                    deltaNdcgP =
+                                        (pGain[pLabels[high]] - pGain[pLabels[low]]) *
+                                        Math.Abs((pDiscount[i] - pDiscount[j])) *
+                                        inverseMaxDcg;
+
+                                    // update lambdas and weights
+                                    deltaLambdasHigh += lambdaP * deltaNdcgP;
+                                    pLambdas[low] -= lambdaP * deltaNdcgP;
+                                    deltaWeightsHigh += weightP * deltaNdcgP;
+                                    pWeights[low] += weightP * deltaNdcgP;
+                                }
+                                pLambdas[high] += deltaLambdasHigh;
+                                pWeights[high] += deltaWeightsHigh;
+                            }
+                        }
+
                         if (_normalizeQueryLambdas)
                         {
                             if (lambdaSum > 0)

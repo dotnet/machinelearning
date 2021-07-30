@@ -429,7 +429,7 @@ namespace Microsoft.ML.Transforms
                         item.Source ?? item.Name,
                         (item.MatrixGenerator ?? options.MatrixGenerator).CreateComponent(env),
                         item.Seed ?? options.Seed);
-                };
+                }
             }
             return new ApproximatedKernelTransformer(env, input, cols).MakeDataTransform(input);
         }

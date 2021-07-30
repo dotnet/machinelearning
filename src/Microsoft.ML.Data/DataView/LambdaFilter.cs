@@ -87,8 +87,8 @@ namespace Microsoft.ML.Data
                 : base(env, name, input)
             {
                 Host.AssertValue(pred);
-                Host.Assert(conv != null | typeof(T1) == typeof(T2));
-                Host.Assert(0 <= colSrc & colSrc < Source.Schema.Count);
+                Host.Assert(conv != null || typeof(T1) == typeof(T2));
+                Host.Assert(0 <= colSrc && colSrc < Source.Schema.Count);
 
                 _colSrc = colSrc;
                 _pred = pred;

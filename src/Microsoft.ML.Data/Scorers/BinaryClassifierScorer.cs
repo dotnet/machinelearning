@@ -277,7 +277,7 @@ namespace Microsoft.ML.Data
 
         private void GetPredictedLabelCoreAsKey(float score, ref uint value)
         {
-            value = (uint)(score > _threshold ? 2 : score <= _threshold ? 1 : 0);
+            value = (uint)(score > _threshold ? 2 : 1);
         }
 
         private protected override JToken PredictedLabelPfa(string[] mapperOutputs)

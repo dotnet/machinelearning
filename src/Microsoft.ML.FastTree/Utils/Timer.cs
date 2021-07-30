@@ -169,7 +169,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                     sb.AppendFormat("{0} {1,10:0.000}{2,9:00.00}%{3,8}{4,11:0.000}\n", padded, time, perc, numCalls, timePerCall);
                 }
-                sb.AppendFormat("Count Statistics:\n");
+                sb.Append("Count Statistics:\n");
                 padded = "Name".PadRight(MaxEventNameLen);
                 sb.AppendFormat("{0} {1,10}\n", padded, "Accumulate");
                 foreach (CountEvent n in Enum.GetValues(typeof(CountEvent)))

@@ -534,7 +534,7 @@ namespace Microsoft.ML
             }
             else if(fallbackInEnvSeed)
             {
-                ISeededEnvironment seededEnv = (ISeededEnvironment)env;
+                IHostEnvironmentInternal seededEnv = (IHostEnvironmentInternal)env;
                 seedToUse = seededEnv.Seed;
             }
             else

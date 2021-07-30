@@ -82,18 +82,8 @@ namespace Microsoft.ML.Tools
 
         private static ConsoleEnvironment CreateEnvironment()
         {
-            string sensitivityString = null;
             MessageSensitivity sensitivity = MessageSensitivity.All;
-            if (!string.IsNullOrWhiteSpace(sensitivityString))
-            {
-                // Cannot use host or channels since the environment isn't even
-                // created yet.
-                if (!Enum.TryParse(sensitivityString, out sensitivity))
-                {
-                    Console.Error.WriteLine("Cannot parse '{0}' as {1}", sensitivityString, nameof(MessageSensitivity));
-                    sensitivity = MessageSensitivity.All;
-                }
-            }
+
             return new ConsoleEnvironment(sensitivity: sensitivity);
         }
 

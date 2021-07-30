@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class ColumnInferenceTests : BaseTestClass
     {
         public ColumnInferenceTests(ITestOutputHelper output) : base(output)
@@ -136,7 +136,7 @@ namespace Microsoft.ML.AutoML.Test
             var labelColumn = result.TextLoaderOptions.Columns.First(c => c.Name == DefaultColumnNames.Label);
             Assert.Equal(DataKind.String, nameColumn.DataKind);
             Assert.Equal(DataKind.Boolean, labelColumn.DataKind);
-            
+
             Assert.Single(result.ColumnInformation.TextColumnNames);
             Assert.Equal("Username", result.ColumnInformation.TextColumnNames.First());
             Assert.Equal(DefaultColumnNames.Label, result.ColumnInformation.LabelColumnName);
@@ -232,6 +232,12 @@ namespace Microsoft.ML.AutoML.Test
         [UseApprovalSubdirectory("ApprovalTests")]
         public void Wiki_column_inference_result_should_be_serializable()
         {
+            // DiffEngine can't check for Helix, so the environment variable checks for helix.
+            if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
+
             var wiki = Path.Combine("TestData", "wiki-column-inference.json");
             using (var stream = new StreamReader(wiki))
             {

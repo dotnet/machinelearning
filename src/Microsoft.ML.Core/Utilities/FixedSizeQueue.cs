@@ -31,8 +31,8 @@ namespace Microsoft.ML.Internal.Utilities
         private void AssertValid()
         {
             Contracts.Assert(Utils.Size(_array) >= 0);
-            Contracts.Assert(0 <= _startIndex & _startIndex < _array.Length);
-            Contracts.Assert(0 <= _count & _count <= _array.Length);
+            Contracts.Assert(0 <= _startIndex && _startIndex < _array.Length);
+            Contracts.Assert(0 <= _count && _count <= _array.Length);
         }
 
         public int Count
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Internal.Utilities
             get
             {
                 AssertValid();
-                Contracts.Assert(index >= 0 & index < _count);
+                Contracts.Assert(index >= 0 && index < _count);
                 return _array[(_startIndex + index) % _array.Length];
             }
         }

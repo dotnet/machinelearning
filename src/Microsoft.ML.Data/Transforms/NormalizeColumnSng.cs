@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
             numFeatures = size;
 
             int morphCount = ctx.Reader.ReadInt32();
-            Contracts.CheckDecode(-1 <= morphCount & morphCount < size);
+            Contracts.CheckDecode(-1 <= morphCount && morphCount < size);
 
             if (indicesShift != null)
                 indicesShift.Clear();
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms
                 for (int iiv = 0; iiv < indicesMorph.Length; iiv++)
                 {
                     int iv = indicesMorph[iiv];
-                    Contracts.CheckDecode(ivPrev < iv & iv < numFeatures);
+                    Contracts.CheckDecode(ivPrev < iv && iv < numFeatures);
                     ivPrev = iv;
                     TFloat scale = scales[iv] = scalesSparse[iiv];
                     Contracts.CheckDecode(!TFloat.IsNaN(scale));
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Transforms
             _trainCount++;
             var values = value.GetValues();
             var count = values.Length;
-            Contracts.Assert(0 <= count & count <= size);
+            Contracts.Assert(0 <= count && count <= size);
             if (count == 0)
                 return;
 
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Transforms
             var size = _mean.Length;
             var values = value.GetValues();
             var count = values.Length;
-            Contracts.Assert(0 <= count & count <= size);
+            Contracts.Assert(0 <= count && count <= size);
             if (count == 0)
                 return;
 
@@ -973,7 +973,7 @@ namespace Microsoft.ML.Transforms
                         int size = scale.Length;
                         var values = input.GetValues();
                         int count = values.Length;
-                        Contracts.Assert(0 <= count & count <= size);
+                        Contracts.Assert(0 <= count && count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
                         bldr.Reset(size, dense: false);
@@ -992,7 +992,7 @@ namespace Microsoft.ML.Transforms
                         for (int ii = 0; ii < count; ii++)
                         {
                             int i = indices[ii];
-                            Contracts.Assert(0 <= i & i < size);
+                            Contracts.Assert(0 <= i && i < size);
                             bldr.AddFeature(i, values[ii] * scale[i]);
                         }
                     }
@@ -1004,7 +1004,7 @@ namespace Microsoft.ML.Transforms
                         int size = scale.Length;
                         var values = input.GetValues();
                         int count = values.Length;
-                        Contracts.Assert(0 <= count & count <= size);
+                        Contracts.Assert(0 <= count && count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
                         bldr.Reset(size, dense: false);
@@ -1030,7 +1030,7 @@ namespace Microsoft.ML.Transforms
                         Contracts.Assert(ivSrc < size);
                         for (int ivDst = 0; ivDst < size; ivDst++)
                         {
-                            Contracts.Assert(ivDst <= ivSrc & ivSrc <= size);
+                            Contracts.Assert(ivDst <= ivSrc && ivSrc <= size);
                             if (ivDst == ivSrc)
                             {
                                 bldr.AddFeature(ivDst, (values[ii] - offset[ivDst]) * scale[ivDst]);
@@ -1050,7 +1050,7 @@ namespace Microsoft.ML.Transforms
                         int size = scale.Length;
                         var values = input.GetValues();
                         int count = values.Length;
-                        Contracts.Assert(0 <= count & count <= size);
+                        Contracts.Assert(0 <= count && count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
                         bldr.Reset(size, dense: false);
@@ -1077,8 +1077,8 @@ namespace Microsoft.ML.Transforms
                         int ivDst = nz[inz];
                         for (; ; )
                         {
-                            Contracts.Assert(0 <= ivDst & ivDst <= size);
-                            Contracts.Assert(0 <= ivSrc & ivSrc <= size);
+                            Contracts.Assert(0 <= ivDst && ivDst <= size);
+                            Contracts.Assert(0 <= ivSrc && ivSrc <= size);
                             Contracts.Assert(ii < count && ivSrc == indices[ii] || ii == count && ivSrc == size);
                             Contracts.Assert(inz < nz.Length && ivDst == nz[inz] || inz == nz.Length && ivDst == size);
 
@@ -1250,7 +1250,7 @@ namespace Microsoft.ML.Transforms
                         int size = mean.Length;
                         var values = input.GetValues();
                         int count = values.Length;
-                        Contracts.Assert(0 <= count & count <= size);
+                        Contracts.Assert(0 <= count && count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
                         bldr.Reset(size, dense: false);
@@ -1318,7 +1318,7 @@ namespace Microsoft.ML.Transforms
                         _den = Math.Max(1, _binUpperBounds.Length - 1);
                         if (fixZero)
                             _offset = _binUpperBounds.FindIndexSorted(0) / _den;
-                        Host.Assert(0 <= _offset & _offset <= 1);
+                        Host.Assert(0 <= _offset && _offset <= 1);
                     }
 
                     public static new ImplOne Create(ModelLoadContext ctx, IHost host, DataViewType typeSrc)
@@ -1398,7 +1398,7 @@ namespace Microsoft.ML.Transforms
                             for (int i = 0; i < _binUpperBounds.Length; i++)
                             {
                                 _offset[i] = _binUpperBounds[i].FindIndexSorted(0) / _den[i];
-                                Host.Assert(0 <= _offset[i] & _offset[i] <= 1);
+                                Host.Assert(0 <= _offset[i] && _offset[i] <= 1);
                                 any |= _offset[i] != 0;
                             }
                             if (!any)
@@ -1462,7 +1462,7 @@ namespace Microsoft.ML.Transforms
                         int size = _binUpperBounds.Length;
                         var values = input.GetValues();
                         int count = values.Length;
-                        Contracts.Assert(0 <= count & count <= size);
+                        Contracts.Assert(0 <= count && count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
                         bldr.Reset(size, dense: false);
@@ -1498,7 +1498,7 @@ namespace Microsoft.ML.Transforms
                             TFloat zero = 0;
                             for (int ivDst = 0; ivDst < size; ivDst++)
                             {
-                                Contracts.Assert(ivDst <= ivSrc & ivSrc <= size);
+                                Contracts.Assert(ivDst <= ivSrc && ivSrc <= size);
                                 if (ivDst == ivSrc)
                                 {
                                     bldr.AddFeature(ivDst,
@@ -1517,7 +1517,7 @@ namespace Microsoft.ML.Transforms
                             for (int ii = 0; ii < count; ii++)
                             {
                                 int i = indices[ii];
-                                Contracts.Assert(0 <= i & i < size);
+                                Contracts.Assert(0 <= i && i < size);
                                 bldr.AddFeature(i, BinUtils.GetValue(values[ii], _binUpperBounds[i], _den[i]));
                             }
                         }
@@ -1566,7 +1566,7 @@ namespace Microsoft.ML.Transforms
                     offset = 0;
                 else
                     offset = min;
-                Contracts.Assert(0 <= scale & scale < TFloat.PositiveInfinity);
+                Contracts.Assert(0 <= scale && scale < TFloat.PositiveInfinity);
             }
 
             private static void ComputeScaleAndOffsetFixZero(TFloat max, TFloat min, out TFloat scale, out TFloat offset)
@@ -1587,7 +1587,7 @@ namespace Microsoft.ML.Transforms
                     scale = 0;
                 else
                     scale = 1 / Math.Max(Math.Abs(max), Math.Abs(min));
-                Contracts.Assert(0 <= scale & scale < TFloat.PositiveInfinity);
+                Contracts.Assert(0 <= scale && scale < TFloat.PositiveInfinity);
             }
         }
 
@@ -1607,7 +1607,7 @@ namespace Microsoft.ML.Transforms
                     offset = 0;
                 else
                     offset = (TFloat)mean;
-                Contracts.Assert(0 <= scale & scale < TFloat.PositiveInfinity);
+                Contracts.Assert(0 <= scale && scale < TFloat.PositiveInfinity);
             }
 
             public static void ComputeScaleAndOffsetFixZero(Double mean, Double meanSquaredError, out TFloat scale, out TFloat offset)
@@ -1623,7 +1623,7 @@ namespace Microsoft.ML.Transforms
                     scale = 0;
                 else
                     scale = 1 / (TFloat)Math.Sqrt(meanSquaredError + mean * mean);
-                Contracts.Assert(0 <= scale & scale < TFloat.PositiveInfinity);
+                Contracts.Assert(0 <= scale && scale < TFloat.PositiveInfinity);
             }
         }
 
@@ -1652,7 +1652,7 @@ namespace Microsoft.ML.Transforms
                 int binIdx = binUpperBounds.FindIndexSorted(0, binUpperBounds.Length - 1, input);
                 Contracts.Check(binIdx < binUpperBounds.Length);
                 var value = binIdx / den - offset;
-                Contracts.Assert(-1 <= value & value <= 1);
+                Contracts.Assert(-1 <= value && value <= 1);
                 return value;
             }
 
@@ -2074,7 +2074,7 @@ namespace Microsoft.ML.Transforms
 
                     var values = buffer.GetValues();
                     int count = values.Length;
-                    Host.Assert(0 <= count & count <= size);
+                    Host.Assert(0 <= count && count <= size);
                     if (count == 0)
                         return true;
 

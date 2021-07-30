@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();

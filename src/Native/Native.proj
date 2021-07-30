@@ -35,6 +35,10 @@
     <NativeVersionFile>$(IntermediateOutputPath)_version.h</NativeVersionFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <NonArmOnWindows Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'">true</NonArmOnWindows>
+  </PropertyGroup>
+
   <PropertyGroup>
     <NativeLibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</NativeLibPrefix>
     <NativeLibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</NativeLibExtension>
@@ -82,26 +86,36 @@
     <!-- Copy MklImports into the native assets folder, so it can be treated like a regularly built native assembly - packaged into our NuGet packages, and used by tests. -->
     <Message Text="PreparePackageAssets" Importance="High"/>
 
-    <Copy SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
+    <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+          SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
 
-    <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
+    <!-- Copy MklImports pdb over -->
+    <Copy Condition="'$(NonArmOnWindows)' == 'true'" SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\MklImports.pdb"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />
+
+    <Copy Condition="'$(NonArmOnWindows)' == 'true'" SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
 
     <ItemGroup>
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
+      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+                          Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0" />
       <NativePackageAsset Include="$(PlaceholderFile)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netcoreapp3.1" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
+      <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->
+      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+                          Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Components\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
+      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+                          Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MatrixFactorizationNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Recommender\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
+      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+                          Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.FastTree\runtimes\$(PackageRid)\native" />
     </ItemGroup>
 
@@ -112,9 +126,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
+      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+                          Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT'" Include="$(NativeAssetsBuiltPath)\libiomp5md$(NativeLibExtension)"
+      <NativePackageAsset Condition="'$(NonArmOnWindows)' == 'true'"
+                          Include="$(NativeAssetsBuiltPath)\MklImports.pdb"
+                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Condition="'$(NonArmOnWindows)' == 'true'" Include="$(NativeAssetsBuiltPath)\libiomp5md$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
 
     </ItemGroup>

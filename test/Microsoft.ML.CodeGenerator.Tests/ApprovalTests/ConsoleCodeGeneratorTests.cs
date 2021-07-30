@@ -39,6 +39,10 @@ namespace mlnet.Tests
 
         public ConsoleCodeGeneratorTests(ITestOutputHelper output) : base(output)
         {
+            if (System.Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
         }
 
         [Fact]
@@ -324,7 +328,7 @@ namespace mlnet.Tests
         public void ModelInputClassTest()
         {
             // Test with datasets whose columns are sanitized and not sanitized. The columns of a dataset are considered
-            // sanitized if the column names are all unique and distinct, irrespective of capitalization. 
+            // sanitized if the column names are all unique and distinct, irrespective of capitalization.
             (var pipelineSanitized, var columnInferenceSanitized, var mappingSanitized) = this.GetMockedAzurePipelineAndInference();
             TestModelInput(pipelineSanitized, columnInferenceSanitized, mappingSanitized, "sanitized");
             (var pipelineUnsatinized, var columnInferenceUnsatinized, var mappingUnsatinized) = this.GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames();

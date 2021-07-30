@@ -12,6 +12,10 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.DS_Store
+
+# Helix payload files
+*.payload
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -36,6 +40,9 @@ msbuild.binlog
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
+
+# VSCode files
+.vscode/
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/

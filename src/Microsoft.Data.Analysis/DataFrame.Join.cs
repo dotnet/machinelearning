@@ -168,7 +168,7 @@ namespace Microsoft.Data.Analysis
             {
                 // First hash other dataframe on the rightJoinColumn 
                 DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = otherColumn.GroupColumnValues<TKey>();
+                Dictionary<TKey, ICollection<long>> multimap = otherColumn.GroupColumnValues<TKey>(out HashSet<long> otherColumnNullIndices);
 
                 // Go over the records in this dataframe and match with the dictionary 
                 DataFrameColumn thisColumn = Columns[leftJoinColumn];
@@ -176,74 +176,64 @@ namespace Microsoft.Data.Analysis
                 for (long i = 0; i < thisColumn.Length; i++)
                 {
                     var thisColumnValue = thisColumn[i];
-                    TKey thisColumnValueOrDefault = (TKey)(thisColumnValue == null ? default(TKey) : thisColumnValue);
-                    if (multimap.TryGetValue(thisColumnValueOrDefault, out ICollection<long> rowNumbers))
+                    if (thisColumnValue != null)
                     {
-                        foreach (long row in rowNumbers)
+                        if (multimap.TryGetValue((TKey)thisColumnValue, out ICollection<long> rowNumbers))
                         {
-                            if (thisColumnValue == null)
+                            foreach (long row in rowNumbers)
                             {
-                                // Match only with nulls in otherColumn 
-                                if (otherColumn[row] == null)
-                                {
-                                    leftRowIndices.Append(i);
-                                    rightRowIndices.Append(row);
-                                }
+                                leftRowIndices.Append(i);
+                                rightRowIndices.Append(row);
                             }
-                            else
-                            {
-                                // Cannot match nulls in otherColumn 
-                                if (otherColumn[row] != null)
-                                {
-                                    leftRowIndices.Append(i);
-                                    rightRowIndices.Append(row);
-                                }
-                            }
+                        }
+                        else
+                        {
+                            leftRowIndices.Append(i);
+                            rightRowIndices.Append(null);
                         }
                     }
                     else
                     {
-                        leftRowIndices.Append(i);
-                        rightRowIndices.Append(null);
+                        foreach (long row in otherColumnNullIndices)
+                        {
+                            leftRowIndices.Append(i);
+                            rightRowIndices.Append(row);
+                        }
                     }
                 }
             }
             else if (joinAlgorithm == JoinAlgorithm.Right)
             {
                 DataFrameColumn thisColumn = Columns[leftJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = thisColumn.GroupColumnValues<TKey>();
+                Dictionary<TKey, ICollection<long>> multimap = thisColumn.GroupColumnValues<TKey>(out HashSet<long> thisColumnNullIndices);
 
                 DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
                 for (long i = 0; i < otherColumn.Length; i++)
                 {
                     var otherColumnValue = otherColumn[i];
-                    TKey otherColumnValueOrDefault = (TKey)(otherColumnValue == null ? default(TKey) : otherColumnValue);
-                    if (multimap.TryGetValue(otherColumnValueOrDefault, out ICollection<long> rowNumbers))
+                    if (otherColumnValue != null)
                     {
-                        foreach (long row in rowNumbers)
+                        if (multimap.TryGetValue((TKey)otherColumnValue, out ICollection<long> rowNumbers))
                         {
-                            if (otherColumnValue == null)
+                            foreach (long row in rowNumbers)
                             {
-                                if (thisColumn[row] == null)
-                                {
-                                    leftRowIndices.Append(row);
-                                    rightRowIndices.Append(i);
-                                }
+                                leftRowIndices.Append(row);
+                                rightRowIndices.Append(i);
                             }
-                            else
-                            {
-                                if (thisColumn[row] != null)
-                                {
-                                    leftRowIndices.Append(row);
-                                    rightRowIndices.Append(i);
-                                }
-                            }
+                        }
+                        else
+                        {
+                            leftRowIndices.Append(null);
+                            rightRowIndices.Append(i);
                         }
                     }
                     else
                     {
-                        leftRowIndices.Append(null);
-                        rightRowIndices.Append(i);
+                        foreach (long thisColumnNullIndex in thisColumnNullIndices)
+                        {
+                            leftRowIndices.Append(thisColumnNullIndex);
+                            rightRowIndices.Append(i);
+                        }
                     }
                 }
             }
@@ -252,100 +242,107 @@ namespace Microsoft.Data.Analysis
                 // Hash the column with the smaller RowCount 
                 long leftRowCount = Rows.Count;
                 long rightRowCount = other.Rows.Count;
-                DataFrame longerDataFrame = leftRowCount <= rightRowCount ? other : this;
-                DataFrame shorterDataFrame = ReferenceEquals(longerDataFrame, this) ? other : this;
-                DataFrameColumn hashColumn = (leftRowCount <= rightRowCount) ? Columns[leftJoinColumn] : other.Columns[rightJoinColumn];
+
+                bool leftColumnIsSmaller = leftRowCount <= rightRowCount;
+                DataFrameColumn hashColumn = leftColumnIsSmaller ? Columns[leftJoinColumn] : other.Columns[rightJoinColumn];
                 DataFrameColumn otherColumn = ReferenceEquals(hashColumn, Columns[leftJoinColumn]) ? other.Columns[rightJoinColumn] : Columns[leftJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = hashColumn.GroupColumnValues<TKey>();
+                Dictionary<TKey, ICollection<long>> multimap = hashColumn.GroupColumnValues<TKey>(out HashSet<long> smallerDataFrameColumnNullIndices);
 
                 for (long i = 0; i < otherColumn.Length; i++)
                 {
                     var otherColumnValue = otherColumn[i];
-                    TKey otherColumnValueOrDefault = (TKey)(otherColumnValue == null ? default(TKey) : otherColumnValue);
-                    if (multimap.TryGetValue(otherColumnValueOrDefault, out ICollection<long> rowNumbers))
+                    if (otherColumnValue != null)
                     {
-                        foreach (long row in rowNumbers)
+                        if (multimap.TryGetValue((TKey)otherColumnValue, out ICollection<long> rowNumbers))
                         {
-                            if (otherColumnValue == null)
+                            foreach (long row in rowNumbers)
                             {
-                                if (hashColumn[row] == null)
-                                {
-                                    leftRowIndices.Append(row);
-                                    rightRowIndices.Append(i);
-                                }
-                            }
-                            else
-                            {
-                                if (hashColumn[row] != null)
-                                {
-                                    leftRowIndices.Append(row);
-                                    rightRowIndices.Append(i);
-                                }
-                            }
-                        }
-                    }
-                }
-                leftDataFrame = shorterDataFrame;
-                rightDataFrame = longerDataFrame;
-            }
-            else if (joinAlgorithm == JoinAlgorithm.FullOuter)
-            {
-                DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
-                Dictionary<TKey, ICollection<long>> multimap = otherColumn.GroupColumnValues<TKey>();
-                Dictionary<TKey, long> intersection = new Dictionary<TKey, long>(EqualityComparer<TKey>.Default);
-
-                // Go over the records in this dataframe and match with the dictionary 
-                DataFrameColumn thisColumn = Columns[leftJoinColumn];
-
-                for (long i = 0; i < thisColumn.Length; i++)
-                {
-                    var thisColumnValue = thisColumn[i];
-                    TKey thisColumnValueOrDefault = (TKey)(thisColumnValue == null ? default(TKey) : thisColumnValue);
-                    if (multimap.TryGetValue(thisColumnValueOrDefault, out ICollection<long> rowNumbers))
-                    {
-                        foreach (long row in rowNumbers)
-                        {
-                            if (thisColumnValue == null)
-                            {
-                                // Has to match only with nulls in otherColumn 
-                                if (otherColumn[row] == null)
-                                {
-                                    leftRowIndices.Append(i);
-                                    rightRowIndices.Append(row);
-                                    if (!intersection.ContainsKey(thisColumnValueOrDefault))
-                                    {
-                                        intersection.Add(thisColumnValueOrDefault, rowNumber);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                // Cannot match to nulls in otherColumn 
-                                if (otherColumn[row] != null)
-                                {
-                                    leftRowIndices.Append(i);
-                                    rightRowIndices.Append(row);
-                                    if (!intersection.ContainsKey(thisColumnValueOrDefault))
-                                    {
-                                        intersection.Add(thisColumnValueOrDefault, rowNumber);
-                                    }
-                                }
+                                leftRowIndices.Append(leftColumnIsSmaller ? row : i);
+                                rightRowIndices.Append(leftColumnIsSmaller ? i : row);
                             }
                         }
                     }
                     else
                     {
-                        leftRowIndices.Append(i);
-                        rightRowIndices.Append(null);
+                        foreach (long nullIndex in smallerDataFrameColumnNullIndices)
+                        {
+                            leftRowIndices.Append(leftColumnIsSmaller ? nullIndex : i);
+                            rightRowIndices.Append(leftColumnIsSmaller ? i : nullIndex);
+                        }
+                    }
+                }
+            }
+            else if (joinAlgorithm == JoinAlgorithm.FullOuter)
+            {
+                DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
+                Dictionary<TKey, ICollection<long>> multimap = otherColumn.GroupColumnValues<TKey>(out HashSet<long> otherColumnNullIndices);
+                Dictionary<TKey, long> intersection = new Dictionary<TKey, long>(EqualityComparer<TKey>.Default);
+
+                // Go over the records in this dataframe and match with the dictionary 
+                DataFrameColumn thisColumn = Columns[leftJoinColumn];
+                Int64DataFrameColumn thisColumnNullIndices = new Int64DataFrameColumn("ThisColumnNullIndices");
+
+                for (long i = 0; i < thisColumn.Length; i++)
+                {
+                    var thisColumnValue = thisColumn[i];
+                    if (thisColumnValue != null)
+                    {
+                        if (multimap.TryGetValue((TKey)thisColumnValue, out ICollection<long> rowNumbers))
+                        {
+                            foreach (long row in rowNumbers)
+                            {
+                                leftRowIndices.Append(i);
+                                rightRowIndices.Append(row);
+                                if (!intersection.ContainsKey((TKey)thisColumnValue))
+                                {
+                                    intersection.Add((TKey)thisColumnValue, rowNumber);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            leftRowIndices.Append(i);
+                            rightRowIndices.Append(null);
+                        }
+                    }
+                    else
+                    {
+                        thisColumnNullIndices.Append(i);
                     }
                 }
                 for (long i = 0; i < otherColumn.Length; i++)
                 {
-                    TKey value = (TKey)(otherColumn[i] ?? default(TKey));
-                    if (!intersection.ContainsKey(value))
+                    var value = otherColumn[i];
+                    if (value != null)
+                    {
+                        if (!intersection.ContainsKey((TKey)value))
+                        {
+                            leftRowIndices.Append(null);
+                            rightRowIndices.Append(i);
+                        }
+                    }
+                }
+
+                // Now handle the null rows
+                foreach (long? thisColumnNullIndex in thisColumnNullIndices)
+                {
+                    foreach (long otherColumnNullIndex in otherColumnNullIndices)
+                    {
+                        leftRowIndices.Append(thisColumnNullIndex.Value);
+                        rightRowIndices.Append(otherColumnNullIndex);
+                    }
+                    if (otherColumnNullIndices.Count == 0)
+                    {
+                        leftRowIndices.Append(thisColumnNullIndex.Value);
+                        rightRowIndices.Append(null);
+                    }
+                }
+                if (thisColumnNullIndices.Length == 0)
+                {
+                    foreach (long otherColumnNullIndex in otherColumnNullIndices)
                     {
                         leftRowIndices.Append(null);
-                        rightRowIndices.Append(i);
+                        rightRowIndices.Append(otherColumnNullIndex);
                     }
                 }
             }
@@ -366,4 +363,5 @@ namespace Microsoft.Data.Analysis
         }
 
     }
+
 }
