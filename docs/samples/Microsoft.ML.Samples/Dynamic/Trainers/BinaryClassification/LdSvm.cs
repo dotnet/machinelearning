@@ -33,7 +33,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Create testing data. Use different random seed to make it different
             // from training data.
             var testData = mlContext.Data
-                .LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+                .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -45,7 +45,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
             // Print 5 predictions.
             foreach (var p in predictions.Take(5))
-                Console.WriteLine($"Label: {p.Label}, " 
+                Console.WriteLine($"Label: {p.Label}, "
                     + $"Prediction: {p.PredictedLabel}");
 
             // Expected output:
@@ -54,13 +54,13 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Label: True, Prediction: True
             // Label: True, Prediction: True
             // Label: False, Prediction: False
-            
+
             // Evaluate the overall metrics.
             var metrics = mlContext.BinaryClassification
                 .EvaluateNonCalibrated(transformedTestData);
 
             PrintMetrics(metrics);
-            
+
             // Expected output:
             // Accuracy: 0.82
             // AUC: 0.85
@@ -82,7 +82,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
 
         {
             var random = new Random(seed);
@@ -99,7 +99,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Features = Enumerable.Repeat(label, 50)
                         .Select(x => x ? randomFloat() : randomFloat() +
                         0.1f).ToArray()
-            
+
                 };
             }
         }
@@ -128,7 +128,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
             Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
-            Console.WriteLine($"Negative Precision: " + 
+            Console.WriteLine($"Negative Precision: " +
                 $"{metrics.NegativePrecision:F2}");
 
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");

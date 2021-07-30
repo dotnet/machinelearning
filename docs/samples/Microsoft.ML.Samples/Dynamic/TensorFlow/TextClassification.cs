@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -87,7 +87,7 @@ namespace Samples.Dynamic
             //      5. Retreives the 'Prediction' from TensorFlow and put it into
             //         ML.NET Pipeline 
 
-            Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction = 
+            Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction =
                 (i, j) =>
             {
                 j.Sentiment_Text = i.Sentiment_Text;
@@ -123,9 +123,9 @@ namespace Samples.Dynamic
             var prediction = engine.Predict(data[0]);
 
             Console.WriteLine("Number of classes: {0}", prediction.Prediction
-                .Length); 
+                .Length);
             Console.WriteLine("Is sentiment/review positive? {0}", prediction
-                .Prediction[1] > 0.5 ? "Yes." : "No."); 
+                .Prediction[1] > 0.5 ? "Yes." : "No.");
             Console.WriteLine("Prediction Confidence: {0}", prediction.Prediction[1]
                 .ToString("0.00"));
 

@@ -48,9 +48,9 @@ namespace Samples.Dynamic
             var column = transformedData.GetColumn<float[]>("Features").ToArray();
             var column2 = transformedData.GetColumn<float>("Features2").ToArray();
 
-            for(int i=0; i< column.Length; i++)
+            for (int i = 0; i < column.Length; i++)
                 Console.WriteLine(string.Join(", ", column[i].Select(x => x
-                .ToString("f4")))+"\t\t"+column2[i]);
+                .ToString("f4"))) + "\t\t" + column2[i]);
             // Expected output:
             //
             //  Features                            Feature2

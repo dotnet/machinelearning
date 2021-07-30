@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -45,12 +45,12 @@ namespace Samples.Dynamic.Trainers.Recommendation
             {
                 MatrixColumnIndexColumnName = nameof(
                     MatrixElement.MatrixColumnIndex),
-                    MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
-                    LabelColumnName = nameof(MatrixElement.Value),
-                    NumberOfIterations = 20,
-                    NumberOfThreads = 8,
-                    ApproximationRank = 32,
-                    Alpha = 1,
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                NumberOfIterations = 20,
+                NumberOfThreads = 8,
+                ApproximationRank = 32,
+                Alpha = 1,
 
                 // The desired values of matrix elements not specified in the
                 // training set. If the training set doesn't tell the value at the

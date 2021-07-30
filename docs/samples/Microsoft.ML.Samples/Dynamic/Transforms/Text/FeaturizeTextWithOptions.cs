@@ -49,14 +49,24 @@ namespace Samples.Dynamic
                 OutputTokensColumnName = "OutputTokens",
                 CaseMode = TextNormalizingEstimator.CaseMode.Lower,
                 // Use ML.NET's built-in stop word remover
-                StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options() {
-                    Language = TextFeaturizingEstimator.Language.English },
+                StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options()
+                {
+                    Language = TextFeaturizingEstimator.Language.English
+                },
 
-                WordFeatureExtractor = new WordBagEstimator.Options() { NgramLength
-                    = 2, UseAllLengths = true },
+                WordFeatureExtractor = new WordBagEstimator.Options()
+                {
+                    NgramLength
+                    = 2,
+                    UseAllLengths = true
+                },
 
-                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength 
-                    = 3, UseAllLengths= false },
+                CharFeatureExtractor = new WordBagEstimator.Options()
+                {
+                    NgramLength
+                    = 3,
+                    UseAllLengths = false
+                },
             };
             var textPipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                 options, "Text");

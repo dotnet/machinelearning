@@ -35,7 +35,7 @@ namespace Samples.Dynamic
                 .CreateEnumerable<DataPoint>(split.TrainSet, reuseRowObject: false);
 
             var testSet = mlContext.Data
-                .CreateEnumerable<DataPoint>(split.TestSet,reuseRowObject: false);
+                .CreateEnumerable<DataPoint>(split.TestSet, reuseRowObject: false);
 
             PrintPreviewRows(trainSet, testSet);
 
@@ -56,10 +56,10 @@ namespace Samples.Dynamic
             // Example of a split without specifying a sampling key column.
             split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.2);
             trainSet = mlContext.Data
-                .CreateEnumerable<DataPoint>(split.TrainSet,reuseRowObject: false);
+                .CreateEnumerable<DataPoint>(split.TrainSet, reuseRowObject: false);
 
             testSet = mlContext.Data
-                .CreateEnumerable<DataPoint>(split.TestSet,reuseRowObject: false);
+                .CreateEnumerable<DataPoint>(split.TestSet, reuseRowObject: false);
 
             PrintPreviewRows(trainSet, testSet);
 

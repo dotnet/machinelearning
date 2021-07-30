@@ -60,7 +60,7 @@ namespace Samples.Dynamic
             //   False
 
             // Inspect some of the properties of the binning transformer
-            var binningParam = binningTransformer.GetNormalizerModelParameters(0) as 
+            var binningParam = binningTransformer.GetNormalizerModelParameters(0) as
                 BinNormalizerModelParameters<ImmutableArray<float>>;
 
             for (int i = 0; i < binningParam.UpperBounds.Length; i++)

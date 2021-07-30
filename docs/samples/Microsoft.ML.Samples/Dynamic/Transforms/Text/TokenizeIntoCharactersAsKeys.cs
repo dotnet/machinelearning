@@ -40,9 +40,12 @@ namespace Samples.Dynamic
                 TransformedTextData>(textTransformer);
 
             // Call the prediction API to convert the text into characters.
-            var data = new TextData() { Text = "ML.NET's " +
+            var data = new TextData()
+            {
+                Text = "ML.NET's " +
                 "TokenizeIntoCharactersAsKeys API splits text/string into " +
-                "characters." };
+                "characters."
+            };
 
             var prediction = predictionEngine.Predict(data);
 

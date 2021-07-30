@@ -12,7 +12,7 @@ namespace Samples.Dynamic.Trainers.Regression
             // Create a new context for ML.NET operations. It can be used for
             // exception tracking and logging, as a catalog of available operations
             // and as the source of randomness.
-            var mlContext = new MLContext(seed:1);
+            var mlContext = new MLContext(seed: 1);
 
             // Create sample data.
             var samples = GenerateData();
@@ -49,8 +49,11 @@ namespace Samples.Dynamic.Trainers.Regression
             // Now let's look at which features are most important to the model
             // overall. Get the feature indices sorted by their impact on RMSE.
             var sortedIndices = permutationMetrics
-                .Select((metrics, index) => new { index,
-                    metrics.RootMeanSquaredError})
+                .Select((metrics, index) => new
+                {
+                    index,
+                    metrics.RootMeanSquaredError
+                })
 
                 .OrderByDescending(feature => Math.Abs(
                     feature.RootMeanSquaredError.Mean))
@@ -114,7 +117,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 };
 
                 // Create a noisy label.
-                data.Label = (float)(bias + weight1 * data.Feature1 + weight2 * 
+                data.Label = (float)(bias + weight1 * data.Feature1 + weight2 *
                     data.Feature2 + rng.NextDouble() - 0.5);
                 yield return data;
             }

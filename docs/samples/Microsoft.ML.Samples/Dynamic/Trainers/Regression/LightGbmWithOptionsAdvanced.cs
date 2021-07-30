@@ -41,17 +41,17 @@ namespace Samples.Dynamic.Trainers.Regression
                 "Features", featureNames)
                 .Append(mlContext.Regression.Trainers.LightGbm(
                 new LightGbmRegressionTrainer.Options
+                {
+                    LabelColumnName = labelName,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 6,
+                    LearningRate = 0.001,
+                    Booster = new GossBooster.Options()
                     {
-                        LabelColumnName = labelName,
-                        NumberOfLeaves = 4,
-                        MinimumExampleCountPerLeaf = 6,
-                        LearningRate = 0.001,
-                        Booster = new GossBooster.Options()
-                        {
-                            TopRate = 0.3,
-                            OtherRate = 0.2
-                        }
-                    }));
+                        TopRate = 0.3,
+                        OtherRate = 0.2
+                    }
+                }));
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(split.TrainSet);

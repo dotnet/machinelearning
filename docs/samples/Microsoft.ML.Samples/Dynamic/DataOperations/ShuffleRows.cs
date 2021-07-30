@@ -12,7 +12,7 @@ namespace Samples.Dynamic
         {
             // Create a new context for ML.NET operations. It can be used for
             // exception tracking and logging, as a catalog of available operations
-	    // and as the source of randomness.
+            // and as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
@@ -24,7 +24,7 @@ namespace Samples.Dynamic
             foreach (var row in enumerableOfData)
             {
                 Console.WriteLine($"{row.Date.ToString("d")}" +
-				    $"\t{row.Temperature}");
+                    $"\t{row.Temperature}");
             }
             Console.WriteLine();
             // Expected output:
@@ -39,16 +39,16 @@ namespace Samples.Dynamic
             var shuffledData = mlContext.Data.ShuffleRows(data, seed: 123);
 
             // Look at the shuffled data and observe that the rows are in a
-	    // randomized order.
+            // randomized order.
             var enumerable = mlContext.Data
-			    .CreateEnumerable<SampleTemperatureData>(shuffledData,
-			    reuseRowObject: true);
+                .CreateEnumerable<SampleTemperatureData>(shuffledData,
+                reuseRowObject: true);
 
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
                 Console.WriteLine($"{row.Date.ToString("d")}" +
-				$"\t{row.Temperature}");
+                $"\t{row.Temperature}");
             }
             // Expected output:
             //  Date    Temperature
@@ -64,14 +64,14 @@ namespace Samples.Dynamic
             public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
-		
+
         /// <summary>
         /// Get a fake temperature dataset.
         /// </summary>
         /// <param name="exampleCount">The number of examples to return.</param>
         /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
         private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(
-		    int exampleCount)
+            int exampleCount)
 
         {
             var rng = new Random(1234321);
@@ -82,8 +82,12 @@ namespace Samples.Dynamic
             {
                 date = date.AddDays(1);
                 temperature += rng.Next(-5, 5);
-                yield return new SampleTemperatureData { Date = date, Temperature = 
-				    temperature };
+                yield return new SampleTemperatureData
+                {
+                    Date = date,
+                    Temperature =
+                    temperature
+                };
 
             }
         }

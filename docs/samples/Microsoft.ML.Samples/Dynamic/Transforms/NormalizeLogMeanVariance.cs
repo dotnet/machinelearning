@@ -75,7 +75,7 @@ namespace Samples.Dynamic
                 "produce by:");
 
             Console.WriteLine("y = 0.5* (1 + ERF((Math.Log(x)- " + transformParams
-                .Mean[1] + ") / (" + transformParams.StandardDeviation[1] + 
+                .Mean[1] + ") / (" + transformParams.StandardDeviation[1] +
                 " * sqrt(2)))");
 
             // ERF is https://en.wikipedia.org/wiki/Error_function.

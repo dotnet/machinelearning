@@ -99,7 +99,7 @@ namespace Samples.Dynamic
             // Look at the data and observe that values above 2 have been filtered
             // out
             var filteredMiddleEnumerable = mlContext.Data
-                .CreateEnumerable<DataPoint>(filteredMiddleData, 
+                .CreateEnumerable<DataPoint>(filteredMiddleData,
                 reuseRowObject: true);
 
             Console.WriteLine($"Age");

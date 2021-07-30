@@ -46,12 +46,12 @@ namespace Samples.Dynamic
                 "Text")
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
                 .Append(mlContext.Transforms.Text.ProduceHashedNgrams(
-                    "NgramFeatures", "Tokens", 
+                    "NgramFeatures", "Tokens",
                     numberOfBits: 5,
                     ngramLength: 3,
                     useAllLengths: false,
                     maximumNumberOfInverts: 1));
-            
+
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
             var transformedDataView = textTransformer.Transform(dataview);

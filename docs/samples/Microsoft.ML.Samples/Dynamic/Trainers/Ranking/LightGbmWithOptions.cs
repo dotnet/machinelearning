@@ -50,7 +50,7 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Create testing data. Use different random seed to make it different
             // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
-                GenerateRandomDataPoints(500, seed:123));
+                GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -77,7 +77,7 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Evaluate the overall metrics.
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
-            
+
             // Expected output:
             //   DCG: @1:28.83, @2:46.36, @3:56.18
             //   NDCG: @1:0.69, @2:0.72, @3:0.74
@@ -99,7 +99,7 @@ namespace Samples.Dynamic.Trainers.Ranking
                     // For data points with larger labels, the feature values are
                     // slightly increased by adding a constant.
                     Features = Enumerable.Repeat(label, 50).Select(
-					    x => randomFloat() + x * 0.1f).ToArray()
+                        x => randomFloat() + x * 0.1f).ToArray()
                 };
             }
         }

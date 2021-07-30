@@ -42,7 +42,7 @@ namespace Samples.Dynamic
             // pipeline uses the default settings to featurize.
             string defaultColumnName = "DefaultTextFeatures";
             var default_pipeline = ml.Transforms.Text
-                .FeaturizeText(defaultColumnName , "SentimentText");
+                .FeaturizeText(defaultColumnName, "SentimentText");
 
             // Another pipeline, that customizes the advanced settings of the
             // FeaturizeText transformer.
@@ -51,17 +51,19 @@ namespace Samples.Dynamic
                 .FeaturizeText(customizedColumnName,
                 new TextFeaturizingEstimator.Options
 
-            {
-                KeepPunctuations = false,
-                KeepNumbers = false,
-                OutputTokensColumnName = "OutputTokens",
-                StopWordsRemoverOptions =
-                    new StopWordsRemovingEstimator.Options() {
-                        Language = TextFeaturizingEstimator.Language.English },
+                {
+                    KeepPunctuations = false,
+                    KeepNumbers = false,
+                    OutputTokensColumnName = "OutputTokens",
+                    StopWordsRemoverOptions =
+                    new StopWordsRemovingEstimator.Options()
+                    {
+                        Language = TextFeaturizingEstimator.Language.English
+                    },
                     // supports  English, French, German, Dutch, Italian, Spanish,
                     // Japanese
 
-            }, "SentimentText");
+                }, "SentimentText");
 
             // The transformed data for both pipelines.
             var transformedData_default = default_pipeline.Fit(trainData)
