@@ -45,6 +45,12 @@ Read more about the deep learning plan and leave your feedback in this [tracking
 
 #### Named Entity Recognition (NER)
 
+Named Entity Recognition, or NER, is the process of identifying and classifying/tagging information in text. For example, an NER model might look at a block of text and pick out "Seattle" and "Space Needle" and categorize them as locations or might find and tag "Microsoft" as a company.
+
+Currently you can consume a pre-trained ONNX model in ML.NET for NER, but it is not possible to train a custom NER model in ML.NET which has been a highly requested feature for several years.
+
+X.
+
 *Related issues*:
 
 - [#630](https://github.com/dotnet/machinelearning/issues/630)
@@ -56,6 +62,10 @@ Read more about the deep learning plan and leave your feedback in this [tracking
 - [#5895](https://github.com/dotnet/machinelearning/issues/5895)
 
 #### Multivariate time series forecasting
+
+Currently ML.NET only supports univariate time series forecasting with the [SSA algorithm](https://docs.microsoft.com/dotnet/api/microsoft.ml.transforms.timeseries.ssaforecastingestimator?view=ml-dotnet) which is currently being [added to Model Builder](linkhere).
+
+
 
 *Related issues*:
 
@@ -70,7 +80,13 @@ Read more about the deep learning plan and leave your feedback in this [tracking
 
 ### Model explainability & Responsible AI
 
-X.
+Model Explainability and Responsible AI are becoming increasingly important areas of focus in the Machine Learning space and at Microsoft. Model explainability and fairness features are important because they let you debug and improve your models and answer questions about bias, building trust, and complying with regulations.
+
+ML.NET currently offers two main model explainability features: [Permutation Feature Importance](https://docs.microsoft.com/dotnet/api/microsoft.ml.permutationfeatureimportanceextensions?view=ml-dotnet) (PFI) and the [Feature Contribution Calculator](https://docs.microsoft.com/dotnet/api/microsoft.ml.transforms.featurecontributioncalculatingestimator?view=ml-dotnet) (FCC).
+
+We got a lot of feedback that the PFI API was difficult to use, so our first step is to improve the current experience in ML.NET. These improvements can be tracked in this [issue](https://github.com/dotnet/machinelearning/issues/5625) which will be merged soon.
+
+This year we also plan to expand the number of model explainability and fairness features. We are currently working on this plan and will update the roadmap as we finalize which model explainability and fairness techniques we will bring into ML.NET.
 
 ### DataFrame API
 
