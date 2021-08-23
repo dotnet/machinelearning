@@ -9,7 +9,7 @@
     <!-- <IncludeBuildOutput>false</IncludeBuildOutput> -->
     <NoWarn>$(NoWarn);NU5127;NU5128</NoWarn>
     <PackageDescription>ML.NET is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.</PackageDescription>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>../../README.md</PackageReadmeFile>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
