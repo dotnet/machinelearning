@@ -50,7 +50,7 @@
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
     <Content Include="build\**\*" Pack="true" PackagePath="build" />
-    <None Include="\README.md" Pack="true" PackagePath="\"/> <!--NuGet PackageReadmeFile-->
+    <None Include="..\..\README.md" Pack="true" PackagePath="\"/> <!--NuGet PackageReadmeFile-->
   </ItemGroup>
 <PropertyGroup>
   <!--Include Project References output-->
