@@ -34,7 +34,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Use L2-norm for early stopping. If the gradient's L2-norm is
                 // smaller than an auto-computed value, training process will stop.
-                EarlyStoppingMetric = 
+                EarlyStoppingMetric =
                     Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
 
                 // Create a simpler model by penalizing usage of new features.
@@ -86,7 +86,7 @@ namespace Samples.Dynamic.Trainers.Regression
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
         {
             var random = new Random(seed);
             for (int i = 0; i < count; i++)

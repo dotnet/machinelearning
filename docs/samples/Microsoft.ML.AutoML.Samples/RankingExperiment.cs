@@ -69,7 +69,7 @@ namespace Microsoft.ML.AutoML.Samples
             testPage = new SearchData
             {
                 GroupId = "2",
-                Features = 2, 
+                Features = 2,
                 Label = 9
             };
             prediction = predictionEngine.Predict(testPage);

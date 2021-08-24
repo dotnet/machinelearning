@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML;
@@ -57,7 +57,7 @@ namespace Samples.Dynamic
                 $"post-transformation.");
 
             Console.WriteLine("Data\tAlert\tScore\tP-Value");
-            
+
             // Prediction column obtained post-transformation.
             // Data Alert   Score   P-Value
 
@@ -76,7 +76,7 @@ namespace Samples.Dynamic
 
             // Spike.
             PrintPrediction(10, engine.Predict(new TimeSeriesData(10)));
-            
+
             // 10     1      10.00    0.00  <-- alert is on, predicted spike (check-point model)
 
             // Checkpoint the model.
@@ -102,7 +102,7 @@ namespace Samples.Dynamic
         }
 
         private static void PrintPrediction(float value, IidSpikePrediction
-            prediction) => 
+            prediction) =>
             Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
             prediction.Prediction[0], prediction.Prediction[1],
             prediction.Prediction[2]);

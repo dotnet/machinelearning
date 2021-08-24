@@ -30,7 +30,7 @@ namespace Samples.Dynamic
             var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words",
                 "Text")
                 .Append(mlContext.Transforms.Text.RemoveDefaultStopWords(
-                "WordsWithoutStopWords", "Words", language: 
+                "WordsWithoutStopWords", "Words", language:
                 StopWordsRemovingEstimator.Language.English));
 
             // Fit to data.
@@ -42,9 +42,12 @@ namespace Samples.Dynamic
                 TransformedTextData>(textTransformer);
 
             // Call the prediction API to remove stop words.
-            var data = new TextData() { Text = "ML.NET's RemoveDefaultStopWords " +
+            var data = new TextData()
+            {
+                Text = "ML.NET's RemoveDefaultStopWords " +
                 "API removes stop words from tHe text/string. It requires the " +
-                "text/string to be tokenized beforehand." };
+                "text/string to be tokenized beforehand."
+            };
 
             var prediction = predictionEngine.Predict(data);
 

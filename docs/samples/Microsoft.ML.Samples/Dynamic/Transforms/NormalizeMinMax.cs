@@ -74,9 +74,9 @@ namespace Samples.Dynamic
             Console.WriteLine($"The 1-index value in resulting array would be " +
                 $"produced by:");
 
-             Console.WriteLine(" y = (x - (" + (transformParams.Offset.Length == 0 ?
-                 0 : transformParams.Offset[1]) + ")) * " + transformParams
-                 .Scale[1]);
+            Console.WriteLine(" y = (x - (" + (transformParams.Offset.Length == 0 ?
+                0 : transformParams.Offset[1]) + ")) * " + transformParams
+                .Scale[1]);
             // Expected output:
             //  The 1-index value in resulting array would be produce by: 
             //  y = (x - (-1)) * 0.3333333

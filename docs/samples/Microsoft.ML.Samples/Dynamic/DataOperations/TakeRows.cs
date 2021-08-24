@@ -24,7 +24,7 @@ namespace Samples.Dynamic
             foreach (var row in enumerableOfData)
             {
                 Console.WriteLine($"{row.Date.ToString("d")}" +
-				    $"\t{row.Temperature}");
+                    $"\t{row.Temperature}");
             }
             Console.WriteLine();
             // Expected output:
@@ -44,16 +44,16 @@ namespace Samples.Dynamic
             var filteredData = mlContext.Data.TakeRows(data, 5);
 
             // Look at the filtered data and observe that only the first 5 rows are
-	    // in the resulting dataset.
+            // in the resulting dataset.
             var enumerable = mlContext.Data
-			    .CreateEnumerable<SampleTemperatureData>(filteredData,
-			    reuseRowObject: true);
+                .CreateEnumerable<SampleTemperatureData>(filteredData,
+                reuseRowObject: true);
 
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
                 Console.WriteLine($"{row.Date.ToString("d")}" +
-				    $"\t{row.Temperature}");
+                    $"\t{row.Temperature}");
             }
             // Expected output:
             //  Date    Temperature
@@ -69,14 +69,14 @@ namespace Samples.Dynamic
             public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
-		
+
         /// <summary>
         /// Get a fake temperature dataset.
         /// </summary>
         /// <param name="exampleCount">The number of examples to return.</param>
         /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
         private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(
-		    int exampleCount)
+            int exampleCount)
 
         {
             var rng = new Random(1234321);
@@ -87,8 +87,12 @@ namespace Samples.Dynamic
             {
                 date = date.AddDays(1);
                 temperature += rng.Next(-5, 5);
-                yield return new SampleTemperatureData { Date = date, Temperature = 
-				    temperature };
+                yield return new SampleTemperatureData
+                {
+                    Date = date,
+                    Temperature =
+                    temperature
+                };
 
             }
         }

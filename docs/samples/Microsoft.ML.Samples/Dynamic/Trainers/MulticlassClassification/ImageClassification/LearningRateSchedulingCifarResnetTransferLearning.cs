@@ -50,7 +50,7 @@ namespace Samples.Dynamic
             // MapValueToKey : map 'string' type labels to keys
             // LoadImages : load raw images to "Image" column
             trainDataset = mlContext.Transforms.Conversion
-                    .MapValueToKey("Label", keyOrdinality:Microsoft.ML.Transforms
+                    .MapValueToKey("Label", keyOrdinality: Microsoft.ML.Transforms
                     .ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
                 .Append(mlContext.Transforms.LoadRawImageBytes("Image",
                             fullImagesetFolderPathTrain, "ImagePath"))
@@ -165,7 +165,7 @@ namespace Samples.Dynamic
             {
                 Image = testImages.First().Image
             };
-            
+
             // Predict on the single image.
             var prediction = predictionEngine.Predict(imageToPredict);
 

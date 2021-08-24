@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -72,7 +72,7 @@ namespace Samples.Dynamic
             //----------
         }
 
-        private const int imageHeight = 224; 
+        private const int imageHeight = 224;
         private const int imageWidth = 224;
         private const int numChannels = 3;
         private const int inputSize = imageHeight * imageWidth * numChannels;
@@ -96,7 +96,7 @@ namespace Samples.Dynamic
             // This can be any numerical data. Assume image pixel values.
             var image1 = Enumerable.Range(0, inputSize).Select(
                 x => (float)x / inputSize).ToArray();
-            
+
             var image2 = Enumerable.Range(0, inputSize).Select(
                 x => (float)(x + 10000) / inputSize).ToArray();
             return new TensorData[] { new TensorData() { input = image1 },

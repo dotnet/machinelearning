@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -98,7 +98,7 @@ namespace Samples.Dynamic
 
             // Forecast with the original model(that was checkpointed to disk).
             forecast = forecastEngine.Predict();
-            PrintForecastValuesAndIntervals(forecast.Forecast, 
+            PrintForecastValuesAndIntervals(forecast.Forecast,
                 forecast.ConfidenceLowerBound, forecast.ConfidenceUpperBound);
 
             // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]

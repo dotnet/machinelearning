@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML;
@@ -105,7 +105,7 @@ namespace Samples.Dynamic
             // Run predictions on the loaded model.
             for (int i = 0; i < 5; i++)
                 PrintPrediction(i, engine.Predict(new TimeSeriesData(i)));
-            
+
             // 0       0      -2.74    0.40   <-- saved to disk, re-loaded, and running new predictions
             // 1       0      -1.47    0.42
             // 2       0     -17.50    0.24
@@ -114,7 +114,7 @@ namespace Samples.Dynamic
         }
 
         private static void PrintPrediction(float value, SsaSpikePrediction
-            prediction) => 
+            prediction) =>
             Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
             prediction.Prediction[0], prediction.Prediction[1],
             prediction.Prediction[2]);

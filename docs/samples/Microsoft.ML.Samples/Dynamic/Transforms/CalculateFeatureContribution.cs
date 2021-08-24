@@ -39,8 +39,8 @@ namespace Samples.Dynamic
             var linearModel = linearTrainer.Fit(transformedData);
             // Print the model parameters.
             Console.WriteLine($"Linear Model Parameters");
-            Console.WriteLine("Bias: " + linearModel.Model.Bias+ " Feature1: " +
-                linearModel.Model.Weights[0] + " Feature2: " +linearModel.Model
+            Console.WriteLine("Bias: " + linearModel.Model.Bias + " Feature1: " +
+                linearModel.Model.Weights[0] + " Feature2: " + linearModel.Model
                 .Weights[1]);
 
             // Define a feature contribution calculator for all the features, and
@@ -72,7 +72,7 @@ namespace Samples.Dynamic
             Console.WriteLine("Label: " + prediction.Label + " Prediction: " +
                 prediction.Score);
 
-            Console.WriteLine("Feature1: " + prediction.Features[0] + 
+            Console.WriteLine("Feature1: " + prediction.Features[0] +
                 " Feature2: " + prediction.Features[1]);
 
             Console.WriteLine("Feature Contributions: " + prediction

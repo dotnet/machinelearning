@@ -44,7 +44,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 {
                     TopRate = 0.3,
                     OtherRate = 0.2
-               }
+                }
             };
 
             // Define the trainer.
@@ -90,7 +90,7 @@ namespace Samples.Dynamic.Trainers.Regression
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
         {
             var random = new Random(seed);
             for (int i = 0; i < count; i++)
