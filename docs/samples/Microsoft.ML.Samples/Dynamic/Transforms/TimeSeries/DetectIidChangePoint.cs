@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -65,9 +65,9 @@ namespace Samples.Dynamic
                 $"post-transformation.");
 
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
-            
+
             // Data Alert      Score   P-Value Martingale value
-            
+
             // Create non-anomalous data and check for change point.
             for (int index = 0; index < 8; index++)
             {

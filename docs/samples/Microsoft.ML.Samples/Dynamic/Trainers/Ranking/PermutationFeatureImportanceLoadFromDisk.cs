@@ -55,7 +55,8 @@ namespace Samples.Dynamic.Trainers.Ranking
 
             // Now let's look at which features are most important to the model
             // overall. Get the feature indices sorted by their impact on NDCG@1.
-            var sortedIndices = permutationMetrics.Select((metrics, index) => new {
+            var sortedIndices = permutationMetrics.Select((metrics, index) => new
+            {
                 index,
                 metrics.NormalizedDiscountedCumulativeGains
             })

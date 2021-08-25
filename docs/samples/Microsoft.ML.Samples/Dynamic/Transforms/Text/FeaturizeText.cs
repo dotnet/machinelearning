@@ -52,7 +52,7 @@ namespace Samples.Dynamic
             // The length of the output feature vector depends on these settings.
             var textPipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                 "Text");
-            
+
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
 

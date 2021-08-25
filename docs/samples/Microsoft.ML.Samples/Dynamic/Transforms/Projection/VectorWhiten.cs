@@ -8,7 +8,7 @@ namespace Samples.Dynamic
 {
     public sealed class VectorWhiten
     {
-        
+
         /// This example requires installation of additional nuget package 
         /// <a href="https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/">Microsoft.ML.Mkl.Components</a>.
         public static void Example()
@@ -41,7 +41,7 @@ namespace Samples.Dynamic
 
                 foreach (var row in column)
                     Console.WriteLine(string.Join(" ", row.DenseValues().Select(x =>
-                        x.ToString("f3")))+" ");
+                        x.ToString("f3"))) + " ");
             };
 
             // A pipeline to project Features column into white noise vector.
@@ -82,11 +82,17 @@ namespace Samples.Dynamic
             GetVectorOfNumbersData()
         {
             var data = new List<SampleVectorOfNumbersData>();
-            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 0,
-                1, 2, 3, 4, 5, 6, 7, 8, 9 } });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 0,
+                1, 2, 3, 4, 5, 6, 7, 8, 9 }
+            });
 
-            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 1,
-                2, 3, 4, 5, 6, 7, 8, 9, 0 } });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 1,
+                2, 3, 4, 5, 6, 7, 8, 9, 0 }
+            });
 
             data.Add(new SampleVectorOfNumbersData
             {

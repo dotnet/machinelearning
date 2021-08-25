@@ -56,7 +56,8 @@ namespace Samples.Dynamic.Trainers.Regression
             // Now let's look at which features are most important to the model
             // overall. Get the feature indices sorted by their impact on RMSE.
             var sortedIndices = permutationMetrics
-                .Select((metrics, index) => new {
+                .Select((metrics, index) => new
+                {
                     index,
                     metrics.RootMeanSquaredError
                 })

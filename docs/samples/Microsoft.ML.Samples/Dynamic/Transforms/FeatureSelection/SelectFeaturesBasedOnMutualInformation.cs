@@ -35,7 +35,7 @@ namespace Samples.Dynamic
             // information between that slot and a specified label. 
             var pipeline = mlContext.Transforms.FeatureSelection
                 .SelectFeaturesBasedOnMutualInformation(outputColumnName:
-                "NumericVector", labelColumnName: "Label", slotsInOutput:2);
+                "NumericVector", labelColumnName: "Label", slotsInOutput: 2);
 
             // The pipeline can then be trained, using .Fit(), and the resulting
             // transformer can be used to transform data. 
@@ -48,7 +48,7 @@ namespace Samples.Dynamic
             Console.WriteLine($"NumericVector");
             foreach (var item in convertedData)
                 Console.WriteLine("{0,-25}", string.Join(",", item.NumericVector));
-            
+
             // NumericVector
             // 4,0
             // 0,5

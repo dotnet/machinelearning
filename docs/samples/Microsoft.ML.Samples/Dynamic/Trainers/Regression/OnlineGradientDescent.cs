@@ -55,11 +55,11 @@ namespace Samples.Dynamic.Trainers.Regression
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             PrintMetrics(metrics);
 
-            
+
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
         {
             var random = new Random(seed);
             for (int i = 0; i < count; i++)

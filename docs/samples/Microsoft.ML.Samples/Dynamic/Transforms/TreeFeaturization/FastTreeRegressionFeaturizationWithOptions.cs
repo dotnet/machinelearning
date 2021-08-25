@@ -121,7 +121,7 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
         {
             var random = new Random(seed);
             for (int i = 0; i < count; i++)
@@ -131,7 +131,7 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
                 {
                     Label = label,
                     // Create random features that are correlated with the label.
-                    Features = Enumerable.Repeat(label, 3).Select(x => x + 
+                    Features = Enumerable.Repeat(label, 3).Select(x => x +
                         (float)random.NextDouble()).ToArray()
                 };
             }

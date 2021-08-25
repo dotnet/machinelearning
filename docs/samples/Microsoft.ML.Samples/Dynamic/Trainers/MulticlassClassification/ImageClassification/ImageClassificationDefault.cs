@@ -63,7 +63,7 @@ namespace Samples.Dynamic
             // Create the ImageClassification pipeline by just passing the 
             // input feature and label column name. 
             var pipeline = mlContext.MulticlassClassification.Trainers
-                    .ImageClassification(featureColumnName:"Image")
+                    .ImageClassification(featureColumnName: "Image")
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                     outputColumnName: "PredictedLabel",
                     inputColumnName: "PredictedLabel"));

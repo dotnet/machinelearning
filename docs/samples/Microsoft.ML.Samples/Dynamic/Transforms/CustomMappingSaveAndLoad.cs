@@ -52,7 +52,7 @@ namespace Samples.Dynamic
             // Now the transform pipeline can be saved and loaded through the usual
             // MLContext method. 
             mlContext.Model.Save(transformer, data.Schema, "customTransform.zip");
-            var loadedTransform = mlContext.Model.Load("customTransform.zip", out 
+            var loadedTransform = mlContext.Model.Load("customTransform.zip", out
                 var inputSchema);
 
             // Now we can transform the data and look at the output to confirm the

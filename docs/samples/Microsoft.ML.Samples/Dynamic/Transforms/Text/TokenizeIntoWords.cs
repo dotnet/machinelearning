@@ -38,9 +38,12 @@ namespace Samples.Dynamic
                 TransformedTextData>(textTransformer);
 
             // Call the prediction API to convert the text into words.
-            var data = new TextData() { Text = "ML.NET's TokenizeIntoWords API " +
+            var data = new TextData()
+            {
+                Text = "ML.NET's TokenizeIntoWords API " +
                 "splits text/string into words using the list of characters " +
-                "provided as separators." };
+                "provided as separators."
+            };
 
             var prediction = predictionEngine.Predict(data);
 

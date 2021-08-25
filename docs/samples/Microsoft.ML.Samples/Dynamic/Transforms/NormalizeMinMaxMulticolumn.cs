@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,22 +16,22 @@ namespace Samples.Dynamic
             var samples = new List<DataPoint>()
             {
                 new DataPoint()
-                { 
+                {
                     Features = new float[4] { 1, 1, 3, 0 },
                     Features2 = new float[3] { 1, 2, 3 }
                 },
                 new DataPoint()
-                { 
+                {
                     Features = new float[4] { 2, 2, 2, 0 },
                     Features2 = new float[3] { 3, 4, 5 }
                 },
                 new DataPoint()
-                { 
+                {
                     Features = new float[4] { 0, 0, 1, 0 },
                     Features2 = new float[3] { 6, 7, 8 }
                 },
                 new DataPoint()
-                { 
+                {
                     Features = new float[4] {-1,-1,-1, 1 },
                     Features2 = new float[3] { 9, 0, 4 }
                 }
@@ -40,7 +40,7 @@ namespace Samples.Dynamic
             // Convert training data to IDataView, the general data type used in
             // ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
-            
+
             var columnPair = new[]
             {
                 new InputOutputColumnPair("Features"),
@@ -71,7 +71,7 @@ namespace Samples.Dynamic
 
             for (int i = 0; i < column.Length; i++)
                 Console.WriteLine(string.Join(", ", column[i].Select(x => x
-                .ToString("f4"))) + "\t\t" + 
+                .ToString("f4"))) + "\t\t" +
                 string.Join(", ", column2[i].Select(x => x.ToString("f4"))));
 
             // Expected output:
