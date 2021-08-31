@@ -1,45 +1,42 @@
 # The ML.NET Roadmap
 
-The goal of ML.NET is to democratize machine learning for .NET developers. This document outlines the current roadmap for ML.NET framework and APIs.
+The goal of ML.NET is to democratize machine learning for .NET developers. This document outlines the current roadmap for the ML.NET framework and APIs.
 
-To see the plans for ML.NET tooling, check out the [Model Builder repo](https://github.com/dotnet/machinelearning-modelbuilder).
+To see the plans for ML.NET tooling, check out the [Model Builder repo](https://github.com/dotnet/machinelearning-modelbuilder/issues/1707).
 
 ## Goals through June 2022
 
+The following sections outline what we plan to work on in the next year.
+
 ### Keep docs, samples, and repo up to date
 
-We heard your feedback loud and clear that our outdated docs and samples were a top pain point for using ML.NET. We have invested more resources into making sure our Docs stay relevant and that we add documentation for new features faster as well as add more relevant samples.
+We heard your feedback loud and clear that our outdated docs and samples were a top pain point when learning and using ML.NET.
+
+We have invested more resources into content development to make sure our Docs stay relevant and that we add documentation for new features faster as well as add more relevant samples.
 
 You can file issues for ML.NET documentation in the [dotnet/docs repo](https://github.com/dotnet/docs) and for ML.NET samples in the [dotnet/machinelearning-samples](https://github.com/dotnet/machinelearning-samples) repo.
 
-We are also taking steps to organize the dotnet/machinelearning repo and updating our triage processes so that we can address your issues and feedback faster.
+We are also taking steps to organize the [dotnet/machinelearning](https://github.com/dotnet/machinelearning) repo and updating our triage processes so that we can address your issues and feedback faster. Issues will be linked to version releases in the [Projects](https://github.com/dotnet/machinelearning/projects) section of the repo so you can see what we're actively working on and when we plan to release.
 
 ### Get on the .NET release schedule
 
-ML.NET is .NET, and just like .NET, it's here to stay. So, we've decided to align with the .NET release schedule.
+ML.NET is .NET, and to make it feel more a part of .NET, we've decided to align with the .NET release schedule.
 
-This means that we will ship our next major version of ML.NET with .NET 6.0.
+This means that we will ship our next version of ML.NET (v1.7.0) with .NET 6.0 in November 2021.
 
 While we'll have major releases of ML.NET once a year with the major .NET releases, we will still be shipping production-ready preview version releases in between so that we can continue to deliver awesome new features throughout the year.
 
 ### Deep learning
 
-This past year we've been working on our plan for deep learning in .NET, and this year we will execute that plan to expand our deep learning support.
+This past year we've been working on our plan for deep learning in .NET, and now we are ready to execute that plan to expand ML.NET's deep learning support.
 
 As part of this plan, we will:
 
-- Make ONNX model consumption via ML.NET easier
-- Productionize [TorchSharp](https://github.com/xamarin/TorchSharp) and
-- Build a bridge between TorchSharp and ML.NET. This includes using TorchSharp to power simplified ML.NET APIs for:
-  - Scenario-focused transfer learning scenarios (like object detection)
-  - Generic transfer learning for custom scenarios that don't fit the scenario-focused APIs
-  - Building neural networks from scratch
+1. Make it easier to consume ONNX models in ML.NET using the ONNX Runtime (RT)
+2. Fully support and productionize [TorchSharp](https://github.com/xamarin/TorchSharp) for building neural networks in .NET
+3. Build a bridge between TorchSharp and ML.NET
 
-Read more about the deep learning plan and leave your feedback in this [tracking issue](https://github.com/dotnet/machinelearning/issues/X).
-
-*Related issues*:
-
-- [#5372](https://github.com/dotnet/machinelearning/issues/5372)
+Read more about the deep learning plan and leave your feedback in this [tracking issue](https://github.com/dotnet/machinelearning/issues/5918).
 
 ### New features and scenarios
 
@@ -49,7 +46,7 @@ Named Entity Recognition, or NER, is the process of identifying and classifying/
 
 Currently you can consume a pre-trained ONNX model in ML.NET for NER, but it is not possible to train a custom NER model in ML.NET which has been a highly requested feature for several years.
 
-X.
+This year, we will work on adding support for training custom NER models in ML.NET.
 
 *Related issues*:
 
@@ -57,15 +54,21 @@ X.
 
 #### Dynamic IDataView
 
+In ML.NET, you must first define your model input and output schemas as new classes before loading data into an IDataView.
+
+This year, we will work on adding a way to create dynamic IDataViews, meaning that you don't have to define your schemas beforehand and instead the shape of the training data defines the schemas.
+
 *Related issues*:
 
 - [#5895](https://github.com/dotnet/machinelearning/issues/5895)
 
 #### Multivariate time series forecasting
 
-Currently ML.NET only supports univariate time series forecasting with the [SSA algorithm](https://docs.microsoft.com/dotnet/api/microsoft.ml.transforms.timeseries.ssaforecastingestimator?view=ml-dotnet) which is currently being [added to Model Builder](linkhere).
+Currently ML.NET only supports univariate time series forecasting with the [SSA algorithm](https://docs.microsoft.com/dotnet/api/microsoft.ml.transforms.timeseries.ssaforecastingestimator?view=ml-dotnet) which is currently being [added to Model Builder](https://github.com/dotnet/machinelearning-modelbuilder/issues/1750).
 
+Univariate time series has one time-dependent variable whose values only depend on its past values through time. Multivariate time series has more than one time-dependent variable where each variable depends on its past values as well as the other variables.
 
+This year, we will work on adding support for multivariate time series forecasting to ML.NET.
 
 *Related issues*:
 
@@ -74,9 +77,24 @@ Currently ML.NET only supports univariate time series forecasting with the [SSA 
 
 #### Multilabel Classification
 
+Currently, ML.NET's classification algorithms will return one Predicted Label as well as an array of Scores which correspond to each possible class. However, mapping each label to the Score is currently not a great experience.
+
+This year we will work on making the prediction info more user-friendly so that it is easy to assign multiple classes to one prediction.
+
 *Related issues*:
 
 - [#3909](https://github.com/dotnet/machinelearning/issues/3909)
+- [#2278](https://github.com/dotnet/machinelearning/issues/2278)
+
+### Move from System.Drawing to ImageSharp
+
+Starting in .NET 6, System.Drawing.Common will only be supported on Windows (you can read more about this decision in this [design doc](https://github.com/dotnet/designs/blob/main/accepted/2021/system-drawing-win-only/system-drawing-win-only.md)).
+
+To ensure ML.NET works great on all platforms, we will replace System.Drawing with the [ImageSharp](https://github.com/SixLabors/ImageSharp) graphics library.
+
+*Related issues*:
+
+- [#3154](https://github.com/dotnet/machinelearning/issues/3154)
 
 ### Model explainability & Responsible AI
 
@@ -88,18 +106,21 @@ We got a lot of feedback that the PFI API was difficult to use, so our first ste
 
 This year we also plan to expand the number of model explainability and fairness features. We are currently working on this plan and will update the roadmap as we finalize which model explainability and fairness techniques we will bring into ML.NET.
 
-### DataFrame API
+### Define the plan for data prep
+
+While we are working on developing the features mentioned above, we will also be working on our plan for data preparation and wrangling in .NET.
+
+#### DataFrame API
+
+The plan for data prep will include the roadmap for the DataFrame API (Microsoft.Data.Analysis) which we will add and update to this Roadmap doc.
 
 *Related issues*:
 
+- [#5870](https://github.com/dotnet/machinelearning/issues/5870)
 - [#5716](https://github.com/dotnet/machinelearning/issues/5716)
 - [#1696](https://github.com/dotnet/machinelearning/issues/1696)
 
-### Define the plan for data prep
-
-While we are working on developing the features mentioned above, we will also be working on our plan for data preparation and wrangling in ML.NET.
-
-## Have feedback or want to contribute?
+## Feedback and contributions
 
 ML.NET is a community effort and we welcome community feedback on our plans. The best way to give feedback is to [open an issue](https://github.com/dotnet/machinelearning/issues/new/choose) in this repo.
 
