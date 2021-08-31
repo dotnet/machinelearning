@@ -14,7 +14,7 @@ We heard your feedback loud and clear that our outdated docs and samples were a 
 
 We have invested more resources into content development to make sure our Docs stay relevant and that we add documentation for new features faster as well as add more relevant samples.
 
-You can file issues for ML.NET documentation in the [dotnet/docs repo](https://github.com/dotnet/docs) and for ML.NET samples in the [dotnet/machinelearning-samples](https://github.com/dotnet/machinelearning-samples) repo.
+You can file issues and make suggestions for ML.NET documentation in the [dotnet/docs repo](https://github.com/dotnet/docs) and for ML.NET samples in the [dotnet/machinelearning-samples](https://github.com/dotnet/machinelearning-samples) repo.
 
 We are also taking steps to organize the [dotnet/machinelearning](https://github.com/dotnet/machinelearning) repo and updating our triage processes so that we can address your issues and feedback faster. Issues will be linked to version releases in the [Projects](https://github.com/dotnet/machinelearning/projects) section of the repo so you can see what we're actively working on and when we plan to release.
 
