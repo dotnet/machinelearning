@@ -4,9 +4,19 @@ The goal of ML.NET is to democratize machine learning for .NET developers. This 
 
 To see the plans for ML.NET tooling, check out the [Model Builder repo](https://github.com/dotnet/machinelearning-modelbuilder/issues/1707).
 
+## Feedback and contributions
+
+ML.NET is a community effort and we welcome community feedback on our plans. The best way to give feedback is to [open an issue](https://github.com/dotnet/machinelearning/issues/new/choose) in this repo.
+
+We also invite contributions. The [first good issue](https://github.com/dotnet/machinelearning/labels/good%20first%20issue) and [up-for-grabs issues](https://github.com/dotnet/machinelearning/issues?q=is%3Aopen+is%3Aissue+label%3Aup-for-grabs) on GitHub are a good place to start. You can also help work on any of the features we've listed below or work on features that you want to add to the framework.
+
 ## Goals through June 2022
 
-The following sections outline what we plan to work on in the next year.
+The following sections outline the major areas and features we plan to work on in the next year.
+
+Note, that this is an aspirational list of what we hope to get to. Many of the items on this list will require more investigations and design, which can result in changes in our plans. We may have to cut things as we go, or we may be able to add more things.
+
+As we prioritize, cost, and continue planning, we will try to keep the Roadmap up to date to reflect our progress and learnings.
 
 ### Keep docs, samples, and repo up to date
 
@@ -24,7 +34,7 @@ ML.NET is .NET, and to make it feel more a part of .NET, we've decided to align 
 
 This means that we will ship our next version of ML.NET (v1.7.0) with .NET 6.0 in November 2021.
 
-While we'll have major releases of ML.NET once a year with the major .NET releases, we will still be shipping production-ready preview version releases in between so that we can continue to deliver awesome new features throughout the year.
+While we'll have major releases of ML.NET once a year with the major .NET releases, we will maintain release branches to optionally service ML.NET with bug fixes and/or minor features on the same cadence as .NET servicing.
 
 ### Deep learning
 
@@ -37,6 +47,16 @@ As part of this plan, we will:
 3. Build a bridge between TorchSharp and ML.NET
 
 Read more about the deep learning plan and leave your feedback in this [tracking issue](https://github.com/dotnet/machinelearning/issues/5918).
+
+### Move from System.Drawing to ImageSharp
+
+Starting in .NET 6, System.Drawing.Common will only be supported on Windows (you can read more about this decision in this [design doc](https://github.com/dotnet/designs/blob/main/accepted/2021/system-drawing-win-only/system-drawing-win-only.md)).
+
+To ensure ML.NET works great on all platforms, we will replace System.Drawing with the [ImageSharp](https://github.com/SixLabors/ImageSharp) graphics library.
+
+*Related issues*:
+
+- [#3154](https://github.com/dotnet/machinelearning/issues/3154)
 
 ### New features and scenarios
 
@@ -86,16 +106,6 @@ This year we will work on making the prediction info more user-friendly so that 
 - [#3909](https://github.com/dotnet/machinelearning/issues/3909)
 - [#2278](https://github.com/dotnet/machinelearning/issues/2278)
 
-### Move from System.Drawing to ImageSharp
-
-Starting in .NET 6, System.Drawing.Common will only be supported on Windows (you can read more about this decision in this [design doc](https://github.com/dotnet/designs/blob/main/accepted/2021/system-drawing-win-only/system-drawing-win-only.md)).
-
-To ensure ML.NET works great on all platforms, we will replace System.Drawing with the [ImageSharp](https://github.com/SixLabors/ImageSharp) graphics library.
-
-*Related issues*:
-
-- [#3154](https://github.com/dotnet/machinelearning/issues/3154)
-
 ### Model explainability & Responsible AI
 
 Model Explainability and Responsible AI are becoming increasingly important areas of focus in the Machine Learning space and at Microsoft. Model explainability and fairness features are important because they let you debug and improve your models and answer questions about bias, building trust, and complying with regulations.
@@ -119,9 +129,3 @@ The plan for data prep will include the roadmap for the DataFrame API (Microsoft
 - [#5870](https://github.com/dotnet/machinelearning/issues/5870)
 - [#5716](https://github.com/dotnet/machinelearning/issues/5716)
 - [#1696](https://github.com/dotnet/machinelearning/issues/1696)
-
-## Feedback and contributions
-
-ML.NET is a community effort and we welcome community feedback on our plans. The best way to give feedback is to [open an issue](https://github.com/dotnet/machinelearning/issues/new/choose) in this repo.
-
-We also invite contributions. The [up-for-grabs issues](https://github.com/dotnet/machinelearning/issues?q=is%3Aopen+is%3Aissue+label%3Aup-for-grabs) on GitHub are a good place to start.
