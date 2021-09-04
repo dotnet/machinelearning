@@ -192,7 +192,7 @@ namespace Microsoft.Data.Analysis
             {
                 DataFrameColumn shrinkedRetainedColumn = retainedDataFrame.Columns[retainedJoinColumnNames[colNameIndex]];
 
-                //shrink retained column by row occurrences from previouse step
+                //shrink retained column by row occurrences from previous step
                 if (occurrences != null)
                 {
                     //only rows with occurences from previose step should go for futher processing
@@ -223,8 +223,8 @@ namespace Microsoft.Data.Analysis
 
                 supplementaryJoinColumnsNullIndices.UnionWith(supplementaryColumnNullIndices);
                 
-                // shrink join result on current column by previouse join columns (if any)
-                // (we have to remove occurrences that doesn't exist in previouse columns, because JOIN happens only if ALL left and right columns in JOIN are matched)
+                // shrink join result on current column by previous join columns (if any)
+                // (we have to remove occurrences that doesn't exist in previous columns, because JOIN happens only if ALL left and right columns in JOIN are matched)
                 if (occurrences != null)
                 {
                     var shrinkedOccurences = new Dictionary<long, ICollection<long>>();
