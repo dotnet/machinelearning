@@ -12,6 +12,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,18 +38,31 @@ namespace Microsoft.ML.Tests
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
 
             ImmutableArray<RegressionMetricsStatistics> pfi;
-            if(saveModel)
+            ImmutableDictionary<string, RegressionMetricsStatistics> pfiDict;
+
+            if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnDenseFeatures.zip");
                 ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.Regression.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.Regression.PermutationFeatureImportance(loadedModel, data);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.Regression.PermutationFeatureImportance(model, data);
+                pfiDict = ml2.Regression.PermutationFeatureImportance((ITransformer)model, data);
             }
 
             // Pfi Indices:
@@ -56,6 +70,12 @@ namespace Microsoft.ML.Tests
             // X2Important: 1
             // X3: 2
             // X4Rand: 3
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["X2Important"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["X3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["X4Rand"]));
 
             // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
             Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.Mean));
@@ -86,19 +106,31 @@ namespace Microsoft.ML.Tests
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
 
             ImmutableArray<RegressionMetricsStatistics> pfi;
+            ImmutableDictionary<string, RegressionMetricsStatistics> pfiDict;
 
-            if(saveModel)
+            if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiRegressionStandardDeviationAndErrorOnDenseFeatures.zip");
                 ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.Regression.PermutationFeatureImportance(castedModel, data, permutationCount: 20);
+                pfiDict = ml2.Regression.PermutationFeatureImportance(loadedModel, data, permutationCount: 20);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.Regression.PermutationFeatureImportance(model, data, permutationCount: 20);
+                pfiDict = ml2.Regression.PermutationFeatureImportance((ITransformer)model, data, permutationCount: 20);
             }
 
             // Keep the permutation count high so fluctuations are kept to a minimum
@@ -110,6 +142,12 @@ namespace Microsoft.ML.Tests
             // X2Important: 1
             // X3: 2
             // X4Rand: 3
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["X2Important"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["X3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["X4Rand"]));
 
             // For these metrics, the magnitude of the difference will be greatest for 1, least for 3
             // Stardard Deviation will scale with the magnitude of the measure
@@ -156,18 +194,31 @@ namespace Microsoft.ML.Tests
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
 
             ImmutableArray<RegressionMetricsStatistics> results;
-            if(saveModel)
+            ImmutableDictionary<string, RegressionMetricsStatistics> pfiDict;
+
+            if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnSparseFeatures.zip");
                 ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 results = ML.Regression.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.Regression.PermutationFeatureImportance(loadedModel, data);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 results = ML.Regression.PermutationFeatureImportance(model, data);
+                pfiDict = ml2.Regression.PermutationFeatureImportance((ITransformer)model, data);
             }
 
             // Pfi Indices:
@@ -177,6 +228,14 @@ namespace Microsoft.ML.Tests
             // X2VBuffer-Slot-2: 3
             // X2VBuffer-Slot-3: 4
             // X3Important: 5
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(results[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(results[1]), JsonConvert.SerializeObject(pfiDict["Slot 1"]));
+            Assert.Equal(JsonConvert.SerializeObject(results[2]), JsonConvert.SerializeObject(pfiDict["Slot 2"]));
+            Assert.Equal(JsonConvert.SerializeObject(results[3]), JsonConvert.SerializeObject(pfiDict["Slot 3"]));
+            Assert.Equal(JsonConvert.SerializeObject(results[4]), JsonConvert.SerializeObject(pfiDict["Slot 4"]));
+            Assert.Equal(JsonConvert.SerializeObject(results[5]), JsonConvert.SerializeObject(pfiDict["X3Important"]));
 
             // Permuted X2VBuffer-Slot-1 lot (f2) should have min impact on SGD metrics, X3Important -- max impact.
             // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
@@ -210,6 +269,8 @@ namespace Microsoft.ML.Tests
                 new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
 
             ImmutableArray<BinaryClassificationMetricsStatistics> pfi;
+            ImmutableDictionary<string, BinaryClassificationMetricsStatistics> pfiDict;
+
             if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiBinaryClassificationOnDenseFeatures.zip");
@@ -217,11 +278,23 @@ namespace Microsoft.ML.Tests
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.BinaryClassification.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.BinaryClassification.PermutationFeatureImportanceNonCalibrated(loadedModel, data);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+                pfiDict = ml2.BinaryClassification.PermutationFeatureImportanceNonCalibrated((ITransformer)model, data);
+
             }
 
             // Pfi Indices:
@@ -229,6 +302,12 @@ namespace Microsoft.ML.Tests
             // X2Important: 1
             // X3: 2
             // X4Rand: 3
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["X2Important"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["X3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["X4Rand"]));
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
@@ -241,7 +320,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositiveRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativePrecision.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativePrecision.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(0, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.F1Score.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.F1Score.Mean));
@@ -264,6 +343,8 @@ namespace Microsoft.ML.Tests
                 new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
 
             ImmutableArray<BinaryClassificationMetricsStatistics> pfi;
+            ImmutableDictionary<string, BinaryClassificationMetricsStatistics> pfiDict;
+
             if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiBinaryClassificationOnSparseFeatures.zip");
@@ -271,11 +352,22 @@ namespace Microsoft.ML.Tests
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.BinaryClassification.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.BinaryClassification.PermutationFeatureImportanceNonCalibrated(loadedModel, data);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+                pfiDict = ml2.BinaryClassification.PermutationFeatureImportanceNonCalibrated((ITransformer)model, data);
             }
 
             // Pfi Indices:
@@ -285,6 +377,14 @@ namespace Microsoft.ML.Tests
             // X2VBuffer-Slot-2: 3
             // X2VBuffer-Slot-3: 4
             // X3Important: 5
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["Slot 1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["Slot 2"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["Slot 3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[4]), JsonConvert.SerializeObject(pfiDict["Slot 4"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[5]), JsonConvert.SerializeObject(pfiDict["X3Important"]));
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
             Assert.Equal(2, MaxDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
@@ -351,18 +451,31 @@ namespace Microsoft.ML.Tests
             var model = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy().Fit(data);
 
             ImmutableArray<MulticlassClassificationMetricsStatistics> pfi;
-            if(saveModel)
+            ImmutableDictionary<string, MulticlassClassificationMetricsStatistics> pfiDict;
+
+            if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiMulticlassClassificationOnDenseFeatures.zip");
                 ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.MulticlassClassification.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.MulticlassClassification.PermutationFeatureImportance(loadedModel, data);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
+                pfiDict = ml2.MulticlassClassification.PermutationFeatureImportance((ITransformer)model, data);
             }
 
             // Pfi Indices:
@@ -370,6 +483,12 @@ namespace Microsoft.ML.Tests
             // X2Important: 1
             // X3: 2
             // X4Rand: 3
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["X2Important"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["X3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["X4Rand"]));
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
@@ -405,18 +524,31 @@ namespace Microsoft.ML.Tests
                 new LbfgsMaximumEntropyMulticlassTrainer.Options { MaximumNumberOfIterations = 1000 }).Fit(data);
 
             ImmutableArray<MulticlassClassificationMetricsStatistics> pfi;
-            if(saveModel)
+            ImmutableDictionary<string, MulticlassClassificationMetricsStatistics> pfiDict;
+
+            if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiMulticlassClassificationOnSparseFeatures.zip");
                 ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.MulticlassClassification.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.MulticlassClassification.PermutationFeatureImportance(loadedModel, data);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
+                pfiDict = ml2.MulticlassClassification.PermutationFeatureImportance((ITransformer)model, data);
             }
 
             // Pfi Indices:
@@ -426,6 +558,14 @@ namespace Microsoft.ML.Tests
             // X2VBuffer-Slot-2: 3
             // X2VBuffer-Slot-3: 4
             // X3Important: 5 // Most important
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["Slot 1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["Slot 2"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["Slot 3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[4]), JsonConvert.SerializeObject(pfiDict["Slot 4"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[5]), JsonConvert.SerializeObject(pfiDict["X3Important"]));
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
             Assert.Equal(2, MaxDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
@@ -462,7 +602,9 @@ namespace Microsoft.ML.Tests
             var model = ML.Ranking.Trainers.FastTree().Fit(data);
 
             ImmutableArray<RankingMetricsStatistics> pfi;
-            if(saveModel)
+            ImmutableDictionary<string, RankingMetricsStatistics> pfiDict;
+
+            if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiRankingOnDenseFeatures.zip");
                 ML.Model.Save(model, data.Schema, modelAndSchemaPath);
@@ -471,13 +613,21 @@ namespace Microsoft.ML.Tests
                 var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
 
                 // Saving and Loading the model cause the internal random state to change, so we reset the seed
-                // here so help the tests pass.
+                // here and create another seed for both PFI to match to help the tests pass.
                 ML = new MLContext(0);
+                var ml2 = new MLContext(0);
+
                 pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.Ranking.PermutationFeatureImportance(loadedModel, data);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(0);
+                var ml2 = new MLContext(0);
+
                 pfi = ML.Ranking.PermutationFeatureImportance(model, data);
+                pfiDict = ml2.Ranking.PermutationFeatureImportance((ITransformer)model, data);
             }
 
 
@@ -486,6 +636,12 @@ namespace Microsoft.ML.Tests
             // X2Important: 1
             // X3: 2
             // X4Rand: 3
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["X2Important"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["X3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["X4Rand"]));
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
             for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Count; i++)
@@ -515,18 +671,31 @@ namespace Microsoft.ML.Tests
             var model = ML.Ranking.Trainers.FastTree().Fit(data);
 
             ImmutableArray<RankingMetricsStatistics> pfi;
-            if(saveModel)
+            ImmutableDictionary<string, RankingMetricsStatistics> pfiDict;
+
+            if (saveModel)
             {
                 var modelAndSchemaPath = GetOutputPath("TestPfiRankingOnSparseFeatures.zip");
                 ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
                 var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
                 var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.Ranking.PermutationFeatureImportance(loadedModel, data);
             }
             else
             {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
                 pfi = ML.Ranking.PermutationFeatureImportance(model, data);
+                pfiDict = ml2.Ranking.PermutationFeatureImportance((ITransformer)model, data);
             }
 
             // Pfi Indices:
@@ -536,6 +705,14 @@ namespace Microsoft.ML.Tests
             // X2VBuffer-Slot-2: 3
             // X2VBuffer-Slot-3: 4
             // X3Important: 5 // Most important
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["Slot 1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["Slot 2"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["Slot 3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[4]), JsonConvert.SerializeObject(pfiDict["Slot 4"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[5]), JsonConvert.SerializeObject(pfiDict["X3Important"]));
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
             for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Count; i++)
@@ -620,7 +797,7 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
-        /// Features: x1, x2vBuff(sparce vector), x3. 
+        /// Features: x1, x2vBuff(sparce vector), x3.
         /// y = 10x1 + 10x2vBuff + 30x3 + e.
         /// Within xBuff feature  2nd slot will be sparse most of the time.
         /// 2nd slot of xBuff has the least importance: Evaluation metrics do not change a lot when this slot is permuted.

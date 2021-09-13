@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -123,7 +123,7 @@ namespace Microsoft.ML
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
-        /// <returns>Array of per-feature 'contributions' to the score.</returns>
+        /// <returns>Dictionary mapping each feature to its per-feature 'contributions' to the score.</returns>
         public static ImmutableDictionary<string, RegressionMetricsStatistics>
             PermutationFeatureImportance(
                 this RegressionCatalog catalog,
@@ -275,7 +275,7 @@ namespace Microsoft.ML
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Dictionary mapping each feature to its per-feature 'contributions' to the score.</returns>
         public static ImmutableDictionary<string, BinaryClassificationMetricsStatistics>
-            PermutationFeatureImportance(
+            PermutationFeatureImportanceNonCalibrated(
                 this BinaryClassificationCatalog catalog,
                 ITransformer model,
                 IDataView data,
@@ -427,7 +427,7 @@ namespace Microsoft.ML
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
-        /// <returns>Array of per-feature 'contributions' to the score.</returns>
+        /// <returns>Dictionary mapping each feature to its per-feature 'contributions' to the score.</returns>
         public static ImmutableDictionary<string, MulticlassClassificationMetricsStatistics>
             PermutationFeatureImportance(
                 this MulticlassClassificationCatalog catalog,
@@ -476,7 +476,7 @@ namespace Microsoft.ML
                 logLoss: a.LogLoss - b.LogLoss,
                 logLossReduction: a.LogLossReduction - b.LogLossReduction,
                 topKPredictionCount: a.TopKPredictionCount,
-                topKAccuracies: a?.TopKAccuracyForAllK?.Zip(b.TopKAccuracyForAllK, (a,b)=>a-b)?.ToArray(),
+                topKAccuracies: a?.TopKAccuracyForAllK?.Zip(b.TopKAccuracyForAllK, (a, b) => a - b)?.ToArray(),
                 perClassLogLoss: perClassLogLoss
                 );
         }
@@ -589,7 +589,7 @@ namespace Microsoft.ML
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
-        /// <returns>Array of per-feature 'contributions' to the score.</returns>
+        /// <returns>Dictionary mapping each feature to its per-feature 'contributions' to the score.</returns>
         public static ImmutableDictionary<string, RankingMetricsStatistics>
             PermutationFeatureImportance(
                 this RankingCatalog catalog,
@@ -715,7 +715,14 @@ namespace Microsoft.ML
             var output = new Dictionary<string, TResult>();
             for (int i = 0; i < permutationFeatureImportance.Length; i++)
             {
-                output.Add(featureColumnNames[i].ToString(), permutationFeatureImportance[i]);
+                var name = featureColumnNames[i].ToString();
+
+                // If the slot wasn't given a name, default to just the slot number.
+                if (string.IsNullOrEmpty(name))
+                {
+                    name = $"Slot {i}";
+                }
+                output.Add(name, permutationFeatureImportance[i]);
             }
 
             return output.ToImmutableDictionary();
