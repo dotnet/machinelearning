@@ -304,3 +304,22 @@ dotnet_diagnostic.IDE2004.severity = warning
 # Not enforced as a build 'warning' for 'VisualStudio' layer due to large number of false positives from https://github.com/dotnet/roslyn-analyzers/issues/3857 and https://github.com/dotnet/roslyn-analyzers/issues/3858
 # Additionally, there is a risk of accidentally breaking an internal API that partners rely on though IVT.
 dotnet_diagnostic.CA1822.severity = suggestion
+
+[test/**/*.cs]
+# MSML_GeneralName: This name should be PascalCased
+dotnet_diagnostic.MSML_GeneralName.severity = none
+
+# MSML_NoBestFriendInternal: Cross-assembly internal access requires referenced item to have Microsoft.ML.BestFriendAttribute attribute.
+dotnet_diagnostic.MSML_NoBestFriendInternal.severity = none
+
+# MSML_NoInstanceInitializers: No initializers on instance fields or properties
+dotnet_diagnostic.MSML_NoInstanceInitializers.severity = none
+
+[test/Microsoft.ML.CodeAnalyzer.Tests/**.cs]
+# BaseTestClass does not apply for analyzer testing.
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+# The MSML_RelaxTestNaming suppressor for VSTHRD200 is not active for CodeAnalyzer.Tests, so we disable it altogether.
+# VSTHRD200: Use "Async" suffix for async methods
+dotnet_diagnostic.VSTHRD200.severity = none
