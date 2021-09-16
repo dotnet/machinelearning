@@ -20,7 +20,7 @@ You can also consume both TensorFlow and ONNX models within ML.NET which makes t
 
 ## Roadmap
 
-Take a look at ML.NET's [Roadmap](ROADMAP.md) to what the team plans to work on in the next year.
+Take a look at ML.NET's [Roadmap](ROADMAP.md) to see what the team plans to work on in the next year.
 
 ## Operating systems and processor architectures supported by ML.NET
 
