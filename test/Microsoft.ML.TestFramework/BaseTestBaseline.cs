@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -127,9 +127,9 @@ namespace Microsoft.ML.RunTests
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
+                if(RuntimeInformation.ProcessArchitecture == Architecture.X64)
                     configurationDirs.Add("osx-x64");
-                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                else if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
                     configurationDirs.Add("osx-arm64");
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -609,7 +609,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null,
+        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, 
             int digitsOfPrecision = DigitsOfPrecision, bool logFailure = true)
         {
             if (double.IsNaN(expected) && double.IsNaN(actual))
@@ -642,7 +642,7 @@ namespace Microsoft.ML.RunTests
             {
                 var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
 
-                if (logFailure)
+                if(logFailure)
                     Fail(message +
                             $"Values to compare are {expected} and {actual}" + Environment.NewLine +
                             $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
