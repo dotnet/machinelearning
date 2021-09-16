@@ -150,11 +150,11 @@ namespace Microsoft.ML
                 model,
                 data,
                 resultInitializer,
-                RegressionDelta,
                 evaluationFunc,
+                RegressionDelta,
+                permutationCount,
                 useFeatureWeightFilter,
-                numberOfExamplesToUse,
-                permutationCount
+                numberOfExamplesToUse
                 );
         }
 
@@ -300,11 +300,11 @@ namespace Microsoft.ML
                 model,
                 data,
                 resultInitializer,
-                BinaryClassifierDelta,
                 evaluationFunc,
+                BinaryClassifierDelta,
+                permutationCount,
                 useFeatureWeightFilter,
-                numberOfExamplesToUse,
-                permutationCount
+                numberOfExamplesToUse
                 );
         }
 
@@ -454,11 +454,11 @@ namespace Microsoft.ML
                 model,
                 data,
                 resultInitializer,
-                MulticlassClassificationDelta,
                 evaluationFunc,
+                MulticlassClassificationDelta,
+                permutationCount,
                 useFeatureWeightFilter,
-                numberOfExamplesToUse,
-                permutationCount
+                numberOfExamplesToUse
                 );
         }
 
@@ -617,11 +617,11 @@ namespace Microsoft.ML
                 model,
                 data,
                 resultInitializer,
-                RankingDelta,
                 evaluationFunc,
+                RankingDelta,
+                permutationCount,
                 useFeatureWeightFilter,
-                numberOfExamplesToUse,
-                permutationCount
+                numberOfExamplesToUse
                 );
         }
 
@@ -653,17 +653,17 @@ namespace Microsoft.ML
                 IHostEnvironment env,
                 ITransformer model,
                 IDataView data,
-                Func<TResult> resultInitializerParam,
-                Func<TMetric, TMetric, TMetric> deltaFuncParam,
-                Func<IDataView, TMetric> evaluationFuncParam,
+                Func<TResult> resultInitializer,
+                Func<IDataView, TMetric> evaluationFunc,
+                Func<TMetric, TMetric, TMetric> deltaFunc,
+                int permutationCount,
                 bool useFeatureWeightFilter,
-                int? numberOfExamplesToUse,
-                int permutationCount) where TResult : IMetricsStatistics<TMetric>
+                int? numberOfExamplesToUse) where TResult : IMetricsStatistics<TMetric>
         {
             env.CheckValue(data, nameof(data));
             env.CheckValue(model, nameof(model));
 
-            ITransformer lastTransformer = null;
+            ISingleFeaturePredictionTransformer lastTransformer = null;
 
             if (model is TransformerChain<ITransformer> chain)
             {
@@ -671,27 +671,20 @@ namespace Microsoft.ML
                 {
                     if (transformer is ISingleFeaturePredictionTransformer)
                     {
-                        lastTransformer = transformer;
+                        lastTransformer = transformer as ISingleFeaturePredictionTransformer;
                         break;
                     }
                 }
             }
             else lastTransformer = model as ISingleFeaturePredictionTransformer;
 
-            env.CheckValue(lastTransformer, nameof(lastTransformer));
+            env.CheckValue(lastTransformer, nameof(lastTransformer), "The model provided does not have a compatible predictor");
 
-            var lastTransformerType = lastTransformer.GetType();
-            string featureColumnName = (lastTransformer as ISingleFeaturePredictionTransformer).FeatureColumnName;
-            Type pfiType = typeof(PermutationFeatureImportance<,,>);
+            string featureColumnName = lastTransformer.FeatureColumnName;
+            TryGetImplementedIPredictionTransformer(lastTransformer.GetType(), out var predictionTransformerGenericType);
 
-            TryGetImplementedIPredictionTransformer(lastTransformerType, out lastTransformerType);
-
-            Type[] types = { lastTransformerType.GenericTypeArguments[0], typeof(TMetric), typeof(TResult) };
-            Type pfiGenericType = pfiType.MakeGenericType(types);
-
-            Func<TResult> resultInitializer = resultInitializerParam;
-            Func<IDataView, TMetric> evaluationFunc = idv => evaluationFuncParam.Invoke(idv);
-            Func<TMetric, TMetric, TMetric> deltaFunc = deltaFuncParam;
+            Type[] types = { predictionTransformerGenericType.GenericTypeArguments[0], typeof(TMetric), typeof(TResult) };
+            Type pfiGenericType = typeof(PermutationFeatureImportance<,,>).MakeGenericType(types);
 
             object[] param = { env,
                 lastTransformer,
@@ -699,7 +692,7 @@ namespace Microsoft.ML
                 resultInitializer,
                 evaluationFunc,
                 deltaFunc,
-                featureColumnName,
+                lastTransformer.FeatureColumnName,
                 permutationCount,
                 useFeatureWeightFilter,
                 numberOfExamplesToUse

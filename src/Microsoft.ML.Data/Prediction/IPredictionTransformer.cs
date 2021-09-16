@@ -44,9 +44,9 @@ namespace Microsoft.ML
     internal interface ISingleFeaturePredictionTransformer : ITransformer
     {
         /// <summary>The name of the feature column.</summary>
-        public string FeatureColumnName { get; }
+        string FeatureColumnName { get; }
 
         /// <summary>Holds information about the type of the feature column.</summary>
-        public DataViewType FeatureColumnType { get; }
+        DataViewType FeatureColumnType { get; }
     }
 }
