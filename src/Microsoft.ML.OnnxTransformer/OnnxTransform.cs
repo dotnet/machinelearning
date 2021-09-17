@@ -230,7 +230,7 @@ namespace Microsoft.ML.Transforms.Onnx
             // internal functions. If nothing is provided, shapeDictionary is null.
             var shapeDictionary = new Dictionary<string, int[]>();
             if (options.CustomShapeInfos != null)
-                foreach(var customShape in options.CustomShapeInfos)
+                foreach (var customShape in options.CustomShapeInfos)
                     shapeDictionary[customShape.Name] = customShape.Shape;
 
             // Use ONNXRuntime to figure out the right input and output configuration.
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
             catch (OnnxRuntimeException e)
             {
-                 throw Host.Except(e, $"Error initializing model :{e.ToString()}");
+                throw Host.Except(e, $"Error initializing model :{e.ToString()}");
             }
 
             var modelInfo = Model.ModelInfo;
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema),"input", _parent.Inputs[i]);
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i]);
 
                     _inputColIndices[i] = col.Value.Index;
 

@@ -228,8 +228,8 @@ namespace Microsoft.ML.Trainers.LightGbm
                     $"Label column '{labelCol.Name}' is of type '{labelType.RawType}', but must be Key or Single.");
             }
             // Check group types.
-            if(!data.Schema.Group.HasValue)
-                throw ch.ExceptValue(nameof(data.Schema.Group), "Group column is missing.") ;
+            if (!data.Schema.Group.HasValue)
+                throw ch.ExceptValue(nameof(data.Schema.Group), "Group column is missing.");
             var groupCol = data.Schema.Group.Value;
             var groupType = groupCol.Type;
             if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyDataViewType))
