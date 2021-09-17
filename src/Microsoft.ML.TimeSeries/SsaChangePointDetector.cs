@@ -256,17 +256,17 @@ namespace Microsoft.ML.Transforms.TimeSeries
             MartingaleType martingale = MartingaleType.Power,
             double eps = 0.1)
             : this(env, new SsaChangePointDetector.Options
-                {
-                    Name = outputColumnName,
-                    Source = inputColumnName ?? outputColumnName,
-                    Confidence = confidence,
-                    ChangeHistoryLength = changeHistoryLength,
-                    TrainingWindowSize = trainingWindowSize,
-                    SeasonalWindowSize = seasonalityWindowSize,
-                    Martingale = martingale,
-                    PowerMartingaleEpsilon = eps,
-                    ErrorFunction = errorFunction
-                })
+            {
+                Name = outputColumnName,
+                Source = inputColumnName ?? outputColumnName,
+                Confidence = confidence,
+                ChangeHistoryLength = changeHistoryLength,
+                TrainingWindowSize = trainingWindowSize,
+                SeasonalWindowSize = seasonalityWindowSize,
+                Martingale = martingale,
+                PowerMartingaleEpsilon = eps,
+                ErrorFunction = errorFunction
+            })
         {
         }
 

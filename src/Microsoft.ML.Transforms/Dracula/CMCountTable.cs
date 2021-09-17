@@ -129,7 +129,7 @@ namespace Microsoft.ML.Transforms
 
             for (int iLabel = 0; iLabel < LabelCardinality; iLabel++)
             {
-                for (int iDepth=0;iDepth<Depth;iDepth++)
+                for (int iDepth = 0; iDepth < Depth; iDepth++)
                 {
                     var dict = Tables[iLabel][iDepth];
                     ctx.Writer.Write(dict.Count);

@@ -602,13 +602,13 @@ namespace Microsoft.ML.Transforms
                             ChNext();
                             return true;
                         }
-                    LBad:
+LBad:
                         ReportError(ichErr, _cursor.IchCur, ErrId.BadEscape);
                         u = 0;
                         return false;
                 }
 
-            LHex:
+LHex:
                 bool fRet = true;
                 ChNext();
 

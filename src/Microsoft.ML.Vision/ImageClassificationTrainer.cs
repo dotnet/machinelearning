@@ -702,7 +702,7 @@ namespace Microsoft.ML.Vision
                 generateValidationSet = needValidationSet && !validationSetPresent;
             }
 
-            if(generateValidationSet && _options.ReuseTrainSetBottleneckCachedValues &&
+            if (generateValidationSet && _options.ReuseTrainSetBottleneckCachedValues &&
                 !_options.ReuseValidationSetBottleneckCachedValues)
             {
                 // Not sure if it makes sense to support this scenario.
@@ -1079,7 +1079,7 @@ namespace Microsoft.ML.Vision
             Stream trainSetFeatureReader, byte[] labelBufferBytes, byte[] featuresBufferBytes,
             int labelBufferSizeInBytes, int featureBufferSizeInBytes, int featureFileRecordSize,
             LearningRateScheduler learningRateScheduler, DnnTrainState trainState, Runner runner,
-            IntPtr featureBufferPtr, IntPtr labelBufferPtr, Action<Tensor[],ImageClassificationMetrics> metricsAggregator)
+            IntPtr featureBufferPtr, IntPtr labelBufferPtr, Action<Tensor[], ImageClassificationMetrics> metricsAggregator)
         {
             int labelFileBytesRead;
             int featuresFileBytesRead;
@@ -1135,7 +1135,7 @@ namespace Microsoft.ML.Vision
             {
                 Host.CheckAlive();
             }
-            catch(OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 TryCleanupTemporaryWorkspace();
                 throw;
@@ -1447,8 +1447,8 @@ namespace Microsoft.ML.Vision
             ctx.Writer.Write(_imagePreprocessorTensorOutput);
             ctx.Writer.Write(_graphInputTensor);
             ctx.Writer.Write(_graphOutputTensor);
-            using(var status = new Status())
-            using(var buffer = _session.graph.ToGraphDef(status))
+            using (var status = new Status())
+            using (var buffer = _session.graph.ToGraphDef(status))
             {
                 ctx.SaveBinaryStream("TFModel", w =>
                 {

@@ -768,7 +768,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 _ldas[i].Save(ctx);
 
-                if(_columns[i].OutputTopicWordSummary)
+                if (_columns[i].OutputTopicWordSummary)
                     SaveTopicWordSummary(ctx, i);
             }
         }

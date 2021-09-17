@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -738,7 +738,7 @@ namespace Microsoft.ML.Trainers
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             // Mapping score to prediction
-            var linearRegressorOutput = ctx.AddIntermediateVariable(null,"LinearRegressorOutput",true);
+            var linearRegressorOutput = ctx.AddIntermediateVariable(null, "LinearRegressorOutput", true);
             base.SaveAsOnnx(ctx, new[] { linearRegressorOutput }, featureColumn);
             var opType = "Exp";
             ctx.CreateNode(opType, new[] { linearRegressorOutput }, outputs, ctx.GetNodeName(opType), "");

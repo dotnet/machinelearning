@@ -319,15 +319,15 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     switch (Norm)
                     {
-                    case NormFunction.L1:
-                        return LpNormNormalizingEstimatorBase.NormFunction.L1;
-                    case NormFunction.L2:
-                        return LpNormNormalizingEstimatorBase.NormFunction.L2;
-                    case NormFunction.Infinity:
-                        return LpNormNormalizingEstimatorBase.NormFunction.Infinity;
-                    default:
-                        Contracts.Assert(false, "Unexpected normalizer type");
-                        return LpNormNormalizingEstimatorBase.NormFunction.L2;
+                        case NormFunction.L1:
+                            return LpNormNormalizingEstimatorBase.NormFunction.L1;
+                        case NormFunction.L2:
+                            return LpNormNormalizingEstimatorBase.NormFunction.L2;
+                        case NormFunction.Infinity:
+                            return LpNormNormalizingEstimatorBase.NormFunction.Infinity;
+                        default:
+                            Contracts.Assert(false, "Unexpected normalizer type");
+                            return LpNormNormalizingEstimatorBase.NormFunction.L2;
                     }
                 }
             }
