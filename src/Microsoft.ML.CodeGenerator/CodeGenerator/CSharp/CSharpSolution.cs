@@ -18,7 +18,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator
 
         public void WriteToDisk(string folder)
         {
-            foreach ( var project in this)
+            foreach (var project in this)
             {
                 project.WriteToDisk(Path.Combine(folder, project.Name));
             }

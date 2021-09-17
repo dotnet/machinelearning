@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation,  TaskKind task)
+        private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation, TaskKind task)
         {
             ValidateColumnInformation(columnInformation);
             ValidateTrainDataColumn(trainData, columnInformation.LabelColumnName, LabelColumnPurposeName, GetAllowedLabelTypes(task));
@@ -260,7 +260,7 @@ namespace Microsoft.ML.AutoML
                 throw new ArgumentException(exceptionMessage);
             }
 
-            if(allowedTypes == null)
+            if (allowedTypes == null)
             {
                 return;
             }

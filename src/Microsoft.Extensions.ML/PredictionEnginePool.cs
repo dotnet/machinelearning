@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.ML
         private readonly MLOptions _mlContextOptions;
         private readonly IOptionsFactory<PredictionEnginePoolOptions<TData, TPrediction>> _predictionEngineOptions;
         private readonly IServiceProvider _serviceProvider;
-        private readonly PoolLoader<TData,TPrediction> _defaultEnginePool;
+        private readonly PoolLoader<TData, TPrediction> _defaultEnginePool;
         private readonly ConcurrentDictionary<string, PoolLoader<TData, TPrediction>> _namedPools;
 
         public PredictionEnginePool(IServiceProvider serviceProvider,

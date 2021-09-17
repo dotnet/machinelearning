@@ -27,12 +27,12 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        public static StringDataFrameColumn operator+(StringDataFrameColumn column, string value)
+        public static StringDataFrameColumn operator +(StringDataFrameColumn column, string value)
         {
             return column.Add(value);
         }
 
-        public static StringDataFrameColumn operator+(string value, StringDataFrameColumn column)
+        public static StringDataFrameColumn operator +(string value, StringDataFrameColumn column)
         {
             return Add(value, column);
         }
@@ -85,7 +85,7 @@ namespace Microsoft.Data.Analysis
                 ret[i] = (string)left[i] == right[i]?.ToString();
             }
             return ret;
-            
+
         }
 
         /// <inheritdoc/>

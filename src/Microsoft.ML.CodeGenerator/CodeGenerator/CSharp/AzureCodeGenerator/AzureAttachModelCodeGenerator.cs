@@ -125,7 +125,8 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     ConsumeModel,
                     ModelProject,
                 };
-            } else if(_settings.IsObjectDetection)
+            }
+            else if (_settings.IsObjectDetection)
             {
                 project = new CSharpProject()
                 {

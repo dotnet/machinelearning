@@ -27,7 +27,7 @@ namespace Microsoft.ML.AutoML
             var property = new Dictionary<string, object>();
             property.Add(nameof(MatrixFactorizationTrainer.Options.MatrixColumnIndexColumnName), columnInfo.UserIdColumnName);
             property.Add(nameof(MatrixFactorizationTrainer.Options.MatrixRowIndexColumnName), columnInfo.ItemIdColumnName);
-            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams, columnInfo.LabelColumnName, additionalProperties:property);
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams, columnInfo.LabelColumnName, additionalProperties: property);
         }
 
         public IEnumerable<SweepableParam> GetHyperparamSweepRanges()
