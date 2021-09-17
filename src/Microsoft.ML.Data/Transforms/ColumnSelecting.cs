@@ -736,7 +736,7 @@ namespace Microsoft.ML.Transforms
                 ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 var outputToInputMap = _mapper.OutputToInputMap;
-                for(int i = 0; i < outputToInputMap.Length; i++)
+                for (int i = 0; i < outputToInputMap.Length; i++)
                 {
                     var srcCol = InputSchema[outputToInputMap[i]];
                     var dstCol = OutputSchema[i];

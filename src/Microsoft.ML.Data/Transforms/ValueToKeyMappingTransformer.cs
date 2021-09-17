@@ -846,7 +846,7 @@ namespace Microsoft.ML.Transforms
                 }
                 else if (type.Equals(NumberDataViewType.Int64))
                 {
-                    CastInputToString<Int64>(ctx, out node, out termIds ,srcVariableName, iinfo, opType, labelEncoderOutput );
+                    CastInputToString<Int64>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
                 }
                 else if (type.Equals(NumberDataViewType.Int32))
                 {

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Model.Pfa
                 {
                     return Long;
                 }
-                else if(rawType == typeof(float)
+                else if (rawType == typeof(float)
                     // REVIEW: The above should really be float. But, for the
                     // sake of the POC, we use double since all the PFA convenience
                     // libraries operate over doubles.

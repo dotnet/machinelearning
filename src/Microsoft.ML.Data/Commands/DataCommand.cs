@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Data
             public int? Parallel;
 
             [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly,
-                HelpText = "Transform", Name ="Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
+                HelpText = "Transform", Name = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
             public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transforms;
         }
 

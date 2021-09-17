@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms
                 throw host.ExceptUserArg(nameof(predictor), "The provided model parameters do not support feature contribution calculation.");
             var outData = new FeatureContributionCalculatingTransformer(host, predictor, options.FeatureColumn, options.Top, options.Bottom, options.Normalize).Transform(options.Data);
 
-            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, options.Data), OutputData = outData};
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, options.Data), OutputData = outData };
         }
     }
 }
