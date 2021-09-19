@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms
                         item.TextKeyValues ?? options.TextKeyValues);
                     cols[i].Keys = item.Terms;
                     cols[i].Key = item.Term ?? options.Term;
-                };
+                }
                 var keyData = GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
                 return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
             }

@@ -245,7 +245,7 @@ namespace Microsoft.ML.Internal.Internallearn
 
         private string GetDefault(int index)
         {
-            Contracts.Assert(0 <= index & index < Count);
+            Contracts.Assert(0 <= index && index < Count);
             return string.Format(DefaultFmt, index);
         }
 

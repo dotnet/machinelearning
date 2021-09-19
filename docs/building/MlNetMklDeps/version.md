@@ -14,3 +14,6 @@ mkl 2019 Update 2
 mac:2019.2.187
 linux:2019.2.187
 windows:2019.2.187
+
+#Intel MKl SDK versions used to build the MlNetMklDeps v0.0.0.12
+mkl 2021.3

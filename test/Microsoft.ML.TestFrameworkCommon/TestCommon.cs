@@ -55,12 +55,22 @@ namespace Microsoft.ML.TestFrameworkCommon
             return path;
         }
 
+        /// <summary>
+        /// Environment variable containing path to the test data and BaseLineOutput folders.
+        /// </summary>
+        public const string TestDataDirEnvVariable = "ML_TEST_DATADIR";
+
         public static string GetRepoRoot()
         {
+            string directory = Environment.GetEnvironmentVariable(TestDataDirEnvVariable);
+            if (directory != null)
+            {
+                return directory;
+            }
 #if NETFRAMEWORK
-            string directory = AppDomain.CurrentDomain.BaseDirectory;
+            directory = AppDomain.CurrentDomain.BaseDirectory;
 #else
-            string directory = AppContext.BaseDirectory;
+            directory = AppContext.BaseDirectory;
 #endif
 
             while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
@@ -238,7 +248,7 @@ namespace Microsoft.ML.TestFrameworkCommon
 
             Assert.False(size > int.MaxValue, $"{nameof(KeyDataViewType)}.{nameof(KeyDataViewType.Count)} is larger than int.MaxValue");
             Assert.True(EqualTypes(t1, t2, exactTypes), $"Different {kind} metadata types: {t1} vs {t2}");
-            
+
             if (!(t1.GetItemType() is TextDataViewType))
             {
                 if (!mustBeText)
@@ -261,7 +271,7 @@ namespace Microsoft.ML.TestFrameworkCommon
             try
             {
                 sch[col].Annotations.GetValue(kind, ref names);
-                
+
                 return false;
             }
             catch (InvalidOperationException ex)

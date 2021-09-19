@@ -620,7 +620,7 @@ namespace Microsoft.ML.CommandLine
                 }
                 Contracts.AssertValue(arg);
                 Contracts.Assert(arg != info.ArgDef);
-                Contracts.Assert(0 <= arg.Index & arg.Index < info.Args.Length);
+                Contracts.Assert(0 <= arg.Index && arg.Index < info.Args.Length);
                 if (tag != null && !arg.IsTaggedCollection)
                 {
                     hadError = true;

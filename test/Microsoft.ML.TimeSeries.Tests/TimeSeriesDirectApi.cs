@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
@@ -144,7 +145,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(1);
@@ -201,7 +202,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
             const int changeHistorySize = 10;
@@ -277,7 +278,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void ChangePointDetectionWithSeasonalityPredictionEngine()
         {
             const int changeHistorySize = 10;
@@ -347,7 +348,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void SsaForecast()
         {
             var env = new MLContext(1);
@@ -411,7 +412,7 @@ namespace Microsoft.ML.Tests
 
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void SsaForecastPredictionEngine()
         {
             const int changeHistorySize = 10;
@@ -523,7 +524,7 @@ namespace Microsoft.ML.Tests
 
         }
 
-        [Theory]
+        [NativeDependencyTheory("MklImports")]
         [InlineData(true)]
         [InlineData(false)]
         public void AnomalyDetectionWithSrCnn(bool loadDataFromFile)
@@ -578,7 +579,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Theory, CombinatorialData]
+        [NativeDependencyTheory("MklImports"), CombinatorialData]
         public void TestSrCnnBatchAnomalyDetector(
             [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyAndMargin)] SrCnnDetectMode mode,
             [CombinatorialValues(true, false)] bool loadDataFromFile,
@@ -670,7 +671,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Theory, CombinatorialData]
+        [NativeDependencyTheory("MklImports"), CombinatorialData]
         public void TestSrCnnAnomalyDetectorWithSeasonalData(
             [CombinatorialValues(SrCnnDeseasonalityMode.Stl, SrCnnDeseasonalityMode.Mean, SrCnnDeseasonalityMode.Median)] SrCnnDeseasonalityMode mode)
         {
@@ -716,7 +717,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Theory, CombinatorialData]
+        [NativeDependencyTheory("MklImports"), CombinatorialData]
         public void TestSrCnnAnomalyDetectorBigSpike(
             [CombinatorialValues(SrCnnDetectMode.AnomalyOnly, SrCnnDetectMode.AnomalyAndExpectedValue, SrCnnDetectMode.AnomalyOnly)] SrCnnDetectMode mode
             )
@@ -771,7 +772,7 @@ namespace Microsoft.ML.Tests
 
         }
 
-        [Theory, CombinatorialData]
+        [NativeDependencyTheory("MklImports"), CombinatorialData]
         public void TestSrCnnAnomalyDetectorWithSeasonalAnomalyData(
             [CombinatorialValues(SrCnnDeseasonalityMode.Stl, SrCnnDeseasonalityMode.Mean, SrCnnDeseasonalityMode.Median)] SrCnnDeseasonalityMode mode
         )
@@ -830,7 +831,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Theory, CombinatorialData]
+        [NativeDependencyTheory("MklImports"), CombinatorialData]
         public void TestSrCnnAnomalyDetectorWithAnomalyAtBeginning(
             [CombinatorialValues(SrCnnDeseasonalityMode.Stl, SrCnnDeseasonalityMode.Mean, SrCnnDeseasonalityMode.Median)] SrCnnDeseasonalityMode mode
         )
@@ -888,7 +889,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Theory, CombinatorialData]
+        [NativeDependencyTheory("MklImports"), CombinatorialData]
         public void TestSrcnnEntireDetectNonnegativeData(
             [CombinatorialValues(true, false)] bool isPositive)
         {
@@ -1056,7 +1057,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Theory]
+        [NativeDependencyTheory("MklImports")]
         [InlineData(-1, 6)]
         [InlineData(60, 6)]
         [InlineData(20, -1)]

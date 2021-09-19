@@ -61,7 +61,7 @@ namespace Samples.Dynamic
 
             // Set the options for ImageClassification.
             var options = new ImageClassificationTrainer.Options()
-            { 
+            {
                 FeatureColumnName = "Image",
                 LabelColumnName = "Label",
                 // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250
@@ -74,14 +74,14 @@ namespace Samples.Dynamic
                 MetricsCallback = (metrics) => Console.WriteLine(metrics),
                 ValidationSet = testDataset,
                 // Disable EarlyStopping to run to specified number of epochs.
-                EarlyStoppingCriteria =null
+                EarlyStoppingCriteria = null
             };
 
             // Create the ImageClassification pipeline.
             var pipeline = mlContext.MulticlassClassification.Trainers.
                 ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
-                    outputColumnName: "PredictedLabel", 
+                    outputColumnName: "PredictedLabel",
                     inputColumnName: "PredictedLabel"));
 
 
@@ -136,11 +136,11 @@ namespace Samples.Dynamic
         {
             // Create prediction function to try one prediction.
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<InMemoryImageData, 
+                .CreatePredictionEngine<InMemoryImageData,
                 ImagePrediction>(trainedModel);
 
             // Load test images.
-            IEnumerable<InMemoryImageData> testImages = 
+            IEnumerable<InMemoryImageData> testImages =
                 LoadInMemoryImagesFromDirectory(imagesForPredictions, false);
 
             // Create an in-memory image object from the first image in the test data.
@@ -209,8 +209,8 @@ namespace Samples.Dynamic
         }
 
         // Load In memory raw images from directory.
-        public static IEnumerable<InMemoryImageData> 
-            LoadInMemoryImagesFromDirectory(string folder, 
+        public static IEnumerable<InMemoryImageData>
+            LoadInMemoryImagesFromDirectory(string folder,
                 bool useFolderNameAsLabel = true)
         {
             var files = Directory.GetFiles(folder, "*",

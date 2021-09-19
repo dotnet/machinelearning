@@ -1002,5 +1002,32 @@ namespace Microsoft.ML.Tests
             (model as IDisposable)?.Dispose();
             (loadedModel as IDisposable)?.Dispose();
         }
+
+        /// <summary>
+        /// A test to check if recursion limit works.
+        /// </summary>
+        [OnnxFact]
+        public void TestOnnxTransformSaveAndLoadWithRecursionLimit()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
+
+            const int imageHeight = 224;
+            const int imageWidth = 224;
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
+
+            var pipe = ML.Transforms.LoadImages("data_0", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("data_0", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
+                .Append(ML.Transforms.ApplyOnnxModel(new []{ "softmaxout_1" }, new []{ "data_0" }, modelFile, 
+                    gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu, shapeDictionary: null, recursionLimit: 50));
+
+            TestEstimatorCore(pipe, data);
+        }
     }
 }

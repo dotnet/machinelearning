@@ -70,7 +70,7 @@ namespace Samples.Dynamic
                 var imageGetter = cursor.GetGetter<Bitmap>(cursor.Schema["Image"]);
                 while (cursor.MoveNext())
                 {
-                    
+
                     featuresGetter(ref features);
                     pixelsGetter(ref pixels);
                     imageGetter(ref imageObject);
@@ -98,8 +98,11 @@ namespace Samples.Dynamic
             var random = new Random(seed);
 
             for (int i = 0; i < count; i++)
-                yield return new DataPoint { Features = Enumerable.Repeat(0,
-                    inputSize).Select(x => (float)random.Next(0, 256)).ToArray() };
+                yield return new DataPoint
+                {
+                    Features = Enumerable.Repeat(0,
+                    inputSize).Select(x => (float)random.Next(0, 256)).ToArray()
+                };
         }
     }
 }

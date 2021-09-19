@@ -364,7 +364,7 @@ namespace Microsoft.ML.Transforms
             {
                 case BinaryOp.Or:
                     if (v1 != null && v2 != null)
-                        node.SetValue(v1.Value | v2.Value);
+                        node.SetValue(v1.Value || v2.Value);
                     else if (v1 != null && v1.Value || v2 != null && v2.Value)
                         node.SetValue(true);
                     else if (v1 != null && !v1.Value)
@@ -375,7 +375,7 @@ namespace Microsoft.ML.Transforms
 
                 case BinaryOp.And:
                     if (v1 != null && v2 != null)
-                        node.SetValue(v1.Value & v2.Value);
+                        node.SetValue(v1.Value && v2.Value);
                     else if (v1 != null && !v1.Value || v2 != null && !v2.Value)
                         node.SetValue(false);
                     else if (v1 != null && v1.Value)
@@ -1400,7 +1400,7 @@ namespace Microsoft.ML.Transforms
                 best = candidates[0];
             else
             {
-                _host.Assert(0 <= icandMinBad & icandMinBad < candidates.Count);
+                _host.Assert(0 <= icandMinBad && icandMinBad < candidates.Count);
                 best = candidates[icandMinBad];
                 PostError(node, "The best overload of '{0}' has some invalid arguments", node.Head.Value);
             }
@@ -1468,8 +1468,8 @@ namespace Microsoft.ML.Transforms
         private static bool CanConvert(ExprTypeKind src, ExprTypeKind dst)
         {
             // src can be Error, but dst should not be.
-            Contracts.Assert(ExprTypeKind.Error <= src & src < ExprTypeKind._Lim);
-            Contracts.Assert(ExprTypeKind.Error < dst & dst < ExprTypeKind._Lim);
+            Contracts.Assert(ExprTypeKind.Error <= src && src < ExprTypeKind._Lim);
+            Contracts.Assert(ExprTypeKind.Error < dst && dst < ExprTypeKind._Lim);
 
             if (src == ExprTypeKind.Error)
                 return true;
@@ -1700,13 +1700,13 @@ namespace Microsoft.ML.Transforms
                 return false;
             }
 
-            Contracts.Assert(0 <= i1 & i1 < 4);
-            Contracts.Assert(0 <= i2 & i2 < 4);
+            Contracts.Assert(0 <= i1 && i1 < 4);
+            Contracts.Assert(0 <= i2 && i2 < 4);
             Contracts.Assert(i1 != i2);
 
             // Combine the two two-bit values.
             int index = i1 | (i2 << 2);
-            Contracts.Assert(0 <= index & index < 16);
+            Contracts.Assert(0 <= index && index < 16);
             switch (index)
             {
                 // Only integer types -> I8

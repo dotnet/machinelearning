@@ -365,7 +365,7 @@ namespace Microsoft.ML.Data
 
             public Segment(int min, int lim, bool forceVector)
             {
-                Contracts.Assert(0 <= min & min < lim);
+                Contracts.Assert(0 <= min && min < lim);
                 Name = null;
                 Min = min;
                 Lim = lim;

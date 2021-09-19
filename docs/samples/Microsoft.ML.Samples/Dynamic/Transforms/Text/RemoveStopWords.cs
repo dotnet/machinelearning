@@ -30,7 +30,7 @@ namespace Samples.Dynamic
                 "Text")
                 .Append(mlContext.Transforms.Text.RemoveStopWords(
                 "WordsWithoutStopWords", "Words", stopwords:
-                new[] { "a", "the","from", "by" }));
+                new[] { "a", "the", "from", "by" }));
 
             // Fit to data.
             var textTransformer = textPipeline.Fit(emptyDataView);
@@ -41,9 +41,12 @@ namespace Samples.Dynamic
                 TransformedTextData>(textTransformer);
 
             // Call the prediction API to remove stop words.
-            var data = new TextData() { Text = "ML.NET's RemoveStopWords API " +
+            var data = new TextData()
+            {
+                Text = "ML.NET's RemoveStopWords API " +
                 "removes stop words from tHe text/string using a list of stop " +
-                "words provided by the user." };
+                "words provided by the user."
+            };
 
             var prediction = predictionEngine.Predict(data);
 

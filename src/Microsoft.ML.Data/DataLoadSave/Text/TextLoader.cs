@@ -581,7 +581,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public Segment(int min, int lim, bool forceVector)
             {
-                Contracts.Assert(0 <= min & min < lim & lim <= SrcLim);
+                Contracts.Assert(0 <= min && min < lim && lim <= SrcLim);
                 Min = min;
                 Lim = lim;
                 ForceVector = forceVector;
@@ -592,7 +592,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public Segment(int min)
             {
-                Contracts.Assert(0 <= min & min < SrcLim);
+                Contracts.Assert(0 <= min && min < SrcLim);
                 Min = min;
                 Lim = SrcLim;
                 ForceVector = true;
@@ -722,7 +722,7 @@ namespace Microsoft.ML.Data
                     }
 
                     int inputSize = parent._inputSize;
-                    ch.Assert(0 <= inputSize & inputSize < SrcLim);
+                    ch.Assert(0 <= inputSize && inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
                         Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);

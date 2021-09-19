@@ -1281,7 +1281,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(parent);
                 var host = parent._host;
                 host.AssertValue(input);
-                host.Assert(0 <= srcCol & srcCol < input.Schema.Count);
+                host.Assert(0 <= srcCol && srcCol < input.Schema.Count);
                 host.Assert(input.IsColumnActive(input.Schema[srcCol]));
 
                 var type = input.Schema[srcCol].Type;
@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Data
 
                 public override void CacheCurrent()
                 {
-                    Ctx.Assert(0 <= _rowCount & _rowCount < int.MaxValue);
+                    Ctx.Assert(0 <= _rowCount && _rowCount < int.MaxValue);
                     Ctx.AssertValue(Waiter);
                     Ctx.AssertValue(_getter);
 
@@ -1384,7 +1384,7 @@ namespace Microsoft.ML.Data
 
                 public override void Fetch(int idx, ref VBuffer<T> value)
                 {
-                    Ctx.Assert(0 <= idx & idx < _rowCount);
+                    Ctx.Assert(0 <= idx && idx < _rowCount);
                     Ctx.Assert(_rowCount < Utils.Size(_indexBoundaries));
                     Ctx.Assert(_rowCount < Utils.Size(_valueBoundaries));
                     Ctx.Assert(_uniformLength > 0 || _rowCount <= Utils.Size(_lengths));
@@ -1437,7 +1437,7 @@ namespace Microsoft.ML.Data
 
                 public override void CacheCurrent()
                 {
-                    Contracts.Assert(0 <= _rowCount & _rowCount < int.MaxValue);
+                    Contracts.Assert(0 <= _rowCount && _rowCount < int.MaxValue);
                     Contracts.AssertValue(Waiter);
                     Contracts.AssertValue(_getter);
                     Utils.EnsureSize(ref _values, _rowCount + 1);
@@ -1447,7 +1447,7 @@ namespace Microsoft.ML.Data
 
                 public override void Fetch(int idx, ref T value)
                 {
-                    Contracts.Assert(0 <= idx & idx < _rowCount);
+                    Contracts.Assert(0 <= idx && idx < _rowCount);
                     value = _values[idx];
                 }
 
@@ -1466,7 +1466,7 @@ namespace Microsoft.ML.Data
                 : base(parent._host, waiter)
             {
                 Contracts.AssertValue(input);
-                Contracts.Assert(0 <= srcCol & srcCol < input.Schema.Count);
+                Contracts.Assert(0 <= srcCol && srcCol < input.Schema.Count);
                 Contracts.Assert(input.Schema[srcCol].Type.RawType == typeof(T));
             }
 

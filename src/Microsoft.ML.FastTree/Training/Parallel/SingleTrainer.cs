@@ -23,7 +23,6 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         void IParallelTraining.CacheHistogram(bool isSmallerLeaf, int featureIdx, int subfeature, SufficientStatsBase sufficientStatsBase, bool hasWeights)
         {
-            return;
         }
 
         bool IParallelTraining.IsNeedFindLocalBestSplit()
@@ -36,12 +35,10 @@ namespace Microsoft.ML.Trainers.FastTree
             FindBestThresholdFromRawArrayFun findFunction,
             SplitInfo[] bestSplits)
         {
-            return;
         }
 
         void IParallelTraining.GetGlobalDataCountInLeaf(int leafIdx, ref int cnt)
         {
-            return;
         }
 
         bool[] IParallelTraining.GetLocalBinConstructionFeatures(int numFeatures)
@@ -61,42 +58,34 @@ namespace Microsoft.ML.Trainers.FastTree
 
         void IParallelTraining.PerformGlobalSplit(int leaf, int lteChild, int gtChild, SplitInfo splitInfo)
         {
-            return;
         }
 
         void IParallelTraining.InitIteration(ref bool[] activeFeatures)
         {
-            return;
         }
 
         void IParallelTraining.InitEnvironment()
         {
-            return;
         }
 
         void IParallelTraining.InitTreeLearner(Dataset trainData, int maxNumLeaves, int maxCatSplitPoints, ref int minDocInLeaf)
         {
-            return;
         }
 
         void IParallelTraining.SyncGlobalBoundary(int numFeatures, int maxBin, Double[][] binUpperBounds)
         {
-            return;
         }
 
         void IParallelTraining.FinalizeEnvironment()
         {
-            return;
         }
 
         void IParallelTraining.FinalizeTreeLearner()
         {
-            return;
         }
 
         void IParallelTraining.FinalizeIteration()
         {
-            return;
         }
 
         bool IParallelTraining.IsSkipNonSplittableHistogram()

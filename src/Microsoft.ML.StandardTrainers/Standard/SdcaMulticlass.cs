@@ -471,7 +471,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override float[] InitializeFeatureNormSquared(int length)
         {
-            Contracts.Assert(0 < length & length <= Utils.ArrayMaxSize);
+            Contracts.Assert(0 < length && length <= Utils.ArrayMaxSize);
             return new float[length];
         }
 

@@ -21,7 +21,7 @@ namespace Samples.Dynamic
             foreach (var item in rawData)
                 Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item
                     .NumericVector), string.Join(",", item.StringVector));
-            
+
             // NumericVector             StringVector
             // 4,NaN,6                   A,WA,Male
             // 4,5,6                     A,,Female
@@ -33,10 +33,10 @@ namespace Samples.Dynamic
             // We will use the SelectFeaturesBasedOnCount to retain only those slots
             // which have at least 'count' non-default and non-missing values per
             // slot.
-            var pipeline = 
+            var pipeline =
                 mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
                     outputColumnName: "NumericVector", count: 3) // Usage on numeric 
-                    // column.
+                                                                 // column.
                 .Append(mlContext.Transforms.FeatureSelection
                 .SelectFeaturesBasedOnCount(outputColumnName: "StringVector",
                 count: 3)); // Usage on text column.

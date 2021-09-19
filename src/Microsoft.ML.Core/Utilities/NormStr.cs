@@ -73,7 +73,7 @@ namespace Microsoft.ML.Internal.Utilities
                 Contracts.Assert(_rgins.Length == _mask + 1);
                 Contracts.Assert(Utils.IsPowerOfTwo(_mask + 1));
 
-                Contracts.Assert(0 <= _cns & _cns <= Utils.Size(_rgns));
+                Contracts.Assert(0 <= _cns && _cns <= Utils.Size(_rgns));
                 Contracts.Assert(Utils.Size(_rgns) == Utils.Size(_rgmeta));
             }
 

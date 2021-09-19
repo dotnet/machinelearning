@@ -9,7 +9,7 @@ namespace Samples.Dynamic
     // This is often a useful data transformation before concatenating the features
     // together and passing them to a particular estimator.
     public static class ConvertTypeMultiColumn
-    { 
+    {
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for
@@ -43,7 +43,7 @@ namespace Samples.Dynamic
                     new InputOutputColumnPair("Converted2", "Feature2"),
                     new InputOutputColumnPair("Converted3", "Feature3"),
                     new InputOutputColumnPair("Converted4", "Feature4"),
-             }, 
+             },
              DataKind.Single);
 
             // Let's fit our pipeline to the data.

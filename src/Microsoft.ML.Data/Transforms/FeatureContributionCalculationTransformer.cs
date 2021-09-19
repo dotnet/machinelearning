@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
                 _featureColumnType = schema[_featureColumnIndex].Type as VectorDataViewType;
                 if (_featureColumnType == null || _featureColumnType.ItemType != NumberDataViewType.Single)
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of Single", _featureColumnType.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of Single", schema[_featureColumnIndex].Type.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
                     InputSchema[_featureColumnIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);

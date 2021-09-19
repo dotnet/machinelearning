@@ -87,6 +87,9 @@ namespace Microsoft.ML.Transforms.Onnx
 
             [Argument(ArgumentType.Multiple, HelpText = "Shapes used to overwrite shapes loaded from ONNX file.", SortOrder = 5)]
             public CustomShapeInfo[] CustomShapeInfos;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Protobuf CodedInputStream recursion limit.", SortOrder = 6)]
+            public int RecursionLimit = 100;
         }
 
         /// <summary>
@@ -126,8 +129,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 modelSignature: "ONNXSCOR",
                 // version 10001 is single input & output.
                 // version 10002 = multiple inputs & outputs
-                verWrittenCur: 0x00010002,
-                verReadableCur: 0x00010002,
+                // version 10003 = custom protobuf recursion limit
+                verWrittenCur: 0x00010003,
+                verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
             loaderAssemblyName: typeof(OnnxTransformer).Assembly.FullName);
@@ -184,7 +188,26 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
             }
 
-            var options = new Options() { InputColumns = inputs, OutputColumns = outputs, CustomShapeInfos = loadedCustomShapeInfos };
+            int recursionLimit;
+
+            // Recursion limit change
+            if (ctx.Header.ModelVerWritten >= 0x00010003)
+            {
+                recursionLimit = ctx.Reader.ReadInt32();
+            }
+            else
+            {
+                // Default if not written inside ONNX model
+                recursionLimit = 100;
+            }
+
+            var options = new Options()
+            {
+                InputColumns = inputs,
+                OutputColumns = outputs,
+                CustomShapeInfos = loadedCustomShapeInfos,
+                RecursionLimit = recursionLimit
+            };
 
             return new OnnxTransformer(env, options, modelBytes);
         }
@@ -221,13 +244,13 @@ namespace Microsoft.ML.Transforms.Onnx
                     Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
                     Host.CheckIO(File.Exists(options.ModelFile), "Model file {0} does not exists.", options.ModelFile);
                     // Because we cannot delete the user file, ownModelFile should be false.
-                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false, shapeDictionary: shapeDictionary);
+                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false, shapeDictionary: shapeDictionary, options.RecursionLimit);
                 }
                 else
                 {
                     // Entering this region means that the byte[] is passed as the model. To feed that byte[] to ONNXRuntime, we need
                     // to create a temporal file to store it and then call ONNXRuntime's API to load that file.
-                    Model = OnnxModel.CreateFromBytes(modelBytes, env, options.GpuDeviceId, options.FallbackToCpu, shapeDictionary: shapeDictionary);
+                    Model = OnnxModel.CreateFromBytes(modelBytes, env, options.GpuDeviceId, options.FallbackToCpu, shapeDictionary: shapeDictionary, options.RecursionLimit);
                 }
             }
             catch (OnnxRuntimeException e)
@@ -258,8 +281,9 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <param name="shapeDictionary"></param>
+        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         internal OnnxTransformer(IHostEnvironment env, string modelFile, int? gpuDeviceId = null,
-            bool fallbackToCpu = false, IDictionary<string, int[]> shapeDictionary = null)
+            bool fallbackToCpu = false, IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100)
             : this(env, new Options()
             {
                 ModelFile = modelFile,
@@ -267,7 +291,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 OutputColumns = new string[] { },
                 GpuDeviceId = gpuDeviceId,
                 FallbackToCpu = fallbackToCpu,
-                CustomShapeInfos = shapeDictionary?.Select(pair => new CustomShapeInfo(pair.Key, pair.Value)).ToArray()
+                CustomShapeInfos = shapeDictionary?.Select(pair => new CustomShapeInfo(pair.Key, pair.Value)).ToArray(),
+                RecursionLimit = recursionLimit
             })
         {
         }
@@ -283,8 +308,9 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <param name="shapeDictionary"></param>
+        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         internal OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
-             IDictionary<string, int[]> shapeDictionary = null)
+             IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100)
             : this(env, new Options()
             {
                 ModelFile = modelFile,
@@ -292,7 +318,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 OutputColumns = outputColumnNames,
                 GpuDeviceId = gpuDeviceId,
                 FallbackToCpu = fallbackToCpu,
-                CustomShapeInfos = shapeDictionary?.Select(pair => new CustomShapeInfo(pair.Key, pair.Value)).ToArray()
+                CustomShapeInfos = shapeDictionary?.Select(pair => new CustomShapeInfo(pair.Key, pair.Value)).ToArray(),
+                RecursionLimit = recursionLimit
             })
         {
         }
@@ -325,6 +352,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 ctx.SaveNonEmptyString(info.Name);
                 ctx.Writer.WriteIntArray(info.Shape);
             }
+
+            ctx.Writer.Write(_options.RecursionLimit);
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
@@ -807,10 +836,11 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <param name="shapeDictionary"></param>
+        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         [BestFriend]
         internal OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
-            IDictionary<string, int[]> shapeDictionary = null)
-            : this(env, new OnnxTransformer(env, new string[] { }, new string[] { }, modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary))
+            IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100)
+            : this(env, new OnnxTransformer(env, new string[] { }, new string[] { }, modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary, recursionLimit))
         {
         }
 
@@ -825,9 +855,10 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <param name="shapeDictionary"></param>
+        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         internal OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile,
-            int? gpuDeviceId = null, bool fallbackToCpu = false, IDictionary<string, int[]> shapeDictionary = null)
-           : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary))
+            int? gpuDeviceId = null, bool fallbackToCpu = false, IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100)
+           : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary, recursionLimit))
         {
         }
 

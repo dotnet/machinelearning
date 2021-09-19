@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -55,7 +56,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// (for example, the prediction does not happen over a file as it did during training).
         /// Uses Symbolic SGD Trainer.
         /// </summary>
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void SimpleTrainAndPredictSymSGD()
         {
             var ml = new MLContext(seed: 1);

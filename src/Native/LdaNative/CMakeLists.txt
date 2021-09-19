@@ -16,4 +16,12 @@ set(SOURCES
 
 add_library(LdaNative SHARED ${SOURCES} ${RESOURCES})
 
+if (${ARCHITECTURE} STREQUAL "arm")
+    if (WIN32)
+        target_link_libraries(LdaNative shell32.lib)
+    else()
+        target_link_libraries(LdaNative atomic.a)
+    endif()
+endif()
+
 install_library_and_symbols (LdaNative)

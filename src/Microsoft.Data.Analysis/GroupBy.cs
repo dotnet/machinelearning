@@ -111,7 +111,7 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(nameof(groupByColumnIndex));
             _groupByColumnIndex = groupByColumnIndex;
             _keyToRowIndicesMap = keyToRowIndices ?? throw new ArgumentException(nameof(keyToRowIndices));
-            _dataFrame = dataFrame ?? throw new ArgumentException(nameof(dataFrame));
+            _dataFrame = dataFrame;
         }
 
         private delegate void ColumnDelegate(int columnIndex, long rowIndex, ICollection<long> rows, TKey key, bool firstGroup);

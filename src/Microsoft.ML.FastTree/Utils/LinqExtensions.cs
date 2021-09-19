@@ -206,7 +206,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public static IEnumerable<int> CumulativeSum<T>(this IEnumerable<int> s)
         {
             int sum = 0;
-            ;
+
             foreach (var x in s)
             {
                 sum = sum + x;

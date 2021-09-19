@@ -146,7 +146,7 @@ namespace Microsoft.ML.TimeSeries
 
             if (best == null)
             {
-                _preparedCauses.Append(new RootCause { Items = new List<RootCauseItem>() { new RootCauseItem(anomalyDimension) } });
+                _preparedCauses.Add(new RootCause { Items = new List<RootCauseItem>() { new RootCauseItem(anomalyDimension) } });
             }
 
             bool rootAsAnomaly = false;

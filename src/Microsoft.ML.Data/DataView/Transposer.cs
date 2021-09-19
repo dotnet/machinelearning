@@ -266,10 +266,10 @@ namespace Microsoft.ML.Data
 
             var transposedColumn = _view.Schema[col];
             PrimitiveDataViewType elementType = null;
-            if (transposedColumn.Type is PrimitiveDataViewType)
-                elementType = (PrimitiveDataViewType)transposedColumn.Type;
-            else if (transposedColumn.Type is VectorDataViewType)
-                elementType = ((VectorDataViewType)transposedColumn.Type).ItemType;
+            if (transposedColumn.Type is PrimitiveDataViewType primitiveDataViewType)
+                elementType = primitiveDataViewType;
+            else if (transposedColumn.Type is VectorDataViewType vectorDataViewType)
+                elementType = vectorDataViewType.ItemType;
             _host.Assert(elementType != null);
 
             return new VectorDataViewType(elementType, RowCount);

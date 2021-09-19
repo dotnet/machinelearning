@@ -342,7 +342,7 @@ namespace Microsoft.ML.Transforms
                     item.Seed ?? options.Seed,
                     item.Ordered ?? options.Ordered,
                     item.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts);
-            };
+            }
             return new HashingTransformer(env, input, cols).MakeDataTransform(input);
         }
 

@@ -29,16 +29,16 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Define trainer options.
             var options = new LightGbmMulticlassTrainer.Options
-                        {
-                            Booster = new DartBooster.Options()
-                            {
-                                TreeDropFraction = 0.15,
-                                XgboostDartMode = false
-                            }
-                        };
+            {
+                Booster = new DartBooster.Options()
+                {
+                    TreeDropFraction = 0.15,
+                    XgboostDartMode = false
+                }
+            };
 
             // Define the trainer.
-            var pipeline = 
+            var pipeline =
                 // Convert the string labels into key types.
                 mlContext.Transforms.Conversion.MapValueToKey("Label")
                 // Apply LightGbm multiclass trainer.
@@ -63,7 +63,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Look at 5 predictions
             foreach (var p in predictions.Take(5))
-                Console.WriteLine($"Label: {p.Label}, " + 
+                Console.WriteLine($"Label: {p.Label}, " +
                     $"Prediction: {p.PredictedLabel}");
 
             // Expected output:
@@ -78,13 +78,13 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 .Evaluate(transformedTestData);
 
             PrintMetrics(metrics);
-            
+
             // Expected output:
             //   Micro Accuracy: 0.98
             //   Macro Accuracy: 0.98
             //   Log Loss: 0.07
             //   Log Loss Reduction: 0.94
-                 
+
             //   Confusion table
             //             ||========================
             //   PREDICTED ||     0 |     1 |     2 | Recall
@@ -99,7 +99,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         // Generates random uniform doubles in [-0.5, 0.5)
         // range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
 
         {
             var random = new Random(seed);

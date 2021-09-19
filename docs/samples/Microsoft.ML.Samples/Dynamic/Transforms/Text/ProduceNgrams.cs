@@ -59,7 +59,7 @@ namespace Samples.Dynamic
                     ngramLength: 3,
                     useAllLengths: false,
                     weighting: NgramExtractingEstimator.WeightingCriteria.Tf));
-            
+
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
             var transformedDataView = textTransformer.Transform(dataview);

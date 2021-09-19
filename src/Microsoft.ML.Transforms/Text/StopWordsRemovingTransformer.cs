@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private static void AddResourceIfNotPresent(StopWordsRemovingEstimator.Language lang)
         {
-            Contracts.Assert(0 <= (int)lang & (int)lang < Utils.Size(StopWords));
+            Contracts.Assert(0 <= (int)lang && (int)lang < Utils.Size(StopWords));
 
             if (StopWords[(int)lang] == null)
             {
@@ -498,7 +498,7 @@ namespace Microsoft.ML.Transforms.Text
             private bool ResourceExists(StopWordsRemovingEstimator.Language lang)
             {
                 int langVal = (int)lang;
-                Contracts.Assert(0 <= langVal & langVal < Utils.Size(StopWords));
+                Contracts.Assert(0 <= langVal && langVal < Utils.Size(StopWords));
                 // Note: Updating values in _resourcesExist does not have to be an atomic operation
                 return StopWords[langVal] != null ||
                     (_resourcesExist[langVal] ?? (_resourcesExist[langVal] = GetResourceFileStreamOrNull(lang) != null).Value);

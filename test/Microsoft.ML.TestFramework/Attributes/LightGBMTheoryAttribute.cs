@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.InteropServices;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Utility;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
@@ -20,7 +20,7 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return Environment.Is64BitProcess;
+            return Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm");
         }
     }
 }

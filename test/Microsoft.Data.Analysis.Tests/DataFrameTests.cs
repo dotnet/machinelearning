@@ -125,6 +125,20 @@ namespace Microsoft.Data.Analysis.Tests
             return df;
         }
 
+        internal static DateTime SampleDateTime = new DateTime(2021, 06, 04);
+        public static DataFrame MakeDataFrameWithNumericStringAndDateTimeColumns(int length, bool withNulls = true)
+        {
+            DataFrame df = MakeDataFrameWithNumericAndStringColumns(length, withNulls);
+
+            DataFrameColumn dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", Enumerable.Range(0, length).Select(x => SampleDateTime.AddDays(x)));
+            df.Columns.Insert(df.Columns.Count, dateTimeColumn);
+            if (withNulls)
+            {
+                dateTimeColumn[length / 2] = null;
+            }
+            return df;
+        }
+
         public static DataFrame MakeDataFrameWithNumericColumns(int length, bool withNulls = true)
         {
             DataFrameColumn byteColumn = new ByteDataFrameColumn("Byte", Enumerable.Range(0, length).Select(x => (byte)x));
@@ -785,6 +799,169 @@ namespace Microsoft.Data.Analysis.Tests
                     Assert.Throws<NotImplementedException>(() => column.Min());
                     Assert.Throws<NotImplementedException>(() => column.Product());
                     Assert.Throws<NotImplementedException>(() => column.Sum());
+                    continue;
+                }
+                column.CumulativeMax();
+                column.CumulativeMin();
+                column.CumulativeProduct();
+                column.CumulativeSum();
+                column.Max();
+                column.Min();
+                column.Product();
+                column.Sum();
+            }
+        }
+
+        [Fact]
+        public void TestComputationsIncludingDateTime()
+        {
+            DataFrame df = MakeDataFrameWithNumericStringAndDateTimeColumns(10);
+            df["Int"][0] = -10;
+            Assert.Equal(-10, df.Columns["Int"][0]);
+
+            DataFrameColumn absColumn = df.Columns["Int"].Abs();
+            Assert.Equal(10, absColumn[0]);
+            Assert.Equal(-10, df.Columns["Int"][0]);
+            df.Columns["Int"].Abs(true);
+            Assert.Equal(10, df.Columns["Int"][0]);
+
+            Assert.Throws<NotSupportedException>(() => df.Columns["Byte"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Byte"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Char"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Char"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Decimal"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Decimal"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Double"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Double"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Float"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Float"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Int"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Int"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Long"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Long"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Sbyte"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Sbyte"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Short"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Short"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Uint"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Uint"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Ulong"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Ulong"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Ushort"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["Ushort"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["DateTime"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["DateTime"].Any());
+
+            // Test the computation results
+            var maxDate = SampleDateTime.AddDays(100);
+            df.Columns["DateTime"][0] = maxDate;
+            DataFrameColumn dateTimeColumn = df.Columns["DateTime"].CumulativeMax();
+            for (int i = 0; i < dateTimeColumn.Length; i++)
+            {
+                if (i == 5)
+                    Assert.Null(dateTimeColumn[i]);
+                else
+                    Assert.Equal(maxDate, (DateTime)dateTimeColumn[i]);
+            }
+            Assert.Equal(maxDate, dateTimeColumn.Max());
+
+            df.Columns["Double"][0] = 100.0;
+            DataFrameColumn doubleColumn = df.Columns["Double"].CumulativeMax();
+            for (int i = 0; i < doubleColumn.Length; i++)
+            {
+                if (i == 5)
+                    Assert.Null(doubleColumn[i]);
+                else
+                    Assert.Equal(100.0, (double)doubleColumn[i]);
+            }
+            Assert.Equal(1.0, df.Columns["Double"][1]);
+            df.Columns["Double"].CumulativeMax(true);
+            for (int i = 0; i < df.Columns["Double"].Length; i++)
+            {
+                if (i == 5)
+                    Assert.Null(df.Columns["Double"][i]);
+                else
+                    Assert.Equal(100.0, (double)df.Columns["Double"][i]);
+            }
+
+            df.Columns["Float"][0] = -10.0f;
+            DataFrameColumn floatColumn = df.Columns["Float"].CumulativeMin();
+            for (int i = 0; i < floatColumn.Length; i++)
+            {
+                if (i == 5)
+                    Assert.Null(floatColumn[i]);
+                else
+                    Assert.Equal(-10.0f, (float)floatColumn[i]);
+            }
+            Assert.Equal(9.0f, df.Columns["Float"][9]);
+            df.Columns["Float"].CumulativeMin(true);
+            for (int i = 0; i < df.Columns["Float"].Length; i++)
+            {
+                if (i == 5)
+                    Assert.Null(df.Columns["Float"][i]);
+                else
+                    Assert.Equal(-10.0f, (float)df.Columns["Float"][i]);
+            }
+
+            DataFrameColumn uintColumn = df.Columns["Uint"].CumulativeProduct();
+            Assert.Equal((uint)0, uintColumn[8]);
+            Assert.Equal((uint)8, df.Columns["Uint"][8]);
+            df.Columns["Uint"].CumulativeProduct(true);
+            Assert.Equal((uint)0, df.Columns["Uint"][9]);
+
+            DataFrameColumn ushortColumn = df.Columns["Ushort"].CumulativeSum();
+            Assert.Equal((ushort)40, ushortColumn[9]);
+            Assert.Equal((ushort)9, df.Columns["Ushort"][9]);
+            df.Columns["Ushort"].CumulativeSum(true);
+            Assert.Equal((ushort)40, df.Columns["Ushort"][9]);
+
+            Assert.Equal(100.0, df.Columns["Double"].Max());
+            Assert.Equal(-10.0f, df.Columns["Float"].Min());
+            Assert.Equal((uint)0, df.Columns["Uint"].Product());
+            Assert.Equal((ushort)140, df.Columns["Ushort"].Sum());
+
+            df.Columns["Double"][0] = 100.1;
+            Assert.Equal(100.1, df.Columns["Double"][0]);
+            DataFrameColumn roundColumn = df.Columns["Double"].Round();
+            Assert.Equal(100.0, roundColumn[0]);
+            Assert.Equal(100.1, df.Columns["Double"][0]);
+            df.Columns["Double"].Round(true);
+            Assert.Equal(100.0, df.Columns["Double"][0]);
+
+            // Test that none of the numeric column types throw
+            for (int i = 0; i < df.Columns.Count; i++)
+            {
+                DataFrameColumn column = df.Columns[i];
+                if (column.DataType == typeof(bool))
+                {
+                    Assert.Throws<NotSupportedException>(() => column.CumulativeMax());
+                    Assert.Throws<NotSupportedException>(() => column.CumulativeMin());
+                    Assert.Throws<NotSupportedException>(() => column.CumulativeProduct());
+                    Assert.Throws<NotSupportedException>(() => column.CumulativeSum());
+                    Assert.Throws<NotSupportedException>(() => column.Max());
+                    Assert.Throws<NotSupportedException>(() => column.Min());
+                    Assert.Throws<NotSupportedException>(() => column.Product());
+                    Assert.Throws<NotSupportedException>(() => column.Sum());
+                    continue;
+                }
+                else if (column.DataType == typeof(string))
+                {
+                    Assert.Throws<NotImplementedException>(() => column.CumulativeMax());
+                    Assert.Throws<NotImplementedException>(() => column.CumulativeMin());
+                    Assert.Throws<NotImplementedException>(() => column.CumulativeProduct());
+                    Assert.Throws<NotImplementedException>(() => column.CumulativeSum());
+                    Assert.Throws<NotImplementedException>(() => column.Max());
+                    Assert.Throws<NotImplementedException>(() => column.Min());
+                    Assert.Throws<NotImplementedException>(() => column.Product());
+                    Assert.Throws<NotImplementedException>(() => column.Sum());
+                    continue;
+                }
+                else if (column.DataType == typeof(DateTime))
+                {
+                    Assert.Throws<NotSupportedException>(() => column.CumulativeProduct());
+                    Assert.Throws<NotSupportedException>(() => column.CumulativeSum());
+                    Assert.Throws<NotSupportedException>(() => column.Product());
+                    Assert.Throws<NotSupportedException>(() => column.Sum());
                     continue;
                 }
                 column.CumulativeMax();

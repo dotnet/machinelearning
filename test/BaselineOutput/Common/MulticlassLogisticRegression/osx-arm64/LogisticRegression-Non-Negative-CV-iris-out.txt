@@ -1,0 +1,108 @@
+maml.exe CV tr=MulticlassLogisticRegression{l1=0.001 l2=0.1 ot=1e-3 nt=1 nn=+} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}
+Not adding a normalizer.
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    21 |     0 |     0 | 1.0000
+        1 ||     0 |    29 |     1 | 0.9667
+        2 ||     0 |     2 |    26 | 0.9286
+          ||========================
+Precision ||1.0000 |0.9355 |0.9630 |
+Accuracy(micro-avg): 0.962025
+Accuracy(macro-avg): 0.965079
+Log-loss:           0.129895
+Log-loss reduction: 0.880558
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    29 |     0 |     0 | 1.0000
+        1 ||     0 |    18 |     2 | 0.9000
+        2 ||     0 |     0 |    22 | 1.0000
+          ||========================
+Precision ||1.0000 |1.0000 |0.9167 |
+Accuracy(micro-avg): 0.971831
+Accuracy(macro-avg): 0.966667
+Log-loss:           0.125564
+Log-loss reduction: 0.884342
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.966928 (0.0049)
+Accuracy(macro-avg): 0.965873 (0.0008)
+Log-loss:           0.127730 (0.0022)
+Log-loss reduction: 0.882450 (0.0019)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	71 examples	Total Terms: 3
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'LBFGS data prep' started.
+[2] 'LBFGS data prep' finished in %Time%.
+[3] 'LBFGS Optimizer' started.
+[3] (%Time%)	0 iterations	Loss: 1.0986123085021973
+[3] (%Time%)	1 iterations	Loss: 1.0064644813537598	Improvement: 0.09215
+[3] (%Time%)	2 iterations	Loss: 0.9095837473869324	Improvement: 0.09593
+[3] (%Time%)	3 iterations	Loss: 0.5251060724258423	Improvement: 0.3158
+[3] (%Time%)	4 iterations	Loss: 0.4005201458930969	Improvement: 0.1718
+[3] (%Time%)	5 iterations	Loss: 0.3326011300086975	Improvement: 0.09382
+[3] (%Time%)	6 iterations	Loss: 0.28138861060142517	Improvement: 0.06186
+[3] (%Time%)	7 iterations	Loss: 0.23799647390842438	Improvement: 0.04801
+[3] (%Time%)	8 iterations	Loss: 0.2122986614704132	Improvement: 0.03127
+[3] (%Time%)	9 iterations	Loss: 0.19979332387447357	Improvement: 0.0172
+[3] (%Time%)	10 iterations	Loss: 0.19478997588157654	Improvement: 0.008052
+[3] (%Time%)	11 iterations	Loss: 0.1932305097579956	Improvement: 0.003183
+[3] (%Time%)	12 iterations	Loss: 0.19244801998138428	Improvement: 0.001383
+[3] (%Time%)	13 iterations	Loss: 0.18930454552173615	Improvement: 0.002703
+[3] (%Time%)	14 iterations	Loss: 0.18766218423843384	Improvement: 0.001908
+[3] (%Time%)	15 iterations	Loss: 0.1853749006986618	Improvement: 0.002192
+[3] (%Time%)	16 iterations	Loss: 0.1836467981338501	Improvement: 0.001844
+[3] (%Time%)	17 iterations	Loss: 0.18079589307308197	Improvement: 0.002599
+[3] (%Time%)	18 iterations	Loss: 0.17890852689743042	Improvement: 0.002065
+[3] (%Time%)	19 iterations	Loss: 0.175626739859581	Improvement: 0.002978
+[3] (%Time%)	20 iterations	Loss: 0.17476825416088104	Improvement: 0.001388
+[3] (%Time%)	21 iterations	Loss: 0.1739787608385086	Improvement: 0.0009392
+[3] 'LBFGS Optimizer' finished in %Time%.
+[4] 'Building term dictionary #2' started.
+[4] (%Time%)	79 examples	Total Terms: 3
+[4] 'Building term dictionary #2' finished in %Time%.
+[5] 'LBFGS data prep #2' started.
+[5] 'LBFGS data prep #2' finished in %Time%.
+[6] 'LBFGS Optimizer #2' started.
+[6] (%Time%)	0 iterations	Loss: 1.0986123085021973
+[6] (%Time%)	1 iterations	Loss: 1.0585633516311646	Improvement: 0.04005
+[6] (%Time%)	2 iterations	Loss: 1.0028162002563477	Improvement: 0.05261
+[6] (%Time%)	3 iterations	Loss: 0.9778043031692505	Improvement: 0.03158
+[6] (%Time%)	4 iterations	Loss: 0.7527164220809937	Improvement: 0.1773
+[6] (%Time%)	5 iterations	Loss: 0.5423873066902161	Improvement: 0.2021
+[6] (%Time%)	6 iterations	Loss: 0.44308534264564514	Improvement: 0.125
+[6] (%Time%)	7 iterations	Loss: 0.3438674211502075	Improvement: 0.1057
+[6] (%Time%)	8 iterations	Loss: 0.2845913767814636	Improvement: 0.07087
+[6] (%Time%)	9 iterations	Loss: 0.25426244735717773	Improvement: 0.04046
+[6] (%Time%)	10 iterations	Loss: 0.2243548333644867	Improvement: 0.03255
+[6] (%Time%)	11 iterations	Loss: 0.21529169380664825	Improvement: 0.01493
+[6] (%Time%)	12 iterations	Loss: 0.21282146871089935	Improvement: 0.005586
+[6] (%Time%)	13 iterations	Loss: 0.21208679676055908	Improvement: 0.001948
+[6] (%Time%)	14 iterations	Loss: 0.21062038838863373	Improvement: 0.001587
+[6] (%Time%)	15 iterations	Loss: 0.2098011076450348	Improvement: 0.001011
+[6] (%Time%)	16 iterations	Loss: 0.2092653214931488	Improvement: 0.0006546
+[6] 'LBFGS Optimizer #2' finished in %Time%.

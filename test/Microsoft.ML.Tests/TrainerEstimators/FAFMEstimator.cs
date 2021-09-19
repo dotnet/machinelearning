@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [Fact]
+        [FieldAwareFactorizationMachineFact]
         public void FfmBinaryClassificationWithoutArguments()
         {
             var mlContext = new MLContext(seed: 0);
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.65, 1);
         }
 
-        [Fact]
+        [FieldAwareFactorizationMachineFact]
         public void FfmBinaryClassificationWithAdvancedArguments()
         {
             var mlContext = new MLContext(seed: 0);
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.9, 1);
         }
 
-        [Fact]
+        [FieldAwareFactorizationMachineFact]
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())

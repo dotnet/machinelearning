@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms
         private LambdaCompiler(LambdaNode node)
         {
             Contracts.AssertValue(node);
-            Contracts.Assert(1 <= node.Vars.Length & node.Vars.Length <= MaxParams);
+            Contracts.Assert(1 <= node.Vars.Length && node.Vars.Length <= MaxParams);
             Contracts.Assert(MaxParams <= 16);
             Contracts.AssertValue(node.ResultType);
 
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms
             var types = new Type[node.Vars.Length + 1];
             foreach (var v in node.Vars)
             {
-                Contracts.Assert(0 <= v.Index & v.Index < node.Vars.Length);
+                Contracts.Assert(0 <= v.Index && v.Index < node.Vars.Length);
                 Contracts.Assert(types[v.Index] == null);
                 types[v.Index] = v.Type.RawType;
             }
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Transforms
                         }
                         else
                         {
-                            Contracts.Assert(0 <= loc.Index & loc.Index < _cacheWith.Count);
+                            Contracts.Assert(0 <= loc.Index && loc.Index < _cacheWith.Count);
                             var cache = _cacheWith[loc.Index];
                             Contracts.Assert(cache.Value != null);
                             if (cache.Flag != null)
@@ -903,7 +903,7 @@ namespace Microsoft.ML.Transforms
                     {
                         // NotEqual is special - it means that the values are all distinct, so comparing adjacent
                         // items is not enough.
-                        Contracts.Assert(node.Op == CompareOp.NotEqual & items.Length > 2);
+                        Contracts.Assert(node.Op == CompareOp.NotEqual && items.Length > 2);
 
                         // We need a local for each item.
                         var locals = new MethodGenerator.Temporary[items.Length];

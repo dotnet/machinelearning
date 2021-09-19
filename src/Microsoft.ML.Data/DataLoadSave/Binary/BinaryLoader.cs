@@ -1460,7 +1460,7 @@ namespace Microsoft.ML.Data.IO
                 {
                     Contracts.AssertValue(parent);
                     Parent = parent;
-                    Ectx.Assert(0 <= columnIndex & columnIndex < Utils.Size(parent._actives));
+                    Ectx.Assert(0 <= columnIndex && columnIndex < Utils.Size(parent._actives));
                     ColumnIndex = columnIndex;
                 }
 
@@ -1535,7 +1535,7 @@ namespace Microsoft.ML.Data.IO
                     public Block(long blockSequence, long min, long lim)
                     {
                         Contracts.Assert(blockSequence >= 0);
-                        Contracts.Assert(0 <= min & min <= lim);
+                        Contracts.Assert(0 <= min && min <= lim);
                         Contracts.Assert(lim - min <= int.MaxValue);
                         BlockSequence = blockSequence;
                         RowIndexMin = min;

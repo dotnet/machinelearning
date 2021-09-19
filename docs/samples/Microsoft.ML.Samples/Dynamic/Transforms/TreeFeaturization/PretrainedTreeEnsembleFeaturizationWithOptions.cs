@@ -129,7 +129,7 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
         {
             var random = new Random(seed);
             float randomFloat() => (float)random.NextDouble();

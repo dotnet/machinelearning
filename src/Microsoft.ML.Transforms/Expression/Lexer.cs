@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                bool fReal = fDot | fExp;
+                bool fReal = fDot || fExp;
                 char chSuf = LexRealSuffix(fReal);
                 if (fReal || chSuf != '\0')
                     return LexRealNum(chSuf);

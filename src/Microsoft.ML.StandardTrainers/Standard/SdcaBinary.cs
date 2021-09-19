@@ -559,7 +559,7 @@ namespace Microsoft.ML.Trainers
             // If we favor storing the invariants, precompute the invariants now.
             if (invariants != null)
             {
-                Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
+                Contracts.Assert((idToIdx == null && ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) || (idToIdx != null && count * weightSetCount <= Utils.ArrayMaxSize));
                 Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 int invariantCoeff = weightSetCount == 1 ? 1 : 2;
                 using (var cursor = cursorFactory.Create())
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Trainers
                     {
                         Host.CheckAlive();
                         long longIdx = getIndexFromIdAndRow(cursor.Id, row);
-                        Contracts.Assert(0 <= longIdx & longIdx < invariants.Length, $"longIdx={longIdx}, invariants.Length={invariants.Length}");
+                        Contracts.Assert(0 <= longIdx && longIdx < invariants.Length, $"longIdx={longIdx}, invariants.Length={invariants.Length}");
                         int idx = (int)longIdx;
                         var features = cursor.Features;
                         var normSquared = VectorUtils.NormSquared(features);
@@ -1251,7 +1251,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             private long GetIndexCore(DataViewRowId val, long iit)
             {
-                Contracts.Assert(0 <= iit & iit < _rgit.Length);
+                Contracts.Assert(0 <= iit && iit < _rgit.Length);
                 long it = _rgit[iit];
                 while (it >= 0)
                 {
@@ -1330,11 +1330,11 @@ namespace Microsoft.ML.Trainers
             {
                 Contracts.AssertValue(_rgit);
                 Contracts.Assert(_rgit.Length > 0);
-                Contracts.Assert(0 <= _count & _count <= _entries.Length);
+                Contracts.Assert(0 <= _count && _count <= _entries.Length);
 
                 // The number of buckets should be at least the number of items, unless we're reached the
                 // biggest number of buckets allowed.
-                Contracts.Assert(_rgit.Length >= _count | _rgit.Length == HashHelpers.MaxPrime);
+                Contracts.Assert(_rgit.Length >= _count || _rgit.Length == HashHelpers.MaxPrime);
             }
 
             [Conditional("DUMP_STATS")]
@@ -1796,7 +1796,7 @@ namespace Microsoft.ML.Trainers
                     NumberDataViewType.Single,
                     false,
                     new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))));
-            };
+            }
 
             return outCols.ToArray();
         }

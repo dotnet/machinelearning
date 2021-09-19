@@ -717,7 +717,7 @@ namespace Microsoft.ML.Data.IO
 
         private Transposer EnsureAndGetTransposer(int col)
         {
-            _host.Assert(0 <= col & col < _header.ColumnCount);
+            _host.Assert(0 <= col && col < _header.ColumnCount);
             // Used to "fake" row data when we don't actually have it.
             _host.Assert(!HasRowData);
 

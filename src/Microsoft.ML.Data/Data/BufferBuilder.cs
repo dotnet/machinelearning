@@ -73,7 +73,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(_count >= 0);
             Contracts.AssertValue(_values);
             Contracts.Assert(_values.Length >= _count);
-            Contracts.Assert(0 <= _ifeatCur & 0 <= _cfeatCur & _ifeatCur <= _length - _cfeatCur);
+            Contracts.Assert(0 <= _ifeatCur && 0 <= _cfeatCur && _ifeatCur <= _length - _cfeatCur);
 
             if (_dense)
                 Contracts.Assert(_count == _length);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(Utils.Size(_indices) >= _count);
 
                 // If we have no more than InsertThreshold items, we always keep things sorted.
-                Contracts.Assert(_sorted | _count > InsertThreshold);
+                Contracts.Assert(_sorted || _count > InsertThreshold);
             }
 #endif
         }
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Data
         private void SetActiveRangeImpl(int ifeat, int cfeat)
         {
             AssertValid();
-            Contracts.Assert(0 <= ifeat & 0 <= cfeat & ifeat <= _length - cfeat);
+            Contracts.Assert(0 <= ifeat && 0 <= cfeat && ifeat <= _length - cfeat);
             _ifeatCur = ifeat;
             _cfeatCur = cfeat;
             AssertValid();
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Data
         public void AddFeature(int index, T value)
         {
             AssertValid();
-            Contracts.Assert(0 <= index & index < _cfeatCur);
+            Contracts.Assert(0 <= index && index < _cfeatCur);
 
             // Ignore default values.
             if (_comb.IsDefault(value))
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Data
                 }
                 ivDst++;
             }
-            Contracts.Assert(0 < ivDst & ivDst <= _count);
+            Contracts.Assert(0 < ivDst && ivDst <= _count);
             _count = ivDst;
             _sorted = true;
             AssertValid();
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Data
         public bool TryGetFeature(int index, out T v)
         {
             AssertValid();
-            Contracts.Assert(0 <= index & index < _cfeatCur);
+            Contracts.Assert(0 <= index && index < _cfeatCur);
 
             int ifeat = index + _ifeatCur;
             if (_dense)

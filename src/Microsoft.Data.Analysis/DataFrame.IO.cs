@@ -47,6 +47,13 @@ namespace Microsoft.Data.Analysis
                         ++nbline;
                         continue;
                     }
+                    bool dateParse = DateTime.TryParse(val, out DateTime dateResult);
+                    if (dateParse)
+                    {
+                        res = DetermineType(nbline == 0, typeof(DateTime), res);
+                        ++nbline;
+                        continue;
+                    }
 
                     res = DetermineType(nbline == 0, typeof(string), res);
                     ++nbline;
@@ -71,6 +78,8 @@ namespace Microsoft.Data.Analysis
                 return typeof(float);
             if (a == typeof(bool) || b == typeof(bool))
                 return typeof(bool);
+            if (a == typeof(DateTime) || b == typeof(DateTime))
+                return typeof(DateTime);
             return typeof(string);
         }
 
@@ -164,6 +173,10 @@ namespace Microsoft.Data.Analysis
             else if (kind == typeof(ushort))
             {
                 ret = new UInt16DataFrameColumn(GetColumnName(columnNames, columnIndex));
+            }
+            else if (kind == typeof(DateTime))
+            {
+                ret = new PrimitiveDataFrameColumn<DateTime>(GetColumnName(columnNames, columnIndex));
             }
             else
             {
