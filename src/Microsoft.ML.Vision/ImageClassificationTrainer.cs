@@ -258,7 +258,10 @@ namespace Microsoft.ML.Vision
                 if (metric == EarlyStoppingMetric.Accuracy)
                     CheckIncreasing = true;
                 else if (metric == EarlyStoppingMetric.Loss)
+                {
                     CheckIncreasing = false;
+                    _bestMetricValue = Single.MaxValue;
+                }
             }
 
             /// <summary>
