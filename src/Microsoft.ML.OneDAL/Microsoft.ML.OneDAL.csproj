@@ -15,6 +15,9 @@
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
