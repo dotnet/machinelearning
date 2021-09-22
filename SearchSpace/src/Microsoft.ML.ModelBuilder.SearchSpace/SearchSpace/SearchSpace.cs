@@ -20,6 +20,12 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
             this.options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
+        public SearchSpace(IEnumerable<KeyValuePair<string, OptionBase>> options)
+            : this()
+        {
+            this.options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
+        }
+
         public SearchSpace()
         {
             this.options = new Dictionary<string, OptionBase>();
@@ -61,6 +67,16 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
         public int Count => ((ICollection<KeyValuePair<string, OptionBase>>)options).Count;
 
         public bool IsReadOnly => ((ICollection<KeyValuePair<string, OptionBase>>)options).IsReadOnly;
+
+        public override int?[] Step
+        {
+            get
+            {
+                return this.OrderBy(kv => kv.Key)
+                           .SelectMany(kv => kv.Value.Step)
+                           .ToArray();
+            }
+        }
 
         public OptionBase this[string key] { get => ((IDictionary<string, OptionBase>)options)[key]; set => ((IDictionary<string, OptionBase>)options)[key] = value; }
 

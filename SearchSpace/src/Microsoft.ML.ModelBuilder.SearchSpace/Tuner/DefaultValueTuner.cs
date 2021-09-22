@@ -11,17 +11,16 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tuner
     /// <summary>
     /// A tuner which always return default value.
     /// </summary>
-    public class DefaultValueTuner<T>
-        where T: class, new()
+    public class DefaultValueTuner
     {
-        private readonly SearchSpace<T> ss;
+        private readonly SearchSpace ss;
 
-        public DefaultValueTuner(SearchSpace<T> ss)
+        public DefaultValueTuner(SearchSpace ss)
         {
             this.ss = ss;
         }
 
-        public T Propose()
+        public Parameter Propose()
         {
             var defaultFeatureVec = this.ss.Default;
             return this.ss.SampleFromFeatureSpace(defaultFeatureVec);

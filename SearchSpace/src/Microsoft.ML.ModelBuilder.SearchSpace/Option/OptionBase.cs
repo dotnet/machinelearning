@@ -34,5 +34,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         /// Gets the default value which is mapping to feature space (if exists).
         /// </summary>
         public virtual double[]? Default { get; protected set; }
+
+        public abstract int?[] Step { get; }
     }
 }

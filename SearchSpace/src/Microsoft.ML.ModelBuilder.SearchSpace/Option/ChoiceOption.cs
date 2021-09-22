@@ -40,6 +40,8 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
 
         public override int FeatureSpaceDim => 1;
 
+        public override int?[] Step => new int?[] { this.Choices.Length };
+
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var value = param.AsType<string>();
