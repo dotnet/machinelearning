@@ -121,8 +121,8 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         public void Search_space_default_value_test()
         {
             var ss = new SearchSpace<NestSearchSpace>();
-            var defaultTuner = new DefaultValueTuner<NestSearchSpace>(ss);
-            var param = defaultTuner.Propose();
+            var defaultTuner = new DefaultValueTuner(ss);
+            var param = defaultTuner.Propose().AsType<NestSearchSpace>();
 
             param.UniformDouble.Should().Be(0);
             param.UniformFloat.Should().Be(0);
