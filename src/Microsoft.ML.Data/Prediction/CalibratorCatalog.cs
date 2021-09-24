@@ -200,9 +200,11 @@ namespace Microsoft.ML.Calibrators
             }
         }
 
-        public string FeatureColumnName => DefaultColumnNames.Score;
+        string ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnName => DefaultColumnNames.Score;
+        string ISingleFeaturePredictionTransformer.FeatureColumnName => ((ISingleFeaturePredictionTransformer<TICalibrator>)this).FeatureColumnName;
 
-        public DataViewType FeatureColumnType => NumberDataViewType.Single;
+        DataViewType ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnType => NumberDataViewType.Single;
+        DataViewType ISingleFeaturePredictionTransformer.FeatureColumnType => ((ISingleFeaturePredictionTransformer<TICalibrator>)this).FeatureColumnType;
 
         TICalibrator IPredictionTransformer<TICalibrator>.Model => _calibrator;
 

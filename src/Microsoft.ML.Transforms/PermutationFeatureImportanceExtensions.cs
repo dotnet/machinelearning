@@ -669,9 +669,9 @@ namespace Microsoft.ML
             {
                 foreach (var transformer in chain.Reverse())
                 {
-                    if (transformer is ISingleFeaturePredictionTransformer)
+                    if (transformer is ISingleFeaturePredictionTransformer singlePredictionTransformer)
                     {
-                        lastTransformer = transformer as ISingleFeaturePredictionTransformer;
+                        lastTransformer = singlePredictionTransformer;
                         break;
                     }
                 }
@@ -692,7 +692,7 @@ namespace Microsoft.ML
                 resultInitializer,
                 evaluationFunc,
                 deltaFunc,
-                lastTransformer.FeatureColumnName,
+                featureColumnName,
                 permutationCount,
                 useFeatureWeightFilter,
                 numberOfExamplesToUse
