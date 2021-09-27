@@ -45,8 +45,5 @@ namespace Microsoft.ML
     {
         /// <summary>The name of the feature column.</summary>
         string FeatureColumnName { get; }
-
-        /// <summary>Holds information about the type of the feature column.</summary>
-        DataViewType FeatureColumnType { get; }
     }
 }

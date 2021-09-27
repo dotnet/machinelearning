@@ -681,7 +681,7 @@ namespace Microsoft.ML
             env.CheckValue(lastTransformer, nameof(lastTransformer), "The model provided does not have a compatible predictor");
 
             string featureColumnName = lastTransformer.FeatureColumnName;
-            TryGetImplementedIPredictionTransformer(lastTransformer.GetType(), out var predictionTransformerGenericType);
+            var predictionTransformerGenericType = GetImplementedIPredictionTransformer(lastTransformer.GetType());
 
             Type[] types = { predictionTransformerGenericType.GenericTypeArguments[0], typeof(TMetric), typeof(TResult) };
             Type pfiGenericType = typeof(PermutationFeatureImportance<,,>).MakeGenericType(types);
@@ -721,19 +721,17 @@ namespace Microsoft.ML
             return output.ToImmutableDictionary();
         }
 
-        private static bool TryGetImplementedIPredictionTransformer(Type type, out Type interfaceType)
+        private static Type GetImplementedIPredictionTransformer(Type type)
         {
             foreach (Type iType in type.GetInterfaces())
             {
                 if (iType.IsGenericType && iType.GetGenericTypeDefinition() == typeof(IPredictionTransformer<>))
                 {
-                    interfaceType = iType;
-                    return true;
+                    return iType;
                 }
             }
 
-            interfaceType = null;
-            return false;
+            throw new ArgumentException($"Type IPredictionTransformer not implemented by provided type", nameof(type));
         }
 
         #endregion

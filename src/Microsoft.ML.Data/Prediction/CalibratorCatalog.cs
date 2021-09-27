@@ -204,7 +204,6 @@ namespace Microsoft.ML.Calibrators
         string ISingleFeaturePredictionTransformer.FeatureColumnName => ((ISingleFeaturePredictionTransformer<TICalibrator>)this).FeatureColumnName;
 
         DataViewType ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnType => NumberDataViewType.Single;
-        DataViewType ISingleFeaturePredictionTransformer.FeatureColumnType => ((ISingleFeaturePredictionTransformer<TICalibrator>)this).FeatureColumnType;
 
         TICalibrator IPredictionTransformer<TICalibrator>.Model => _calibrator;
 
