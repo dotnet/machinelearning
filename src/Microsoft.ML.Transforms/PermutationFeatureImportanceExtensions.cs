@@ -731,7 +731,7 @@ namespace Microsoft.ML
                 }
             }
 
-            throw new ArgumentException($"Type IPredictionTransformer not implemented by provided type", nameof(type));
+            throw new ArgumentException($"Type IPredictionTransformer not implemented by provided type, {type}", nameof(type));
         }
 
         #endregion
