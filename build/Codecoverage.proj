@@ -20,10 +20,10 @@
     <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(ArtifactsDir)bin\**\coverage.opencover.xml -targetdir:$(ArtifactsDir)bin\coverage -filefilters:+*.cs;+*.fs -reporttypes:Cobertura" />
 
     <ItemGroup>
-      <_CodecovArgs Include="-f;$(ArtifactsDir)bin\coverage\Cobertura.xml" />
-      
+      <_CodecovArgs Include="-f;artifacts\bin\coverage\Cobertura.xml" />
+
       <!-- Report an error if the upload fails -->
-      <_CodecovArgs Include="--required" />
+      <_CodecovArgs Include="-Z" />
 
       <_CodecovFlags Include="$(Configuration)" Condition="'$(Configuration)' != ''" />
       <_CodecovProductionFlags Include="@(_CodecovFlags)" />
@@ -33,12 +33,12 @@
     </ItemGroup>
 
     <!-- Upload the coverage file with a 'production' flag, which will be filtered by codecov.io to production code -->
-    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovProductionFlags, ',')" />
-    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovProductionFlags, ',')" />
+    <Message Importance="high" Text="&quot;$(Build.SourcesDirectory)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovProductionFlags, ',')" />
+    <Exec Command="&quot;$(Build.SourcesDirectory)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovProductionFlags, ',')" />
 
     <!-- Upload the coverage file with a 'test' flag, which will be filtered by codecov.io to test code -->
-    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovTestFlags, ',')" />
-    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovTestFlags, ',')" />
+    <Message Importance="high" Text="&quot;$(Build.SourcesDirectory)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovTestFlags, ',')" />
+    <Exec Command="&quot;$(Build.SourcesDirectory)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovTestFlags, ',')" />
   </Target>
 
 </Project>
