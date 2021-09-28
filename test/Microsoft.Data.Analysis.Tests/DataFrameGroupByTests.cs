@@ -91,7 +91,6 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestGroupingWithTKeyOfWrongType()
         {           
-
             var message = string.Empty;
 
             //Create test dataframe (numbers starting from 0 up to lenght)
