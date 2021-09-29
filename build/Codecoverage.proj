@@ -33,12 +33,12 @@
     </ItemGroup>
 
     <!-- Upload the coverage file with a 'production' flag, which will be filtered by codecov.io to production code -->
-    <Message Importance="high" Text="&quot;$(Build.SourcesDirectory)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovProductionFlags, ',')" />
-    <Exec Command="&quot;$(Build.SourcesDirectory)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovProductionFlags, ',')" />
+    <Message Importance="high" Text="&quot;$(BUILD_SOURCESDIRECTORY)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovProductionFlags, ',')" />
+    <Exec Command="&quot;$(BUILD_SOURCESDIRECTORY)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovProductionFlags, ',')" />
 
     <!-- Upload the coverage file with a 'test' flag, which will be filtered by codecov.io to test code -->
-    <Message Importance="high" Text="&quot;$(Build.SourcesDirectory)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovTestFlags, ',')" />
-    <Exec Command="&quot;$(Build.SourcesDirectory)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovTestFlags, ',')" />
+    <Message Importance="high" Text="&quot;$(BUILD_SOURCESDIRECTORY)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovTestFlags, ',')" />
+    <Exec Command="&quot;$(BUILD_SOURCESDIRECTORY)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovTestFlags, ',')" />
   </Target>
 
 </Project>
