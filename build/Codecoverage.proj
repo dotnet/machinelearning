@@ -24,6 +24,7 @@
 
       <!-- Report an error if the upload fails -->
       <_CodecovArgs Include="-Z" />
+      <_CodecovArgs Include="-t" />
 
       <_CodecovFlags Include="$(Configuration)" Condition="'$(Configuration)' != ''" />
       <_CodecovProductionFlags Include="@(_CodecovFlags)" />
@@ -31,6 +32,9 @@
       <_CodecovTestFlags Include="@(_CodecovFlags)" />
       <_CodecovTestFlags Include="test" />
     </ItemGroup>
+
+    <Message Importance="high" Text="Environment Variables" />
+    <Exec Command="SET" />
 
     <!-- Upload the coverage file with a 'production' flag, which will be filtered by codecov.io to production code -->
     <Message Importance="high" Text="&quot;$(BUILD_SOURCESDIRECTORY)\build\codecov.exe&quot; @(_CodecovArgs, ' ') -F @(_CodecovProductionFlags, ',')" />
