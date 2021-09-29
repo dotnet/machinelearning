@@ -43,7 +43,6 @@ void linearRegression(FPType * features, FPType * label, FPType * betas, int nRo
     BlockDescriptor<FPType> betasBlock;
     betasTable->getBlockOfRows(0, 1, readWrite, betasBlock);
     FPType * betasForCopy = betasBlock.getBlockPtr();
-
     for (int i = 0; i < nColumns + 1; ++i)
     {
         betas[i] = betasForCopy[i];
