@@ -43,6 +43,7 @@ jobs:
         testTargetFramework: ''
       ${{ if ne(parameters.testTargetFramework, '') }}:
         testTargetFramework: '/p:TestTargetFramework=${{ parameters.testTargetFramework }}'
+      CODECOV_TOKEN: 03031e35-fe75-4e4c-87ee-e919ae601748
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:

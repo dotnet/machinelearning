@@ -20,6 +20,3 @@ flags:
   test:
     paths:
       - test/
-
-codecov:
-  token: "03031e35-fe75-4e4c-87ee-e919ae601748"
