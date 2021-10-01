@@ -268,7 +268,7 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Column does not exist.
+        ///   Looks up a localized string similar to Column &apos;{0}&apos; does not exist.
         /// </summary>
         internal static string InvalidColumnName {
             get {
@@ -309,6 +309,15 @@ namespace Microsoft.Data {
         internal static string MapIndicesExceedsColumnLenth {
             get {
                 return ResourceManager.GetString("MapIndicesExceedsColumnLenth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Array lengths are mistmached.
+        /// </summary>
+        internal static string MismatchedArrayLengths {
+            get {
+                return ResourceManager.GetString("MismatchedArrayLengths", resourceCulture);
             }
         }
         
