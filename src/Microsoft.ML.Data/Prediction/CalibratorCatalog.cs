@@ -162,7 +162,7 @@ namespace Microsoft.ML.Calibrators
     /// where score can be viewed as a feature while probability is treated as the label.
     /// </summary>
     /// <typeparam name="TICalibrator">The <see cref="ICalibrator"/> used to transform the data.</typeparam>
-    public abstract class CalibratorTransformer<TICalibrator> : RowToRowTransformerBase, ISingleFeaturePredictionTransformer<TICalibrator>
+    public abstract class CalibratorTransformer<TICalibrator> : RowToRowTransformerBase, ISingleFeaturePredictionTransformer<TICalibrator>, ISingleFeaturePredictionTransformer
         where TICalibrator : class, ICalibrator
     {
         private readonly TICalibrator _calibrator;
@@ -201,6 +201,7 @@ namespace Microsoft.ML.Calibrators
         }
 
         string ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnName => DefaultColumnNames.Score;
+        string ISingleFeaturePredictionTransformer.FeatureColumnName => ((ISingleFeaturePredictionTransformer<TICalibrator>)this).FeatureColumnName;
 
         DataViewType ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnType => NumberDataViewType.Single;
 

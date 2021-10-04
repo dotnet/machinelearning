@@ -204,7 +204,7 @@ namespace Microsoft.ML.Data
     /// Those are all the transformers that work with one feature column.
     /// </summary>
     /// <typeparam name="TModel">The model used to transform the data.</typeparam>
-    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>
+    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>, ISingleFeaturePredictionTransformer
         where TModel : class
     {
         /// <summary>
