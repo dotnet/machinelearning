@@ -60,7 +60,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             // Get normalized and unique column names. If there are duplicate column names, the
             // differentiator suffix '_col_x' will be added to each column name, where 'x' is
             // the load order for a given column.
-            List<string> normalizedColumnNames= GenerateColumnNames(featureColumns.Select(column => column.Name).ToList());
+            List<string> normalizedColumnNames = GenerateColumnNames(featureColumns.Select(column => column.Name).ToList());
             foreach (string columnName in normalizedColumnNames)
                 sampleData[columnName] = null;
             if (rowCursor.MoveNext())
@@ -71,7 +71,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                 // as there may exist duplicate column names. In this case, sampleData
                 // column names may have the differentiator suffix of '_col_x' added,
                 // which requires access to each column name in through its index.
-                for(int i = 0; i < featureColumns.Count(); i++)
+                for (int i = 0; i < featureColumns.Count(); i++)
                 {
                     var getGenericGetGetterMethod = getGetGetterMethod.MakeGenericMethod(featureColumns[i].Type.RawType);
                     string val = getGenericGetGetterMethod.Invoke(null, new object[] { rowCursor, featureColumns[i] }) as string;
@@ -305,10 +305,10 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             // differentiator suffix '_col_x' will be added to each column name, where 'x' is
             // the load order for a given column.
             List<string> normalizedColumnNames = GenerateColumnNames(columnNames);
-            for (int i = 1; i < result.Count; i+=3)
+            for (int i = 1; i < result.Count; i += 3)
             {
                 // Get normalized column name for correctly typed class property name
-                result[i] += normalizedColumnNames[i/3];
+                result[i] += normalizedColumnNames[i / 3];
                 result[i] += "{get; set;}";
             }
             return result;

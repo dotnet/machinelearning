@@ -367,7 +367,7 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn column = _columnCollection[columnIndex];
             return column.GroupBy(columnIndex, this);
         }
-                
+
         /// <summary>
         /// Groups the rows of the <see cref="DataFrame"/> by unique values in the <paramref name="columnName"/> column.
         /// </summary>

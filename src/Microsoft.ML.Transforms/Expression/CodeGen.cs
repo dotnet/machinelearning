@@ -745,7 +745,7 @@ namespace Microsoft.ML.Transforms
                 _gen.Br(labEnd);
                 _gen.MarkLabel(labEnd);
 
-            LDone:
+LDone:
                 DoConvert(node);
                 return false;
             }

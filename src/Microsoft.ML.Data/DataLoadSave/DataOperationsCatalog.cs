@@ -482,7 +482,7 @@ namespace Microsoft.ML
                     Column = splitColumn,
                     Min = (double)fold / numberOfFolds,
                     Max = (double)(fold + 1) / numberOfFolds,
-                    Complement=true,
+                    Complement = true,
                     IncludeMin = true,
                     IncludeMax = true,
                 }, data);
@@ -528,11 +528,11 @@ namespace Microsoft.ML
             var splitColumnName = data.Schema.GetTempColumnName("SplitColumn");
             int? seedToUse;
 
-            if(seed.HasValue)
+            if (seed.HasValue)
             {
                 seedToUse = seed.Value;
             }
-            else if(fallbackInEnvSeed)
+            else if (fallbackInEnvSeed)
             {
                 IHostEnvironmentInternal seededEnv = (IHostEnvironmentInternal)env;
                 seedToUse = seededEnv.Seed;

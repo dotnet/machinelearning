@@ -58,7 +58,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
             env.CheckValue(mapper, nameof(mapper));
-            if (args.Top< 0)
+            if (args.Top < 0)
                 throw env.Except($"Number of top contribution must be non negative");
             if (args.Bottom < 0)
                 throw env.Except($"Number of bottom contribution must be non negative");

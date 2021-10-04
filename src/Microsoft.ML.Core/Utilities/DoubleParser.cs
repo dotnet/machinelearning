@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Internal.Utilities
             res *= tmp;
             value = (Single)res;
 
-        LDone:
+LDone:
             if (neg)
                 value = -value;
 
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Internal.Utilities
             mul = (ulong)e2 << 52;
             unsafe { value *= *(Double*)&mul; }
 
-        LDone:
+LDone:
             if (neg)
                 value = -value;
 
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Internal.Utilities
             if (span[i] != decimalMarker)
                 goto LAfterDigits;
 
-            LPoint:
+LPoint:
             Contracts.Assert(i < span.Length);
             Contracts.Assert(span[i] == decimalMarker);
 
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Internal.Utilities
                 }
             }
 
-        LAfterDigits:
+LAfterDigits:
             Contracts.Assert(i < span.Length);
             if (!digits)
                 return false;

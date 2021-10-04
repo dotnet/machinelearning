@@ -55,7 +55,7 @@ namespace Microsoft.ML.Data
         {
             //Filter attributes as we only care about DataViewTypeAttribute
             DataViewTypeAttribute typeAttr = null;
-            if(typeAttributes != null)
+            if (typeAttributes != null)
             {
                 typeAttributes = typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)));
                 if (typeAttributes.Count() > 1)
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Data
         {
             //Filter attributes as we only care about DataViewTypeAttribute
             DataViewTypeAttribute typeAttr = null;
-            if(typeAttributes != null)
+            if (typeAttributes != null)
             {
                 typeAttributes = typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)));
                 if (typeAttributes.Count() > 1)
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Data
             {
                 if (typeAttributes.Count() > 1)
                 {
-                        throw Contracts.ExceptParam(nameof(type), $"Type {type} has too many attributes.");
+                    throw Contracts.ExceptParam(nameof(type), $"Type {type} has too many attributes.");
                 }
                 else if (typeAttributes.Count() == 1)
                 {
@@ -166,14 +166,14 @@ namespace Microsoft.ML.Data
             }
             Register(dataViewType, type, typeAttr);
         }
-            /// <summary>
-            /// This function tells that <paramref name="dataViewType"/> should be representation of data in <paramref name="type"/> in
-            /// ML.NET's type system. The registered <paramref name="type"/> must be a standard C# object's type.
-            /// </summary>
-            /// <param name="type">Native type in C#.</param>
-            /// <param name="dataViewType">The corresponding type of <paramref name="type"/> in ML.NET's type system.</param>
-            /// <param name="typeAttribute">The <see cref="DataViewTypeAttribute"/> attached to <paramref name="type"/>.</param>
-            public static void Register(DataViewType dataViewType, Type type, DataViewTypeAttribute typeAttribute = null)
+        /// <summary>
+        /// This function tells that <paramref name="dataViewType"/> should be representation of data in <paramref name="type"/> in
+        /// ML.NET's type system. The registered <paramref name="type"/> must be a standard C# object's type.
+        /// </summary>
+        /// <param name="type">Native type in C#.</param>
+        /// <param name="dataViewType">The corresponding type of <paramref name="type"/> in ML.NET's type system.</param>
+        /// <param name="typeAttribute">The <see cref="DataViewTypeAttribute"/> attached to <paramref name="type"/>.</param>
+        public static void Register(DataViewType dataViewType, Type type, DataViewTypeAttribute typeAttribute = null)
         {
             lock (_lock)
             {

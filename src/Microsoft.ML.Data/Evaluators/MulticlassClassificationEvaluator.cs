@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Data
                 //  are sequentially first.
                 int rankOfCorrectLabel = 0;
                 int assigned = 0;
-                for (int i=0; i < _scoresArr.Length; i++)
+                for (int i = 0; i < _scoresArr.Length; i++)
                 {
                     if (_scoresArr[i] > correctProba || (_scoresArr[i] == correctProba && i < intLabel))
                         rankOfCorrectLabel++;
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Data
             if (schema[ScoreIndex].HasSlotNames(_numClasses))
             {
                 var classNames = default(VBuffer<ReadOnlyMemory<char>>);
-                schema[(int) ScoreIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref classNames);
+                schema[(int)ScoreIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref classNames);
                 _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }

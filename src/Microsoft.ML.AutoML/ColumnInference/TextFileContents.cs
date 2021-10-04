@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML
 
             public bool AllowQuote { get; set; }
             public bool AllowSparse { get; set; }
-            public bool  ReadMultilines { get; set; }
+            public bool ReadMultilines { get; set; }
 
             public ColumnSplitResult(bool isSuccess, char? separator, bool allowQuote, bool readMultilines, bool allowSparse, int columnCount)
             {
@@ -56,10 +56,10 @@ namespace Microsoft.ML.AutoML
             var foundAny = false;
             var result = default(ColumnSplitResult);
             foreach (var perm in (from _allowSparse in sparse
-                                    from _allowQuote in quote
-                                    from _sep in separatorCandidates
-                                    from _tryMultiline in tryMultiline
-                                    select new { _allowSparse, _allowQuote, _sep, _tryMultiline }))
+                                  from _allowQuote in quote
+                                  from _sep in separatorCandidates
+                                  from _tryMultiline in tryMultiline
+                                  select new { _allowSparse, _allowQuote, _sep, _tryMultiline }))
             {
                 var options = new TextLoader.Options
                 {
@@ -120,7 +120,7 @@ namespace Microsoft.ML.AutoML
                 return true;
             }
             // fail gracefully if unable to instantiate data view with swept arguments
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }

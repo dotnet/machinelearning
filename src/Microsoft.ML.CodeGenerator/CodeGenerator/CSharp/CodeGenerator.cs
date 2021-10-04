@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -139,7 +139,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(string namespaceValue,
                 Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage,
                 bool includeFastTreePackage, bool includeImageTransformerPackage,
-                bool includeImageClassificationPackage, bool includeRecommenderPackage, bool includeOnnxPackage = false , bool includeResNet18Package = false)
+                bool includeImageClassificationPackage, bool includeRecommenderPackage, bool includeOnnxPackage = false, bool includeResNet18Package = false)
         {
             var predictProgramCSFileContent = GeneratePredictProgramCSFileContent(namespaceValue);
             predictProgramCSFileContent = Utils.FormatCode(predictProgramCSFileContent);
@@ -294,7 +294,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         private string GenerateModelOutputCSFileContent(string predictionLabelType, string namespaceValue)
         {
-            ModelOutputClass modelOutputClass = new ModelOutputClass() {
+            ModelOutputClass modelOutputClass = new ModelOutputClass()
+            {
                 TaskType = _settings.MlTask.ToString(),
                 PredictionLabelType = predictionLabelType,
                 Namespace = namespaceValue,
@@ -305,7 +306,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         private string GenerateModelInputCSFileContent(string namespaceValue, IList<string> classLabels)
         {
-            ModelInputClass modelInputClass = new ModelInputClass() {
+            ModelInputClass modelInputClass = new ModelInputClass()
+            {
                 Namespace = namespaceValue,
                 ClassLabels = classLabels,
                 Target = _settings.Target,

@@ -236,16 +236,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
             AnomalySide side = AnomalySide.TwoSided,
             ErrorFunction errorFunction = ErrorFunction.SignedDifference)
             : this(env, new SsaSpikeDetector.Options
-                {
-                    Source = inputColumnName ?? outputColumnName,
-                    Name = outputColumnName,
-                    Confidence = confidence,
-                    PvalueHistoryLength = pvalueHistoryLength,
-                    TrainingWindowSize = trainingWindowSize,
-                    SeasonalWindowSize = seasonalityWindowSize,
-                    Side = side,
-                    ErrorFunction = errorFunction
-                })
+            {
+                Source = inputColumnName ?? outputColumnName,
+                Name = outputColumnName,
+                Confidence = confidence,
+                PvalueHistoryLength = pvalueHistoryLength,
+                TrainingWindowSize = trainingWindowSize,
+                SeasonalWindowSize = seasonalityWindowSize,
+                Side = side,
+                ErrorFunction = errorFunction
+            })
         {
         }
 

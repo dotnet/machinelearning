@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Data
         /// <param name="keyNames">Sequence predictor usually generates integer outputs. This field tells the tags of all possible output values.
         /// For example, output integer 0 could be mapped to "Sell" and 0 to "Buy" when predicting stock trend.</param>
         /// <returns><see cref="DataViewSchema"/> of sequence predictor's output.</returns>
-        public static DataViewSchema CreateSequencePredictionSchema(DataViewType scoreType, string scoreColumnKindValue, VBuffer<ReadOnlyMemory<char>> keyNames=default)
+        public static DataViewSchema CreateSequencePredictionSchema(DataViewType scoreType, string scoreColumnKindValue, VBuffer<ReadOnlyMemory<char>> keyNames = default)
         {
             Contracts.CheckValue(scoreType, nameof(scoreType));
             Contracts.CheckValue(scoreColumnKindValue, nameof(scoreColumnKindValue));

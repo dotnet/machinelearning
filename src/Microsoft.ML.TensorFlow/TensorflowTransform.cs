@@ -462,7 +462,8 @@ namespace Microsoft.ML.Transforms
                     });
                 }
             }
-            else {
+            else
+            {
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
                     // only these files need to be saved.
@@ -657,7 +658,8 @@ namespace Microsoft.ML.Transforms
 
                 int n = OutputColumns.Value.Length;
                 var result = new Delegate[n];
-                for (int i = 0; i < n; i++) {
+                for (int i = 0; i < n; i++)
+                {
                     if (!activeOutput(i))
                         continue;
                     result[i] = CreateGetter(input, i, activeOutput, outputCacher);

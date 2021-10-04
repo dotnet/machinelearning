@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -693,7 +693,7 @@ namespace Microsoft.ML.Transforms
             public sealed class ModeAggregatorOne : StatAggregator<float, ModeStat<float>>
             {
                 public ModeAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col)
-                    :base(ch, cursor, col)
+                    : base(ch, cursor, col)
                 {
                     Stat = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
                 }
@@ -712,7 +712,7 @@ namespace Microsoft.ML.Transforms
             public sealed class ModeAggregatorAcrossSlots : StatAggregatorAcrossSlots<float, ModeStat<float>>
             {
                 public ModeAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col)
-                    :base(ch, cursor, col)
+                    : base(ch, cursor, col)
                 {
                     Stat = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
                 }
@@ -731,9 +731,9 @@ namespace Microsoft.ML.Transforms
             public sealed class ModeAggregatorBySlot : StatAggregatorBySlot<float, ModeStat<float>>
             {
                 public ModeAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col)
-                    :base(ch, type, cursor, col)
+                    : base(ch, type, cursor, col)
                 {
-                    for(int i = 0; i < Stat.Length; i++)
+                    for (int i = 0; i < Stat.Length; i++)
                     {
                         Stat[i] = new ModeStat<float>((in float val) => FloatUtils.IsFinite(val));
                     }

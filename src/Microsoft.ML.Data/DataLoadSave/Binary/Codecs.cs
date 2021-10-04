@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Data.IO
             // Throws an exception if T is neither a TimeSpan nor a NumberType.
             private static DataViewType UnsafeColumnType(Type type)
             {
-                return type == typeof(TimeSpan) ?  TimeSpanDataViewType.Instance :
+                return type == typeof(TimeSpan) ? TimeSpanDataViewType.Instance :
                     type == typeof(DataViewRowId) ? (DataViewType)RowIdDataViewType.Instance :
                     ColumnTypeExtensions.NumberTypeFromType(type);
             }

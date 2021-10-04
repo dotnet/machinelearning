@@ -41,13 +41,13 @@ namespace Microsoft.ML.Data
             Contracts.Assert(dv.Schema[columnNeeded.Index].Equals(columnNeeded), $"The requested column named: {columnNeeded.Name}, with index: {columnNeeded.Index} and type: {columnNeeded.Type}" +
                    $" is not present in the {nameof(IDataView)} where the {nameof(DataViewRowCursor)} is being requested.");
 
-            return dv.GetRowCursor(Enumerable.Repeat(columnNeeded,1));
+            return dv.GetRowCursor(Enumerable.Repeat(columnNeeded, 1));
         }
 
         /// <summary>
         /// Get a row cursor. No colums are needed by this <see cref="DataViewRowCursor"/>.
         /// </summary>
-        public static DataViewRowCursor GetRowCursor(this IDataView dv) =>  dv.GetRowCursor(Enumerable.Empty<DataViewSchema.Column>());
+        public static DataViewRowCursor GetRowCursor(this IDataView dv) => dv.GetRowCursor(Enumerable.Empty<DataViewSchema.Column>());
 
         /// <summary>
         /// Get a row cursor including all the columns of the <see cref="IDataView"/>.

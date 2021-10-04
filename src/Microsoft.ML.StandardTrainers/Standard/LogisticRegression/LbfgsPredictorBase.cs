@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -192,16 +192,16 @@ namespace Microsoft.ML.Trainers
             int memorySize,
             bool enforceNoNegativity)
             : this(env, new TOptions
-                        {
-                            FeatureColumnName = featureColumn,
-                            LabelColumnName = labelColumn.Name,
-                            ExampleWeightColumnName = weightColumn,
-                            L1Regularization = l1Weight,
-                            L2Regularization = l2Weight,
-                            OptimizationTolerance = optimizationTolerance,
-                            HistorySize = memorySize,
-                            EnforceNonNegativity = enforceNoNegativity
-                        },
+            {
+                FeatureColumnName = featureColumn,
+                LabelColumnName = labelColumn.Name,
+                ExampleWeightColumnName = weightColumn,
+                L1Regularization = l1Weight,
+                L2Regularization = l2Weight,
+                OptimizationTolerance = optimizationTolerance,
+                HistorySize = memorySize,
+                EnforceNonNegativity = enforceNoNegativity
+            },
                   labelColumn)
         {
         }
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Trainers
             L2Weight = LbfgsTrainerOptions.L2Regularization;
             L1Weight = LbfgsTrainerOptions.L1Regularization;
             OptTol = LbfgsTrainerOptions.OptimizationTolerance;
-            MemorySize =LbfgsTrainerOptions.HistorySize;
+            MemorySize = LbfgsTrainerOptions.HistorySize;
             MaxIterations = LbfgsTrainerOptions.MaximumNumberOfIterations;
             SgdInitializationTolerance = LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance;
             Quiet = LbfgsTrainerOptions.Quiet;

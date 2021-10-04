@@ -396,7 +396,7 @@ namespace Microsoft.Data.Analysis
                     return retColumn;
                 default:
                     throw new NotSupportedException();
-                    
+
             }
         }
         /// <inheritdoc/>
@@ -410,7 +410,7 @@ namespace Microsoft.Data.Analysis
                     return retColumn;
                 default:
                     throw new NotSupportedException();
-                    
+
             }
         }
         /// <inheritdoc/>
@@ -424,10 +424,10 @@ namespace Microsoft.Data.Analysis
                     return retColumn;
                 default:
                     throw new NotSupportedException();
-                    
+
             }
         }
-        
+
 
     }
 }

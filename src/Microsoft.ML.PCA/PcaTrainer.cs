@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Trainers
             [TlcModule.SweepableDiscreteParam("Oversampling", new object[] { 10, 20, 40 })]
             public int Oversampling = Defaults.OversamplingParameters;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", Name ="Center", ShortName = "center")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", Name = "Center", ShortName = "center")]
             [TlcModule.SweepableDiscreteParam("Center", null, isBool: true)]
             public bool EnsureZeroMean = Defaults.EnsureZeroMean;
 

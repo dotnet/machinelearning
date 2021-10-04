@@ -196,7 +196,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return null;
 
             List<int> dims = new List<int>();
-            foreach(var d in tensorShapeProto.Dim)
+            foreach (var d in tensorShapeProto.Dim)
             {
                 var dimValue = GetDimValue(d);
                 dims.Add(dimValue);
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         private class CastHelper
         {
-            public static T CastTo<T>(object o) => (T) o;
+            public static T CastTo<T>(object o) => (T)o;
 
             public static IEnumerable<TDst> CastOnnxSequenceToIEnumerable<TSrc, TDst>(IEnumerable<TSrc> o, Func<TSrc, object> caster)
             {
@@ -303,7 +303,8 @@ namespace Microsoft.ML.Transforms.Onnx
                     var accessSpecialized = accessInfo.MakeGenericMethod(type);
 
                     // NamedOnnxValue to scalar.
-                    Func<NamedOnnxValue, object> caster = (NamedOnnxValue value) => {
+                    Func<NamedOnnxValue, object> caster = (NamedOnnxValue value) =>
+                    {
                         var scalar = accessSpecialized.Invoke(value, new object[] { 0 });
                         return scalar;
                     };

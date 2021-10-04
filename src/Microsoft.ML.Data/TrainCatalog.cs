@@ -692,7 +692,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public IReadOnlyList<CrossValidationResult<RankingMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
-            string rowGroupColumnName = DefaultColumnNames.GroupId, int ? seed = null)
+            string rowGroupColumnName = DefaultColumnNames.GroupId, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
             var result = CrossValidateTrain(data, estimator, numberOfFolds, rowGroupColumnName, seed);

@@ -62,8 +62,8 @@ namespace Microsoft.ML.Data
         /// <param name="labelNames">The predicted classes names, or the indexes of the classes, if the names are missing.</param>
         /// <param name="isSampled">Whether the classes are sampled.</param>
         /// <param name="isBinary">Whether the confusion table is the result of a binary classification. </param>
-       internal ConfusionMatrix(IHost host, double[] precision, double[] recall, double[][] confusionTableCounts,
-            List<ReadOnlyMemory<char>> labelNames, bool isSampled, bool isBinary)
+        internal ConfusionMatrix(IHost host, double[] precision, double[] recall, double[][] confusionTableCounts,
+             List<ReadOnlyMemory<char>> labelNames, bool isSampled, bool isBinary)
         {
             Contracts.AssertValue(host);
             _host = host;
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Data
         /// <returns></returns>
         public string GetFormattedConfusionTable()
         {
-            if(_formattedConfusionMatrix == null)
+            if (_formattedConfusionMatrix == null)
                 _formattedConfusionMatrix = MetricWriter.GetConfusionTableAsString(this, false);
 
             return _formattedConfusionMatrix;

@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
             if (_disposed)
                 return;
 
-                Transformer.Dispose();
+            Transformer.Dispose();
 
             _disposed = true;
         }

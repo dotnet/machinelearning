@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Transforms
 
                     opType = "Div";
                     string input = _ensureZeroMeans[iinfo] ? inputMinusMean : srcVariableName;
-                    var lStdDevNode = ctx.CreateNode(opType, new[] {input, stdDev }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
+                    var lStdDevNode = ctx.CreateNode(opType, new[] { input, stdDev }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
                 }
                 else
                 {
