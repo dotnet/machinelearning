@@ -6,7 +6,7 @@ You can build ML.NET either via the command line or by using Visual Studio.
 ## Required Software
 
 1. **[Visual Studio 2019 Version 16.4+](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** The Community version is completely free. The below build instructions were verified for VS 16.4.
-2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path.
+2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path. If you want to use Visual Studio 2022, you need to be using at least CMake 3.21.
 
 ### Visual Studio 2019 Installation
 We have successfully verified the below build instructions for Visual Studio version 16.4 and higher.

@@ -51,7 +51,9 @@ set "VSCMD_START_DIR=%__currentScriptDir%"
 call "%_VSCOMNTOOLS%\VsDevCmd.bat"
 
 :RunVCVars
-if "%VisualStudioVersion%"=="16.0" (
+if "%VisualStudioVersion%"=="17.0" (
+    goto :VS2022
+) else if "%VisualStudioVersion%"=="16.0" (
     goto :VS2019
 ) else if "%VisualStudioVersion%"=="15.0" (
     goto :VS2017
@@ -65,6 +67,14 @@ echo Error: Visual Studio 2015, 2017 or 2019 required
 echo        Please see https://github.com/dotnet/machinelearning/tree/main/Documentation for build instructions.
 exit /b 1
 
+:VS2022
+:: Setup vars for VS2019
+set __PlatformToolset=v143
+set __VSVersion=17 2022
+:: Set the environment for the native build
+call "%VS170COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+
+goto :SetupDirs
 :VS2019
 :: Setup vars for VS2019
 set __PlatformToolset=v142
