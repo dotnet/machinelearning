@@ -88,6 +88,12 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
             public bool CalculateStatistics = true;
+
+            /// <summary>
+            /// Number of data points per batch, when loading data.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of entries in a batch when loading data (0 = auto).", Hide = true)]
+            public int BatchSize = 0;
         }
 
         internal const string LoadNameValue = "OLSLinearRegression";
@@ -98,6 +104,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly float _l2Weight;
         private readonly bool _perParameterSignificance;
+        private readonly int _batchSize;
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
@@ -117,6 +124,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckUserArg(options.L2Regularization >= 0, nameof(options.L2Regularization), "L2 regularization term cannot be negative");
             _l2Weight = options.L2Regularization;
             _perParameterSignificance = options.CalculateStatistics;
+            _batchSize = options.BatchSize;
         }
 
         private protected override RegressionPredictionTransformer<OlsModelParameters> MakeTransformer(OlsModelParameters model, DataViewSchema trainSchema)
@@ -170,10 +178,7 @@ namespace Microsoft.ML.Trainers
                 {
                     return TrainCoreOneDal(ch, cursorFactory, typeFeat.Size);
                 }
-                else
-                {
-                    return TrainCoreMkl(ch, cursorFactory, typeFeat.Size);
-                }
+                return TrainCoreMkl(ch, cursorFactory, typeFeat.Size);
             }
         }
 
@@ -204,9 +209,14 @@ namespace Microsoft.ML.Trainers
                 throw ch.Except("Cannot hold covariance matrix in memory with {0} features", m - 1);
 
             // Track the number of examples.
-            int n = 0;
-            // TODO: remove batch size from there
-            int batchSize = (1 << 25) / featureCount;
+            long n = 0;
+
+            int batchSize = _batchSize;
+            if (batchSize == 0)
+            {
+                // Set default batch size: 2 ^ 24 / number of features;
+                batchSize = (1 << 24) / featureCount;
+            }
 
             var labelsArray = new Double[batchSize];
             var featuresArray = new Double[(m - 1) * batchSize];
@@ -277,15 +287,14 @@ namespace Microsoft.ML.Trainers
 
             Double yMean = n == 0 ? 0 : xty[m - 1] / n;
 
+            // MKL based matrix inverse
+            Mkl.Pptrs(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, 1, xtx, xty, 1);
+            Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, xtx);
+
             ch.Info("Trainer solving for {0} parameters across {1} examples", m, n);
             // Check that the solution is valid.
             for (int i = 0; i < beta.Length; ++i)
                 ch.Check(FloatUtils.IsFinite(beta[i]), "Non-finite values detected in OLS solution");
-
-            // for (int i = 0; i < beta.Length; ++i)
-            // {
-            //     Console.WriteLine($"beta[{i}]: {beta[i]}");
-            // }
 
             var weightsValues = new float[beta.Length - 1];
             for (int i = 1; i < beta.Length; ++i)
@@ -341,13 +350,37 @@ namespace Microsoft.ML.Trainers
 
             var s2 = rss / (n - m); // estimate of variance of y
 
-            // Console.WriteLine($"s2 = {s2}");
+            for (int i = 0; i < m; i++)
+            {
+                // Initialize with inverse Hessian.
+                standardErrors[i] = (Single)xtx[i * (i + 1) / 2 + i];
+            }
+
+            if (_l2Weight > 0)
+            {
+                // Iterate through all entries of inverse Hessian to make adjustment to variance.
+                int ioffset = 1;
+                float reg = _l2Weight * _l2Weight * n;
+                for (int iRow = 1; iRow < m; iRow++)
+                {
+                    for (int iCol = 0; iCol <= iRow; iCol++)
+                    {
+                        var entry = (Single)xtx[ioffset];
+                        var adjustment = -reg * entry * entry;
+                        standardErrors[iRow] -= adjustment;
+                        if (0 < iCol && iCol < iRow)
+                            standardErrors[iCol] -= adjustment;
+                        ioffset++;
+                    }
+                }
+
+                Contracts.Assert(ioffset == xtx.Length);
+            }
 
             for (int i = 0; i < m; i++)
             {
                 // sqrt of diagonal entries of s2 * inverse(X'X + reg * I) * X'X * inverse(X'X + reg * I).
                 standardErrors[i] = Math.Sqrt(s2 * standardErrors[i]);
-                // Console.WriteLine($"standardErrors[{i}] = {standardErrors[i]}");
                 ch.Check(FloatUtils.IsFinite(standardErrors[i]), "Non-finite standard error detected from OLS solution");
                 tValues[i] = beta[i] / standardErrors[i];
                 pValues[i] = (float)MathUtils.TStatisticToPValue(tValues[i], n - m);
@@ -533,7 +566,6 @@ namespace Microsoft.ML.Trainers
             // Invert X'X:
             Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, xtx);
             var s2 = rss / (n - m); // estimate of variance of y
-            // Console.WriteLine($"s2 = {s2}");
 
             for (int i = 0; i < m; i++)
             {
@@ -566,7 +598,6 @@ namespace Microsoft.ML.Trainers
             {
                 // sqrt of diagonal entries of s2 * inverse(X'X + reg * I) * X'X * inverse(X'X + reg * I).
                 standardErrors[i] = Math.Sqrt(s2 * standardErrors[i]);
-                // Console.WriteLine($"standardErrors[{i}] = {standardErrors[i]}");
                 ch.Check(FloatUtils.IsFinite(standardErrors[i]), "Non-finite standard error detected from OLS solution");
                 tValues[i] = beta[i] / standardErrors[i];
                 pValues[i] = (float)MathUtils.TStatisticToPValue(tValues[i], n - m);
