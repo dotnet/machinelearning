@@ -1,18 +1,6 @@
 #include "daal.h"
 
-#ifdef __cplusplus
-#define ONEDAL_EXTERN_C extern "C"
-#else
-#define ONEDAL_EXTERN_C
-#endif
-
-#ifdef _MSC_VER
-#define ONEDAL_EXPORT __declspec(dllexport)
-#define ONEDAL_C_EXPORT ONEDAL_EXTERN_C __declspec(dllexport)
-#else
-#define ONEDAL_EXPORT
-#define ONEDAL_C_EXPORT ONEDAL_EXTERN_C
-#endif
+#include "DALSimpleRegression.h"
 
 using namespace std;
 using namespace daal;
@@ -43,12 +31,12 @@ void linearRegression(FPType * features, FPType * label, FPType * betas, int nRo
     }
 }
 
-ONEDAL_C_EXPORT void linearRegressionDouble(void * features, void * label, void * betas, int nRows, int nColumns)
+EXPORT_API(void) linearRegressionDouble(void * features, void * label, void * betas, int nRows, int nColumns)
 {
     linearRegression<double>((double *)features, (double *)label, (double *)betas, nRows, nColumns);
 }
 
-ONEDAL_C_EXPORT void linearRegressionSingle(void * features, void * label, void * betas, int nRows, int nColumns)
+EXPORT_API(void) linearRegressionSingle(void * features, void * label, void * betas, int nRows, int nColumns)
 {
     linearRegression<float>((float *)features, (float *)label, (float *)betas, nRows, nColumns);
 }
