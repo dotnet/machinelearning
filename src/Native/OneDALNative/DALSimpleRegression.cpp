@@ -54,7 +54,6 @@ EXPORT_API(void) linearRegressionDouble(void * features, void * label, void * be
     linearRegression<double>((double *)features, (double *)label, (double *)betas, nRows, nColumns);
 }
 
-
 EXPORT_API(void) linearRegressionSingle(void * features, void * label, void * betas, int nRows, int nColumns)
 {
     linearRegression<float>((float *)features, (float *)label, (float *)betas, nRows, nColumns);
