@@ -174,11 +174,7 @@ namespace Microsoft.ML.Trainers
 
                 var cursorFactory = new FloatLabelCursor.Factory(examples, cursorOpt);
 
-                if (Environment.GetEnvironmentVariable("OLS_IMPL") == "ONEDAL")
-                {
-                    return TrainCoreOneDal(ch, cursorFactory, typeFeat.Size);
-                }
-                return TrainCoreMkl(ch, cursorFactory, typeFeat.Size);
+                return TrainCore(ch, cursorFactory, typeFeat.Size);
             }
         }
 
@@ -190,32 +186,19 @@ namespace Microsoft.ML.Trainers
             public unsafe static extern int RidgeRegressionOnlineCompute(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize);
 
             [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineFinalize")]
-            public unsafe static extern void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, int nAllRows, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
-                void* betaPtr, void* xtyPtr, void* xtxPtr, void* standardErrorsPtr);
-            
-            [DllImport(OneDalLibPath, EntryPoint = "simpleTest"), System.Security.SuppressUnmanagedCodeSecurity]
-            public unsafe static extern int simpleTest(IntPtr featuresPtr, int nColumns);
+            public unsafe static extern void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, long nAllRows, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
+                void* betaPtr, void* xtyPtr, void* xtxPtr);
         }
 
-        private OlsModelParameters TrainCoreOneDal(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
+        private void ComputeOneDalRegression(IChannel ch, FloatLabelCursor.Factory cursorFactory, int m, ref Double[] beta, Double[] xtx, ref long n, ref Double yMean)
         {
-            Host.AssertValue(ch);
-            ch.AssertValue(cursorFactory);
-
-            int m = featureCount + 1;
-
-            // Check for memory conditions first.
-            if ((long)m * (m + 1) / 2 > int.MaxValue)
-                throw ch.Except("Cannot hold covariance matrix in memory with {0} features", m - 1);
-
-            // Track the number of examples.
-            long n = 0;
+            var xty = new Double[m];
 
             int batchSize = _batchSize;
             if (batchSize == 0)
             {
                 // Set default batch size: 2 ^ 24 / number of features;
-                batchSize = (1 << 24) / featureCount;
+                batchSize = (1 << 24) / m;
             }
 
             var labelsArray = new Double[batchSize];
@@ -225,59 +208,60 @@ namespace Microsoft.ML.Trainers
             byte[] partialResultArray = new byte[2 * 1024 * m + 4096];
             int partialResultSize = 0;
 
-            var beta = new Double[m];
-            var xty = new Double[m];
-            var xtx = new Double[m * (m + 1) / 2];
-            var standardErrors = new Double[m];
-
-            int iOffset = 0;
             using (var cursor = cursorFactory.Create())
             {
                 while (cursor.MoveNext())
                 {
-                    var yi = cursor.Label;
-                    var xi = cursor.Features.GetValues();
+                    var rowOffset = n % batchSize;
 
-                    ch.Assert(cursor.Features.IsDense);
-                    ch.Assert(xi.Length + 1 == m);
-
-                    labelsArray[iOffset] = yi;
-                    for (int j = 0; j < m - 1; ++j)
-                    {
-                        featuresArray[iOffset * (m - 1) + j] = xi[j];
-                    }
-
-                    n++;
-                    iOffset++;
-                    IntPtr testPtr = IntPtr.Zero;
-                    int ret = OneDal.simpleTest(testPtr, 5);
-                    ch.Assert(ret == 47);
-
-                    if (n % batchSize == 0)
+                    if (n != 0 && rowOffset == 0)
                     {
                         unsafe
                         {
                             fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], partialResultPtr = &partialResultArray[0])
                             {
-                                partialResultSize = OneDal.RidgeRegressionOnlineCompute(featuresPtr, labelsPtr, n - 1, m - 1, _l2Weight, partialResultPtr, partialResultSize);
+                                partialResultSize = OneDal.RidgeRegressionOnlineCompute(featuresPtr, labelsPtr, batchSize, m - 1, _l2Weight, partialResultPtr, partialResultSize);
                             }
                         }
-                        iOffset = 0;
                     }
+
+                    labelsArray[rowOffset] = cursor.Label;
+                    var values = cursor.Features.GetValues();
+
+                    if (cursor.Features.IsDense)
+                    {
+                        ch.Assert(values.Length + 1 == m);
+
+                        for (int j = 0; j < m - 1; ++j)
+                        {
+                            featuresArray[rowOffset * (m - 1) + j] = values[j];
+                        }
+                    }
+                    else
+                    {
+                        var indices = cursor.Features.GetIndices();
+                        int i = 0;
+                        for (int j = 0; j < indices.Length; ++j)
+                        {
+                            for (int k = i; k < indices[j]; ++k)
+                            {
+                                featuresArray[rowOffset * (m - 1) + k] = 0;
+                            }
+                            featuresArray[rowOffset * (m - 1) + j] = values[indices[j]];
+                            i = indices[j] + 1;
+                        }
+                    }
+                    n++;
                 }
                 ch.Check(n > 0, "No training examples in dataset.");
                 if (cursor.BadFeaturesRowCount > 0)
                     ch.Warning("Skipped {0} instances with missing features/labelColumn during training", cursor.SkippedRowCount);
 
-                // TODO: remove while batching reimpl.
-                ch.Assert(iOffset == 0);
-
                 unsafe
                 {
-                    fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], partialResultPtr = &partialResultArray[0], betaPtr = &beta[0], xtyPtr = &xty[0], xtxPtr = &xtx[0], standardErrorsPtr = &standardErrors[0])
+                    fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], partialResultPtr = &partialResultArray[0], betaPtr = &beta[0], xtyPtr = &xty[0], xtxPtr = &xtx[0])
                     {
-                        // TODO: make sure the nAllRows and nRows value and date type are correct
-                        OneDal.RidgeRegressionOnlineFinalize(featuresPtr, labelsPtr, ((n - 1) % batchSize), n - 1, m - 1, _l2Weight, partialResultPtr, partialResultSize, betaPtr, xtyPtr, xtxPtr, standardErrorsPtr);
+                        OneDal.RidgeRegressionOnlineFinalize(featuresPtr, labelsPtr, n, (int)(n % batchSize), m - 1, _l2Weight, partialResultPtr, partialResultSize, betaPtr, xtyPtr, xtxPtr);
                     }
                 }
             }
@@ -285,129 +269,30 @@ namespace Microsoft.ML.Trainers
             if (!(_l2Weight > 0) && n < m)
                 throw ch.Except("Ordinary least squares requires more examples than parameters. There are {0} parameters, but {1} examples. To enable training, use a positive L2 weight so this behaves as ridge regression.", m, n);
 
-            Double yMean = n == 0 ? 0 : xty[m - 1] / n;
-
-            // MKL based matrix inverse
-            Mkl.Pptrs(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, 1, xtx, xty, 1);
-            Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, xtx);
+            yMean = n == 0 ? 0 : xty[m - 1] / n;
 
             ch.Info("Trainer solving for {0} parameters across {1} examples", m, n);
+            // Cholesky Decomposition of X'X into LL'
+            try
+            {
+                Mkl.Pptrf(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, xtx);
+            }
+            catch (DllNotFoundException)
+            {
+                // REVIEW: Is there no better way?
+                throw ch.ExceptNotSupp("The MKL library (libMklImports) or one of its dependencies is missing.");
+            }
+            // Invert X'X:
+            Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, xtx);
+
             // Check that the solution is valid.
             for (int i = 0; i < beta.Length; ++i)
                 ch.Check(FloatUtils.IsFinite(beta[i]), "Non-finite values detected in OLS solution");
-
-            var weightsValues = new float[beta.Length - 1];
-            for (int i = 1; i < beta.Length; ++i)
-                weightsValues[i - 1] = (float)beta[i];
-            var weights = new VBuffer<float>(weightsValues.Length, weightsValues);
-
-            var bias = (float)beta[0];
-            if (!(_l2Weight > 0) && m == n)
-            {
-                // We would expect the solution to the problem to be exact in this case.
-                ch.Info("Number of examples equals number of parameters, solution is exact but no statistics can be derived");
-                return new OlsModelParameters(Host, in weights, bias);
-            }
-
-            Double rss = 0; // residual sum of squares
-            Double tss = 0; // total sum of squares
-            using (var cursor = cursorFactory.Create())
-            {
-                IValueMapper lrPredictor = new LinearRegressionModelParameters(Host, in weights, bias);
-                var lrMap = lrPredictor.GetMapper<VBuffer<float>, float>();
-                float yh = default;
-                while (cursor.MoveNext())
-                {
-                    var features = cursor.Features;
-                    lrMap(in features, ref yh);
-                    var e = cursor.Label - yh;
-                    rss += e * e;
-                    var ydm = cursor.Label - yMean;
-                    tss += ydm * ydm;
-                }
-            }
-            var rSquared = ProbClamp(1 - (rss / tss));
-            // R^2 adjusted differs from the normal formula on account of the bias term, by Said's reckoning.
-            double rSquaredAdjusted;
-            if (n > m)
-            {
-                rSquaredAdjusted = ProbClamp(1 - (1 - rSquared) * (n - 1) / (n - m));
-                ch.Info("Coefficient of determination R2 = {0:g}, or {1:g} (adjusted)",
-                    rSquared, rSquaredAdjusted);
-            }
-            else
-                rSquaredAdjusted = Double.NaN;
-
-            // The per parameter significance is compute intensive and may not be required for all practitioners.
-            // Also we can't estimate it, unless we can estimate the variance, which requires more examples than
-            // parameters.
-            if (!_perParameterSignificance || m >= n)
-                return new OlsModelParameters(Host, in weights, bias, rSquared: rSquared, rSquaredAdjusted: rSquaredAdjusted);
-
-            ch.Assert(!Double.IsNaN(rSquaredAdjusted));
-            var tValues = new Double[m];
-            var pValues = new Double[m];
-
-            var s2 = rss / (n - m); // estimate of variance of y
-
-            for (int i = 0; i < m; i++)
-            {
-                // Initialize with inverse Hessian.
-                standardErrors[i] = (Single)xtx[i * (i + 1) / 2 + i];
-            }
-
-            if (_l2Weight > 0)
-            {
-                // Iterate through all entries of inverse Hessian to make adjustment to variance.
-                int ioffset = 1;
-                float reg = _l2Weight * _l2Weight * n;
-                for (int iRow = 1; iRow < m; iRow++)
-                {
-                    for (int iCol = 0; iCol <= iRow; iCol++)
-                    {
-                        var entry = (Single)xtx[ioffset];
-                        var adjustment = -reg * entry * entry;
-                        standardErrors[iRow] -= adjustment;
-                        if (0 < iCol && iCol < iRow)
-                            standardErrors[iCol] -= adjustment;
-                        ioffset++;
-                    }
-                }
-
-                Contracts.Assert(ioffset == xtx.Length);
-            }
-
-            for (int i = 0; i < m; i++)
-            {
-                // sqrt of diagonal entries of s2 * inverse(X'X + reg * I) * X'X * inverse(X'X + reg * I).
-                standardErrors[i] = Math.Sqrt(s2 * standardErrors[i]);
-                ch.Check(FloatUtils.IsFinite(standardErrors[i]), "Non-finite standard error detected from OLS solution");
-                tValues[i] = beta[i] / standardErrors[i];
-                pValues[i] = (float)MathUtils.TStatisticToPValue(tValues[i], n - m);
-                ch.Check(0 <= pValues[i] && pValues[i] <= 1, "p-Value calculated outside expected [0,1] range");
-            }
-
-            return new OlsModelParameters(Host, in weights, bias, standardErrors, tValues, pValues, rSquared, rSquaredAdjusted);
         }
 
-        private OlsModelParameters TrainCoreMkl(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
+        private void ComputeMklRegression(IChannel ch, FloatLabelCursor.Factory cursorFactory, int m, ref Double[] beta, Double[] xtx, ref long n, ref Double yMean)
         {
-            Host.AssertValue(ch);
-            ch.AssertValue(cursorFactory);
-
-            int m = featureCount + 1;
-
-            // Check for memory conditions first.
-            if ((long)m * (m + 1) / 2 > int.MaxValue)
-                throw ch.Except("Cannot hold covariance matrix in memory with {0} features", m - 1);
-
-            // Track the number of examples.
-            long n = 0;
-            // Since we are accumulating over many values, we use Double even for the single precision build.
             var xty = new Double[m];
-            // The layout of this algorithm is a packed row-major lower triangular matrix.
-            var xtx = new Double[m * (m + 1) / 2];
-
             // Build X'X (lower triangular) and X'y incrementally (X'X+=X'X_i; X'y+=X'y_i):
             using (var cursor = cursorFactory.Create())
             {
@@ -487,7 +372,7 @@ namespace Microsoft.ML.Trainers
             if (!(_l2Weight > 0) && n < m)
                 throw ch.Except("Ordinary least squares requires more examples than parameters. There are {0} parameters, but {1} examples. To enable training, use a positive L2 weight so this behaves as ridge regression.", m, n);
 
-            Double yMean = n == 0 ? 0 : xty[0] / n;
+            yMean = n == 0 ? 0 : xty[0] / n;
 
             ch.Info("Trainer solving for {0} parameters across {1} examples", m, n);
             // Cholesky Decomposition of X'X into LL'
@@ -502,14 +387,46 @@ namespace Microsoft.ML.Trainers
             }
             // Solve for beta in (LL')beta = X'y:
             Mkl.Pptrs(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, 1, xtx, xty, 1);
-            // Note that the solver overwrote xty so it contains the solution. To be more clear,
-            // we effectively change its name (through reassignment) so we don't get confused that
-            // this is somehow xty in the remaining calculation.
-            var beta = xty;
-            xty = null;
+
+            // Invert X'X:
+            Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, xtx);
+
             // Check that the solution is valid.
-            for (int i = 0; i < beta.Length; ++i)
-                ch.Check(FloatUtils.IsFinite(beta[i]), "Non-finite values detected in OLS solution");
+            for (int i = 0; i < xty.Length; ++i)
+                ch.Check(FloatUtils.IsFinite(xty[i]), "Non-finite values detected in OLS solution");
+
+            beta = xty;
+            xty = null;
+        }
+
+        private OlsModelParameters TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
+        {
+            Host.AssertValue(ch);
+            ch.AssertValue(cursorFactory);
+
+            int m = featureCount + 1;
+
+            // Check for memory conditions first.
+            if ((long)m * (m + 1) / 2 > int.MaxValue)
+                throw ch.Except("Cannot hold covariance matrix in memory with {0} features", m - 1);
+
+            // Track the number of examples.
+            long n = 0;
+
+            // Since we are accumulating over many values, we use Double even for the single precision build.
+            // The layout of this algorithm is a packed row-major lower triangular matrix.
+            var xtx = new Double[m * (m + 1) / 2];
+            var beta = new Double[m];
+            Double yMean = 0;
+
+            if (Environment.GetEnvironmentVariable("OLS_IMPL") == "ONEDAL")
+            {
+                ComputeOneDalRegression(ch, cursorFactory, m, ref beta, xtx, ref n, ref yMean);
+            }
+            else
+            {
+                ComputeMklRegression(ch, cursorFactory, m, ref beta, xtx, ref n, ref yMean);
+            }
 
             var weightsValues = new float[beta.Length - 1];
             for (int i = 1; i < beta.Length; ++i)
@@ -563,8 +480,6 @@ namespace Microsoft.ML.Trainers
             var standardErrors = new Double[m];
             var tValues = new Double[m];
             var pValues = new Double[m];
-            // Invert X'X:
-            Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, xtx);
             var s2 = rss / (n - m); // estimate of variance of y
 
             for (int i = 0; i < m; i++)
