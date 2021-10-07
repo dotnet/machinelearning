@@ -63,7 +63,7 @@ namespace Microsoft.ML
             TextFeaturizingEstimator.Options options,
             params string[] inputColumnNames)
             => new TextFeaturizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, Utils.Size(inputColumnNames) == 0  ? new[] { outputColumnName } : inputColumnNames,
+                outputColumnName, Utils.Size(inputColumnNames) == 0 ? new[] { outputColumnName } : inputColumnNames,
                 options);
 
         /// <summary>

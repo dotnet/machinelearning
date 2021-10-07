@@ -25,7 +25,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new  OnlineGradientDescentTrainer.Options
+            var options = new OnlineGradientDescentTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
@@ -75,7 +75,7 @@ namespace Samples.Dynamic.Trainers.Regression
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
         {
             var random = new Random(seed);
             for (int i = 0; i < count; i++)

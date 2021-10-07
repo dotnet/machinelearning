@@ -15,7 +15,7 @@ namespace Microsoft.Extensions.ML
     /// <summary>
     /// Encapsulates the data and logic required for loading and reloading PredictionEngine object pools.
     /// </summary>
-    internal class PoolLoader<TData, TPrediction>: IDisposable
+    internal class PoolLoader<TData, TPrediction> : IDisposable
         where TData : class
         where TPrediction : class, new()
     {

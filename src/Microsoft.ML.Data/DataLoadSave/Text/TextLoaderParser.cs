@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Data
 
             public override bool HasNA { get; }
 
-            public override bool IsReal { get;  }
+            public override bool IsReal { get; }
 
             public PrimitivePipe(RowSet rows, PrimitiveDataViewType type, TryParseMapper<TResult> conv)
                 : base(rows)
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Data
                                 Array.Clear(_values, _count, _values.Length - _count);
                             Array.Resize(ref _values, _size);
                         }
-                        for (int ii = _count; --ii >= 0; )
+                        for (int ii = _count; --ii >= 0;)
                         {
                             int i = _indices[ii];
                             Contracts.Assert(ii <= i);
@@ -999,7 +999,7 @@ namespace Microsoft.ML.Data
                                 Fields.Spans[Fields.Count] = scan.Span;
                                 Fields.Indices[Fields.Count++] = src;
                             }
-                            else if(_keepEmpty)
+                            else if (_keepEmpty)
                             {
                                 Fields.EnsureSpace();
                                 Fields.Spans[Fields.Count] = _blank;
@@ -1437,7 +1437,7 @@ namespace Microsoft.ML.Data
                         }
                     }
 
-                    if(_missingRealsAsNaNs && isrc >= fields.Count && v.IsReal)
+                    if (_missingRealsAsNaNs && isrc >= fields.Count && v.IsReal)
                     {
                         // If the user has set the MissingRealsAsNaNs option to true,
                         // And there are missing columns on a given row,
@@ -1471,7 +1471,7 @@ namespace Microsoft.ML.Data
                         v.Rows.Stats.LogBadValue(line, info.Name);
                     }
                 }
-                else if(_missingRealsAsNaNs && v.IsReal)
+                else if (_missingRealsAsNaNs && v.IsReal)
                 {
                     // If the user has set the MissingRealsAsNaNs option to true,
                     // And there are missing columns on a given row,

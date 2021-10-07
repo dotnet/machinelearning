@@ -44,7 +44,7 @@ namespace Samples.Dynamic
                 .Append(mlContext.Transforms.Concatenate("Parts", "PartA", "PartB"))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Parts"))
                 .Append(mlContext.Transforms.Conversion.MapKeyToVector(
-                    "PartsCount", "Parts", outputCountVector:true))
+                    "PartsCount", "Parts", outputCountVector: true))
                 .Append(mlContext.Transforms.Conversion.MapKeyToVector(
                     "PartsNoCount", "Parts"));
 
@@ -61,7 +61,7 @@ namespace Samples.Dynamic
 
             foreach (var featureRow in features)
                 Console.WriteLine(featureRow.Timeframe + "          " +
-                    string.Join(',', featureRow.TimeframeVector.Select(x=>x)) + "  "
+                    string.Join(',', featureRow.TimeframeVector.Select(x => x)) + "  "
                     + string.Join(',', featureRow.PartsCount.Select(x => x)) +
                     "       " + string.Join(',', featureRow.PartsNoCount.Select(
                     x => x)));

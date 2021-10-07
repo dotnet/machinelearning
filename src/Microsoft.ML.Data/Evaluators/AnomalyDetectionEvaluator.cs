@@ -723,7 +723,7 @@ namespace Microsoft.ML.Data
             bool hasStratVals = overall.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             Contracts.Assert(hasStrat == hasStratVals);
             long numAnomalies = 0;
-            using (var cursor = overall.GetRowCursor(overall.Schema.Where(col => col.Name.Equals(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies)||
+            using (var cursor = overall.GetRowCursor(overall.Schema.Where(col => col.Name.Equals(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies) ||
                 (hasStrat && col.Name.Equals(MetricKinds.ColumnNames.StratCol)))))
             {
                 var numAnomGetter = cursor.GetGetter<long>(numAnom.Value);

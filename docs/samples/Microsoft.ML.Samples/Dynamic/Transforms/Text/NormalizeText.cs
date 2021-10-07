@@ -38,9 +38,12 @@ namespace Samples.Dynamic
                 TransformedTextData>(normTextTransformer);
 
             // Call the prediction API.
-            var data = new TextData() { Text = "ML.NET's NormalizeText API " +
+            var data = new TextData()
+            {
+                Text = "ML.NET's NormalizeText API " +
                 "changes the case of the TEXT and removes/keeps diâcrîtîcs, " +
-                "punctuations, and/or numbers (123)." };
+                "punctuations, and/or numbers (123)."
+            };
 
             var prediction = predictionEngine.Predict(data);
 

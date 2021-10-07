@@ -28,7 +28,7 @@ namespace Samples.Dynamic
 
             // We define the custom mapping between input and output rows that will
             // be applied by the transformation.
-            Action<InputData, CustomMappingOutput > mapping =
+            Action<InputData, CustomMappingOutput> mapping =
                 (input, output) => output.IsUnderThirty = input.Age < 30;
 
             // Custom transformations can be used to transform data directly, or as

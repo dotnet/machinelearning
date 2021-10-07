@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Data
                     foreach (var annotation in annotations.Schema)
                     {
                         var info = Utils.MarshalInvoke(_getAnnotationInfoMethodInfo, annotation.Type.RawType, annotation.Name, annotations);
-                        schemaDefinitionCol.AddAnnotation(annotation.Name , info);
+                        schemaDefinitionCol.AddAnnotation(annotation.Name, info);
                     }
                 }
             }

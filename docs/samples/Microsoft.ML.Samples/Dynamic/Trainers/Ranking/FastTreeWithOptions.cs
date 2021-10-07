@@ -28,7 +28,7 @@ namespace Samples.Dynamic.Trainers.Ranking
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new FastTreeRankingTrainer.Options 
+            var options = new FastTreeRankingTrainer.Options
             {
                 // Use NdcgAt3 for early stopping.
                 EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt3,
@@ -49,7 +49,7 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Create testing data. Use different random seed to make it different
             // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
-                GenerateRandomDataPoints(500, seed:123));
+                GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -76,7 +76,7 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Evaluate the overall metrics.
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
-            
+
             // Expected output:
             //   DCG: @1:40.57, @2:61.21, @3:74.11
             //   NDCG: @1:0.96, @2:0.95, @3:0.97

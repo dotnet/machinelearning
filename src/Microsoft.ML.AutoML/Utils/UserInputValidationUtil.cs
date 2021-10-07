@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation,  TaskKind task)
+        private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation, TaskKind task)
         {
             ValidateColumnInformation(columnInformation);
             ValidateTrainDataColumn(trainData, columnInformation.LabelColumnName, LabelColumnPurposeName, GetAllowedLabelTypes(task));
@@ -217,7 +217,7 @@ namespace Microsoft.ML.AutoML
                     throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' exists in train data, but not in validation data.", nameof(validationData));
                 }
 
-                if (trainCol.Type != validCol.Value.Type)
+                if (trainCol.Type != validCol.Value.Type && !trainCol.Type.Equals(validCol.Value.Type))
                 {
                     throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' is of type {trainCol.Type} in train data, and type " +
                         $"{validCol.Value.Type} in validation data.", nameof(validationData));
@@ -260,7 +260,7 @@ namespace Microsoft.ML.AutoML
                 throw new ArgumentException(exceptionMessage);
             }
 
-            if(allowedTypes == null)
+            if (allowedTypes == null)
             {
                 return;
             }

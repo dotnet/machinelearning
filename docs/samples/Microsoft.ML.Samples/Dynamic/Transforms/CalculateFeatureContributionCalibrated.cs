@@ -22,7 +22,7 @@ namespace Samples.Dynamic
 
             // Create a pipeline to concatenate the features into a feature vector
             // and normalize it.
-            var transformPipeline = mlContext.Transforms.Concatenate("Features", 
+            var transformPipeline = mlContext.Transforms.Concatenate("Features",
                     new string[] { nameof(Data.Feature1), nameof(Data.Feature2) })
                 .Append(mlContext.Transforms.NormalizeMeanVariance("Features"));
 

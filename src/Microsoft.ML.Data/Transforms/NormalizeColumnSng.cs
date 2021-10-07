@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1530,7 +1530,7 @@ namespace Microsoft.ML.Transforms
                             _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray(),
                             ImmutableArray.Create(_den),
                             ImmutableArray.Create(_offset));
-            }
+                }
             }
         }
 
@@ -2262,7 +2262,7 @@ namespace Microsoft.ML.Transforms
                     _minMaxAggregator = new MinMaxSngAggregator(vectorSize);
                     _medianAggregators = new MedianSngAggregator[vectorSize];
 
-                    for(int i = 0; i < vectorSize; i++)
+                    for (int i = 0; i < vectorSize; i++)
                     {
                         _medianAggregators[i] = new MedianSngAggregator();
                     }
@@ -2313,7 +2313,7 @@ namespace Microsoft.ML.Transforms
 
                         // Divide the range by 100 because we need to make the number, i.e. 75, into a decimal, .75
                         TFloat quantileRange = (_quantileMax - _quantileMin) / 100f;
-                         scale[i] = 1 / (range * quantileRange);
+                        scale[i] = 1 / (range * quantileRange);
 
                     }
 

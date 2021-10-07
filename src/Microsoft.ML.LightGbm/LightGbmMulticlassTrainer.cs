@@ -159,13 +159,13 @@ namespace Microsoft.ML.Trainers.LightGbm
             : this(env,
                   new Options()
                   {
-                    LabelColumnName = labelColumnName,
-                    FeatureColumnName = featureColumnName,
-                    ExampleWeightColumnName = exampleWeightColumnName,
-                    NumberOfLeaves = numberOfLeaves,
-                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
-                    LearningRate = learningRate,
-                    NumberOfIterations = numberOfIterations
+                      LabelColumnName = labelColumnName,
+                      FeatureColumnName = featureColumnName,
+                      ExampleWeightColumnName = exampleWeightColumnName,
+                      NumberOfLeaves = numberOfLeaves,
+                      MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                      LearningRate = learningRate,
+                      NumberOfIterations = numberOfIterations
                   })
         {
         }

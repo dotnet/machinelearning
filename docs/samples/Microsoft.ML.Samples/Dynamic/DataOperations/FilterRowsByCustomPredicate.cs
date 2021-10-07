@@ -35,7 +35,7 @@ namespace Samples.Dynamic
             Console.WriteLine();
 
             // Expected output:
-  
+
             //  Name
             //  Joey
             //  Chandler

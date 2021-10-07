@@ -30,15 +30,15 @@ namespace Samples.Dynamic.Trainers.Regression
             // Here only seven numeric columns are used as features
             var dataView = mlContext.Data.LoadFromTextFile(dataFile,
                 new TextLoader.Options
-            {
-                Separators = new[] { '\t' },
-                HasHeader = true,
-                Columns = new[]
+                {
+                    Separators = new[] { '\t' },
+                    HasHeader = true,
+                    Columns = new[]
                {
                     new TextLoader.Column("Label", DataKind.Single, 0),
                     new TextLoader.Column("Features", DataKind.Single, 1, 6)
                 }
-            });
+                });
 
             //////////////////// Data Preview ////////////////////
             // MedianHomeValue    CrimesPerCapita    PercentResidental    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s
@@ -64,7 +64,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
 
             PrintMetrics(metrics);
-            
+
             // Expected output:
             //   L1: 4.15
             //   L2: 31.98

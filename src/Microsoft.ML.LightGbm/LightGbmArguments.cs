@@ -248,9 +248,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             static Options()
             {
                 // Add additional name mappings
-                NameMapping.Add(nameof(TreeDropFraction),                      "drop_rate");
-                NameMapping.Add(nameof(MaximumNumberOfDroppedTreesPerRound),   "max_drop");
-                NameMapping.Add(nameof(SkipDropFraction),                      "skip_drop");
+                NameMapping.Add(nameof(TreeDropFraction), "drop_rate");
+                NameMapping.Add(nameof(MaximumNumberOfDroppedTreesPerRound), "max_drop");
+                NameMapping.Add(nameof(SkipDropFraction), "skip_drop");
             }
 
             /// <summary>
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         internal DartBooster(Options options)
-            :base(options)
+            : base(options)
         {
             Contracts.CheckUserArg(options.TreeDropFraction > 0 && options.TreeDropFraction < 1, nameof(options.TreeDropFraction), "must be in (0,1).");
             Contracts.CheckUserArg(options.SkipDropFraction >= 0 && options.SkipDropFraction < 1, nameof(options.SkipDropFraction), "must be in [0,1).");
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         internal GossBooster(Options options)
-            :base(options)
+            : base(options)
         {
             Contracts.CheckUserArg(options.TopRate > 0 && options.TopRate < 1, nameof(Options.TopRate), "must be in (0,1).");
             Contracts.CheckUserArg(options.OtherRate >= 0 && options.OtherRate < 1, nameof(Options.OtherRate), "must be in [0,1).");

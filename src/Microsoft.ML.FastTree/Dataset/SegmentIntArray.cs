@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -49,7 +49,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Used so we can set either the native or managed SegmentFindOptimalCost method one time and then
         /// never have to check again.
         /// </summary>
-        public static Lazy<PerformSegmentFindOptimalCost> SegmentFindOptimalCost = new(() => {
+        public static Lazy<PerformSegmentFindOptimalCost> SegmentFindOptimalCost = new(() =>
+        {
             if (UseFastTreeNative)
                 return NativeSegmentFindOptimalCost;
             else
@@ -60,7 +61,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Used so we can set either the native or managed SegmentFindOptimalPath method one time and then
         /// never have to check again.
         /// </summary>
-        public static Lazy<PerformSegmentFindOptimalPath> SegmentFindOptimalPath = new(() => {
+        public static Lazy<PerformSegmentFindOptimalPath> SegmentFindOptimalPath = new(() =>
+        {
             if (UseFastTreeNative)
                 return NativeSegmentFindOptimalPath;
             else

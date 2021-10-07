@@ -12,12 +12,12 @@ namespace Microsoft.Data.Analysis
 {
     public partial class DataFrame
     {
-        #pragma warning disable 1591
+#pragma warning disable 1591
         public static DataFrame operator +(DataFrame df, byte value)
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(byte value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -27,7 +27,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(decimal value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(double value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -47,7 +47,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(float value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -57,7 +57,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(int value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -67,7 +67,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(long value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -77,7 +77,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(sbyte value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -87,7 +87,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(short value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -97,7 +97,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(uint value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -107,7 +107,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(ulong value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -117,7 +117,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Add(value);
         }
-        
+
         public static DataFrame operator +(ushort value, DataFrame df)
         {
             return df.ReverseAdd(value);
@@ -127,7 +127,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(byte value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -137,7 +137,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(decimal value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -147,7 +147,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(double value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -157,7 +157,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(float value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -167,7 +167,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(int value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -177,7 +177,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(long value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -187,7 +187,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(sbyte value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -197,7 +197,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(short value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -207,7 +207,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(uint value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -217,7 +217,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(ulong value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -227,7 +227,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Subtract(value);
         }
-        
+
         public static DataFrame operator -(ushort value, DataFrame df)
         {
             return df.ReverseSubtract(value);
@@ -237,7 +237,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(byte value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -247,7 +247,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(decimal value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -257,7 +257,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(double value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -267,7 +267,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(float value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -277,7 +277,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(int value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -287,7 +287,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(long value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -297,7 +297,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(sbyte value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -307,7 +307,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(short value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -317,7 +317,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(uint value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -327,7 +327,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(ulong value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -337,7 +337,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Multiply(value);
         }
-        
+
         public static DataFrame operator *(ushort value, DataFrame df)
         {
             return df.ReverseMultiply(value);
@@ -347,7 +347,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(byte value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -357,7 +357,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(decimal value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -367,7 +367,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(double value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -377,7 +377,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(float value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -387,7 +387,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(int value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -397,7 +397,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(long value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -407,7 +407,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(sbyte value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -417,7 +417,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(short value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -427,7 +427,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(uint value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -437,7 +437,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(ulong value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -447,7 +447,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Divide(value);
         }
-        
+
         public static DataFrame operator /(ushort value, DataFrame df)
         {
             return df.ReverseDivide(value);
@@ -457,7 +457,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(byte value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -467,7 +467,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(decimal value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -477,7 +477,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(double value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -487,7 +487,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(float value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -497,7 +497,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(int value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -507,7 +507,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(long value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -517,7 +517,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(sbyte value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -527,7 +527,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(short value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -537,7 +537,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(uint value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -547,7 +547,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(ulong value, DataFrame df)
         {
             return df.ReverseModulo(value);
@@ -557,7 +557,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.Modulo(value);
         }
-        
+
         public static DataFrame operator %(ushort value, DataFrame df)
         {
             return df.ReverseModulo(value);

@@ -59,9 +59,9 @@
       <Uri>https://github.com/dotnet/symreader-converter</Uri>
       <Sha>c5ba7c88f92e2dde156c324a8c8edc04d9fa4fe0</Sha>
     </Dependency>
-    <Dependency Name="XliffTasks" Version="1.0.0-beta.21254.1">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="1.0.0-beta.21376.1">
       <Uri>https://github.com/dotnet/xliff-tasks</Uri>
-      <Sha>2739f40a72dec8100f99be106ae6b7d640e6fe69</Sha>
+      <Sha>397ff033b467003d51619f9ac3928e02a4d4178f</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

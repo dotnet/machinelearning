@@ -37,7 +37,7 @@ namespace Samples.Dynamic
             // Multi column example : This pipeline transform two columns using the
             // provided parameters.
             var pipeline = mlContext.Transforms.FeatureSelection
-                .SelectFeaturesBasedOnMutualInformation(new InputOutputColumnPair[] 
+                .SelectFeaturesBasedOnMutualInformation(new InputOutputColumnPair[]
                 { new InputOutputColumnPair("NumericVectorA"), new
                 InputOutputColumnPair("NumericVectorB") }, labelColumnName: "Label",
                 slotsInOutput: 4);

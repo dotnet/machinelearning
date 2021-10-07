@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Internal.CpuMath.FactorizationMachine
             float linearResponse = 0;
             float latentResponse = 0;
 
-            Unsafe.InitBlock(pq, 0, (uint)(m*m*d*sizeof(float)));
+            Unsafe.InitBlock(pq, 0, (uint)(m * m * d * sizeof(float)));
 
             Vector256<float> y = Vector256<float>.Zero;
             Vector256<float> tmp = Vector256<float>.Zero;
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Internal.CpuMath.FactorizationMachine
             float* phv = latentAccumulatedSquaredGrads;
 
             Vector256<float> wei = Vector256.Create(weight);
-            Vector256<float> s= Vector256.Create(slope);
+            Vector256<float> s = Vector256.Create(slope);
             Vector256<float> lr = Vector256.Create(learningRate);
             Vector256<float> lambdav = Vector256.Create(lambdaLatent);
 
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Internal.CpuMath.FactorizationMachine
 
                         // Calculate loss function's gradient.
                         if (fprime == f)
-	                        tmp = MultiplyAddNegated(v, x, q);
+                            tmp = MultiplyAddNegated(v, x, q);
                         gLatent = MultiplyAdd(sx, tmp, gLatent);
                         gLatent = Avx.Multiply(wei, gLatent);
 

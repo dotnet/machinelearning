@@ -172,7 +172,7 @@ namespace Microsoft.ML.Transforms
             var columnDictionary = inputSchema.ToDictionary(x => x.Name);
             for (int i = 0; i < _columns.Length; i++)
             {
-                for (int j=0;j<_columns[i].InputColumnNames.Length;j++)
+                for (int j = 0; j < _columns[i].InputColumnNames.Length; j++)
                 {
                     if (!inputSchema.TryFindColumn(_columns[i].InputColumnNames[j], out var inputCol))
                         throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[i].InputColumnNames[j]);

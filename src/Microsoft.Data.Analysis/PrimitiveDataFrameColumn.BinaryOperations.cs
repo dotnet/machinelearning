@@ -664,7 +664,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Add(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -697,7 +697,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Add(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -739,7 +739,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Add(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -772,7 +772,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Add(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -819,7 +819,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Subtract(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -852,7 +852,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Subtract(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -894,7 +894,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Subtract(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -927,7 +927,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Subtract(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -974,7 +974,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Multiply(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1007,7 +1007,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Multiply(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1049,7 +1049,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Multiply(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1082,7 +1082,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Multiply(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1129,7 +1129,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Divide(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1162,7 +1162,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Divide(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1204,7 +1204,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Divide(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1237,7 +1237,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Divide(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1284,7 +1284,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Modulo(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1317,7 +1317,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Modulo(column._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1359,7 +1359,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Modulo(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1392,7 +1392,7 @@ namespace Microsoft.Data.Analysis
                         newColumn._columnContainer.Modulo(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (inPlace)
                         {
@@ -1756,7 +1756,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseEquals(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -1786,7 +1786,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseEquals(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -1832,7 +1832,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseEquals(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -1862,7 +1862,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseEquals(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -1913,7 +1913,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseNotEquals(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -1943,7 +1943,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseNotEquals(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -1989,7 +1989,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseNotEquals(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2019,7 +2019,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseNotEquals(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -2064,7 +2064,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2094,7 +2094,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -2134,7 +2134,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2164,7 +2164,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -2209,7 +2209,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2239,7 +2239,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -2279,7 +2279,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2309,7 +2309,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -2354,7 +2354,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseGreaterThan(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2384,7 +2384,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseGreaterThan(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -2424,7 +2424,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseGreaterThan(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2454,7 +2454,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseGreaterThan(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -2499,7 +2499,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseLessThan(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2529,7 +2529,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseLessThan(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
@@ -2569,7 +2569,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseLessThan(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -2599,7 +2599,7 @@ namespace Microsoft.Data.Analysis
                         primitiveColumn._columnContainer.ElementwiseLessThan(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
                     }
-                    else 
+                    else
                     {
                         if (typeof(U) == typeof(decimal))
                         {

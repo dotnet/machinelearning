@@ -95,7 +95,7 @@ namespace Samples.Dynamic
             Console.WriteLine($"The 1-index value in resulting array would be " +
                 $"produce by:");
 
-            Console.WriteLine("y = (Index(x) / " + transformParams.Density[0] + 
+            Console.WriteLine("y = (Index(x) / " + transformParams.Density[0] +
                 ") - " + (transformParams.Offset.Length == 0 ? 0 : transformParams
                 .Offset[0]));
 

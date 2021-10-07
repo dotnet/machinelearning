@@ -204,7 +204,7 @@ namespace Microsoft.ML.Data
     /// Those are all the transformers that work with one feature column.
     /// </summary>
     /// <typeparam name="TModel">The model used to transform the data.</typeparam>
-    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>
+    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>, ISingleFeaturePredictionTransformer
         where TModel : class
     {
         /// <summary>
@@ -530,7 +530,7 @@ namespace Microsoft.ML.Data
         private void SetScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumnName);
-            var args = new MulticlassClassificationScorer.Arguments() { ScoreColumnName = _scoreColumn, PredictedLabelColumnName = _predictedLabelColumn};
+            var args = new MulticlassClassificationScorer.Arguments() { ScoreColumnName = _scoreColumn, PredictedLabelColumnName = _predictedLabelColumn };
             Scorer = new MulticlassClassificationScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
@@ -724,7 +724,7 @@ namespace Microsoft.ML.Data
 
             // Returns prediction transformer using the right TModel from the previously loaded model
             Type predictionTransformerType = typeof(BinaryPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
+            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
         }
     }
 
@@ -741,7 +741,7 @@ namespace Microsoft.ML.Data
 
             // Returns prediction transformer using the right TModel from the previously loaded model
             Type predictionTransformerType = typeof(MulticlassPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
+            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
         }
     }
 
@@ -758,7 +758,7 @@ namespace Microsoft.ML.Data
 
             // Returns prediction transformer using the right TModel from the previously loaded model
             Type predictionTransformerType = typeof(RegressionPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
+            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
 
         }
     }
@@ -776,7 +776,7 @@ namespace Microsoft.ML.Data
 
             // Returns prediction transformer using the right TModel from the previously loaded model
             Type predictionTransformerType = typeof(RankingPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
+            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
         }
     }
 

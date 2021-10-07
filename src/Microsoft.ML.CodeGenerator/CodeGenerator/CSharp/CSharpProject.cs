@@ -19,7 +19,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator
         /// <param name="location">full path of destinate directory</param>
         public void WriteToDisk(string location)
         {
-            foreach ( var file in this)
+            foreach (var file in this)
             {
                 file.WriteToDisk(location);
             }

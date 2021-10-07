@@ -99,7 +99,7 @@ namespace Microsoft.Data.Analysis
             {
                 return (IPrimitiveColumnComputation<T>)new UShortComputation();
             }
-            else if (typeof(T) == typeof(DateTime)) 
+            else if (typeof(T) == typeof(DateTime))
             {
                 return (IPrimitiveColumnComputation<T>)new DateTimeComputation();
             }
@@ -267,7 +267,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<byte> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<byte>.GetMutableBuffer(buffer);
@@ -326,7 +326,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<byte> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<byte>.GetMutableBuffer(buffer);
@@ -385,7 +385,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<byte> column)
         {
             var ret = (byte)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<byte>.GetMutableBuffer(buffer);
@@ -444,7 +444,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<byte> column)
         {
             var ret = (byte)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<byte>.GetMutableBuffer(buffer);
@@ -503,7 +503,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<byte> column, out byte ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -540,7 +540,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<byte> column, out byte ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -577,7 +577,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<byte> column, out byte ret)
         {
             ret = (byte)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -614,7 +614,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<byte> column, out byte ret)
         {
             ret = (byte)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -694,7 +694,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<char> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<char>.GetMutableBuffer(buffer);
@@ -753,7 +753,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<char> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<char>.GetMutableBuffer(buffer);
@@ -812,7 +812,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<char> column)
         {
             var ret = (char)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<char>.GetMutableBuffer(buffer);
@@ -871,7 +871,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<char> column)
         {
             var ret = (char)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<char>.GetMutableBuffer(buffer);
@@ -930,7 +930,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<char> column, out char ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -967,7 +967,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<char> column, out char ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1004,7 +1004,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<char> column, out char ret)
         {
             ret = (char)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1041,7 +1041,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<char> column, out char ret)
         {
             ret = (char)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1121,7 +1121,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<decimal> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<decimal>.GetMutableBuffer(buffer);
@@ -1180,7 +1180,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<decimal> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<decimal>.GetMutableBuffer(buffer);
@@ -1239,7 +1239,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<decimal> column)
         {
             var ret = (decimal)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<decimal>.GetMutableBuffer(buffer);
@@ -1298,7 +1298,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<decimal> column)
         {
             var ret = (decimal)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<decimal>.GetMutableBuffer(buffer);
@@ -1357,7 +1357,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<decimal> column, out decimal ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1394,7 +1394,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<decimal> column, out decimal ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1431,7 +1431,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<decimal> column, out decimal ret)
         {
             ret = (decimal)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1468,7 +1468,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<decimal> column, out decimal ret)
         {
             ret = (decimal)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1548,7 +1548,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<double> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<double>.GetMutableBuffer(buffer);
@@ -1607,7 +1607,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<double> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<double>.GetMutableBuffer(buffer);
@@ -1666,7 +1666,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<double> column)
         {
             var ret = (double)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<double>.GetMutableBuffer(buffer);
@@ -1725,7 +1725,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<double> column)
         {
             var ret = (double)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<double>.GetMutableBuffer(buffer);
@@ -1784,7 +1784,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<double> column, out double ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1821,7 +1821,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<double> column, out double ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1858,7 +1858,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<double> column, out double ret)
         {
             ret = (double)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1895,7 +1895,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<double> column, out double ret)
         {
             ret = (double)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -1975,7 +1975,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<float> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<float>.GetMutableBuffer(buffer);
@@ -2034,7 +2034,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<float> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<float>.GetMutableBuffer(buffer);
@@ -2093,7 +2093,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<float> column)
         {
             var ret = (float)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<float>.GetMutableBuffer(buffer);
@@ -2152,7 +2152,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<float> column)
         {
             var ret = (float)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<float>.GetMutableBuffer(buffer);
@@ -2211,7 +2211,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<float> column, out float ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -2248,7 +2248,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<float> column, out float ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -2285,7 +2285,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<float> column, out float ret)
         {
             ret = (float)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -2322,7 +2322,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<float> column, out float ret)
         {
             ret = (float)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -2402,7 +2402,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<int> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<int>.GetMutableBuffer(buffer);
@@ -2461,7 +2461,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<int> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<int>.GetMutableBuffer(buffer);
@@ -2520,7 +2520,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<int> column)
         {
             var ret = (int)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<int>.GetMutableBuffer(buffer);
@@ -2579,7 +2579,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<int> column)
         {
             var ret = (int)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<int>.GetMutableBuffer(buffer);
@@ -2638,7 +2638,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<int> column, out int ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -2675,7 +2675,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<int> column, out int ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -2712,7 +2712,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<int> column, out int ret)
         {
             ret = (int)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -2749,7 +2749,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<int> column, out int ret)
         {
             ret = (int)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -2829,7 +2829,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<long> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<long>.GetMutableBuffer(buffer);
@@ -2888,7 +2888,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<long> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<long>.GetMutableBuffer(buffer);
@@ -2947,7 +2947,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<long> column)
         {
             var ret = (long)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<long>.GetMutableBuffer(buffer);
@@ -3006,7 +3006,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<long> column)
         {
             var ret = (long)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<long>.GetMutableBuffer(buffer);
@@ -3065,7 +3065,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<long> column, out long ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3102,7 +3102,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<long> column, out long ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3139,7 +3139,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<long> column, out long ret)
         {
             ret = (long)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3176,7 +3176,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<long> column, out long ret)
         {
             ret = (long)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3256,7 +3256,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<sbyte> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<sbyte>.GetMutableBuffer(buffer);
@@ -3315,7 +3315,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<sbyte> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<sbyte>.GetMutableBuffer(buffer);
@@ -3374,7 +3374,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<sbyte> column)
         {
             var ret = (sbyte)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<sbyte>.GetMutableBuffer(buffer);
@@ -3433,7 +3433,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<sbyte> column)
         {
             var ret = (sbyte)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<sbyte>.GetMutableBuffer(buffer);
@@ -3492,7 +3492,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<sbyte> column, out sbyte ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3529,7 +3529,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<sbyte> column, out sbyte ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3566,7 +3566,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<sbyte> column, out sbyte ret)
         {
             ret = (sbyte)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3603,7 +3603,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<sbyte> column, out sbyte ret)
         {
             ret = (sbyte)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3683,7 +3683,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<short> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<short>.GetMutableBuffer(buffer);
@@ -3742,7 +3742,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<short> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<short>.GetMutableBuffer(buffer);
@@ -3801,7 +3801,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<short> column)
         {
             var ret = (short)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<short>.GetMutableBuffer(buffer);
@@ -3860,7 +3860,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<short> column)
         {
             var ret = (short)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<short>.GetMutableBuffer(buffer);
@@ -3919,7 +3919,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<short> column, out short ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3956,7 +3956,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<short> column, out short ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -3993,7 +3993,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<short> column, out short ret)
         {
             ret = (short)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4030,7 +4030,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<short> column, out short ret)
         {
             ret = (short)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4110,7 +4110,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<uint> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<uint>.GetMutableBuffer(buffer);
@@ -4169,7 +4169,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<uint> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<uint>.GetMutableBuffer(buffer);
@@ -4228,7 +4228,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<uint> column)
         {
             var ret = (uint)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<uint>.GetMutableBuffer(buffer);
@@ -4287,7 +4287,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<uint> column)
         {
             var ret = (uint)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<uint>.GetMutableBuffer(buffer);
@@ -4346,7 +4346,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<uint> column, out uint ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4383,7 +4383,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<uint> column, out uint ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4420,7 +4420,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<uint> column, out uint ret)
         {
             ret = (uint)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4457,7 +4457,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<uint> column, out uint ret)
         {
             ret = (uint)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4537,7 +4537,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<ulong> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<ulong>.GetMutableBuffer(buffer);
@@ -4596,7 +4596,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<ulong> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<ulong>.GetMutableBuffer(buffer);
@@ -4655,7 +4655,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<ulong> column)
         {
             var ret = (ulong)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<ulong>.GetMutableBuffer(buffer);
@@ -4714,7 +4714,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<ulong> column)
         {
             var ret = (ulong)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<ulong>.GetMutableBuffer(buffer);
@@ -4773,7 +4773,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<ulong> column, out ulong ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4810,7 +4810,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<ulong> column, out ulong ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4847,7 +4847,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<ulong> column, out ulong ret)
         {
             ret = (ulong)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4884,7 +4884,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<ulong> column, out ulong ret)
         {
             ret = (ulong)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -4964,7 +4964,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMax(PrimitiveColumnContainer<ushort> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<ushort>.GetMutableBuffer(buffer);
@@ -5023,7 +5023,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeMin(PrimitiveColumnContainer<ushort> column)
         {
             var ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<ushort>.GetMutableBuffer(buffer);
@@ -5082,7 +5082,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeProduct(PrimitiveColumnContainer<ushort> column)
         {
             var ret = (ushort)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<ushort>.GetMutableBuffer(buffer);
@@ -5141,7 +5141,7 @@ namespace Microsoft.Data.Analysis
         public void CumulativeSum(PrimitiveColumnContainer<ushort> column)
         {
             var ret = (ushort)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<ushort>.GetMutableBuffer(buffer);
@@ -5200,7 +5200,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<ushort> column, out ushort ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -5237,7 +5237,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<ushort> column, out ushort ret)
         {
             ret = column.Buffers[0].ReadOnlySpan[0];
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -5274,7 +5274,7 @@ namespace Microsoft.Data.Analysis
         public void Product(PrimitiveColumnContainer<ushort> column, out ushort ret)
         {
             ret = (ushort)1;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;
@@ -5311,7 +5311,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<ushort> column, out ushort ret)
         {
             ret = (ushort)0;
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
                 var readOnlySpan = buffer.ReadOnlySpan;

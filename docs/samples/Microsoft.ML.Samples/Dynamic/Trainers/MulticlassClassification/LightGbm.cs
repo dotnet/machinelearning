@@ -53,7 +53,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Look at 5 predictions
             foreach (var p in predictions.Take(5))
-                Console.WriteLine($"Label: {p.Label}, " + 
+                Console.WriteLine($"Label: {p.Label}, " +
                     $"Prediction: {p.PredictedLabel}");
 
             // Expected output:
@@ -89,7 +89,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         // Generates random uniform doubles in [-0.5, 0.5)
         // range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
 
         {
             var random = new Random(seed);

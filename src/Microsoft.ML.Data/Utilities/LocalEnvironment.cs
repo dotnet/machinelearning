@@ -30,7 +30,7 @@ namespace Microsoft.ML.Data
 
             protected override void Dispose(bool disposing)
             {
-                if(disposing)
+                if (disposing)
                 {
                     ChannelFinished();
                     Watch.Stop();

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -407,17 +407,17 @@ namespace Microsoft.ML.Runtime
                 }
                 switch (kind)
                 {
-                case ProgressEvent.EventKind.Stop:
-                    _ectx.Assert(entry == null);
-                    info.IsFinished = true;
-                    _pendingEvents.Enqueue(new ProgressEvent(info.Index, info.Name, info.StartTime, ProgressEvent.EventKind.Stop));
-                    break;
-                default:
-                    _ectx.Assert(entry != null);
-                    _ectx.Assert(kind == ProgressEvent.EventKind.Progress);
-                    _ectx.Assert(!info.IsFinished);
-                    _pendingEvents.Enqueue(new ProgressEvent(info.Index, info.Name, info.StartTime, entry));
-                    break;
+                    case ProgressEvent.EventKind.Stop:
+                        _ectx.Assert(entry == null);
+                        info.IsFinished = true;
+                        _pendingEvents.Enqueue(new ProgressEvent(info.Index, info.Name, info.StartTime, ProgressEvent.EventKind.Stop));
+                        break;
+                    default:
+                        _ectx.Assert(entry != null);
+                        _ectx.Assert(kind == ProgressEvent.EventKind.Progress);
+                        _ectx.Assert(!info.IsFinished);
+                        _pendingEvents.Enqueue(new ProgressEvent(info.Index, info.Name, info.StartTime, entry));
+                        break;
                 }
             }
 

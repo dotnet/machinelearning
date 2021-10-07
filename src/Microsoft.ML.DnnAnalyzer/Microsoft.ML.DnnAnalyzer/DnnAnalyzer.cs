@@ -41,7 +41,7 @@ namespace Microsoft.ML.DnnAnalyzer
                 ReadOnlyMemory<char> opType = default;
                 schema[i].Annotations.GetValue("TensorflowOperatorType", ref opType);
                 metadataType = schema[i].Annotations.Schema.GetColumnOrNull("TensorflowUpstreamOperators")?.Type;
-                VBuffer <ReadOnlyMemory<char>> inputOps = default;
+                VBuffer<ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
                     schema[i].Annotations.GetValue("TensorflowUpstreamOperators", ref inputOps);

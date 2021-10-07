@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -617,7 +617,8 @@ namespace Microsoft.ML.Data.IO
                             stream.Seek(BlockOffset, SeekOrigin.Begin);
                             using (var subset = new SubsetStream(stream, BlockSize))
                             using (var decompressed = Compression.DecompressStream(subset))
-                            using (var valueReader = _codec.OpenReader(decompressed, 1))
+                            using (var bufferedStream = new BufferedStream(decompressed))
+                            using (var valueReader = _codec.OpenReader(bufferedStream, 1))
                             {
                                 valueReader.MoveNext();
                                 valueReader.Get(ref Value);

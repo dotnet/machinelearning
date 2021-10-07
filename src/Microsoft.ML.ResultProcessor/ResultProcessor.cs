@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1007,7 +1007,7 @@ namespace Microsoft.ML.ResultProcessor
 #pragma warning disable CS0618 // The result processor is an internal command line processing utility anyway, so this is, while not great, OK.
             using (AssemblyLoadingUtils.CreateAssemblyRegistrar(env, currentDirectory))
 #pragma warning restore CS0618
-            return Main(env, args);
+                return Main(env, args);
         }
 
         public static int Main(IHostEnvironment env, string[] args)

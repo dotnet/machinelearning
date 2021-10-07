@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
         internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
-            : this (env, imageFolder, type: true, columns)
+            : this(env, imageFolder, type: true, columns)
         {
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Data
             // int: id of image folder
 
             ImageFolder = ctx.LoadStringOrNull();
-           if (ctx.Header.ModelVerWritten >= 0x00010003) // do a version check
+            if (ctx.Header.ModelVerWritten >= 0x00010003) // do a version check
                 _useImageType = ctx.Reader.ReadBoolean();
             else
                 _useImageType = true; // It is an ImageDataViewType
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Data
                         }
                         else
                         {
-                            var editor = VBufferEditor.Create(ref dst, 0 );
+                            var editor = VBufferEditor.Create(ref dst, 0);
                             dst = editor.Commit();
                         }
 
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Data
                         imageBuffer = File.ReadAllBytes(path);
                         count = imageBuffer.Length;
                         imgData = new VBuffer<byte>(count, imageBuffer);
-                        return (count> 0);
+                        return (count > 0);
                     }
 
                     count = (int)fileLength;

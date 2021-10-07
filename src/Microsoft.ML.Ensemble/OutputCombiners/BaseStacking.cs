@@ -154,15 +154,15 @@ namespace Microsoft.ML.Trainers.Ensemble
         {
             switch (data.Schema.Label.Value.Type.GetRawKind())
             {
-            case InternalDataKind.BL:
-                return CreateDataView<bool>(env, ch, data, maps, models, x => x > 0);
-            case InternalDataKind.R4:
-                return CreateDataView<float>(env, ch, data, maps, models, x => x);
-            case InternalDataKind.U4:
-                ch.Check(data.Schema.Label.Value.Type is KeyDataViewType);
-                return CreateDataView(env, ch, data, maps, models, x => float.IsNaN(x) ? 0 : (uint)(x + 1));
-            default:
-                throw ch.Except("Unsupported label type");
+                case InternalDataKind.BL:
+                    return CreateDataView<bool>(env, ch, data, maps, models, x => x > 0);
+                case InternalDataKind.R4:
+                    return CreateDataView<float>(env, ch, data, maps, models, x => x);
+                case InternalDataKind.U4:
+                    ch.Check(data.Schema.Label.Value.Type is KeyDataViewType);
+                    return CreateDataView(env, ch, data, maps, models, x => float.IsNaN(x) ? 0 : (uint)(x + 1));
+                default:
+                    throw ch.Except("Unsupported label type");
             }
         }
 

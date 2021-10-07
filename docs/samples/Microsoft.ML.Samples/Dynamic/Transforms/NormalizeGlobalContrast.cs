@@ -24,8 +24,8 @@ namespace Samples.Dynamic
             // ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
             var approximation = mlContext.Transforms.NormalizeGlobalContrast(
-                "Features", ensureZeroMean: false, scale:2, 
-                ensureUnitStandardDeviation:true);
+                "Features", ensureZeroMean: false, scale: 2,
+                ensureUnitStandardDeviation: true);
 
             // Now we can transform the data and look at the output to confirm the
             // behavior of the estimator. This operation doesn't actually evaluate
