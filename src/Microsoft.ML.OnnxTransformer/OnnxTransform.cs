@@ -90,6 +90,12 @@ namespace Microsoft.ML.Transforms.Onnx
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Protobuf CodedInputStream recursion limit.", SortOrder = 6)]
             public int RecursionLimit = 100;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Controls the number of threads used to parallelize the execution of the graph (across nodes).", SortOrder = 7)]
+            public int? InterOpNumThreads = null;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Controls the number of threads to use to run the model.", SortOrder = 8)]
+            public int? IntraOpNumThreads = null;
         }
 
         /// <summary>
@@ -230,7 +236,7 @@ namespace Microsoft.ML.Transforms.Onnx
             // internal functions. If nothing is provided, shapeDictionary is null.
             var shapeDictionary = new Dictionary<string, int[]>();
             if (options.CustomShapeInfos != null)
-                foreach(var customShape in options.CustomShapeInfos)
+                foreach (var customShape in options.CustomShapeInfos)
                     shapeDictionary[customShape.Name] = customShape.Shape;
 
             // Use ONNXRuntime to figure out the right input and output configuration.
@@ -244,7 +250,8 @@ namespace Microsoft.ML.Transforms.Onnx
                     Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
                     Host.CheckIO(File.Exists(options.ModelFile), "Model file {0} does not exists.", options.ModelFile);
                     // Because we cannot delete the user file, ownModelFile should be false.
-                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false, shapeDictionary: shapeDictionary, options.RecursionLimit);
+                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false, shapeDictionary: shapeDictionary, options.RecursionLimit,
+                        options.InterOpNumThreads, options.IntraOpNumThreads);
                 }
                 else
                 {
@@ -255,7 +262,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
             catch (OnnxRuntimeException e)
             {
-                 throw Host.Except(e, $"Error initializing model :{e.ToString()}");
+                throw Host.Except(e, $"Error initializing model :{e.ToString()}");
             }
 
             var modelInfo = Model.ModelInfo;
@@ -309,8 +316,11 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <param name="shapeDictionary"></param>
         /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
+        /// <param name="interOpNumThreads">Controls the number of threads used to parallelize the execution of the graph (across nodes).</param>
+        /// <param name="intraOpNumThreads">Controls the number of threads to use to run the model.</param>
         internal OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
-             IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100)
+            IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100,
+            int? interOpNumThreads = null, int? intraOpNumThreads = null)
             : this(env, new Options()
             {
                 ModelFile = modelFile,
@@ -319,7 +329,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 GpuDeviceId = gpuDeviceId,
                 FallbackToCpu = fallbackToCpu,
                 CustomShapeInfos = shapeDictionary?.Select(pair => new CustomShapeInfo(pair.Key, pair.Value)).ToArray(),
-                RecursionLimit = recursionLimit
+                RecursionLimit = recursionLimit,
+                InterOpNumThreads = interOpNumThreads,
+                IntraOpNumThreads = intraOpNumThreads
             })
         {
         }
@@ -430,7 +442,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema),"input", _parent.Inputs[i]);
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i]);
 
                     _inputColIndices[i] = col.Value.Index;
 
@@ -856,9 +868,12 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <param name="shapeDictionary"></param>
         /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
+        /// <param name="interOpNumThreads">Controls the number of threads used to parallelize the execution of the graph (across nodes).</param>
+        /// <param name="intraOpNumThreads">Controls the number of threads to use to run the model.</param>
         internal OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile,
-            int? gpuDeviceId = null, bool fallbackToCpu = false, IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100)
-           : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary, recursionLimit))
+            int? gpuDeviceId = null, bool fallbackToCpu = false, IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100,
+            int? interOpNumThreads = null, int? intraOpNumThreads = null)
+           : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary, recursionLimit, interOpNumThreads, intraOpNumThreads))
         {
         }
 
