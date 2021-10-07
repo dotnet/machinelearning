@@ -139,7 +139,6 @@ namespace Microsoft.ML
                 return;
 
             _disposer?.Invoke();
-            (Transformer as IDisposable)?.Dispose();
 
             _disposed = true;
         }
