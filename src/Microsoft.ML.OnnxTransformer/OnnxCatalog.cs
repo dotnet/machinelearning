@@ -83,8 +83,6 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        /// <param name="interOpNumThreads">Controls the number of threads used to parallelize the execution of the graph (across nodes).</param>
-        /// <param name="intraOpNumThreads">Controls the number of threads to use to run the model.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -97,11 +95,40 @@ namespace Microsoft.ML
             string inputColumnName,
             string modelFile,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false,
-            int? interOpNumThreads = default,
-            int? intraOpNumThreads = default)
+            bool fallbackToCpu = false)
             => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName },
-            modelFile, gpuDeviceId, fallbackToCpu, interOpNumThreads: interOpNumThreads, intraOpNumThreads: intraOpNumThreads);
+                modelFile, gpuDeviceId, fallbackToCpu);
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">The output column resulting from the transformation.</param>
+        /// <param name="inputColumnName">The input column.</param>
+        /// <param name="modelFile">The path of the file containing the ONNX model.</param>
+        /// <param name="interOpNumThreads">Controls the number of threads used to parallelize the execution of the graph (across nodes).</param>
+        /// <param name="intraOpNumThreads">Controls the number of threads to use to run the model.</param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ApplyOnnxModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyONNXModelWithInMemoryImages.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
+            string outputColumnName,
+            string inputColumnName,
+            string modelFile,
+            int interOpNumThreads,
+            int intraOpNumThreads,
+            int? gpuDeviceId = null,
+            bool fallbackToCpu = false)
+            => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName },
+                modelFile, gpuDeviceId, fallbackToCpu, interOpNumThreads: interOpNumThreads, intraOpNumThreads: intraOpNumThreads);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
