@@ -2,9 +2,9 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.OneDAL</IncludeInPackage>
+    <IncludeInPackage>Microsoft.ML.OneDal</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageDescription>ML.NET additional learners making use of oneAPI Data Analytics Library.</PackageDescription>
+    <PackageDescription>ML.NET additional learners making use of Intel® oneAPI Data Analytics Library (oneDAL).</PackageDescription>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>

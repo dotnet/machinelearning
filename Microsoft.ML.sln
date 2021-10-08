@@ -71,7 +71,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.ImageAnalytics
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Mkl.Components", "src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj", "{A7222F41-1CF0-47D9-B80C-B4D77B027A61}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OneDAL", "src\Microsoft.ML.OneDAL\Microsoft.ML.OneDAL.csproj", "{A7222F94-2AF1-10C9-A21C-C4D22B137A69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OneDal", "src\Microsoft.ML.OneDal\Microsoft.ML.OneDal.csproj", "{A7222F94-2AF1-10C9-A21C-C4D22B137A69}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TensorFlow", "src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj", "{570A0B8A-5463-44D2-8521-54C0CA4CACA9}"
 EndProject
