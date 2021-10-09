@@ -148,6 +148,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
         }
 
+        /// <summary>
+        /// Contructor for creating time series specific prediction engine. It allows the time series model to be updated with the observations
+        /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
+        /// </summary>
+        public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, PredictionEngine.Options options) :
+            base(env, CloneTransformers(transformer), options.IgnoreMissingColumns, options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnModelFile)
+        {
+        }
+
         internal DataViewRow GetStatefulRows(DataViewRow input, IRowToRowMapper mapper, IEnumerable<DataViewSchema.Column> activeColumns, List<StatefulRow> rows)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -397,6 +406,34 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
             return new TimeSeriesPredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+        }
+
+        /// <summary>
+        /// <see cref="TimeSeriesPredictionEngine{TSrc, TDst}"/> creates a prediction engine for a time series pipeline.
+        /// It updates the state of time series model with observations seen at prediction phase and allows checkpointing the model.
+        /// </summary>
+        /// <typeparam name="TSrc">Class describing input schema to the model.</typeparam>
+        /// <typeparam name="TDst">Class describing the output schema of the prediction.</typeparam>
+        /// <param name="transformer">The time series pipeline in the form of a <see cref="ITransformer"/>.</param>
+        /// <param name="env">Usually <see cref="MLContext"/></param>
+        /// <param name="options">Advaned configuration options.</param>
+        /// <p>Example code can be found by searching for <i>TimeSeriesPredictionEngine</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// This is an example for detecting change point using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static TimeSeriesPredictionEngine<TSrc, TDst> CreateTimeSeriesEngine<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
+            PredictionEngine.Options options)
+            where TSrc : class
+            where TDst : class, new()
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(options, nameof(options));
+            return new TimeSeriesPredictionEngine<TSrc, TDst>(env, transformer, options);
         }
     }
 }

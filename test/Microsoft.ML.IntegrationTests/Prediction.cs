@@ -97,5 +97,38 @@ namespace Microsoft.ML.IntegrationTests
             Assert.True(pr.Score <= 0);
         }
 
+        [Fact]
+        public void PredictionEngineModelDisposal()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var data = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
+            var pipeline = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                     new Trainers.LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
+            var model = pipeline.Fit(data);
+
+            var engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model, new PredictionEngine.Options());
+
+            // Dispose of prediction engine, should dispose of model
+            engine.Dispose();
+
+            // Attempt to dispose of model but it should already be disposed.
+            Assert.Throws<ObjectDisposedException>(() => model.Dispose());
+
+            // Make a new model/prediction engine. Set the options so prediction engine doesn't dispose
+            model = pipeline.Fit(data);
+
+            var options = new PredictionEngine.Options()
+            {
+                OwnModelFile = false
+            };
+
+            engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model, options);
+
+            // Dispose of prediction engine, shoudln't dispose of model
+            engine.Dispose();
+
+            // Manually dispose of model, no errors are thrown
+            model.Dispose();
+        }
     }
 }

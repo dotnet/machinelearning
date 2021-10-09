@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -58,8 +59,8 @@ namespace Microsoft.ML
        where TDst : class, new()
     {
         internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownModelFile = true)
+            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, ownModelFile)
         {
         }
 
@@ -92,6 +93,7 @@ namespace Microsoft.ML
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
         private readonly IRowReadableAs<TDst> _outputRow;
         private readonly Action _disposer;
+        private readonly bool _ownModelFile;
         private bool _disposed;
 
         /// <summary>
@@ -104,7 +106,7 @@ namespace Microsoft.ML
 
         [BestFriend]
         private protected PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownModelFile = true)
         {
             Contracts.CheckValue(env, nameof(env));
             env.AssertValue(transformer);
@@ -112,6 +114,7 @@ namespace Microsoft.ML
             var makeMapper = TransformerChecker(env, transformer);
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
+            _ownModelFile = ownModelFile;
             PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, outputSchemaDefinition, out _disposer, out _outputRow);
             OutputSchema = Transformer.GetOutputSchema(_inputRow.Schema);
         }
@@ -139,6 +142,9 @@ namespace Microsoft.ML
                 return;
 
             _disposer?.Invoke();
+
+            if (_ownModelFile)
+                (Transformer as IDisposable)?.Dispose();
 
             _disposed = true;
         }
@@ -168,5 +174,35 @@ namespace Microsoft.ML
         /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
         /// is reused.</param>
         public abstract void Predict(TSrc example, ref TDst prediction);
+    }
+
+    public sealed class PredictionEngine
+    {
+        /// <summary>
+        /// Options for the <see cref="PredictionEngine{TSrc, TDst}"/> as used in
+        /// [RandomizedPca(Options)](xref:Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,Microsoft.ML.Trainers.RandomizedPcaTrainer.Options)).
+        /// </summary>
+        public sealed class Options
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to throw an error if a column exists in the output schema but not the output object.", ShortName = "ignore", SortOrder = 50)]
+            public bool IgnoreMissingColumns = Defaults.IgnoreMissingColumns;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Additional settings of the input schema.", ShortName = "input", SortOrder = 50)]
+            public SchemaDefinition InputSchemaDefinition = Defaults.InputSchemaDefinition;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Additional settings of the output schema.", ShortName = "output")]
+            public SchemaDefinition OutputSchemaDefinition = Defaults.OutputSchemaDefinition;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the prediction engine owns the model file and should dispose of it.", ShortName = "own")]
+            public bool OwnModelFile = Defaults.OwnModelFile;
+
+            internal static class Defaults
+            {
+                public const bool IgnoreMissingColumns = true;
+                public const SchemaDefinition InputSchemaDefinition = null;
+                public const SchemaDefinition OutputSchemaDefinition = null;
+                public const bool OwnModelFile = true;
+            }
+        }
     }
 }
