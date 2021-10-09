@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.IntegrationTests.Datasets;
@@ -111,8 +112,12 @@ namespace Microsoft.ML.IntegrationTests
             // Dispose of prediction engine, should dispose of model
             engine.Dispose();
 
-            // Attempt to dispose of model but it should already be disposed.
-            Assert.Throws<ObjectDisposedException>(() => model.Dispose());
+            // Get disposed flag using reflection
+            var bfIsDisposed = BindingFlags.Instance | BindingFlags.NonPublic;
+            var field = model.GetType().BaseType.BaseType.GetField("_disposed", bfIsDisposed);
+
+            // Make sure the model is actually disposed
+            Assert.True((bool)field.GetValue(model));
 
             // Make a new model/prediction engine. Set the options so prediction engine doesn't dispose
             model = pipeline.Fit(data);
@@ -127,7 +132,10 @@ namespace Microsoft.ML.IntegrationTests
             // Dispose of prediction engine, shoudln't dispose of model
             engine.Dispose();
 
-            // Manually dispose of model, no errors are thrown
+            // Make sure model is not disposed of.
+            Assert.False((bool)field.GetValue(model));
+
+            // Dispose of the model for test cleanliness
             model.Dispose();
         }
     }
