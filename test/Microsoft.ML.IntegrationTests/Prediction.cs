@@ -124,7 +124,7 @@ namespace Microsoft.ML.IntegrationTests
 
             var options = new PredictionEngineOptions()
             {
-                OwnTransformer = false
+                OwnsTransformer = false
             };
 
             engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model, options);

@@ -348,7 +348,7 @@ namespace Microsoft.ML
             where TDst : class, new()
         {
             return transformer.CreatePredictionEngine<TSrc, TDst>(_env, options.IgnoreMissingColumns,
-                options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnTransformer);
+                options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnsTransformer);
         }
     }
 }

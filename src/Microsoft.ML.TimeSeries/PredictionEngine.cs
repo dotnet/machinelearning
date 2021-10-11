@@ -152,8 +152,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// Contructor for creating time series specific prediction engine. It allows the time series model to be updated with the observations
         /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
         /// </summary>
-        public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, PredictionEngineOptions options) :
-            base(env, CloneTransformers(transformer), options.IgnoreMissingColumns, options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnTransformer)
+        internal TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, PredictionEngineOptions options) :
+            base(env, CloneTransformers(transformer), options.IgnoreMissingColumns, options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnsTransformer)
         {
         }
 

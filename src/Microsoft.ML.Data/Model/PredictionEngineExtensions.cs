@@ -24,11 +24,11 @@ namespace Microsoft.ML
         /// <typeparamref name="TDst"/>.</param>
         /// <param name="inputSchemaDefinition">Additional settings of the input schema.</param>
         /// <param name="outputSchemaDefinition">Additional settings of the output schema.</param>
-        /// <param name="ownTransformer">Whether the prediction engine owns the transformer and should dispose of it.</param>
+        /// <param name="ownsTransformer">Whether the prediction engine owns the transformer and should dispose of it.</param>
         public static PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(this ITransformer transformer,
-            IHostEnvironment env, bool ignoreMissingColumns = true, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownTransformer = true)
+            IHostEnvironment env, bool ignoreMissingColumns = true, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownsTransformer = true)
             where TSrc : class
             where TDst : class, new()
-            => new PredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, ownTransformer);
+            => new PredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, ownsTransformer);
     }
 }

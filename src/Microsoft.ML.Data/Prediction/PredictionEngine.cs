@@ -59,8 +59,8 @@ namespace Microsoft.ML
        where TDst : class, new()
     {
         internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownTransformer = true)
-            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, ownTransformer)
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownsTransformer = true)
+            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, ownsTransformer)
         {
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.ML
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
         private readonly IRowReadableAs<TDst> _outputRow;
         private readonly Action _disposer;
-        private readonly bool _ownTransformer;
+        private readonly bool _ownsTransformer;
         private bool _disposed;
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Microsoft.ML
 
         [BestFriend]
         private protected PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownTransformer = true)
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownsTransformer = true)
         {
             Contracts.CheckValue(env, nameof(env));
             env.AssertValue(transformer);
@@ -114,7 +114,7 @@ namespace Microsoft.ML
             var makeMapper = TransformerChecker(env, transformer);
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
-            _ownTransformer = ownTransformer;
+            _ownsTransformer = ownsTransformer;
             PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, outputSchemaDefinition, out _disposer, out _outputRow);
             OutputSchema = Transformer.GetOutputSchema(_inputRow.Schema);
         }
@@ -143,7 +143,7 @@ namespace Microsoft.ML
 
             _disposer?.Invoke();
 
-            if (_ownTransformer)
+            if (_ownsTransformer)
                 (Transformer as IDisposable)?.Dispose();
 
             _disposed = true;
@@ -190,15 +190,15 @@ namespace Microsoft.ML
         [Argument(ArgumentType.AtMostOnce, HelpText = "Additional settings of the output schema.", ShortName = "output")]
         public SchemaDefinition OutputSchemaDefinition = Defaults.OutputSchemaDefinition;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the prediction engine owns the model file and should dispose of it.", ShortName = "own")]
-        public bool OwnTransformer = Defaults.OwnTransformer;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the prediction engine owns the transformer and should dispose of it.", ShortName = "own")]
+        public bool OwnsTransformer = Defaults.OwnsTransformer;
 
         internal static class Defaults
         {
             public const bool IgnoreMissingColumns = true;
             public const SchemaDefinition InputSchemaDefinition = null;
             public const SchemaDefinition OutputSchemaDefinition = null;
-            public const bool OwnTransformer = true;
+            public const bool OwnsTransformer = true;
         }
     }
 }
