@@ -8,7 +8,7 @@ resources:
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
 
   - container: UbuntuContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-20200515184230-2c829e8
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-20210924170306-87445d2
 
   - container: UbuntuCrossArmContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm-20210512124625-2e59a5f
@@ -36,7 +36,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1604
+      name: Hosted Ubuntu 1804
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm32v7-20210531091521-97d8652
 
 - template: /build/ci/job-template.yml
@@ -58,7 +58,7 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1604
+      name: Hosted Ubuntu 1804
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm64v8-20210531091519-97d8652
 
 - template: /build/ci/job-template.yml
@@ -79,8 +79,8 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1604
-    helixQueue: Ubuntu.1604.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-helix-20210528183707-dde38af
+      name: Hosted Ubuntu 1804
+    helixQueue: Ubuntu.1804.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-helix-20210528183707-dde38af
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -89,8 +89,8 @@ jobs:
     container: UbuntuContainer
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1604
-    helixQueue: Ubuntu.1604.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-helix-20210528184647-dde38af
+      name: Hosted Ubuntu 1804
+    helixQueue: Ubuntu.1804.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-helix-20210528184647-dde38af
 
 - template: /build/ci/job-template.yml
   parameters:
