@@ -343,12 +343,12 @@ namespace Microsoft.ML
         /// <typeparam name="TDst">The class that defines the output data.</typeparam>
         /// <param name="transformer">The transformer to use for prediction.</param>
         /// <param name="options">Advaned configuration options.</param>
-        public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer, PredictionEngine.Options options)
+        public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer, PredictionEngineOptions options)
             where TSrc : class
             where TDst : class, new()
         {
             return transformer.CreatePredictionEngine<TSrc, TDst>(_env, options.IgnoreMissingColumns,
-                options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnModelFile);
+                options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnTransformer);
         }
     }
 }

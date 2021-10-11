@@ -152,8 +152,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// Contructor for creating time series specific prediction engine. It allows the time series model to be updated with the observations
         /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
         /// </summary>
-        public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, PredictionEngine.Options options) :
-            base(env, CloneTransformers(transformer), options.IgnoreMissingColumns, options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnModelFile)
+        public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, PredictionEngineOptions options) :
+            base(env, CloneTransformers(transformer), options.IgnoreMissingColumns, options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnTransformer)
         {
         }
 
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <typeparam name="TDst">Class describing the output schema of the prediction.</typeparam>
         /// <param name="transformer">The time series pipeline in the form of a <see cref="ITransformer"/>.</param>
         /// <param name="env">Usually <see cref="MLContext"/></param>
-        /// <param name="options">Advaned configuration options.</param>
+        /// <param name="options">Advanced configuration options.</param>
         /// <p>Example code can be found by searching for <i>TimeSeriesPredictionEngine</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
         /// <example>
         /// <format type="text/markdown">
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </format>
         /// </example>
         public static TimeSeriesPredictionEngine<TSrc, TDst> CreateTimeSeriesEngine<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
-            PredictionEngine.Options options)
+            PredictionEngineOptions options)
             where TSrc : class
             where TDst : class, new()
         {

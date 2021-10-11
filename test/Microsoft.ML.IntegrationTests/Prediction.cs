@@ -107,7 +107,7 @@ namespace Microsoft.ML.IntegrationTests
                      new Trainers.LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
             var model = pipeline.Fit(data);
 
-            var engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model, new PredictionEngine.Options());
+            var engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model, new PredictionEngineOptions());
 
             // Dispose of prediction engine, should dispose of model
             engine.Dispose();
@@ -122,14 +122,14 @@ namespace Microsoft.ML.IntegrationTests
             // Make a new model/prediction engine. Set the options so prediction engine doesn't dispose
             model = pipeline.Fit(data);
 
-            var options = new PredictionEngine.Options()
+            var options = new PredictionEngineOptions()
             {
-                OwnModelFile = false
+                OwnTransformer = false
             };
 
             engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model, options);
 
-            // Dispose of prediction engine, shoudln't dispose of model
+            // Dispose of prediction engine, shouldn't dispose of model
             engine.Dispose();
 
             // Make sure model is not disposed of.
