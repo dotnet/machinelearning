@@ -342,7 +342,7 @@ namespace Microsoft.ML
         /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
         /// <typeparam name="TDst">The class that defines the output data.</typeparam>
         /// <param name="transformer">The transformer to use for prediction.</param>
-        /// <param name="options">Advaned configuration options.</param>
+        /// <param name="options">Advanced configuration options.</param>
         public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer, PredictionEngineOptions options)
             where TSrc : class
             where TDst : class, new()
