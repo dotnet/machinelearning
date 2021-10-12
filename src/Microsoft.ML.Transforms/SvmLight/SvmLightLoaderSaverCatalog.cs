@@ -33,8 +33,12 @@ namespace Microsoft.ML.Data
             bool zeroBased = false,
             IMultiStreamSource dataSample = null)
             => new SvmLightLoader(CatalogUtils.GetEnvironment(catalog), new SvmLightLoader.Options()
-            { InputSize = inputSize, NumberOfRows = numberOfRows, FeatureIndices = zeroBased ?
-                SvmLightLoader.FeatureIndices.ZeroBased : SvmLightLoader.FeatureIndices.OneBased }, dataSample);
+            {
+                InputSize = inputSize,
+                NumberOfRows = numberOfRows,
+                FeatureIndices = zeroBased ?
+                SvmLightLoader.FeatureIndices.ZeroBased : SvmLightLoader.FeatureIndices.OneBased
+            }, dataSample);
 
         /// <summary>
         /// Creates a loader that loads SVM-light like files, where features are specified by their names.

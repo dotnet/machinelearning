@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Data
                 _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                 _currentIdGetter = _currentCursor.GetIdGetter();
 
-                foreach(var col in columnsNeeded)
+                foreach (var col in columnsNeeded)
                     Getters[col.Index] = CreateGetter(col.Index);
             }
 
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Data
                 _sampler = new MultinomialWithoutReplacementSampler(Ch, counts, rand);
                 _currentSourceIndex = -1;
 
-                foreach(var col in columnsNeeded)
+                foreach (var col in columnsNeeded)
                     Getters[col.Index] = CreateGetter(col.Index);
             }
 

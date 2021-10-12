@@ -110,12 +110,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Contracts.CheckValue(env, nameof(env));
             env.CheckParam(stream != null, nameof(stream));
 
-            if (Transformer is ITransformerChainAccessor)
+            if (Transformer is ITransformerChainAccessor transformerChainAccessor)
             {
 
-                new TransformerChain<ITransformer>
-                (((ITransformerChainAccessor)Transformer).Transformers,
-                ((ITransformerChainAccessor)Transformer).Scopes).SaveTo(env, stream);
+                new TransformerChain<ITransformer>(transformerChainAccessor.Transformers, transformerChainAccessor.Scopes).SaveTo(env, stream);
             }
             else
                 Transformer.SaveTo(env, stream);
@@ -125,9 +123,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             ITransformer[] transformersClone = null;
             TransformerScope[] scopeClone = null;
-            if (transformer is ITransformerChainAccessor)
+            if (transformer is ITransformerChainAccessor transformerChainAccessor)
             {
-                ITransformerChainAccessor accessor = (ITransformerChainAccessor)transformer;
+                ITransformerChainAccessor accessor = transformerChainAccessor;
                 transformersClone = accessor.Transformers.Select(x => x).ToArray();
                 scopeClone = accessor.Scopes.Select(x => x).ToArray();
                 int index = 0;
@@ -147,6 +145,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
             base(env, CloneTransformers(transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        /// <summary>
+        /// Contructor for creating time series specific prediction engine. It allows the time series model to be updated with the observations
+        /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
+        /// </summary>
+        internal TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, PredictionEngineOptions options) :
+            base(env, CloneTransformers(transformer), options.IgnoreMissingColumns, options.InputSchemaDefinition, options.OutputSchemaDefinition, options.OwnsTransformer)
         {
         }
 
@@ -220,8 +227,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private bool IsRowToRowMapper(ITransformer transformer)
         {
-            if (transformer is ITransformerChainAccessor)
-                return ((ITransformerChainAccessor)transformer).Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
+            if (transformer is ITransformerChainAccessor transformerChainAccessor)
+                return transformerChainAccessor.Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
             else
                 return transformer.IsRowToRowMapper || transformer is IStatefulTransformer;
         }
@@ -233,8 +240,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 " method called despite " + nameof(IsRowToRowMapper) + " being false. or transformer not being " + nameof(IStatefulTransformer));
 
             if (!(InputTransformer is ITransformerChainAccessor))
-                if (InputTransformer is IStatefulTransformer)
-                    return ((IStatefulTransformer)InputTransformer).GetStatefulRowToRowMapper(inputSchema);
+                if (InputTransformer is IStatefulTransformer statefulTransformer)
+                    return statefulTransformer.GetStatefulRowToRowMapper(inputSchema);
                 else
                     return InputTransformer.GetRowToRowMapper(inputSchema);
 
@@ -399,6 +406,34 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
             return new TimeSeriesPredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+        }
+
+        /// <summary>
+        /// <see cref="TimeSeriesPredictionEngine{TSrc, TDst}"/> creates a prediction engine for a time series pipeline.
+        /// It updates the state of time series model with observations seen at prediction phase and allows checkpointing the model.
+        /// </summary>
+        /// <typeparam name="TSrc">Class describing input schema to the model.</typeparam>
+        /// <typeparam name="TDst">Class describing the output schema of the prediction.</typeparam>
+        /// <param name="transformer">The time series pipeline in the form of a <see cref="ITransformer"/>.</param>
+        /// <param name="env">Usually <see cref="MLContext"/></param>
+        /// <param name="options">Advanced configuration options.</param>
+        /// <p>Example code can be found by searching for <i>TimeSeriesPredictionEngine</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// This is an example for detecting change point using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static TimeSeriesPredictionEngine<TSrc, TDst> CreateTimeSeriesEngine<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
+            PredictionEngineOptions options)
+            where TSrc : class
+            where TDst : class, new()
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(options, nameof(options));
+            return new TimeSeriesPredictionEngine<TSrc, TDst>(env, transformer, options);
         }
     }
 }

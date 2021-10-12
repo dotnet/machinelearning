@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -47,29 +47,29 @@ namespace Microsoft.ML.EntryPoints
         {
             switch (kind)
             {
-            case TrainerKinds.SignatureBinaryClassifierTrainer:
-                entryPointName = "Models.BinaryClassificationEvaluator";
-                return new BinaryClassifierMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            case TrainerKinds.SignatureMulticlassClassificationTrainer:
-                entryPointName = "Models.ClassificationEvaluator";
-                return new MulticlassClassificationMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            case TrainerKinds.SignatureRankerTrainer:
-                entryPointName = "Models.RankingEvaluator";
-                return new RankingMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn, GroupIdColumn = settings.GroupColumn };
-            case TrainerKinds.SignatureRegressorTrainer:
-                entryPointName = "Models.RegressionEvaluator";
-                return new RegressionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            case TrainerKinds.SignatureMultiOutputRegressorTrainer:
-                entryPointName = "Models.MultiOutputRegressionEvaluator";
-                return new MultiOutputRegressionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            case TrainerKinds.SignatureAnomalyDetectorTrainer:
-                entryPointName = "Models.AnomalyDetectionEvaluator";
-                return new AnomalyDetectionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            case TrainerKinds.SignatureClusteringTrainer:
-                entryPointName = "Models.ClusterEvaluator";
-                return new ClusteringMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            default:
-                throw Contracts.Except("Trainer kind not supported");
+                case TrainerKinds.SignatureBinaryClassifierTrainer:
+                    entryPointName = "Models.BinaryClassificationEvaluator";
+                    return new BinaryClassifierMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+                case TrainerKinds.SignatureMulticlassClassificationTrainer:
+                    entryPointName = "Models.ClassificationEvaluator";
+                    return new MulticlassClassificationMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+                case TrainerKinds.SignatureRankerTrainer:
+                    entryPointName = "Models.RankingEvaluator";
+                    return new RankingMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn, GroupIdColumn = settings.GroupColumn };
+                case TrainerKinds.SignatureRegressorTrainer:
+                    entryPointName = "Models.RegressionEvaluator";
+                    return new RegressionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+                case TrainerKinds.SignatureMultiOutputRegressorTrainer:
+                    entryPointName = "Models.MultiOutputRegressionEvaluator";
+                    return new MultiOutputRegressionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+                case TrainerKinds.SignatureAnomalyDetectorTrainer:
+                    entryPointName = "Models.AnomalyDetectionEvaluator";
+                    return new AnomalyDetectionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+                case TrainerKinds.SignatureClusteringTrainer:
+                    entryPointName = "Models.ClusterEvaluator";
+                    return new ClusteringMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+                default:
+                    throw Contracts.Except("Trainer kind not supported");
             }
         }
 

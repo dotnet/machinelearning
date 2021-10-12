@@ -40,7 +40,7 @@ namespace Samples.Dynamic
 
                 foreach (var row in column)
                     Console.WriteLine(string.Join(" ", row.DenseValues().Select(x =>
-                        x.ToString("f3")))+" ");
+                        x.ToString("f3"))) + " ");
             };
 
 
@@ -77,15 +77,21 @@ namespace Samples.Dynamic
         /// <summary>
         /// Returns a few rows of the infertility dataset.
         /// </summary>
-        private static IEnumerable<SampleVectorOfNumbersData> 
+        private static IEnumerable<SampleVectorOfNumbersData>
             GetVectorOfNumbersData()
         {
             var data = new List<SampleVectorOfNumbersData>();
-            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 0,
-                1, 2, 3, 4, 5, 6, 7, 8, 9 } });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 0,
+                1, 2, 3, 4, 5, 6, 7, 8, 9 }
+            });
 
-            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 1,
-                2, 3, 4, 5, 6, 7, 8, 9, 0 } });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 1,
+                2, 3, 4, 5, 6, 7, 8, 9, 0 }
+            });
 
             data.Add(new SampleVectorOfNumbersData
             {

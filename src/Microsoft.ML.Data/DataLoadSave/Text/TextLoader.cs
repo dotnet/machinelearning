@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -581,7 +581,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public Segment(int min, int lim, bool forceVector)
             {
-                Contracts.Assert(0 <= min & min < lim & lim <= SrcLim);
+                Contracts.Assert(0 <= min && min < lim && lim <= SrcLim);
                 Min = min;
                 Lim = lim;
                 ForceVector = forceVector;
@@ -592,7 +592,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public Segment(int min)
             {
-                Contracts.Assert(0 <= min & min < SrcLim);
+                Contracts.Assert(0 <= min && min < SrcLim);
                 Min = min;
                 Lim = SrcLim;
                 ForceVector = true;
@@ -722,7 +722,7 @@ namespace Microsoft.ML.Data
                     }
 
                     int inputSize = parent._inputSize;
-                    ch.Assert(0 <= inputSize & inputSize < SrcLim);
+                    ch.Assert(0 <= inputSize && inputSize < SrcLim);
                     List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
                         Cursor.GetSomeLines(headerFile, 1, parent.ReadMultilines, parent._separators, parent._escapeChar, ref lines);
@@ -1246,7 +1246,7 @@ namespace Microsoft.ML.Data
                 throw _host.ExceptUserArg(nameof(Options.AllowQuoting), "Quoting must be allowed if decimal marker and separator are the ',' character.");
             _decimalMarker = options.DecimalMarker;
             _escapeChar = options.EscapeChar;
-            if(_separators.Contains(_escapeChar))
+            if (_separators.Contains(_escapeChar))
                 throw _host.ExceptUserArg(nameof(Options.EscapeChar), "EscapeChar '{0}' can't be used both as EscapeChar and separator", _escapeChar);
 
             _bindings = new Bindings(this, cols, headerFile, dataSample);
@@ -1257,31 +1257,31 @@ namespace Microsoft.ML.Data
         {
             switch (sep)
             {
-            case "space":
-            case " ":
-                return ' ';
-            case "tab":
-            case "\t":
-                return '\t';
-            case "comma":
-            case ",":
-                return ',';
-            case "colon":
-            case ":":
-                _host.CheckUserArg((_flags & OptionFlags.AllowSparse) == 0, nameof(Options.Separator),
-                    "When the separator is colon, turn off allowSparse");
-                return ':';
-            case "semicolon":
-            case ";":
-                return ';';
-            case "bar":
-            case "|":
-                return '|';
-            default:
-                char ch = sep[0];
-                if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
-                    throw _host.ExceptUserArg(nameof(Options.Separator), "Illegal separator: '{0}'", sep);
-                return sep[0];
+                case "space":
+                case " ":
+                    return ' ';
+                case "tab":
+                case "\t":
+                    return '\t';
+                case "comma":
+                case ",":
+                    return ',';
+                case "colon":
+                case ":":
+                    _host.CheckUserArg((_flags & OptionFlags.AllowSparse) == 0, nameof(Options.Separator),
+                        "When the separator is colon, turn off allowSparse");
+                    return ':';
+                case "semicolon":
+                case ";":
+                    return ';';
+                case "bar":
+                case "|":
+                    return '|';
+                default:
+                    char ch = sep[0];
+                    if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
+                        throw _host.ExceptUserArg(nameof(Options.Separator), "Illegal separator: '{0}'", sep);
+                    return sep[0];
             }
         }
 
@@ -1375,7 +1375,7 @@ namespace Microsoft.ML.Data
                 error = false;
                 options = optionsNew;
 
-                LDone:
+LDone:
                 return !error;
             }
         }
@@ -1428,11 +1428,11 @@ namespace Microsoft.ML.Data
             acceptableFlags |= OptionFlags.AllowSparse;
 
             // Flags added on later versions of TextLoader:
-            if(ctx.Header.ModelVerWritten >= 0x0001000C)
+            if (ctx.Header.ModelVerWritten >= 0x0001000C)
             {
                 acceptableFlags |= OptionFlags.ReadMultilines;
             }
-            if(ctx.Header.ModelVerWritten >= 0x0001000E)
+            if (ctx.Header.ModelVerWritten >= 0x0001000E)
             {
                 acceptableFlags |= OptionFlags.MissingRealsAsNaNs;
             }
@@ -1608,20 +1608,20 @@ namespace Microsoft.ML.Data
                 InternalDataKind dk;
                 switch (memberInfo)
                 {
-                case FieldInfo field:
-                    if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                        throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+                    case FieldInfo field:
+                        if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
 
-                    break;
+                        break;
 
-                case PropertyInfo property:
-                    if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
-                        throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
-                    break;
+                    case PropertyInfo property:
+                        if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                        break;
 
-                default:
-                    Contracts.Assert(false);
-                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                    default:
+                        Contracts.Assert(false);
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
                 }
 
                 column.Type = dk;

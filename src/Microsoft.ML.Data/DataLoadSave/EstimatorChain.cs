@@ -109,7 +109,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(env, nameof(env));
 
-            if(_estimators.Length == 0)
+            if (_estimators.Length == 0)
                 throw new InvalidOperationException("Current estimator chain has no estimator, can't append cache checkpoint.");
 
             if (_needCacheAfter.Last())

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Data
                         while (ichCur < ichLim)
                         {
                             ret = FieldIncludesNewLine(ref line, ref ichCur, ichLim, ref quotingError, false);
-                            if(quotingError)
+                            if (quotingError)
                                 return false;
 
                             // Skip empty fields
@@ -581,7 +581,7 @@ namespace Microsoft.ML.Data
                         if (ichCur >= ichLim) // if there were only leading spaces on the line
                             return startsInsideQuoted;
 
-                        if(startsInsideQuoted || line[ichCur] == '"')
+                        if (startsInsideQuoted || line[ichCur] == '"')
                         {
                             // Quoted Field Case
 
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Data
 
                         // Unquoted field case.
                         // An unquoted field shouldn't contain new lines
-                        while(ichCur < ichLim && !IsSep(line[ichCur]))
+                        while (ichCur < ichLim && !IsSep(line[ichCur]))
                         {
                             ichCur++;
                         }
@@ -780,7 +780,7 @@ namespace Microsoft.ML.Data
                                     }
                                 }
 
-                            LNext:
+LNext:
                                 ;
                             }
                         }

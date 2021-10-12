@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                bool fReal = fDot | fExp;
+                bool fReal = fDot || fExp;
                 char chSuf = LexRealSuffix(fReal);
                 if (fReal || chSuf != '\0')
                     return LexRealNum(chSuf);
@@ -602,13 +602,13 @@ namespace Microsoft.ML.Transforms
                             ChNext();
                             return true;
                         }
-                    LBad:
+LBad:
                         ReportError(ichErr, _cursor.IchCur, ErrId.BadEscape);
                         u = 0;
                         return false;
                 }
 
-            LHex:
+LHex:
                 bool fRet = true;
                 ChNext();
 

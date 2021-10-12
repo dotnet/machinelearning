@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     end = scorePipe;
                     transforms.AddLast(scoreOnnx);
 
-                    if(rawPred.PredictionKind == PredictionKind.BinaryClassification || rawPred.PredictionKind == PredictionKind.MulticlassClassification)
+                    if (rawPred.PredictionKind == PredictionKind.BinaryClassification || rawPred.PredictionKind == PredictionKind.MulticlassClassification)
                     {
                         // Check if the PredictedLabel Column is a KeyDataViewType and has KeyValue Annotations.
                         // If it does, add a KeyToValueMappingTransformer, to enable NimbusML to get the values back

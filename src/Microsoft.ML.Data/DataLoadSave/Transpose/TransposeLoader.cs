@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -717,7 +717,7 @@ namespace Microsoft.ML.Data.IO
 
         private Transposer EnsureAndGetTransposer(int col)
         {
-            _host.Assert(0 <= col & col < _header.ColumnCount);
+            _host.Assert(0 <= col && col < _header.ColumnCount);
             // Used to "fake" row data when we don't actually have it.
             _host.Assert(!HasRowData);
 

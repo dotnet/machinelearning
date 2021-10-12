@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.IntegrationTests.Datasets;
@@ -97,5 +98,45 @@ namespace Microsoft.ML.IntegrationTests
             Assert.True(pr.Score <= 0);
         }
 
+        [Fact]
+        public void PredictionEngineModelDisposal()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var data = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
+            var pipeline = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                     new Trainers.LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
+            var model = pipeline.Fit(data);
+
+            var engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model, new PredictionEngineOptions());
+
+            // Dispose of prediction engine, should dispose of model
+            engine.Dispose();
+
+            // Get disposed flag using reflection
+            var bfIsDisposed = BindingFlags.Instance | BindingFlags.NonPublic;
+            var field = model.GetType().BaseType.BaseType.GetField("_disposed", bfIsDisposed);
+
+            // Make sure the model is actually disposed
+            Assert.True((bool)field.GetValue(model));
+
+            // Make a new model/prediction engine. Set the options so prediction engine doesn't dispose
+            model = pipeline.Fit(data);
+
+            var options = new PredictionEngineOptions()
+            {
+                OwnsTransformer = false
+            };
+
+            engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model, options);
+
+            // Dispose of prediction engine, shouldn't dispose of model
+            engine.Dispose();
+
+            // Make sure model is not disposed of.
+            Assert.False((bool)field.GetValue(model));
+
+            // Dispose of the model for test cleanliness
+            model.Dispose();
+        }
     }
 }

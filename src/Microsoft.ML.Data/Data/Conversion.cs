@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1205,7 +1205,7 @@ namespace Microsoft.ML.Data.Conversion
             dst = res;
             return true;
 
-        LFail:
+LFail:
             dst = 0;
             return false;
         }
@@ -1312,7 +1312,7 @@ namespace Microsoft.ML.Data.Conversion
             result = res;
             return true;
 
-        LFail:
+LFail:
             result = 0;
             return false;
         }
@@ -1365,7 +1365,6 @@ namespace Microsoft.ML.Data.Conversion
 
             result = (long)sVal;
             Contracts.Assert(0 <= result && result <= long.MaxValue);
-            return;
         }
 
         /// <summary>

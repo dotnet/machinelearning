@@ -1,0 +1,50 @@
+# Please remember to update the documentation if you make changes to these parameters!
+parameters:
+  HelixSource: 'pr/default'              # required -- sources must start with pr/, official/, prodcon/, or agent/
+  HelixType: 'tests/default'            # required -- Helix telemetry which identifies what type of data this is; should include "test" for clarity and must end in '/'
+  HelixBuild: $(Build.BuildNumber)       # required -- the build number Helix will use to identify this -- automatically set to the AzDO build number
+  HelixTargetQueues: ''                  # required -- semicolon delimited list of Helix queues to test on; see https://helix.dot.net/ for a list of queues
+  HelixAccessToken: ''                   # required -- access token to make Helix API requests; should be provided by the appropriate variable group
+  Configuration: 'Debug'
+  Architecture: 'x64'
+  MsBuildScript: ''
+  WarnAsError: ''
+  TestTargetFramework: ''
+  HelixConfiguration: ''                 # optional -- additional property attached to a job
+  IncludeDotNetCli: true                 # optional -- true will download a version of the .NET CLI onto the Helix machine as a correlation payload; requires DotNetCliPackageType and DotNetCliVersion
+  EnableXUnitReporter: true              # optional -- true enables XUnit result reporting to Mission Control
+  WaitForWorkItemCompletion: true        # optional -- true will make the task wait until work items have been completed and fail the build if work items fail. False is "fire and forget."
+  HelixBaseUri: 'https://helix.dot.net' # optional -- sets the Helix API base URI (allows targeting int)
+  Creator: 'ML.NET'                      # optional -- if the build is external, use this to specify who is sending the job
+  DisplayNamePrefix: 'Run Helix Tests'   # optional -- rename the beginning of the displayName of the steps in AzDO
+  continueOnError: false                 # optional -- determines whether to continue the build if the step errors; defaults to false
+  condition: succeeded()                 # optional -- condition for step to execute; defaults to succeeded()
+
+steps:
+  - script: ${{ parameters.MsBuildScript}}
+            $(Build.SourcesDirectory)/eng/helix.proj
+            /t:Test
+            /bl:$(Build.SourcesDirectory)/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog
+            /p:Configuration=${{ parameters.Configuration }}
+            /p:TargetArchitecture=${{ parameters.Architecture }}
+            /p:BuildConfig=${{ parameters.Configuration }}
+            /p:BuildArchitecture=${{ parameters.Architecture }}
+            /p:HelixSource=${{ parameters.HelixSource }}
+            /p:HelixType=${{ parameters.HelixType }}
+            /p:HelixBuild=${{ parameters.HelixBuild }}
+            /p:HelixConfiguration="${{ parameters.HelixConfiguration }}"
+            /p:HelixAccessToken="${{ parameters.HelixAccessToken }}"
+            /p:IncludeDotNetCli=${{ parameters.IncludeDotNetCli }}
+            /p:EnableXUnitReporter=${{ parameters.EnableXUnitReporter }}
+            /p:WaitForWorkItemCompletion=${{ parameters.WaitForWorkItemCompletion }}
+            /p:HelixBaseUri=${{ parameters.HelixBaseUri }}
+            ${{ parameters.WarnAsError }}
+            ${{ parameters.TestTargetFramework }}
+    displayName: ${{ parameters.DisplayNamePrefix }}
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      Creator: ${{ parameters.Creator }}
+      HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
+    continueOnError: ${{ parameters.continueOnError }}
+    ${{ if and(contains(parameters.HelixTargetQueues, 'OSX.1100.Arm64.Open'), in(variables['Build.Reason'], 'PullRequest')) }}:
+      enabled: False

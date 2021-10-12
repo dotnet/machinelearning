@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
                 _featureColumnType = schema[_featureColumnIndex].Type as VectorDataViewType;
                 if (_featureColumnType == null || _featureColumnType.ItemType != NumberDataViewType.Single)
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of Single", _featureColumnType.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of Single", schema[_featureColumnIndex].Type.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
                     InputSchema[_featureColumnIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms
                 throw host.ExceptUserArg(nameof(predictor), "The provided model parameters do not support feature contribution calculation.");
             var outData = new FeatureContributionCalculatingTransformer(host, predictor, options.FeatureColumn, options.Top, options.Bottom, options.Normalize).Transform(options.Data);
 
-            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, options.Data), OutputData = outData};
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, options.Data), OutputData = outData };
         }
     }
 }

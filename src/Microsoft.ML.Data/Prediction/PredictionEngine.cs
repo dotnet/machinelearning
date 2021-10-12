@@ -1,16 +1,15 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
-
     /// <summary>
     /// Utility class to run the pipeline to completion and produce a strongly-typed IEnumerable as a result.
     /// Doesn't allocate memory for every row: instead, yields the same row object on every step.
@@ -19,7 +18,6 @@ namespace Microsoft.ML
         where TDst : class, new()
     {
         private readonly ICursorable<TDst> _cursorablePipe;
-        private long _counter;
 
         internal PipeEngine(IHostEnvironment env, IDataView pipe, bool ignoreMissingColumns, SchemaDefinition schemaDefinition = null)
         {
@@ -28,12 +26,10 @@ namespace Microsoft.ML
             env.AssertValueOrNull(schemaDefinition);
 
             _cursorablePipe = env.AsCursorable<TDst>(pipe, ignoreMissingColumns, schemaDefinition);
-            _counter = 0;
         }
 
         public IEnumerable<TDst> RunPipe(bool reuseRowObject)
         {
-            var curCounter = _counter;
             using (var cursor = _cursorablePipe.GetCursor())
             {
                 TDst row = null;
@@ -44,15 +40,8 @@ namespace Microsoft.ML
 
                     cursor.FillValues(row);
                     yield return row;
-                    if (curCounter != _counter)
-                        throw Contracts.Except("An attempt was made to keep iterating after the pipe has been reset.");
                 }
             }
-        }
-
-        public void Reset()
-        {
-            _counter++;
         }
     }
 
@@ -70,8 +59,8 @@ namespace Microsoft.ML
        where TDst : class, new()
     {
         internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownsTransformer = true)
+            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, ownsTransformer)
         {
         }
 
@@ -104,6 +93,7 @@ namespace Microsoft.ML
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
         private readonly IRowReadableAs<TDst> _outputRow;
         private readonly Action _disposer;
+        private readonly bool _ownsTransformer;
         private bool _disposed;
 
         /// <summary>
@@ -115,21 +105,8 @@ namespace Microsoft.ML
         private protected ITransformer Transformer { get; }
 
         [BestFriend]
-        private static Func<DataViewSchema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
-        {
-            env.CheckValue(modelStream, nameof(modelStream));
-            return schema =>
-            {
-                var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, new EmptyDataView(env, schema));
-                var transformer = new TransformWrapper(env, pipe);
-                env.CheckParam(((ITransformer)transformer).IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
-                return ((ITransformer)transformer).GetRowToRowMapper(schema);
-            };
-        }
-
-        [BestFriend]
         private protected PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null, bool ownsTransformer = true)
         {
             Contracts.CheckValue(env, nameof(env));
             env.AssertValue(transformer);
@@ -137,6 +114,7 @@ namespace Microsoft.ML
             var makeMapper = TransformerChecker(env, transformer);
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
+            _ownsTransformer = ownsTransformer;
             PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, outputSchemaDefinition, out _disposer, out _outputRow);
             OutputSchema = Transformer.GetOutputSchema(_inputRow.Schema);
         }
@@ -164,7 +142,9 @@ namespace Microsoft.ML
                 return;
 
             _disposer?.Invoke();
-            (Transformer as IDisposable)?.Dispose();
+
+            if (_ownsTransformer)
+                (Transformer as IDisposable)?.Dispose();
 
             _disposed = true;
         }
@@ -194,5 +174,31 @@ namespace Microsoft.ML
         /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
         /// is reused.</param>
         public abstract void Predict(TSrc example, ref TDst prediction);
+    }
+
+    /// <summary>
+    /// Options for the <see cref="PredictionEngine{TSrc, TDst}"/>
+    /// </summary>
+    public sealed class PredictionEngineOptions
+    {
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to throw an error if a column exists in the output schema but not the output object.", ShortName = "ignore", SortOrder = 50)]
+        public bool IgnoreMissingColumns = Defaults.IgnoreMissingColumns;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Additional settings of the input schema.", ShortName = "input", SortOrder = 50)]
+        public SchemaDefinition InputSchemaDefinition = Defaults.InputSchemaDefinition;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Additional settings of the output schema.", ShortName = "output")]
+        public SchemaDefinition OutputSchemaDefinition = Defaults.OutputSchemaDefinition;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the prediction engine owns the transformer and should dispose of it.", ShortName = "own")]
+        public bool OwnsTransformer = Defaults.OwnsTransformer;
+
+        internal static class Defaults
+        {
+            public const bool IgnoreMissingColumns = true;
+            public const SchemaDefinition InputSchemaDefinition = null;
+            public const SchemaDefinition OutputSchemaDefinition = null;
+            public const bool OwnsTransformer = true;
+        }
     }
 }

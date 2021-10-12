@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Internal.Utilities
                 // Call sites only care about completion, not about the distinction between
                 // success and failure and do not expect exceptions to be propagated in this manner,
                 // so only SetResult is used.
-                var tcs = new TaskCompletionSource<bool>(TaskContinuationOptions.RunContinuationsAsynchronously);
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 // Queue the work for a thread to pick up. If no thread is immediately available, it will create one.
                 Enqueue((threadStart, state, tcs));

@@ -199,11 +199,54 @@ namespace Microsoft.Data.Analysis
         /// <param name="ascending"></param>
         public virtual DataFrameColumn Sort(bool ascending = true)
         {
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices();
+            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
             return Clone(sortIndices, !ascending, NullCount);
         }
 
-        public virtual Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>() => throw new NotImplementedException();
+        /// <summary>
+        /// Groups the rows of this column by their value.
+        /// </summary>
+        /// <typeparam name="TKey">The type of data held by this column</typeparam>
+        /// <returns>A mapping of value(<typeparamref name="TKey"/>) to the indices containing this value</returns>
+        public virtual Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>(out HashSet<long> nullIndices) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Get occurences of each value from this column in other column, grouped by this value
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="otherColumnNullIndices"></param>
+        /// <returns>A mapping of index from this column to the indices of same value in other column</returns>
+        public abstract Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices);
+
+        /// <summary>
+        /// Get occurences of each value from this column in other column, grouped by this value
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="other"></param>
+        /// <param name="otherColumnNullIndices"></param>
+        /// <returns>A mapping of index from this column to the indices of same value in other column</returns>
+        protected Dictionary<long, ICollection<long>> GetGroupedOccurrences<TKey>(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
+        {
+            if (this.DataType != other.DataType)
+                throw new ArgumentException(String.Format(Strings.MismatchedColumnValueType, this.DataType), nameof(other));
+
+            // First hash other column   
+            Dictionary<TKey, ICollection<long>> multimap = other.GroupColumnValues<TKey>(out otherColumnNullIndices);
+
+            var ret = new Dictionary<long, ICollection<long>>();
+
+            //For each value in this column find rows from other column with equal value
+            for (int i = 0; i < this.Length; i++)
+            {
+                var value = this[i];
+                if (value != null && multimap.TryGetValue((TKey)value, out ICollection<long> otherRowIndices))
+                {
+                    ret.Add(i, otherRowIndices);
+                }
+            }
+            
+            return ret;
+        }
 
         /// <summary>
         /// Returns a DataFrame containing counts of unique values
@@ -331,7 +374,11 @@ namespace Microsoft.Data.Analysis
         /// </summary>
         public virtual DataFrameColumn Description() => throw new NotImplementedException();
 
-        internal virtual PrimitiveDataFrameColumn<long> GetAscendingSortIndices() => throw new NotImplementedException();
+        /// <summary>
+        /// Returns the indices of non-null values that, when applied, result in this column being sorted in ascending order. Also returns the indices of null values in <paramref name="nullIndices"/>.
+        /// </summary>
+        /// <param name="nullIndices">Indices of values that are <see langword="null"/>.</param>
+        internal virtual PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices) => throw new NotImplementedException();
 
         internal delegate long GetBufferSortIndex(int bufferIndex, int sortIndex);
         internal delegate ValueTuple<T, int> GetValueAndBufferSortIndexAtBuffer<T>(int bufferIndex, int valueIndex);

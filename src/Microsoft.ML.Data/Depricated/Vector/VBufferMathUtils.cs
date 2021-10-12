@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Numeric
             {
                 gapCount = srcValues.Length;
                 var srcIndices = src.GetIndices();
-                for (int iS = 0, iD = dMin; iS < srcIndices.Length && iD < dLim; )
+                for (int iS = 0, iD = dMin; iS < srcIndices.Length && iD < dLim;)
                 {
                     var comp = srcIndices[iS] - dstIndices[iD] + offset;
                     if (comp < 0) // dst index is larger.
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Numeric
                 int sIndex = iS < 0 ? -1 : srcIndices[iS];
                 int dIndex = iD < 0 ? -1 : dstIndices[iD] - offset;
 
-                for (int iDD = dLim + gapCount; --iDD >= dMin; )
+                for (int iDD = dLim + gapCount; --iDD >= dMin;)
                 {
                     Contracts.Assert(iDD >= iD);
                     int comp = sIndex - dIndex;

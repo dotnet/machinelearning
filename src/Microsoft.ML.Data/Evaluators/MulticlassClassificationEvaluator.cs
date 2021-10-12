@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var scoreType = score.Type as VectorDataViewType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type Single", scoreType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type Single", score.Type.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             var labelType = schema.Label.Value.Type;
             if (labelType != NumberDataViewType.Single && labelType.GetKeyCount() <= 0)
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Data
                 //  are sequentially first.
                 int rankOfCorrectLabel = 0;
                 int assigned = 0;
-                for (int i=0; i < _scoresArr.Length; i++)
+                for (int i = 0; i < _scoresArr.Length; i++)
                 {
                     if (_scoresArr[i] > correctProba || (_scoresArr[i] == correctProba && i < intLabel))
                         rankOfCorrectLabel++;
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Data
             if (schema[ScoreIndex].HasSlotNames(_numClasses))
             {
                 var classNames = default(VBuffer<ReadOnlyMemory<char>>);
-                schema[(int) ScoreIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref classNames);
+                schema[(int)ScoreIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref classNames);
                 _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }
@@ -859,7 +859,7 @@ namespace Microsoft.ML.Data
 
             var scoreType = schema[ScoreIndex].Type as VectorDataViewType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "Vector of two or more items of type Single", scoreType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "Vector of two or more items of type Single", schema[ScoreIndex].Type.ToString());
             var labelType = schema[LabelIndex].Type;
             if (labelType != NumberDataViewType.Single && labelType.GetKeyCount() <= 0)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "Single or Key", labelType.ToString());

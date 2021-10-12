@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Data
 
         private void GetPredictedLabelCoreAsKey(float score, ref uint value)
         {
-            value = (uint)(score > _threshold ? 2 : score <= _threshold ? 1 : 0);
+            value = (uint)(score > _threshold ? 2 : 1);
         }
 
         private protected override JToken PredictedLabelPfa(string[] mapperOutputs)

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -620,7 +620,7 @@ namespace Microsoft.ML.CommandLine
                 }
                 Contracts.AssertValue(arg);
                 Contracts.Assert(arg != info.ArgDef);
-                Contracts.Assert(0 <= arg.Index & arg.Index < info.Args.Length);
+                Contracts.Assert(0 <= arg.Index && arg.Index < info.Args.Length);
                 if (tag != null && !arg.IsTaggedCollection)
                 {
                     hadError = true;
@@ -1235,7 +1235,8 @@ namespace Microsoft.ML.CommandLine
                 // Used for help and composing settings strings.
                 public object DefaultValue { get { return _arg.DefaultValue; } }
 
-                public bool IsRequired {
+                public bool IsRequired
+                {
                     get { return ArgumentType.Required == (Kind & ArgumentType.Required); }
                 }
 
@@ -2239,15 +2240,18 @@ namespace Microsoft.ML.CommandLine
                 return bldr.ToString();
             }
 
-            public bool IsRequired {
+            public bool IsRequired
+            {
                 get { return 0 != (Kind & ArgumentType.Required); }
             }
 
-            public bool AllowMultiple {
+            public bool AllowMultiple
+            {
                 get { return 0 != (Kind & ArgumentType.Multiple); }
             }
 
-            public bool Unique {
+            public bool Unique
+            {
                 get { return 0 != (Kind & ArgumentType.Unique); }
             }
 
@@ -2261,7 +2265,8 @@ namespace Microsoft.ML.CommandLine
                 get { return IsComponentFactory && Field.FieldType.IsArray; }
             }
 
-            public bool IsCustomItemType {
+            public bool IsCustomItemType
+            {
                 get { return _infoCustom != null; }
             }
         }

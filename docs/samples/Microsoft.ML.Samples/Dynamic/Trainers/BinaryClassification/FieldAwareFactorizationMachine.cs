@@ -39,7 +39,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 new[] {nameof(DataPoint.Field0), nameof(DataPoint.Field1),
                 nameof(DataPoint.Field2) },
                 // Specify binary label's column name.
-                nameof(DataPoint.Label) );
+                nameof(DataPoint.Label));
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -81,7 +81,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 .CreatePredictionEngine<DataPoint, Result>(model);
 
             // Make some predictions.
-            foreach(var dataPoint in data.Take(5))
+            foreach (var dataPoint in data.Take(5))
             {
                 var result = engine.Predict(dataPoint);
                 Console.WriteLine($"Actual label: {dataPoint.Label}, "
@@ -195,11 +195,11 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
             Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
-            Console.WriteLine($"Negative Precision: " + 
+            Console.WriteLine($"Negative Precision: " +
                 $"{metrics.NegativePrecision:F2}");
 
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
-            Console.WriteLine($"Positive Precision: " + 
+            Console.WriteLine($"Positive Precision: " +
                 $"{metrics.PositivePrecision:F2}");
 
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
+            Contracts.Assert(0 <= count && count <= Utils.Size(values));
 
             writer.Write(count);
             writer.Write(values, 0, count);
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
+            Contracts.Assert(0 <= count && count <= Utils.Size(values));
 
             writer.Write(values, 0, count);
         }

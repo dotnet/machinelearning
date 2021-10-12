@@ -58,7 +58,7 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var t = score.Type as VectorDataViewType;
             if (t == null || t.Size == 0 || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Vector of Single or Double", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Vector of Single or Double", score.Type.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
             var labelType = schema.Label.Value.Type;
             if (labelType != NumberDataViewType.Single)

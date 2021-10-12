@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -618,7 +618,7 @@ namespace Microsoft.ML.Transforms
                 {
                     // Even if the result is false, we need to call every checker so that they can memorize
                     // the current key value.
-                    result = checker.IsSameKey() & result;
+                    result = checker.IsSameKey() && result;
                 }
                 return result;
             }

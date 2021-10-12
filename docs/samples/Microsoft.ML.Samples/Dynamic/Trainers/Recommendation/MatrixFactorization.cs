@@ -8,7 +8,7 @@ namespace Samples.Dynamic.Trainers.Recommendation
 {
     public static class MatrixFactorization
     {
-        
+
         // This example requires installation of additional nuget package at
         // for Microsoft.ML.Recommender at
         // https://www.nuget.org/packages/Microsoft.ML.Recommender/
@@ -92,8 +92,12 @@ namespace Samples.Dynamic.Trainers.Recommendation
             var dataMatrix = new List<MatrixElement>();
             for (uint i = 0; i < MatrixColumnCount; ++i)
                 for (uint j = 0; j < MatrixRowCount; ++j)
-                    dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i,
-                        MatrixRowIndex = j, Value = (i + j) % 5 });
+                    dataMatrix.Add(new MatrixElement()
+                    {
+                        MatrixColumnIndex = i,
+                        MatrixRowIndex = j,
+                        Value = (i + j) % 5
+                    });
 
             return dataMatrix;
         }

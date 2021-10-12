@@ -55,6 +55,11 @@ namespace Microsoft.Data.Analysis
                 return (IPrimitiveColumnComputation<T>)new <#=type.ClassPrefix#>Computation();
             }
 <# } #>
+            else if (typeof(T) == typeof(DateTime)) 
+            {
+                return (IPrimitiveColumnComputation<T>)new DateTimeComputation();
+            }
+
             throw new NotSupportedException();
         }
     }

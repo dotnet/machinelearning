@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Internal.Internallearn
 
                 var metadataBuilder = new DataViewSchema.Annotations.Builder();
                 metadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, _slotNamesType,
-                    (ref VBuffer<ReadOnlyMemory<char>> slotNames) => { GetSlotNames(0, ref slotNames); } );
+                    (ref VBuffer<ReadOnlyMemory<char>> slotNames) => { GetSlotNames(0, ref slotNames); });
                 var schemaBuilder = new DataViewSchema.Builder();
                 schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.ToAnnotations());
                 FeatureNameCollectionSchema = schemaBuilder.ToSchema();
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Internal.Internallearn
 
         private string GetDefault(int index)
         {
-            Contracts.Assert(0 <= index & index < Count);
+            Contracts.Assert(0 <= index && index < Count);
             return string.Format(DefaultFmt, index);
         }
 

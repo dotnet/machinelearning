@@ -15,14 +15,12 @@ namespace Microsoft.ML.PerformanceTests
 {
     public class RecommendedConfig : ManualConfig
     {
-        protected static readonly IReadOnlyList<MsBuildArgument> msbuildArguments = new List<MsBuildArgument>() { new MsBuildArgument($"/p:Configuration={GetBuildConfigurationName()}") };
-
         public RecommendedConfig()
         {
             Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
 
             Add(GetJobDefinition() // job defines how many times given benchmark should be executed
-                .With(msbuildArguments)
+                .WithCustomBuildConfiguration(GetBuildConfigurationName())
                 .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
 
             Add(new ExtraMetricColumn()); // an extra column that can display additional metric reported by the benchmarks
@@ -60,7 +58,7 @@ namespace Microsoft.ML.PerformanceTests
                 csProj.Executor);
         }
 
-        private static string GetBuildConfigurationName()
+        protected static string GetBuildConfigurationName()
         {
 #if NETCOREAPP3_1
             return "Release-netcoreapp3_1";
@@ -76,7 +74,7 @@ namespace Microsoft.ML.PerformanceTests
     {
         protected override Job GetJobDefinition()
             => Job.Dry // the "Dry" job runs the benchmark exactly once, without any warmup to mimic real-world scenario
-                  .With(msbuildArguments)
+                  .WithCustomBuildConfiguration(GetBuildConfigurationName())
                   .WithLaunchCount(3); // BDN will run 3 dedicated processes, sequentially
     }
 }

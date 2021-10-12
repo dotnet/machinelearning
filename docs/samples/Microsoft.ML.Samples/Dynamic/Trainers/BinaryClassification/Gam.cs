@@ -16,7 +16,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // exception tracking and logging, as a catalog of available operations
             // and as the source of randomness.
             var mlContext = new MLContext();
-            
+
             // Create the dataset.
             var samples = GenerateData();
 
@@ -43,7 +43,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // a technique called pruning to tune the model to the validation set
             // after training to improve generalization.
             var model = trainer.Fit(trainSet, validSet);
-            
+
             // Extract the model parameters.
             var gam = model.Model.SubModel;
 
@@ -147,7 +147,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             for (int i = 0; i < numExamples; i++)
             {
                 // Generate random, uncoupled features.
-                var data = new Data {
+                var data = new Data
+                {
                     Features = new float[2] { centeredFloat(), centeredFloat() }
                 };
                 // Compute the label from the shape functions and add noise.

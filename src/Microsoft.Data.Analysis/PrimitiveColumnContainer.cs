@@ -103,7 +103,7 @@ namespace Microsoft.Data.Analysis
                     // Create a new bitMap with all the bits up to length set
                     var bitMap = new byte[bitMapBufferLength];
                     bitMap.AsSpan().Fill(255);
-                    int lastByte = 1 << (length - (bitMapBufferLength - 1) * 8); 
+                    int lastByte = 1 << (length - (bitMapBufferLength - 1) * 8);
                     bitMap[bitMapBufferLength - 1] = (byte)(lastByte - 1);
                     nullDataFrameBuffer = new DataFrameBuffer<byte>(bitMap, bitMapBufferLength);
                 }

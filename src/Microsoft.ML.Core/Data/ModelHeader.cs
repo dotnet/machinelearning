@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -517,7 +517,7 @@ namespace Microsoft.ML
 
                         long offsetPrev = offset;
                         offset = offsets[i];
-                        Contracts.CheckDecode(offsetPrev <= offset & offset <= header.CbStringChars);
+                        Contracts.CheckDecode(offsetPrev <= offset && offset <= header.CbStringChars);
                         Contracts.CheckDecode(offset % sizeof(char) == 0);
                         long cch = (offset - offsetPrev) / sizeof(char);
                         Contracts.CheckDecode(cch < int.MaxValue);

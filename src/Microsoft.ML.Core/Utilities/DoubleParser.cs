@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Internal.Utilities
             res *= tmp;
             value = (Single)res;
 
-        LDone:
+LDone:
             if (neg)
                 value = -value;
 
@@ -445,11 +445,11 @@ namespace Microsoft.ML.Internal.Utilities
             }
 
             // Multiply by the exponent adjustment.
-            Contracts.Assert(0 < e2 & e2 < 0x7FF);
+            Contracts.Assert(0 < e2 && e2 < 0x7FF);
             mul = (ulong)e2 << 52;
             unsafe { value *= *(Double*)&mul; }
 
-        LDone:
+LDone:
             if (neg)
                 value = -value;
 
@@ -548,7 +548,7 @@ namespace Microsoft.ML.Internal.Utilities
 
         private static bool TryParseCore(ReadOnlySpan<char> span, ref int ich, ref bool neg, ref ulong num, ref long exp, OptionFlags flags = OptionFlags.Default)
         {
-            Contracts.Assert(0 <= ich & ich <= span.Length);
+            Contracts.Assert(0 <= ich && ich <= span.Length);
             Contracts.Assert(!neg);
             Contracts.Assert(num == 0);
             Contracts.Assert(exp == 0);
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Internal.Utilities
             if (span[i] != decimalMarker)
                 goto LAfterDigits;
 
-            LPoint:
+LPoint:
             Contracts.Assert(i < span.Length);
             Contracts.Assert(span[i] == decimalMarker);
 
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Internal.Utilities
                 }
             }
 
-        LAfterDigits:
+LAfterDigits:
             Contracts.Assert(i < span.Length);
             if (!digits)
                 return false;
@@ -949,7 +949,7 @@ namespace Microsoft.ML.Internal.Utilities
 
                 Double dbl = (Double)(ulong)man;
                 int e2 = _mpe10e2[i] + (0x3FF - 63);
-                Contracts.Assert(0 < e2 & e2 < 0x7FF);
+                Contracts.Assert(0 < e2 && e2 < 0x7FF);
                 ulong mul = (ulong)e2 << 52;
                 unsafe { dbl *= *(Double*)&mul; }
                 _mpe10Dbl[i] = dbl;
@@ -965,7 +965,7 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 Double dbl = _mpne10Man[i];
                 int e2 = -_mpne10ne2[i] + (0x3FF - 64);
-                Contracts.Assert(0 < e2 & e2 < 0x7FF);
+                Contracts.Assert(0 < e2 && e2 < 0x7FF);
                 ulong mul = (ulong)e2 << 52;
                 unsafe { dbl *= *(Double*)&mul; }
                 _mpne10Dbl[i] = dbl;

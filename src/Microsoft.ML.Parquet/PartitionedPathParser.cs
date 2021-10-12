@@ -278,7 +278,7 @@ namespace Microsoft.ML.Data
                 sb.Clear();
                 _host.Check(col.TryUnparse(sb));
                 ctx.SaveString(sb.ToString());
-            };
+            }
         }
         public IEnumerable<PartitionedFileLoader.Column> ParseColumns(string path)
         {

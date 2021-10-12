@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Data
                 _columns = builder._columns.ToArray();
 
                 var schemaBuilder = new DataViewSchema.Builder();
-                for(int i=0; i< _columns.Length; i++)
+                for (int i = 0; i < _columns.Length; i++)
                 {
                     var meta = new DataViewSchema.Annotations.Builder();
 
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public override void CopyOut(int index, ref TOut value)
             {
-                Contracts.Assert(0 <= index & index < _values.Length);
+                Contracts.Assert(0 <= index && index < _values.Length);
                 CopyOut(in _values[index], ref value);
             }
         }

@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML.Samples
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
-        
+
         private static void PrintMetrics(MulticlassClassificationMetrics metrics)
         {
             Console.WriteLine($"LogLoss: {metrics.LogLoss}");

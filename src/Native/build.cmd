@@ -29,6 +29,8 @@ if /i [%1] == [Debug-netfx]       ( set CMAKE_BUILD_TYPE=Debug-netfx&&shift&goto
 if /i [%1] == [x86]         ( set __BuildArch=x86&&set __VCBuildArch=x86&&shift&goto Arg_Loop)
 if /i [%1] == [x64]         ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
 if /i [%1] == [amd64]       ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
+if /i [%1] == [arm]         ( set __BuildArch=arm&&set __VCBuildArch=x86_arm&&shift&goto Arg_Loop)
+if /i [%1] == [arm64]       ( set __BuildArch=arm64&&set __VCBuildArch=x86_arm64&&shift&goto Arg_Loop)
 
 if /i [%1] == [--mkllibpath] ( set MKL_LIB_PATH=%2&&shift&goto Arg_Loop)
 shift
@@ -49,7 +51,9 @@ set "VSCMD_START_DIR=%__currentScriptDir%"
 call "%_VSCOMNTOOLS%\VsDevCmd.bat"
 
 :RunVCVars
-if "%VisualStudioVersion%"=="16.0" (
+if "%VisualStudioVersion%"=="17.0" (
+    goto :VS2022
+) else if "%VisualStudioVersion%"=="16.0" (
     goto :VS2019
 ) else if "%VisualStudioVersion%"=="15.0" (
     goto :VS2017
@@ -58,39 +62,43 @@ if "%VisualStudioVersion%"=="16.0" (
 )
 
 :MissingVersion
-:: Can't find VS 2015, 2017 or 2019
-echo Error: Visual Studio 2015, 2017 or 2019 required
+:: Can't find VS 2015, 2017, 2019, or 2022
+echo Error: Visual Studio 2015, 2017, 2019, or 2022 required
 echo        Please see https://github.com/dotnet/machinelearning/tree/main/Documentation for build instructions.
 exit /b 1
 
+:VS2022
+:: Setup vars for VS2022
+set __PlatformToolset=v143
+set __VSVersion=17 2022
+:: Set the environment for the native build
+call "%VS170COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+
+goto :SetupDirs
 :VS2019
 :: Setup vars for VS2019
 set __PlatformToolset=v142
 set __VSVersion=16 2019
-if NOT "%__BuildArch%" == "arm64" (
-    :: Set the environment for the native build
-    call "%VS160COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
-)
+:: Set the environment for the native build
+call "%VS160COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+
 goto :SetupDirs
 
 :VS2017
 :: Setup vars for VS2017
 set __PlatformToolset=v141
 set __VSVersion=15 2017
-if NOT "%__BuildArch%" == "arm64" (
-    :: Set the environment for the native build
-    call "%VS150COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
-)
+:: Set the environment for the native build
+call "%VS150COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+
 goto :SetupDirs
 
 :VS2015
 :: Setup vars for VS2015build
 set __PlatformToolset=v140
 set __VSVersion=14 2015
-if NOT "%__BuildArch%" == "arm64" (
-    :: Set the environment for the native build
-    call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" %__VCBuildArch%
-)
+:: Set the environment for the native build
+call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" %__VCBuildArch%
 
 :SetupDirs
 :: Setup to cmake the native components

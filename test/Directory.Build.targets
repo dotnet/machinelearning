@@ -8,4 +8,7 @@
     <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.runtimeconfig.json;.runtimeconfig.dev.json;.deps.json</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
+  <!-- Coverlet publish causes problems with dependenies -->
+  <Target Name="CopyCoverletDataCollectorFiles" AfterTargets="ComputeFilesToPublish"/>
+
 </Project>

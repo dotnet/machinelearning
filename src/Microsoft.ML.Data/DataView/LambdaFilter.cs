@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -87,8 +87,8 @@ namespace Microsoft.ML.Data
                 : base(env, name, input)
             {
                 Host.AssertValue(pred);
-                Host.Assert(conv != null | typeof(T1) == typeof(T2));
-                Host.Assert(0 <= colSrc & colSrc < Source.Schema.Count);
+                Host.Assert(conv != null || typeof(T1) == typeof(T2));
+                Host.Assert(0 <= colSrc && colSrc < Source.Schema.Count);
 
                 _colSrc = colSrc;
                 _pred = pred;

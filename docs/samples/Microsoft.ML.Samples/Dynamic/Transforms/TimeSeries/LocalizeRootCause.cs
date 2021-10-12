@@ -28,7 +28,7 @@ namespace Samples.Dynamic
             {
                 count++;
                 Console.WriteLine($"Root cause item #{count} ...");
-                Console.WriteLine($"Score: {item.Score}, Path: {String.Join(" ",item.Path)}, Direction: {item.Direction}, Dimension:{String.Join(" ", item.Dimension)}");
+                Console.WriteLine($"Score: {item.Score}, Path: {String.Join(" ", item.Path)}, Direction: {item.Direction}, Dimension:{String.Join(" ", item.Dimension)}");
             }
 
             //Item #1 ...

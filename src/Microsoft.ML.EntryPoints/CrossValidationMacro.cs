@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -423,22 +423,22 @@ namespace Microsoft.ML.EntryPoints
         {
             switch (kind)
             {
-            case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
-                return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureMulticlassClassificationTrainer:
-                return new MulticlassClassificationMamlEvaluator(env, new MulticlassClassificationMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
-                return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureRankerTrainer:
-                return new RankingMamlEvaluator(env, new RankingMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
-                return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
-                return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
-                return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
-            default:
-                throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
+                case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
+                    return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureMulticlassClassificationTrainer:
+                    return new MulticlassClassificationMamlEvaluator(env, new MulticlassClassificationMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
+                    return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureRankerTrainer:
+                    return new RankingMamlEvaluator(env, new RankingMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
+                    return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
+                    return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
+                    return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
+                default:
+                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
             }
         }
     }

@@ -10,6 +10,15 @@ If you are here, it means you are interested in helping us out. A hearty welcome
 
 Please join the community on Gitter [![Join the chat at https://gitter.im/dotnet/mlnet](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/mlnet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge). Also please make sure to take a look at the project [roadmap](ROADMAP.md).
 
+
+### Finding an issue to work on
+
+We've created a separate bucket of issues, which would be great candidates for community members to contribute to. We mark these issues with the `help wanted` label. You can find all these issues [here](https://github.com/dotnet/machinelearning/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
+  
+Within that set, we have additionally marked issues which are good candidates for first-time contributors. Those do not require too much familiarity with the codebase and are more novice-friendly. Those are marked with `good first issue` label. The full list of such issues can be found [here](https://github.com/dotnet/machinelearning/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+  
+If there is some other area not included here where you want to contribute to, first open an issue to describe the problem you are trying to solve and state that you're willing to contribute a fix for it. We will then discuss in that issue, if this is an issue we would like addressed and the best approach to solve it.
+
 ### Pull requests
 
 If you are new to GitHub [here](https://help.github.com/categories/collaborating-with-issues-and-pull-requests/) is a detailed help source on getting involved with development on GitHub.

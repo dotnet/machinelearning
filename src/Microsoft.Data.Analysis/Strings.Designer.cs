@@ -70,6 +70,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot cast elements of column &apos;{0}&apos; type of {1} to type {2} used as TKey in grouping .
+        /// </summary>
+        internal static string BadColumnCastDuringGrouping {
+            get {
+                return ResourceManager.GetString("BadColumnCastDuringGrouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Line {0} cannot be parsed with the current Delimiters..
         /// </summary>
         internal static string CannotParseWithDelimiters {
@@ -259,7 +268,7 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Column does not exist.
+        ///   Looks up a localized string similar to Column &apos;{0}&apos; does not exist.
         /// </summary>
         internal static string InvalidColumnName {
             get {
@@ -300,6 +309,15 @@ namespace Microsoft.Data {
         internal static string MapIndicesExceedsColumnLenth {
             get {
                 return ResourceManager.GetString("MapIndicesExceedsColumnLenth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Array lengths are mistmached.
+        /// </summary>
+        internal static string MismatchedArrayLengths {
+            get {
+                return ResourceManager.GetString("MismatchedArrayLengths", resourceCulture);
             }
         }
         
@@ -365,7 +383,7 @@ namespace Microsoft.Data {
                 return ResourceManager.GetString("NotSupportedColumnType", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delimiters is null..
         /// </summary>

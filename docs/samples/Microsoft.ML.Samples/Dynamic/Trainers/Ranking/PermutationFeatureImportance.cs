@@ -12,7 +12,7 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Create a new context for ML.NET operations. It can be used for
             // exception tracking and logging, as a catalog of available operations
             // and as the source of randomness.
-            var mlContext = new MLContext(seed:1);
+            var mlContext = new MLContext(seed: 1);
 
             // Create sample data.
             var samples = GenerateData();
@@ -48,8 +48,11 @@ namespace Samples.Dynamic.Trainers.Ranking
 
             // Now let's look at which features are most important to the model
             // overall. Get the feature indices sorted by their impact on NDCG@1.
-            var sortedIndices = permutationMetrics.Select((metrics, index) => new {
-                index, metrics.NormalizedDiscountedCumulativeGains})
+            var sortedIndices = permutationMetrics.Select((metrics, index) => new
+            {
+                index,
+                metrics.NormalizedDiscountedCumulativeGains
+            })
                 .OrderByDescending(feature => Math.Abs(
                     feature.NormalizedDiscountedCumulativeGains[0].Mean))
 
@@ -120,7 +123,7 @@ namespace Samples.Dynamic.Trainers.Ranking
                 };
 
                 // Create a noisy label.
-                var value = (float)(bias + weight1 * data.Feature1 + weight2 * 
+                var value = (float)(bias + weight1 * data.Feature1 + weight2 *
                     data.Feature2 + rng.NextDouble() - 0.5);
                 if (value < max / 3)
                     data.Label = 0;

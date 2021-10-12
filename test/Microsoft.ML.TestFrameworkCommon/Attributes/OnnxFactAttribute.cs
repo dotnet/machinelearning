@@ -4,6 +4,8 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 
 namespace Microsoft.ML.TestFrameworkCommon.Attributes
 {
@@ -23,7 +25,8 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
         }
 
         public static bool IsOnnxRuntimeSupported { get; } =
-            !RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23));
+            (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)))
+            && Utility.NativeLibrary.NativeLibraryExists("onnxruntime");
     }
 }

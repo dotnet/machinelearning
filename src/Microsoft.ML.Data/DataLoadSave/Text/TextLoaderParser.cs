@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -117,14 +117,14 @@ namespace Microsoft.ML.Data
             public Func<RowSet, ColumnPipe> GetCreatorOne(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
-                Contracts.Assert(0 <= index & index < _creatorsOne.Length);
+                Contracts.Assert(0 <= index && index < _creatorsOne.Length);
                 return _creatorsOne[index];
             }
 
             public Func<RowSet, ColumnPipe> GetCreatorVec(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
-                Contracts.Assert(0 <= index & index < _creatorsOne.Length);
+                Contracts.Assert(0 <= index && index < _creatorsOne.Length);
                 return _creatorsVec[index];
             }
         }
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Data
 
             public override bool HasNA { get; }
 
-            public override bool IsReal { get;  }
+            public override bool IsReal { get; }
 
             public PrimitivePipe(RowSet rows, PrimitiveDataViewType type, TryParseMapper<TResult> conv)
                 : base(rows)
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Data
                 public bool Consume(int index, ref ReadOnlyMemory<char> text)
                 {
                     AssertValid();
-                    Contracts.Assert(_indexPrev < index & index < _size);
+                    Contracts.Assert(_indexPrev < index && index < _size);
 
                     TItem tmp = default(TItem);
                     bool f = _conv(in text, out tmp);
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Data
                                 Array.Clear(_values, _count, _values.Length - _count);
                             Array.Resize(ref _values, _size);
                         }
-                        for (int ii = _count; --ii >= 0; )
+                        for (int ii = _count; --ii >= 0;)
                         {
                             int i = _indices[ii];
                             Contracts.Assert(ii <= i);
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Data
                 {
                     Contracts.AssertValue(Spans);
                     Contracts.AssertValue(Indices);
-                    Contracts.Assert(0 <= Count & Count <= Indices.Length & Indices.Length <= Spans.Length);
+                    Contracts.Assert(0 <= Count && Count <= Indices.Length && Indices.Length <= Spans.Length);
                 }
 
                 [Conditional("DEBUG")]
@@ -814,7 +814,7 @@ namespace Microsoft.ML.Data
                             for (; isrc < isrcLim; isrc++)
                             {
                                 var srcCur = header.Indices[isrc];
-                                Contracts.Assert(min <= srcCur & srcCur < lim);
+                                Contracts.Assert(min <= srcCur && srcCur < lim);
                                 bldr.AddFeature(indexBase + srcCur, ReadOnlyMemoryUtils.TrimWhiteSpace(header.Spans[isrc]));
                             }
                         }
@@ -862,7 +862,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(rows);
                 Contracts.Assert(irow >= 0);
                 Contracts.Assert(helper is HelperImpl);
-                Contracts.Assert(active == null | Utils.Size(active) == _infos.Length);
+                Contracts.Assert(active == null || Utils.Size(active) == _infos.Length);
 
                 var impl = (HelperImpl)helper;
                 var lineSpan = text.AsMemory();
@@ -999,7 +999,7 @@ namespace Microsoft.ML.Data
                                 Fields.Spans[Fields.Count] = scan.Span;
                                 Fields.Indices[Fields.Count++] = src;
                             }
-                            else if(_keepEmpty)
+                            else if (_keepEmpty)
                             {
                                 Fields.EnsureSpace();
                                 Fields.Spans[Fields.Count] = _blank;
@@ -1364,7 +1364,7 @@ namespace Microsoft.ML.Data
 
             private void ProcessItems(RowSet rows, int irow, bool[] active, FieldSet fields, int srcLim, long line)
             {
-                Contracts.Assert(active == null | Utils.Size(active) == _infos.Length);
+                Contracts.Assert(active == null || Utils.Size(active) == _infos.Length);
                 fields.AssertValid();
 
                 Contracts.Assert(0 <= irow && irow < rows.Count);
@@ -1427,7 +1427,7 @@ namespace Microsoft.ML.Data
                         for (; isrc < isrcLim; isrc++)
                         {
                             var srcCur = fields.Indices[isrc];
-                            Contracts.Assert(min <= srcCur & srcCur < lim);
+                            Contracts.Assert(min <= srcCur && srcCur < lim);
                             if (!v.Consume(irow, indexBase + srcCur, ref fields.Spans[isrc]))
                             {
                                 if (!v.HasNA)
@@ -1437,7 +1437,7 @@ namespace Microsoft.ML.Data
                         }
                     }
 
-                    if(_missingRealsAsNaNs && isrc >= fields.Count && v.IsReal)
+                    if (_missingRealsAsNaNs && isrc >= fields.Count && v.IsReal)
                     {
                         // If the user has set the MissingRealsAsNaNs option to true,
                         // And there are missing columns on a given row,
@@ -1471,7 +1471,7 @@ namespace Microsoft.ML.Data
                         v.Rows.Stats.LogBadValue(line, info.Name);
                     }
                 }
-                else if(_missingRealsAsNaNs && v.IsReal)
+                else if (_missingRealsAsNaNs && v.IsReal)
                 {
                     // If the user has set the MissingRealsAsNaNs option to true,
                     // And there are missing columns on a given row,

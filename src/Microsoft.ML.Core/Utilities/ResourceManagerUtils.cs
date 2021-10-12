@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Internal.Utilities
                 {
                     downloadResult += $"DownloadFailed with exception {ex.Message}" + @"\n";
                     // ignore any Exception and retrying download
-                    ch.Warning($"{i+1} - th try: Dowload {fileName} from {url} fail with exception {ex.Message}");
+                    ch.Warning($"{i + 1} - th try: Dowload {fileName} from {url} fail with exception {ex.Message}");
                 }
             }
 
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Internal.Utilities
             var filePath = Path.Combine(absDir, fileName);
             error = null;
 
-            if (!Directory.Exists(appDataBaseDir))
+            if (!Directory.Exists(appDataBaseDir) && string.IsNullOrEmpty(envDir))
             {
                 try
                 {
@@ -239,6 +239,9 @@ namespace Microsoft.ML.Internal.Utilities
                 try
                 {
                     Directory.CreateDirectory(absDir);
+                    // On unix, create with 0700 perms as per XDG base dir spec
+                    if (Environment.OSVersion.Platform == PlatformID.Unix)
+                        chmod(appDataBaseDir, 448);
                 }
                 catch (Exception e)
                 {
@@ -289,7 +292,7 @@ namespace Microsoft.ML.Internal.Utilities
                         task.Wait();
                         int count = task.Result;
 
-                        if(count <= 0)
+                        if (count <= 0)
                         {
                             break;
                         }

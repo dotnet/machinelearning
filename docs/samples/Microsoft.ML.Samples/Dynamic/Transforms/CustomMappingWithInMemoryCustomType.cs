@@ -37,7 +37,7 @@ namespace Samples.Dynamic
             var firstAlien = mlContext.Data.CreateEnumerable<SuperAlienHero>(
                 tribeTransformed, false).First();
 
-            Console.WriteLine("We got a super alien with name " + firstAlien.Name + 
+            Console.WriteLine("We got a super alien with name " + firstAlien.Name +
                 ", age " + firstAlien.Merged.Age + ", " + "height " + firstAlien
                 .Merged.Height + ", weight  " + firstAlien.Merged.Weight + ", and "
                 + firstAlien.Merged.HandCount + " hands.");
@@ -52,7 +52,7 @@ namespace Samples.Dynamic
             var alien = new AlienHero("TEN.LM", 1, 2, 3, 4, 5, 6, 7, 8);
             var superAlien = engine.Predict(alien);
             Console.Write("We got a super alien with name " + superAlien.Name +
-                ", age " + superAlien.Merged.Age + ", height " + 
+                ", age " + superAlien.Merged.Age + ", height " +
                 superAlien.Merged.Height + ", weight " + superAlien.Merged.Weight +
                 ", and " + superAlien.Merged.HandCount + " hands.");
 
@@ -106,8 +106,8 @@ namespace Samples.Dynamic
 
             public override bool Equals(DataViewTypeAttribute other)
             {
-                if (other is AlienTypeAttributeAttribute)
-                    return RaceId == ((AlienTypeAttributeAttribute)other).RaceId;
+                if (other is AlienTypeAttributeAttribute alienTypeAttributeAttribute)
+                    return RaceId == alienTypeAttributeAttribute.RaceId;
                 return false;
             }
 

@@ -649,7 +649,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void LpGcNormAndWhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void WhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestWhiteningOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);

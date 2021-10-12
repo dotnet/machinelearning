@@ -1,5 +1,5 @@
 <Project>
-  
+
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
 
   <PropertyGroup>
@@ -8,8 +8,8 @@
     <NuGetPushTimeoutSeconds Condition="'$(NuGetPushTimeoutSeconds)' == ''">600</NuGetPushTimeoutSeconds>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\$(PublishSymbolsPackage.ToLower())\$(MicrosoftSymbolUploaderBuildTaskVersion)\build\PublishSymbols.targets" />
-  
+  <Import Project="$(NuGetPackageRoot)$(PublishSymbolsPackage.ToLower())\$(MicrosoftSymbolUploaderBuildTaskVersion)\build\PublishSymbols.targets" />
+
   <Target Name="PublishSymbolPackages"
           Condition="'$(EnablePublishSymbols)'=='true'"
           DependsOnTargets="SetupPublishSymbols">
@@ -22,16 +22,19 @@
 
   <Target Name="SetupPublishSymbols">
     <PropertyGroup>
-      <SymbolExpirationInDays Condition="'$(SymbolExpirationInDays)'=='' and '$(SymbolExpirationDate)'==''">180</SymbolExpirationInDays>
+      <SymbolExpirationInDays Condition="'$(SymbolExpirationInDays)'=='' and '$(SymbolExpirationDate)'==''">3650</SymbolExpirationInDays>
       <ConvertPortablePdbsToWindowsPdbs>false</ConvertPortablePdbsToWindowsPdbs>
     </PropertyGroup>
 
     <ItemGroup>
       <SymbolPackagesToPublish Include="$(ArtifactsDir)packages\**\*.snupkg" />
+      <SymbolFilesToPublish Include="$(ArtifactsDir)SymStore\**\*.pdb" />
     </ItemGroup>
 
     <Message Importance="High" Text="Publishing @(SymbolPackagesToPublish) to $(SymbolServerPath)"/>
-    <Error Condition="'@(SymbolPackagesToPublish)'==''" Text="There are no symbol nuget packages to publish" />
+    <Message Importance="High" Text="Publishing @(SymbolFilesToPublish) to $(SymbolServerPath)"/>
+    <Warning Condition="'@(SymbolPackagesToPublish)'==''" Text="There are no symbol nuget packages to publish" />
+    <Warning Condition="'@(SymbolFilesToPublish)'==''" Text="There are no symbol files to publish" />
   </Target>
 
 </Project>

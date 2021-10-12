@@ -83,7 +83,7 @@ namespace Samples.Dynamic
 
                 while (cursor.MoveNext())
                 {
-                    
+
                     imagePathGetter(ref imagePath);
                     nameGetter(ref name);
                     imageObjectGetter(ref imageObject);

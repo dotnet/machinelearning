@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.AssertValue(_rgit);
             Contracts.AssertNonEmpty(_rgit);
 
-            Contracts.Assert(0 <= _ct & _ct <= Utils.Size(_entries));
+            Contracts.Assert(0 <= _ct && _ct <= Utils.Size(_entries));
 
             // The number of buckets should be at least the number of items, unless we're reached the
             // biggest number of buckets allowed.

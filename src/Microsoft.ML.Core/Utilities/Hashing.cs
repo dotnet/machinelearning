@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public static uint MurmurHash(uint hash, StringBuilder data, int ichMin, int ichLim, bool toUpper = false)
         {
-            Contracts.Assert(0 <= ichMin & ichMin <= ichLim & ichLim <= Utils.Size(data));
+            Contracts.Assert(0 <= ichMin && ichMin <= ichLim && ichLim <= Utils.Size(data));
 
             uint seed = hash;
 

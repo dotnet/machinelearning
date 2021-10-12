@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Data
                 }
 
                 _pathsColumnName = pathsColumnName;
-                if (pathsColumnName !=  null)
+                if (pathsColumnName != null)
                 {
                     // Metadata of path IDs.
                     var pathIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
@@ -192,14 +192,14 @@ namespace Microsoft.ML.Data
                 if (_treesColumnName != null)
                 {
                     ValueGetter<VBuffer<float>> fn = state.GetTreeValues;
-                    if(activeIndices.Contains(OutputSchema[_treesColumnName].Index))
+                    if (activeIndices.Contains(OutputSchema[_treesColumnName].Index))
                         delegates.Add(fn);
                     else
                         delegates.Add(null);
                 }
 
                 // Get the leaf indicator getter.
-                if (_leavesColumnName != null )
+                if (_leavesColumnName != null)
                 {
                     ValueGetter<VBuffer<float>> fn = state.GetLeafIds;
                     if (activeIndices.Contains(OutputSchema[_leavesColumnName].Index))
@@ -623,8 +623,13 @@ namespace Microsoft.ML.Data
             IDataTransform xf;
             using (var ch = host.Start("Create Tree Ensemble Scorer"))
             {
-                var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments() {
-                    Suffix = args.Suffix, TreesColumnName = "Trees", LeavesColumnName = "Leaves", PathsColumnName = "Paths" };
+                var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments()
+                {
+                    Suffix = args.Suffix,
+                    TreesColumnName = "Trees",
+                    LeavesColumnName = "Leaves",
+                    PathsColumnName = "Paths"
+                };
                 if (!string.IsNullOrWhiteSpace(args.TrainedModelFile))
                 {
                     if (args.Trainer != null)
@@ -696,8 +701,13 @@ namespace Microsoft.ML.Data
 
             using (var ch = host.Start("Create Tree Ensemble Scorer"))
             {
-                var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments() {
-                    Suffix = args.Suffix, TreesColumnName = "Trees", LeavesColumnName = "Leaves", PathsColumnName = "Paths" };
+                var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments()
+                {
+                    Suffix = args.Suffix,
+                    TreesColumnName = "Trees",
+                    LeavesColumnName = "Leaves",
+                    PathsColumnName = "Paths"
+                };
                 var predictor = args.PredictorModel.Predictor;
                 ch.Trace("Prepare data");
                 RoleMappedData data = null;
@@ -707,8 +717,8 @@ namespace Microsoft.ML.Data
                 ch.Assert(predictor == predictor2);
 
                 // Make sure that the given predictor has the correct number of input features.
-                if (predictor is CalibratedModelParametersBase<IPredictorProducing<float>, Calibrators.ICalibrator>)
-                    predictor = ((CalibratedModelParametersBase<IPredictorProducing<float>, Calibrators.ICalibrator>)predictor).SubModel;
+                if (predictor is CalibratedModelParametersBase<IPredictorProducing<float>, Calibrators.ICalibrator> calibratedModelParametersBase)
+                    predictor = calibratedModelParametersBase.SubModel;
                 // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;

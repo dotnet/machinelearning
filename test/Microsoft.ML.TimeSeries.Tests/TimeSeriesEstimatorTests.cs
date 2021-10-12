@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms.TimeSeries;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestSsaChangePointEstimator()
         {
             int confidence = 95;
@@ -74,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestSsaForecastingEstimator()
         {
             const int changeHistorySize = 10;
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NativeDependencyFact("MklImports")]
         public void TestSsaSpikeEstimator()
         {
             int confidence = 95;

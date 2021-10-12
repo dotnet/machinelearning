@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     Single slopeSum = 0.0f;
                     for (int i = 0; i < n - 1; ++i)
                     {
-                        slopeSum += (data[n-1] - data[i]) / (n - 1 - i);
+                        slopeSum += (data[n - 1] - data[i]) / (n - 1 - i);
                     }
                     return (data[1] + slopeSum);
                 }

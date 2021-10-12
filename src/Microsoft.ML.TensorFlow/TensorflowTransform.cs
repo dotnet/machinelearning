@@ -66,6 +66,14 @@ namespace Microsoft.ML.Transforms
         internal const string ShortName = "TFTransform";
         internal const string LoaderSignature = "TensorFlowTransform";
 
+        internal static class DefaultModelFileNames
+        {
+            public const string VariablesFolder = "variables";
+            public const string Index = "variables.index";
+            public const string Data = "variables.data-?????-of-?????";
+            public const string Graph = "saved_model.pb";
+        }
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -143,7 +151,7 @@ namespace Microsoft.ML.Transforms
                 return new TensorFlowTransformer(env, LoadTFSession(env, modelBytes), outputs, inputs, null, false, addBatchDimensionInput, treatOutputAsBatched: treatOutputAsBatched);
             }
 
-            var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), nameof(TensorFlowTransformer) + "_" + Guid.NewGuid()));
+            var tempDirPath = Path.GetFullPath(Path.Combine(((IHostEnvironmentInternal)env).TempFilePath, nameof(TensorFlowTransformer) + "_" + Guid.NewGuid()));
             CreateFolderWithAclIfNotExists(env, tempDirPath);
             try
             {
@@ -354,7 +362,7 @@ namespace Microsoft.ML.Transforms
         internal static TensorShape GetTensorShape(TF_Output output, Graph graph, Status status = null)
         {
             if (graph == IntPtr.Zero)
-                new ObjectDisposedException(nameof(graph));
+                throw new ObjectDisposedException(nameof(graph));
 
             var cstatus = status == null ? new Status() : status;
             var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus.Handle);
@@ -453,6 +461,35 @@ namespace Microsoft.ML.Transforms
                         w.WriteByteArray(buffer.DangerousMemoryBlock.ToArray());
                     });
                 }
+            }
+            else
+            {
+                ctx.SaveBinaryStream("TFSavedModel", w =>
+                {
+                    // only these files need to be saved.
+                    var modelFilePaths = new List<string>
+                    {
+                        Path.Combine(_savedModelPath, DefaultModelFileNames.Graph),
+                        Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Index)
+                    };
+                    modelFilePaths.AddRange(Directory.GetFiles(Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder), DefaultModelFileNames.Data, SearchOption.TopDirectoryOnly));
+
+                    w.Write(modelFilePaths.Count);
+
+                    foreach (var fullPath in modelFilePaths)
+                    {
+                        var relativePath = fullPath.Substring(_savedModelPath.Length + 1);
+                        w.Write(relativePath);
+
+                        using (var fs = new FileStream(fullPath, FileMode.Open))
+                        {
+                            long fileLength = fs.Length;
+                            w.Write(fileLength);
+                            long actualWritten = fs.CopyRange(w.BaseStream, fileLength);
+                            Host.Assert(actualWritten == fileLength);
+                        }
+                    }
+                });
             }
 
             Host.AssertNonEmpty(Inputs);
@@ -601,9 +638,42 @@ namespace Microsoft.ML.Transforms
                 _runners = new ConcurrentBag<Runner>();
             }
 
+            private Delegate CreateGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, OutputCache outputCache)
+            {
+                Host.AssertValue(input);
+
+                var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
+
+                var type = Tf2MlNetType(_parent.TFOutputTypes[iinfo]).RawType;
+                Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
+                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
+                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+            }
+
+            public override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                Contracts.Assert(input.Schema == InputSchema);
+
+                OutputCache outputCacher = new OutputCache();
+
+                int n = OutputColumns.Value.Length;
+                var result = new Delegate[n];
+                for (int i = 0; i < n; i++)
+                {
+                    if (!activeOutput(i))
+                        continue;
+                    result[i] = CreateGetter(input, i, activeOutput, outputCacher);
+                }
+                disposer = () =>
+                {
+                    outputCacher.Dispose();
+                };
+                return result;
+            }
+
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
-            private class OutputCache
+            private class OutputCache : IDisposable
             {
                 public long Position;
                 public Dictionary<string, Tensor> Outputs;
@@ -612,21 +682,21 @@ namespace Microsoft.ML.Transforms
                     Position = -1;
                     Outputs = new Dictionary<string, Tensor>();
                 }
+
+                private bool _isDisposed;
+
+                public void Dispose()
+                {
+                    if (_isDisposed)
+                        return;
+                    foreach (var tensor in Outputs.Values)
+                        tensor.Dispose();
+                    _isDisposed = true;
+                }
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
-            {
-                disposer = null;
-                Host.AssertValue(input);
-
-                var outputCache = new OutputCache();
-                var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
-
-                var type = Tf2MlNetType(_parent.TFOutputTypes[iinfo]).RawType;
-                Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
-                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
-            }
+                => throw new NotImplementedException("This should never be called!");
 
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T : unmanaged
             {

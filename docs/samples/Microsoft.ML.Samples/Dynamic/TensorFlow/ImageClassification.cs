@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.ML;
@@ -71,7 +72,7 @@ namespace Samples.Dynamic
             //----------
         }
 
-        private const int imageHeight = 224; 
+        private const int imageHeight = 224;
         private const int imageWidth = 224;
         private const int numChannels = 3;
         private const int inputSize = imageHeight * imageWidth * numChannels;
@@ -95,7 +96,7 @@ namespace Samples.Dynamic
             // This can be any numerical data. Assume image pixel values.
             var image1 = Enumerable.Range(0, inputSize).Select(
                 x => (float)x / inputSize).ToArray();
-            
+
             var image2 = Enumerable.Range(0, inputSize).Select(
                 x => (float)(x + 10000) / inputSize).ToArray();
             return new TensorData[] { new TensorData() { input = image1 },
@@ -129,7 +130,7 @@ namespace Samples.Dynamic
             Stream inStream = File.OpenRead(path);
             Stream gzipStream = new GZipInputStream(inStream);
 
-            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
+            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream, Encoding.ASCII);
             tarArchive.ExtractContents(targetDir);
             tarArchive.Close();
 

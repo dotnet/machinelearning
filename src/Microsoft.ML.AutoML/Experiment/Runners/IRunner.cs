@@ -9,6 +9,6 @@ namespace Microsoft.ML.AutoML
     internal interface IRunner<TRunDetail> where TRunDetail : RunDetail
     {
         (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail)
-            Run (SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum);
+            Run(SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum);
     }
 }

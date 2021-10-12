@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms
                     return false;
                 default:
                     throw env.Except("Unsupported hide option specified");
-            };
+            }
         }
 
         /// <summary>
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Transforms
                 ctx.CheckOpSetVersion(minimumOpSetVersion, LoaderSignature);
 
                 var outputToInputMap = _mapper.OutputToInputMap;
-                for(int i = 0; i < outputToInputMap.Length; i++)
+                for (int i = 0; i < outputToInputMap.Length; i++)
                 {
                     var srcCol = InputSchema[outputToInputMap[i]];
                     var dstCol = OutputSchema[i];

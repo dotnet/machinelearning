@@ -335,7 +335,7 @@ namespace Microsoft.Data.Analysis
 
             int shuffleLowerLimit = 0;
             int shuffleUpperLimit = (int)Math.Min(Int32.MaxValue, Rows.Count);
-            
+
             int[] shuffleArray = Enumerable.Range(0, shuffleUpperLimit).ToArray();
             Random rand = new Random();
             while (shuffleLowerLimit < numberOfRows)
@@ -349,7 +349,7 @@ namespace Microsoft.Data.Analysis
             ArraySegment<int> segment = new ArraySegment<int>(shuffleArray, 0, shuffleLowerLimit);
 
             PrimitiveDataFrameColumn<int> indices = new PrimitiveDataFrameColumn<int>("indices", segment);
-            
+
             return Clone(indices);
         }
 
@@ -362,10 +362,29 @@ namespace Microsoft.Data.Analysis
         {
             int columnIndex = _columnCollection.IndexOf(columnName);
             if (columnIndex == -1)
-                throw new ArgumentException(Strings.InvalidColumnName, nameof(columnName));
+                throw new ArgumentException(String.Format(Strings.InvalidColumnName, columnName), nameof(columnName));
 
             DataFrameColumn column = _columnCollection[columnIndex];
             return column.GroupBy(columnIndex, this);
+        }
+
+        /// <summary>
+        /// Groups the rows of the <see cref="DataFrame"/> by unique values in the <paramref name="columnName"/> column.
+        /// </summary>
+        /// <typeparam name="TKey">Type of column used for grouping</typeparam>
+        /// <param name="columnName">The column used to group unique values</param>
+        /// <returns>A GroupBy object that stores the group information.</returns>
+        public GroupBy<TKey> GroupBy<TKey>(string columnName)
+        {
+            GroupBy<TKey> group = GroupBy(columnName) as GroupBy<TKey>;
+
+            if (group == null)
+            {
+                DataFrameColumn column = this[columnName];
+                throw new InvalidCastException(String.Format(Strings.BadColumnCastDuringGrouping, columnName, column.DataType, typeof(TKey)));
+            }
+
+            return group;
         }
 
         // In GroupBy and ReadCsv calls, columns get resized. We need to set the RowCount to reflect the true Length of the DataFrame. This does internal validation
@@ -512,9 +531,10 @@ namespace Microsoft.Data.Analysis
                     if (value != null)
                     {
                         value = Convert.ChangeType(value, column.DataType);
+
                         if (value is null)
                         {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), value.GetType().ToString());
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), column.Name);
                         }
                     }
                     cachedObjectConversions.Add(value);
@@ -573,7 +593,7 @@ namespace Microsoft.Data.Analysis
                 int index = ret.Columns.IndexOf(columnName);
                 if (index == -1)
                 {
-                    throw new ArgumentException(Strings.InvalidColumnName, nameof(columnName));
+                    throw new ArgumentException(String.Format(Strings.InvalidColumnName, columnName), nameof(columnName));
                 }
 
                 DataFrameColumn column = ret.Columns[index];
@@ -583,7 +603,7 @@ namespace Microsoft.Data.Analysis
                     value = Convert.ChangeType(value, column.DataType);
                     if (value is null)
                     {
-                        throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), value.GetType().ToString());
+                        throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), column.Name);
                     }
                 }
                 cachedObjectConversions.Add(value);
@@ -623,12 +643,16 @@ namespace Microsoft.Data.Analysis
         private DataFrame Sort(string columnName, bool isAscending)
         {
             DataFrameColumn column = Columns[columnName];
-            DataFrameColumn sortIndices = column.GetAscendingSortIndices();
+            PrimitiveDataFrameColumn<long> sortIndices = column.GetAscendingSortIndices(out Int64DataFrameColumn nullIndices);
+            for (long i = 0; i < nullIndices.Length; i++)
+            {
+                sortIndices.Append(nullIndices[i]);
+            }
             List<DataFrameColumn> newColumns = new List<DataFrameColumn>(Columns.Count);
             for (int i = 0; i < Columns.Count; i++)
             {
                 DataFrameColumn oldColumn = Columns[i];
-                DataFrameColumn newColumn = oldColumn.Clone(sortIndices, !isAscending, oldColumn.NullCount);
+                DataFrameColumn newColumn = oldColumn.Clone(sortIndices, !isAscending);
                 Debug.Assert(newColumn.NullCount == oldColumn.NullCount);
                 newColumns.Add(newColumn);
             }

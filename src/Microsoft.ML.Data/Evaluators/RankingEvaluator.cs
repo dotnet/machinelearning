@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -702,7 +702,7 @@ namespace Microsoft.ML.Data
                 int truncationLevel, Double[] labelGains)
                 : base(env, input, labelCol, scoreCol, groupCol, RegistrationName)
             {
-                Host.CheckParam(0 < truncationLevel , nameof(truncationLevel),
+                Host.CheckParam(0 < truncationLevel, nameof(truncationLevel),
                     "Truncation level must be greater than 0");
                 Host.CheckValue(labelGains, nameof(labelGains));
 

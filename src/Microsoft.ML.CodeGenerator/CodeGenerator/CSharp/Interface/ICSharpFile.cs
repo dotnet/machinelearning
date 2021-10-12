@@ -6,7 +6,7 @@ using Microsoft.ML.CodeGenerator.CodeGenerator;
 
 namespace Microsoft.ML.CodeGenerator
 {
-    public interface ICSharpFile: IWritable
+    public interface ICSharpFile : IWritable
     {
         public string Name { get; set; }
 

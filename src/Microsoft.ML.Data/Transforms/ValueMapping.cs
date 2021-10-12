@@ -1070,9 +1070,9 @@ namespace Microsoft.ML.Transforms
                     var type = _inputSchema[colSrc].Type;
                     DataViewType colType;
                     if (type is VectorDataViewType vectorType)
-                      colType = new VectorDataViewType((PrimitiveDataViewType)_parent.ValueColumnType, vectorType.Dimensions);
+                        colType = new VectorDataViewType((PrimitiveDataViewType)_parent.ValueColumnType, vectorType.Dimensions);
                     else
-                      colType = _parent.ValueColumnType;
+                        colType = _parent.ValueColumnType;
                     string dstVariableName = ctx.AddIntermediateVariable(colType, outputColumnName);
                     if (!ctx.ContainsColumn(inputColumnName))
                         continue;
@@ -1112,7 +1112,7 @@ namespace Microsoft.ML.Transforms
 
                 var labelEncoderOutput = (typeValue == NumberDataViewType.Single || typeValue == TextDataViewType.Instance || typeValue == NumberDataViewType.Int64) ? dstVariableName :
                     (typeValue == NumberDataViewType.Double || typeValue == BooleanDataViewType.Instance) ? ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, (int)srcShape[1]), "LabelEncoderOutput") :
-                    ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, (int) srcShape[1]), "LabelEncoderOutput");
+                    ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, (int)srcShape[1]), "LabelEncoderOutput");
 
                 // The LabelEncoder operator doesn't support mappings between the same type and only supports mappings between int64s, floats, and strings.
                 // As a result, we need to cast most inputs and outputs. In order to avoid as many unsupported mappings, we cast keys that are of NumberDataTypeView

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -266,10 +266,10 @@ namespace Microsoft.ML.Data
 
             var transposedColumn = _view.Schema[col];
             PrimitiveDataViewType elementType = null;
-            if (transposedColumn.Type is PrimitiveDataViewType)
-                elementType = (PrimitiveDataViewType)transposedColumn.Type;
-            else if (transposedColumn.Type is VectorDataViewType)
-                elementType = ((VectorDataViewType)transposedColumn.Type).ItemType;
+            if (transposedColumn.Type is PrimitiveDataViewType primitiveDataViewType)
+                elementType = primitiveDataViewType;
+            else if (transposedColumn.Type is VectorDataViewType vectorDataViewType)
+                elementType = vectorDataViewType.ItemType;
             _host.Assert(elementType != null);
 
             return new VectorDataViewType(elementType, RowCount);
@@ -848,7 +848,7 @@ namespace Microsoft.ML.Data
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
 
-                var srcCols = columnsNeeded.Where( x => srcPred(x.Index));
+                var srcCols = columnsNeeded.Where(x => srcPred(x.Index));
                 var result = _input.GetRowCursorSet(srcCols, n, rand);
                 for (int i = 0; i < result.Length; ++i)
                     result[i] = new Cursor(_host, this, result[i], predicate, activeSplitters);

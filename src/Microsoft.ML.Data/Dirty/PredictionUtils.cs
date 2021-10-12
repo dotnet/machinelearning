@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -132,23 +132,23 @@ namespace Microsoft.ML.Internal.Internallearn
 
             switch (s.ToLower())
             {
-            case "space":
-                return ' ';
-            case "tab":
-                return '\t';
-            case "comma":
-                return ',';
-            case "colon":
-                return ':';
-            case "semicolon":
-                return ';';
-            case "bar": // VW format
-                return '|';
-            default:
-                // REVIEW: This is bad - why do we simply ignore unexpected values?
-                if (s.Length == 1)
-                    return s[0];
-                return default(char);
+                case "space":
+                    return ' ';
+                case "tab":
+                    return '\t';
+                case "comma":
+                    return ',';
+                case "colon":
+                    return ':';
+                case "semicolon":
+                    return ';';
+                case "bar": // VW format
+                    return '|';
+                default:
+                    // REVIEW: This is bad - why do we simply ignore unexpected values?
+                    if (s.Length == 1)
+                        return s[0];
+                    return default(char);
             }
         }
     }

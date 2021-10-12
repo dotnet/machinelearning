@@ -65,7 +65,7 @@ namespace Samples.Dynamic.DataOperations
 
 
             // Load all files using path wildcard.
-            var multipleFilesWildcardData = 
+            var multipleFilesWildcardData =
                 loader.Load(Path.Combine(dataDirectoryName, "Data_*.csv"));
             PrintRowCount(multipleFilesWildcardData);
 
@@ -110,7 +110,7 @@ namespace Samples.Dynamic.DataOperations
             // which is of type Vector<Single>.
 
             PrintRowCount(dataWithInferredLength);
-            
+
             // Expected Output:
             //   10
 

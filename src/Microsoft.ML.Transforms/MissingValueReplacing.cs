@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Transforms
                     (MissingValueReplacingEstimator.ReplacementMode)(item.Kind ?? options.ReplacementKind),
                     item.Slot ?? options.ImputeBySlot,
                     item.ReplacementString);
-            };
+            }
             return new MissingValueReplacingTransformer(env, input, cols).MakeDataTransform(input);
         }
 
@@ -750,7 +750,7 @@ namespace Microsoft.ML.Transforms
                         Host.Assert(iivDst <= iivSrc);
                         var srcVal = srcValues[iivSrc];
                         int iv = srcIndices[iivSrc];
-                        Host.Assert(ivPrev < iv & iv < srcSize);
+                        Host.Assert(ivPrev < iv && iv < srcSize);
                         ivPrev = iv;
 
                         if (!isNA(in srcVal))
@@ -824,7 +824,7 @@ namespace Microsoft.ML.Transforms
                         Host.Assert(iivDst <= iivSrc);
                         var srcVal = srcValues[iivSrc];
                         int iv = srcIndices[iivSrc];
-                        Host.Assert(ivPrev < iv & iv < srcSize);
+                        Host.Assert(ivPrev < iv && iv < srcSize);
                         ivPrev = iv;
 
                         if (!isNA(in srcVal))

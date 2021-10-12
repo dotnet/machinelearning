@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             int[] sampleNonZeroCntPerColumn,
             int numSampleRow,
             int numTotalRow,
-            [MarshalAs(UnmanagedType.LPStr)]string parameters,
+            [MarshalAs(UnmanagedType.LPStr)] string parameters,
             out SafeDataSetHandle ret);
 
         [DllImport(DllName, EntryPoint = "LGBM_DatasetCreateByReference", CallingConvention = CallingConvention.StdCall)]
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         [DllImport(DllName, EntryPoint = "LGBM_DatasetSetField", CallingConvention = CallingConvention.StdCall)]
         public static extern int DatasetSetField(
             SafeDataSetHandle handle,
-            [MarshalAs(UnmanagedType.LPStr)]string field,
+            [MarshalAs(UnmanagedType.LPStr)] string field,
             IntPtr array,
             int len,
             CApiDType type);
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterCreate", CallingConvention = CallingConvention.StdCall)]
         public static extern int BoosterCreate(SafeDataSetHandle trainset,
-            [MarshalAs(UnmanagedType.LPStr)]string param,
+            [MarshalAs(UnmanagedType.LPStr)] string param,
             out SafeBoosterHandle res);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterFree", CallingConvention = CallingConvention.StdCall)]
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         #region API predict
         [DllImport(DllName, EntryPoint = "LGBM_BoosterPredictForMat", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe int BoosterPredictForMat(SafeBoosterHandle handle, IntPtr data, CApiDType dataType, int nRow, int nCol, int isRowMajor,
-            int predictType, int numIteration, [MarshalAs(UnmanagedType.LPStr)]string parameters, ref int outLen, double* outResult);
+            int predictType, int numIteration, [MarshalAs(UnmanagedType.LPStr)] string parameters, ref int outLen, double* outResult);
         #endregion
 
         #region API parallel

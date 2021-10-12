@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Internal.Utilities
                 Contracts.Assert(_rgins.Length == _mask + 1);
                 Contracts.Assert(Utils.IsPowerOfTwo(_mask + 1));
 
-                Contracts.Assert(0 <= _cns & _cns <= Utils.Size(_rgns));
+                Contracts.Assert(0 <= _cns && _cns <= Utils.Size(_rgns));
                 Contracts.Assert(Utils.Size(_rgns) == Utils.Size(_rgmeta));
             }
 

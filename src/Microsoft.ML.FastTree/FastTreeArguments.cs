@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -75,9 +75,9 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
             /// </summary>
             // Disable 649 because Visual Studio can't detect its assignment via property.
-            #pragma warning disable 649
+#pragma warning disable 649
             private EarlyStoppingMetric _earlyStoppingMetric;
-            #pragma warning restore 649
+#pragma warning restore 649
 
             /// <summary>
             /// Early stopping metrics.
@@ -179,9 +179,9 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
             /// </summary>
             // Disable 649 because Visual Studio can't detect its assignment via property.
-            #pragma warning disable 649
+#pragma warning disable 649
             private EarlyStoppingMetric _earlyStoppingMetric;
-            #pragma warning restore 649
+#pragma warning restore 649
 
             /// <summary>
             /// Early stopping metrics.
@@ -276,9 +276,9 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
             /// </summary>
             // Disable 649 because Visual Studio can't detect its assignment via property.
-            #pragma warning disable 649
+#pragma warning disable 649
             private EarlyStoppingRankingMetric _earlyStoppingMetric;
-            #pragma warning restore 649
+#pragma warning restore 649
 
             /// <summary>
             /// Early stopping metrics.
@@ -700,7 +700,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public EarlyStoppingRuleBase EarlyStoppingRule
         {
-            get { return _earlyStoppingRuleBase;  }
+            get { return _earlyStoppingRuleBase; }
             set
             {
                 _earlyStoppingRuleBase = value;

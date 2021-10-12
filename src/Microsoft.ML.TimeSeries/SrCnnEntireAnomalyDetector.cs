@@ -136,7 +136,7 @@ namespace Microsoft.ML.TimeSeries
     {
         private const int MinBatchSize = 12;
 
-        private static readonly int[] _outputLengthArray = {3, 7, 4};
+        private static readonly int[] _outputLengthArray = { 3, 7, 4 };
         private readonly SrCnnEntireAnomalyDetectorOptions _options;
         private readonly string _inputColumnName;
         private readonly int _outputLength;
@@ -753,7 +753,7 @@ namespace Microsoft.ML.TimeSeries
                 List<Tuple<int, int>> segments = new List<Tuple<int, int>>();
                 int start = -1;
                 int cursor = -1;
-                for(int i = 0; i < values.Length; ++i)
+                for (int i = 0; i < values.Length; ++i)
                 {
                     // this is a outlier
                     if (results[i][6] > values[i] || values[i] > results[i][5])
@@ -782,7 +782,7 @@ namespace Microsoft.ML.TimeSeries
                 List<int> anomalyIndex = new List<int>();
                 for (int i = 0; i < values.Length; ++i)
                 {
-                    if(results[i][0] > 0)
+                    if (results[i][0] > 0)
                     {
                         anomalyIndex.Add(i);
                     }
@@ -792,16 +792,16 @@ namespace Microsoft.ML.TimeSeries
                 if (anomalyIndex.Count > 1)
                 {
                     cursor = 0;
-                    for(int i = 0; i < anomalyIndex.Count - 1; ++i)
+                    for (int i = 0; i < anomalyIndex.Count - 1; ++i)
                     {
                         while (cursor < segments.Count && anomalyIndex[i] >= segments[cursor].Item2)
                         {
                             ++cursor;
                         }
 
-                        if (cursor < segments.Count && segments[cursor].Item1 <= anomalyIndex[i] && anomalyIndex[i+1] <= segments[cursor].Item2)
+                        if (cursor < segments.Count && segments[cursor].Item1 <= anomalyIndex[i] && anomalyIndex[i + 1] <= segments[cursor].Item2)
                         {
-                            for (int j = anomalyIndex[i]; j < anomalyIndex[i+1]; ++j)
+                            for (int j = anomalyIndex[i]; j < anomalyIndex[i + 1]; ++j)
                             {
                                 results[j][0] = 1;
                             }

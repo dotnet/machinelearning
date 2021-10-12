@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -103,7 +103,7 @@ namespace Samples.Dynamic
         }
 
         private static void PrintPrediction(float value, SsaSpikePrediction
-            prediction) => 
+            prediction) =>
             Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
             prediction.Prediction[0], prediction.Prediction[1],
             prediction.Prediction[2]);

@@ -28,7 +28,7 @@ namespace Samples.Dynamic
             // that column to cross validation it would be used to break data into
             // certain chunks.
             var folds = mlContext.Data
-                .CrossValidationSplit(dataview, numberOfFolds:3,
+                .CrossValidationSplit(dataview, numberOfFolds: 3,
                 samplingKeyColumnName: "Group");
 
             var trainSet = mlContext.Data
@@ -153,7 +153,7 @@ namespace Samples.Dynamic
                 .CreateEnumerable<DataPoint>(folds[2].TrainSet,
                 reuseRowObject: false);
 
-            testSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[2].TestSet, 
+            testSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[2].TestSet,
                 reuseRowObject: false);
 
             PrintPreviewRows(trainSet, testSet);
@@ -172,7 +172,7 @@ namespace Samples.Dynamic
             // [Group, 1], [Features, 0.4421779]
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, 
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
             int seed = 0)
 
         {
@@ -199,7 +199,7 @@ namespace Samples.Dynamic
         }
 
         // print helper
-        private static void PrintPreviewRows(IEnumerable<DataPoint> trainSet, 
+        private static void PrintPreviewRows(IEnumerable<DataPoint> trainSet,
             IEnumerable<DataPoint> testSet)
 
         {
