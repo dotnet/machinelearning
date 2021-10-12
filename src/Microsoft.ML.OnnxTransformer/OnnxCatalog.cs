@@ -96,8 +96,19 @@ namespace Microsoft.ML
             string modelFile,
             int? gpuDeviceId = null,
             bool fallbackToCpu = false)
-        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName },
-            modelFile, gpuDeviceId, fallbackToCpu);
+            => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName },
+                modelFile, gpuDeviceId, fallbackToCpu);
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/> using the specified <see cref="OnnxOptions"/>.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="options">Options for the <see cref="OnnxScoringEstimator"/>.</param>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog, OnnxOptions options)
+            => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), options.OutputColumns, options.InputColumns, options.ModelFile,
+                options.GpuDeviceId, options.FallbackToCpu, options.ShapeDictionary, options.RecursionLimit, options.InterOpNumThreads, options.IntraOpNumThreads);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.

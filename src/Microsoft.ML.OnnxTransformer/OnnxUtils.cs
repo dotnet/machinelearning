@@ -165,8 +165,11 @@ namespace Microsoft.ML.Transforms.Onnx
         /// no longer needed.</param>
         /// <param name="shapeDictionary"></param>
         /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
+        /// <param name="interOpNumThreads">Controls the number of threads used to parallelize the execution of the graph (across nodes).</param>
+        /// <param name="intraOpNumThreads">Controls the number of threads to use to run the model.</param>
         public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
-            bool ownModelFile = false, IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100)
+            bool ownModelFile = false, IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100,
+            int? interOpNumThreads = null, int? intraOpNumThreads = null)
         {
             // If we don't own the model file, _disposed should be false to prevent deleting user's file.
             _disposed = false;
@@ -181,7 +184,14 @@ namespace Microsoft.ML.Transforms.Onnx
                 catch (OnnxRuntimeException)
                 {
                     if (fallbackToCpu)
-                        _session = new InferenceSession(modelFile);
+                    {
+                        var sessionOptions = new SessionOptions()
+                        {
+                            InterOpNumThreads = interOpNumThreads.GetValueOrDefault(),
+                            IntraOpNumThreads = intraOpNumThreads.GetValueOrDefault()
+                        };
+                        _session = new InferenceSession(modelFile, sessionOptions);
+                    }
                     else
                         // If called from OnnxTransform, is caught and rethrown
                         throw;
@@ -189,7 +199,12 @@ namespace Microsoft.ML.Transforms.Onnx
             }
             else
             {
-                _session = new InferenceSession(modelFile);
+                var sessionOptions = new SessionOptions()
+                {
+                    InterOpNumThreads = interOpNumThreads.GetValueOrDefault(),
+                    IntraOpNumThreads = intraOpNumThreads.GetValueOrDefault()
+                };
+                _session = new InferenceSession(modelFile, sessionOptions);
             }
 
             try
