@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -108,6 +109,66 @@ namespace Microsoft.Data.Analysis
                                   separator: separator, header: header, columnNames: columnNames, dataTypes: dataTypes, numberOfRowsToRead: numRows,
                                   guessRows: guessRows, addIndexColumn: addIndexColumn, encoding: encoding);
             }
+        }
+
+        public static DataFrame LoadFrom(IEnumerable<IList<object>> vals, IList<(string, Type)> columnInfos)
+        {
+            var columnsCount = columnInfos.Count;
+            var columns = new List<DataFrameColumn>(columnsCount);
+
+            foreach (var (name, type) in columnInfos)
+            {
+                var column = CreateColumn(type, name);
+                columns.Add(column);
+            }
+
+            var res = new DataFrame(columns);
+
+            foreach (var items in vals)
+            {
+                for (var c = 0; c < items.Count; c++)
+                {
+                    items[c] = items[c];
+                }
+                res.Append(items, inPlace: true);
+            }
+
+            return res;
+        }
+
+        public void SaveTo(DataTable table)
+        {
+            var columnsCount = Columns.Count;
+
+            if (table.Columns.Count == 0)
+            {
+                foreach (var column in Columns)
+                {
+                    table.Columns.Add(column.Name, column.DataType);
+                }
+            }
+            else
+            {
+                if (table.Columns.Count != columnsCount)
+                    throw new ArgumentException();
+            }
+
+            var items = new object[columnsCount];
+            foreach (var row in Rows)
+            {
+                for (var c = 0; c < columnsCount; c++)
+                {
+                    items[c] = row[c];
+                }
+                table.Rows.Add(items);
+            }
+        }
+
+        public DataTable ToTable()
+        {
+            var res = new DataTable();
+            SaveTo(res);
+            return res;
         }
 
         private static string GetColumnName(string[] columnNames, int columnIndex)
