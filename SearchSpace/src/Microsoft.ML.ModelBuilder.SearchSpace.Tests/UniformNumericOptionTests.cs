@@ -34,7 +34,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
             var sampleInputs = Enumerable.Range(0, 10).Select(i => i * 0.1);
             var sampleOutputs = sampleInputs.Select(i => option.SampleFromFeatureSpace(new[] { i }));
 
-            sampleOutputs.Select(x => x.AsType<int>()).Should().Equal(1, 2, 4, 8, 16, 32, 64, 128, 256, 511);
+            sampleOutputs.Select(x => x.AsType<int>()).Should().Equal(1, 2, 4, 8, 16, 32, 64, 128, 256, 512);
         }
 
         [Fact]
@@ -46,6 +46,13 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
             var sampleOutputs = sampleInputs.Select(i => option.MappingToFeatureSpace(i)[0]);
 
             sampleOutputs.Should().Equal(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9);
+        }
+
+        [Fact]
+        public void Uniform_integer_option_mapping_to_uniform_space_test_2()
+        {
+            var option = new UniformIntOption(20, 1024, defaultValue: 20, logBase: true);
+            option.SampleFromFeatureSpace(new double[] { 0.0 }).AsType<int>().Should().Be(20);
         }
 
         [Fact]

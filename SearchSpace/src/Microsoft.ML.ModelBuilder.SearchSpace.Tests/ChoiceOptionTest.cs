@@ -40,10 +40,13 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         }
 
         [Fact]
-        public void Choice_option_with_one_value_mapping_to_uniform_space_test()
+        public void Choice_option_dimension_should_be_0_if_contains_only_one_value()
         {
-            var option = new ChoiceOption("a");
-            option.MappingToFeatureSpace(new Parameter("a"))[0].Should().BeApproximately(0, 1e-5);
+            var option = new ChoiceOption("b");
+            option.FeatureSpaceDim.Should().Be(0);
+            option.Default.Should().BeEquivalentTo();
+            option.SampleFromFeatureSpace(new double[0]).AsType<string>().Should().Be("b");
+            option.MappingToFeatureSpace(new Parameter("b")).Should().BeEmpty();
         }
     }
 }
