@@ -7,12 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.ModelBuilder.SearchSpace.Option;
+using Newtonsoft.Json;
 
 namespace Microsoft.ML.ModelBuilder.SearchSpace
 {
     public class SearchSpace: OptionBase, IDictionary<string, OptionBase>
     {
         private Dictionary<string, OptionBase> options;
+        private Parameter defaultOption;
 
         public SearchSpace(params KeyValuePair<string, OptionBase>[] options)
             : this()
@@ -41,7 +43,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
             }
         }
 
-        protected SearchSpace(Type typeInfo)
+        protected SearchSpace(Type typeInfo, Parameter defaultOption = null)
             : this()
         {
             this.options = this.GetOptionsFromType(typeInfo);
@@ -50,6 +52,8 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
             {
                 this.options.Add(ss.Key, ss.Value);
             }
+
+            this.defaultOption = defaultOption;
         }
 
         public override int FeatureSpaceDim
@@ -91,8 +95,15 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
                 var option = this.options[key];
                 var input = feature.Skip(cur).Take(option.FeatureSpaceDim).ToArray();
                 var value = option.SampleFromFeatureSpace(input);
-                param[key] = new Parameter(value);
+                param[key] = value;
                 cur += option.FeatureSpaceDim;
+            }
+
+            if (this.defaultOption != null)
+            {
+                var _defaultOption = new Parameter(this.defaultOption.Value);
+                _defaultOption.Merge(param);
+                return _defaultOption;
             }
 
             return param;

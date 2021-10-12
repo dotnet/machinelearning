@@ -16,7 +16,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
     {
         private UniformIntOption option;
 
-        public ChoiceOption(params string[] choices)
+        public ChoiceOption(params object[] choices)
         {
             Contract.Requires(choices.Length > 0 && choices.Length < 1074, $"the length of choices must be (0, 1074)");
             var distinctChoices = choices.Distinct();
@@ -36,14 +36,19 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
             }
         }
 
-        public string[] Choices { get; }
+        public object[] Choices { get; }
 
-        public override int FeatureSpaceDim => 1;
+        public override int FeatureSpaceDim => this.Choices.Length == 1 ? 0 : 1;
 
         public override int?[] Step => new int?[] { this.Choices.Length };
 
         public override double[] MappingToFeatureSpace(Parameter param)
         {
+            if(this.FeatureSpaceDim == 0)
+            {
+                return new double[0];
+            }
+
             var value = param.AsType<string>();
             var x = Array.BinarySearch(this.Choices, value);
             Contract.Requires(x != -1, $"{value} not contains");
@@ -53,7 +58,12 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
 
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
-            Contract.Requires(values.Length == 1, "values length must be 1");
+            Contract.Requires(values.Length >= 0, "values length must be greater than 0");
+            if (values.Length == 0)
+            {
+                return new Parameter(this.Choices[0]);
+            }
+
             var param = this.option.SampleFromFeatureSpace(values);
             return new Parameter(this.Choices[param.AsType<int>()]);
         }

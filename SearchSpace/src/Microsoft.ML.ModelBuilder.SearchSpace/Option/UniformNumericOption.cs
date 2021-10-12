@@ -34,7 +34,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var x = param.AsType<double>();
-            Contract.Requires(x < this.Max && x >= this.Min, $"{x} is not within [{this.Min}, {this.Max})");
+            Contract.Requires(x <= this.Max && x >= this.Min, $"{x} is not within [{this.Min}, {this.Max}]");
             if (this.LogBase)
             {
                 var logMax = Math.Log(this.Max);
@@ -53,7 +53,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         {
             Contract.Requires(values.Length == 1, "values length must be 1");
             var value = values[0];
-            Contract.Requires(value < 1 && value >= 0, $"{value} must be between [0,1)");
+            Contract.Requires(value <= 1 && value >= 0, $"{value} must be between [0,1]");
 
             if (this.LogBase)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             var param = base.SampleFromFeatureSpace(values);
-            var intValue = Convert.ToInt32(Math.Floor(param.AsType<double>()));
+            var intValue = Convert.ToInt32(Math.Floor(param.AsType<double>() + 1e-6));
 
             return new Parameter(intValue);
         }

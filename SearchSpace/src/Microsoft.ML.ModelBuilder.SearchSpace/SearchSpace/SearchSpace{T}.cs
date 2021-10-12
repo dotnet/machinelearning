@@ -15,20 +15,29 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
     public class SearchSpace<T> : SearchSpace
         where T : class, new()
     {
+        private T defaultOption = null;
         public SearchSpace()
             : base(typeof(T))
         {
         }
 
+        public SearchSpace(T defaultOption)
+            : base(typeof(T), new Parameter(defaultOption))
+        {
+            this.defaultOption = defaultOption;
+        }
+
         public new T SampleFromFeatureSpace(double[] feature)
         {
             var param = base.SampleFromFeatureSpace(feature);
-            return param.AsType<T>();
+            var option = param.AsType<T>();
+
+            return option;
         }
 
         public double[] MappingToFeatureSpace(T input)
         {
-            var param = Parameter.CreateFromInstance(input);
+            var param = new Parameter(input);
             return this.MappingToFeatureSpace(param);
         }
     }

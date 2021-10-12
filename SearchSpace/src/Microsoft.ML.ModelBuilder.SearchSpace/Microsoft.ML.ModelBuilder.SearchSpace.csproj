@@ -7,7 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SerializablePipeline.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SearchSpace.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SerializablePipeline" />
   </ItemGroup>
 
 </Project>
