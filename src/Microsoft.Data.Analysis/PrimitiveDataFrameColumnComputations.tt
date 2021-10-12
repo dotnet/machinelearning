@@ -55,7 +55,7 @@ namespace Microsoft.Data.Analysis
                 return (IPrimitiveColumnComputation<T>)new <#=type.ClassPrefix#>Computation();
             }
 <# } #>
-            else if (typeof(T) == typeof(DateTime)) 
+            else if (typeof(T) == typeof(DateTime))
             {
                 return (IPrimitiveColumnComputation<T>)new DateTimeComputation();
             }
@@ -87,57 +87,57 @@ namespace Microsoft.Data.Analysis
 <# } else { #>
 <# if ((method.MethodName == "Max" || method.MethodName == "Min" || method.MethodName == "Product" || method.MethodName == "Sum") && method.SupportsRowSubsets == true) { #>
 <# if (method.MethodName == "Max") { #>
-    <# if (type.TypeName == "int") { #>
-        ret = Int32.MinValue;
-    <# } else if (type.TypeName == "long") { #>
-        ret = Int64.MinValue;
-    <# } else if (type.TypeName == "float") { #>
-        ret = Single.MinValue;
-    <# } else if (type.TypeName == "decimal") { #>
-        ret = Decimal.MinValue;
-    <# } else if (type.TypeName == "double") { #>
-        ret = Double.MinValue;
-    <# } else if (type.TypeName == "short") { #>
-        ret = Int16.MinValue;
-    <# } else if (type.TypeName == "byte") { #>
-        ret = Byte.MinValue;
-    <# } else if (type.TypeName == "char") { #>
-        ret = Char.MinValue;
-    <# } else if (type.TypeName == "sbyte") { #>
-        ret = SByte.MinValue;
-    <# } else if (type.TypeName == "uint") { #>
-        ret = UInt32.MinValue;
-    <# } else if (type.TypeName == "ulong") { #>
-        ret = UInt64.MinValue;
-    <# } else if (type.TypeName == "ushort") { #>
-        ret = UInt16.MinValue;
-    <# } #>
+<# if (type.TypeName == "int") { #>
+            ret = int.MinValue;
+<# } else if (type.TypeName == "long") { #>
+            ret = long.MinValue;
+<# } else if (type.TypeName == "float") { #>
+            ret = float.MinValue;
+<# } else if (type.TypeName == "decimal") { #>
+            ret = decimal.MinValue;
+<# } else if (type.TypeName == "double") { #>
+            ret = double.MinValue;
+<# } else if (type.TypeName == "short") { #>
+            ret = short.MinValue;
+<# } else if (type.TypeName == "byte") { #>
+            ret = byte.MinValue;
+<# } else if (type.TypeName == "char") { #>
+            ret = char.MinValue;
+<# } else if (type.TypeName == "sbyte") { #>
+            ret = sbyte.MinValue;
+<# } else if (type.TypeName == "uint") { #>
+            ret = uint.MinValue;
+<# } else if (type.TypeName == "ulong") { #>
+            ret = ulong.MinValue;
+<# } else if (type.TypeName == "ushort") { #>
+            ret = ushort.MinValue;
+<# } #>
 <# } else if (method.MethodName == "Min") { #>
-    <# if (type.TypeName == "int") { #>
-        ret = Int32.MaxValue;
-    <# } else if (type.TypeName == "long") { #>
-        ret = Int64.MaxValue;
-    <# } else if (type.TypeName == "float") { #>
-        ret = Single.MaxValue;
-    <# } else if (type.TypeName == "decimal") { #>
-        ret = Decimal.MaxValue;
-    <# } else if (type.TypeName == "double") { #>
-        ret = Double.MaxValue;
-    <# } else if (type.TypeName == "short") { #>
-        ret = Int16.MaxValue;
-    <# } else if (type.TypeName == "byte") { #>
-        ret = Byte.MaxValue;
-    <# } else if (type.TypeName == "char") { #>
-        ret = Char.MaxValue;
-    <# } else if (type.TypeName == "sbyte") { #>
-        ret = SByte.MaxValue;
-    <# } else if (type.TypeName == "uint") { #>
-        ret = UInt32.MaxValue;
-    <# } else if (type.TypeName == "ulong") { #>
-        ret = UInt64.MaxValue;
-    <# } else if (type.TypeName == "ushort") { #>
-        ret = UInt16.MaxValue;
-    <# } #>
+<# if (type.TypeName == "int") { #>
+            ret = int.MaxValue;
+<# } else if (type.TypeName == "long") { #>
+            ret = long.MaxValue;
+<# } else if (type.TypeName == "float") { #>
+            ret = float.MaxValue;
+<# } else if (type.TypeName == "decimal") { #>
+            ret = decimal.MaxValue;
+<# } else if (type.TypeName == "double") { #>
+            ret = double.MaxValue;
+<# } else if (type.TypeName == "short") { #>
+            ret = short.MaxValue;
+<# } else if (type.TypeName == "byte") { #>
+            ret = byte.MaxValue;
+<# } else if (type.TypeName == "char") { #>
+            ret = char.MaxValue;
+<# } else if (type.TypeName == "sbyte") { #>
+            ret = sbyte.MaxValue;
+<# } else if (type.TypeName == "uint") { #>
+            ret = uint.MaxValue;
+<# } else if (type.TypeName == "ulong") { #>
+            ret = ulong.MaxValue;
+<# } else if (type.TypeName == "ushort") { #>
+            ret = ushort.MaxValue;
+<# } #>
 <# } else { #>
             ret = default;
 <# } #>
@@ -172,59 +172,59 @@ namespace Microsoft.Data.Analysis
             }
 <# } else if ((method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") && method.SupportsRowSubsets == true) { #>
 <# if (method.MethodName == "CumulativeMax") { #>
-    <# if (type.TypeName == "int") { #>
-        var ret = Int32.MinValue;
-    <# } else if (type.TypeName == "long") { #>
-        var ret = Int64.MinValue;
-    <# } else if (type.TypeName == "float") { #>
-        var ret = Single.MinValue;
-    <# } else if (type.TypeName == "decimal") { #>
-        var ret = Decimal.MinValue;
-    <# } else if (type.TypeName == "double") { #>
-        var ret = Double.MinValue;
-    <# } else if (type.TypeName == "short") { #>
-        var ret = Int16.MinValue;
-    <# } else if (type.TypeName == "byte") { #>
-        var ret = Byte.MinValue;
-    <# } else if (type.TypeName == "char") { #>
-        var ret = Char.MinValue;
-    <# } else if (type.TypeName == "sbyte") { #>
-        var ret = SByte.MinValue;
-    <# } else if (type.TypeName == "uint") { #>
-        var ret = UInt32.MinValue;
-    <# } else if (type.TypeName == "ulong") { #>
-        var ret = UInt64.MinValue;
-    <# } else if (type.TypeName == "ushort") { #>
-        var ret = UInt16.MinValue;
-    <# } #>
+<# if (type.TypeName == "int") { #>
+            var ret = int.MinValue;
+<# } else if (type.TypeName == "long") { #>
+            var ret = long.MinValue;
+<# } else if (type.TypeName == "float") { #>
+            var ret = float.MinValue;
+<# } else if (type.TypeName == "decimal") { #>
+            var ret = decimal.MinValue;
+<# } else if (type.TypeName == "double") { #>
+            var ret = double.MinValue;
+<# } else if (type.TypeName == "short") { #>
+            var ret = short.MinValue;
+<# } else if (type.TypeName == "byte") { #>
+            var ret = byte.MinValue;
+<# } else if (type.TypeName == "char") { #>
+            var ret = char.MinValue;
+<# } else if (type.TypeName == "sbyte") { #>
+            var ret = sbyte.MinValue;
+<# } else if (type.TypeName == "uint") { #>
+            var ret = uint.MinValue;
+<# } else if (type.TypeName == "ulong") { #>
+            var ret = ulong.MinValue;
+<# } else if (type.TypeName == "ushort") { #>
+            var ret = ushort.MinValue;
+<# } #>
 <# } else if (method.MethodName == "CumulativeMin") { #>
-    <# if (type.TypeName == "int") { #>
-        var ret = Int32.MaxValue;
-    <# } else if (type.TypeName == "long") { #>
-        var ret = Int64.MaxValue;
-    <# } else if (type.TypeName == "float") { #>
-        var ret = Single.MaxValue;
-    <# } else if (type.TypeName == "decimal") { #>
-        var ret = Decimal.MaxValue;
-    <# } else if (type.TypeName == "double") { #>
-        var ret = Double.MaxValue;
-    <# } else if (type.TypeName == "short") { #>
-        var ret = Int16.MaxValue;
-    <# } else if (type.TypeName == "byte") { #>
-        var ret = Byte.MaxValue;
-    <# } else if (type.TypeName == "char") { #>
-        var ret = Char.MaxValue;
-    <# } else if (type.TypeName == "sbyte") { #>
-        var ret = SByte.MaxValue;
-    <# } else if (type.TypeName == "uint") { #>
-        var ret = UInt32.MaxValue;
-    <# } else if (type.TypeName == "ulong") { #>
-        var ret = UInt64.MaxValue;
-    <# } else if (type.TypeName == "ushort") { #>
-        var ret = UInt16.MaxValue;
-    <# } #>
+<# if (type.TypeName == "int") { #>
+            var ret = int.MaxValue;
+<# } else if (type.TypeName == "long") { #>
+            var ret = long.MaxValue;
+<# } else if (type.TypeName == "float") { #>
+            var ret = float.MaxValue;
+<# } else if (type.TypeName == "decimal") { #>
+            var ret = decimal.MaxValue;
+<# } else if (type.TypeName == "double") { #>
+            var ret = double.MaxValue;
+<# } else if (type.TypeName == "short") { #>
+            var ret = short.MaxValue;
+<# } else if (type.TypeName == "byte") { #>
+            var ret = byte.MaxValue;
+<# } else if (type.TypeName == "char") { #>
+            var ret = char.MaxValue;
+<# } else if (type.TypeName == "sbyte") { #>
+            var ret = sbyte.MaxValue;
+<# } else if (type.TypeName == "uint") { #>
+            var ret = uint.MaxValue;
+<# } else if (type.TypeName == "ulong") { #>
+            var ret = ulong.MaxValue;
+<# } else if (type.TypeName == "ushort") { #>
+            var ret = ushort.MaxValue;
+<# } #>
 <# } else { #>
-    var ret = default(<#=type.TypeName#>);
+            var ret = default(<#=type.TypeName#>);
 <# } #>
             var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
@@ -287,7 +287,7 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.SupportsRowSubsets == false) { #>
             ret = (<#=type.TypeName#>)0;
 <# } #>
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
 <# if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") { #>

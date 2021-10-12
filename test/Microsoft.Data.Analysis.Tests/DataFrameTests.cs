@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -139,29 +139,47 @@ namespace Microsoft.Data.Analysis.Tests
             return df;
         }
 
-        public static DataFrame MakeDataFrameWithNumericColumns(int length, bool withNulls = true)
+        public static DataFrame MakeDataFrameWithNumericColumns(int length, bool withNulls = true, int startingFrom = 0)
         {
-            DataFrameColumn byteColumn = new ByteDataFrameColumn("Byte", Enumerable.Range(0, length).Select(x => (byte)x));
-            DataFrameColumn decimalColumn = new DecimalDataFrameColumn("Decimal", Enumerable.Range(0, length).Select(x => (decimal)x));
-            DataFrameColumn doubleColumn = new DoubleDataFrameColumn("Double", Enumerable.Range(0, length).Select(x => (double)x));
-            DataFrameColumn floatColumn = new SingleDataFrameColumn("Float", Enumerable.Range(0, length).Select(x => (float)x));
-            DataFrameColumn intColumn = new Int32DataFrameColumn("Int", Enumerable.Range(0, length).Select(x => x));
-            DataFrameColumn longColumn = new Int64DataFrameColumn("Long", Enumerable.Range(0, length).Select(x => (long)x));
-            DataFrameColumn sbyteColumn = new SByteDataFrameColumn("Sbyte", Enumerable.Range(0, length).Select(x => (sbyte)x));
-            DataFrameColumn shortColumn = new Int16DataFrameColumn("Short", Enumerable.Range(0, length).Select(x => (short)x));
-            DataFrameColumn uintColumn = new UInt32DataFrameColumn("Uint", Enumerable.Range(0, length).Select(x => (uint)x));
-            DataFrameColumn ulongColumn = new UInt64DataFrameColumn("Ulong", Enumerable.Range(0, length).Select(x => (ulong)x));
-            DataFrameColumn ushortColumn = new UInt16DataFrameColumn("Ushort", Enumerable.Range(0, length).Select(x => (ushort)x));
+            var range = Enumerable.Range(startingFrom, length);
 
-            DataFrame dataFrame = new DataFrame(new List<DataFrameColumn> { byteColumn, decimalColumn, doubleColumn, floatColumn, intColumn, longColumn, sbyteColumn, shortColumn, uintColumn, ulongColumn, ushortColumn });
+            var byteColumn = new ByteDataFrameColumn("Byte", range.Select(x => (byte)x));
+            var decimalColumn = new DecimalDataFrameColumn("Decimal", range.Select(x => (decimal)x));
+            var doubleColumn = new DoubleDataFrameColumn("Double", range.Select(x => (double)x));
+            var floatColumn = new SingleDataFrameColumn("Float", range.Select(x => (float)x));
+            var intColumn = new Int32DataFrameColumn("Int", range.Select(x => x));
+            var longColumn = new Int64DataFrameColumn("Long", range.Select(x => (long)x));
+            var sbyteColumn = new SByteDataFrameColumn("Sbyte", range.Select(x => (sbyte)x));
+            var shortColumn = new Int16DataFrameColumn("Short", range.Select(x => (short)x));
+            var uintColumn = new UInt32DataFrameColumn("Uint", range.Select(x => (uint)x));
+            var ulongColumn = new UInt64DataFrameColumn("Ulong", range.Select(x => (ulong)x));
+            var ushortColumn = new UInt16DataFrameColumn("Ushort", range.Select(x => (ushort)x));
+
+            var columns = new List<DataFrameColumn>
+            {
+                byteColumn,
+                decimalColumn,
+                doubleColumn,
+                floatColumn,
+                intColumn,
+                longColumn,
+                sbyteColumn,
+                shortColumn,
+                uintColumn,
+                ulongColumn,
+                ushortColumn
+            };
+
+            var dataFrame = new DataFrame(columns);
 
             if (withNulls)
             {
-                for (int i = 0; i < dataFrame.Columns.Count; i++)
+                for (var i = 0; i < dataFrame.Columns.Count; i++)
                 {
                     dataFrame.Columns[i][length / 2] = null;
                 }
             }
+
             return dataFrame;
         }
 
@@ -812,6 +830,60 @@ namespace Microsoft.Data.Analysis.Tests
             }
         }
 
+        [Theory]
+        [InlineData(5, 10)]
+        [InlineData(-15, 10)]
+        [InlineData(-5, 10)]
+        public void TestComputations_WithNegativeNumbers_MaxMin_Calculated(int startingFrom, int length)
+        {
+            // Arrange
+
+            var range = Enumerable.Range(startingFrom, length);
+
+            var max = range.Max();
+            var min = range.Min();
+
+            var df = MakeDataFrameWithNumericColumns(length, withNulls: false, startingFrom);
+
+            var byteColumn = (PrimitiveDataFrameColumn<byte>)df.Columns["Byte"];
+            var decimalColumn = (PrimitiveDataFrameColumn<decimal>)df.Columns["Decimal"];
+            var doubleColumn = (PrimitiveDataFrameColumn<double>)df.Columns["Double"];
+            var floatColumn = (PrimitiveDataFrameColumn<float>)df.Columns["Float"];
+            var intColumn = (PrimitiveDataFrameColumn<int>)df.Columns["Int"];
+            var longColumn = (PrimitiveDataFrameColumn<long>)df.Columns["Long"];
+            var sbyteColumn = (PrimitiveDataFrameColumn<sbyte>)df.Columns["Sbyte"];
+            var shortColumn = (PrimitiveDataFrameColumn<short>)df.Columns["Short"];
+            var uintColumn = (PrimitiveDataFrameColumn<uint>)df.Columns["Uint"];
+            var ulongColumn = (PrimitiveDataFrameColumn<ulong>)df.Columns["Ulong"];
+            var ushortColumn = (PrimitiveDataFrameColumn<ushort>)df.Columns["Ushort"];
+
+            // Act, Assert
+
+            Assert.Equal((byte)byteColumn.Max(), range.Select(x => (byte)x).Max());
+            Assert.Equal((decimal)decimalColumn.Max(), max);
+            Assert.Equal((double)doubleColumn.Max(), max);
+            Assert.Equal((float)floatColumn.Max(), max);
+            Assert.Equal((int)intColumn.Max(), max);
+            Assert.Equal((long)longColumn.Max(), max);
+            Assert.Equal((sbyte)sbyteColumn.Max(), (sbyte)max);
+            Assert.Equal((short)shortColumn.Max(), (short)max);
+            Assert.Equal((uint)uintColumn.Max(), range.Select(x => (uint)x).Max());
+            Assert.Equal((ulong)ulongColumn.Max(), range.Select(x => (ulong)x).Max());
+            Assert.Equal((ushort)ushortColumn.Max(), range.Select(x => (ushort)x).Max());
+
+            Assert.Equal((byte)byteColumn.Min(), range.Select(x => (byte)x).Min());
+            Assert.Equal((decimal)decimalColumn.Min(), min);
+            Assert.Equal((double)doubleColumn.Min(), min);
+            Assert.Equal((float)floatColumn.Min(), min);
+            Assert.Equal((int)intColumn.Min(), min);
+            Assert.Equal((long)longColumn.Min(), min);
+            Assert.Equal((sbyte)sbyteColumn.Min(), (sbyte)min);
+            Assert.Equal((short)shortColumn.Min(), (short)min);
+            Assert.Equal((uint)uintColumn.Min(), range.Select(x => (uint)x).Min());
+            Assert.Equal((ulong)ulongColumn.Min(), range.Select(x => (ulong)x).Min());
+            Assert.Equal((ushort)ushortColumn.Min(), range.Select(x => (ushort)x).Min());
+        }
+
         [Fact]
         public void TestComputationsIncludingDateTime()
         {
@@ -1113,7 +1185,7 @@ namespace Microsoft.Data.Analysis.Tests
                 {
                     Assert.Null(value);
                 }
-                
+
                 for (int i = 0; i < sortedDataFrame.Columns.Count; i++)
                 {
                     string columnName = sortedDataFrame.Columns[i].Name;
@@ -2038,7 +2110,7 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.FullOuter);
             Assert.Equal(9, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
-                        
+
             int[] mergeRows = new int[] { 0, 2, 3, 4, 5 };
             int[] leftRows = new int[] { 0, 2, 2, 3, 3 };
             int[] rightRows = new int[] { 0, 2, 3, 2, 3 };
@@ -2077,8 +2149,8 @@ namespace Microsoft.Data.Analysis.Tests
             //Arrange
             var left = new DataFrame();
             left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2, 3, 4, 5 }));
-            left.Columns.Add (new Int32DataFrameColumn("G1", new[] { 0, 1, 1, 2, 2, 3 }));
-            left.Columns.Add (new Int32DataFrameColumn("G2", new[] { 3, 1, 2, 1, 2, 1}));
+            left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 0, 1, 1, 2, 2, 3 }));
+            left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 3, 1, 2, 1, 2, 1 }));
 
             var right = new DataFrame();
             right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2, 3 }));
@@ -2127,9 +2199,9 @@ namespace Microsoft.Data.Analysis.Tests
 
             Assert.Equal(expectedMerged.Length, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
-          
+
             for (long i = 0; i < expectedMerged.Length; i++)
-            {               
+            {
                 MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
             }
 
@@ -2137,7 +2209,7 @@ namespace Microsoft.Data.Analysis.Tests
 
         [Fact]
         public void TestMerge_ByTwoColumns_Simple_ManyToMany_LeftJoin()
-        {            
+        {
             //Test left merge by to int type columns
 
             //Arrange
@@ -2145,7 +2217,7 @@ namespace Microsoft.Data.Analysis.Tests
             left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
             left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 3 }));
             left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 3 }));
-            
+
             var right = new DataFrame();
             right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
             right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 0 }));
@@ -2703,7 +2775,7 @@ namespace Microsoft.Data.Analysis.Tests
                 }
             }
         }
-        
+
         [Fact]
         public void TestColumnCreationFromExisitingColumn()
         {
