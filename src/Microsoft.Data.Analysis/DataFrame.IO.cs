@@ -115,74 +115,79 @@ namespace Microsoft.Data.Analysis
             return columnNames == null ? "Column" + columnIndex.ToString() : columnNames[columnIndex];
         }
 
-        private static DataFrameColumn CreateColumn(Type kind, string[] columnNames, int columnIndex)
+        private static DataFrameColumn CreateColumn(Type kind, string columnName)
         {
             DataFrameColumn ret;
             if (kind == typeof(bool))
             {
-                ret = new BooleanDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new BooleanDataFrameColumn(columnName);
             }
             else if (kind == typeof(int))
             {
-                ret = new Int32DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new Int32DataFrameColumn(columnName);
             }
             else if (kind == typeof(float))
             {
-                ret = new SingleDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new SingleDataFrameColumn(columnName);
             }
             else if (kind == typeof(string))
             {
-                ret = new StringDataFrameColumn(GetColumnName(columnNames, columnIndex), 0);
+                ret = new StringDataFrameColumn(columnName, 0);
             }
             else if (kind == typeof(long))
             {
-                ret = new Int64DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new Int64DataFrameColumn(columnName);
             }
             else if (kind == typeof(decimal))
             {
-                ret = new DecimalDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new DecimalDataFrameColumn(columnName);
             }
             else if (kind == typeof(byte))
             {
-                ret = new ByteDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new ByteDataFrameColumn(columnName);
             }
             else if (kind == typeof(char))
             {
-                ret = new CharDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new CharDataFrameColumn(columnName);
             }
             else if (kind == typeof(double))
             {
-                ret = new DoubleDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new DoubleDataFrameColumn(columnName);
             }
             else if (kind == typeof(sbyte))
             {
-                ret = new SByteDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new SByteDataFrameColumn(columnName);
             }
             else if (kind == typeof(short))
             {
-                ret = new Int16DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new Int16DataFrameColumn(columnName);
             }
             else if (kind == typeof(uint))
             {
-                ret = new UInt32DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new UInt32DataFrameColumn(columnName);
             }
             else if (kind == typeof(ulong))
             {
-                ret = new UInt64DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new UInt64DataFrameColumn(columnName);
             }
             else if (kind == typeof(ushort))
             {
-                ret = new UInt16DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new UInt16DataFrameColumn(columnName);
             }
             else if (kind == typeof(DateTime))
             {
-                ret = new PrimitiveDataFrameColumn<DateTime>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<DateTime>(columnName);
             }
             else
             {
                 throw new NotSupportedException(nameof(kind));
             }
             return ret;
+        }
+
+        private static DataFrameColumn CreateColumn(Type kind, string[] columnNames, int columnIndex)
+        {
+            return CreateColumn(kind, GetColumnName(columnNames, columnIndex));
         }
 
         private static DataFrame ReadCsvLinesIntoDataFrame(WrappedStreamReaderOrStringReader wrappedReader,
