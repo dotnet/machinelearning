@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -974,6 +976,56 @@ CMT,";
             {
                 Assert.Equal("", emptyColumn[i]);
             }
+        }
+
+        [Fact]
+        public void TestLoadFromEnumerable()
+        {
+            var (columns, vals) = GetTestData();
+            var dataFrame = DataFrame.LoadFrom(vals, columns);
+
+            var resColumns = dataFrame.Columns.Select(column => (column.Name, column.DataType)).ToArray();
+            Assert.Equal(columns, resColumns);
+
+            var resVals = dataFrame.Rows.Select(row => row.ToArray()).ToArray();
+            Assert.Equal(vals, resVals);
+        }
+
+        [Fact]
+        public void TestSaveToDataTable()
+        {
+            var (columns, vals) = GetTestData();
+            var dataFrame = DataFrame.LoadFrom(vals, columns);
+
+            var table = dataFrame.ToTable();
+
+            var resColumns = table.Columns.Cast<DataColumn>().Select(column => (column.ColumnName, column.DataType)).ToArray();
+            Assert.Equal(columns, resColumns);
+
+            var resVals = table.Rows.Cast<DataRow>().Select(row => row.ItemArray).ToArray();
+            Assert.Equal(vals, resVals);
+        }
+
+        static ((string name, Type type)[] columns, object[][] vals) GetTestData()
+        {
+            const int RowsCount = 10_000;
+
+            var columns = new[]
+            {
+                ("ID", typeof(int)),
+                ("Text", typeof(string))
+            };
+
+            var vals = new object[RowsCount][];
+            for (var i = 0; i < RowsCount; i++)
+            {
+                var row = new object[columns.Length];
+                row[0] = i;
+                row[1] = $"test {i}";
+                vals[i] = row;
+            }
+
+            return (columns, vals);
         }
     }
 }
