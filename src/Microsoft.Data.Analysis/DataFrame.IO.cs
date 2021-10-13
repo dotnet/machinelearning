@@ -151,6 +151,11 @@ namespace Microsoft.Data.Analysis
             {
                 if (table.Columns.Count != columnsCount)
                     throw new ArgumentException();
+                for (var c = 0; c < columnsCount; c++)
+                {
+                    if (table.Columns[c].DataType != Columns[c].DataType)
+                        throw new ArgumentException();
+                }
             }
 
             var items = new object[columnsCount];
