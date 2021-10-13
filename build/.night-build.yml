@@ -47,7 +47,7 @@ jobs:
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:
-      name:  Hosted Ubuntu 1804
+      vmImage: ubuntu-18.04
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -56,7 +56,7 @@ jobs:
     container: UbuntuContainer
     nightlyBuild: true
     pool:
-      name:  Hosted Ubuntu 1804
+      vmImage: ubuntu-18.04
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -64,7 +64,7 @@ jobs:
     buildScript: ./build.sh
     nightlyBuild: true
     pool:
-      name: Hosted macOS
+      vmImage: macOS-10.15
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -81,7 +81,7 @@ jobs:
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -89,7 +89,7 @@ jobs:
     buildScript: build.cmd
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -106,7 +106,7 @@ jobs:
         _includeBenchmarkData: false
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -115,4 +115,4 @@ jobs:
     buildScript: build.cmd
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019

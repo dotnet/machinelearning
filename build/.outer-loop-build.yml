@@ -45,7 +45,7 @@ jobs:
         _config_short: RI
         _includeBenchmarkData: true
     pool:
-      name:  Hosted Ubuntu 1804
+      vmImage: ubuntu-18.04
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -53,14 +53,14 @@ jobs:
     buildScript: ./build.sh
     container: UbuntuContainer
     pool:
-      name:  Hosted Ubuntu 1804
+      vmImage: ubuntu-18.04
 
 - template: /build/ci/job-template.yml
   parameters:
     name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
     pool:
-      name: Hosted macOS
+      vmImage: macOS-10.15
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -76,14 +76,14 @@ jobs:
         _config_short: RI
         _includeBenchmarkData: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -99,7 +99,7 @@ jobs:
         _config_short: RFX
         _includeBenchmarkData: false
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -107,4 +107,4 @@ jobs:
     architecture: x86
     buildScript: build.cmd
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
