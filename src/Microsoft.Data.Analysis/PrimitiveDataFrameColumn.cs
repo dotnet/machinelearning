@@ -20,7 +20,9 @@ namespace Microsoft.Data.Analysis
     public partial class PrimitiveDataFrameColumn<T> : DataFrameColumn, IEnumerable<T?>
         where T : unmanaged
     {
+#pragma warning disable IDE0044 // Add readonly modifier
         private PrimitiveColumnContainer<T> _columnContainer;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         internal PrimitiveColumnContainer<T> ColumnContainer => _columnContainer;
 
@@ -650,6 +652,10 @@ namespace Microsoft.Data.Analysis
             float? max;
             float? min;
             float? mean;
+            float? std;
+            float? per_25;
+            float? per_50;
+            float? per_75;
             try
             {
                 max = (float)Convert.ChangeType(Max(), typeof(float));
@@ -674,11 +680,47 @@ namespace Microsoft.Data.Analysis
             {
                 mean = null;
             }
+            try
+            {
+                std = (float)Convert.ChangeType(StandardDeviation(), typeof(float));
+            }
+            catch (Exception)
+            {
+                std = null;
+            }
+            try
+            {
+                per_25 = (float)Convert.ChangeType(Percentile((float)0.25), typeof(float));
+            }
+            catch (Exception)
+            {
+                per_25 = null;
+            }
+            try
+            {
+                per_50 = (float)Convert.ChangeType(Percentile((float)0.50), typeof(float));
+            }
+            catch (Exception)
+            {
+                per_50 = null;
+            }
+            try
+            {
+                per_75 = (float)Convert.ChangeType(Percentile((float)0.75), typeof(float));
+            }
+            catch (Exception)
+            {
+                per_75 = null;
+            }
             PrimitiveDataFrameColumn<float> column = new PrimitiveDataFrameColumn<float>(Name);
             column.Append(Length - NullCount);
             column.Append(max);
             column.Append(min);
             column.Append(mean);
+            column.Append(std);
+            column.Append(per_25);
+            column.Append(per_50);
+            column.Append(per_75);
             return column;
         }
 

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using Apache.Arrow;
 using Microsoft.ML;
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
@@ -1113,7 +1114,6 @@ namespace Microsoft.Data.Analysis.Tests
                 {
                     Assert.Null(value);
                 }
-                
                 for (int i = 0; i < sortedDataFrame.Columns.Count; i++)
                 {
                     string columnName = sortedDataFrame.Columns[i].Name;
@@ -2038,7 +2038,7 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.FullOuter);
             Assert.Equal(9, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
-                        
+
             int[] mergeRows = new int[] { 0, 2, 3, 4, 5 };
             int[] leftRows = new int[] { 0, 2, 2, 3, 3 };
             int[] rightRows = new int[] { 0, 2, 3, 2, 3 };
@@ -2077,8 +2077,8 @@ namespace Microsoft.Data.Analysis.Tests
             //Arrange
             var left = new DataFrame();
             left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2, 3, 4, 5 }));
-            left.Columns.Add (new Int32DataFrameColumn("G1", new[] { 0, 1, 1, 2, 2, 3 }));
-            left.Columns.Add (new Int32DataFrameColumn("G2", new[] { 3, 1, 2, 1, 2, 1}));
+            left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 0, 1, 1, 2, 2, 3 }));
+            left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 3, 1, 2, 1, 2, 1 }));
 
             var right = new DataFrame();
             right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2, 3 }));
@@ -2127,9 +2127,9 @@ namespace Microsoft.Data.Analysis.Tests
 
             Assert.Equal(expectedMerged.Length, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
-          
+
             for (long i = 0; i < expectedMerged.Length; i++)
-            {               
+            {
                 MatchRowsOnMergedDataFrame(merge, left, right, i, expectedMerged[i].Left, expectedMerged[i].Right);
             }
 
@@ -2137,7 +2137,7 @@ namespace Microsoft.Data.Analysis.Tests
 
         [Fact]
         public void TestMerge_ByTwoColumns_Simple_ManyToMany_LeftJoin()
-        {            
+        {
             //Test left merge by to int type columns
 
             //Arrange
@@ -2145,7 +2145,7 @@ namespace Microsoft.Data.Analysis.Tests
             left.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
             left.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 3 }));
             left.Columns.Add(new Int32DataFrameColumn("G2", new[] { 1, 1, 3 }));
-            
+
             var right = new DataFrame();
             right.Columns.Add(new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }));
             right.Columns.Add(new Int32DataFrameColumn("G1", new[] { 1, 1, 0 }));
@@ -2514,26 +2514,190 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal("Max", descriptionColumn[1]);
             Assert.Equal("Min", descriptionColumn[2]);
             Assert.Equal("Mean", descriptionColumn[3]);
+            Assert.Equal("StdDev", descriptionColumn[4]);
+            Assert.Equal("Percentile_25", descriptionColumn[5]);
+            Assert.Equal("Percentile_50", descriptionColumn[6]);
+            Assert.Equal("Percentile_75", descriptionColumn[7]);
             for (int i = 1; i < description.Columns.Count - 1; i++)
             {
                 DataFrameColumn column = description.Columns[i];
                 Assert.Equal(df.Columns[i - 1].Name, column.Name);
-                Assert.Equal(4, column.Length);
+                Assert.Equal(8, column.Length);
                 Assert.Equal((float)9, column[0]);
                 Assert.Equal((float)9, column[1]);
                 Assert.Equal((float)0, column[2]);
                 Assert.Equal((float)4, column[3]);
+                Assert.Null(column[4]);
             }
 
             // Explicitly check the dateTimes column
-            DataFrameColumn dateTimeColumn = description.Columns[description.Columns.Count - 1];
-            Assert.Equal(dateTimeColumn.Name, dateTimes.Name);
-            Assert.Equal(4, dateTimeColumn.Length);
-            Assert.Equal((float)10, dateTimeColumn[0]);
-            Assert.Null(dateTimeColumn[1]);
-            Assert.Null(dateTimeColumn[2]);
-            Assert.Null(dateTimeColumn[3]);
+            DataFrameColumn dateTime = description.Columns[description.Columns.Count - 1];
+            Assert.Equal(dateTime.Name, dateTimes.Name);
+            Assert.Equal(8, dateTime.Length);
+            Assert.Equal((float)10, dateTime[0]);
+            Assert.Null(dateTime[1]);
+            Assert.Null(dateTime[2]);
+            Assert.Null(dateTime[3]);
+            Assert.Null(dateTime[4]);
         }
+
+        [Fact]
+        public void TestDescriptionForInt()
+        {
+            DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);
+
+            // Add a column manually here until we fix https://github.com/dotnet/corefxlab/issues/2784
+            PrimitiveDataFrameColumn<int> nums = new PrimitiveDataFrameColumn<int>("nums");
+            for (int i = 0; i < 10; i++)
+            {
+                nums.Append(i);
+            }
+            df.Columns.Add(nums);
+            Console.WriteLine(df);
+            Logger.LogMessage(df.Columns.ToString());
+
+            DataFrame description = df.Description();
+            DataFrameColumn descriptionColumn = description.Columns[0];
+            Assert.Equal("Description", descriptionColumn.Name);
+            Assert.Equal("Length (excluding null values)", descriptionColumn[0]);
+            Assert.Equal("Max", descriptionColumn[1]);
+            Assert.Equal("Min", descriptionColumn[2]);
+            Assert.Equal("Mean", descriptionColumn[3]);
+            Assert.Equal("StdDev", descriptionColumn[4]);
+            Assert.Equal("Percentile_25", descriptionColumn[5]);
+            Assert.Equal("Percentile_50", descriptionColumn[6]);
+            Assert.Equal("Percentile_75", descriptionColumn[7]);
+            for (int i = 1; i < description.Columns.Count - 1; i++)
+            {
+                DataFrameColumn column = description.Columns[i];
+                Assert.Equal(df.Columns[i - 1].Name, column.Name);
+                Assert.Equal(8, column.Length);
+                Console.WriteLine(column);
+                Assert.Equal((float)9, column[0]);
+                Assert.Equal((float)9, column[1]);
+                Assert.Equal((float)0, column[2]);
+                Assert.Equal((float)4, column[3]);
+                Assert.Null(column[4]);
+            }
+
+            // Explicitly check the int column
+            DataFrameColumn intcolumns = description.Columns[description.Columns.Count - 1];
+            Assert.Equal(intcolumns.Name, nums.Name);
+            Assert.Equal(8, intcolumns.Length);
+            Assert.Equal((float)10, intcolumns[0]);
+            Assert.Equal((float)9, intcolumns[1]);
+            Assert.Equal((float)0, intcolumns[2]);
+            Assert.Equal((float)4.5, intcolumns[3]);
+            Assert.Equal((float)3, intcolumns[4]); //stddev comes to 3.02 which gets converted to int as 3
+            Assert.Equal(2.ToString(), intcolumns[5].ToString());
+            Assert.Equal(4.ToString(), intcolumns[6].ToString());
+            Assert.Equal(6.ToString(), intcolumns[7].ToString());
+        }
+
+        [Fact]
+        public void TestDescriptionForFloat()
+        {
+            DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);
+
+            // Add a column manually here until we fix https://github.com/dotnet/corefxlab/issues/2784
+            PrimitiveDataFrameColumn<float> nums = new PrimitiveDataFrameColumn<float>("nums");
+            for (int i = 0; i < 10; i++)
+            {
+                nums.Append((float)i);
+            }
+            df.Columns.Add(nums);
+
+            DataFrame description = df.Description();
+            DataFrameColumn descriptionColumn = description.Columns[0];
+            Assert.Equal("Description", descriptionColumn.Name);
+            Assert.Equal("Length (excluding null values)", descriptionColumn[0]);
+            Assert.Equal("Max", descriptionColumn[1]);
+            Assert.Equal("Min", descriptionColumn[2]);
+            Assert.Equal("Mean", descriptionColumn[3]);
+            Assert.Equal("StdDev", descriptionColumn[4]);
+            Assert.Equal("Percentile_25", descriptionColumn[5]);
+            Assert.Equal("Percentile_50", descriptionColumn[6]);
+            Assert.Equal("Percentile_75", descriptionColumn[7]);
+            for (int i = 1; i < description.Columns.Count - 1; i++)
+            {
+                DataFrameColumn column = description.Columns[i];
+                Assert.Equal(df.Columns[i - 1].Name, column.Name);
+                Assert.Equal(8, column.Length);
+                Console.WriteLine(column);
+                Assert.Equal((float)9, column[0]);
+                Assert.Equal((float)9, column[1]);
+                Assert.Equal((float)0, column[2]);
+                Assert.Equal((float)4, column[3]);
+                Assert.Null(column[4]);
+            }
+
+            // Explicitly check the floatcolumns column
+            DataFrameColumn floatcolumns = description.Columns[description.Columns.Count - 1];
+            Assert.Equal(floatcolumns.Name, nums.Name);
+            Assert.Equal(8, floatcolumns.Length);
+            Assert.Equal((float)10, floatcolumns[0]);
+            Assert.Equal((float)9, floatcolumns[1]);
+            Assert.Equal((float)0, floatcolumns[2]);
+            Assert.Equal((float)4.5, floatcolumns[3]);
+            Assert.Equal(((float)3.02765).ToString(), floatcolumns[4].ToString());
+            Assert.Equal((float)2.25, floatcolumns[5]);
+            Assert.Equal((float)4.5, floatcolumns[6]);
+            Assert.Equal((float)6.75, floatcolumns[7]);
+        }
+
+        [Fact]
+        public void TestDescriptionForDouble()
+        {
+            DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);
+
+            // Add a column manually here until we fix https://github.com/dotnet/corefxlab/issues/2784
+            PrimitiveDataFrameColumn<double> nums = new PrimitiveDataFrameColumn<double>("nums");
+            for (int i = 0; i < 10; i++)
+            {
+                nums.Append((double)i);
+            }
+            df.Columns.Add(nums);
+            Console.WriteLine(df);
+            Logger.LogMessage(df.Columns.ToString());
+
+            DataFrame description = df.Description();
+            DataFrameColumn descriptionColumn = description.Columns[0];
+            Assert.Equal("Description", descriptionColumn.Name);
+            Assert.Equal("Length (excluding null values)", descriptionColumn[0]);
+            Assert.Equal("Max", descriptionColumn[1]);
+            Assert.Equal("Min", descriptionColumn[2]);
+            Assert.Equal("Mean", descriptionColumn[3]);
+            Assert.Equal("StdDev", descriptionColumn[4]);
+            Assert.Equal("Percentile_25", descriptionColumn[5]);
+            Assert.Equal("Percentile_50", descriptionColumn[6]);
+            Assert.Equal("Percentile_75", descriptionColumn[7]);
+            for (int i = 1; i < description.Columns.Count - 1; i++)
+            {
+                DataFrameColumn column = description.Columns[i];
+                Assert.Equal(df.Columns[i - 1].Name, column.Name);
+                Assert.Equal(8, column.Length);
+                Console.WriteLine(column);
+                Assert.Equal((float)9, column[0]);
+                Assert.Equal((float)9, column[1]);
+                Assert.Equal((float)0, column[2]);
+                Assert.Equal((float)4, column[3]);
+                Assert.Null(column[4]);
+            }
+
+            // Explicitly check the int column
+            DataFrameColumn intcolumns = description.Columns[description.Columns.Count - 1];
+            Assert.Equal(intcolumns.Name, nums.Name);
+            Assert.Equal(8, intcolumns.Length);
+            Assert.Equal((float)10, intcolumns[0]);
+            Assert.Equal((float)9, intcolumns[1]);
+            Assert.Equal((float)0, intcolumns[2]);
+            Assert.Equal((float)4.5, intcolumns[3]);
+            Assert.Equal(((float)3.02765).ToString(), intcolumns[4].ToString());
+            Assert.Equal((float)2.25, intcolumns[5]); //25th percentile
+            Assert.Equal((float)4.5, intcolumns[6]); //50th percentile
+            Assert.Equal((float)6.75, intcolumns[7]); //75th percentile
+        }
+
 
         [Fact]
         public void TestInfo()
@@ -2703,7 +2867,7 @@ namespace Microsoft.Data.Analysis.Tests
                 }
             }
         }
-        
+
         [Fact]
         public void TestColumnCreationFromExisitingColumn()
         {

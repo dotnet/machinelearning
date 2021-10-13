@@ -34,6 +34,8 @@ namespace Microsoft.Data.Analysis
         void Sum(PrimitiveColumnContainer<T> column, out T ret);
         void Sum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret);
         void Round(PrimitiveColumnContainer<T> column);
+        void StdDev(PrimitiveColumnContainer<T> column, out T ret);
+        void Percentile(PrimitiveColumnContainer<T> column, float percentile, out T ret);
     }
 
     internal static class PrimitiveColumnComputation<T>
@@ -236,6 +238,15 @@ namespace Microsoft.Data.Analysis
             throw new NotSupportedException();
         }
 
+        void IPrimitiveColumnComputation<bool>.StdDev(PrimitiveColumnContainer<bool> column, out bool ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<bool>.Percentile(PrimitiveColumnContainer<bool> column, float percentile, out bool ret)
+        {
+            throw new NotImplementedException();
+        }
     }
     internal class ByteComputation : IPrimitiveColumnComputation<byte>
     {
@@ -663,6 +674,15 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<byte>.StdDev(PrimitiveColumnContainer<byte> column, out byte ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<byte>.Percentile(PrimitiveColumnContainer<byte> column, float percentile, out byte ret)
+        {
+            throw new NotSupportedException();
+        }
     }
     internal class CharComputation : IPrimitiveColumnComputation<char>
     {
@@ -1090,6 +1110,15 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<char>.StdDev(PrimitiveColumnContainer<char> column, out char ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<char>.Percentile(PrimitiveColumnContainer<char> column, float percentile, out char ret)
+        {
+            throw new NotSupportedException();
+        }
     }
     internal class DecimalComputation : IPrimitiveColumnComputation<decimal>
     {
@@ -1517,6 +1546,15 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<decimal>.StdDev(PrimitiveColumnContainer<decimal> column, out decimal ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<decimal>.Percentile(PrimitiveColumnContainer<decimal> column, float percentile, out decimal ret)
+        {
+            throw new NotSupportedException();
+        }
     }
     internal class DoubleComputation : IPrimitiveColumnComputation<double>
     {
@@ -1944,6 +1982,39 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<double>.StdDev(PrimitiveColumnContainer<double> column, out double ret)
+        {
+            ret = default;
+            Sum(column, out double sum);
+            double avg = sum / column.Length;
+            double sumOfSquares = 0.0;
+            foreach (double num in column)
+            {
+                sumOfSquares += Math.Pow((num - avg), 2.0);
+            }
+            // Finally divide it by n - 1 (for standard deviation variance)
+            // Or use length without subtracting one ( for population standard deviation variance)
+
+            double variance = sumOfSquares / (double)(column.Length - 1);
+
+            ret = Math.Sqrt(variance);
+        }
+
+        void IPrimitiveColumnComputation<double>.Percentile(PrimitiveColumnContainer<double> column, float percentile, out double ret)
+        {
+            double[] columnArr = new double[column.Length];
+            for (int i = 0; i < column.Length; i++)
+            {
+                columnArr[i] = (double)column[i];
+            }
+            Array.Sort(columnArr);
+
+            int N = columnArr.Length;
+            double n = (N - 1) * percentile + 1;
+            int k = (int)n;
+            double d = n - k;
+            ret = columnArr[k - 1] + d * (columnArr[k] - columnArr[k - 1]);
+        }
     }
     internal class FloatComputation : IPrimitiveColumnComputation<float>
     {
@@ -2371,6 +2442,42 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<float>.StdDev(PrimitiveColumnContainer<float> column, out float ret)
+        {
+            ret = default;
+            Sum(column, out float sum);
+            Console.WriteLine("Sum:" + sum);
+            float avg = sum / column.Length;
+            float sumOfSquares = 0;
+            float deviation = 0;
+            for (int i = 0; i < column.Length; i++)
+            {
+                deviation = (float)(column[i] - avg);
+                sumOfSquares += (deviation * deviation);
+            }
+            // Finally divide it by n - 1 (for standard deviation variance)
+            // Or use length without subtracting one ( for population standard deviation variance)
+            Console.WriteLine("SumofSqaures" + sumOfSquares);
+            float variance = sumOfSquares / (float)(column.Length - 1);
+
+            ret = (float)Math.Sqrt(variance);
+        }
+
+        void IPrimitiveColumnComputation<float>.Percentile(PrimitiveColumnContainer<float> column, float percentile, out float ret)
+        {
+            float[] columnArr = new float[column.Length];
+            for (int i = 0; i < column.Length; i++)
+            {
+                columnArr[i] = (float)column[i];
+            }
+            Array.Sort(columnArr);
+
+            int N = columnArr.Length;
+            float n = (float)((N - 1) * percentile + 1);
+            int k = (int)n;
+            float d = n - k;
+            ret = columnArr[k - 1] + d * (columnArr[k] - columnArr[k - 1]);
+        }
     }
     internal class IntComputation : IPrimitiveColumnComputation<int>
     {
@@ -2798,6 +2905,42 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<int>.StdDev(PrimitiveColumnContainer<int> column, out int ret)
+        {
+            ret = default;
+            Sum(column, out int sum);
+            Console.WriteLine("Sum:" + sum);
+            float avg = sum / column.Length;
+            float sumOfSquares = 0;
+            float deviation = 0;
+            for (int i = 0; i < column.Length; i++)
+            {
+                deviation = (float)(column[i] - avg);
+                sumOfSquares += deviation * deviation;
+            }
+            // Finally divide it by n - 1 (for standard deviation variance)
+            // Or use length without subtracting one ( for population standard deviation variance)
+            Console.WriteLine("SumofSqaures" + sumOfSquares);
+            float variance = sumOfSquares / (float)(column.Length - 1);
+
+            ret = (int)Math.Sqrt(variance);
+        }
+
+        void IPrimitiveColumnComputation<int>.Percentile(PrimitiveColumnContainer<int> column, float percentile, out int ret)
+        {
+            double[] columnArr = new double[column.Length];
+            for (int i = 0; i < column.Length; i++)
+            {
+                columnArr[i] = (double)column[i];
+            }
+            Array.Sort(columnArr);
+
+            int N = columnArr.Length;
+            double n = (N - 1) * percentile + 1;
+            int k = (int)n;
+            double d = n - k;
+            ret = (int)(columnArr[k - 1] + d * (columnArr[k] - columnArr[k - 1]));
+        }
     }
     internal class LongComputation : IPrimitiveColumnComputation<long>
     {
@@ -3225,6 +3368,28 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<long>.StdDev(PrimitiveColumnContainer<long> column, out long ret)
+        {
+            ret = default;
+            Sum(column, out long sum);
+            long avg = sum / column.Length;
+            long sumOfSquares = 0;
+            foreach (long num in column)
+            {
+                sumOfSquares += (long)Math.Pow((num - avg), 2.0);
+            }
+            // Finally divide it by n - 1 (for standard deviation variance)
+            // Or use length without subtracting one ( for population standard deviation variance)
+
+            long variance = sumOfSquares / (long)(column.Length - 1);
+
+            ret = (long)Math.Sqrt(variance);
+        }
+
+        void IPrimitiveColumnComputation<long>.Percentile(PrimitiveColumnContainer<long> column, float percentile, out long ret)
+        {
+            throw new NotImplementedException();
+        }
     }
     internal class SByteComputation : IPrimitiveColumnComputation<sbyte>
     {
@@ -3652,6 +3817,15 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<sbyte>.StdDev(PrimitiveColumnContainer<sbyte> column, out sbyte ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<sbyte>.Percentile(PrimitiveColumnContainer<sbyte> column, float percentile, out sbyte ret)
+        {
+            throw new NotImplementedException();
+        }
     }
     internal class ShortComputation : IPrimitiveColumnComputation<short>
     {
@@ -4079,6 +4253,15 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<short>.StdDev(PrimitiveColumnContainer<short> column, out short ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<short>.Percentile(PrimitiveColumnContainer<short> column, float percentile, out short ret)
+        {
+            throw new NotImplementedException();
+        }
     }
     internal class UIntComputation : IPrimitiveColumnComputation<uint>
     {
@@ -4506,6 +4689,15 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<uint>.StdDev(PrimitiveColumnContainer<uint> column, out uint ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<uint>.Percentile(PrimitiveColumnContainer<uint> column, float percentile, out uint ret)
+        {
+            throw new NotImplementedException();
+        }
     }
     internal class ULongComputation : IPrimitiveColumnComputation<ulong>
     {
@@ -4933,6 +5125,15 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<ulong>.StdDev(PrimitiveColumnContainer<ulong> column, out ulong ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<ulong>.Percentile(PrimitiveColumnContainer<ulong> column, float percentile, out ulong ret)
+        {
+            throw new NotImplementedException();
+        }
     }
     internal class UShortComputation : IPrimitiveColumnComputation<ushort>
     {
@@ -5360,5 +5561,14 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        void IPrimitiveColumnComputation<ushort>.StdDev(PrimitiveColumnContainer<ushort> column, out ushort ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<ushort>.Percentile(PrimitiveColumnContainer<ushort> column, float percentile, out ushort ret)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -310,5 +310,14 @@ namespace Microsoft.Data.Analysis
             throw new NotSupportedException();
         }
 
+        void IPrimitiveColumnComputation<DateTime>.StdDev(PrimitiveColumnContainer<DateTime> column, out DateTime ret)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPrimitiveColumnComputation<DateTime>.Percentile(PrimitiveColumnContainer<DateTime> column, float percentile, out DateTime ret)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

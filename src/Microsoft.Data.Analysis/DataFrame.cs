@@ -247,6 +247,10 @@ namespace Microsoft.Data.Analysis
                     stringColumn.Append("Max");
                     stringColumn.Append("Min");
                     stringColumn.Append("Mean");
+                    stringColumn.Append("StdDev");
+                    stringColumn.Append("Percentile_25");
+                    stringColumn.Append("Percentile_50");
+                    stringColumn.Append("Percentile_75");
                     ret.Columns.Add(stringColumn);
                 }
                 ret.Columns.Add(column.Description());
@@ -270,6 +274,14 @@ namespace Microsoft.Data.Analysis
         public DataFrame OrderByDescending(string columnName)
         {
             return Sort(columnName, isAscending: false);
+        }
+
+        /// <summary>
+        /// Returns true if DF is Empty
+        /// </summary>
+        public bool isEmpty()
+        {
+            return this.Columns.Count == 0 && this.Rows.Count == 0;
         }
 
         /// <summary>

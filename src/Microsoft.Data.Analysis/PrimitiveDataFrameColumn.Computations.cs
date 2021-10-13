@@ -132,6 +132,18 @@ namespace Microsoft.Data.Analysis
             PrimitiveColumnComputation<T>.Instance.Sum(_columnContainer, out T ret);
             return ret;
         }
+
+        public object StandardDeviation()
+        {
+            PrimitiveColumnComputation<T>.Instance.StdDev(_columnContainer, out T ret);
+            return ret;
+        }
+
+        public object Percentile(float percentile)
+        {
+            PrimitiveColumnComputation<T>.Instance.Percentile(_columnContainer, percentile, out T ret);
+            return ret;
+        }
         /// <inheritdoc/>
         public override object Sum(IEnumerable<long> rowIndices)
         {
