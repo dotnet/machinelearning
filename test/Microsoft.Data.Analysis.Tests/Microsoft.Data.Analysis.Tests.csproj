@@ -35,4 +35,8 @@
         <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Strings.resx" LogicalName="Microsoft.Data.Analysis.Strings.resources" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="System.Data.SQLite" Version="1.0.115" />
+    </ItemGroup>
+
 </Project>

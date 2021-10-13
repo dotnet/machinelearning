@@ -6,9 +6,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Microsoft.Data.Analysis
 {
@@ -163,7 +165,7 @@ namespace Microsoft.Data.Analysis
             {
                 for (var c = 0; c < columnsCount; c++)
                 {
-                    items[c] = row[c];
+                    items[c] = row[c] ?? DBNull.Value;
                 }
                 table.Rows.Add(items);
             }
@@ -174,6 +176,86 @@ namespace Microsoft.Data.Analysis
             var res = new DataTable();
             SaveTo(res);
             return res;
+        }
+
+        public static DataFrame FromSchema(DbDataReader reader)
+        {
+            var columnsCount = reader.FieldCount;
+            var columns = new DataFrameColumn[columnsCount];
+
+            for (var c = 0; c < columnsCount; c++)
+            {
+                var type = reader.GetFieldType(c);
+                var name = reader.GetName(c);
+                var column = CreateColumn(type, name);
+                columns[c] = column;
+            }
+
+            var res = new DataFrame(columns);
+            return res;
+        }
+
+        public static async Task<DataFrame> LoadFrom(DbDataReader reader)
+        {
+            var res = FromSchema(reader);
+            var columnsCount = reader.FieldCount;
+
+            var items = new object[columnsCount];
+            while (await reader.ReadAsync())
+            {
+                for (var c = 0; c < columnsCount; c++)
+                {
+                    items[c] = reader.IsDBNull(c)
+                        ? null
+                        : reader[c];
+                }
+                res.Append(items, inPlace: true);
+            }
+
+            reader.Close();
+
+            return res;
+        }
+
+        public static async Task<DataFrame> LoadFrom(DbDataAdapter adapter)
+        {
+            using var reader = adapter.SelectCommand.ExecuteReader();
+            return await LoadFrom(reader);
+        }
+
+        public void SaveTo(DbDataAdapter dataAdapter, DbProviderFactory factory)
+        {
+            using var commandBuilder = factory.CreateCommandBuilder();
+            commandBuilder.DataAdapter = dataAdapter;
+            dataAdapter.InsertCommand = commandBuilder.GetInsertCommand();
+            dataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
+            dataAdapter.DeleteCommand = commandBuilder.GetDeleteCommand();
+
+            using var table = ToTable();
+
+            var connection = dataAdapter.SelectCommand.Connection;
+            var needClose = connection.TryOpen();
+
+            try
+            {
+                using var transaction = connection.BeginTransaction();
+                try
+                {
+                    dataAdapter.Update(table);
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    transaction.Dispose();
+                    throw;
+                }
+                transaction.Commit();
+            }
+            finally
+            {
+                if (needClose)
+                    connection.Close();
+            }
         }
 
         private static string GetColumnName(string[] columnNames, int columnIndex)
