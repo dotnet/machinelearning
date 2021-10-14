@@ -8,6 +8,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Data.Analysis
 {
@@ -36,6 +37,8 @@ namespace Microsoft.Data.Analysis
         void Round(PrimitiveColumnContainer<T> column);
         void StdDev(PrimitiveColumnContainer<T> column, out T ret);
         void Percentile(PrimitiveColumnContainer<T> column, float percentile, out T ret);
+        void Unique(PrimitiveColumnContainer<T> column, out long ret);
+        void Count(PrimitiveColumnContainer<T> column, out long count);
     }
 
     internal static class PrimitiveColumnComputation<T>
@@ -245,7 +248,17 @@ namespace Microsoft.Data.Analysis
 
         void IPrimitiveColumnComputation<bool>.Percentile(PrimitiveColumnContainer<bool> column, float percentile, out bool ret)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<bool>.Unique(PrimitiveColumnContainer<bool> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<bool>.Count(PrimitiveColumnContainer<bool> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
     internal class ByteComputation : IPrimitiveColumnComputation<byte>
@@ -683,6 +696,16 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
+
+        void IPrimitiveColumnComputation<byte>.Unique(PrimitiveColumnContainer<byte> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<byte>.Count(PrimitiveColumnContainer<byte> column, out long count)
+        {
+            count = column.Length - column.NullCount;
+        }
     }
     internal class CharComputation : IPrimitiveColumnComputation<char>
     {
@@ -1119,6 +1142,21 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
+
+        void IPrimitiveColumnComputation<char>.Unique(PrimitiveColumnContainer<char> column, out long ret)
+        {
+            var hs = new HashSet<char>();
+            foreach (char c in column)
+            {
+                hs.Add(c);
+            }
+            ret = hs.Count();
+        }
+
+        void IPrimitiveColumnComputation<char>.Count(PrimitiveColumnContainer<char> column, out long count)
+        {
+            count = column.Length - column.NullCount;
+        }
     }
     internal class DecimalComputation : IPrimitiveColumnComputation<decimal>
     {
@@ -1554,6 +1592,16 @@ namespace Microsoft.Data.Analysis
         void IPrimitiveColumnComputation<decimal>.Percentile(PrimitiveColumnContainer<decimal> column, float percentile, out decimal ret)
         {
             throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<decimal>.Unique(PrimitiveColumnContainer<decimal> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<decimal>.Count(PrimitiveColumnContainer<decimal> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
     internal class DoubleComputation : IPrimitiveColumnComputation<double>
@@ -2014,6 +2062,16 @@ namespace Microsoft.Data.Analysis
             int k = (int)n;
             double d = n - k;
             ret = columnArr[k - 1] + d * (columnArr[k] - columnArr[k - 1]);
+        }
+
+        void IPrimitiveColumnComputation<double>.Unique(PrimitiveColumnContainer<double> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<double>.Count(PrimitiveColumnContainer<double> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
     internal class FloatComputation : IPrimitiveColumnComputation<float>
@@ -2478,6 +2536,16 @@ namespace Microsoft.Data.Analysis
             float d = n - k;
             ret = columnArr[k - 1] + d * (columnArr[k] - columnArr[k - 1]);
         }
+
+        void IPrimitiveColumnComputation<float>.Unique(PrimitiveColumnContainer<float> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<float>.Count(PrimitiveColumnContainer<float> column, out long count)
+        {
+            count = column.Length - column.NullCount;
+        }
     }
     internal class IntComputation : IPrimitiveColumnComputation<int>
     {
@@ -2941,6 +3009,16 @@ namespace Microsoft.Data.Analysis
             double d = n - k;
             ret = (int)(columnArr[k - 1] + d * (columnArr[k] - columnArr[k - 1]));
         }
+
+        void IPrimitiveColumnComputation<int>.Unique(PrimitiveColumnContainer<int> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<int>.Count(PrimitiveColumnContainer<int> column, out long count)
+        {
+            count = column.Length - column.NullCount;
+        }
     }
     internal class LongComputation : IPrimitiveColumnComputation<long>
     {
@@ -3388,7 +3466,17 @@ namespace Microsoft.Data.Analysis
 
         void IPrimitiveColumnComputation<long>.Percentile(PrimitiveColumnContainer<long> column, float percentile, out long ret)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<long>.Unique(PrimitiveColumnContainer<long> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<long>.Count(PrimitiveColumnContainer<long> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
     internal class SByteComputation : IPrimitiveColumnComputation<sbyte>
@@ -3824,7 +3912,17 @@ namespace Microsoft.Data.Analysis
 
         void IPrimitiveColumnComputation<sbyte>.Percentile(PrimitiveColumnContainer<sbyte> column, float percentile, out sbyte ret)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<sbyte>.Unique(PrimitiveColumnContainer<sbyte> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<sbyte>.Count(PrimitiveColumnContainer<sbyte> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
     internal class ShortComputation : IPrimitiveColumnComputation<short>
@@ -4260,7 +4358,17 @@ namespace Microsoft.Data.Analysis
 
         void IPrimitiveColumnComputation<short>.Percentile(PrimitiveColumnContainer<short> column, float percentile, out short ret)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<short>.Unique(PrimitiveColumnContainer<short> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<short>.Count(PrimitiveColumnContainer<short> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
     internal class UIntComputation : IPrimitiveColumnComputation<uint>
@@ -4696,7 +4804,17 @@ namespace Microsoft.Data.Analysis
 
         void IPrimitiveColumnComputation<uint>.Percentile(PrimitiveColumnContainer<uint> column, float percentile, out uint ret)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<uint>.Unique(PrimitiveColumnContainer<uint> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<uint>.Count(PrimitiveColumnContainer<uint> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
     internal class ULongComputation : IPrimitiveColumnComputation<ulong>
@@ -5132,7 +5250,17 @@ namespace Microsoft.Data.Analysis
 
         void IPrimitiveColumnComputation<ulong>.Percentile(PrimitiveColumnContainer<ulong> column, float percentile, out ulong ret)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<ulong>.Unique(PrimitiveColumnContainer<ulong> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<ulong>.Count(PrimitiveColumnContainer<ulong> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
     internal class UShortComputation : IPrimitiveColumnComputation<ushort>
@@ -5568,7 +5696,17 @@ namespace Microsoft.Data.Analysis
 
         void IPrimitiveColumnComputation<ushort>.Percentile(PrimitiveColumnContainer<ushort> column, float percentile, out ushort ret)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<ushort>.Unique(PrimitiveColumnContainer<ushort> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<ushort>.Count(PrimitiveColumnContainer<ushort> column, out long count)
+        {
+            count = column.Length - column.NullCount;
         }
     }
 }

@@ -656,6 +656,8 @@ namespace Microsoft.Data.Analysis
             float? per_25;
             float? per_50;
             float? per_75;
+            long? unique;
+            long? count;
             try
             {
                 max = (float)Convert.ChangeType(Max(), typeof(float));
@@ -712,6 +714,22 @@ namespace Microsoft.Data.Analysis
             {
                 per_75 = null;
             }
+            try
+            {
+                unique = (long)Convert.ChangeType(Unique(), typeof(long));
+            }
+            catch (Exception)
+            {
+                unique = null;
+            }
+            try
+            {
+                count = (long)Convert.ChangeType(Count(), typeof(long));
+            }
+            catch (Exception)
+            {
+                count = null;
+            }
             PrimitiveDataFrameColumn<float> column = new PrimitiveDataFrameColumn<float>(Name);
             column.Append(Length - NullCount);
             column.Append(max);
@@ -721,6 +739,8 @@ namespace Microsoft.Data.Analysis
             column.Append(per_25);
             column.Append(per_50);
             column.Append(per_75);
+            column.Append(unique);
+            column.Append(count);
             return column;
         }
 

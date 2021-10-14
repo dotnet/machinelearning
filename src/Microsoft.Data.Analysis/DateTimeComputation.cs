@@ -312,10 +312,20 @@ namespace Microsoft.Data.Analysis
 
         void IPrimitiveColumnComputation<DateTime>.StdDev(PrimitiveColumnContainer<DateTime> column, out DateTime ret)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         void IPrimitiveColumnComputation<DateTime>.Percentile(PrimitiveColumnContainer<DateTime> column, float percentile, out DateTime ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<DateTime>.Unique(PrimitiveColumnContainer<DateTime> column, out long ret)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IPrimitiveColumnComputation<DateTime>.Count(PrimitiveColumnContainer<DateTime> column, out long count)
         {
             throw new NotImplementedException();
         }

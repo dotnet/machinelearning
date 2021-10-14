@@ -244,7 +244,6 @@ namespace Microsoft.Data.Analysis
                     ret.Add(i, otherRowIndices);
                 }
             }
-            
             return ret;
         }
 
@@ -372,7 +371,55 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Returns a <see cref= "DataFrameColumn"/> with statistics that describe the column
         /// </summary>
-        public virtual DataFrameColumn Description() => throw new NotImplementedException();
+        public virtual DataFrameColumn Description()
+        {
+            float? max;
+            float? min;
+            float? mean;
+            float? std;
+            float? per_25;
+            float? per_50;
+            float? per_75;
+            long? unique;
+            long? count;
+
+            max = null;
+            min = null;
+            mean = null;
+            std = null;
+            per_25 = null;
+            per_50 = null;
+            per_75 = null;
+            unique = (long)Unique();
+            count = (long)Count();
+            PrimitiveDataFrameColumn<float> column = new PrimitiveDataFrameColumn<float>(Name);
+            column.Append(Length - NullCount);
+            column.Append(max);
+            column.Append(min);
+            column.Append(mean);
+            column.Append(std);
+            column.Append(per_25);
+            column.Append(per_50);
+            column.Append(per_75);
+            column.Append(unique);
+            column.Append(count);
+            return column;
+        }
+
+        public long Count()
+        {
+            return this.Length - this.NullCount;
+        }
+
+        public long Unique()
+        {
+            var hs = new HashSet<string>();
+            foreach (string c in this)
+            {
+                hs.Add(c);
+            }
+            return hs.Count();
+        }
 
         /// <summary>
         /// Returns the indices of non-null values that, when applied, result in this column being sorted in ascending order. Also returns the indices of null values in <paramref name="nullIndices"/>.

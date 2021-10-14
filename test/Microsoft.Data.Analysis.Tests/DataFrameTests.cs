@@ -2518,22 +2518,12 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal("Percentile_25", descriptionColumn[5]);
             Assert.Equal("Percentile_50", descriptionColumn[6]);
             Assert.Equal("Percentile_75", descriptionColumn[7]);
-            for (int i = 1; i < description.Columns.Count - 1; i++)
-            {
-                DataFrameColumn column = description.Columns[i];
-                Assert.Equal(df.Columns[i - 1].Name, column.Name);
-                Assert.Equal(8, column.Length);
-                Assert.Equal((float)9, column[0]);
-                Assert.Equal((float)9, column[1]);
-                Assert.Equal((float)0, column[2]);
-                Assert.Equal((float)4, column[3]);
-                Assert.Null(column[4]);
-            }
-
+            Assert.Equal("Unique", descriptionColumn[8]);
+            Assert.Equal("Count", descriptionColumn[9]);
             // Explicitly check the dateTimes column
             DataFrameColumn dateTime = description.Columns[description.Columns.Count - 1];
             Assert.Equal(dateTime.Name, dateTimes.Name);
-            Assert.Equal(8, dateTime.Length);
+            Assert.Equal(10, dateTime.Length);
             Assert.Equal((float)10, dateTime[0]);
             Assert.Null(dateTime[1]);
             Assert.Null(dateTime[2]);
@@ -2567,23 +2557,13 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal("Percentile_25", descriptionColumn[5]);
             Assert.Equal("Percentile_50", descriptionColumn[6]);
             Assert.Equal("Percentile_75", descriptionColumn[7]);
-            for (int i = 1; i < description.Columns.Count - 1; i++)
-            {
-                DataFrameColumn column = description.Columns[i];
-                Assert.Equal(df.Columns[i - 1].Name, column.Name);
-                Assert.Equal(8, column.Length);
-                Console.WriteLine(column);
-                Assert.Equal((float)9, column[0]);
-                Assert.Equal((float)9, column[1]);
-                Assert.Equal((float)0, column[2]);
-                Assert.Equal((float)4, column[3]);
-                Assert.Null(column[4]);
-            }
+            Assert.Equal("Unique", descriptionColumn[8]);
+            Assert.Equal("Count", descriptionColumn[9]);
 
             // Explicitly check the int column
             DataFrameColumn intcolumns = description.Columns[description.Columns.Count - 1];
             Assert.Equal(intcolumns.Name, nums.Name);
-            Assert.Equal(8, intcolumns.Length);
+            Assert.Equal(10, intcolumns.Length);
             Assert.Equal((float)10, intcolumns[0]);
             Assert.Equal((float)9, intcolumns[1]);
             Assert.Equal((float)0, intcolumns[2]);
@@ -2618,23 +2598,13 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal("Percentile_25", descriptionColumn[5]);
             Assert.Equal("Percentile_50", descriptionColumn[6]);
             Assert.Equal("Percentile_75", descriptionColumn[7]);
-            for (int i = 1; i < description.Columns.Count - 1; i++)
-            {
-                DataFrameColumn column = description.Columns[i];
-                Assert.Equal(df.Columns[i - 1].Name, column.Name);
-                Assert.Equal(8, column.Length);
-                Console.WriteLine(column);
-                Assert.Equal((float)9, column[0]);
-                Assert.Equal((float)9, column[1]);
-                Assert.Equal((float)0, column[2]);
-                Assert.Equal((float)4, column[3]);
-                Assert.Null(column[4]);
-            }
+            Assert.Equal("Unique", descriptionColumn[8]);
+            Assert.Equal("Count", descriptionColumn[9]);
 
             // Explicitly check the floatcolumns column
             DataFrameColumn floatcolumns = description.Columns[description.Columns.Count - 1];
             Assert.Equal(floatcolumns.Name, nums.Name);
-            Assert.Equal(8, floatcolumns.Length);
+            Assert.Equal(10, floatcolumns.Length);
             Assert.Equal((float)10, floatcolumns[0]);
             Assert.Equal((float)9, floatcolumns[1]);
             Assert.Equal((float)0, floatcolumns[2]);
@@ -2643,6 +2613,8 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((float)2.25, floatcolumns[5]);
             Assert.Equal((float)4.5, floatcolumns[6]);
             Assert.Equal((float)6.75, floatcolumns[7]);
+            Assert.Null(floatcolumns[8]); //unique
+            Assert.Equal((float)10, floatcolumns[9]); //count of non null
         }
 
         [Fact]
@@ -2671,23 +2643,13 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal("Percentile_25", descriptionColumn[5]);
             Assert.Equal("Percentile_50", descriptionColumn[6]);
             Assert.Equal("Percentile_75", descriptionColumn[7]);
-            for (int i = 1; i < description.Columns.Count - 1; i++)
-            {
-                DataFrameColumn column = description.Columns[i];
-                Assert.Equal(df.Columns[i - 1].Name, column.Name);
-                Assert.Equal(8, column.Length);
-                Console.WriteLine(column);
-                Assert.Equal((float)9, column[0]);
-                Assert.Equal((float)9, column[1]);
-                Assert.Equal((float)0, column[2]);
-                Assert.Equal((float)4, column[3]);
-                Assert.Null(column[4]);
-            }
+            Assert.Equal("Unique", descriptionColumn[8]);
+            Assert.Equal("Count", descriptionColumn[9]);
 
             // Explicitly check the int column
             DataFrameColumn intcolumns = description.Columns[description.Columns.Count - 1];
             Assert.Equal(intcolumns.Name, nums.Name);
-            Assert.Equal(8, intcolumns.Length);
+            Assert.Equal(10, intcolumns.Length);
             Assert.Equal((float)10, intcolumns[0]);
             Assert.Equal((float)9, intcolumns[1]);
             Assert.Equal((float)0, intcolumns[2]);
@@ -2696,8 +2658,58 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((float)2.25, intcolumns[5]); //25th percentile
             Assert.Equal((float)4.5, intcolumns[6]); //50th percentile
             Assert.Equal((float)6.75, intcolumns[7]); //75th percentile
+            Assert.Null(intcolumns[8]); //unique
+            Assert.Equal((float)10, intcolumns[9]); //count of non null
         }
 
+        [Fact]
+        public void TestUniqueForChar()
+        {
+            DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);
+
+            // Add a column manually here until we fix https://github.com/dotnet/corefxlab/issues/2784
+            PrimitiveDataFrameColumn<char> chars = new PrimitiveDataFrameColumn<char>("Chars");
+            for (int i = 0; i < 10; i++)
+            {
+                chars.Append('a');
+            }
+            df.Columns.Add(chars);
+
+            DataFrame description = df.Description();
+            DataFrameColumn descriptionColumn = description.Columns[0];
+            Assert.Equal("Description", descriptionColumn.Name);
+            Assert.Equal("Length (excluding null values)", descriptionColumn[0]);
+            Assert.Equal("Max", descriptionColumn[1]);
+            Assert.Equal("Min", descriptionColumn[2]);
+            Assert.Equal("Mean", descriptionColumn[3]);
+            Assert.Equal("StdDev", descriptionColumn[4]);
+            Assert.Equal("Percentile_25", descriptionColumn[5]);
+            Assert.Equal("Percentile_50", descriptionColumn[6]);
+            Assert.Equal("Percentile_75", descriptionColumn[7]);
+            Assert.Equal("Unique", descriptionColumn[8]);
+            Assert.Equal("Count", descriptionColumn[9]);
+
+            // Explicitly check the CHAR column
+            for (int i = 0; i < description.Columns.Count - 1; i++)
+            {
+                Console.WriteLine(description.Columns[i].DataType);
+            }
+            DataFrameColumn charColumns = description.Columns[description.Columns.Count - 1];
+            Assert.Equal(10, charColumns.Length);
+            Assert.Equal("Chars", charColumns.Name);
+            Assert.Equal((float)10, charColumns[0]);
+            Assert.Null(charColumns[1]);
+            Assert.Null(charColumns[2]);
+            Assert.Null(charColumns[3]);
+            Assert.Null(charColumns[4]);
+            Assert.Null(charColumns[5]); //25th percentile
+            Assert.Null(charColumns[6]); //50th percentile
+            Assert.Null(charColumns[7]); //75th percentile
+            Assert.Equal((float)1, charColumns[8]);
+            Assert.Equal((float)1, charColumns[8]); //unique
+            Assert.Equal((float)10, charColumns[9]); //count of non null
+
+        }
 
         [Fact]
         public void TestInfo()

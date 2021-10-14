@@ -144,6 +144,19 @@ namespace Microsoft.Data.Analysis
             PrimitiveColumnComputation<T>.Instance.Percentile(_columnContainer, percentile, out T ret);
             return ret;
         }
+
+        public new object Unique()
+        {
+            PrimitiveColumnComputation<T>.Instance.Unique(_columnContainer, out long ret);
+            return ret;
+        }
+
+        public new object Count()
+        {
+            PrimitiveColumnComputation<T>.Instance.Count(_columnContainer, out long ret);
+            return ret;
+        }
+
         /// <inheritdoc/>
         public override object Sum(IEnumerable<long> rowIndices)
         {

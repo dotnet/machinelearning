@@ -235,10 +235,10 @@ namespace Microsoft.Data.Analysis
             bool firstDescriptionColumn = true;
             foreach (DataFrameColumn column in Columns)
             {
-                if (!column.HasDescription())
+                /*if (!column.HasDescription())
                 {
                     continue;
-                }
+                }*/
                 if (firstDescriptionColumn)
                 {
                     firstDescriptionColumn = false;
@@ -251,6 +251,8 @@ namespace Microsoft.Data.Analysis
                     stringColumn.Append("Percentile_25");
                     stringColumn.Append("Percentile_50");
                     stringColumn.Append("Percentile_75");
+                    stringColumn.Append("Unique");
+                    stringColumn.Append("Count");
                     ret.Columns.Add(stringColumn);
                 }
                 ret.Columns.Add(column.Description());
