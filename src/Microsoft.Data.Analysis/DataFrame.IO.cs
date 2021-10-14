@@ -219,7 +219,7 @@ namespace Microsoft.Data.Analysis
 
         public static async Task<DataFrame> LoadFrom(DbDataAdapter adapter)
         {
-            using var reader = adapter.SelectCommand.ExecuteReader();
+            using var reader = await adapter.SelectCommand.ExecuteReaderAsync();
             return await LoadFrom(reader);
         }
 
