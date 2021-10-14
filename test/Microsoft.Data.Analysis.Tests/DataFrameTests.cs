@@ -1489,7 +1489,7 @@ namespace Microsoft.Data.Analysis.Tests
                     if (originalColumn.Name == "Bool" || originalColumn.Name == "Char")
                         continue;
                     DataFrameColumn minColumn = min.Columns[originalColumn.Name];
-                    Assert.Equal("0", minColumn[r].ToString());
+                    Assert.Equal(r == 0 ? "0" : "1", minColumn[r].ToString());
 
                     DataFrameColumn productColumn = product.Columns[originalColumn.Name];
                     Assert.Equal("0", productColumn[r].ToString());
@@ -1514,7 +1514,7 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame columnMin = df.GroupBy("Bool").Min("Int");
             Assert.Equal(2, columnMin.Columns.Count);
             Assert.Equal(0, columnMin.Columns["Int"][0]);
-            Assert.Equal(0, columnMin.Columns["Int"][1]);
+            Assert.Equal(1, columnMin.Columns["Int"][1]);
 
             DataFrame countIntColumn = df.GroupBy("Bool").Count("Int");
             Assert.Equal(2, countIntColumn.Columns.Count);
