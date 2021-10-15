@@ -11,6 +11,27 @@
 #include <smmintrin.h>
 #include <emmintrin.h>
 
+// Create defines to disable warnings as needed for different compilers
+#if defined(_MSC_VER)
+    #define DISABLE_WARNING_PUSH           __pragma(warning( push ))
+    #define DISABLE_WARNING_POP            __pragma(warning( pop ))
+    #define DISABLE_WARNING(warningNumber) __pragma(warning( disable : warningNumber ))
+
+    // There are a few places where this warning is thrown, but due to the API contract we don't need to worry about it.
+    #define DISABLE_WARNING_CONVERSION DISABLE_WARNING(4244) // Possible data loss from conversion
+#elif defined(__GNUC__) || defined(__clang__)
+    #define DO_PRAGMA(X) _Pragma(#X)
+    #define DISABLE_WARNING_PUSH           DO_PRAGMA(GCC diagnostic push)
+    #define DISABLE_WARNING_POP            DO_PRAGMA(GCC diagnostic pop)
+    #define DISABLE_WARNING(warningName)   DO_PRAGMA(GCC diagnostic ignored #warningName)
+
+    #define DISABLE_WARNING_CONVERSION    DISABLE_WARNING(-Wconversion)
+#else
+    #define DISABLE_WARNING_PUSH
+    #define DISABLE_WARNING_POP
+    #define DISABLE_WARNING_CONVERSION
+#endif
+
 EXPORT_API(void) C_SegmentFindOptimalPath15(_In_reads_(valc) unsigned long* valv, _In_ long valc, _Inout_ long long* pBits, _Inout_ long* pTransitions)
 {
     unsigned long transmap, bitindex = 0, bestindex = 0;
@@ -44,8 +65,18 @@ EXPORT_API(void) C_SegmentFindOptimalPath15(_In_reads_(valc) unsigned long* valv
         // Calculate the next base state of state0f.
         state0f = _mm_or_si128(mask, unmasked);
         // Calculate the min cost position in the current iteration.
+
+        // Intel's docs, https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi16&ig_expand=2977,
+        // state that _mm_extract_epi16 "Extract a 16-bit integer from a, selected with imm8, and store the result in the lower element of dst."
+        // Since we know we get a 16 bit integer back we can just supress the warning.
+        DISABLE_WARNING_PUSH
+        DISABLE_WARNING_CONVERSION
+
         bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
             _mm_cvtepi8_epi16(state0f), _mm_cvtepi8_epi16(_mm_srli_si128(state0f, 8)))), 0);
+
+        DISABLE_WARNING_POP
+
         // Keep the invariant that the min cost position has 0 cost.
         state0f = _mm_or_si128(mask, _mm_sub_epi8(state0f, _mm_set1_epi8((char)bestcost)));
         // Find the bit index of the best position.
@@ -130,9 +161,19 @@ EXPORT_API(void) C_SegmentFindOptimalPath21(_In_reads_(valc) unsigned long* valv
         statehi = _mm_or_si128(maskhi, unmasked);
 
         // Calculate the min cost position in the current iteration.
+
+        // Intel's docs, https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi16&ig_expand=2977,
+        // state that _mm_extract_epi16 "Extract a 16-bit integer from a, selected with imm8, and store the result in the lower element of dst."
+        // Since we know we get a 16 bit integer back we can just supress the warning.
+        DISABLE_WARNING_PUSH
+        DISABLE_WARNING_CONVERSION
+
         bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
             _mm_min_epu16(_mm_cvtepi8_epi16(statelo), _mm_cvtepi8_epi16(_mm_srli_si128(statelo, 8))),
             _mm_min_epu16(_mm_cvtepi8_epi16(statehi), _mm_cvtepi8_epi16(_mm_srli_si128(statehi, 8))))), 0);
+
+        DISABLE_WARNING_POP
+
         // Keep the invariant that the min cost position has 0 cost.
         statelo = _mm_or_si128(masklo, _mm_sub_epi8(statelo, _mm_set1_epi8((char)bestcost)));
         statehi = _mm_or_si128(maskhi, _mm_sub_epi8(statehi, _mm_set1_epi8((char)bestcost)));
@@ -203,8 +244,18 @@ EXPORT_API(void) C_SegmentFindOptimalPath7(_In_reads_(valc) unsigned long* valv,
         state0f = _mm_or_si128(mask, unmasked);
         // Calculate the min cost position in the current iteration.
         __m128i min = _mm_minpos_epu16(state0f);
+
+        // Intel's docs, https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi16&ig_expand=2977,
+        // state that _mm_extract_epi16 "Extract a 16-bit integer from a, selected with imm8, and store the result in the lower element of dst."
+        // Since we know we get a 16 bit integer back we can just supress the warning.
+        DISABLE_WARNING_PUSH
+        DISABLE_WARNING_CONVERSION
+
         bestcost = _mm_extract_epi16(min, 0);
         bestindex = _mm_extract_epi16(min, 1);
+
+        DISABLE_WARNING_POP
+
         // Keep the invariant that the min cost position has 0 cost.
         state0f = _mm_or_si128(mask, _mm_sub_epi8(state0f, _mm_set1_epi16(bestcost)));
         // Store the vital statistics.
@@ -261,8 +312,18 @@ EXPORT_API(void) C_SegmentFindOptimalCost15(_In_reads_(valc) unsigned int* valv,
         // Calculate the next base state of state0f.
         state0f = _mm_or_si128(mask, _mm_min_epu8(_mm_adds_epu8(state0f, stay), transition));
         // Calculate the min cost position in the current iteration.
+
+        // Intel's docs, https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi16&ig_expand=2977,
+        // state that _mm_extract_epi16 "Extract a 16-bit integer from a, selected with imm8, and store the result in the lower element of dst."
+        // Since we know we get a 16 bit integer back we can just supress the warning.
+        DISABLE_WARNING_PUSH
+        DISABLE_WARNING_CONVERSION
+
         short bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
             _mm_cvtepi8_epi16(state0f), _mm_cvtepi8_epi16(_mm_srli_si128(state0f, 8)))), 0);
+
+        DISABLE_WARNING_POP
+
         // Keep the invariant that the min cost position has 0 cost.
         state0f = _mm_or_si128(mask, _mm_sub_epi8(state0f, _mm_set1_epi8((char)bestcost)));
         // Find the position of the best position.
@@ -314,10 +375,19 @@ EXPORT_API(void) C_SegmentFindOptimalCost31(_In_reads_(valc) unsigned long* valv
             _mm_adds_epu8(statehi, _mm_setr_epi8(16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31)),
             _mm_setr_epi8(56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71)));
 
+        // Intel's docs, https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi16&ig_expand=2977,
+        // state that _mm_extract_epi16 "Extract a 16-bit integer from a, selected with imm8, and store the result in the lower element of dst."
+        // Since we know we get a 16 bit integer back we can just supress the warning.
+        DISABLE_WARNING_PUSH
+        DISABLE_WARNING_CONVERSION
+
         // Calculate the min cost position in the current iteration.
         bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
             _mm_min_epu16(_mm_cvtepi8_epi16(statelo), _mm_cvtepi8_epi16(_mm_srli_si128(statelo, 8))),
             _mm_min_epu16(_mm_cvtepi8_epi16(statehi), _mm_cvtepi8_epi16(_mm_srli_si128(statehi, 8))))), 0);
+
+        DISABLE_WARNING_POP
+
         // Keep the invariant that the min cost position has 0 cost.
         statelo = _mm_or_si128(masklo, _mm_sub_epi8(statelo, _mm_set1_epi8((char)bestcost)));
         statehi = _mm_or_si128(maskhi, _mm_sub_epi8(statehi, _mm_set1_epi8((char)bestcost)));

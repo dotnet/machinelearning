@@ -12,7 +12,8 @@
     <WarningsNotAsErrors>$(WarningsNotAsErrors);1591</WarningsNotAsErrors>
 
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\Source.ruleset</CodeAnalysisRuleSet>
-    
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+
     <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)</NativeAssetsBuiltPath>
 
     <PackageRid Condition="'$(OS)' == 'Windows_NT'">win</PackageRid>
@@ -33,7 +34,7 @@
     <RunMatchingRefApiCompat>false</RunMatchingRefApiCompat>
     <ApiCompatExcludeAttributeList>$(MSBuildThisFileDirectory)DefaultGenApiDocIds.txt</ApiCompatExcludeAttributeList>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference
       Condition="'$(UseMLCodeAnalyzer)' != 'false' and '$(MSBuildProjectExtension)' == '.csproj'"
