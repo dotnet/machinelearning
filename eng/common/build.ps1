@@ -86,7 +86,6 @@ function InitializeCustomToolset {
 }
 
 function Build {
-  Write-Host "Inside Build..."
   $toolsetBuildProj = InitializeToolset
   InitializeCustomToolset
 
@@ -103,9 +102,8 @@ function Build {
     
     $msbuildArgs += "/p:Projects=$projects"
     $properties = $msbuildArgs
-    Write-Host "LCR projects... " $msbuildArgs 
   }
-  Write-Host "Before MSBuild... " $toolsetBuildProj 
+
   MSBuild $toolsetBuildProj `
     $bl `
     $platformArg `
@@ -123,7 +121,7 @@ function Build {
     /p:Sign=$sign `
     /p:Publish=$publish `
     @properties
-    Write-Host "After MSBuild..."
+
 }
 
 try {
@@ -150,9 +148,8 @@ try {
   if ($restore) {
     InitializeNativeTools
   }
-  Write-Host "Before Build."
+  
   Build
-  Write-Host "After Build."
 
 }
 catch {

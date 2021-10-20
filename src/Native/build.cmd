@@ -1,4 +1,4 @@
-@if not defined _echo @echo on
+@if not defined _echo @echo off
 setlocal
 
 :: Store current script directory before %~dp0 gets affected by another process later.
@@ -16,9 +16,9 @@ set __BuildArch=x64
 set __VCBuildArch=x86_amd64
 set CMAKE_BUILD_TYPE=Debug
 set MKL_LIB_PATH=""
+:: TODO - fix this path
 set ONEDAL_LIB_PATH="F:\one_dal"
 
-echo Coming to src\native\build.cmd
 
 :Arg_Loop
 if [%1] == [] goto :ToolsVersion
