@@ -1,4 +1,4 @@
-@if "%_echo%" neq "on" echo off
+@if "%_echo%" neq "on" echo on
 rem
 rem This file invokes cmake and generates the build system for windows.
 

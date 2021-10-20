@@ -1,4 +1,4 @@
-@if not defined _echo @echo off
+@if not defined _echo @echo on
 setlocal
 
 :: Store current script directory before %~dp0 gets affected by another process later.
