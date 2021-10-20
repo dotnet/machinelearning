@@ -77,7 +77,6 @@
 
     <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
     <Message Text="$(MSBuildProjectDirectory)\build.cmd $(BuildArgs)" Importance="High"/>
-    <Message Text="$(MSBuildProjectDirectory)\build.cmd.... $(BuildArgs)" Importance="High"/>
     <Exec Command="&quot;$(MSBuildProjectDirectory)\build.cmd&quot; $(BuildArgs)" />
 
   </Target>
