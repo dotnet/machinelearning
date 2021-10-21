@@ -35,7 +35,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.Data.SQLite" Version="1.0.113.7" />
+      <PackageReference Include="System.Data.SQLite" Version="1.0.113" />
     </ItemGroup>
 
 </Project>
