@@ -36,6 +36,16 @@ if(WIN32)
     add_compile_options(/fp:precise)
     add_compile_options(/EHsc)
 
+    # From here below are warnings required to be explicitly enabled.
+    add_compile_options(/w34242)
+    add_compile_options(/w34244)
+    add_compile_options(/w34510)
+    add_compile_options(/w34610)
+    add_compile_options(/w34611)
+    add_compile_options(/w34700)
+    add_compile_options(/w34701)
+    add_compile_options(/w34703)
+
     if ($ENV{__BuildArch} STREQUAL "x86")
         add_compile_options(/Gz)
     endif ()
@@ -205,7 +215,7 @@ if (${ARCHITECTURE} STREQUAL "arm")
     add_compile_options(-mthumb)
     add_compile_options(-fPIC)
     add_compile_options(-march=armv7-a)
-    
+
     if (NOT DEFINED CLR_ARM_FPU_TYPE)
         set (CLR_ARM_FPU_TYPE vfpv3)
     endif (NOT DEFINED CLR_ARM_FPU_TYPE)
