@@ -39,7 +39,7 @@ namespace Microsoft.ML.TimeSeries
         public DateTime AnomalyTimestamp { get; set; }
 
         /// <summary>
-        /// Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the libary will not calculate the root cause.
+        /// Point with the anomaly dimension must exist in the slice list at the anomaly timestamp, or the library will not calculate the root cause.
         /// </summary>
         public Dictionary<string, Object> AnomalyDimension { get; set; }
 
@@ -126,7 +126,7 @@ namespace Microsoft.ML.TimeSeries
         ///</summary>
         public double Score;
         /// <summary>
-        /// Path is a list of the dimension key that the libary selected for you. In this root cause localization library, for one time call for the library, the path will be obtained and the length of path list will always be 1. Different RootCauseItem obtained from one library call will have the same path as it is the best dimension selected for the input.
+        /// Path is a list of the dimension key that the library selected for you. In this root cause localization library, for one time call for the library, the path will be obtained and the length of path list will always be 1. Different RootCauseItem obtained from one library call will have the same path as it is the best dimension selected for the input.
         /// </summary>
         public List<string> Path;
         /// <summary>
