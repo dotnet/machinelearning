@@ -4,8 +4,6 @@ set(SOURCES
     MklProxyNative.cpp
 )
 
-message(STATUS "mklpath: ${MKL_LIB_PATH}")
-
 find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
 if(NOT WIN32)
     list(APPEND SOURCES ${VERSION_FILE_PATH})

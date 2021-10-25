@@ -180,7 +180,7 @@ namespace Microsoft.ML.Trainers
 
         internal static class OneDal
         {
-            private const string OneDalLibPath = "OneDALNative";
+            private const string OneDalLibPath = "OneDalNative";
 
             [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineCompute")]
             public unsafe static extern int RidgeRegressionOnlineCompute(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize);
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Trainers
             var beta = new Double[m];
             Double yMean = 0;
 
-            if (Environment.GetEnvironmentVariable("OLS_IMPL") == "ONEDAL")
+            if (Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL")
             {
                 ComputeOneDalRegression(ch, cursorFactory, m, ref beta, xtx, ref n, ref yMean);
             }

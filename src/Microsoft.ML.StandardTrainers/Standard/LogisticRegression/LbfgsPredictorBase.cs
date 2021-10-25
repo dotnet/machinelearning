@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers
 
     internal static class OneDal
     {
-        private const string OneDalLibPath = "_oneDALWrapper.so";
+        private const string OneDalLibPath = "OneDalNative";
 
         [DllImport(OneDalLibPath, EntryPoint = "logisticRegressionCompute")]
         public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr, long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg);
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Trainers
 
             using (var ch = Host.Start("Training"))
             {
-                if (Environment.GetEnvironmentVariable("OLS_IMPL") == "ONEDAL")
+                if (Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL")
                 {
                     TrainCoreOneDal(ch, data);
                 }
@@ -478,6 +478,8 @@ namespace Microsoft.ML.Trainers
             var labelsList = new List<float>();
             var featuresList = new List<float>();
             var weightsList = new List<float>();
+
+            Console.WriteLine($"GetRowCount: {data.Data.GetRowCount()}");
 
             using (var cursor = cursorFactory.Create())
             {

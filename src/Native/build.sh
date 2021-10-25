@@ -31,7 +31,8 @@ __baseIntermediateOutputPath="$RootRepo/artifacts/obj"
 __versionSourceFile="$__baseIntermediateOutputPath/version.c"
 __mkllibpath=""
 __mkllibrpath=""
-__onedallibpath=""
+# TODO: remove CONDA_PREFIX with fix
+__onedallibpath=$CONDA_PREFIX
 
 while [ "$1" != "" ]; do
         lowerI="$(echo $1 | awk '{print tolower($0)}')"

@@ -121,7 +121,6 @@ function Build {
     /p:Sign=$sign `
     /p:Publish=$publish `
     @properties
-
 }
 
 try {
@@ -148,9 +147,8 @@ try {
   if ($restore) {
     InitializeNativeTools
   }
-  
-  Build
 
+  Build
 }
 catch {
   Write-Host $_.ScriptStackTrace
