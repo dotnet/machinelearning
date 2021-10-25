@@ -87,10 +87,10 @@ void logisticRegressionComputeTemplate(FPType * featuresPtr, FPType * labelsPtr,
     {
         for (size_t j = 0; j < nColumns + 1; ++j)
         {
-            printf("%f ", betaForCopy[i * (nColumns + 1) + j]);
+            // printf("%f ", betaForCopy[i * (nColumns + 1) + j]);
             betaPtr[i * (nColumns + 1) + j] = betaForCopy[i * (nColumns + 1) + j];
         }
-        printf("\n");
+        // printf("\n");
     }
 }
 

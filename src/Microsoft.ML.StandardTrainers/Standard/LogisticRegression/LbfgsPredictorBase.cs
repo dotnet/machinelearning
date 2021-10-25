@@ -479,8 +479,6 @@ namespace Microsoft.ML.Trainers
             var featuresList = new List<float>();
             var weightsList = new List<float>();
 
-            Console.WriteLine($"GetRowCount: {data.Data.GetRowCount()}");
-
             using (var cursor = cursorFactory.Create())
             {
                 while (cursor.MoveNext())
