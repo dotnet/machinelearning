@@ -18,13 +18,13 @@ using Microsoft.ML.Trainers;
     LinRegTrainer.UserNameValue,
     LinRegTrainer.LoadNameValue,
     LinRegTrainer.ShortName)]
-[assembly: LoadableClass(typeof(LinRegParameters), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(LinearRegressionModelParameters), null, typeof(SignatureLoadModel),
     "oneDAL Linear Regression Executor",
-    LinRegParameters.LoaderSignature)]
+    LinearRegressionModelParameters.LoaderSignature)]
 [assembly: LoadableClass(typeof(void), typeof(LinRegTrainer), null, typeof(SignatureEntryPointModule), LinRegTrainer.LoadNameValue)]
 namespace Microsoft.ML.Trainers
 {
-    public sealed class LinRegTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<LinRegParameters>, LinRegParameters>
+    public sealed class LinRegTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         public sealed class Options : TrainerInputBaseWithWeight
         {
@@ -48,8 +48,8 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(options, nameof(options));
         }
 
-	private protected override RegressionPredictionTransformer<LinRegParameters> MakeTransformer(LinRegParameters model, DataViewSchema trainSchema)
-             => new RegressionPredictionTransformer<LinRegParameters>(Host, model, trainSchema, FeatureColumn.Name);
+	private protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, DataViewSchema trainSchema)
+             => new RegressionPredictionTransformer<LinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
 	private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Trainers
             };
 	}
 
-        private protected override LinRegParameters TrainModelCore(TrainContext context)
+        private protected override LinearRegressionModelParameters TrainModelCore(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Trainers
             }
 	}
 
-	private LinRegParameters TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
+	private LinearRegressionModelParameters TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
         {
             Host.AssertValue(ch);
             ch.AssertValue(cursorFactory);
@@ -142,86 +142,15 @@ namespace Microsoft.ML.Trainers
             }
  
             var weightsBuffer = new VBuffer<float>(m - 1, weights);
- 
-            return new LinRegParameters(Host, in weightsBuffer, bias);
+	    //var parms = new LinearRegressionModelParameters(Host, in weightsBuffer, bias);
+	     
+            return new LinearRegressionModelParameters(Host, in weightsBuffer, bias);
         }
 
 	internal static class OneDAL
         {
             [DllImport("OneDALNative.so", EntryPoint = "linearRegressionSingle")]
             public unsafe static extern void LinearRegressionSingle(void* features, void* labels, void* betas, int nRows, int nColumns);
-        }
-    }
-
-    public sealed class LinRegParameters : RegressionModelParameters
-    {
-        internal const string LoaderSignature = "LinearRegressionExec";
-        internal const string RegistrationName = "LinearRegressionPredictor";
-
-	private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "DALRGRS",
-                verWrittenCur: 0x00010001,
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LinRegParameters).Assembly.FullName);
-        }
-
-	internal LinRegParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
-            : base(env, RegistrationName, in weights, bias)
-        {
-        }
-
-	private LinRegParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, ctx)
-        {
-            Host.CheckDecode(Weight.IsDense);
-        }
-
-	private protected override void SaveCore(ModelSaveContext ctx)
-        {
-            base.SaveCore(ctx);
-            ctx.SetVersionInfo(GetVersionInfo());
-        }
-
-	private static void TValueCheckDecode(Double param, Double tvalue)
-        {
-            Contracts.CheckDecode(Math.Sign(param) == Math.Sign(tvalue));
-        }
-
-	private static void ProbCheckDecode(Double p)
-        {
-            Contracts.CheckDecode(0 <= p && p <= 1);
-        }
-
-	internal static LinRegParameters Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            return new LinRegParameters(env, ctx);
-        }
-
-	private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
-        {
-            var names = default(VBuffer<ReadOnlyMemory<char>>);
-            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
- 
-            writer.WriteLine("Linear Regression Model Summary");
- 
-            writer.WriteLine();
-            writer.WriteLine("Index\tName\tWeight");
-            const string format = "{0}\t{1}\t{2}";
-            writer.WriteLine(format, "", "Bias", Bias);
-            Contracts.Assert(Weight.IsDense);
-            var coeffs = Weight.GetValues();
-            for (int i = 0; i < coeffs.Length; i++)
-            {
-                var name = names.GetItemOrDefault(i);
-                writer.WriteLine(format, i, name.IsEmpty ? $"f{i}" : name.ToString(), coeffs[i]);
-            }
         }
     }
 }
