@@ -148,7 +148,7 @@ namespace Microsoft.ML.Trainers
 
 	internal static class OneDAL
         {
-            [DllImport("_oneDALWrapper.so", EntryPoint = "linearRegressionSingle")]
+            [DllImport("OneDALNative.so", EntryPoint = "linearRegressionSingle")]
             public unsafe static extern void LinearRegressionSingle(void* features, void* labels, void* betas, int nRows, int nColumns);
         }
     }
