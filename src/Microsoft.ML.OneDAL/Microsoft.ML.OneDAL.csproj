@@ -5,7 +5,7 @@
     <IncludeInPackage>Microsoft.ML.OneDAL</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>ML.NET additional learners making use of oneAPI Data Analytics Library.</PackageDescription>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />

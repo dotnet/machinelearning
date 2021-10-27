@@ -41,3 +41,20 @@ set(SOURCES DALSimpleRegression.cpp)
 
 add_library(OneDALNative SHARED ${SOURCES} ${RESOURCES})
 install_library_and_symbols (OneDALNative)
+
+
+#target_link_libraries(OneDALNative PUBLIC OneDALNative )
+
+#target_link_libraries(OneDALNative PUBLIC OneDALNative ${oneDAL_IMPORTED_TARGETS})
+
+#find_library(ONEDAL_LIBRARY NAMES onedal_core_dll onedal_thread HINTS ${ONEDAL_LIB_PATH})
+
+#include_directories(${ONEDAL_LIB_PATH}/include)
+#link_directories(${ONEDAL_LIB_PATH}/lib)
+
+#add_library(OneDALNative SHARED ${SOURCES} ${RESOURCES})
+
+#target_link_libraries(OneDALNative onedal_core_dll onedal_thread)
+
+
+

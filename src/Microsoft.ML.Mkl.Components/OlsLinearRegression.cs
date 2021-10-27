@@ -179,7 +179,7 @@ namespace Microsoft.ML.Trainers
 
         internal static class OneDal
         {
-            private const string OneDalLibPath = "_oneDALWrapper.so";
+            private const string OneDalLibPath = "OneDALNative";
 
             [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineCompute")]
             public unsafe static extern int RidgeRegressionOnlineCompute(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize);
@@ -187,6 +187,9 @@ namespace Microsoft.ML.Trainers
             [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineFinalize")]
             public unsafe static extern void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
                 void* betaPtr, void* xtyPtr, void* xtxPtr, void* standardErrorsPtr);
+            
+            [DllImport(OneDalLibPath, EntryPoint = "simpleTest"), System.Security.SuppressUnmanagedCodeSecurity]
+            public unsafe static extern int simpleTest(IntPtr featuresPtr, int nColumns);
         }
 
         private OlsModelParameters TrainCoreOneDal(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
@@ -236,6 +239,9 @@ namespace Microsoft.ML.Trainers
 
                     n++;
                     iOffset++;
+                    IntPtr testPtr = IntPtr.Zero;
+                    int ret = OneDal.simpleTest(testPtr, 5);
+                    ch.Assert(ret == 47);
 
                     if (n % batchSize == 0)
                     {

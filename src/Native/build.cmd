@@ -17,7 +17,7 @@ set __VCBuildArch=x86_amd64
 set CMAKE_BUILD_TYPE=Debug
 set MKL_LIB_PATH=""
 :: TODO - fix this path
-set ONEDAL_LIB_PATH="F:\one_dal"
+::set ONEDAL_LIB_PATH="F:\one_dal"
 
 
 :Arg_Loop
@@ -36,7 +36,7 @@ if /i [%1] == [arm]         ( set __BuildArch=arm&&set __VCBuildArch=x86_arm&&sh
 if /i [%1] == [arm64]       ( set __BuildArch=arm64&&set __VCBuildArch=x86_arm64&&shift&goto Arg_Loop)
 
 if /i [%1] == [--mkllibpath] ( set MKL_LIB_PATH=%2&&shift&goto Arg_Loop)
-if /i [%1] == [--onedallibpath] ( set ONEDAL_LIB_PATH=%2&&shift&goto Arg_Loop)
+::if /i [%1] == [--onedallibpath] ( set ONEDAL_LIB_PATH=%2&&shift&goto Arg_Loop)
 shift
 goto :Arg_Loop
 
