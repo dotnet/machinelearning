@@ -17,7 +17,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 	   public float[] Features { get; set; }
 	}
 
-	// [NativeDependencyFact("OneDALNative")]
+	internal class ScorePoint
+	{
+	   public float Score { get; set; }
+	}
+
+	// [NativeDependencyFact("MklImports")]
+        // public void TestEstimatorOlsLinearRegression()
 	[Fact]
 	public void TestEstimatorOneDALLinReg()
         {
@@ -32,6 +38,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 	      };
 
 	      var dataView = ML.Data.LoadFromEnumerable(literalData);
+      	      var trainer = ML.Regression.Trainers.LinReg(labelColumnName: "Label", featureColumnName: "Features");
 
 //            TestEstimatorCore(trainer, dataView);
 
@@ -41,7 +48,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 //            Assert.NotEmpty(model.Model.StandardErrors);
 //            Assert.NotEmpty(model.Model.PValues);
 //            Assert.NotEmpty(model.Model.TValues);
-	      var retrainedModel = ML.Regression.Trainers.OnlineGradientDescent(numberOfIterations: 1).Fit(dataView, modelParameters);
+	      var transferredModel = ML.Regression.Trainers.OnlineGradientDescent(numberOfIterations: 1).Fit(dataView, modelParameters);
+
+	      var predictionEngine = ML.Model.CreatePredictionEngine<DataPoint1, ScorePoint>(transferredModel);
+	      var result = predictionEngine.Predict(new DataPoint1 { Features = new float[]{1.3F} });
 
 //	    Assert.True(File.Exists("libOneDALNative.so"));
 	    Assert.False(trainer.Info.WantCaching);
