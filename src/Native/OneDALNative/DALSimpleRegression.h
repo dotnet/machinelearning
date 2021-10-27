@@ -6,4 +6,5 @@
 #include "../Stdafx.h"
 
 EXPORT_API(void) linearRegressionSingle(void * features, void * label, void * betas, int nRows, int nColumns);
+EXPORT_API(void) linearRegressionDouble(void * features, void * label, void * betas, int nRows, int nColumns);
 

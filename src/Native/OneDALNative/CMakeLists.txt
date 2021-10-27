@@ -31,7 +31,11 @@ endif()
 #    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 # endif()
 
+set(USE_DPCPP no)
 find_package(oneDAL CONFIG REQUIRED)
+
+include_directories(${oneDAL_INCLUDE_DIRS})
+link_libraries(${oneDAL_IMPORTED_TARGETS})
 
 set(SOURCES DALSimpleRegression.cpp)
 
