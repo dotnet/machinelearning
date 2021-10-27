@@ -200,7 +200,10 @@ function(strip_symbols targetName outputFilename)
 endfunction()
 
 function(install_library_and_symbols targetName)
-    strip_symbols(${targetName} strip_destination_file)
+  message(" **** Calling strip_symbols on ${targetName} ****")
+  strip_symbols(${targetName} strip_destination_file)
+
+  message(" **** should be installing = ${targetName} ****")
 
     install (TARGETS ${targetName} DESTINATION .)
 
@@ -232,6 +235,7 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(MklProxyNative)
     # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
     add_subdirectory(SymSgdNative)
+    add_subdirectory(OneDALNative)
 endif()
 
 add_subdirectory(LdaNative)
