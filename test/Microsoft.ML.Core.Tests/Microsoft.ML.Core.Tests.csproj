@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="OneDALNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
