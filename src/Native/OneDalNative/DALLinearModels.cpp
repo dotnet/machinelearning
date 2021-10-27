@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "daal.h"
 #include "../Stdafx.h"
 
@@ -10,23 +11,38 @@ using namespace daal::data_management;
 /*
 ### Logistic regression wrapper ###
 
-[DllImport(OneDalLibPath, EntryPoint = "logisticRegressionCompute")]
-public unsafe static extern int LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr, long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg);
+public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
+    long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads);
 */
 template <typename FPType>
-void logisticRegressionComputeTemplate(FPType * featuresPtr, FPType * labelsPtr, FPType * weightsPtr, bool useSampleWeights, FPType * betaPtr, long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg)
+void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, FPType * labelsPtr, FPType * weightsPtr, bool useSampleWeights, FPType * betaPtr,
+    long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads)
 {
+    bool verbose = false;
+    if (const char* env_p = std::getenv("ONEDAL_WRAPPER_VERBOSE"))
+    {
+        verbose = true;
+        printf("%s - %f\n", "l1Reg", l1Reg);
+        printf("%s - %f\n", "l2Reg", l2Reg);
+        printf("%s - %f\n", "accuracyThreshold", accuracyThreshold);
+        printf("%s - %d\n", "nIterations", nIterations);
+        printf("%s - %d\n", "m", m);
+        printf("%s - %d\n", "nThreads", nThreads);
+    }
+
+    Environment::getInstance()->setNumberOfThreads(nThreads);
+
     NumericTablePtr featuresTable(new HomogenNumericTable<FPType>(featuresPtr, nColumns, nRows));
     NumericTablePtr labelsTable(new HomogenNumericTable<FPType>(labelsPtr, 1, nRows));
     NumericTablePtr weightsTable(new HomogenNumericTable<FPType>(weightsPtr, 1, nRows));
 
     SharedPtr<optimization_solver::lbfgs::Batch<FPType>> lbfgsAlgorithm(new optimization_solver::lbfgs::Batch<FPType>());
     lbfgsAlgorithm->parameter.batchSize = featuresTable->getNumberOfRows();
-    // lbfgsAlgorithm->parameter.correctionPairBatchSize = featuresTable->getNumberOfRows();
-    // lbfgsAlgorithm->parameter.m = 1;
-    // lbfgsAlgorithm->parameter.L = 1;
-    lbfgsAlgorithm->parameter.accuracyThreshold = 1e-3f;
-    lbfgsAlgorithm->parameter.nIterations = 100;
+    lbfgsAlgorithm->parameter.correctionPairBatchSize = featuresTable->getNumberOfRows();
+    lbfgsAlgorithm->parameter.L = 1;
+    lbfgsAlgorithm->parameter.m = m;
+    lbfgsAlgorithm->parameter.accuracyThreshold = accuracyThreshold;
+    lbfgsAlgorithm->parameter.nIterations = nIterations;
 
     if (nClasses == 1)
     {
@@ -37,7 +53,6 @@ void logisticRegressionComputeTemplate(FPType * featuresPtr, FPType * labelsPtr,
         logLoss->parameter().penaltyL2 = l2Reg;
 
         lbfgsAlgorithm->parameter.function = logLoss;
-        // objFunctionPtr.reset(&logLoss);
     }
     else
     {
@@ -49,7 +64,6 @@ void logisticRegressionComputeTemplate(FPType * featuresPtr, FPType * labelsPtr,
         crossEntropyLoss->parameter().nClasses = nClasses;
 
         lbfgsAlgorithm->parameter.function = crossEntropyLoss;
-        // objFunctionPtr.reset(&crossEntropyLoss);
     }
 
     logistic_regression::training::Batch<FPType> trainingAlgorithm(nClasses == 1 ? 2 : nClasses);
@@ -94,9 +108,11 @@ void logisticRegressionComputeTemplate(FPType * featuresPtr, FPType * labelsPtr,
     }
 }
 
-EXPORT_API(void) logisticRegressionCompute(void * featuresPtr, void * labelsPtr, void * weightsPtr, bool useSampleWeights, void * betaPtr, long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg)
+EXPORT_API(void) logisticRegressionLBFGSCompute(void * featuresPtr, void * labelsPtr, void * weightsPtr, bool useSampleWeights, void * betaPtr,
+    long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads)
 {
-    return logisticRegressionComputeTemplate<float>((float *)featuresPtr, (float *)labelsPtr, (float *)weightsPtr, useSampleWeights, (float *)betaPtr, nRows, nColumns, nClasses, l1Reg, l2Reg);
+    return logisticRegressionLBFGSComputeTemplate<float>((float *)featuresPtr, (float *)labelsPtr, (float *)weightsPtr, useSampleWeights, (float *)betaPtr,
+        nRows, nColumns, nClasses, l1Reg, l2Reg, accuracyThreshold, nIterations, m, nThreads);
 }
 
 /*

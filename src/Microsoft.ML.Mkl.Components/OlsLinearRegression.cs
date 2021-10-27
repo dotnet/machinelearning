@@ -197,8 +197,8 @@ namespace Microsoft.ML.Trainers
             int batchSize = _batchSize;
             if (batchSize == 0)
             {
-                // Set default batch size: 2 ^ 24 / number of features;
-                batchSize = (1 << 24) / m;
+                // Set default batch size: 2 ^ 22 / number of features;
+                batchSize = (1 << 22) / m;
             }
 
             var labelsArray = new Double[batchSize];

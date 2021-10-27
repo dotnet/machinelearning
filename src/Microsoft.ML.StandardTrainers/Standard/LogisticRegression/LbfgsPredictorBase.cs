@@ -24,8 +24,9 @@ namespace Microsoft.ML.Trainers
     {
         private const string OneDalLibPath = "OneDalNative";
 
-        [DllImport(OneDalLibPath, EntryPoint = "logisticRegressionCompute")]
-        public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr, long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg);
+        [DllImport(OneDalLibPath, EntryPoint = "logisticRegressionLBFGSCompute")]
+        public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
+            long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads);
     }
 
     public abstract class LbfgsTrainerBase<TOptions, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
@@ -530,7 +531,7 @@ namespace Microsoft.ML.Trainers
             {
                 fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], weightsPtr = &weightsArray[0], betaPtr = &betaArray[0])
                 {
-                    OneDal.LogisticRegressionCompute(featuresPtr, labelsPtr, weightsPtr, useSampleWeights, betaPtr, NumGoodRows, nFeatures, ClassCount, L1Weight, L2Weight);
+                    OneDal.LogisticRegressionCompute(featuresPtr, labelsPtr, weightsPtr, useSampleWeights, betaPtr, NumGoodRows, nFeatures, ClassCount, L1Weight, L2Weight, OptTol, MaxIterations, MemorySize, numThreads);
                 }
             }
 
