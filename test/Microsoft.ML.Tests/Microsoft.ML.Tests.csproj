@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.OneDAL\Microsoft.ML.OneDAL.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
