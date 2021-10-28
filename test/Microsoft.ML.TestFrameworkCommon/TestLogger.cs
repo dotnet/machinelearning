@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.IO;
 using System.Text;
 using Xunit.Abstractions;
@@ -7,8 +11,8 @@ namespace Microsoft.ML.TestFrameworkCommon
 {
     public sealed class TestLogger : TextWriter
     {
-        private Encoding _encoding;
-        private ITestOutputHelper _testOutput;
+        private readonly Encoding _encoding;
+        private readonly ITestOutputHelper _testOutput;
 
         public override Encoding Encoding => _encoding;
 

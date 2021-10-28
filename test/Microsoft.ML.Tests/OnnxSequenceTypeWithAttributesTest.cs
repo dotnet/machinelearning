@@ -4,23 +4,23 @@
 
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.Onnx;
 using Xunit;
 using Xunit.Abstractions;
-using System.Linq;
-using System.IO;
-using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests
 {
     public class OnnxSequenceTypeWithAttributesTest : BaseTestBaseline
     {
         private const bool _fallbackToCpu = true;
-        private static int? _gpuDeviceId = null;
+        private static readonly int? _gpuDeviceId = null;
 
         public class OutputObj
         {
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Tests
             var onnxOut = output.Output.FirstOrDefault();
             Assert.True(onnxOut.Count == 3, "Output missing data.");
             var keys = new List<string>(onnxOut.Keys);
-            for(var i =0; i < onnxOut.Count; ++i)
+            for (var i = 0; i < onnxOut.Count; ++i)
             {
                 Assert.Equal(onnxOut[keys[i]], input.Input[i]);
             }

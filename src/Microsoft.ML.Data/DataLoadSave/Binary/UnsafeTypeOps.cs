@@ -25,7 +25,7 @@ namespace Microsoft.ML.Internal.Internallearn
 
     internal static class UnsafeTypeOpsFactory
     {
-        private static Dictionary<Type, object> _type2ops;
+        private static readonly Dictionary<Type, object> _type2ops;
 
         static UnsafeTypeOpsFactory()
         {

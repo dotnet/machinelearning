@@ -12,13 +12,13 @@ namespace Microsoft.ML.TimeSeries
 {
     internal class RootCauseAnalyzer
     {
-        private static double _anomalyRatioThreshold = 0.5;
-        private static double _anomalyPreDeltaThreshold = 2;
+        private static readonly double _anomalyRatioThreshold = 0.5;
+        private static readonly double _anomalyPreDeltaThreshold = 2;
 
-        private RootCauseLocalizationInput _src;
-        private double _beta;
-        private double _rootCauseThreshold;
-        private List<RootCause> _preparedCauses;
+        private readonly RootCauseLocalizationInput _src;
+        private readonly double _beta;
+        private readonly double _rootCauseThreshold;
+        private readonly List<RootCause> _preparedCauses;
 
         public RootCauseAnalyzer(RootCauseLocalizationInput src, double beta, double rootCauseThreshold)
         {
@@ -163,7 +163,7 @@ namespace Microsoft.ML.TimeSeries
                 }
                 else
                 {
-                    //Use leaves node informatin to get top anomalies
+                    //Use leaves node information to get top anomalies
                     children = GetTopAnomaly(anomalyTree.Leaves, anomalyTree.ParentNode, pointTree.Leaves, dimension.DimensionKey, true);
                 }
 

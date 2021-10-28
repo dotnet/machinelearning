@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -84,7 +88,7 @@ namespace Microsoft.ML.Featurizers
     /// boolean value representing if the row was created as a result of this operation or not.
     ///
     /// The imputation strategies that are currently supported are ForwardFill, where the last good value is propagated forward, Backfill, where the next good value is propagated backwards,
-    /// and Median, where the mathmatical median is used to fill in missing values.
+    /// and Median, where the mathematical median is used to fill in missing values.
     ///
     /// NOTE: It is not recommended to chain this multiple times. If a column is filtered, the default value is placed when a row is imputed, and the
     /// default value is not null. Thus any other TimeSeriesImputers will not be able to replace those values anymore causing essentially a very
@@ -97,7 +101,7 @@ namespace Microsoft.ML.Featurizers
     /// <seealso cref="TimeSeriesImputerExtensionClass.ReplaceMissingTimeSeriesValues(TransformsCatalog, string, string[], string[], FilterMode, ImputationStrategy, bool)"/>
     public sealed class TimeSeriesImputerEstimator : IEstimator<TimeSeriesImputerTransformer>
     {
-        private Options _options;
+        private readonly Options _options;
         internal const string IsRowImputedColumnName = "IsRowImputed";
 
         private readonly IHost _host;
@@ -158,14 +162,14 @@ namespace Microsoft.ML.Featurizers
 
         /// <summary>
         /// Method by which columns are selected for imputing values.
-        /// NoFilter takes all of the columns so you dont have to specify anything.
+        /// NoFilter takes all of the columns so you don't have to specify anything.
         /// Include only does the specified ImputationStrategy on the columns you specify. The other columns will get a default value.
         /// Exclude is the exact opposite of Include, and does the ImputationStrategy on all columns but the ones you specify, which will get the default value.
         /// </summary>
         public enum FilterMode : byte
         {
             /// <summary>
-            /// Takes all of the columns so you dont have to specify anything.
+            /// Takes all of the columns so you don't have to specify anything.
             /// </summary>
             NoFilter = 1,
 
@@ -458,7 +462,7 @@ namespace Microsoft.ML.Featurizers
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                // Manually dispose of the IEnumerator since we dont have a using statement;
+                // Manually dispose of the IEnumerator since we don't have a using statement;
                 cursor.Dispose();
 
                 return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
@@ -577,7 +581,7 @@ namespace Microsoft.ML.Featurizers
         // TODO: Update entry points
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern bool CreateEstimatorNative(TypeId* grainTypes, IntPtr grainTypesSize, TypeId* dataTypes, IntPtr dataTypesSize, TimeSeriesImputerEstimator.ImputationStrategy strategy, bool* suppressTypeErrors, out IntPtr estimator, out IntPtr errorHandle);
+        private static extern unsafe bool CreateEstimatorNative(TypeId* grainTypes, IntPtr grainTypesSize, TypeId* dataTypes, IntPtr dataTypesSize, TimeSeriesImputerEstimator.ImputationStrategy strategy, bool* suppressTypeErrors, out IntPtr estimator, out IntPtr errorHandle);
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_DestroyEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern bool DestroyEstimatorNative(IntPtr estimator, out IntPtr errorHandle); // Should ONLY be called by safe handle
@@ -589,7 +593,7 @@ namespace Microsoft.ML.Featurizers
         private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_Fit", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern bool FitNative(TransformerEstimatorSafeHandle estimator, NativeBinaryArchiveData data, out FitResult fitResult, out IntPtr errorHandle);
+        private static extern unsafe bool FitNative(TransformerEstimatorSafeHandle estimator, NativeBinaryArchiveData data, out FitResult fitResult, out IntPtr errorHandle);
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_CreateTransformerFromEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern bool CreateTransformerFromEstimatorNative(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
@@ -601,13 +605,13 @@ namespace Microsoft.ML.Featurizers
         private static extern bool CreateOnnxSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_CreateTransformerFromSavedData"), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
+        private static extern unsafe bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_OnDataCompleted"), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern bool OnDataCompletedNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+        private static extern unsafe bool OnDataCompletedNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_GetState"), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern bool GetStateNative(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle);
+        private static extern unsafe bool GetStateNative(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle);
 
         #endregion
 

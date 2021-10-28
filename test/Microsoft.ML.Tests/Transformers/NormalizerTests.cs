@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Experimental;
@@ -13,13 +14,12 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Transforms.NormalizingTransformer;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Tests.Transformers
             robustScalerEstimator = context.Transforms.NormalizeRobustScaling(
                                 new[] {new InputOutputColumnPair("float1rbs", "float1"), new InputOutputColumnPair("float4rbs", "float4"),
                                     new InputOutputColumnPair("double1rbs", "double1"), new InputOutputColumnPair("double4rbs", "double4")}
-                                ,centerData: false);
+                                , centerData: false);
 
             robustScalerTransformer = robustScalerEstimator.Fit(data);
 

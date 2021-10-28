@@ -24,8 +24,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private static readonly FloatEqualityComparer _comparer;
         private static readonly FloatEqualityComparerForMatMul _matMulComparer;
         private static readonly string _defaultMode = "defaultMode";
-        private static Dictionary<string, string> _disableAvxEnvironmentVariables;
-        private static Dictionary<string, string> _disableAvxAndSseEnvironmentVariables;
+        private static readonly Dictionary<string, string> _disableAvxEnvironmentVariables;
+        private static readonly Dictionary<string, string> _disableAvxAndSseEnvironmentVariables;
         private static readonly string _disableAvx = "COMPlus_EnableAVX";
         private static readonly string _disableSse = "COMPlus_EnableSSE";
         private static readonly string _disableAvxAndSse = "COMPlus_EnableHWIntrinsic";
@@ -516,7 +516,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
                 return RemoteExecutor.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions (environmentVariables));
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]

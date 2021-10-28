@@ -732,7 +732,7 @@ LAfterDigits:
 
         // Map from base-10 exponent to 64-bit mantissa.
         // The approximation for 10^n is _mpe10man[n-1] * 2^(_mpe10e2[n-1]-64).
-        private static ulong[] _mpe10Man = new ulong[] {
+        private static readonly ulong[] _mpe10Man = new ulong[] {
             0xA000000000000000UL, 0xC800000000000000UL, 0xFA00000000000000UL, 0x9C40000000000000UL, 0xC350000000000000UL, /*005*/
             0xF424000000000000UL, 0x9896800000000000UL, 0xBEBC200000000000UL, 0xEE6B280000000000UL, 0x9502F90000000000UL, /*010*/
             0xBA43B74000000000UL, 0xE8D4A51000000000UL, 0x9184E72A00000000UL, 0xB5E620F480000000UL, 0xE35FA931A0000000UL, /*015*/
@@ -801,7 +801,7 @@ LAfterDigits:
 
         // Map from negative base-10 exponent to 64-bit mantissa. Note that the top bit of these is set.
         // The approximation for 10^-n is _mpne10man[n-1] * 2^(-_mpne10ne2[n-1]-64).
-        private static ulong[] _mpne10Man = new ulong[] {
+        private static readonly ulong[] _mpne10Man = new ulong[] {
             0xCCCCCCCCCCCCCCCDUL, 0xA3D70A3D70A3D70AUL, 0x83126E978D4FDF3BUL, 0xD1B71758E219652CUL, 0xA7C5AC471B478423UL, /*005*/
             0x8637BD05AF6C69B6UL, 0xD6BF94D5E57A42BCUL, 0xABCC77118461CEFDUL, 0x89705F4136B4A597UL, 0xDBE6FECEBDEDD5BFUL, /*010*/
             0xAFEBFF0BCB24AAFFUL, 0x8CBCCC096F5088CCUL, 0xE12E13424BB40E13UL, 0xB424DC35095CD80FUL, 0x901D7CF73AB0ACD9UL, /*015*/
@@ -878,7 +878,7 @@ LAfterDigits:
 
         // Map from base-10 exponent to base-2 exponent.
         // The approximation for 10^n is _mpe10man[n-1] * 2^(_mpe10e2[n-1]-64).
-        private static short[] _mpe10e2 = new short[] {
+        private static readonly short[] _mpe10e2 = new short[] {
                4,    7,   10,   14,   17,   20,   24,   27,   30,   34,   37,   40,   44,   47,   50,   54,   57,   60,   64,   67, /*020*/
               70,   74,   77,   80,   84,   87,   90,   94,   97,  100,  103,  107,  110,  113,  117,  120,  123,  127,  130,  133, /*040*/
              137,  140,  143,  147,  150,  153,  157,  160,  163,  167,  170,  173,  177,  180,  183,  187,  190,  193,  196,  200, /*060*/

@@ -1,10 +1,13 @@
-﻿// Taken from https://raw.githubusercontent.com/mellinoe/nativelibraryloader/586f9738ff12688df8f0662027da8c319aee3841/NativeLibraryLoader/PathResolver.cs
-using Microsoft.DotNet.PlatformAbstractions;
-using Microsoft.Extensions.DependencyModel;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.DotNet.PlatformAbstractions;
+using Microsoft.Extensions.DependencyModel;
 
 namespace Microsoft.ML.TestFrameworkCommon.Utility
 {

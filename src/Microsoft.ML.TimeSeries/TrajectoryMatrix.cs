@@ -62,10 +62,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private bool _isSeriesFftCached;
         private readonly bool _shouldFftUsed;
-        private IExceptionContext _ectx;
+        private readonly IExceptionContext _ectx;
         private readonly int _k;
 
-        private void ComputeBoundryIndices(int start, int end, out int us, out int ue, out int vs, out int ve)
+        private void ComputeBoundaryIndices(int start, int end, out int us, out int ue, out int vs, out int ve)
         {
             _ectx.Assert(0 <= end && end < _seriesLength, "The end index must be in [0, seriesLength).");
             _ectx.Assert(0 <= start && start <= end, "The start index must be in [0, end index].");
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <summary>
         /// This function computes the the multiplication of the transpose of the trajectory matrix H by an arbitrary vector v, i.e. H' * v.
         /// Since the trajectory matrix is a Hankel matrix, using the Discrete Fourier Transform,
-        /// the multiplication is carried out in O(N.log(N)) instead of O(N^2), wheere N is the series length.
+        /// the multiplication is carried out in O(N.log(N)) instead of O(N^2), where N is the series length.
         /// For details, refer to Algorithm 3 in http://arxiv.org/pdf/0911.4498.pdf.
         /// </summary>
         /// <param name="vector">The input vector</param>
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             s = start ?? 0;
             e = end ?? _seriesLength - 1;
 
-            ComputeBoundryIndices(s, e, out us, out ue, out vs, out ve);
+            ComputeBoundaryIndices(s, e, out us, out ue, out vs, out ve);
             _ectx.Assert(0 <= ue && ue < _windowSize);
             _ectx.Assert(0 <= us && us <= ue);
             _ectx.Assert(0 <= ve && ve < _k);
@@ -558,7 +558,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             s = start ?? 0;
             e = end ?? _seriesLength - 1;
 
-            ComputeBoundryIndices(s, e, out us, out ue, out vs, out ve);
+            ComputeBoundaryIndices(s, e, out us, out ue, out vs, out ve);
             _ectx.Assert(0 <= ue && ue < _windowSize);
             _ectx.Assert(0 <= us && us <= ue);
             _ectx.Assert(0 <= ve && ve < _k);

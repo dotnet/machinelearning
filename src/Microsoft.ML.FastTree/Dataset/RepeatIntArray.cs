@@ -19,7 +19,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         private readonly DenseIntArray _values;
         private readonly int _length;
-        private byte[] _deltas;
+        private readonly byte[] _deltas;
         private readonly int _deltasActualLength;
 
         public DeltaRepeatIntArray(int length, IntArrayBits bitsPerItem, IEnumerable<int> values)

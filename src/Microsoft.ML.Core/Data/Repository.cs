@@ -79,7 +79,7 @@ namespace Microsoft.ML
         }
 
         // These are the open entries that may contain streams into our DirTemp.
-        private List<Entry> _open;
+        private readonly List<Entry> _open;
 
         private bool _disposed;
 
@@ -435,11 +435,11 @@ namespace Microsoft.ML
     [BestFriend]
     internal sealed class RepositoryReader : Repository
     {
-        private ZipArchive _archive;
+        private readonly ZipArchive _archive;
 
         // Maps from a normalized path to the entry in the _archive. This is needed since
         // a zip might use / or \ for directory separation.
-        private Dictionary<string, ZipArchiveEntry> _entries;
+        private readonly Dictionary<string, ZipArchiveEntry> _entries;
 
         public static RepositoryReader Open(Stream stream, IExceptionContext ectx = null, bool useFileSystem = true)
         {

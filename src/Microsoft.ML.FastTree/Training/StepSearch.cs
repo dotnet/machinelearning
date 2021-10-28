@@ -16,8 +16,8 @@ namespace Microsoft.ML.Trainers.FastTree
     internal sealed class LineSearch : IStepSearch, IFastTrainingScoresUpdate
     {
         private double _historicStepSize;
-        private int _numPostbracketSteps;
-        private double _minStepSize;
+        private readonly int _numPostbracketSteps;
+        private readonly double _minStepSize;
 
         public LineSearch(Test lossCalculator, int lossIndex, int numPostbracketSteps, double minStepSize)
             : this(lossCalculator, lossIndex) { _numPostbracketSteps = numPostbracketSteps; _minStepSize = minStepSize; }

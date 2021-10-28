@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -78,14 +82,14 @@ namespace Samples.Dynamic
             // In this sample, CustomMappingEstimator is used to resize variable
             // length vector to fixed length vector.
             // The following ML.NET pipeline
-            //      1. tokenizes the string into words, 
+            //      1. tokenizes the string into words,
             //      2. maps each word to an integer which is an index in the
             //         dictionary ('lookupMap'),
             //      3. Resizes the integer vector to a fixed length vector using
             //         CustomMappingEstimator ('ResizeFeaturesAction')
             //      4. Passes the data to TensorFlow for scoring.
-            //      5. Retreives the 'Prediction' from TensorFlow and put it into
-            //         ML.NET Pipeline 
+            //      5. Retrieves the 'Prediction' from TensorFlow and put it into
+            //         ML.NET Pipeline
 
             Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction =
                 (i, j) =>
@@ -130,10 +134,10 @@ namespace Samples.Dynamic
                 .ToString("0.00"));
 
             ///////////////////////////// Expected output //////////////////////////
-            // 
+            //
             // Name: Features, Type: System.Int32, Shape: (-1, 600)
             // Name: Prediction/Softmax, Type: System.Single, Shape: (-1, 2)
-            // 
+            //
             // Number of classes: 2
             // Is sentiment/review positive ? Yes
             // Prediction Confidence: 0.65

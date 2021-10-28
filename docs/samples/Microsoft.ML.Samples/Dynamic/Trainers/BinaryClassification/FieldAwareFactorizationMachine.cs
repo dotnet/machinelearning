@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -30,7 +34,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // This trainer trains field-aware factorization (FFM)
             // for binary classification.
             // See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf for the theory
-            // behind and 
+            // behind and
             // https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf for the
             // training algorithm implemented in ML.NET.
             var pipeline = mlContext.BinaryClassification.Trainers
@@ -114,11 +118,11 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             [VectorType(featureLength)]
             public float[] Field0 { get; set; }
 
-            // Features from the second field. 
+            // Features from the second field.
             [VectorType(featureLength)]
             public float[] Field1 { get; set; }
 
-            // Features from the thrid field. 
+            // Features from the third field.
             [VectorType(featureLength)]
             public float[] Field2 { get; set; }
         }

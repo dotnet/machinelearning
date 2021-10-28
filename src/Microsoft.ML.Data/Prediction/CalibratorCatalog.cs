@@ -69,7 +69,7 @@ namespace Microsoft.ML.Calibrators
                 LabelColumn = TrainerUtils.MakeBoolScalarLabel(labelColumn);
             else
                 env.CheckParam(!calibratorTrainer.NeedsTraining, nameof(labelColumn), "For trained calibrators, " + nameof(labelColumn) + " must be specified.");
-            ScoreColumn = TrainerUtils.MakeR4ScalarColumn(scoreColumn); // Do we fanthom this being named anything else (renaming column)? Complete metadata?
+            ScoreColumn = TrainerUtils.MakeR4ScalarColumn(scoreColumn); // Do we fathom this being named anything else (renaming column)? Complete metadata?
 
             if (weightColumn != null)
                 WeightColumn = TrainerUtils.MakeR4ScalarWeightColumn(weightColumn);
@@ -239,10 +239,10 @@ namespace Microsoft.ML.Calibrators
         private sealed class Mapper<TCalibrator> : MapperBase, ISaveAsOnnx
             where TCalibrator : class, ICalibrator
         {
-            private TCalibrator _calibrator;
+            private readonly TCalibrator _calibrator;
             private readonly int _scoreColIndex;
-            private CalibratorTransformer<TCalibrator> _parent;
-            private string _scoreColumnName;
+            private readonly CalibratorTransformer<TCalibrator> _parent;
+            private readonly string _scoreColumnName;
 
             bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _calibrator is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Calibrators
                     builder.Add(setIdCol.Name, setIdType, annotation.GetGetter<uint>(setIdCol));
                     // Now, this next one I'm a little less sure about. It is entirely reasonable for someone to, say,
                     // try to calibrate the result of a regression or ranker training, or something else. But should we
-                    // just pass through this class just like that? Having throught through the alternatives I view this
+                    // just pass through this class just like that? Having thought through the alternatives I view this
                     // as the least harmful thing we could be doing, but it is something to consider I may be wrong
                     // about if it proves that it ever causes problems to, say, have something identified as a probability
                     // column but be marked as being a regression task, or what have you.
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Calibrators
     }
 
     /// <summary>
-    /// The naive binning-based calbirator estimator.
+    /// The naive binning-based calibrator estimator.
     /// </summary>
     /// <remarks>
     /// It divides the range of the outputs into equally sized bins. In each bin,

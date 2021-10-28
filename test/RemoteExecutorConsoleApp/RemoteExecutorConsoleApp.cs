@@ -47,7 +47,7 @@ namespace RemoteExecutorConsoleApp
                 {
                     a = Assembly.Load(assemblyName);
                 }
-                catch(FileNotFoundException)
+                catch (FileNotFoundException)
                 {
                     a = Assembly.LoadFrom(assemblyName.Split(',')[0] + ".dll");
                 }
@@ -110,7 +110,7 @@ namespace RemoteExecutorConsoleApp
             catch (PlatformNotSupportedException)
             {
             }
-            
+
             return exitCode;
         }
 

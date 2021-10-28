@@ -75,7 +75,7 @@ namespace Microsoft.ML.AutoML
             return options;
         }
 
-        private static string[] _lightGbmBoosterParamNames = new[] { "L2Regularization", "L1Regularization" };
+        private static readonly string[] _lightGbmBoosterParamNames = new[] { "L2Regularization", "L1Regularization" };
         private const string LightGbmBoosterPropName = "Booster";
 
         public static TOptions CreateLightGbmOptions<TOptions, TOutput, TTransformer, TModel>(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)

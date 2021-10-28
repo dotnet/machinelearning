@@ -18,7 +18,7 @@ namespace Microsoft.ML.Numeric
         /// Based on Nocedal and Wright, "Numerical Optimization, Second Edition"
 
         protected readonly bool EnforceNonNegativity;
-        private ITerminationCriterion _staticTerm;
+        private readonly ITerminationCriterion _staticTerm;
 
         // Whether the optimizer state should keep its internal vectors dense or not.
         // Turning on dense internal vectors can relieve load on the garbage collector,

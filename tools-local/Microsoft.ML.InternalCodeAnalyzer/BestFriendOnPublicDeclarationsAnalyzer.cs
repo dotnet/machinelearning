@@ -22,7 +22,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string Description =
             "The " + AttributeName + " attribute is not valid on public identifiers.";
 
-        private static DiagnosticDescriptor Rule =
+        private static readonly DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
@@ -49,7 +49,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 
                 if (attribute == null)
                     continue;
-                
+
                 context.RegisterSymbolAction(c => AnalyzeCore(c, attribute), SymbolKind.NamedType, SymbolKind.Method, SymbolKind.Field, SymbolKind.Property);
             }
         }

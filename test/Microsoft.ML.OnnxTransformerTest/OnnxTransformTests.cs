@@ -12,12 +12,12 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.Image;
+using Microsoft.ML.Transforms.Onnx;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Transforms.Onnx;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests
 {
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests
         // These two members are meant to be changed
         // Only when manually testing the Onnx GPU nuggets
         private const bool _fallbackToCpu = true;
-        private static int? _gpuDeviceId = null;
+        private static readonly int? _gpuDeviceId = null;
 
         private const int InputSize = 150528;
 
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests
             public float[] A;
         }
 
-        private class TestDataDifferntType
+        private class TestDataDifferentType
         {
             [VectorType(InputSize)]
             public string[] data_0;
@@ -139,12 +139,12 @@ namespace Microsoft.ML.Tests
                 });
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { data_0 = new string[InputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var options = new OnnxOptions()
             {
                 OutputColumns = new[] { "softmaxout_1" },
-                InputColumns = new[] {"data_0" },
+                InputColumns = new[] { "data_0" },
                 ModelFile = modelFile,
                 GpuDeviceId = _gpuDeviceId,
                 FallbackToCpu = _fallbackToCpu,

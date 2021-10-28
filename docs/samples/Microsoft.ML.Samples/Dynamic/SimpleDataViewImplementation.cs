@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -100,7 +104,7 @@ namespace Samples.Dynamic
         /// This is an implementation of <see cref="IDataView"/> that wraps an
         /// <see cref="IEnumerable{T}"/> of the above <see cref="InputObject"/>.
         /// Note that normally under these circumstances, the first recommendation
-        /// would be to use a convenience like 
+        /// would be to use a convenience like
         /// <see cref="DataOperationsCatalog
         /// .LoadFromEnumerable{TRow}(IEnumerable{TRow}, SchemaDefinition)"/>
         /// or something like that, rather than implementing <see cref="IDataView"/>
@@ -199,7 +203,7 @@ namespace Samples.Dynamic
             /// reconciliation of the partitioning of the data in the case where
             /// multiple cursors are returned from
             /// <see cref="GetRowCursorSet(
-            /// IEnumerable{DataViewSchema.Column}, int, Random)"/>, 
+            /// IEnumerable{DataViewSchema.Column}, int, Random)"/>,
             /// but since only one is ever returned from the implementation, this
             /// behavior is appropriate.
             ///

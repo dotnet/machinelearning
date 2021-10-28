@@ -316,7 +316,7 @@ namespace mlnet.Tests
             var actual = codeGenerator.GenerateTrainerAndUsings();
             string expectedTrainerString = "MatrixFactorization(new MatrixFactorizationTrainer.Options(){MatrixColumnIndexColumnName=\"userId\",MatrixRowIndexColumnName=\"movieId\",LabelColumnName=\"rating\",NumberOfIterations=10,LearningRate=0.01f,ApproximationRank=8,Lambda=0.01f,LossFunction=MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression,Alpha=1f,C=1E-05f})";
             Assert.Equal(expectedTrainerString, actual.Item1);
-            Assert.Equal(new string[] { "using Microsoft.ML.Trainers;\r\n" },actual.Item2);
+            Assert.Equal(new string[] { "using Microsoft.ML.Trainers;\r\n" }, actual.Item2);
         }
 
         [Fact]

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,10 +8,10 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -82,8 +82,8 @@ namespace Microsoft.ML.Tests
             var pipe = model.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
-            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable( stringData);
-            var invalidDataWrongVectorSize = ML.Data.LoadFromEnumerable( sizeData);
+            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.LoadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 

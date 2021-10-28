@@ -33,7 +33,7 @@ namespace mlnet.Tests
         private Pipeline _mockedPipeline;
         private Pipeline _mockedOvaPipeline;
         private ColumnInferenceResults _columnInference = default;
-        private string _namespaceValue = "TestNamespace";
+        private readonly string _namespaceValue = "TestNamespace";
         private const string StablePackageVersion = "1.4.0-preview3-28229-2";
         private const string UnstablePackageVersion = "0.16.0-preview3-28229-2";
 
@@ -229,7 +229,7 @@ namespace mlnet.Tests
                 StablePackageVersion = "stableversion",
                 UnstablePackageVersion = "unstableversion",
                 OnnxModelName = @"/path/to/onnxModel",
-                OnnxRuntimePacakgeVersion = "1.2.3",
+                OnnxRuntimePackageVersion = "1.2.3",
                 IsAzureAttach = true,
                 IsObjectDetection = false,
                 IsImage = true,
@@ -265,7 +265,7 @@ namespace mlnet.Tests
                 StablePackageVersion = "stableversion",
                 UnstablePackageVersion = "unstableversion",
                 OnnxModelName = @"/path/to/onnxModel",
-                OnnxRuntimePacakgeVersion = @"1.2.3",
+                OnnxRuntimePackageVersion = @"1.2.3",
                 IsAzureAttach = true,
                 IsImage = false,
                 IsObjectDetection = true,
@@ -305,7 +305,7 @@ namespace mlnet.Tests
                 StablePackageVersion = "StablePackageVersion",
                 UnstablePackageVersion = "UnstablePackageVersion",
                 OnnxModelName = @"\path\to\onnx",
-                OnnxRuntimePacakgeVersion = "1.2.3",
+                OnnxRuntimePackageVersion = "1.2.3",
                 IsAzureAttach = true,
                 IsImage = false,
                 IsObjectDetection = false,
@@ -331,8 +331,8 @@ namespace mlnet.Tests
             // sanitized if the column names are all unique and distinct, irrespective of capitalization.
             (var pipelineSanitized, var columnInferenceSanitized, var mappingSanitized) = this.GetMockedAzurePipelineAndInference();
             TestModelInput(pipelineSanitized, columnInferenceSanitized, mappingSanitized, "sanitized");
-            (var pipelineUnsatinized, var columnInferenceUnsatinized, var mappingUnsatinized) = this.GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames();
-            TestModelInput(pipelineUnsatinized, columnInferenceUnsatinized, mappingUnsatinized, "unsanitized");
+            (var pipelineUnsanitized, var columnInferenceUnsatinized, var mappingUnsatinized) = this.GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames();
+            TestModelInput(pipelineUnsanitized, columnInferenceUnsatinized, mappingUnsatinized, "unsanitized");
 
         }
 
@@ -582,7 +582,8 @@ namespace mlnet.Tests
                 this._columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
-                    ColumnInformation = new ColumnInformation() {
+                    ColumnInformation = new ColumnInformation()
+                    {
                         LabelColumnName = "Label",
                         UserIdColumnName = "userId",
                         ItemIdColumnName = "movieId"
@@ -751,7 +752,7 @@ namespace mlnet.Tests
                 this._columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
-                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" , GroupIdColumnName = "GroupId"}
+                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label", GroupIdColumnName = "GroupId" }
                 };
             }
 
@@ -1139,7 +1140,7 @@ namespace mlnet.Tests
                 ModelName = "x:\\models\\model.zip",
                 StablePackageVersion = StablePackageVersion,
                 UnstablePackageVersion = UnstablePackageVersion,
-                OnnxRuntimePacakgeVersion = "1.2.3",
+                OnnxRuntimePackageVersion = "1.2.3",
             };
         }
     }

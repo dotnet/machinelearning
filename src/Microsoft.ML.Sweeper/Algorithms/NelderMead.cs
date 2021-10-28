@@ -73,7 +73,7 @@ namespace Microsoft.ML.Sweeper
 
         private OptimizationStage _stage;
         private readonly List<KeyValuePair<ParameterSet, float[]>> _pendingSweeps;
-        private Queue<KeyValuePair<ParameterSet, float[]>> _pendingSweepsNotSubmitted;
+        private readonly Queue<KeyValuePair<ParameterSet, float[]>> _pendingSweepsNotSubmitted;
         private KeyValuePair<IRunResult, float[]> _lastReflectionResult;
 
         private KeyValuePair<IRunResult, float[]> _worst;

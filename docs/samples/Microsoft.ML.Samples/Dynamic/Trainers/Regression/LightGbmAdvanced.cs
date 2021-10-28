@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -22,7 +26,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
             //////////////////// Data Preview ////////////////////
             /// Only 6 columns are displayed here.
-            // MedianHomeValue    CrimesPerCapita    PercentResidental    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s     ...
+            // MedianHomeValue    CrimesPerCapita    PercentResidential    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s     ...
             // 24.00              0.00632            18.00                2.310               0               0.5380          6.5750              65.20             ...
             // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90             ...
             // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10             ...

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -85,17 +89,17 @@ namespace Samples.Dynamic
         }
 
         private static List<DataPoint> GenerateRandomDataPoints(int count,
-            int featureVectorLenght)
+            int featureVectorLength)
         {
             var examples = new List<DataPoint>();
             var rnd = new Random(0);
             for (int i = 0; i < count; ++i)
             {
                 var example = new DataPoint();
-                example.Features = new float[featureVectorLenght];
+                example.Features = new float[featureVectorLength];
                 var res = i % 4;
                 // Generate random float feature values.
-                for (int j = 0; j < featureVectorLenght; ++j)
+                for (int j = 0; j < featureVectorLength; ++j)
                 {
                     var value = (float)rnd.NextDouble() + res * 0.2f;
                     example.Features[j] = value;

@@ -10,7 +10,7 @@ namespace Microsoft.ML.CommandLine
     [BestFriend]
     internal sealed class CmdLexer
     {
-        private CharCursor _curs;
+        private readonly CharCursor _curs;
 
         // Whether \ has a special significance.
         private readonly bool _escapes;
@@ -307,7 +307,7 @@ namespace Microsoft.ML.CommandLine
     internal sealed class CmdQuoter
     {
         private readonly string _str;
-        private StringBuilder _sb;
+        private readonly StringBuilder _sb;
         private int _ich;
 
         private CmdQuoter(string str, StringBuilder sb)

@@ -299,7 +299,7 @@ namespace Microsoft.ML.Data
             private readonly BindableMapper _parent;
             private readonly DataViewSchema _outputSchema;
             private readonly DataViewSchema _outputGenericSchema;
-            private VBuffer<ReadOnlyMemory<char>> _slotNames;
+            private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 

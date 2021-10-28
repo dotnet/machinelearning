@@ -174,10 +174,10 @@ namespace Microsoft.ML.Tests
         }
 
 
-            /// <summary>
-            /// Help function used to execute trainers defined in <see cref="RandomizedPcaInMemory"/>.
-            /// </summary>
-            private static void ExecuteRandomizedPcaTrainerChangeThreshold(MLContext mlContext, Trainers.RandomizedPcaTrainer trainer)
+        /// <summary>
+        /// Help function used to execute trainers defined in <see cref="RandomizedPcaInMemory"/>.
+        /// </summary>
+        private static void ExecuteRandomizedPcaTrainerChangeThreshold(MLContext mlContext, Trainers.RandomizedPcaTrainer trainer)
         {
             var samples = new List<DataPoint>()
             {
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Tests
                 new DataPoint(){ Features = new float[3] {1, 0, 0} }
             };
 
-            // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
+            // Convert the List<DataPoint> to IDataView, a consumable format to ML.NET functions.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Train the anomaly detector.
@@ -282,7 +282,7 @@ namespace Microsoft.ML.Tests
                 // and produce eigenvectors with NaN.
                 var model = trainer.Fit(data);
             }
-            catch(ArgumentOutOfRangeException ex)
+            catch (ArgumentOutOfRangeException ex)
             {
                 exceptionThrown = true;
                 Assert.Contains("The learnt eigenvectors contained NaN values", ex.Message);

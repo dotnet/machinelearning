@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
         // These two members are meant to be changed
         // Only when manually testing the Onnx GPU nuggets
         private const bool _fallbackToCpu = true;
-        private static int? _gpuDeviceId = null;
+        private static readonly int? _gpuDeviceId = null;
 
         private class AdultData
         {
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests
             var onnxTextName = "SimplePipeline.txt";
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a model file and a text file.
-            TestPipeline(dynamicPipeline, cachedTrainData, onnxFileName, new ColumnComparison[] { new ColumnComparison ("Score", 1) }, onnxTextName, subDir);
+            TestPipeline(dynamicPipeline, cachedTrainData, onnxFileName, new ColumnComparison[] { new ColumnComparison("Score", 1) }, onnxTextName, subDir);
 
             // Step 3: Check ONNX model's text format. This test will be not necessary if Step 2 can run on Linux and
             // Mac to support cross-platform tests.
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Tests
             };
             if (NativeLibrary.NativeLibraryExists("MklImports"))
             {
-                estimators.Add(mlContext.Regression.Trainers.Ols("Target","FeatureVector"));
+                estimators.Add(mlContext.Regression.Trainers.Ols("Target", "FeatureVector"));
             }
             if (Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm"))
             {
@@ -1020,7 +1020,7 @@ namespace Microsoft.ML.Tests
         [Theory]
         [CombinatorialData]
         public void MurmurHashKeyTest(
-            [CombinatorialValues(DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.UInt64)]DataKind keyType)
+            [CombinatorialValues(DataKind.Byte, DataKind.UInt16, DataKind.UInt32, DataKind.UInt64)] DataKind keyType)
         {
             var dataFile = DeleteOutputPath("KeysToOnnx.txt");
             File.WriteAllLines(dataFile,
@@ -1552,7 +1552,7 @@ namespace Microsoft.ML.Tests
             var dataView = mlContext.Data.LoadFromEnumerable(samples);
             var onnxFileName = $"CustomStopWordsRemovingEstimator.onnx";
 
-            TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("WordsWithoutStopWords")});
+            TestPipeline(pipeline, dataView, onnxFileName, new ColumnComparison[] { new ColumnComparison("WordsWithoutStopWords") });
 
             Done();
         }
@@ -2086,7 +2086,7 @@ namespace Microsoft.ML.Tests
             bool fixZero)
         {
             // Shared variables.
-            var columnsToCompare = new ColumnComparison[] { new ColumnComparison ("Features") };
+            var columnsToCompare = new ColumnComparison[] { new ColumnComparison("Features") };
             IEstimator<ITransformer> pipe;
             string onnxFileName;
 
@@ -2256,7 +2256,7 @@ namespace Microsoft.ML.Tests
                 var onnxResult = onnxTransformer.Transform(dataView);
 
                 // Compare all the columns between ML.Net and ONNX.
-                foreach(var column in columnsToCompare)
+                foreach (var column in columnsToCompare)
                 {
                     CompareResults(column.Name, column.Name, transformedData, onnxResult, column.Precision, true);
                 }

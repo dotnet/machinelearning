@@ -235,7 +235,7 @@ namespace Microsoft.ML.Tests.Transformers
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort), ushort.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
             if (value <= uint.MaxValue)
             {
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Next let's check signed numbers.
             if (value <= long.MaxValue)
-            HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+                HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
 
             // ulong keys
             HashTestCore(value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
@@ -372,8 +372,8 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCombineLengthOneVector()
         {
-            var data = new[] 
-            { 
+            var data = new[]
+            {
                 new TestClass() { A = 1, B = 2, C = 3 },
                 new TestClass() { A = 4, B = 5, C = 6 },
                 new TestClass() { A = float.NaN, B = 3, C = 12 }

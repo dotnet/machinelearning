@@ -1,14 +1,14 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.LightGbm;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.PerformanceTests
 {

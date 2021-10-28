@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -18,7 +22,7 @@ namespace Samples.Dynamic
         // AlienBody members to produce a SuperAlienHero entity with a "Name" member of type
         // string and a single "Merged" member of type AlienBody, where the merger is just
         // the addition of the various members of AlienBody.
-        static public void Example()
+        public static void Example()
         {
             var mlContext = new MLContext();
             // Build in-memory data.

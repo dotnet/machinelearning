@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class EstimatorExtensionTests : BaseTestClass
     {
         public EstimatorExtensionTests(ITestOutputHelper output) : base(output)

@@ -23,7 +23,7 @@ namespace Microsoft.ML.Data
         /// For example, UInt32 and Key can be mapped to <see langword="uint"/>. This class enforces one-to-one mapping for all
         /// user-registered types.
         /// </summary>
-        private static HashSet<Type> _bannedRawTypes = new HashSet<Type>()
+        private static readonly HashSet<Type> _bannedRawTypes = new HashSet<Type>()
         {
             typeof(Boolean), typeof(SByte), typeof(Byte),
             typeof(Int16), typeof(UInt16), typeof(Int32), typeof(UInt32),
@@ -36,17 +36,17 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Mapping from a <see cref="Type"/> plus its <see cref="Attribute"/>s to a <see cref="DataViewType"/>.
         /// </summary>
-        private static Dictionary<TypeWithAttributes, DataViewType> _rawTypeToDataViewTypeMap = new Dictionary<TypeWithAttributes, DataViewType>();
+        private static readonly Dictionary<TypeWithAttributes, DataViewType> _rawTypeToDataViewTypeMap = new Dictionary<TypeWithAttributes, DataViewType>();
 
         /// <summary>
         /// Mapping from a <see cref="DataViewType"/> to a <see cref="Type"/> plus its <see cref="Attribute"/>s.
         /// </summary>
-        private static Dictionary<DataViewType, TypeWithAttributes> _dataViewTypeToRawTypeMap = new Dictionary<DataViewType, TypeWithAttributes>();
+        private static readonly Dictionary<DataViewType, TypeWithAttributes> _dataViewTypeToRawTypeMap = new Dictionary<DataViewType, TypeWithAttributes>();
 
         /// <summary>
         /// The lock that one should acquire if the state of <see cref="DataViewTypeManager"/> will be accessed or modified.
         /// </summary>
-        private static object _lock = new object();
+        private static readonly object _lock = new object();
 
         /// <summary>
         /// Returns the <see cref="DataViewType"/> registered for <paramref name="type"/> and its <paramref name="typeAttributes"/>.
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Data
             /// a key when using <see cref="TypeWithAttributes"/> as the key type in <see cref="Dictionary{TKey, TValue}"/>. Note that the
             /// uniqueness is determined by <see cref="Equals(object)"/> and <see cref="GetHashCode"/> below.
             /// </summary>
-            private DataViewTypeAttribute _associatedAttribute;
+            private readonly DataViewTypeAttribute _associatedAttribute;
 
             public TypeWithAttributes(Type type, DataViewTypeAttribute attribute)
             {

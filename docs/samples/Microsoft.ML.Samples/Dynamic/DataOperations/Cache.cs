@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using Microsoft.ML;
 using Microsoft.ML.SamplesUtils;
 
@@ -69,7 +73,7 @@ namespace Samples.Dynamic
             {
                 lines++;
                 columnAverage += row.MedianHomeValue + row.CrimesPerCapita +
-                    row.PercentResidental + row.PercentNonRetail + row.CharlesRiver
+                    row.PercentResidential + row.PercentNonRetail + row.CharlesRiver
                     + row.NitricOxides + row.RoomsPerDwelling + row.PercentPre40s +
                     row.EmploymentDistance + row.HighwayDistance + row.TaxRate +
                     row.TeacherRatio;
@@ -88,7 +92,7 @@ namespace Samples.Dynamic
         {
             public float MedianHomeValue { get; set; }
             public float CrimesPerCapita { get; set; }
-            public float PercentResidental { get; set; }
+            public float PercentResidential { get; set; }
             public float PercentNonRetail { get; set; }
             public float CharlesRiver { get; set; }
             public float NitricOxides { get; set; }

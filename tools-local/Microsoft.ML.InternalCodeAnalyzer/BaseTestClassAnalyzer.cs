@@ -21,7 +21,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string Description =
             "Test classes should be derived from BaseTestClass or FunctionalTestBaseClass.";
 
-        private static DiagnosticDescriptor Rule =
+        private static readonly DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
@@ -89,7 +89,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 
             private bool ExtendsBaseTestClass(INamedTypeSymbol namedType)
             {
-                if (_baseTestClass is null && 
+                if (_baseTestClass is null &&
                     _ITbaseTestClass is null)
                     return false;
 

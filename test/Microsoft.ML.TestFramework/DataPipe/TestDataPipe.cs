@@ -20,19 +20,19 @@ namespace Microsoft.ML.RunTests
 {
     public sealed partial class TestDataPipe : TestDataPipeBase
     {
-        private static float[] _dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
+        private static readonly float[] _dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
-        private static uint[] _resultsFloat = new uint[] { 16, 16, 26, 12, 22, 12, 0, 13, 8, 4, 31, 14 };
+        private static readonly uint[] _resultsFloat = new uint[] { 16, 16, 26, 12, 22, 12, 0, 13, 8, 4, 31, 14 };
 
-        private static VBuffer<Single> _dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] _resultsFloatSparse = new uint[] { 16, 16, 16, 16, 26 };
+        private static readonly VBuffer<Single> _dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
+        private static readonly uint[] _resultsFloatSparse = new uint[] { 16, 16, 16, 16, 26 };
 
-        private static Double[] _dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
+        private static readonly Double[] _dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
-        private static uint[] _resultsDouble = new uint[] { 30, 30, 19, 24, 32, 25, 0, 2, 7, 30, 5, 3 };
+        private static readonly uint[] _resultsDouble = new uint[] { 30, 30, 19, 24, 32, 25, 0, 2, 7, 30, 5, 3 };
 
-        private static VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] _resultsDoubleSparse = new uint[] { 30, 30, 30, 30, 19 };
+        private static readonly VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
+        private static readonly uint[] _resultsDoubleSparse = new uint[] { 30, 30, 30, 30, 19 };
 
         [Fact()]
         public void SavePipeLabelParsers()
@@ -325,13 +325,13 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        private static string[] _small20NewsGroupSample =
+        private static readonly string[] _small20NewsGroupSample =
         {
             "SPORT.BASEBALL\tWhen does Fred McGriff of the Padres become a free agent?",
             "SCI.MED\tIs erythromycin effective in treating pneumonia?"
         };
 
-        private static string[] _small20NewsGroupDict =
+        private static readonly string[] _small20NewsGroupDict =
         {
             "sport", "baseball", "fred", "mcgriff", "padres", "free", "agent", "med", "erythromycin", "treating",
             "pneumonia"

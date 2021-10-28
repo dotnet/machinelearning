@@ -124,7 +124,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
@@ -222,19 +222,19 @@ namespace Microsoft.ML.Transforms
     ///
     /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Indicator> produces an [indicator vector](https://en.wikipedia.org/wiki/Indicator_vector).
     /// Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.
-    /// If a value is not found in the dictioray, the output is the zero vector.
+    /// If a value is not found in the dictionary, the output is the zero vector.
     ///
     /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Bag> produces one vector such that each slot stores the number
-    /// of occurances of the corresponding value in the input vector.
+    /// of occurrences of the corresponding value in the input vector.
     /// Each slot in this vector corresponds to a value in the dictionary, so its length is the size of the built dictionary.
     /// <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Indicator> and <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Bag>
     /// differ simply in how the bit-vectors generated from individual slots in the input column are aggregated:
     /// for Indicator they are concatenated and for Bag they are added. When the source column is a Scalar, the Indicator and Bag options are identical.
     ///
     /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Key> produces keys in a <xref:Microsoft.ML.Data.KeyDataViewType> column.
-    /// If the input column is a vector, the output contains a vectory [key](xref:Microsoft.ML.Data.KeyDataViewType) type, where each slot of the
+    /// If the input column is a vector, the output contains a vector [key](xref:Microsoft.ML.Data.KeyDataViewType) type, where each slot of the
     /// vector corresponds to the respective slot of the input vector.
-    /// If a category is not found in the bulit dictionary, it is assigned the value zero.
+    /// If a category is not found in the built dictionary, it is assigned the value zero.
     ///
     /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Binary> produces a binary encoded vector to represent the values found in the dictionary
     /// that are present in the input column. If a value in the input column is not found in the dictionary, the output is the zero vector.
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
-            /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
+            /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
             /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly IHost _host;
         private readonly IEstimator<ITransformer> _toSomething;
-        private HashingEstimator _hash;
+        private readonly HashingEstimator _hash;
 
         /// <summary>
         /// Instantiates a new instance of <see cref="OneHotHashEncodingEstimator"/>.
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>

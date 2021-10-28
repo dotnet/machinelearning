@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using Microsoft.ML.Data;
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 
@@ -18,10 +18,10 @@ namespace Microsoft.ML.PerformanceTests
     {
         private MLContext _mlContext;
         private IDataView _dataView;
-        private static int _numColumns = 100;
-        private static int _numRows = 3000;
-        private static int _maxWordLength = 15;
-        private static int _numColumnsToGet = 20;
+        private static readonly int _numColumns = 100;
+        private static readonly int _numRows = 3000;
+        private static readonly int _maxWordLength = 15;
+        private static readonly int _numColumnsToGet = 20;
         private List<TextLoader.Column> _columns;
 
 
@@ -34,7 +34,7 @@ namespace Microsoft.ML.PerformanceTests
             path = RandomFile.CreateRandomFile(path, _numRows, _numColumns, _maxWordLength);
 
             _columns = new List<TextLoader.Column>();
-            for(int i = 0; i < _numColumns; i++)
+            for (int i = 0; i < _numColumns; i++)
             {
                 _columns.Add(new TextLoader.Column($"Column{i}", DataKind.String, i));
             }
@@ -55,7 +55,7 @@ namespace Microsoft.ML.PerformanceTests
         [Benchmark]
         public void TestTextLoaderGetters()
         {
-            using(var rowCursor = _dataView.GetRowCursorForAllColumns())
+            using (var rowCursor = _dataView.GetRowCursorForAllColumns())
             {
                 var getters = new List<ValueGetter<ReadOnlyMemory<char>>>();
                 for (int i = 0; i < _numColumnsToGet; i++)

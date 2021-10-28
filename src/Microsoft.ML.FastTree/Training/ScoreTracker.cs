@@ -135,13 +135,13 @@ namespace Microsoft.ML.Trainers.FastTree
             throw Contracts.ExceptNotSupp("This code should not be reachable");
         }
 
-        //Computes AGD specific mutiplier. Given that we have tree number t in ensemble (we count trees starting from 0)
+        //Computes AGD specific multiplier. Given that we have tree number t in ensemble (we count trees starting from 0)
         //And we have total k trees in ensemble, what should be the multiplier on the tree when sum the ensemble together based on AGD formula being
         //X[k+1] = Y[k] + Tree[k]
         //Y[k+1] = X[k+1] + C[k] * (X[k+1] – X[k])
         //C[k] = (k-1) / (k+2)
 
-        private static Dictionary<int, Dictionary<int, double>> _treeMultiplierMap = new Dictionary<int, Dictionary<int, double>>();
+        private static readonly Dictionary<int, Dictionary<int, double>> _treeMultiplierMap = new Dictionary<int, Dictionary<int, double>>();
         public static double TreeMultiplier(int t, int k)
         {
             if (_treeMultiplierMap.ContainsKey(t))

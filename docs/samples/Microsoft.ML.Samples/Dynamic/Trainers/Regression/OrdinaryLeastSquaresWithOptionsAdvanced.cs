@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
@@ -41,14 +45,14 @@ namespace Samples.Dynamic.Trainers.Regression
                 });
 
             //////////////////// Data Preview ////////////////////
-            // MedianHomeValue    CrimesPerCapita    PercentResidental    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s
+            // MedianHomeValue    CrimesPerCapita    PercentResidential    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s
             // 24.00              0.00632            18.00                2.310               0               0.5380          6.5750              65.20
             // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90
             // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10
 
             var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.2);
 
-            // Create the estimator, here we only need OrdinaryLeastSquares trainer 
+            // Create the estimator, here we only need OrdinaryLeastSquares trainer
             // as data is already processed in a form consumable by the trainer
             var pipeline = mlContext.Regression.Trainers.Ols(
                 new OlsTrainer.Options()

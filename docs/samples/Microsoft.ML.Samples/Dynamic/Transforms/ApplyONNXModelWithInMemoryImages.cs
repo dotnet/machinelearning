@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Drawing;
 using System.Linq;
 using Microsoft.ML;
@@ -35,7 +39,7 @@ namespace Samples.Dynamic
             var dataView = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Create a ML.NET pipeline which contains two steps. First,
-            // ExtractPixle is used to convert the 224x224 image to a 3x224x224
+            // ExtractPixel is used to convert the 224x224 image to a 3x224x224
             // float tensor. Then the float tensor is fed into a ONNX model with an
             // input called "data_0" and an output called "softmaxout_1". Note that
             // "data_0" and "softmaxout_1" are model input and output names stored

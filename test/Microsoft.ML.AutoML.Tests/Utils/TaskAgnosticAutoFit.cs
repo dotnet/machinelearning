@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -22,8 +22,8 @@ namespace Microsoft.ML.AutoML.Test
     /// </summary>
     internal class TaskAgnosticAutoFit
     {
-        private TaskType _taskType;
-        private MLContext _context;
+        private readonly TaskType _taskType;
+        private readonly MLContext _context;
 
         internal interface IUniversalProgressHandler : IProgress<RunDetail<RegressionMetrics>>, IProgress<RunDetail<MulticlassClassificationMetrics>>
         {

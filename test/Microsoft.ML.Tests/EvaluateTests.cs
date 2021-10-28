@@ -52,16 +52,20 @@ namespace Microsoft.ML.Tests
             // After introducing a sample whose label was unseen (i.e. the Score array doesn't assign it a probability)
             // then the Top K array changes, as its values are divided by the total number of instances
             // that were evaluated.
-            var inputArray2 = inputArray.AppendElement(new MulticlassEvaluatorInput {
-                Label = 5, Score = new[] { 0.1f, 0.3f, 0.2f, 0.4f }, PredictedLabel = 3 });
-            
+            var inputArray2 = inputArray.AppendElement(new MulticlassEvaluatorInput
+            {
+                Label = 5,
+                Score = new[] { 0.1f, 0.3f, 0.2f, 0.4f },
+                PredictedLabel = 3
+            });
+
             var expectedTopKArray2 = new[] { 0.2d, 0.4d, 0.6d, 0.8d };
 
             var inputDV2 = mlContext.Data.LoadFromEnumerable(inputArray2);
             var metrics2 = mlContext.MulticlassClassification.Evaluate(inputDV2, topKPredictionCount: 4);
-            var outpu2 = metrics2.TopKAccuracyForAllK.ToArray();
+            var output2 = metrics2.TopKAccuracyForAllK.ToArray();
             for (int i = 0; i < expectedTopKArray2.Length; i++)
-                Assert.Equal(expectedTopKArray2[i], outpu2[i], precision: 7);
+                Assert.Equal(expectedTopKArray2[i], output2[i], precision: 7);
         }
     }
 }

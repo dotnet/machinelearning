@@ -3,17 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
-using BenchmarkDotNet.Attributes;
-using static Microsoft.ML.DataOperationsCatalog;
-using System.Net.Http;
 using Microsoft.ML.Vision;
+using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.PerformanceTests
 {

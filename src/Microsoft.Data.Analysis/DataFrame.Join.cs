@@ -142,7 +142,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private static bool IsAnyNullValueInColumns (IReadOnlyCollection<DataFrameColumn> columns, long index)
+        private static bool IsAnyNullValueInColumns(IReadOnlyCollection<DataFrameColumn> columns, long index)
         {
             foreach (var column in columns)
             {
@@ -176,19 +176,19 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentNullException(nameof(supplemetaryJoinColumnNames));
 
             if (retainedJoinColumnNames.Length != supplemetaryJoinColumnNames.Length)
-                throw new ArgumentException(Strings.MismatchedArrayLengths, nameof(retainedJoinColumnNames));  
-            
+                throw new ArgumentException(Strings.MismatchedArrayLengths, nameof(retainedJoinColumnNames));
+
 
             HashSet<long> intersection = calculateIntersection ? new HashSet<long>() : null;
 
             // Get occurrences of values in columns used for join in the retained and supplementary dataframes
             Dictionary<long, ICollection<long>> occurrences = null;
             Dictionary<long, long> retainedIndicesReverseMapping = null;
-            
+
             HashSet<long> supplementaryJoinColumnsNullIndices = new HashSet<long>();
 
-            
-            for (int colNameIndex =  0; colNameIndex < retainedJoinColumnNames.Length; colNameIndex++)
+
+            for (int colNameIndex = 0; colNameIndex < retainedJoinColumnNames.Length; colNameIndex++)
             {
                 DataFrameColumn shrinkedRetainedColumn = retainedDataFrame.Columns[retainedJoinColumnNames[colNameIndex]];
 
@@ -211,7 +211,7 @@ namespace Microsoft.Data.Analysis
                     retainedIndicesReverseMapping = newRetainedIndicesReverseMapping;
                     shrinkedRetainedColumn = shrinkedRetainedColumn.Clone(new Int64DataFrameColumn("Indices", shrinkedRetainedIndices));
                 }
-                
+
                 DataFrameColumn supplementaryColumn = supplementaryDataFrame.Columns[supplemetaryJoinColumnNames[colNameIndex]];
 
                 //Find occurrenses on current step (join column)
@@ -222,7 +222,7 @@ namespace Microsoft.Data.Analysis
                     newOccurrences = newOccurrences.ToDictionary(kvp => retainedIndicesReverseMapping[kvp.Key], kvp => kvp.Value);
 
                 supplementaryJoinColumnsNullIndices.UnionWith(supplementaryColumnNullIndices);
-                
+
                 // shrink join result on current column by previous join columns (if any)
                 // (we have to remove occurrences that doesn't exist in previous columns, because JOIN happens only if ALL left and right columns in JOIN are matched)
                 if (occurrences != null)
@@ -242,7 +242,7 @@ namespace Microsoft.Data.Analysis
 
                 occurrences = newOccurrences;
             }
-            
+
             retainedRowIndices = new Int64DataFrameColumn("RetainedIndices");
             supplementaryRowIndices = new Int64DataFrameColumn("SupplementaryIndices");
 
@@ -280,7 +280,7 @@ namespace Microsoft.Data.Analysis
                     }
                 }
                 else
-                {                    
+                {
                     foreach (long row in supplementaryJoinColumnsNullIndices)
                     {
                         retainedRowIndices.Append(i);
@@ -288,10 +288,10 @@ namespace Microsoft.Data.Analysis
                     }
                 }
             }
-                    
+
             return intersection;
         }
-                    
+
         public DataFrame Merge(DataFrame other, string[] leftJoinColumns, string[] rightJoinColumns, string leftSuffix = "_left", string rightSuffix = "_right", JoinAlgorithm joinAlgorithm = JoinAlgorithm.Left)
         {
             if (other == null)
@@ -335,7 +335,7 @@ namespace Microsoft.Data.Analysis
             else if (joinAlgorithm == JoinAlgorithm.FullOuter)
             {
                 //In full outer join we would like to retain data from both side, so we do it into 2 steps: one first we do LEFT JOIN and then add lost data from the RIGHT side
-                
+
                 //Step 1
                 //Do LEFT JOIN
                 isLeftDataFrameRetained = true;
@@ -347,7 +347,7 @@ namespace Microsoft.Data.Analysis
                 var retainedJoinColumns = isLeftDataFrameRetained ? leftJoinColumns : rightJoinColumns;
 
                 var intersection = Merge(retainedDataFrame, supplementaryDataFrame, retainedJoinColumns, supplementaryJoinColumns, out retainedRowIndices, out supplementaryRowIndices, calculateIntersection: true);
-                                
+
                 //Step 2
                 //Do RIGHT JOIN to retain all data from supplementary DataFrame too (take into account data intersection from the first step to avoid duplicates)
                 for (long i = 0; i < supplementaryDataFrame.Columns.RowCount; i++)
@@ -365,9 +365,9 @@ namespace Microsoft.Data.Analysis
             }
             else
                 throw new NotImplementedException(nameof(joinAlgorithm));
-                                    
+
             DataFrame ret = new DataFrame();
-                       
+
             //insert columns from left dataframe (this)
             for (int i = 0; i < this.Columns.Count; i++)
             {

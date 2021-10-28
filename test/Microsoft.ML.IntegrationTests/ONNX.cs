@@ -19,7 +19,7 @@ namespace Microsoft.ML.IntegrationTests
         // These two members are meant to be changed
         // Only when manually testing the Onnx GPU nuggets
         private const bool _fallbackToCpu = true;
-        private static int? _gpuDeviceId = null;
+        private static readonly int? _gpuDeviceId = null;
 
         public ONNX(ITestOutputHelper output) : base(output)
         {
@@ -170,7 +170,7 @@ namespace Microsoft.ML.IntegrationTests
                 var originalPrediction = originalPredictionEngine.Predict(row);
                 var onnxPrediction = onnxPredictionEngine.Predict(row);
                 // Check that the predictions are identical.
-                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); 
+                Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4);
             }
         }
     }

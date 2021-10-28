@@ -22,7 +22,7 @@ namespace Microsoft.ML.Transforms
     internal sealed class TimeSeriesImputerDataView : IDataTransform
     {
         #region Typed Columns
-        private TimeSeriesImputerTransformer _parent;
+        private readonly TimeSeriesImputerTransformer _parent;
         public class SharedColumnState
         {
             public SharedColumnState()
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Transforms
                 return typeof(T).GetNativeTypeIdFromType();
             }
 
-            internal unsafe abstract T GetDataFromNativeBinaryArchiveData(byte* data, int offset);
+            internal abstract unsafe T GetDataFromNativeBinaryArchiveData(byte* data, int offset);
         }
 
         private abstract class NumericTypedColumn<T> : TypedColumn<T>
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override byte GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe byte GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override sbyte GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe sbyte GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override short GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe short GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override ushort GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe ushort GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override int GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe int GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override uint GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe uint GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override long GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe long GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override ulong GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe ulong GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override float GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe float GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 var bytes = new byte[sizeof(float)];
                 Marshal.Copy((IntPtr)(data + offset), bytes, 0, sizeof(float));
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override double GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe double GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 var bytes = new byte[sizeof(double)];
                 Marshal.Copy((IntPtr)(data + offset), bytes, 0, sizeof(double));
@@ -506,7 +506,7 @@ namespace Microsoft.ML.Transforms
             {
             }
 
-            internal unsafe override bool GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe bool GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (IsNullable)
                 {
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Transforms
                 binaryWriter.Write(stringBytes);
             }
 
-            internal unsafe override ReadOnlyMemory<char> GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe ReadOnlyMemory<char> GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 if (_isNullable)
                 {
@@ -608,7 +608,7 @@ namespace Microsoft.ML.Transforms
                 binaryWriter.Write(value);
             }
 
-            internal unsafe override DateTime GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            internal override unsafe DateTime GetDataFromNativeBinaryArchiveData(byte* data, int offset)
             {
                 long value;
                 if (_isNullable)
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Transforms
 
         internal class TransformedDataSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
         {
-            private IntPtr _size;
+            private readonly IntPtr _size;
             public TransformedDataSafeHandle(IntPtr handle, IntPtr size) : base(true)
             {
                 SetHandle(handle);
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Transforms
         private sealed class Cursor : DataViewRowCursor
         {
             private readonly IChannelProvider _ch;
-            private DataViewRowCursor _input;
+            private readonly DataViewRowCursor _input;
             private long _position;
             private bool _isGood;
             private readonly Dictionary<string, TypedColumn> _allColumns;

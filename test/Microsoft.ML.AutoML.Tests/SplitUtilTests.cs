@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class SplitUtilTests : BaseTestClass
     {
         public SplitUtilTests(ITestOutputHelper output) : base(output)

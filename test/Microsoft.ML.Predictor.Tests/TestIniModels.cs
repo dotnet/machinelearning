@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -285,7 +285,7 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// Run INI test for a collection of combinationss of predictors and datasets.
+        /// Run INI test for a collection of combinations of predictors and datasets.
         /// </summary>
         /// <param name="predictors"></param>
         /// <param name="datasets"></param>

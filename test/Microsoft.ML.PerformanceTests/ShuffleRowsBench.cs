@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Data;
+using Microsoft.ML.PerformanceTests.Harness;
 
 namespace Microsoft.ML.PerformanceTests
 {
@@ -13,7 +13,7 @@ namespace Microsoft.ML.PerformanceTests
     {
         private TrainRow[] _rows;
         private MLContext _context;
-        
+
         [GlobalSetup]
         public void Setup()
         {

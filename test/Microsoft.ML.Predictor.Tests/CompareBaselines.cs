@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -19,7 +19,7 @@ namespace Microsoft.ML.RunTests
     ///</summary>
     public class TestBaselines : BaseTestBaseline
     {
-        private static bool[] _forbidNumAfter;
+        private static readonly bool[] _forbidNumAfter;
 
         static TestBaselines()
         {
@@ -176,7 +176,7 @@ namespace Microsoft.ML.RunTests
                     string line2 = rdr2.ReadLine();
                     pos++;
 
-                LRestart:
+LRestart:
                     if (line1 == null && line2 == null)
                         break;
                     if (line1 == null)

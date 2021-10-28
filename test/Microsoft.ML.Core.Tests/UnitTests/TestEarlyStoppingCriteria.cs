@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML.RunTests
             bool isBestCandidate;
             bool shouldStop;
 
-            for (int i=0; i<100; i++)
+            for (int i = 0; i < 100; i++)
             {
                 float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, 0, out isBestCandidate);
@@ -61,15 +61,15 @@ namespace Microsoft.ML.RunTests
                 float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, 0, out isBestCandidate);
                 Assert.True(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(shouldStop);
             }
 
             shouldStop = cr.CheckScore(1.0f, 0, out isBestCandidate);
             Assert.True(isBestCandidate);
-           Assert.False(shouldStop);
+            Assert.False(shouldStop);
 
             shouldStop = cr.CheckScore(0.98f, 0, out isBestCandidate);
-           Assert.False(isBestCandidate);
+            Assert.False(isBestCandidate);
             Assert.True(shouldStop);
         }
 
@@ -86,26 +86,26 @@ namespace Microsoft.ML.RunTests
                 float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, score, out isBestCandidate);
                 Assert.True(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(shouldStop);
             }
 
             for (int i = 1; i <= 10; i++)
             {
                 shouldStop = cr.CheckScore(i, i, out isBestCandidate);
                 Assert.True(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(shouldStop);
             }
             // At this point, average of score should be 8 and the best score should be 10.
 
-            for (int i = 0; i < 3; i++ )
+            for (int i = 0; i < 3; i++)
             {
                 shouldStop = cr.CheckScore(0, 10f, out isBestCandidate);
-               Assert.False(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(isBestCandidate);
+                Assert.False(shouldStop);
             }
 
             shouldStop = cr.CheckScore(0, 10f, out isBestCandidate);
-           Assert.False(isBestCandidate);
+            Assert.False(isBestCandidate);
             Assert.True(shouldStop);
         }
 
@@ -122,26 +122,26 @@ namespace Microsoft.ML.RunTests
                 float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, score, out isBestCandidate);
                 Assert.True(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(shouldStop);
             }
 
             for (int i = 1; i <= 10; i++)
             {
                 shouldStop = cr.CheckScore(i, i, out isBestCandidate);
                 Assert.True(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(shouldStop);
             }
             // At this point, average of score should be 8 and the best score should be 10.
 
             for (int i = 0; i < 3; i++)
             {
                 shouldStop = cr.CheckScore(10f, 10f, out isBestCandidate);
-               Assert.False(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(isBestCandidate);
+                Assert.False(shouldStop);
             }
 
             shouldStop = cr.CheckScore(0, 10f, out isBestCandidate);
-           Assert.False(isBestCandidate);
+            Assert.False(isBestCandidate);
             Assert.True(shouldStop);
         }
 
@@ -159,20 +159,20 @@ namespace Microsoft.ML.RunTests
                 float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, 0, out isBestCandidate);
                 Assert.True(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(shouldStop);
             }
 
             for (int i = 0; i < windowSize - 1; i++)
             {
                 float score = 0.09f - 0.001f * i;
                 shouldStop = cr.CheckScore(score, 0, out isBestCandidate);
-               Assert.False(isBestCandidate);
-               Assert.False(shouldStop);
+                Assert.False(isBestCandidate);
+                Assert.False(shouldStop);
             }
 
             shouldStop = cr.CheckScore(0.0f, 0, out isBestCandidate);
             Assert.True(shouldStop);
-           Assert.False(isBestCandidate);
+            Assert.False(isBestCandidate);
         }
     }
 }

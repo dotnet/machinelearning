@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -210,7 +210,7 @@ namespace Microsoft.ML.RunTests
 
                 // Run result processor on the console output.
                 RunResultProcessorTest(new string[] { consOutPath.Path }, rpOutPath, rpArgs);
-                CheckEqualityNormalized(dir, rpName, digitsOfPrecision:digitsOfPrecision, parseOption: parseOption);
+                CheckEqualityNormalized(dir, rpName, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
             }
 
             // Check the prediction output against its baseline.

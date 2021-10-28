@@ -293,10 +293,10 @@ namespace Microsoft.Data.Analysis
 
         private class WrappedStreamReaderOrStringReader
         {
-            private Stream _stream;
-            private long _initialPosition;
-            private Encoding _encoding;
-            private string _csvString;
+            private readonly Stream _stream;
+            private readonly long _initialPosition;
+            private readonly Encoding _encoding;
+            private readonly string _csvString;
 
             public WrappedStreamReaderOrStringReader(Stream stream, Encoding encoding)
             {
