@@ -22,8 +22,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 	   public float Score { get; set; }
 	}
 
-	// [NativeDependencyFact("MklImports")]
-        // public void TestEstimatorOlsLinearRegression()
+	// [NativeDependencyFact("OneDALImports")]
 	[Fact]
 	public void TestEstimatorOneDALLinReg()
         {

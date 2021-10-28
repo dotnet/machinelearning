@@ -142,7 +142,6 @@ namespace Microsoft.ML.Trainers
             }
  
             var weightsBuffer = new VBuffer<float>(m - 1, weights);
-	    //var parms = new LinearRegressionModelParameters(Host, in weightsBuffer, bias);
 	     
             return new LinearRegressionModelParameters(Host, in weightsBuffer, bias);
         }
