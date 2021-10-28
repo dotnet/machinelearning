@@ -200,10 +200,7 @@ function(strip_symbols targetName outputFilename)
 endfunction()
 
 function(install_library_and_symbols targetName)
-  message(" **** Calling strip_symbols on ${targetName} ****")
-  strip_symbols(${targetName} strip_destination_file)
-
-  message(" **** should be installing = ${targetName} ****")
+    strip_symbols(${targetName} strip_destination_file)
 
     install (TARGETS ${targetName} DESTINATION .)
 
