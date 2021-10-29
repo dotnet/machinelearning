@@ -185,7 +185,7 @@ namespace Microsoft.ML.Trainers
             public unsafe static extern int RidgeRegressionOnlineCompute(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize);
 
             [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineFinalize")]
-            public unsafe static extern void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
+            public unsafe static extern void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, int nAllRows, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
                 void* betaPtr, void* xtyPtr, void* xtxPtr, void* standardErrorsPtr);
             
             [DllImport(OneDalLibPath, EntryPoint = "simpleTest"), System.Security.SuppressUnmanagedCodeSecurity]
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers
                 throw ch.Except("Cannot hold covariance matrix in memory with {0} features", m - 1);
 
             // Track the number of examples.
-            long n = 0;
+            int n = 0;
             // TODO: remove batch size from there
             int batchSize = (1 << 25) / featureCount;
 
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Trainers
                         {
                             fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], partialResultPtr = &partialResultArray[0])
                             {
-                                partialResultSize = OneDal.RidgeRegressionOnlineCompute(featuresPtr, labelsPtr, batchSize, m - 1, _l2Weight, partialResultPtr, partialResultSize);
+                                partialResultSize = OneDal.RidgeRegressionOnlineCompute(featuresPtr, labelsPtr, n - 1, m - 1, _l2Weight, partialResultPtr, partialResultSize);
                             }
                         }
                         iOffset = 0;
@@ -266,7 +266,8 @@ namespace Microsoft.ML.Trainers
                 {
                     fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], partialResultPtr = &partialResultArray[0], betaPtr = &beta[0], xtyPtr = &xty[0], xtxPtr = &xtx[0], standardErrorsPtr = &standardErrors[0])
                     {
-                        OneDal.RidgeRegressionOnlineFinalize(featuresPtr, labelsPtr, (int)(n % batchSize), m - 1, _l2Weight, partialResultPtr, partialResultSize, betaPtr, xtyPtr, xtxPtr, standardErrorsPtr);
+                        // TODO: make sure the nAllRows and nRows value and date type are correct
+                        OneDal.RidgeRegressionOnlineFinalize(featuresPtr, labelsPtr, ((n - 1) % batchSize), n - 1, m - 1, _l2Weight, partialResultPtr, partialResultSize, betaPtr, xtyPtr, xtxPtr, standardErrorsPtr);
                     }
                 }
             }

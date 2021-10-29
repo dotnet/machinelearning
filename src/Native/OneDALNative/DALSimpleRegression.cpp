@@ -86,7 +86,7 @@ int ridgeRegressionOnlineComputeTemplate(FPType * featuresPtr, FPType * labelsPt
 }
 
 template <typename FPType>
-void ridgeRegressionOnlineFinalizeTemplate(FPType * featuresPtr, FPType * labelsPtr, long long int nAllRows, int nRows, int nColumns, float l2Reg, byte * partialResultPtr, int partialResultSize,
+void ridgeRegressionOnlineFinalizeTemplate(FPType * featuresPtr, FPType * labelsPtr, int nAllRows, int nRows, int nColumns, float l2Reg, byte * partialResultPtr, int partialResultSize,
     FPType * betaPtr, FPType * xtyPtr, FPType * xtxPtr)
 {
     NumericTablePtr featuresTable(new HomogenNumericTable<FPType>(featuresPtr, nColumns, nRows));
@@ -164,7 +164,7 @@ EXPORT_API(int) ridgeRegressionOnlineCompute(void * featuresPtr, void * labelsPt
     return ridgeRegressionOnlineComputeTemplate<double>((double *)featuresPtr, (double *)labelsPtr, nRows, nColumns, l2Reg, (byte *)partialResultPtr, partialResultSize);
 }
 
-EXPORT_API(void) ridgeRegressionOnlineFinalize(void * featuresPtr, void * labelsPtr, long long int nAllRows, int nRows, int nColumns, float l2Reg, void * partialResultPtr, int partialResultSize,
+EXPORT_API(void) ridgeRegressionOnlineFinalize(void * featuresPtr, void * labelsPtr, int nAllRows, int nRows, int nColumns, float l2Reg, void * partialResultPtr, int partialResultSize,
     void * betaPtr, void * xtyPtr, void * xtxPtr)
 {
     ridgeRegressionOnlineFinalizeTemplate<double>((double *)featuresPtr, (double *)labelsPtr, nAllRows, nRows, nColumns, l2Reg, (byte *)partialResultPtr, partialResultSize,
