@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML.Test
         internal Pipeline Pipeline;
         internal int PipelineInferenceTimeInSeconds;
 
-        private readonly string _primaryMetricName;
+        private string _primaryMetricName;
 
         private TaskAgnosticIterationResult(RunDetail baseRunDetail, object validationMetrics, string primaryMetricName)
         {

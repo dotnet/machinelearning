@@ -1,8 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -33,7 +29,7 @@ namespace Samples.Dynamic
             // consumable by ML.NET API.
             var data = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Image loading pipeline.
+            // Image loading pipeline. 
             var pipeline = mlContext.Transforms.ConvertToImage(imageHeight,
                 imageWidth, "Image", "Features")
                 .Append(mlContext.Transforms.ExtractPixels("Pixels", "Image"));
@@ -59,7 +55,7 @@ namespace Samples.Dynamic
                 .Schema))
             {
                 // Note that it is best to get the getters and values *before*
-                // iteration, so as to facilitate buffer sharing (if applicable), and
+                // iteration, so as to faciliate buffer sharing (if applicable), and
                 // column -type validation once, rather than many times.
                 VBuffer<float> features = default;
                 VBuffer<float> pixels = default;

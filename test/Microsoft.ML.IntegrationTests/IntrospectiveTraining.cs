@@ -212,7 +212,7 @@ namespace Microsoft.ML.IntegrationTests
         /// Introspective Training: Linear model parameters may be inspected.
         /// </summary>
         [Fact]
-        public void InpsectLinearModelParameters()
+        public void InspectLinearModelParameters()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -278,7 +278,7 @@ namespace Microsoft.ML.IntegrationTests
             Common.AssertFiniteNumbers(config.Scale);
         }
         /// <summary>
-        /// Introspective Training: I can inspect a pipeline to determine which transformers were included. 	 
+        /// Introspective Training: I can inspect a pipeline to determine which transformers were included.
         /// </summary>
         [Fact]
         public void InspectPipelineContents()
@@ -345,7 +345,7 @@ namespace Microsoft.ML.IntegrationTests
             // Transform the data.
             var transformedData = model.Transform(data);
 
-            // Verify that the slotnames can be used to backtrack to the original values by confirming that 
+            // Verify that the slotnames can be used to backtrack to the original values by confirming that
             // all unique values in the input data are in the output data slot names.
             // First get a list of the unique values.
             VBuffer<ReadOnlyMemory<char>> categoricalSlotNames = new VBuffer<ReadOnlyMemory<char>>();

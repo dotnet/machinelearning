@@ -1,8 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.TimeSeries;
@@ -12,7 +8,7 @@ namespace Samples.Dynamic
     public static class LocalizeRootCause
     {
         // In the root cause detection input, this string identifies an aggregation as opposed to a dimension value"
-        private static readonly string AGG_SYMBOL = "##SUM##";
+        private static string AGG_SYMBOL = "##SUM##";
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for

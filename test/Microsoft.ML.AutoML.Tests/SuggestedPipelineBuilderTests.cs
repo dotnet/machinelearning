@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
 
     public class SuggestedPipelineBuilderTests : BaseTestClass
     {
-        private static readonly MLContext _context = new MLContext(1);
+        private static MLContext _context = new MLContext(1);
 
         public SuggestedPipelineBuilderTests(ITestOutputHelper output) : base(output)
         {

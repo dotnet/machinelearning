@@ -11,8 +11,8 @@ namespace Microsoft.ML.TestFrameworkCommon
 {
     public sealed class TestLogger : TextWriter
     {
-        private readonly Encoding _encoding;
-        private readonly ITestOutputHelper _testOutput;
+        private Encoding _encoding;
+        private ITestOutputHelper _testOutput;
 
         public override Encoding Encoding => _encoding;
 

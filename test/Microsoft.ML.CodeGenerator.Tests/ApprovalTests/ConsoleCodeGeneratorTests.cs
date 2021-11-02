@@ -33,7 +33,7 @@ namespace mlnet.Tests
         private Pipeline _mockedPipeline;
         private Pipeline _mockedOvaPipeline;
         private ColumnInferenceResults _columnInference = default;
-        private readonly string _namespaceValue = "TestNamespace";
+        private string _namespaceValue = "TestNamespace";
         private const string StablePackageVersion = "1.4.0-preview3-28229-2";
         private const string UnstablePackageVersion = "0.16.0-preview3-28229-2";
 
@@ -331,8 +331,8 @@ namespace mlnet.Tests
             // sanitized if the column names are all unique and distinct, irrespective of capitalization.
             (var pipelineSanitized, var columnInferenceSanitized, var mappingSanitized) = this.GetMockedAzurePipelineAndInference();
             TestModelInput(pipelineSanitized, columnInferenceSanitized, mappingSanitized, "sanitized");
-            (var pipelineUnsanitized, var columnInferenceUnsatinized, var mappingUnsatinized) = this.GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames();
-            TestModelInput(pipelineUnsanitized, columnInferenceUnsatinized, mappingUnsatinized, "unsanitized");
+            (var pipelineUnsatinized, var columnInferenceUnsatinized, var mappingUnsatinized) = this.GetMockedAzurePipelineAndInferenceUnsanitizedColumnNames();
+            TestModelInput(pipelineUnsatinized, columnInferenceUnsatinized, mappingUnsatinized, "unsanitized");
 
         }
 

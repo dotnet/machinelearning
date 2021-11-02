@@ -37,7 +37,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public bool CompareObjectValues(object x, object y, Type type)
         {
-            // By default behavior for ReadOnlyMemory is to be empty string, while for string is null.
+            // By default behaviour for ReadOnlyMemory is to be empty string, while for string is null.
             // So if we do roundtrip string-> ReadOnlyMemory -> string all null string become empty strings.
             // Therefore replace all null values to empty string if field is string.
             if (type == typeof(string) && x == null)
@@ -287,7 +287,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             // This property can be used as source for DataView, but not casting from dataview to collection
             private int UnusedReadOnlyProperty { get { return _unusedPrivateField1; } }
 
-            // This property is ignored because it is private
+            // This property is ignored because it is private 
             private int UnusedPrivateProperty { get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
 
             [NoColumn]
@@ -413,12 +413,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             public long[] LongProp { get; set; }
             public ulong[] ULongProp { get; set; }
             public float[] FloatProp { get; set; }
-            public double[] DoubleProp { get; set; }
+            public double[] DobuleProp { get; set; }
             public bool[] BoolProp { get; set; }
         }
 
         [Fact]
-        public void RoundTripConversionWithArrayProperties()
+        public void RoundTripConversionWithArrayPropertiess()
         {
 
             var data = new List<ClassWithArrayProperties>
@@ -430,7 +430,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     StringProp = new string[2] { "hola", "lola" },
                     BoolProp = new bool[2] { true, false },
                     ByteProp = new byte[3] { 0, 124, 255 },
-                    DoubleProp = new double[3] { -1, 0, 1 },
+                    DobuleProp = new double[3] { -1, 0, 1 },
                     LongProp = new long[] { 0, 1, 2 },
                     SByteProp = new sbyte[3] { -127, 127, 0 },
                     ShortProp = new short[3] { 0, 1225, 32767 },
@@ -453,7 +453,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         private sealed class ClassWithGetter
         {
-            private readonly DateTime _dateTime = DateTime.Now;
+            private DateTime _dateTime = DateTime.Now;
             public float Day => _dateTime.Day;
             public int Hour => _dateTime.Hour;
         }

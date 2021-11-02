@@ -737,7 +737,7 @@ namespace Microsoft.ML.RunTests
                 {
                     expectedScalarGetter = expectedCursor.GetGetter<T>(leftColumn);
 
-                    // If the right column is from onxx it will still be a VBuffer, just has a length of 1.
+                    // If the right column is from onnx it will still be a VBuffer, just has a length of 1.
                     if (isRightColumnOnnxScalar)
                         actualVectorGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
                     else
@@ -760,7 +760,7 @@ namespace Microsoft.ML.RunTests
                     {
                         expectedScalarGetter(ref expectedScalar);
 
-                        // If the right column is from onxx get a VBuffer instead and just use the first value.
+                        // If the right column is from onnx get a VBuffer instead and just use the first value.
                         if (isRightColumnOnnxScalar)
                         {
                             actualVectorGetter(ref actualVector);

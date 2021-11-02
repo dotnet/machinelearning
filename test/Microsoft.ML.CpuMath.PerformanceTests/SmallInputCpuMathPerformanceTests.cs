@@ -9,7 +9,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 {
     public class SmallInputCpuMathPerformanceTests : PerformanceTests
     {
-        private readonly int _smallInputLength = 10;
+        private int _smallInputLength = 10;
 
         [Benchmark]
         public void AddScalarU()

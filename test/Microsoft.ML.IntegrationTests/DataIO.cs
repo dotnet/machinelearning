@@ -101,7 +101,7 @@ namespace Microsoft.ML.IntegrationTests
         }
 
         /// <summary>
-        /// Write to and read from a delimited file: Schematized data of any DataKind can be read from a delimited file.
+        /// Wrie to and read from a delimited file: Schematized data of any DataKind can be read from a delimited file.
         /// </summary>
         [Fact]
         public void WriteAndReadAFromABinaryFile()

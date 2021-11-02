@@ -139,7 +139,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
     public class TextLoaderTests : BaseTestClass
     {
-        readonly ConsoleEnvironment _env;
+        ConsoleEnvironment _env;
         public TextLoaderTests(ITestOutputHelper output)
             : base(output)
         {

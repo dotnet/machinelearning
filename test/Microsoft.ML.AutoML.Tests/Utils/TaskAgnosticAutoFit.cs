@@ -22,8 +22,8 @@ namespace Microsoft.ML.AutoML.Test
     /// </summary>
     internal class TaskAgnosticAutoFit
     {
-        private readonly TaskType _taskType;
-        private readonly MLContext _context;
+        private TaskType _taskType;
+        private MLContext _context;
 
         internal interface IUniversalProgressHandler : IProgress<RunDetail<RegressionMetrics>>, IProgress<RunDetail<MulticlassClassificationMetrics>>
         {

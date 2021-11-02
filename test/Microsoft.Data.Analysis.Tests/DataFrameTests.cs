@@ -2705,7 +2705,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestColumnCreationFromExistingColumn()
+        public void TestColumnCreationFromExisitingColumn()
         {
             DataFrame df = MakeDataFrameWithAllColumnTypes(10);
             BooleanDataFrameColumn bigInts = new BooleanDataFrameColumn("BigInts", df.Columns["Int"].ElementwiseGreaterThan(5));

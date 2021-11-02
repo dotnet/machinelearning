@@ -1,8 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using Microsoft.ML;
@@ -13,7 +9,7 @@ namespace Samples.Dynamic
     public static class ConvertToGrayscale
     {
         // Sample that loads images from the file system, and converts them to
-        // grayscale.
+        // grayscale. 
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for
@@ -24,7 +20,7 @@ namespace Samples.Dynamic
             // list of the files from the dotnet/machinelearning/test/data/images/.
             // If you inspect the fileSystem, after running this line, an "images"
             // folder will be created, containing 4 images, and a .tsv file
-            // enumerating the images.
+            // enumerating the images. 
             var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils
                 .GetSampleImages();
 
@@ -46,7 +42,7 @@ namespace Samples.Dynamic
             }).Load(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
-            // Image loading pipeline.
+            // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages("ImageObject",
                 imagesFolder, "ImagePath")
                 .Append(mlContext.Transforms.ConvertToGrayscale("Grayscale",
@@ -71,7 +67,7 @@ namespace Samples.Dynamic
                 .Schema))
             {
                 // Note that it is best to get the getters and values *before*
-                // iteration, so as to facilitate buffer sharing (if applicable), and
+                // iteration, so as to faciliate buffer sharing (if applicable), and
                 // column -type validation once, rather than many times.
                 ReadOnlyMemory<char> imagePath = default;
                 ReadOnlyMemory<char> name = default;

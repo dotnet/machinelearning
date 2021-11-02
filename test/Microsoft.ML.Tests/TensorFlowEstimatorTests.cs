@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
             [VectorType(4)]
             public float[] B;
         }
-        private class TestDataDifferntType
+        private class TestDataDifferentType
         {
             [VectorType(4)]
             public string[] a;
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests
                 }));
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[4], B = new float[4] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { a = new string[4], b = new string[4] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { a = new string[4], b = new string[4] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
             using var model = ML.Model.LoadTensorFlowModel(modelFile);
             var pipe = model.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });

@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests
     public class OnnxSequenceTypeWithAttributesTest : BaseTestBaseline
     {
         private const bool _fallbackToCpu = true;
-        private static readonly int? _gpuDeviceId = null;
+        private static int? _gpuDeviceId = null;
 
         public class OutputObj
         {

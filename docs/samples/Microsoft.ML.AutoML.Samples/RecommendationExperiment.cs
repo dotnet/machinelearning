@@ -12,13 +12,13 @@ namespace Microsoft.ML.AutoML.Samples
 {
     public static class RecommendationExperiment
     {
-        private static readonly string TrainDataPath = "<Path to your train dataset goes here>";
-        private static readonly string TestDataPath = "<Path to your test dataset goes here>";
-        private static readonly string ModelPath = @"<Desired model output directory goes here>\Model.zip";
-        private static readonly string LabelColumnName = "Rating";
-        private static readonly string UserColumnName = "UserId";
-        private static readonly string ItemColumnName = "MovieId";
-        private static readonly uint ExperimentTime = 60;
+        private static string TrainDataPath = "<Path to your train dataset goes here>";
+        private static string TestDataPath = "<Path to your test dataset goes here>";
+        private static string ModelPath = @"<Desired model output directory goes here>\Model.zip";
+        private static string LabelColumnName = "Rating";
+        private static string UserColumnName = "UserId";
+        private static string ItemColumnName = "MovieId";
+        private static uint ExperimentTime = 60;
 
         public static void Run()
         {

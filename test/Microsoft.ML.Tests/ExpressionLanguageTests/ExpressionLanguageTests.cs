@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests
     public sealed partial class ExprLanguageTests : BaseTestBaseline
     {
         private const string ResourcePrefix = "Microsoft.ML.Tests.ExpressionLanguageTests.TestData.";
-        private readonly object _sync = new object();
+        private object _sync = new object();
 
         public ExprLanguageTests(ITestOutputHelper output)
             : base(output)

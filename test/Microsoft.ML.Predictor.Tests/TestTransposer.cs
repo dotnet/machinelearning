@@ -109,7 +109,7 @@ namespace Microsoft.ML.RunTests
             VBuffer<T>[] vecs = new VBuffer<T>[rowCount];
             for (int r = 0; r < vecs.Length; ++r)
             {
-                // Density controls both the prevalence of dense arrays, as well as the sparsity of the sparse arrays.
+                // Density controls both the prevelence of dense arrays, as well as the sparsity of the sparse arrays.
                 if (rgen.NextDouble() < density)
                 {
                     // Must be dense.

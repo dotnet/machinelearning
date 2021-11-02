@@ -138,8 +138,8 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             GenerateSingle(rgen, rgen.Next(_maxLen) + 1, out a);
             var length = 15;
             var values = Enumerable.Range(0, length).Select(x => x + 0.1f).ToArray();
-            var indices = Enumerable.Range(0, 15).Where(x => x % 2 == 0).ToArray();
-            a = new VBuffer<float>(length, values, indices);
+            var indicies = Enumerable.Range(0, 15).Where(x => x % 2 == 0).ToArray();
+            a = new VBuffer<float>(length, values, indicies);
             float[] aDense = a.DenseValues().ToArray();
             float[] a2Values = aDense.Select(x => x + 1).ToArray();
             VBuffer<float> a2DenseVbuff = new VBuffer<float>(length, a2Values);
@@ -161,8 +161,8 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             GenerateSingle(rgen, rgen.Next(_maxLen) + 1, out a);
             var length = 15;
             var values = Enumerable.Range(0, length).Select(x => x + 0.1f).ToArray();
-            var indices = Enumerable.Range(0, 15).Where(x => x % 2 == 0).ToArray();
-            a = new VBuffer<float>(length, values, indices);
+            var indicies = Enumerable.Range(0, 15).Where(x => x % 2 == 0).ToArray();
+            a = new VBuffer<float>(length, values, indicies);
             float[] aDense = a.DenseValues().ToArray();
             float[] a2Values = aDense.Select(x => x + 1).ToArray();
             VBuffer<float> a2DenseVbuff = new VBuffer<float>(length, a2Values);

@@ -18,9 +18,9 @@ namespace Microsoft.ML.PerformanceTests
     {
         private MLContext _mlContext;
         private IDataView _dataset;
-        private static readonly int _numColumns = 1000;
-        private static readonly int _numRows = 300;
-        private static readonly int _maxWordLength = 15;
+        private static int _numColumns = 1000;
+        private static int _numRows = 300;
+        private static int _maxWordLength = 15;
 
         [GlobalSetup]
         public void SetupData()

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests
         // These two members are meant to be changed
         // Only when manually testing the Onnx GPU nuggets
         private const bool _fallbackToCpu = true;
-        private static readonly int? _gpuDeviceId = null;
+        private static int? _gpuDeviceId = null;
 
         private const int InputSize = 150528;
 
@@ -540,7 +540,7 @@ namespace Microsoft.ML.Tests
             // Convert training data to IDataView, the general data type used in ML.NET.
             var dataView = ML.Data.LoadFromEnumerable(dataPoints);
 
-            // Create a ML.NET pipeline which contains two steps. First, ExtractPixle is used to convert the 224x224 image to a 3x224x224 float tensor.
+            // Create a ML.NET pipeline which contains two steps. First, ExtractPixel is used to convert the 224x224 image to a 3x224x224 float tensor.
             // Then the float tensor is fed into a ONNX model with an input called "data_0" and an output called "softmaxout_1". Note that "data_0" and
             // "softmaxout_1" are model input and output names stored in the used ONNX model file. Users may need to inspect their own models to
             // get the right input and output column names.

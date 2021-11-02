@@ -19,7 +19,7 @@ namespace Microsoft.ML.RunTests
     ///</summary>
     public class TestBaselines : BaseTestBaseline
     {
-        private static readonly bool[] _forbidNumAfter;
+        private static bool[] _forbidNumAfter;
 
         static TestBaselines()
         {

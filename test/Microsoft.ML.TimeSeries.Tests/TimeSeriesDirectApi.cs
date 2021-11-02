@@ -99,9 +99,9 @@ namespace Microsoft.ML.Tests
             public double[] Prediction { get; set; }
         }
 
-        private static readonly Object _rootCauseAggSymbol = "##SUM##";
-        private static readonly int _rootCauseAggSymbolForIntDimValue = 0;
-        private static readonly string _rootCauseAggSymbolForDiffDimValueType = "0";
+        private static Object _rootCauseAggSymbol = "##SUM##";
+        private static int _rootCauseAggSymbolForIntDimValue = 0;
+        private static string _rootCauseAggSymbolForDiffDimValueType = "0";
 
 
         [Fact]

@@ -64,7 +64,7 @@ namespace Microsoft.ML.Scenarios
         private readonly string _fullImagesetFolderPath;
         private readonly string _finalImagesFolderName;
         private string _timeOutOldValue;
-        private readonly MLContext _mlContext = new MLContext(seed: 1);
+        private MLContext _mlContext = new MLContext(seed: 1);
 
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
         {

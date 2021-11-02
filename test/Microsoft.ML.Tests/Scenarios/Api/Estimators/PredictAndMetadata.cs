@@ -64,8 +64,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var prediction = engine.Predict(input);
                 // Predicted label is key type which internal representation starts from 1.
                 // (0 reserved for NaN value) so in order to cast key to index in key metadata we need to distract 1 from it.
-                var decipheredLabel = keys.GetItemOrDefault((int)prediction.PredictedLabel - 1).ToString();
-                Assert.True(decipheredLabel == input.Label);
+                var deciphieredLabel = keys.GetItemOrDefault((int)prediction.PredictedLabel - 1).ToString();
+                Assert.True(deciphieredLabel == input.Label);
             }
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var scoredData = model.Transform(data);
             var metrics = mlContext.MulticlassClassification.Evaluate(scoredData);
 
-            // Check that the SlotNames column is there.
+            // Check that the SlotNames column is there. 
             Assert.NotNull(scoredData.Schema["Score"].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames));
 
             //Assert that the confusion matrix has the class names, in the Annotations of the Count column
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var scoredData2 = model2.Transform(data2);
             var metrics2 = mlContext.MulticlassClassification.Evaluate(scoredData2);
 
-            // Check that the SlotNames column is not there.
+            // Check that the SlotNames column is not there. 
             Assert.Null(scoredData2.Schema["Score"].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames));
 
             //Assert that the confusion matrix has just ints, as class indicators, in the Annotations of the Count column

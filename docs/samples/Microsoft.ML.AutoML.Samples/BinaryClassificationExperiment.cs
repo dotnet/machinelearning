@@ -1,8 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.AutoML;
@@ -12,10 +8,10 @@ namespace Microsoft.ML.AutoML.Samples
 {
     public static class BinaryClassificationExperiment
     {
-        private static readonly string TrainDataPath = "<Path to your train dataset goes here>";
-        private static readonly string TestDataPath = "<Path to your test dataset goes here>";
-        private static readonly string ModelPath = @"<Desired model output directory goes here>\SentimentModel.zip";
-        private static readonly uint ExperimentTime = 60;
+        private static string TrainDataPath = "<Path to your train dataset goes here>";
+        private static string TestDataPath = "<Path to your test dataset goes here>";
+        private static string ModelPath = @"<Desired model output directory goes here>\SentimentModel.zip";
+        private static uint ExperimentTime = 60;
 
         public static void Run()
         {

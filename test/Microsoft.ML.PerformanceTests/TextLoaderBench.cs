@@ -18,10 +18,10 @@ namespace Microsoft.ML.PerformanceTests
     {
         private MLContext _mlContext;
         private IDataView _dataView;
-        private static readonly int _numColumns = 100;
-        private static readonly int _numRows = 3000;
-        private static readonly int _maxWordLength = 15;
-        private static readonly int _numColumnsToGet = 20;
+        private static int _numColumns = 100;
+        private static int _numRows = 3000;
+        private static int _maxWordLength = 15;
+        private static int _numColumnsToGet = 20;
         private List<TextLoader.Column> _columns;
 
 

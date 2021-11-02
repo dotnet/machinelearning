@@ -1,8 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -29,7 +25,7 @@ namespace Samples.Dynamic
 
             var trainData = mlContext.Data.LoadFromEnumerable(rawData);
 
-            // A pipeline to convert the terms of the 'Review' column in
+            // A pipeline to convert the terms of the 'Review' column in 
             // making use of default settings.
             var defaultPipeline = mlContext.Transforms.Text.TokenizeIntoWords(
                 "TokenizedText", nameof(DataPoint.Review)).Append(mlContext
@@ -40,7 +36,7 @@ namespace Samples.Dynamic
             // ValueToKeyMappingEstimator. We can change the maximumNumberOfKeys to
             // limit how many keys will get generated out of the set of words, and
             // condition the order in which they get evaluated by changing
-            // keyOrdinality from the default ByOccurrence (order in which they get
+            // keyOrdinality from the default ByOccurence (order in which they get
             // encountered) to value/alphabetically.
             var customizedPipeline = mlContext.Transforms.Text.TokenizeIntoWords(
                 "TokenizedText", nameof(DataPoint.Review)).Append(mlContext

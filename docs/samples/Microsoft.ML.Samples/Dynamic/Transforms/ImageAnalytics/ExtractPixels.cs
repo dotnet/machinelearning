@@ -1,8 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -15,7 +11,7 @@ namespace Samples.Dynamic
     {
         // Sample that loads the images from the file system, resizes them (
         // ExtractPixels requires a resizing operation), and extracts the values of
-        // the pixels as a vector.
+        // the pixels as a vector. 
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for
@@ -26,7 +22,7 @@ namespace Samples.Dynamic
             // list of the files from the dotnet/machinelearning/test/data/images/.
             // If you inspect the fileSystem, after running this line, an "images"
             // folder will be created, containing 4 images, and a .tsv file
-            // enumerating the images.
+            // enumerating the images. 
             var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils
                 .GetSampleImages();
 
@@ -48,7 +44,7 @@ namespace Samples.Dynamic
             }).Load(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
-            // Image loading pipeline.
+            // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages("ImageObject",
                 imagesFolder, "ImagePath")
                 .Append(mlContext.Transforms.ResizeImages("ImageObjectResized",
@@ -59,7 +55,7 @@ namespace Samples.Dynamic
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // Preview the transformedData.
+            // Preview the transformedData. 
             PrintColumns(transformedData);
 
             // ImagePath    Name         ImageObject               ImageObjectResized        Pixels
@@ -78,7 +74,7 @@ namespace Samples.Dynamic
                 .Schema))
             {
                 // Note that it is best to get the getters and values *before*
-                // iteration, so as to facilitate buffer sharing (if applicable), and
+                // iteration, so as to faciliate buffer sharing (if applicable), and
                 // column -type validation once, rather than many times.
 
                 ReadOnlyMemory<char> imagePath = default;

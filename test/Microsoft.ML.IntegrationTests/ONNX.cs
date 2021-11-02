@@ -19,7 +19,7 @@ namespace Microsoft.ML.IntegrationTests
         // These two members are meant to be changed
         // Only when manually testing the Onnx GPU nuggets
         private const bool _fallbackToCpu = true;
-        private static readonly int? _gpuDeviceId = null;
+        private static int? _gpuDeviceId = null;
 
         public ONNX(ITestOutputHelper output) : base(output)
         {
