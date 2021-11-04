@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- We need to specify a framework in order for the Restore target to work -->
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
 
     <ItemGroup>
       <_CodecovArgs Include="-f;$(ArtifactsDir)bin\coverage\Cobertura.xml" />
-      
+
       <!-- Report an error if the upload fails -->
       <_CodecovArgs Include="--required" />
 

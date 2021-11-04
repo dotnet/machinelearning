@@ -2,10 +2,11 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+  <TargetFrameworks>netcoreapp3.1;net461;net6.0</TargetFrameworks>
+    <!-- <TargetFramework>netcoreapp2.1</TargetFramework>
     <TargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net461</TargetFramework>
     <TargetFramework Condition="$(Configuration.EndsWith('-netcoreapp3_1'))">netcoreapp3.1</TargetFramework>
-    <TargetFramework Condition="'$(TestTargetFramework)' != ''">$(TestTargetFramework)</TargetFramework>
+    <TargetFramework Condition="'$(TestTargetFramework)' != ''">$(TestTargetFramework)</TargetFramework> -->
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461'">win-x64</RuntimeIdentifier>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -19,7 +20,7 @@
     <NoWarn>$(NoWarn),1573,1591,1712</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup> 
     <VSTestLogger>trx</VSTestLogger>
     <VSTestResultsDirectory>$(OutputPath)</VSTestResultsDirectory>
     <CopyLocalLockFileAssemblies Condition="'$(Coverage)' != 'true'">true</CopyLocalLockFileAssemblies>
