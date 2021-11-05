@@ -427,7 +427,7 @@ namespace Microsoft.ML.EntryPoints
 
         public TimeSpan RunTime { get; internal set; }
 
-        private static Regex _stageIdRegex = new Regex(@"[a-zA-Z0-9]*", RegexOptions.Compiled);
+        private static readonly Regex _stageIdRegex = new Regex(@"[a-zA-Z0-9]*", RegexOptions.Compiled);
         private string _stageId;
         /// <summary>
         /// An alphanumeric string indicating the stage of a node.
@@ -1060,7 +1060,7 @@ namespace Microsoft.ML.EntryPoints
         // An EntryPoint variable can be followed with an array or dictionary specifier, which begins
         // with '[', contains either an integer or alphanumeric string, optionally wrapped in single-quotes,
         // followed with ']'.
-        private static Regex _variableRegex = new Regex(
+        private static readonly Regex _variableRegex = new Regex(
             @"\$(?<Name>[a-zA-Z_][a-zA-Z0-9_]*)(\[(((?<NumericAccessor>[0-9]*))|(\'?(?<StringAccessor>[a-zA-Z0-9_]*)\'?))\])?",
             RegexOptions.Compiled);
 
@@ -1193,7 +1193,7 @@ namespace Microsoft.ML.EntryPoints
 
     /// <summary>
     /// Represents the l-value assignable destination of a <see cref="VariableBinding"/>.
-    /// Subclasses exist to express the needed bindinds for subslots
+    /// Subclasses exist to express the needed bindings for subslots
     /// of a yet-to-be-constructed array or dictionary EntryPoint input parameter
     /// (for example, "myVar": ["$var1", "$var2"] would yield two <see cref="ArrayIndexParameterBinding"/>: (myVar, 0), (myVar, 1))
     /// </summary>

@@ -91,7 +91,7 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 var index = OutputNames.IndexOf(name);
                 if (index < 0)
-                    throw Contracts.ExceptParamValue(name, nameof(name), $"Onput tensor, {name}, does not exist in the ONNX model. " +
+                    throw Contracts.ExceptParamValue(name, nameof(name), $"Ouput tensor, {name}, does not exist in the ONNX model. " +
                         $"Available output names are [{string.Join(",", OutputNames)}].");
                 return OutputsInfo[index];
             }
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
     internal sealed class OnnxUtils
     {
-        private static HashSet<Type> _onnxTypeMap =
+        private static readonly HashSet<Type> _onnxTypeMap =
             new HashSet<Type>
                 {
                      typeof(Double),
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Transforms.Onnx
                      typeof(SByte),
                      typeof(Byte)
                 };
-        private static Dictionary<Type, InternalDataKind> _typeToKindMap =
+        private static readonly Dictionary<Type, InternalDataKind> _typeToKindMap =
             new Dictionary<Type, InternalDataKind>
                 {
                     { typeof(Single) , InternalDataKind.R4},

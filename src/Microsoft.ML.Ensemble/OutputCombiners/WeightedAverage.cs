@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             public IBinaryOutputCombiner CreateComponent(IHostEnvironment env) => new WeightedAverage(env, this);
         }
 
-        private WeightageKind _weightageKind;
+        private readonly WeightageKind _weightageKind;
 
         public string WeightageMetricName { get { return _weightageKind.ToString(); } }
 

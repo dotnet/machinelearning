@@ -44,7 +44,7 @@ namespace Microsoft.ML.IntegrationTests
             IDataView transformedData;
             RegressionPredictionTransformer<FastTreeRegressionModelParameters> linearPredictor;
 
-            if(saveModel)
+            if (saveModel)
             {
                 ITransformer loadedModel;
 

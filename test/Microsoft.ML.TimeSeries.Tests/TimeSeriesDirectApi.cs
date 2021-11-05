@@ -245,7 +245,7 @@ namespace Microsoft.ML.Tests
             var modelPath = "temp.zip";
             engine.CheckPoint(ml, modelPath);
 
-            //Load time series model and we will use this to pass two inputs and compare the raw score 
+            //Load time series model and we will use this to pass two inputs and compare the raw score
             //with "engine".
             ITransformer model2 = null;
             using (var file = File.OpenRead(modelPath))
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Tests
             //Raw score after second input.
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
 
-            //Even though time series column is not requested it will 
+            //Even though time series column is not requested it will
             // pass the observation through time series transform and update the state with the first input.
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(-1, prediction.Random);
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Tests
             var enumerator = env.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
             ForecastPrediction row = null;
 
-            // [TEST_STABILITY]: MKL generates different percision float number on Dotnet Core 3.1 
+            // [TEST_STABILITY]: MKL generates different precision float number on Dotnet Core 3.1
             // and cause the forecast result differs
 #if NETCOREAPP3_1
             List<float> expectedForecast = new List<float>() { 0.191492021f, 2.53994060f, 5.26454258f, 7.37313938f };
@@ -628,7 +628,7 @@ namespace Microsoft.ML.Tests
                 outputDataView, reuseRowObject: false);
 
             int k = 0;
-            
+
             foreach (var prediction in predictionColumn)
             {
                 switch (mode)
@@ -908,7 +908,7 @@ namespace Microsoft.ML.Tests
             {
                 for (int i = 0; i < data.Count; ++i)
                 {
-                    data[i].Value = - data[i].Value;
+                    data[i].Value = -data[i].Value;
                 }
             }
 
@@ -954,7 +954,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void RootCauseLocalization()
         {
-            // Create an root cause localizatiom input
+            // Create an root cause localization input
             var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension("UK", _rootCauseAggSymbol), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints(_rootCauseAggSymbol)) }, AggregateType.Sum, _rootCauseAggSymbol);
 
             var ml = new MLContext(1);
@@ -981,7 +981,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void MultiDimensionalRootCauseLocalization()
         {
-            // Create an root cause localizatiom input
+            // Create an root cause localization input
             var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension("UK", _rootCauseAggSymbol), new List<MetricSlice>() { new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints(_rootCauseAggSymbol)) }, AggregateType.Sum, _rootCauseAggSymbol);
 
             var ml = new MLContext(1);
@@ -1026,11 +1026,11 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void RootCauseLocalizationForNullDimValue()
         {
-            // Create an root cause localizatiom input
+            // Create an root cause localization input
             object rootCauseAggSymbolForNullDimValue = null;
-            List<MetricSlice> slice = new List<MetricSlice> 
-            { 
-                new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints(rootCauseAggSymbolForNullDimValue)) 
+            List<MetricSlice> slice = new List<MetricSlice>
+            {
+                new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPoints(rootCauseAggSymbolForNullDimValue))
             };
             var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), GetRootCauseAnomalyDimension("UK", rootCauseAggSymbolForNullDimValue), slice, AggregateType.Sum, rootCauseAggSymbolForNullDimValue);
 
@@ -1044,7 +1044,7 @@ namespace Microsoft.ML.Tests
             Assert.Single(rootCause.Items[0].Path);
             Assert.Equal("DataCenter", rootCause.Items[0].Path[0]);
 
-            Dictionary<string, object> expectedDim = new Dictionary<string, object> 
+            Dictionary<string, object> expectedDim = new Dictionary<string, object>
             {
                 {"Country", "UK" },
                 {"DeviceType", rootCauseAggSymbolForNullDimValue },
@@ -1177,7 +1177,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void RootCauseLocalizationForIntDimValue()
         {
-            // Create an root cause localizatiom input
+            // Create an root cause localization input
             List<MetricSlice> slice = new List<MetricSlice>
             {
                 new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPointsForIntDimValue())
@@ -1210,11 +1210,11 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void RootCauseLocalizationForDiffDimValueType()
         {
-            // Create an root cause localizatiom input
+            // Create an root cause localization input
             Dictionary<string, object> expectedDim = GetRootCauseAnomalyDimension(10, _rootCauseAggSymbolForIntDimValue);
-            List<MetricSlice> slice = new List<MetricSlice> 
-            { 
-                new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPointsForIntDimValue()) 
+            List<MetricSlice> slice = new List<MetricSlice>
+            {
+                new MetricSlice(GetRootCauseTimestamp(), GetRootCauseLocalizationPointsForIntDimValue())
             };
             var rootCauseLocalizationInput = new RootCauseLocalizationInput(GetRootCauseTimestamp(), expectedDim, slice, AggregateType.Sum, _rootCauseAggSymbolForDiffDimValueType);
 

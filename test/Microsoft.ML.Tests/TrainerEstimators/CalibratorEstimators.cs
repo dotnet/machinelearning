@@ -125,7 +125,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        private void CheckValidCalibratedData(IDataView scoredData, ITransformer transformer){
+        private void CheckValidCalibratedData(IDataView scoredData, ITransformer transformer)
+        {
 
             var calibratedData = transformer.Transform(scoredData).Preview();
 
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 // Test FixedPlattCalibratorEstimator
                 var calibratorFixedPlattEstimator = new FixedPlattCalibratorEstimator(Env,
-                    scoreColumn: i > 0 ? "ScoreX" : DefaultColumnNames.Score); 
+                    scoreColumn: i > 0 ? "ScoreX" : DefaultColumnNames.Score);
                 var calibratorFixedPlattTransformer = calibratorFixedPlattEstimator.Fit(dataArray[i]);
                 calibratorFixedPlattTransformer.Transform(dataArray[i]);
 
@@ -251,12 +252,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
              * var plattCalibratorTransformer = plattCalibratorEstimator.Fit(calibratorTestData.ScoredData);
              * mlContext.Model.Save(plattCalibratorTransformer, calibratorTestData.ScoredData.Schema, "calibrator-model_VerWritten_0x00010001xyz.zip");
              */
-            
+
             var modelPath = GetDataPath("backcompat", "Calibrator_Model_VerWritten_0x00010001.zip");
             ITransformer oldPlattCalibratorTransformer;
             using (var fs = File.OpenRead(modelPath))
                 oldPlattCalibratorTransformer = ML.Model.Load(fs, out var schema);
-                    
+
             var calibratorTestData = GetCalibratorTestData();
             var newPlattCalibratorEstimator = new PlattCalibratorEstimator(Env);
             var newPlattCalibratorTransformer = newPlattCalibratorEstimator.Fit(calibratorTestData.ScoredData);

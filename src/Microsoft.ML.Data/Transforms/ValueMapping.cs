@@ -186,7 +186,7 @@ namespace Microsoft.ML.Transforms
     internal class DataViewHelper
     {
         /// <summary>
-        /// Helper function to retrieve the Primitie type given a Type
+        /// Helper function to retrieve the Primitive type given a Type
         /// </summary>
         internal static PrimitiveDataViewType GetPrimitiveType(Type rawType, out bool isVectorType)
         {
@@ -359,7 +359,7 @@ namespace Microsoft.ML.Transforms
         private const string DefaultMapName = "DefaultMap.idv";
         internal static string DefaultKeyColumnName = "Key";
         internal static string DefaultValueColumnName = "Value";
-        private ValueMap _valueMap;
+        private readonly ValueMap _valueMap;
         private readonly byte[] _dataView;
 
         internal DataViewType ValueColumnType => _valueMap.ValueColumn.Type;
@@ -834,7 +834,7 @@ namespace Microsoft.ML.Transforms
             private static readonly FuncStaticMethodInfo1<TValue, TValue> _getValueMethodInfo
                 = new FuncStaticMethodInfo1<TValue, TValue>(GetValue<int>);
 
-            private Dictionary<TKey, TValue> _mapping;
+            private readonly Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
 
             private Dictionary<TKey, TValue> CreateDictionary()

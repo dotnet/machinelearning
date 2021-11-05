@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
-using Xunit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -16,7 +16,7 @@ namespace Microsoft.ML.AutoML.Test
     {
         public static void AssertObjectMatchesJson<T>(string expectedJson, T obj)
         {
-            var actualJson = JsonConvert.SerializeObject(obj, 
+            var actualJson = JsonConvert.SerializeObject(obj,
                 Formatting.Indented, new JsonConverter[] { new StringEnumConverter() });
             Assert.Equal(expectedJson, actualJson);
         }

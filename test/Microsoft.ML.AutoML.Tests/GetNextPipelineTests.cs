@@ -5,15 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
-using Newtonsoft.Json;
-using Microsoft.ML.TestFramework;
-using Xunit.Abstractions;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFramework;
+using Newtonsoft.Json;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class GetNextPipelineTests : BaseTestClass
     {
         public GetNextPipelineTests(ITestOutputHelper output) : base(output)

@@ -195,7 +195,7 @@ namespace Microsoft.ML.Numeric
         private readonly int _n;
         private readonly float _tol;
         private readonly int _maxIterations;
-        private Queue<float> _pastValues;
+        private readonly Queue<float> _pastValues;
 
         /// <summary>
         /// When criterion drops below this value, optimization is terminated
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Returns true if the norm of the gradient, divided by the value, is less than the tolerance.
         /// </summary>
-        /// <param name="state">current state of the optimzer</param>
+        /// <param name="state">current state of the optimizer</param>
         /// <param name="message">the current value of the criterion</param>
         /// <returns>true iff criterion is less than the tolerance</returns>
         public override bool Terminate(Optimizer.OptimizerState state, out string message)

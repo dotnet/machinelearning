@@ -221,7 +221,7 @@ namespace Microsoft.ML.Data.IO
         {
             private readonly ValueGetter<T> _getSrc;
             private T _src;
-            private string _columnName;
+            private readonly string _columnName;
 
             public ValueWriter(DataViewRowCursor cursor, PrimitiveDataViewType type, int source, char sep)
                 : base(type, source, sep)
@@ -535,8 +535,8 @@ namespace Microsoft.ML.Data.IO
             private int _dstPrev;
 
             // Map from column to starting destination index and slot.
-            private int[] _mpcoldst;
-            private int[] _mpcolslot;
+            private readonly int[] _mpcoldst;
+            private readonly int[] _mpcolslot;
 
             // "slot" is an index into _mpslotdst and _mpslotichLim. _mpslotdst is the sequence of
             // destination indices. _mpslotichLim is the sequence of upper bounds on the characters

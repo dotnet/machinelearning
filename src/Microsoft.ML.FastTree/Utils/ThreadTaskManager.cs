@@ -12,7 +12,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     internal static class ThreadTaskManager
     {
-        private static object _lockObject = new object();
+        private static readonly object _lockObject = new object();
 
         // REVIEW: Should this bother with number of threads? What should it do?
         public static int NumThreads { get; private set; }

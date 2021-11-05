@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class UserInputValidationTests : BaseTestClass
     {
         private static readonly IDataView _data = DatasetUtil.GetUciAdultDataView();

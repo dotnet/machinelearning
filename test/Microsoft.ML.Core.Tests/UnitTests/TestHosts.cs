@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -101,9 +101,9 @@ namespace Microsoft.ML.RunTests
 
             for (int i = 0; i < 5; i++)
             {
-                var tupple = hosts.ElementAt(i);
-                var newHost = tupple.Item1.Register((tupple.Item2 + 1).ToString());
-                hosts.Add(new Tuple<IHost, int>(newHost, tupple.Item2 + 1));
+                var tuple = hosts.ElementAt(i);
+                var newHost = tuple.Item1.Register((tuple.Item2 + 1).ToString());
+                hosts.Add(new Tuple<IHost, int>(newHost, tuple.Item2 + 1));
             }
 
             ((MLContext)env).CancelExecution();

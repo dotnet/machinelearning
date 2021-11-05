@@ -35,7 +35,7 @@ namespace Microsoft.ML.TimeSeries
     }
 
     /// <summary>
-    /// The Deseasonality modes of SrCnn models. The de-seasonality mode is envoked when the period of the series is greater than 0.
+    /// The Deseasonality modes of SrCnn models. The de-seasonality mode is invoked when the period of the series is greater than 0.
     /// </summary>
     public enum SrCnnDeseasonalityMode
     {
@@ -267,7 +267,7 @@ namespace Microsoft.ML.TimeSeries
             private List<double> _previousBatch;
             private List<double> _batch;
             private readonly int _outputLength;
-            private SrCnnEntireModeler _modeler;
+            private readonly SrCnnEntireModeler _modeler;
             private int _batchSize;
             private double[][] _results;
             private int _bLen;

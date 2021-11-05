@@ -21,7 +21,7 @@ namespace Microsoft.ML.IntegrationTests
         public DataIO(ITestOutputHelper output) : base(output)
         {
             // SaveAsText expects a "space, tab, comma, semicolon, or bar".
-            _separators = new char[] { ' ', '\t', ',', ';', '|',  };
+            _separators = new char[] { ' ', '\t', ',', ';', '|', };
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Microsoft.ML.IntegrationTests
         public void WriteToAndReadFromADelimetedFile()
         {
             var mlContext = new MLContext(seed: 1);
-            
+
             var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             foreach (var separator in _separators)

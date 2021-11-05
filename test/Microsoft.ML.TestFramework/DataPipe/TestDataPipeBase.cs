@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -411,7 +411,7 @@ namespace Microsoft.ML.RunTests
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 
-            var args = new TextLoader.Options() { AllowSparse = true, AllowQuoting = true};
+            var args = new TextLoader.Options() { AllowSparse = true, AllowQuoting = true };
             if (!CmdParser.ParseArguments(Env, argsLoader, args))
             {
                 Fail("Couldn't parse the args '{0}' in '{1}'", argsLoader, pathData);
@@ -431,7 +431,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected private string SavePipe(ILegacyDataLoader pipe, string suffix = "", string dir = "Pipeline")
+        private protected string SavePipe(ILegacyDataLoader pipe, string suffix = "", string dir = "Pipeline")
         {
             string name = TestName + suffix + ".zip";
             string pathModel = DeleteOutputPath("SavePipe", name);
@@ -665,7 +665,7 @@ namespace Microsoft.ML.RunTests
             Check(tmp, "All same failed");
             all &= tmp;
 
-            var view2EvenCols = view2.Schema.Where(col => (col.Index & 1) == 0); 
+            var view2EvenCols = view2.Schema.Where(col => (col.Index & 1) == 0);
             using (var curs1 = view1.GetRowCursorForAllColumns())
             using (var curs2 = view2.GetRowCursor(view2EvenCols))
             {

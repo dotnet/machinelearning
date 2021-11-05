@@ -5,8 +5,8 @@
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.IntegrationTests.Datasets;
-using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;

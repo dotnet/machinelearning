@@ -13,11 +13,11 @@ namespace Microsoft.Data.Analysis
     /// </summary>
     public class DataFrameColumnCollection : Collection<DataFrameColumn>
     {
-        private Action ColumnsChanged;
+        private readonly Action ColumnsChanged;
 
-        private List<string> _columnNames = new List<string>();
+        private readonly List<string> _columnNames = new List<string>();
 
-        private Dictionary<string, int> _columnNameToIndexDictionary = new Dictionary<string, int>(StringComparer.Ordinal);
+        private readonly Dictionary<string, int> _columnNameToIndexDictionary = new Dictionary<string, int>(StringComparer.Ordinal);
 
         internal long RowCount { get; set; }
 

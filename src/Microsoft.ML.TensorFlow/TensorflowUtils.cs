@@ -276,7 +276,7 @@ namespace Microsoft.ML.TensorFlow
         }
 
         // Currently used in TensorFlowTransform to protect temporary folders used when working with TensorFlow's SavedModel format.
-        // Models are considered executable code, so we need to ACL tthe temp folders for high-rights process (so low-rights process can’t access it).
+        // Models are considered executable code, so we need to ACL the temp folders for high-rights process (so low-rights process can’t access it).
         /// <summary>
         ///  Given a folder path, create it with proper ACL if it doesn't exist.
         ///  Fails if the folder name is empty, or can't create the folder.
@@ -516,15 +516,15 @@ namespace Microsoft.ML.TensorFlow
         /// </summary>
         public class Runner : IDisposable
         {
-            private TF_Output[] _inputs;
-            private TF_Output[] _outputs;
-            private IntPtr[] _outputValues;
-            private IntPtr[] _inputValues;
-            private Tensor[] _inputTensors;
-            private IntPtr[] _operations;
-            private Session _session;
-            private Tensor[] _outputTensors;
-            private Status _status;
+            private readonly TF_Output[] _inputs;
+            private readonly TF_Output[] _outputs;
+            private readonly IntPtr[] _outputValues;
+            private readonly IntPtr[] _inputValues;
+            private readonly Tensor[] _inputTensors;
+            private readonly IntPtr[] _operations;
+            private readonly Session _session;
+            private readonly Tensor[] _outputTensors;
+            private readonly Status _status;
 
             internal Runner(Session session, TF_Output[] inputs = null, TF_Output[] outputs = null, IntPtr[] operations = null)
             {

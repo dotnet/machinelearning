@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="rowGroupColumnName">The name for the column containing the group ID. </param>
-        /// <param name="exampleWeightColumnName">The name for the column containing the examle weight.</param>
+        /// <param name="exampleWeightColumnName">The name for the column containing the example weight.</param>
         /// <param name="numberOfLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="minimumExampleCountPerLeaf">The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data.</param>
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 if (!FastTreeTrainerOptions.UseTolerantPruning)
                 {
-                    //use simple eraly stopping condition
+                    //use simple early stopping condition
                     PruningTest = new TestHistory(ValidTest, 0);
                 }
                 else
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             // We only print non-zero train&valid graph if earlyStoppingTruncation!=0
             // In case /es is not set, we print 0 for train and valid graph NDCG
-            // Let's keeping this behaviour for backward compatibility with previous FR version
+            // Let's keeping this behavior for backward compatibility with previous FR version
             // Ideally /graphtv should enforce non-zero /es in the commandline validation
             if (_specialTrainSetTest != null)
             {
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Trainers.FastTree
             base.Train(ch);
             // Print final last iteration.
             // Note that trainNDCG printed in graph will be from copy of a value from previous iteration
-            // and will diffre slightly from the proper final value computed by FullTest.
+            // and will differ slightly from the proper final value computed by FullTest.
             // We cannot compute the final NDCG here due to the fact we use FastNDCGTestForTrainSet computing NDCG based on label sort saved during gradient computation (and we don;t have gradients for n+1 iteration)
             // Keeping it in sync with original FR code
             PrintTestGraph(ch);
@@ -507,19 +507,19 @@ namespace Microsoft.ML.Trainers.FastTree
             private readonly double[] _discount;
             private readonly int[] _oneTwoThree;
 
-            private int[][] _labelCounts;
+            private readonly int[][] _labelCounts;
 
             // reusable memory, technical stuff
-            private int[][] _permutationBuffers;
-            private DcgPermutationComparer[] _comparers;
+            private readonly int[][] _permutationBuffers;
+            private readonly DcgPermutationComparer[] _comparers;
 
             //gains
-            private double[] _gain;
+            private readonly double[] _gain;
             private double[] _gainLabels;
 
             // parameters
-            private int _maxDcgTruncationLevel;
-            private bool _useDcg;
+            private readonly int _maxDcgTruncationLevel;
+            private readonly bool _useDcg;
             // A lookup table for the sigmoid used in the lambda calculation
             // Note: Is built for a specific sigmoid parameter, so assumes this will be constant throughout computation
             private double[] _sigmoidTable;
@@ -533,9 +533,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
             // Secondary gains, currently not used in any way.
 #pragma warning disable 0649
-            private double _secondaryMetricShare;
-            private double[] _secondaryInverseMaxDcgt;
-            private double[] _secondaryGains;
+            private readonly double _secondaryMetricShare;
+            private readonly double[] _secondaryInverseMaxDcgt;
+            private readonly double[] _secondaryGains;
 #pragma warning restore 0649
 
             // Baseline risk.
@@ -546,19 +546,19 @@ namespace Microsoft.ML.Trainers.FastTree
             // 1. preprocessing the scores for continuous cost function
             // 2. shifted NDCG
             // 3. max DCG per query
-            private double[] _scoresCopy;
-            private short[] _labelsCopy;
-            private short[] _groupIdToTopLabel;
+            private readonly double[] _scoresCopy;
+            private readonly short[] _labelsCopy;
+            private readonly short[] _groupIdToTopLabel;
 
             // parameters
-            private double _sigmoidParam;
-            private char _costFunctionParam;
-            private bool _filterZeroLambdas;
+            private readonly double _sigmoidParam;
+            private readonly char _costFunctionParam;
+            private readonly bool _filterZeroLambdas;
 
-            private bool _distanceWeight2;
-            private bool _normalizeQueryLambdas;
-            private bool _useShiftedNdcg;
-            private IParallelTraining _parallelTraining;
+            private readonly bool _distanceWeight2;
+            private readonly bool _normalizeQueryLambdas;
+            private readonly bool _useShiftedNdcg;
+            private readonly IParallelTraining _parallelTraining;
 
             // Used for training NDCG calculation
             // Keeps track of labels of top 3 documents per query

@@ -23,12 +23,12 @@ namespace Microsoft.ML.Trainers.FastTree
     internal class InternalRegressionTree
     {
         private double _maxOutput;
-        private double[] _splitGain;
-        private double[] _gainPValue;
+        private readonly double[] _splitGain;
+        private readonly double[] _gainPValue;
         /// <summary>
         /// The value of this non-leaf node, prior to split when it was a leaf.
         /// </summary>
-        private double[] _previousLeafValue;
+        private readonly double[] _previousLeafValue;
 
         // for each non-leaf, we keep the following data
         public float[] DefaultValueForMissing;
@@ -820,7 +820,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private float GetFeatureValue(float x, int node)
         {
-            // Not need to convert missing vaules.
+            // Not need to convert missing values.
             if (DefaultValueForMissing == null)
                 return x;
 

@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using Microsoft.ML.Data;
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML.PerformanceTests
             path = RandomFile.CreateRandomFile(path, _numRows, _numColumns, _maxWordLength);
 
             var columns = new List<TextLoader.Column>();
-            for(int i = 0; i < _numColumns; i++)
+            for (int i = 0; i < _numColumns; i++)
             {
                 columns.Add(new TextLoader.Column($"Column{i}", DataKind.String, i));
             }
@@ -71,7 +71,7 @@ namespace Microsoft.ML.PerformanceTests
                 featurizers.Add(featurizer);
             }
 
-            IEstimator<ITransformer>  pipeline = featurizers.First();
+            IEstimator<ITransformer> pipeline = featurizers.First();
             foreach (var featurizer in featurizers.Skip(1))
             {
                 pipeline = pipeline.Append(featurizer);

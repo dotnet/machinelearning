@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class BestResultUtilTests : BaseTestClass
     {
         public BestResultUtilTests(ITestOutputHelper output) : base(output)

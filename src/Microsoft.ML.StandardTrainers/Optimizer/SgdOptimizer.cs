@@ -294,7 +294,7 @@ namespace Microsoft.ML.Numeric
 
         private class LineFunc
         {
-            private bool _useCG;
+            private readonly bool _useCG;
 
             private VBuffer<float> _point;
             private VBuffer<float> _newPoint;
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Numeric
 
             public float Value => _value;
 
-            private DifferentiableFunction _func;
+            private readonly DifferentiableFunction _func;
 
             public float Deriv => VectorUtils.DotProduct(in _dir, in _grad);
 

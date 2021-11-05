@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -118,7 +122,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                         if (results.ErrorMessage != null)
                             Fail(String.Format("Expected zero length error string. Received error: {0}", results.ErrorMessage));
                         if (t.Status != TaskStatus.RanToCompletion)
-                            Fail("Download did not complete succesfully");
+                            Fail("Download did not complete successfully");
                         if (!File.Exists(GetOutputPath("copyto", "sentiment.emd")))
                         {
                             Fail($"File '{GetOutputPath("copyto", "sentiment.emd")}' does not exist. " +

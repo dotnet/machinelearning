@@ -285,7 +285,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeRecommenderPackage = includeRecommenderPackage,
                 StablePackageVersion = stablePackageVersion,
                 UnstablePackageVersion = unstablePackageVersion,
-                OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
+                OnnxRuntimePackageVersion = _settings.OnnxRuntimePackageVersion,
                 Target = target,
             };
 
@@ -336,7 +336,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeRecommenderPackage = includeRecommenderPackage,
                 StablePackageVersion = stablePackageVersion,
                 UnstablePackageVersion = unstablePackageVersion,
-                OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
+                OnnxRuntimePackageVersion = _settings.OnnxRuntimePackageVersion,
                 Target = target,
             };
             return predictProjectFileContent.TransformText();

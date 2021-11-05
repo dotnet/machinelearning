@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -97,7 +97,7 @@ namespace Microsoft.ML.RunTests
                 var calibrator = ((IComponentFactory<ICalibratorTrainer>)factory).CreateComponent(ml);
             }
         }
-    
+
         private delegate void SignatureSimpleComponent();
 
         private class SimpleArg
@@ -134,7 +134,7 @@ namespace Microsoft.ML.RunTests
             //public SubComponent[] sub4 = new SubComponent[] { new SubComponent("sub4", "settings4"), new SubComponent("sub5", "settings5") };
 
             /// <summary>
-            /// ToString is overrided by CmdParser.GetSettings which is of primary for this test
+            /// ToString is overridden by CmdParser.GetSettings which is of primary for this test
             /// </summary>
             /// <returns></returns>
             public string ToString(IHostEnvironment env)

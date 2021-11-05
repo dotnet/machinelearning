@@ -474,7 +474,7 @@ namespace Microsoft.ML.Transforms
 
             // As a side effect, getters also populate these actual sizes of the necessary pivot columns on MoveNext.
             // Parallel to columns.
-            private int[] _colSizes;
+            private readonly int[] _colSizes;
 
             public Cursor(IChannelProvider provider, DataViewRowCursor input, UngroupBinding schema, Func<int, bool> predicate)
                 : base(provider, input)

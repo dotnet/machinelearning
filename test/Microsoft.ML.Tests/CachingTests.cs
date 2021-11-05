@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests
         public void CacheOnEmptyEstimatorChainTest()
         {
             var ex = Assert.Throws<InvalidOperationException>(() => CacheOnEmptyEstimatorChain());
-            Assert.Contains("Current estimator chain has no estimator, can't append cache checkpoint.", ex.Message, 
+            Assert.Contains("Current estimator chain has no estimator, can't append cache checkpoint.", ex.Message,
                 StringComparison.InvariantCultureIgnoreCase);
         }
 

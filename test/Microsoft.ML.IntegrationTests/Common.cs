@@ -15,7 +15,7 @@ namespace Microsoft.ML.IntegrationTests
     internal static class Common
     {
         /// <summary>
-        /// Asssert that an <see cref="IDataView"/> rows are of <see cref="TypeTestData"/>.
+        /// Assert that an <see cref="IDataView"/> rows are of <see cref="TypeTestData"/>.
         /// </summary>
         /// <param name="testTypeDataset">An <see cref="IDataView"/>.</param>
         public static void AssertTypeTestDataset(IDataView testTypeDataset)
@@ -316,7 +316,7 @@ namespace Microsoft.ML.IntegrationTests
                     // to roll our own float equality checker.
                     Assert.Equal(array1[i], array2[i]);
                 }
-                catch(EqualException)
+                catch (EqualException)
                 {
                     mismatch = true;
                     break;

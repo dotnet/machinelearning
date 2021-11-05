@@ -5,8 +5,8 @@
 using System;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Data;
+using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 

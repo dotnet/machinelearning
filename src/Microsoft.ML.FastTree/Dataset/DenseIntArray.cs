@@ -205,7 +205,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         private const int _bits = 10;
         private const int _mask = (1 << _bits) - 1;
-        private uint[] _data;
+        private readonly uint[] _data;
 
         public override IntArrayBits BitsPerItem { get { return IntArrayBits.Bits10; } }
 
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// 0-bit array only represents the value -1</remarks>
     internal sealed class Dense8BitIntArray : DenseDataCallbackIntArray
     {
-        private byte[] _data;
+        private readonly byte[] _data;
 
         public override IntArrayBits BitsPerItem { get { return IntArrayBits.Bits8; } }
 
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// For a given byte, the high 4 bits is the first value, the low 4 bits is the next value.
         /// </summary>
-        private byte[] _data;
+        private readonly byte[] _data;
 
         public override IntArrayBits BitsPerItem { get { return IntArrayBits.Bits4; } }
 
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// </summary>
     internal sealed class Dense16BitIntArray : DenseDataCallbackIntArray
     {
-        private ushort[] _data;
+        private readonly ushort[] _data;
 
         public override IntArrayBits BitsPerItem { get { return IntArrayBits.Bits16; } }
 
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// </summary>
     internal sealed class Dense32BitIntArray : DenseDataCallbackIntArray
     {
-        private int[] _data;
+        private readonly int[] _data;
 
         public override IntArrayBits BitsPerItem { get { return IntArrayBits.Bits32; } }
 

@@ -220,7 +220,7 @@ namespace Microsoft.ML.Tests
         public void TestGrayScaleInMemory()
         {
             // Create an image list.
-            var images = new List<ImageDataPoint>(){ new ImageDataPoint(10, 10, Color.Blue), new ImageDataPoint(10, 10, Color.Red) };
+            var images = new List<ImageDataPoint>() { new ImageDataPoint(10, 10, Color.Blue), new ImageDataPoint(10, 10, Color.Red) };
 
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var data = ML.Data.LoadFromEnumerable(images);
@@ -318,9 +318,9 @@ namespace Microsoft.ML.Tests
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleavePixelColors: true, scaleImage: 2f/19, offsetImage: 30).Transform(cropped);
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleavePixelColors: true, scaleImage: 2f / 19, offsetImage: 30).Transform(cropped);
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
-               ImagePixelExtractingEstimator.ColorBits.All, interleavedColors: true, scaleImage: 19/2f, offsetImage: -30).Transform(pixels);
+               ImagePixelExtractingEstimator.ColorBits.All, interleavedColors: true, scaleImage: 19 / 2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleave) + "_model.zip";
 
@@ -432,9 +432,9 @@ namespace Microsoft.ML.Tests
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, orderOfExtraction:ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(cropped);
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, orderOfExtraction: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(cropped);
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
-               ImagePixelExtractingEstimator.ColorBits.All,orderOfColors: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(pixels);
+               ImagePixelExtractingEstimator.ColorBits.All, orderOfColors: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithDifferentOrder) + "_model.zip";
 
@@ -898,7 +898,7 @@ namespace Microsoft.ML.Tests
             {
                 yield return new DataPoint
                 {
-                    Features = Enumerable.Repeat(0, InputSize).Select(x => random.NextDouble()*100).ToArray()
+                    Features = Enumerable.Repeat(0, InputSize).Select(x => random.NextDouble() * 100).ToArray()
                 };
             }
         }
@@ -983,7 +983,7 @@ namespace Microsoft.ML.Tests
             // Also check usage of prediction Engine
             // And that the references to the original image objects aren't lost
             var predEngine = mlContext.Model.CreatePredictionEngine<InMemoryImage, InMemoryImageOutput>(model);
-            for(int i = 0; i < dataObjects.Count(); i++)
+            for (int i = 0; i < dataObjects.Count(); i++)
             {
                 var prediction = predEngine.Predict(dataObjects[i]);
                 Assert.Equal(100, prediction.ResizedImage.Height);

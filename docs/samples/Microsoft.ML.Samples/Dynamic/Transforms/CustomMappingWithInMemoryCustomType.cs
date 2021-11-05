@@ -18,7 +18,7 @@ namespace Samples.Dynamic
         // AlienBody members to produce a SuperAlienHero entity with a "Name" member of type
         // string and a single "Merged" member of type AlienBody, where the merger is just
         // the addition of the various members of AlienBody.
-        static public void Example()
+        public static void Example()
         {
             var mlContext = new MLContext();
             // Build in-memory data.

@@ -1830,7 +1830,7 @@ namespace Microsoft.ML.Transforms
             {
                 private readonly bool _fix;
                 private readonly int _numBins;
-                private List<TFloat> _values;
+                private readonly List<TFloat> _values;
 
                 private BinOneColumnFunctionBuilder(IHost host, long lim, bool fix, int numBins, ValueGetter<TFloat> getSrc)
                     : base(host, lim, getSrc)
@@ -1874,7 +1874,7 @@ namespace Microsoft.ML.Transforms
             {
                 private readonly bool _fix;
                 private readonly int _numBins;
-                private List<TFloat>[] _values;
+                private readonly List<TFloat>[] _values;
 
                 private BinVecColumnFunctionBuilder(IHost host, int cv, long lim, bool fix, int numBins,
                     ValueGetter<VBuffer<TFloat>> getSrc)
@@ -2097,7 +2097,7 @@ namespace Microsoft.ML.Transforms
                     // The difference is how the min/max are used.
                     _minMaxAggregator = new MinMaxDblAggregator(vectorSize);
 
-                    // If we aren't centering data dont need the median.
+                    // If we aren't centering data don't need the median.
                     _medianAggregators = new MedianDblAggregator[vectorSize];
 
                     for (int i = 0; i < vectorSize; i++)

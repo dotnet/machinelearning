@@ -2616,7 +2616,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #if DEBUG
                 // Holds for each feature the row index that it was previously accessed on.
                 // Purely for validation purposes.
-                private int[] _lastRow;
+                private readonly int[] _lastRow;
 #endif
 
                 /// <summary>

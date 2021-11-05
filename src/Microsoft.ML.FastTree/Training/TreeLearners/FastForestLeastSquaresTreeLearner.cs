@@ -9,8 +9,8 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     internal class RandomForestLeastSquaresTreeLearner : LeastSquaresRegressionTreeLearner
     {
-        private int _quantileSampleCount;
-        private bool _quantileEnabled;
+        private readonly int _quantileSampleCount;
+        private readonly bool _quantileEnabled;
 
         public RandomForestLeastSquaresTreeLearner(Dataset trainData, int numLeaves, int minDocsInLeaf, Double entropyCoefficient, Double featureFirstUsePenalty,
             Double featureReusePenalty, Double softmaxTemperature, int histogramPoolSize, int randomSeed, Double splitFraction, bool allowEmptyTrees,

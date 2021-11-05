@@ -4,8 +4,8 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Data;
+using Microsoft.ML.PerformanceTests.Harness;
 
 namespace Microsoft.ML.PerformanceTests
 {
@@ -69,14 +69,14 @@ namespace Microsoft.ML.PerformanceTests
         [Benchmark]
         public void CacheWithCursor()
         {
-           // This setup takes very less time to execute as compared to the actual _cursorGetter.
+            // This setup takes very less time to execute as compared to the actual _cursorGetter.
             // The most preferable position for this setup will be in GlobalSetup.
             _cursor = _cacheDataView.GetRowCursor(_col);
             _cursorGetter = _cursor.GetGetter<int>(_col);
 
             int val = 0;
             while (_cursor.MoveNext())
-                _cursorGetter(ref val); 
+                _cursorGetter(ref val);
         }
 
         [Benchmark]

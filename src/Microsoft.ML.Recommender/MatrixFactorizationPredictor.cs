@@ -193,7 +193,7 @@ namespace Microsoft.ML.Trainers.Recommender
         void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine("# Imputed matrix is P * Q'");
-            writer.WriteLine("# P in R^({0} x {1}), rows correpond to Y item", NumberOfRows, ApproximationRank);
+            writer.WriteLine("# P in R^({0} x {1}), rows correspond to Y item", NumberOfRows, ApproximationRank);
             for (int i = 0; i < _leftFactorMatrix.Length; ++i)
             {
                 writer.Write(_leftFactorMatrix[i].ToString("G"));
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 else
                     writer.Write('\t');
             }
-            writer.WriteLine("# Q in R^({0} x {1}), rows correpond to X item", NumberOfColumns, ApproximationRank);
+            writer.WriteLine("# Q in R^({0} x {1}), rows correspond to X item", NumberOfColumns, ApproximationRank);
             for (int i = 0; i < _rightFactorMatrix.Length; ++i)
             {
                 writer.Write(_rightFactorMatrix[i].ToString("G"));
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Trainers.Recommender
             // The tail "ColumnName" means the column name in IDataView
             private readonly string _matrixColumnIndexColumnName;
             private readonly string _matrixRowIndexColumnName;
-            private IHostEnvironment _env;
+            private readonly IHostEnvironment _env;
             public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
             public DataViewSchema OutputSchema { get; }
 
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// columns specified by <see cref="MatrixColumnIndexColumnName"/>, <see cref="MatrixColumnIndexColumnType"/>, <see cref="MatrixRowIndexColumnName"/>, and <see cref="MatrixRowIndexColumnType"></see>.
         /// The output column is "Score" by default but user can append a string to it.
         /// </summary>
-        /// <param name="env">Eviroment object for showing information</param>
+        /// <param name="env">Environment object for showing information</param>
         /// <param name="model">The model trained by one of the training functions in <see cref="MatrixFactorizationTrainer"/></param>
         /// <param name="trainSchema">Targeted schema that containing columns named as xColumnName</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>

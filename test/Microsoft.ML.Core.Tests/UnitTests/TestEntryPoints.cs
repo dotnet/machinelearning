@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1805,7 +1805,8 @@ namespace Microsoft.ML.RunTests
                 if (i % 2 == 0)
                 {
                     data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" },
-                        new TextFeaturizingEstimator.Options {
+                        new TextFeaturizingEstimator.Options
+                        {
                             StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                         }).Fit(data).Transform(data);
                 }
@@ -6877,7 +6878,7 @@ namespace Microsoft.ML.RunTests
             runner.RunAll();
 
             var data = runner.GetOutput<IDataView>("overall_metrics");
-            using(var cursor = data.GetRowCursorForAllColumns())
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var ndcgGetter = cursor.GetGetter<VBuffer<Double>>(data.Schema["NDCG"]);
                 VBuffer<Double> ndcgBuffer = default;

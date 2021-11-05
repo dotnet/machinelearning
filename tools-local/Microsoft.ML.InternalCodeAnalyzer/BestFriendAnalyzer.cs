@@ -26,7 +26,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             AssemblyAttributeName + " assembly-level attribute set. Even with friend access to that " +
             "assembly, such a usage requires that the item have the " + AttributeName + " on it.";
 
-        private static DiagnosticDescriptor Rule =
+        private static readonly DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 

@@ -20,9 +20,9 @@ namespace Microsoft.Data.Analysis
     /// </summary>
     public partial class ArrowStringDataFrameColumn : DataFrameColumn, IEnumerable<string>
     {
-        private IList<ReadOnlyDataFrameBuffer<byte>> _dataBuffers;
-        private IList<ReadOnlyDataFrameBuffer<int>> _offsetsBuffers;
-        private IList<ReadOnlyDataFrameBuffer<byte>> _nullBitMapBuffers;
+        private readonly IList<ReadOnlyDataFrameBuffer<byte>> _dataBuffers;
+        private readonly IList<ReadOnlyDataFrameBuffer<int>> _offsetsBuffers;
+        private readonly IList<ReadOnlyDataFrameBuffer<byte>> _nullBitMapBuffers;
 
         /// <summary>
         /// Constructs an empty <see cref="ArrowStringDataFrameColumn"/> with the given <paramref name="name"/>.
@@ -40,7 +40,7 @@ namespace Microsoft.Data.Analysis
         /// </summary>
         /// <param name="name">The name of the column.</param>
         /// <param name="values">The Arrow formatted string values in this column.</param>
-        /// <param name="offsets">The Arrow formatted offets in this column.</param>
+        /// <param name="offsets">The Arrow formatted offsets in this column.</param>
         /// <param name="nullBits">The Arrow formatted null bits in this column.</param>
         /// <param name="length">The length of the column.</param>
         /// <param name="nullCount">The number of <see langword="null" /> values in this column.</param>

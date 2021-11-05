@@ -330,10 +330,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             };
 
             // Splitting a dataset shouldn't affect its schema
-            foreach(var split in splits)
+            foreach (var split in splits)
             {
                 Assert.Equal(fullInput.Schema.Count, split.Schema.Count);
-                foreach(var col in fullInput.Schema)
+                foreach (var col in fullInput.Schema)
                 {
                     Assert.Equal(col.Name, split.Schema[col.Index].Name);
                 }
@@ -495,7 +495,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 nameof(Input.TimeSpanStrat),
                 "KeyStrat" };
 
-            foreach(var colname in colnames)
+            foreach (var colname in colnames)
             {
                 var cvSplits = mlContext.Data.CrossValidationSplit(inputWithKey, numberOfFolds: 2, samplingKeyColumnName: colname);
                 var idsTest1 = cvSplits[0].TestSet.GetColumn<int>(cvSplits[0].TestSet.Schema[nameof(Input.Id)]);

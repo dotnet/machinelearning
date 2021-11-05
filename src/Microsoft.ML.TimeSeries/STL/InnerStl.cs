@@ -278,7 +278,7 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         internal class VirtualXValuesProvider
         {
-            private static Dictionary<int, List<double>> _xValuesPool;
+            private static readonly Dictionary<int, List<double>> _xValuesPool;
 
             static VirtualXValuesProvider()
             {

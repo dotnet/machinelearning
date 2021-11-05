@@ -313,7 +313,7 @@ ghi,789";
                 Assert.Equal(1, parser.LineNumber);
 
                 parser.SetDelimiters(new[] { "," });
-                Assert.Equal(new[] { "abc","123" }, parser.ReadFields());
+                Assert.Equal(new[] { "abc", "123" }, parser.ReadFields());
                 Assert.Equal(2, parser.LineNumber);
 
                 parser.SetDelimiters(new[] { ";", "," });
@@ -378,7 +378,7 @@ ghi,789";
                 Assert.Equal(1, parser.LineNumber);
 
                 parser.SetDelimiters(new[] { "," });
-                Assert.Equal(new[] { "abc",@"123
+                Assert.Equal(new[] { "abc", @"123
 123" }, parser.ReadFields());
                 Assert.Equal(3, parser.LineNumber);
 

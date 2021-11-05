@@ -222,7 +222,7 @@ namespace Microsoft.ML.Vision
             /// <summary>
             /// The metric to be monitored (eg Accuracy, Loss).
             /// </summary>
-            private EarlyStoppingMetric _metric;
+            private readonly EarlyStoppingMetric _metric;
 
             /// <summary>
             /// Minimum change in the monitored quantity to be considered as an improvement.
@@ -482,7 +482,7 @@ namespace Microsoft.ML.Vision
         private Tensor _resizedImage;
         private string _jpegDataTensorName;
         private string _resizedImageTensorName;
-        private string _inputTensorName;
+        private readonly string _inputTensorName;
         private string _softmaxTensorName;
         private readonly string _checkpointPath;
         private readonly string _bottleneckOperationName;
@@ -784,7 +784,7 @@ namespace Microsoft.ML.Vision
 
         internal sealed class ImageProcessor
         {
-            private Runner _imagePreprocessingRunner;
+            private readonly Runner _imagePreprocessingRunner;
 
             public ImageProcessor(Session session, string jpegDataTensorName, string resizeImageTensorName)
             {
@@ -1463,8 +1463,8 @@ namespace Microsoft.ML.Vision
 
         private class Classifier
         {
-            private Runner _runner;
-            private ImageClassificationTrainer.ImageProcessor _imageProcessor;
+            private readonly Runner _runner;
+            private readonly ImageClassificationTrainer.ImageProcessor _imageProcessor;
 
             public Classifier(ImageClassificationModelParameters model)
             {

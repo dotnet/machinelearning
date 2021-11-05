@@ -23,7 +23,7 @@ namespace Microsoft.ML.Transforms
     {
         private readonly IHost _host;
         // The stack of active with nodes.
-        private List<WithNode> _rgwith;
+        private readonly List<WithNode> _rgwith;
 
         private List<Error> _errors;
         private LambdaNode _lambda;
