@@ -25,7 +25,6 @@
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
     <ItemGroup>
       <!--Include native PDBs-->
-
       <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb" TargetPath="/runtimes/win-x86/native"/>
       <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb" TargetPath="/runtimes/win-x64/native"/>
       <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklImports.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklImports.pdb" TargetPath="/runtimes/win-x86/native/MklImports.pdb"/>
