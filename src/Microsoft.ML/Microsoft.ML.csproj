@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
