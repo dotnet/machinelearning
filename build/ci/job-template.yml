@@ -39,10 +39,10 @@ jobs:
         spaceValue: '%20'
       ${{ if and(eq(parameters.pool.vmImage, 'ubuntu-18.04'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
-      ${{ if eq(parameters.testTargetFramework, '') }}:
-        testTargetFramework: ''
-      ${{ if ne(parameters.testTargetFramework, '') }}:
-        testTargetFramework: '/p:TestTargetFramework=${{ parameters.testTargetFramework }}'
+      ${{ if eq(_targetFramework, '') }}:
+        testTargetFramework: '/p:TestTargetFramework=netcoreapp3.1'
+      ${{ if ne(_targetFramework, '') }}:
+        testTargetFramework: '/p:TestTargetFramework=${{ _targetFramework }}'
       CODECOV_TOKEN: 03031e35-fe75-4e4c-87ee-e919ae601748
     strategy:
       matrix:
@@ -51,12 +51,12 @@ jobs:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
-            _targetFramework: netcoreapp2.1
+            _targetFramework: netcoreapp3.1
           Release_Build:
             _configuration: Release
             _config_short: R
             _includeBenchmarkData: true
-            _targetFramework: netcoreapp2.1
+            _targetFramework: netcoreapp3.1
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
 

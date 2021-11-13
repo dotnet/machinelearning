@@ -1,14 +1,9 @@
-ML.NET source code files build for .NET Core 3.1 and .NET Standard 2.0. However, ML.NET test files only build on one target framework below at a time:
-- .NET Core 2.1
-- .NET Core 3.1
-- .NET Framework 4.6.1
+ML.NET source and test code files build for .NET Core 3.1 and NET Framework 4.6.1.
 
-To run tests on .NET Core 3.1, you need to do a few manual steps.
+If you want to run command line tests on only 1 of the frameworks or on a different framework, do this:
+ add `/p:TestTargetFramework=<Framework Names>` to the command line build.
 
-1. Run `.\build.cmd -configuration Debug-netcoreapp3_1` or `.\build.cmd -configuration Release-netcoreapp3_1` from the root of the repo.
+1. Run `.\build.cmd -configuration Debug /p:TestTargetFramework=<Framework Names>` or `.\build.cmd -configuration Release /p:TestTargetFramework=<Framework Names>` from the root of the repo.
 2. If you want to build the NuGet packages, `.\build.cmd -pack` after step 1.
 
-If you are using Visual Studio, you will need to do the following:
-
-1. In the Configuration Manager, switch the current configuration to `Debug-netcoreapp3_1` or `Release-netcoreapp3_1`.
-2. Build and test as usual.
+If you are using Visual Studio, the tests for both .NET Core 3.1 and NET Framework 4.6.1 can both be run from the UI with no changes. If you want to test using different frameworks, you will have to edit the `<TargetFrameworks>` found in `test/Directory.build.props`
