@@ -39,6 +39,7 @@ jobs:
       vmImage: ubuntu-18.04
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm32v7-20210531091521-97d8652
 
+- template: /build/ci/job-template.yml
   parameters:
     architecture: arm64
     name: Ubuntu_x64_cross_arm64_NetCoreApp31
