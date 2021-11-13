@@ -83,7 +83,6 @@ else()
     add_compile_options(-fPIC)
     add_compile_options(-fvisibility=hidden)
     add_definitions(-Werror) # treat warnings as errors
-
 endif()
 
 # Set the architecture we are compiling for on APPLE. This lets you cross target from x86_64 -> arm64.
