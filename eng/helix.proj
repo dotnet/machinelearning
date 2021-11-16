@@ -146,9 +146,8 @@
 
     <ItemGroup>
       <HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
-        <PublishFolder></PublishFolder>
-        <PublishFolder Condition="%(ProjectsWithTargetFramework.TargetFrameworks) == 'net461'">win-$(BuildArchitecture)</PublishFolder>
-        <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(PublishFolder)</PayloadDirectory>
+        <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\</PayloadDirectory>
+        <PayloadDirectory Condition="%(ProjectsWithTargetFramework.TargetFrameworks) == 'net461'">$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\win-x64</PayloadDirectory>
         <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Command Condition="$(TestTargetFramework.EndsWith('net461')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'netcoreapp3.1'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net461/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Timeout>01:00:00</Timeout>
