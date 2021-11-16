@@ -93,6 +93,12 @@ else()
 
 endif()
 
+# Get the version of the compiler that is in the file name for tool location.
+set (CLR_CMAKE_COMPILER_FILE_NAME_VERSION "")
+if (CMAKE_C_COMPILER MATCHES "-?[0-9]+(\\.[0-9]+)?$")
+  set(CLR_CMAKE_COMPILER_FILE_NAME_VERSION "${CMAKE_MATCH_0}")
+endif()
+
 # Set the architecture we are compiling for on APPLE. This lets you cross target from x86_64 -> arm64.
 if(APPLE)
     set(CMAKE_OSX_ARCHITECTURES ${ARCHITECTURE})
@@ -151,9 +157,11 @@ if(CLR_CMAKE_PLATFORM_UNIX)
         find_program(STRIP strip)
 
         if(CMAKE_SYSTEM_NAME STREQUAL Linux AND DEFINED CMAKE_TOOLCHAIN_FILE)
-            find_program(OBJCOPY llvm-objcopy)
+            find_program(OBJCOPY
+                NAMES llvm-objcopy
+                llvm-objcopy${CLR_CMAKE_COMPILER_FILE_NAME_VERSION})
             #find_program(OBJCOPY objcopy HINTS ${CROSS_ROOTFS}/usr/bin)
-            MESSAGE(WARNING ${OBJCOPY})
+            MESSAGE(WARNING ${CLR_CMAKE_COMPILER_FILE_NAME_VERSION})
         else(CMAKE_SYSTEM_NAME STREQUAL Linux AND DEFINED CMAKE_TOOLCHAIN_FILE)
             if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                 find_program(DSYMUTIL dsymutil)
