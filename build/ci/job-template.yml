@@ -39,10 +39,7 @@ jobs:
         spaceValue: '%20'
       ${{ if and(eq(parameters.pool.vmImage, 'ubuntu-18.04'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
-      ${{ if eq(_targetFramework, '') }}:
-        testTargetFramework: '/p:TestTargetFramework=netcoreapp3.1'
-      ${{ if ne(_targetFramework, '') }}:
-        testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
+      testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
       CODECOV_TOKEN: 03031e35-fe75-4e4c-87ee-e919ae601748
     strategy:
       matrix:
