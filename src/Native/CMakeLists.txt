@@ -83,6 +83,14 @@ else()
     add_compile_options(-fPIC)
     add_compile_options(-fvisibility=hidden)
     add_definitions(-Werror) # treat warnings as errors
+
+    # On Unix CMAKE_BUILD_TYPE is not passed in as just Debug/Release, so manually adding the extra flags
+    if(${CMAKE_BUILD_TYPE} MATCHES "Debug*")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
+    endif()
+
 endif()
 
 # Set the architecture we are compiling for on APPLE. This lets you cross target from x86_64 -> arm64.
@@ -141,11 +149,18 @@ endif(CMAKE_SYSTEM_NAME STREQUAL SunOS)
 if(CLR_CMAKE_PLATFORM_UNIX)
     if(STRIP_SYMBOLS)
         find_program(STRIP strip)
-        if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-            find_program(DSYMUTIL dsymutil)
-        else(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-            find_program(OBJCOPY objcopy)
-        endif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+
+        if(CMAKE_SYSTEM_NAME STREQUAL Linux AND DEFINED CMAKE_TOOLCHAIN_FILE)
+            find_program(OBJCOPY llvm-objcopy)
+            #find_program(OBJCOPY objcopy HINTS ${CROSS_ROOTFS}/usr/bin)
+            MESSAGE(WARNING ${OBJCOPY})
+        else(CMAKE_SYSTEM_NAME STREQUAL Linux AND DEFINED CMAKE_TOOLCHAIN_FILE)
+            if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+                find_program(DSYMUTIL dsymutil)
+            else(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+                find_program(OBJCOPY objcopy)
+            endif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+        endif(CMAKE_SYSTEM_NAME STREQUAL Linux AND DEFINED CMAKE_TOOLCHAIN_FILE)
     endif(STRIP_SYMBOLS)
 endif(CLR_CMAKE_PLATFORM_UNIX)
 
