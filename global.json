@@ -1,13 +1,11 @@
 {
   "tools": {
-    "dotnet": "6.0.100-preview.3.21202.5",
+    "dotnet": "6.0.100",
     "runtimes": {
       "dotnet/x64": [
-        "$(MicrosoftNETCorePlatformsVersion)",
         "$(MicrosoftNETCore3PlatformsVersion)"
       ],
       "dotnet/x86": [
-        "$(MicrosoftNETCorePlatformsVersion)",
         "$(MicrosoftNETCore3PlatformsVersion)"
       ]
     }
