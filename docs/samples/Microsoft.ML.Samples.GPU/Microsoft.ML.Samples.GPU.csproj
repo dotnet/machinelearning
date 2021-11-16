@@ -7,6 +7,7 @@
     <!--This ensures that we can never make the mistake of adding this as a friend assembly. Please don't remove.-->
     <PublicSign>false</PublicSign>
     <RootNamespace>Samples</RootNamespace>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
