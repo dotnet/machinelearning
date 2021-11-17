@@ -160,8 +160,6 @@ if(CLR_CMAKE_PLATFORM_UNIX)
             find_program(OBJCOPY
                 NAMES llvm-objcopy
                 llvm-objcopy${CLR_CMAKE_COMPILER_FILE_NAME_VERSION})
-            #find_program(OBJCOPY objcopy HINTS ${CROSS_ROOTFS}/usr/bin)
-            MESSAGE(WARNING ${CLR_CMAKE_COMPILER_FILE_NAME_VERSION})
         else(CMAKE_SYSTEM_NAME STREQUAL Linux AND DEFINED CMAKE_TOOLCHAIN_FILE)
             if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                 find_program(DSYMUTIL dsymutil)
