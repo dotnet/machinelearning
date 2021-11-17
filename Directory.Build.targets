@@ -73,7 +73,7 @@
     <SingleHit>true</SingleHit>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <CoverletOutputFormat>opencover</CoverletOutputFormat>
-    <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\</CoverletOutput>
+    <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\coverage.opencover.xml</CoverletOutput>
     <Include></Include>
     <Exclude></Exclude>
     <ExcludeByAttribute>ExcludeFromCodeCoverage</ExcludeByAttribute>
