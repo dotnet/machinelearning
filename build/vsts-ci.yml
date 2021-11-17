@@ -48,7 +48,7 @@ jobs:
 - job: Linux_arm
 ################################################################################
   variables:
-    BuildConfig: Release-netcoreapp3_1
+    BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -79,7 +79,7 @@ jobs:
 - job: Linux_arm64
 ################################################################################
   variables:
-    BuildConfig: Release-netcoreapp3_1
+    BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -144,7 +144,7 @@ jobs:
 - job: MacOS_Apple_Silicon
 ################################################################################
   variables:
-    BuildConfig: Release-netcoreapp3_1
+    BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
