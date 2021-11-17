@@ -116,7 +116,7 @@ jobs:
     name: Windows_x64_NetCoreApp31
     buildScript: build.cmd
     innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
       vmImage: windows-2019
     helixQueue: Windows.10.Amd64.Open
@@ -148,7 +148,7 @@ jobs:
     architecture: x86
     buildScript: build.cmd
     innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
       vmImage: windows-2019
     helixQueue: Windows.10.Amd64.Open
