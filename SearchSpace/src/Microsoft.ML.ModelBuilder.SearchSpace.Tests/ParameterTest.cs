@@ -4,11 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
+using System.Threading;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
 using FluentAssertions;
+using Microsoft.ML.ModelBuilder.SearchSpace.Option;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -93,6 +96,19 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
             parameter["JTokenType"].AsType<JTokenType>().Should().Be(JTokenType.Null);
             json = JsonConvert.SerializeObject(parameter);
             Approvals.Verify(json);
+        }
+
+        [Fact]
+        public void Parameter_AsType_should_be_culture_invariant()
+        {
+            var originalCuture = Thread.CurrentThread.CurrentCulture;
+            var culture = new CultureInfo("ru", false);
+            Thread.CurrentThread.CurrentCulture = culture;
+            var ss = new SearchSpace();
+            ss.Add("_SampleSize", new UniformDoubleOption(10000, 20000));
+            var parameter = ss.SampleFromFeatureSpace(new[] { 0.5 });
+            parameter["_SampleSize"].AsType<double>().Should().Be(15000.0);
+            Thread.CurrentThread.CurrentCulture = originalCuture;
         }
 
         private class A
