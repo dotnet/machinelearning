@@ -15,25 +15,29 @@ public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, vo
     long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads);
 */
 template <typename FPType>
-void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, FPType * labelsPtr, FPType * weightsPtr, bool useSampleWeights, FPType * betaPtr,
+void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPtr, FPType * weightsPtr, bool useSampleWeights, FPType * betaPtr,
     long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads)
 {
     bool verbose = false;
-    if (const char* env_p = std::getenv("ONEDAL_WRAPPER_VERBOSE"))
+    if (const char* env_p = std::getenv("MLNET_BACKEND_VERBOSE"))
     {
         verbose = true;
-        printf("%s - %f\n", "l1Reg", l1Reg);
-        printf("%s - %f\n", "l2Reg", l2Reg);
-        printf("%s - %f\n", "accuracyThreshold", accuracyThreshold);
+        printf("%s - %.12f\n", "l1Reg", l1Reg);
+        printf("%s - %.12f\n", "l2Reg", l2Reg);
+        printf("%s - %.12f\n", "accuracyThreshold", accuracyThreshold);
         printf("%s - %d\n", "nIterations", nIterations);
         printf("%s - %d\n", "m", m);
+        printf("%s - %d\n", "nClasses", nClasses);
         printf("%s - %d\n", "nThreads", nThreads);
+
+        const size_t nThreadsOld = Environment::getInstance()->getNumberOfThreads();
+        printf("%s - %lu\n", "nThreadsOld", nThreadsOld);
     }
 
     Environment::getInstance()->setNumberOfThreads(nThreads);
 
     NumericTablePtr featuresTable(new HomogenNumericTable<FPType>(featuresPtr, nColumns, nRows));
-    NumericTablePtr labelsTable(new HomogenNumericTable<FPType>(labelsPtr, 1, nRows));
+    NumericTablePtr labelsTable(new HomogenNumericTable<int>(labelsPtr, 1, nRows));
     NumericTablePtr weightsTable(new HomogenNumericTable<FPType>(weightsPtr, 1, nRows));
 
     SharedPtr<optimization_solver::lbfgs::Batch<FPType>> lbfgsAlgorithm(new optimization_solver::lbfgs::Batch<FPType>());
@@ -99,19 +103,58 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, FPType * label
     FPType * betaForCopy = betaBlock.getBlockPtr();
     for (size_t i = 0; i < nClasses; ++i)
     {
-        for (size_t j = 0; j < nColumns + 1; ++j)
-        {
-            // printf("%f ", betaForCopy[i * (nColumns + 1) + j]);
-            betaPtr[i * (nColumns + 1) + j] = betaForCopy[i * (nColumns + 1) + j];
-        }
-        // printf("\n");
+        betaPtr[i] = betaForCopy[i * (nColumns + 1)];
     }
+    for (size_t i = 0; i < nClasses; ++i)
+    {
+        for (size_t j = 1; j < nColumns + 1; ++j)
+        {
+            betaPtr[nClasses + i * nColumns + j - 1] = betaForCopy[i * (nColumns + 1) + j];
+        }
+    }
+
+    if (verbose)
+    {
+        optimization_solver::iterative_solver::ResultPtr solverResult = lbfgsAlgorithm->getResult();
+        NumericTablePtr nIterationsTable = solverResult->get(optimization_solver::iterative_solver::nIterations);
+        BlockDescriptor<int> nIterationsBlock;
+        nIterationsTable->getBlockOfRows(0, 1, readWrite, nIterationsBlock);
+        int * nIterationsPtr = nIterationsBlock.getBlockPtr();
+
+        printf("Solver iterations: %d\n", nIterationsPtr[0]);
+
+        logistic_regression::prediction::Batch<FPType> predictionAlgorithm(nClasses == 1 ? 2 : nClasses);
+        // predictionAlgorithm.parameter().resultsToEvaluate |=
+        //     static_cast<DAAL_UINT64>(classifier::computeClassProbabilities);
+        predictionAlgorithm.input.set(classifier::prediction::data, featuresTable);
+        predictionAlgorithm.input.set(classifier::prediction::model, modelPtr);
+        predictionAlgorithm.compute();
+        NumericTablePtr predictionsTable = predictionAlgorithm.getResult()->get(classifier::prediction::prediction);
+        BlockDescriptor<int> predictionsBlock;
+        predictionsTable->getBlockOfRows(0, nRows, readWrite, predictionsBlock);
+        int * predictions = predictionsBlock.getBlockPtr();
+        FPType accuracy = 0;
+        for (size_t i = 0; i < nRows; ++i)
+        {
+            if (predictions[i] == labelsPtr[i])
+            {
+                accuracy += 1.0;
+            }
+        }
+        accuracy /= nRows;
+        predictionsTable->releaseBlockOfRows(predictionsBlock);
+        nIterationsTable->releaseBlockOfRows(nIterationsBlock);
+        printf("oneDAL LogReg traning accuracy: %f\n", accuracy);
+    }
+
+    betaTable->releaseBlockOfRows(betaBlock);
+
 }
 
 EXPORT_API(void) logisticRegressionLBFGSCompute(void * featuresPtr, void * labelsPtr, void * weightsPtr, bool useSampleWeights, void * betaPtr,
     long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads)
 {
-    return logisticRegressionLBFGSComputeTemplate<float>((float *)featuresPtr, (float *)labelsPtr, (float *)weightsPtr, useSampleWeights, (float *)betaPtr,
+    return logisticRegressionLBFGSComputeTemplate<float>((float *)featuresPtr, (int *)labelsPtr, (float *)weightsPtr, useSampleWeights, (float *)betaPtr,
         nRows, nColumns, nClasses, l1Reg, l2Reg, accuracyThreshold, nIterations, m, nThreads);
 }
 

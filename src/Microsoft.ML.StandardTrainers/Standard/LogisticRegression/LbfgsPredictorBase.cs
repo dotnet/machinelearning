@@ -463,6 +463,10 @@ namespace Microsoft.ML.Trainers
             NumGoodRows = 0;
             WeightSum = 0;
 
+            _features = null;
+            _labels = null;
+            _weights = null;
+
             CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
             bool useSampleWeights = false;
             if (data.Schema.Weight.HasValue)
@@ -476,7 +480,7 @@ namespace Microsoft.ML.Trainers
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
 
-            var labelsList = new List<float>();
+            var labelsList = new List<int>();
             var featuresList = new List<float>();
             var weightsList = new List<float>();
 
@@ -485,8 +489,11 @@ namespace Microsoft.ML.Trainers
                 while (cursor.MoveNext())
                 {
                     if (useSampleWeights)
+                    {
                         WeightSum += cursor.Weight;
-                    labelsList.Add(cursor.Label);
+                        weightsList.Add(cursor.Weight);
+                    }
+                    labelsList.Add((int)cursor.Label);
                     var values = cursor.Features.GetValues();
                     if (cursor.Features.IsDense)
                     {
@@ -518,7 +525,7 @@ namespace Microsoft.ML.Trainers
             }
             ch.Check(NumGoodRows > 0, NoTrainingInstancesMessage);
 
-            float[] labelsArray = labelsList.ToArray();
+            int[] labelsArray = labelsList.ToArray();
             float[] featuresArray = featuresList.ToArray();
             if (!useSampleWeights)
             {
@@ -534,16 +541,6 @@ namespace Microsoft.ML.Trainers
                     OneDal.LogisticRegressionCompute(featuresPtr, labelsPtr, weightsPtr, useSampleWeights, betaPtr, NumGoodRows, nFeatures, ClassCount, L1Weight, L2Weight, OptTol, MaxIterations, MemorySize, numThreads);
                 }
             }
-
-            // Console.WriteLine("oneDAL Beta:");
-            // for (int i = 0; i < ClassCount; ++i)
-            // {
-            //     for (int j = 0; j < nFeatures + 1; ++j)
-            //     {
-            //         Console.Write($"{betaArray[i * (nFeatures + 1) + j]} ");
-            //     }
-            //     Console.Write('\n');
-            // }
 
             CurrentWeights = new VBuffer<float>(betaArray.Length, betaArray);
         }
@@ -579,9 +576,6 @@ namespace Microsoft.ML.Trainers
             CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
             if (data.Schema.Weight.HasValue)
                 cursorOpt |= CursOpt.Weight;
-
-            // var typeFeat = data.Schema.Feature.Value.Type as VectorDataViewType;
-            // int nFeatures = typeFeat.Size;
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
 
@@ -696,17 +690,6 @@ namespace Microsoft.ML.Trainers
                 CurrentWeights = e.State.X;
                 loss = e.State.Value;
             }
-
-            // var cW = CurrentWeights.GetValues();
-            // Console.WriteLine("default Beta:");
-            // for (int i = 0; i < ClassCount; ++i)
-            // {
-            //     for (int j = 0; j < nFeatures + 1; ++j)
-            //     {
-            //         Console.Write($"{cW[i * (nFeatures + 1) + j]} ");
-            //     }
-            //     Console.Write('\n');
-            // }
 
             ch.Assert(CurrentWeights.Length == BiasCount + WeightCount);
 
