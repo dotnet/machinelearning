@@ -30,18 +30,20 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
             },
         };
 
+        private JsonSerializer jsonSerializer;
         private JToken jtoken;
         private Type type;
 
         public Parameter(object value)
         {
-            this.jtoken = JToken.FromObject(value);
-            this.jtoken = JToken.FromObject(value, JsonSerializer.Create(this.settings));
+            this.jsonSerializer = JsonSerializer.Create(this.settings);
+            this.jtoken = JToken.FromObject(value, this.jsonSerializer);
             this.type = value.GetType();
         }
 
         public Parameter()
         {
+            this.jsonSerializer = JsonSerializer.Create(this.settings);
             this.jtoken = JObject.Parse("{}");
             this.type = typeof(JObject);
         }
@@ -57,7 +59,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
                     return new string[0];
                 }
 
-                return this.jtoken.ToObject<JObject>().Properties().Select(prop => prop.Name).ToArray();
+                return this.jtoken.ToObject<JObject>(this.jsonSerializer).Properties().Select(prop => prop.Name).ToArray();
             }
         }
 
@@ -86,7 +88,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
             {
                 if (this.ContainsKey(key))
                 {
-                    return new Parameter(this.jtoken.ToObject<JObject>().GetValue(key));
+                    return new Parameter(this.jtoken.ToObject<JObject>(this.jsonSerializer).GetValue(key));
                 }
                 else
                 {
@@ -100,12 +102,12 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
         {
             if(this.jtoken.Type == JTokenType.Object)
             {
-                var json = JsonConvert.SerializeObject(this.jtoken);
-                return JsonConvert.DeserializeObject<T>(json);
+                var json = JsonConvert.SerializeObject(this.jtoken, this.settings);
+                return JsonConvert.DeserializeObject<T>(json, this.settings);
             }
             else
             {
-                return this.jtoken.ToObject<T>();
+                return this.jtoken.ToObject<T>(this.jsonSerializer);
             }
         }
 
