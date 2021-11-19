@@ -612,7 +612,8 @@ CMT,1,1,637,1.4,CRD,8.5,0
 CMT,1,1,181,0.6,CSH,4.5,0";
 
             var exp = Assert.ThrowsAny<ArgumentException>(() => DataFrame.LoadCsvFromString(data, header: true));
-            Assert.Equal("DataFrame already contains a column called Column (Parameter 'column')", exp.Message);
+            // .NET Core and .NET Framework return the parameter name slightly different. Using regex so the test will work for both frameworks.
+            Assert.Matches(@"DataFrame already contains a column called Column( \(Parameter 'column'\)|\r\nParameter name: column)", exp.Message);
         }
 
         [Fact]
