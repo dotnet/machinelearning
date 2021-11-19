@@ -573,6 +573,50 @@ CMT,1,1,181,0.6,CSH,4.5";
         }
 
         [Fact]
+        public void TestReadCsvWithMultipleEmptyColumnNameInHeaderWithoutGivenColumn()
+        {
+            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,,,,
+CMT,1,1,1271,3.8,CRD,17.5,0
+CMT,1,1,474,1.5,CRD,8,0
+CMT,1,1,637,1.4,CRD,8.5,0
+CMT,1,1,181,0.6,CSH,4.5,0";
+
+            var df = DataFrame.LoadCsvFromString(data, header: true);
+            var columnName = df.Columns.Select(c => c.Name);
+
+            Assert.Equal(columnName, new[] { "vendor_id", "rate_code", "passenger_count", "trip_time_in_secs", "Column4", "Column5", "Column6", "Column7" });
+        }
+
+        [Fact]
+        public void TestReadCsvWithMultipleEmptyColumnNameInHeaderWithGivenColumn()
+        {
+            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,,,,
+CMT,1,1,1271,3.8,CRD,17.5,0
+CMT,1,1,474,1.5,CRD,8,0
+CMT,1,1,637,1.4,CRD,8.5,0
+CMT,1,1,181,0.6,CSH,4.5,0";
+
+            var df = DataFrame.LoadCsvFromString(data, header: true, columnNames: new[] { "vendor_id", "rate_code", "passenger_count", "trip_time_in_secs", "Column0", "Column1", "Column2", "Column3" });
+            var columnName = df.Columns.Select(c => c.Name);
+
+            Assert.Equal(columnName, new[] { "vendor_id", "rate_code", "passenger_count", "trip_time_in_secs", "Column0", "Column1", "Column2", "Column3" });
+        }
+
+        [Fact]
+        public void TestReadCsvWithRepeatColumnNameInHeader()
+        {
+            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,Column,Column,,
+CMT,1,1,1271,3.8,CRD,17.5,0
+CMT,1,1,474,1.5,CRD,8,0
+CMT,1,1,637,1.4,CRD,8.5,0
+CMT,1,1,181,0.6,CSH,4.5,0";
+
+            var exp = Assert.ThrowsAny<ArgumentException>(() => DataFrame.LoadCsvFromString(data, header: true));
+            // .NET Core and .NET Framework return the parameter name slightly different. Using regex so the test will work for both frameworks.
+            Assert.Matches(@"DataFrame already contains a column called Column( \(Parameter 'column'\)|\r\nParameter name: column)", exp.Message);
+        }
+
+        [Fact]
         public void TestReadCsvWithExtraColumnInRow()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
