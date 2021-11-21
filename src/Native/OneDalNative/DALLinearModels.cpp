@@ -19,7 +19,15 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
     long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads)
 {
     bool verbose = false;
+    #ifdef linux
     if (const char* env_p = std::getenv("MLNET_BACKEND_VERBOSE"))
+    #elif _WIN32
+    // WL Merge Note: std::getenv cause compilation error, use _dupenv_s in win, need to validate correctness.
+    char * env_p;
+    size_t size;
+    errno_t err = _dupenv_s(&env_p, &size, "MLNET_BACKEND_VERBOSE");
+    if(!err && env_p)
+    #endif
     {
         verbose = true;
         printf("%s - %.12f\n", "l1Reg", l1Reg);
@@ -31,8 +39,11 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
         printf("%s - %d\n", "nThreads", nThreads);
 
         const size_t nThreadsOld = Environment::getInstance()->getNumberOfThreads();
-        printf("%s - %lu\n", "nThreadsOld", nThreadsOld);
+        printf("%s - %zd\n", "nThreadsOld", nThreadsOld); //Note: %lu cause compilation error, modify to %d
     }
+    #ifdef _WIN32
+    free(env_p);
+    #endif
 
     Environment::getInstance()->setNumberOfThreads(nThreads);
 
@@ -134,7 +145,7 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
         predictionsTable->getBlockOfRows(0, nRows, readWrite, predictionsBlock);
         int * predictions = predictionsBlock.getBlockPtr();
         FPType accuracy = 0;
-        for (size_t i = 0; i < nRows; ++i)
+        for (long i = 0; i < nRows; ++i)
         {
             if (predictions[i] == labelsPtr[i])
             {
@@ -197,7 +208,7 @@ int ridgeRegressionOnlineComputeTemplate(FPType * featuresPtr, FPType * labelsPt
     pRes = trainingAlgorithm.getPartialResult();
     InputDataArchive dataArch;
     pRes->serialize(dataArch);
-    partialResultSize = dataArch.getSizeOfArchive();
+    partialResultSize = (int)dataArch.getSizeOfArchive();
     dataArch.copyArchiveToArray(partialResultPtr, (size_t)partialResultSize);
 
     return partialResultSize;

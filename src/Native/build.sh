@@ -10,7 +10,7 @@ usage()
     echo "  --configuration <Configuration>   Build Configuration (Debug, Release)"
     echo "  --stripSymbols                    Enable symbol stripping (to external file)"
     echo "  --mkllibpath                      Path to mkl library."
-    echo "  --onedalpath                      Path to OneDAL library."
+    echo "  --onedalpath                      Path to OneDal library."
     exit 1
 }
 

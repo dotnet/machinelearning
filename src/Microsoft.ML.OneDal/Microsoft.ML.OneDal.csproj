@@ -5,7 +5,9 @@
     <IncludeInPackage>Microsoft.ML.OneDal</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>ML.NET additional learners making use of Intel® oneAPI Data Analytics Library (oneDAL).</PackageDescription>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
+    <!-- WL Merge Note: Remove "CopyProjectReferencesToPackage" for "-pack" work currently-->
+    <!-- WL Merge Note: Need to add "target" for "CopyProjectReferencesToPackage" correctly-->
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
@@ -13,6 +15,9 @@
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" >
