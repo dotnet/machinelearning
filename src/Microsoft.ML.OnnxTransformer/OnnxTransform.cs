@@ -383,9 +383,13 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         private static IEnumerable<int> AdjustDimensions(OnnxShape shape)
         {
-            if (shape.Count > 0)
+            if (shape.Count > 0 && shape[0] < 0)
             {
-                return shape.Select(x => (x <= 0) ? 1 : x);
+                shape[0] = 1;
+            }
+            if (shape.Count > 1)
+            {
+                return shape.Select(x => (x <= 0) ? 0 : x);
             }
             return new[] { 1 };
         }
@@ -456,8 +460,8 @@ namespace Microsoft.ML.Transforms.Onnx
                     var type = inputSchema[_inputColIndices[i]].Type;
                     var vectorType = type as VectorDataViewType;
 
-                    if (vectorType != null && vectorType.Size == 0)
-                        throw Host.Except($"Variable length input columns not supported");
+                    //if (vectorType != null && vectorType.Size == 0)
+                    //    throw Host.Except($"Variable length input columns not supported");
 
                     var itemType = type.GetItemType();
                     var nodeItemType = inputNodeInfo.DataViewType.GetItemType();
@@ -474,11 +478,18 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
                     // Compute the total size of the known dimensions of the shape.
-                    int valCount = inputShape.Where(x => x > 0).Aggregate((x, y) => x * y);
-                    // The column length should be divisible by this, so that the other dimensions can be integral.
-                    int typeValueCount = type.GetValueCount();
-                    if (typeValueCount % valCount != 0)
-                        throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {typeValueCount}.");
+                    if (inputShape.Any(x => x == 0))
+                    {
+
+                    }
+                    else
+                    {
+                        int valCount = inputShape.Where(x => x > 0).Aggregate((x, y) => x * y);
+                        // The column length should be divisible by this, so that the other dimensions can be integral.
+                        int typeValueCount = type.GetValueCount();
+                        if (typeValueCount % valCount != 0)
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {typeValueCount}.");
+                    }
                 }
             }
 
@@ -786,9 +797,11 @@ namespace Microsoft.ML.Transforms.Onnx
                 private readonly string _colName;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
+                private readonly bool _isKnownSize;
                 public NamedOnnxValueGetterVec(DataViewRow input, int colIndex, OnnxShape tensorShape)
                 {
                     _srcGetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
+                    _isKnownSize = (input.Schema[colIndex].Type as VectorDataViewType).IsKnownSize;
                     _tensorShape = tensorShape;
                     _colName = input.Schema[colIndex].Name;
                     _vBuffer = default;
@@ -798,6 +811,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     _srcGetter(ref _vBuffer);
                     _vBuffer.CopyToDense(ref _vBufferDense);
+                    if (!_isKnownSize)
+                        _tensorShape[1] = _vBufferDense.Length;
+
                     return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
                 }
             }
@@ -913,8 +929,8 @@ namespace Microsoft.ML.Transforms.Onnx
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
 
                 // Make sure that the input columns in inputSchema are fixed shape tensors.
-                if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
+                //if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
+                //    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
                 var idx = Transformer.Model.ModelInfo.InputNames.IndexOf(input);
