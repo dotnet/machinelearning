@@ -231,7 +231,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly object _preparationSyncRoot;
             private readonly object _testSyncRoot;
             private bool _predictionPreparationDone;
-            private LdaSingleBox _ldaTrainer;
+            private readonly LdaSingleBox _ldaTrainer;
 
             private LdaState()
             {

@@ -140,7 +140,7 @@ namespace Microsoft.ML.Trainers.FastTree
         internal const string ShortName = "ftc";
 
         private bool[] _trainSetLabels;
-        private double _sigmoidParameter;
+        private readonly double _sigmoidParameter;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeBinaryTrainer"/>
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Trainers.FastTree
             private readonly bool _unbalancedSets; //Should we use balanced or unbalanced loss function
             private readonly long _npos;
             private readonly long _nneg;
-            private IParallelTraining _parallelTraining;
+            private readonly IParallelTraining _parallelTraining;
             private readonly double _sigmoidParameter; // Parameter for scaling the loss
 
             public ObjectiveImpl(

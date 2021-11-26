@@ -169,7 +169,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                 }
 
-                private protected override sealed void SpectralResidual(Single input, FixedSizeQueue<Single> data, ref VBufferEditor<double> result)
+                private protected sealed override void SpectralResidual(Single input, FixedSizeQueue<Single> data, ref VBufferEditor<double> result)
                 {
                     // Step 1: Get backadd wave
                     List<Single> backAddList = BackAdd(data);
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     List<Single> filteredIfftMagList = AverageFilter(ifftMagList, Parent.JudgementWindowSize);
 
                     // Step 7: Calculate score and set result
-                    var score = CalculateSocre(ifftMagList[data.Count - 1], filteredIfftMagList[data.Count - 1]);
+                    var score = CalculateScore(ifftMagList[data.Count - 1], filteredIfftMagList[data.Count - 1]);
                     score /= 10.0f;
                     result.Values[1] = score;
 
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     return cumSumList;
                 }
 
-                private Single CalculateSocre(Single mag, Single avgMag)
+                private Single CalculateScore(Single mag, Single avgMag)
                 {
                     double safeDivisor = avgMag;
                     if (safeDivisor < 1e-8)

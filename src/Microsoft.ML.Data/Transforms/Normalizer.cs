@@ -714,7 +714,7 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
-            private NormalizingTransformer _parent;
+            private readonly NormalizingTransformer _parent;
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;

@@ -15,7 +15,7 @@ schedules:
   branches:
     include:
     - main
-    - releases/1.5.5
+    - releases/1.6.0
     - features/automl
     - features/integrationPackage
   always: true
@@ -36,18 +36,18 @@ jobs:
     container: CentosContainer
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_1
+        _configuration: Debug
         _config_short: DI
         _targetFramework: netcoreapp3.1
         _includeBenchmarkData: false
       Release_Build:
-        _configuration: Release-netcoreapp3_1
+        _configuration: Release
         _config_short: RI
         _targetFramework: netcoreapp3.1
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:
-      name:  Hosted Ubuntu 1604
+      vmImage: ubuntu-18.04
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -56,7 +56,7 @@ jobs:
     container: UbuntuContainer
     nightlyBuild: true
     pool:
-      name:  Hosted Ubuntu 1604
+      vmImage: ubuntu-18.04
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -64,7 +64,7 @@ jobs:
     buildScript: ./build.sh
     nightlyBuild: true
     pool:
-      name: Hosted macOS
+      vmImage: macOS-10.15
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -72,16 +72,16 @@ jobs:
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_1
+        _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
       Release_Build:
-        _configuration: Release-netcoreapp3_1
+        _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -89,7 +89,7 @@ jobs:
     buildScript: build.cmd
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -97,16 +97,18 @@ jobs:
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netfx
+        _configuration: Debug
         _config_short: DFX
         _includeBenchmarkData: false
+        _targetFramework: net461
       Release_Build:
-        _configuration: Release-netfx
+        _configuration: Release
         _config_short: RFX
         _includeBenchmarkData: false
+        _targetFramework: net461
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -115,4 +117,4 @@ jobs:
     buildScript: build.cmd
     nightlyBuild: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019

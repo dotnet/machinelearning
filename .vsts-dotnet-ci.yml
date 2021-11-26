@@ -25,18 +25,18 @@ jobs:
     container: UbuntuCrossArmContainer
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_1
+        _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
         _targetFramework: netcoreapp3.1
       Release_Build:
-        _configuration: Release-netcoreapp3_1
+        _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1604
+      vmImage: ubuntu-18.04
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm32v7-20210531091521-97d8652
 
 - template: /build/ci/job-template.yml
@@ -47,18 +47,18 @@ jobs:
     container: UbuntuCrossArm64Container
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_1
+        _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
         _targetFramework: netcoreapp3.1
       Release_Build:
-        _configuration: Release-netcoreapp3_1
+        _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1604
+      vmImage: ubuntu-18.04
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm64v8-20210531091519-97d8652
 
 - template: /build/ci/job-template.yml
@@ -66,92 +66,59 @@ jobs:
     name: Centos_x64_NetCoreApp31
     buildScript: ./build.sh
     container: CentosContainer
-    customMatrixes:
-      Debug_Build:
-        _configuration: Debug-netcoreapp3_1
-        _config_short: DI
-        _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.1
-      Release_Build:
-        _configuration: Release-netcoreapp3_1
-        _config_short: RI
-        _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1604
-    helixQueue: Ubuntu.1604.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-helix-20210528183707-dde38af
+      vmImage: ubuntu-18.04
+    helixQueue: Ubuntu.1804.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-helix-20210528183707-dde38af
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Ubuntu_x64_NetCoreApp21
+    name: Ubuntu_x64_NetCoreApp31
     buildScript: ./build.sh
     container: UbuntuContainer
     innerLoop: true
     pool:
-      name: Hosted Ubuntu 1604
-    helixQueue: Ubuntu.1604.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-helix-20210528184647-dde38af
+      vmImage: ubuntu-18.04
+    helixQueue: Ubuntu.1804.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-helix-20210528184647-dde38af
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: MacOS_x64_NetCoreApp21
+    name: MacOS_x64_NetCoreApp31
     buildScript: ./build.sh
     innerLoop: true
     pool:
-      name: Hosted macOS
+      vmImage: macOS-10.15
     helixQueue: OSX.1015.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm64
-    name: MacOS_cross_arm64_NetCoreApp21
+    name: MacOS_cross_arm64_Net6
     buildScript: ./build.sh
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_1
+        _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
       Release_Build:
-        _configuration: Release-netcoreapp3_1
+        _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
     innerLoop: true
     pool:
       vmImage: macOS-10.15
-    testTargetFramework: net6.0
     helixQueue: OSX.1100.Arm64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetCoreApp31
     buildScript: build.cmd
-    customMatrixes:
-      Debug_Build:
-        _configuration: Debug-netcoreapp3_1
-        _config_short: DI
-        _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.1
-      Release_Build:
-        _configuration: Release-netcoreapp3_1
-        _config_short: RI
-        _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.1
     innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
-      name: Hosted VS2017
-    helixQueue: Windows.10.Amd64.Open
-
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x64_NetCoreApp21
-    buildScript: build.cmd
-    innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
-    pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
     helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
@@ -160,28 +127,28 @@ jobs:
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netfx
+        _configuration: Debug
         _config_short: DFX
         _includeBenchmarkData: false
-        _targetFramework: win-x64
+        _targetFramework: net461
       Release_Build:
-        _configuration: Release-netfx
+        _configuration: Release
         _config_short: RFX
         _includeBenchmarkData: false
-        _targetFramework: win-x64
+        _targetFramework: net461
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
     helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x86_NetCoreApp21
+    name: Windows_x86_NetCoreApp31
     architecture: x86
     buildScript: build.cmd
     innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
     helixQueue: Windows.10.Amd64.Open

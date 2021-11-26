@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <NoWarn>2003;$(NoWarn)</NoWarn>
+  <!-- NU1604 inclusive lower bound for dependencies.
+  .NET Framework 4.6.1 includes System.ValueTuple without a version, so we need to ignore the warning here -->
+    <NoWarn>NU1604;2003;$(NoWarn)</NoWarn>
     <PublicSign>false</PublicSign>
     <SourceLink></SourceLink>
     <PlatformTarget>$(TargetArchitecture)</PlatformTarget>

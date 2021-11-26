@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var options = new TextFeaturizingEstimator.Options()
             {
-                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 1},
+                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 1 },
                 Norm = TextFeaturizingEstimator.NormFunction.L2,
                 OutputTokensColumnName = "OutputTokens"
             };
@@ -684,7 +684,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, maximumNumberOfIterations: 10,
                     resetRandomGenerator: true));
 
-            // Diabling this check due to the following issue with consitency of output.
+            // Disabling this check due to the following issue with consitency of output.
             // `seed` specified in ConsoleEnvironment has no effect.
             // https://github.com/dotnet/machinelearning/issues/1004
             // On single box, setting `s.ResetRandomGenerator = true` works but fails on build server
@@ -705,7 +705,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.Equal(10, (savedData.Schema[0].Type as VectorDataViewType)?.Size);
             }
 
-            // Diabling this check due to the following issue with consitency of output.
+            // Disabling this check due to the following issue with consitency of output.
             // `seed` specified in ConsoleEnvironment has no effect.
             // https://github.com/dotnet/machinelearning/issues/1004
             // On single box, setting `s.ResetRandomGenerator = true` works but fails on build server

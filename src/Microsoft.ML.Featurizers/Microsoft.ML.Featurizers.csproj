@@ -2,7 +2,7 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Featurizers</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>ML.NET featurizers with native code implementation</PackageDescription>

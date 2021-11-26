@@ -7,7 +7,7 @@ namespace Samples.Dynamic
 {
     class ConvertToGrayScaleInMemory
     {
-        static public void Example()
+        public static void Example()
         {
             var mlContext = new MLContext();
             // Create an image list.

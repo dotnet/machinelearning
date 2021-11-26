@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class InferredPipelineTests : BaseTestClass
     {
         public InferredPipelineTests(ITestOutputHelper output) : base(output)

@@ -53,7 +53,7 @@ namespace Microsoft.ML.IntegrationTests
                         KeepPunctuations = false,
                         OutputTokensColumnName = "FeaturizeTextTokens",
                         CharFeatureExtractor = null, // new WordBagEstimator.Options { NgramLength = 0, SkipLength = -1 },
-                        WordFeatureExtractor = new WordBagEstimator.Options { NgramLength = 1},
+                        WordFeatureExtractor = new WordBagEstimator.Options { NgramLength = 1 },
                         Norm = TextFeaturizingEstimator.NormFunction.None
                     },
                     "SentimentText");
@@ -139,7 +139,7 @@ namespace Microsoft.ML.IntegrationTests
                 if (i == 0)
                     Assert.Equal("Label", column.Name);
                 else
-                    Assert.Equal(HousingRegression.Features[i-1], column.Name);
+                    Assert.Equal(HousingRegression.Features[i - 1], column.Name);
                 i++;
             }
 
@@ -149,7 +149,7 @@ namespace Microsoft.ML.IntegrationTests
                 // Validate there was data in the row by checking that some values were not zero since zero is the default.
                 var rowSum = row.MedianHomeValue;
                 foreach (var property in HousingRegression.Features)
-                    rowSum += (float) row.GetType().GetProperty(property).GetValue(row, null);
+                    rowSum += (float)row.GetType().GetProperty(property).GetValue(row, null);
 
                 Assert.NotEqual(0, rowSum);
             }
@@ -191,7 +191,8 @@ namespace Microsoft.ML.IntegrationTests
             }
         }
 
-        internal class LogWatcher {
+        internal class LogWatcher
+        {
 
             public readonly ConcurrentDictionary<string, int> Lines;
 
@@ -199,7 +200,7 @@ namespace Microsoft.ML.IntegrationTests
             {
                 Lines = new ConcurrentDictionary<string, int>();
             }
-            
+
             public void ObserveEvent(object sender, LoggingEventArgs e)
             {
                 Lines.AddOrUpdate(e.Message, 1, (key, oldValue) => oldValue + 1);

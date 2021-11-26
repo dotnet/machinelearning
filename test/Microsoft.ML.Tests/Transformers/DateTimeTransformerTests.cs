@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.Featurizers;
 using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.Featurizers;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
-            var dataList = new[] { new { date = new DateTime(2025,6,30)} };
+            var dataList = new[] { new { date = new DateTime(2025, 6, 30) } };
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.

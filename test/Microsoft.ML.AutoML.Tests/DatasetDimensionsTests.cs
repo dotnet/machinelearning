@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class DatasetDimensionsTests : BaseTestClass
     {
         public DatasetDimensionsTests(ITestOutputHelper output) : base(output)

@@ -13,7 +13,7 @@ namespace Microsoft.ML.Internal.Utilities
     {
         private Single[] _valuesSng; // distinct values
         private Double[] _valuesDbl; // distinct values
-        private List<int> _counts; // counts for each value
+        private readonly List<int> _counts; // counts for each value
         private int[] _path; // current set of pegs
 
         protected int CountBins { get; private set; } // number of bins
@@ -314,8 +314,8 @@ namespace Microsoft.ML.Internal.Utilities
             }
         }
 
-        private Heap<Segment> _segmentHeap; // heap used for dropping initial peg placement
-        private HeapNode.Heap<Peg> _pegHeap; // heap used for selecting the largest energy decrease
+        private readonly Heap<Segment> _segmentHeap; // heap used for dropping initial peg placement
+        private readonly HeapNode.Heap<Peg> _pegHeap; // heap used for selecting the largest energy decrease
         private int[] _accum; // integral of counts
         private int[] _path; // current set of pegs
         private float _meanBinSize;

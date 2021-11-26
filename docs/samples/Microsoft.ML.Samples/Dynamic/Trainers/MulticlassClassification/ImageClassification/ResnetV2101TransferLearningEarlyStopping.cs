@@ -2,15 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
-using static Microsoft.ML.DataOperationsCatalog;
-using System.Linq;
 using Microsoft.ML.Data;
-using System.IO.Compression;
-using System.Threading;
-using System.Net;
 using Microsoft.ML.Vision;
+using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {

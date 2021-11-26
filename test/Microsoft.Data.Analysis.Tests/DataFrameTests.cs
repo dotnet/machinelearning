@@ -1530,7 +1530,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestGoupByDifferentColumnTypes()
+        public void TestGroupByDifferentColumnTypes()
         {
             void GroupCountAndAssert(DataFrame frame)
             {
@@ -1890,8 +1890,8 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame left = MakeDataFrameWithAllMutableColumnTypes(10);
             DataFrame right = MakeDataFrameWithAllMutableColumnTypes(5);
 
-            // Tests with right.Rows.Count < left.Rows.Count 
-            // Left merge 
+            // Tests with right.Rows.Count < left.Rows.Count
+            // Left merge
             DataFrame merge = left.Merge<int>(right, "Int", "Int");
             Assert.Equal(10, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
@@ -1899,7 +1899,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(merge.Columns["Int_left"][5]);
             VerifyMerge(merge, left, right, JoinAlgorithm.Left);
 
-            // Right merge 
+            // Right merge
             merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.Right);
             Assert.Equal(5, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
@@ -1907,14 +1907,14 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(merge.Columns["Int_right"][2]);
             VerifyMerge(merge, left, right, JoinAlgorithm.Right);
 
-            // Outer merge 
+            // Outer merge
             merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.FullOuter);
             Assert.Equal(merge.Rows.Count, left.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
             Assert.Null(merge.Columns["Int_right"][6]);
             VerifyMerge(merge, left, right, JoinAlgorithm.FullOuter);
 
-            // Inner merge 
+            // Inner merge
             merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.Inner);
             Assert.Equal(merge.Rows.Count, right.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
@@ -1922,8 +1922,8 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(merge.Columns["Int_right"][4]);
             VerifyMerge(merge, left, right, JoinAlgorithm.Inner);
 
-            // Tests with right.Rows.Count > left.Rows.Count 
-            // Left merge 
+            // Tests with right.Rows.Count > left.Rows.Count
+            // Left merge
             right = MakeDataFrameWithAllMutableColumnTypes(15);
             merge = left.Merge<int>(right, "Int", "Int");
             Assert.Equal(merge.Rows.Count, left.Rows.Count);
@@ -1931,7 +1931,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(merge.Columns["Int_right"][6], right.Columns["Int"][6]);
             VerifyMerge(merge, left, right, JoinAlgorithm.Left);
 
-            // Right merge 
+            // Right merge
             merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.Right);
             Assert.Equal(merge.Rows.Count, right.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
@@ -1939,7 +1939,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(merge.Columns["Int_left"][12]);
             VerifyMerge(merge, left, right, JoinAlgorithm.Right);
 
-            // Outer merge 
+            // Outer merge
             merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.FullOuter);
             Assert.Equal(16, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
@@ -1947,7 +1947,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(merge.Columns["Int_left"][15]);
             VerifyMerge(merge, left, right, JoinAlgorithm.FullOuter);
 
-            // Inner merge 
+            // Inner merge
             merge = left.Merge<int>(right, "Int", "Int", joinAlgorithm: JoinAlgorithm.Inner);
             Assert.Equal(9, merge.Rows.Count);
             Assert.Equal(merge.Columns.Count, left.Columns.Count + right.Columns.Count);
@@ -2089,14 +2089,14 @@ namespace Microsoft.Data.Analysis.Tests
              * 0        0         0
              * 1        5         1
              * null     null      2
-             * null(3)  null(3)   3 
+             * null(3)  null(3)   3
              * 4        6         4
              */
 
             /*
              * Merge will result in a DataFrame like:
              * Int_left:    Int_right:        Merged:    Index:
-             * 0            0                 0 - 0      0       
+             * 0            0                 0 - 0      0
              * 1            null              1 - N      1
              * null         null              2 - 2      2
              * null         null(3)           2 - 3      3
@@ -2162,11 +2162,11 @@ namespace Microsoft.Data.Analysis.Tests
              *     Left     |     Right
              *   I  G1 G2   |   I  G1 G2
              *  -------------------------
-             *   0  0  3    |   0  1  1           
-             *   1  1  1    |   1  1  2   
+             *   0  0  3    |   0  1  1
+             *   1  1  1    |   1  1  2
              *   2  1  2    |   2  1  1
              *   3  2  1    |   3  2  1
-             *   4  2  2    
+             *   4  2  2
              *   5  3  1
              */
 
@@ -2226,11 +2226,11 @@ namespace Microsoft.Data.Analysis.Tests
             // Creates this case:
             /*  ---------------------------
              *     Left    |    Right
-             *   I  G1 G2  |   I  G1 G2 
+             *   I  G1 G2  |   I  G1 G2
              *  ---------------------------
-             *   0  1  1   |   0  1  1    
-             *   1  1  1   |   1  1  1  
-             *   2  3  3   |   2  0  0 
+             *   0  1  1   |   0  1  1
+             *   1  1  1   |   1  1  1
+             *   2  3  3   |   2  0  0
              */
 
             /*
@@ -2284,11 +2284,11 @@ namespace Microsoft.Data.Analysis.Tests
             // Creates this case:
             /*  ---------------------------
              *     Left    |    Right
-             *   I  G1 G2  |   I  G1 G2 
+             *   I  G1 G2  |   I  G1 G2
              *  ---------------------------
-             *   0  1  1   |   0  1  1    
-             *   1  1  1   |   1  1  1  
-             *   2  3  3   |   2  0  0 
+             *   0  1  1   |   0  1  1
+             *   1  1  1   |   1  1  1
+             *   2  3  3   |   2  0  0
              */
 
             /*
@@ -2342,11 +2342,11 @@ namespace Microsoft.Data.Analysis.Tests
             // Creates this case:
             /*  ---------------------------
              *     Left    |    Right
-             *   I  G1 G2  |   I  G1 G2 
+             *   I  G1 G2  |   I  G1 G2
              *  ---------------------------
-             *   0  1  1   |   0  1  1    
-             *   1  1  1   |   1  1  1  
-             *   2  3  3   |   2  0  0 
+             *   0  1  1   |   0  1  1
+             *   1  1  1   |   1  1  1
+             *   2  3  3   |   2  0  0
              */
 
             /*
@@ -2398,11 +2398,11 @@ namespace Microsoft.Data.Analysis.Tests
             // Creates this case:
             /*  ---------------------------
              *     Left    |    Right
-             *   I  G1 G2  |   I  G1 G2 
+             *   I  G1 G2  |   I  G1 G2
              *  ---------------------------
-             *   0  1  1   |   0  1  1    
-             *   1  1  1   |   1  1  1  
-             *   2  3  3   |   2  0  0 
+             *   0  1  1   |   0  1  1
+             *   1  1  1   |   1  1  1
+             *   2  3  3   |   2  0  0
              */
 
             /*
@@ -2442,7 +2442,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestMerge_ByThreeColumns_OneToOne_LeftJoin()
         {
-            //Test merge by LEFT join of int and string columns 
+            //Test merge by LEFT join of int and string columns
 
             //Arrange
             var left = new DataFrame();
@@ -2462,7 +2462,7 @@ namespace Microsoft.Data.Analysis.Tests
              *      Left      |      Right
              *   I  G1 G2 G3  |   I  G1 G2 G3
              *  ------------------------------
-             *   0  1  1  A   |   0  0  1  Z  
+             *   0  1  1  A   |   0  0  1  Z
              *   1  1  2  B   |   1  1  1  Y
              *   2  2  1  C   |   2  1  2  B
              */
@@ -2470,7 +2470,7 @@ namespace Microsoft.Data.Analysis.Tests
             /*
              * Merge will result in a DataFrame like:
              *   IL G1 G2 G3    IR              Merged:
-             *  -------------------------       
+             *  -------------------------
              *   0  1  1  A                      0 - N
              *   1  1  2  B     2  1  2  B       1 - 2
              *   2  2  1  C                      2 - N
@@ -2498,7 +2498,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestMerge_ByThreeColumns_OneToOne_RightJoin()
         {
-            //Test merge by RIGHT join of int and string columns 
+            //Test merge by RIGHT join of int and string columns
 
             //Arrange
             var left = new DataFrame();
@@ -2518,7 +2518,7 @@ namespace Microsoft.Data.Analysis.Tests
              *      Left      |      Right
              *   I  G1 G2 G3  |   I  G1 G2 G3
              *  ------------------------------
-             *   0  1  1  A   |   0  0  1  Z  
+             *   0  1  1  A   |   0  0  1  Z
              *   1  1  2  B   |   1  1  1  Y
              *   2  2  1  C   |   2  1  2  B
              */
@@ -2526,7 +2526,7 @@ namespace Microsoft.Data.Analysis.Tests
             /*
              * Merge will result in a DataFrame like:
              *   IL G1 G2 G3    IR              Merged:
-             *  -------------------------       
+             *  -------------------------
              *                  0  0  1  Z       N - 0
              *                  1  1  1  Y       N - 1
              *   1  1  2  B     2  1  2  B       1 - 2

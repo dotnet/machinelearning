@@ -57,8 +57,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         private readonly int _lag;
-        private BeginOptions _begin;
-        private TInput _nanValue;
+        private readonly BeginOptions _begin;
+        private readonly TInput _nanValue;
 
         protected SlidingWindowTransformBase(Arguments args, string loaderSignature, IHostEnvironment env, IDataView input)
             : base(args.WindowSize + args.Lag - 1, args.WindowSize + args.Lag - 1, args.Name, args.Source, loaderSignature, env, input)

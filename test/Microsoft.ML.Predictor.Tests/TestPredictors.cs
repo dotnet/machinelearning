@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,16 +16,16 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.Data;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
-    using Microsoft.ML.Trainers.LightGbm;
     using Microsoft.ML.Runtime;
     using Microsoft.ML.TestFramework;
+    using Microsoft.ML.TestFrameworkCommon;
+    using Microsoft.ML.TestFrameworkCommon.Attributes;
     using Microsoft.ML.Trainers;
     using Microsoft.ML.Trainers.FastTree;
+    using Microsoft.ML.Trainers.LightGbm;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
-    using Microsoft.ML.TestFrameworkCommon;
-    using Microsoft.ML.TestFrameworkCommon.Attributes;
 
     /// <summary>
     /// Tests using maml commands (IDV) functionality.
@@ -697,7 +697,7 @@ namespace Microsoft.ML.RunTests
             }
 
             var cursors = new DataViewRowCursor[predCount];
-            var cols = scored.Schema.Where( c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
+            var cols = scored.Schema.Where(c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
 
             for (int i = 0; i < predCount; i++)
                 cursors[i] = scoredArray[i].GetRowCursor(cols);
@@ -1215,7 +1215,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-#region "Regressor"
+        #region "Regressor"
 
 #if OLD_TESTS // REVIEW: Port these tests?
         /// <summary>
@@ -1526,7 +1526,7 @@ namespace Microsoft.ML.RunTests
         }
 #endif
 
-#endregion
+        #endregion
 
         /// <summary>
         ///A test for FR ranker

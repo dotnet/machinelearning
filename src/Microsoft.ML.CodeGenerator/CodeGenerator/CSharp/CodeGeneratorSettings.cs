@@ -54,7 +54,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public string UnstablePackageVersion { get; set; }
 
-        public string OnnxRuntimePacakgeVersion { get; set; }
+        public string OnnxRuntimePackageVersion { get; set; }
 
         public bool IsAzureAttach { get; set; }
 

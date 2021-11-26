@@ -14,7 +14,7 @@
 EXPORT_API(void) C_SegmentFindOptimalPath15(_In_reads_(valc) unsigned long* valv, _In_ long valc, _Inout_ long long* pBits, _Inout_ long* pTransitions)
 {
     unsigned long transmap, bitindex = 0, bestindex = 0;
-    short bestcost;
+    int bestcost;
     long long bits = 40;
 
     // Get the preallocated memory.
@@ -46,6 +46,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath15(_In_reads_(valc) unsigned long* valv
         // Calculate the min cost position in the current iteration.
         bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
             _mm_cvtepi8_epi16(state0f), _mm_cvtepi8_epi16(_mm_srli_si128(state0f, 8)))), 0);
+
         // Keep the invariant that the min cost position has 0 cost.
         state0f = _mm_or_si128(mask, _mm_sub_epi8(state0f, _mm_set1_epi8((char)bestcost)));
         // Find the bit index of the best position.
@@ -76,7 +77,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath15(_In_reads_(valc) unsigned long* valv
 EXPORT_API(void) C_SegmentFindOptimalPath21(_In_reads_(valc) unsigned long* valv, _In_ long valc, _Inout_ long long* pBits, _Inout_ long* pTransitions)
 {
     unsigned long transmap, bitindex = 0, bestindex = 0;
-    short bestcost;
+    int bestcost;
     long long bits = 40;
     unsigned long* end = valv + valc;
 
@@ -133,6 +134,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath21(_In_reads_(valc) unsigned long* valv
         bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
             _mm_min_epu16(_mm_cvtepi8_epi16(statelo), _mm_cvtepi8_epi16(_mm_srli_si128(statelo, 8))),
             _mm_min_epu16(_mm_cvtepi8_epi16(statehi), _mm_cvtepi8_epi16(_mm_srli_si128(statehi, 8))))), 0);
+
         // Keep the invariant that the min cost position has 0 cost.
         statelo = _mm_or_si128(masklo, _mm_sub_epi8(statelo, _mm_set1_epi8((char)bestcost)));
         statehi = _mm_or_si128(maskhi, _mm_sub_epi8(statehi, _mm_set1_epi8((char)bestcost)));
@@ -169,7 +171,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath7(_In_reads_(valc) unsigned long* valv,
     // faster than the 15-bit version of this function, but this does
     // not seem to actually be the case?  This should be improved.
     unsigned long transmap, bitindex = 0, bestindex = 0;
-    short bestcost;
+    int bestcost;
     long long bits = 40;
     unsigned long* end = valv + valc;
 
@@ -205,8 +207,9 @@ EXPORT_API(void) C_SegmentFindOptimalPath7(_In_reads_(valc) unsigned long* valv,
         __m128i min = _mm_minpos_epu16(state0f);
         bestcost = _mm_extract_epi16(min, 0);
         bestindex = _mm_extract_epi16(min, 1);
+
         // Keep the invariant that the min cost position has 0 cost.
-        state0f = _mm_or_si128(mask, _mm_sub_epi8(state0f, _mm_set1_epi16(bestcost)));
+        state0f = _mm_or_si128(mask, _mm_sub_epi8(state0f, _mm_set1_epi16((short)bestcost)));
         // Store the vital statistics.
         // [31,27]: best bit index
         // [26,22]: min bits to encoded current value (m)
@@ -260,9 +263,11 @@ EXPORT_API(void) C_SegmentFindOptimalCost15(_In_reads_(valc) unsigned int* valv,
         __m128i mask = _mm_load_si128(masksu + numbits);
         // Calculate the next base state of state0f.
         state0f = _mm_or_si128(mask, _mm_min_epu8(_mm_adds_epu8(state0f, stay), transition));
+
         // Calculate the min cost position in the current iteration.
-        short bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
+        int bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
             _mm_cvtepi8_epi16(state0f), _mm_cvtepi8_epi16(_mm_srli_si128(state0f, 8)))), 0);
+
         // Keep the invariant that the min cost position has 0 cost.
         state0f = _mm_or_si128(mask, _mm_sub_epi8(state0f, _mm_set1_epi8((char)bestcost)));
         // Find the position of the best position.
@@ -274,7 +279,7 @@ EXPORT_API(void) C_SegmentFindOptimalCost15(_In_reads_(valc) unsigned int* valv,
 EXPORT_API(void) C_SegmentFindOptimalCost31(_In_reads_(valc) unsigned long* valv, _In_ long valc, _Inout_ long long* pBits)
 {
     unsigned long bitindex = 0, bestindex = 0;
-    short bestcost;
+    int bestcost;
     long long bits = 40;
     unsigned long* end = valv + valc;
 
@@ -318,6 +323,7 @@ EXPORT_API(void) C_SegmentFindOptimalCost31(_In_reads_(valc) unsigned long* valv
         bestcost = _mm_extract_epi16(_mm_minpos_epu16(_mm_min_epu16(
             _mm_min_epu16(_mm_cvtepi8_epi16(statelo), _mm_cvtepi8_epi16(_mm_srli_si128(statelo, 8))),
             _mm_min_epu16(_mm_cvtepi8_epi16(statehi), _mm_cvtepi8_epi16(_mm_srli_si128(statehi, 8))))), 0);
+
         // Keep the invariant that the min cost position has 0 cost.
         statelo = _mm_or_si128(masklo, _mm_sub_epi8(statelo, _mm_set1_epi8((char)bestcost)));
         statehi = _mm_or_si128(maskhi, _mm_sub_epi8(statehi, _mm_set1_epi8((char)bestcost)));

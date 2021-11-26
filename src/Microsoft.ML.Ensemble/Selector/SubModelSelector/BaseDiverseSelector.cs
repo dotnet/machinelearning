@@ -19,7 +19,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         }
 
         private readonly IComponentFactory<IDiversityMeasure<TOutput>> _diversityMetricType;
-        private ConcurrentDictionary<FeatureSubsetModel<TOutput>, TOutput[]> _predictions;
+        private readonly ConcurrentDictionary<FeatureSubsetModel<TOutput>, TOutput[]> _predictions;
 
         private protected BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name,
             IComponentFactory<IDiversityMeasure<TOutput>> diversityMetricType)

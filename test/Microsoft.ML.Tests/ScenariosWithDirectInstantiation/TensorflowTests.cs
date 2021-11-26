@@ -9,20 +9,20 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
-using Microsoft.ML.Vision;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
-using Microsoft.ML.TensorFlow;
-using InMemoryImage = Microsoft.ML.Tests.ImageTests.InMemoryImage;
+using Microsoft.ML.Vision;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Runtime;
+using InMemoryImage = Microsoft.ML.Tests.ImageTests.InMemoryImage;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -1219,7 +1219,8 @@ namespace Microsoft.ML.Scenarios
             };
 
             // Check the predictions consistency
-            for (var i = 0; i < predictions.Length; i++) {
+            for (var i = 0; i < predictions.Length; i++)
+            {
                 for (var j = 0; j < predictions[i].PredictedScores.Length; j++)
                     Assert.Equal(predictions[i].PredictedScores[j], testPredictions[i].PredictedScores[j], 2);
             }

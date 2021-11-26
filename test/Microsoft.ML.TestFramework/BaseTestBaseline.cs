@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -127,9 +127,9 @@ namespace Microsoft.ML.RunTests
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                if(RuntimeInformation.ProcessArchitecture == Architecture.X64)
+                if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
                     configurationDirs.Add("osx-x64");
-                else if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
                     configurationDirs.Add("osx-arm64");
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -144,9 +144,9 @@ namespace Microsoft.ML.RunTests
             // The small difference comes from CPUMath using different instruction set:
             // 1. net framework and net core 2.1 uses CpuMathUtils.netstandard that uses SSE instruction set;
             // 2. net core 3.1 uses CpuMathUtils.netcoreapp that uses AVX, SSE or direct floating point calculation
-            // depending on hardward avaibility.
+            // depending on hardward availability.
             // AVX and SSE generates slightly different result due to nature of floating point math.
-            // So Ideally we should adding AVX support at CPUMath native library, 
+            // So Ideally we should adding AVX support at CPUMath native library,
             // use below issue to track: https://github.com/dotnet/machinelearning/issues/5044
             // don't need netcoreapp21 as this is the default case
             if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
@@ -468,7 +468,7 @@ namespace Microsoft.ML.RunTests
 
         /// <summary>
         /// Checks that <paramref name="outPath"/>'s contents are a suffix of <paramref name="basePath"/>'s
-        /// contents, assuming one skips <paramref name="skip"/> lines from <paramref name="outPath"/>, and 
+        /// contents, assuming one skips <paramref name="skip"/> lines from <paramref name="outPath"/>, and
         /// the file is read up to the <paramref name="tailSignature"/> line (or to the end, if it's not provided).
         /// </summary>
         protected bool CheckOutputIsSuffix(string basePath, string outPath, int skip = 0, string tailSignature = null)
@@ -609,7 +609,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, 
+        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null,
             int digitsOfPrecision = DigitsOfPrecision, bool logFailure = true)
         {
             if (double.IsNaN(expected) && double.IsNaN(actual))
@@ -618,17 +618,17 @@ namespace Microsoft.ML.RunTests
             // this follows the IEEE recommendations for how to compare floating point numbers
             double allowedVariance = Math.Pow(10, -digitsOfPrecision);
             double delta = Round(expected, digitsOfPrecision) - Round(actual, digitsOfPrecision);
-            // limitting to the digits we care about. 
+            // limitting to the digits we care about.
             delta = Math.Round(delta, digitsOfPrecision);
 
             bool inRange = delta >= -allowedVariance && delta <= allowedVariance;
 
             // for some cases, rounding up is not beneficial
-            // so checking on whether the difference is significant prior to rounding, and failing only then. 
-            // example, for 5 digits of precision. 
+            // so checking on whether the difference is significant prior to rounding, and failing only then.
+            // example, for 5 digits of precision.
             // F1 = 1.82844949 Rounds to 1.8284
             // F2 = 1.8284502  Rounds to 1.8285
-            // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
+            // would fail the inRange == true check, but would succeed the following, and we do consider those two numbers
             // (1.82844949 - 1.8284502) = -0.00000071
 
             double delta2 = 0;
@@ -642,7 +642,7 @@ namespace Microsoft.ML.RunTests
             {
                 var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
 
-                if(logFailure)
+                if (logFailure)
                     Fail(message +
                             $"Values to compare are {expected} and {actual}" + Environment.NewLine +
                             $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
@@ -668,7 +668,7 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// Takes in 2 IDataViews and compares the specified column. 
+        /// Takes in 2 IDataViews and compares the specified column.
         /// </summary>
         /// <param name="leftColumnName">The name of the left column to compare.</param>
         /// <param name="rightColumnName">The name of the right column to compare.</param>
@@ -737,7 +737,7 @@ namespace Microsoft.ML.RunTests
                 {
                     expectedScalarGetter = expectedCursor.GetGetter<T>(leftColumn);
 
-                    // If the right column is from onxx it will still be a VBuffer, just has a length of 1.
+                    // If the right column is from onnx it will still be a VBuffer, just has a length of 1.
                     if (isRightColumnOnnxScalar)
                         actualVectorGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
                     else
@@ -760,7 +760,7 @@ namespace Microsoft.ML.RunTests
                     {
                         expectedScalarGetter(ref expectedScalar);
 
-                        // If the right column is from onxx get a VBuffer instead and just use the first value.
+                        // If the right column is from onnx get a VBuffer instead and just use the first value.
                         if (isRightColumnOnnxScalar)
                         {
                             actualVectorGetter(ref actualVector);
@@ -967,12 +967,12 @@ namespace Microsoft.ML.RunTests
 
         /// <summary>
         /// Opens a stream writer for the specified file using the specified encoding and buffer size.
-        /// If the file exists, it can be either overwritten or appended to. 
+        /// If the file exists, it can be either overwritten or appended to.
         /// If the file does not exist, a new file is created.
         /// </summary>
         /// <param name="path">The complete file path to write to.</param>
         /// <param name="append">
-        /// true to append data to the file; false to overwrite the file. 
+        /// true to append data to the file; false to overwrite the file.
         /// If the specified file does not exist, this parameter has no effect and a new file is created.
         /// </param>
         /// <param name="encoding">The character encoding to use.</param>
@@ -998,7 +998,7 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// Invoke MAML with specified arguments without output baseline. 
+        /// Invoke MAML with specified arguments without output baseline.
         /// This method is used in unit tests when the output is not baselined.
         /// If the output is to be baselined and compared, the other overload should be used.
         /// </summary>

@@ -62,9 +62,7 @@ By default, building from the root or within a project will build the libraries 
 One can build in Debug or Release mode from the root by doing `build.cmd -configuration Release` or `build.cmd -configuration Debug`.
 
 Currently, the full list of supported configurations are:
-- `Debug`, `Release` (for .NET Core 2.1)
-- `Debug-netcoreapp3_1`, `Release-netcoreapp3_1` (for .NET Core 3.1)
-- `Debug-netfx`, `Release-netfx` (for .NET Framework 4.6.1)
+- `Debug`, `Release` (for .NET Core 3.1 and .NET Framework 4.6.1)
 
 ### Building other Architectures
 

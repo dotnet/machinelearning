@@ -110,9 +110,21 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <summary>
+        /// return <paramref name="columnIndex"/> of <paramref name="columnNames"/> if not null or empty, otherwise return "Column{i}" where i is <paramref name="columnIndex"/>.
+        /// </summary>
+        /// <param name="columnNames">column names.</param>
+        /// <param name="columnIndex">column index.</param>
+        /// <returns></returns>
         private static string GetColumnName(string[] columnNames, int columnIndex)
         {
-            return columnNames == null ? "Column" + columnIndex.ToString() : columnNames[columnIndex];
+            var defaultColumnName = "Column" + columnIndex.ToString();
+            if (columnNames is string[])
+            {
+                return string.IsNullOrEmpty(columnNames[columnIndex]) ? defaultColumnName : columnNames[columnIndex];
+            }
+
+            return defaultColumnName;
         }
 
         private static DataFrameColumn CreateColumn(Type kind, string[] columnNames, int columnIndex)
@@ -293,10 +305,10 @@ namespace Microsoft.Data.Analysis
 
         private class WrappedStreamReaderOrStringReader
         {
-            private Stream _stream;
-            private long _initialPosition;
-            private Encoding _encoding;
-            private string _csvString;
+            private readonly Stream _stream;
+            private readonly long _initialPosition;
+            private readonly Encoding _encoding;
+            private readonly string _csvString;
 
             public WrappedStreamReaderOrStringReader(Stream stream, Encoding encoding)
             {

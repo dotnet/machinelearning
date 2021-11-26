@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
         private sealed class SubsetActive : DataViewRow
         {
             private readonly DataViewRow _row;
-            private Func<int, bool> _pred;
+            private readonly Func<int, bool> _pred;
 
             public SubsetActive(DataViewRow row, Func<int, bool> pred)
             {

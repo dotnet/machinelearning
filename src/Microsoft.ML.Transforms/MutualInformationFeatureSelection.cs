@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms
             public int NumBins = Defaults.NumBins;
         }
 
-        private IHost _host;
+        private readonly IHost _host;
         private readonly (string outputColumnName, string inputColumnName)[] _columns;
         private readonly string _labelColumnName;
         private readonly int _slotsInOutput;

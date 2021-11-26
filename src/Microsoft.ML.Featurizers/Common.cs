@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -117,7 +121,7 @@ namespace Microsoft.ML.Featurizers
     internal delegate bool DestroyTransformedDataNative(IntPtr output, out IntPtr errorHandle);
     internal class TransformedDataSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
-        private DestroyTransformedDataNative _destroySaveDataHandler;
+        private readonly DestroyTransformedDataNative _destroySaveDataHandler;
 
         public TransformedDataSafeHandle(IntPtr handle, DestroyTransformedDataNative destroyCppTransformerEstimator) : base(true)
         {
@@ -137,7 +141,7 @@ namespace Microsoft.ML.Featurizers
     internal delegate bool DestroyNativeTransformerEstimator(IntPtr estimator, out IntPtr errorHandle);
     internal class TransformerEstimatorSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
-        private DestroyNativeTransformerEstimator _destroyNativeTransformerEstimator;
+        private readonly DestroyNativeTransformerEstimator _destroyNativeTransformerEstimator;
         public TransformerEstimatorSafeHandle(IntPtr handle, DestroyNativeTransformerEstimator destroyNativeTransformerEstimator) : base(true)
         {
             SetHandle(handle);
@@ -169,7 +173,7 @@ namespace Microsoft.ML.Featurizers
 
         protected override bool ReleaseHandle()
         {
-            // Not sure what to do with error stuff here.  There shoudln't ever be one though.
+            // Not sure what to do with error stuff here.  There shouldn't ever be one though.
             return DestroyTransformerSaveDataNative(handle, _dataSize, out _);
         }
     }

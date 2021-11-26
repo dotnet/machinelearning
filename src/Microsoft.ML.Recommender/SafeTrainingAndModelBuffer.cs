@@ -92,7 +92,7 @@ namespace Microsoft.ML.Recommender.Internal
             /// <summary>
             /// Number of blocks that the training matrix is divided into. The parallel stochastic gradient
             /// method in LIBMF processes assigns each thread a block at one time. The ratings in one block
-            /// would be sequentially accessed (not randomaly accessed like standard stochastic gradient methods).
+            /// would be sequentially accessed (not randomly accessed like standard stochastic gradient methods).
             /// </summary>
             public int NrBins;
 
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Recommender.Internal
             public byte Quiet;
 
             /// <summary>
-            /// Set to false so that LIBMF may reuse and modifiy the data passed in.
+            /// Set to false so that LIBMF may reuse and modify the data passed in.
             /// </summary>
             public byte CopyData;
         }
@@ -194,19 +194,19 @@ namespace Microsoft.ML.Recommender.Internal
         private const string NativePath = "MatrixFactorizationNative";
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern void MFDestroyModel(ref MFModel* model);
+        private static extern unsafe void MFDestroyModel(ref MFModel* model);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern MFModel* MFTrain(MFProblem* prob, MFParameter* param);
+        private static extern unsafe MFModel* MFTrain(MFProblem* prob, MFParameter* param);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern MFModel* MFTrainWithValidation(MFProblem* tr, MFProblem* va, MFParameter* param);
+        private static extern unsafe MFModel* MFTrainWithValidation(MFProblem* tr, MFProblem* va, MFParameter* param);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern float MFCrossValidation(MFProblem* prob, int nrFolds, MFParameter* param);
+        private static extern unsafe float MFCrossValidation(MFProblem* prob, int nrFolds, MFParameter* param);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern float MFPredict(MFModel* model, int pIdx, int qIdx);
+        private static extern unsafe float MFPredict(MFModel* model, int pIdx, int qIdx);
 
         private MFParameter _mfParam;
         private unsafe MFModel* _pMFModel;

@@ -516,7 +516,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
                 return RemoteExecutor.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions (environmentVariables));
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]

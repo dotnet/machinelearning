@@ -373,8 +373,8 @@ namespace Microsoft.ML.Transforms
 
             private TType _modeSoFar;
             private int _maxCount;
-            private Dictionary<TType, int> _valueCounts;
-            private IsValid _validityCheck;
+            private readonly Dictionary<TType, int> _valueCounts;
+            private readonly IsValid _validityCheck;
             public ModeStat(IsValid valid)
             {
                 _modeSoFar = default;

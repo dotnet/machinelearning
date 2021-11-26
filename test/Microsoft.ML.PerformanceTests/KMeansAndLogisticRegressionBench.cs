@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.PerformanceTests.Harness;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.PerformanceTests

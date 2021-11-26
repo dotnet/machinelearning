@@ -596,7 +596,7 @@ namespace Microsoft.ML.Transforms
                         if (typeValueCount % valCount != 0)
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
-                        // This cover the 2-variable senario e.g. [?, ?, ?, C] where we can assume typeDims provides the information of [W, H, C]
+                        // This cover the 2-variable scenario e.g. [?, ?, ?, C] where we can assume typeDims provides the information of [W, H, C]
                         // The shape will become [?, W, H, C]
                         var originalShapeDims = originalShape.dims;
                         var originalShapeNdim = originalShape.ndim;
@@ -869,7 +869,7 @@ namespace Microsoft.ML.Transforms
             private T[] _denseData;
             private T[] _bufferedData;
             private int _position;
-            private long[] _dims;
+            private readonly long[] _dims;
             private readonly long _bufferedDataSize;
 
             public TensorValueGetterVec(DataViewRow input, int colIndex, TensorShape tfShape)

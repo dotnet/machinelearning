@@ -441,7 +441,7 @@ namespace Microsoft.ML.Data
             private readonly ReaderOptions _readerOptions;
             private int _curDataSetRow;
             private IEnumerator<int> _dataSetEnumerator;
-            private IEnumerator<int> _blockEnumerator;
+            private readonly IEnumerator<int> _blockEnumerator;
             private readonly IList[] _columnValues;
             private readonly Random _rand;
 

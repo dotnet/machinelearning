@@ -210,7 +210,7 @@ namespace Microsoft.ML.Data
             private readonly Counters _counters;
             private readonly Counters _weightedCounters;
 
-            private VBuffer<ReadOnlyMemory<char>> _slotNames;
+            private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public override CountersBase UnweightedCounters { get { return _counters; } }
 

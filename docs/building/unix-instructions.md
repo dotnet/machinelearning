@@ -51,7 +51,7 @@ sudo ./eng/common/cross/build-rootfs.sh <target architecture> <ubuntu distro nam
 export ROOTFS_DIR=<new rootfs location>
 
 # The cross compiling environment is now setup and you can proceed with a normal build
-./build.sh -c Release-netcoreapp3_1 /p:TargetArchitecture=<target architecture>
+./build.sh -c Release /p:TargetArchitecture=<target architecture>
 ```
 
 Note that the `<target architecture>` will usually be arm or arm64 and the `<ubuntu distro name>` is bionic for 18.04.

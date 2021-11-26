@@ -244,7 +244,7 @@ namespace Microsoft.Data.Analysis
                     ret.Add(i, otherRowIndices);
                 }
             }
-            
+
             return ret;
         }
 

@@ -97,7 +97,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // The mapping from character to CharInfo for characters less than 128.
-        private static LexCharInfo[] _rgchi;
+        private static readonly LexCharInfo[] _rgchi;
 
         static LexCharUtils()
         {

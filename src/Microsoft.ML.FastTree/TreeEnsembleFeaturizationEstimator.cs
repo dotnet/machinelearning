@@ -190,7 +190,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public TreeEnsembleModelParameters ModelParameters;
         };
 
-        private TreeEnsembleModelParameters _modelParameters;
+        private readonly TreeEnsembleModelParameters _modelParameters;
 
         internal PretrainedTreeFeaturizationEstimator(IHostEnvironment env, Options options) : base(env, options)
         {

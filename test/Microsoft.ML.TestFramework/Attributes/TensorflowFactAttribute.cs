@@ -21,7 +21,7 @@ namespace Microsoft.ML.TestFramework.Attributes
         protected override bool IsEnvironmentSupported()
         {
             return (Environment.Is64BitProcess &&
-                   ( RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                   (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                      AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23))))
                     && Microsoft.ML.TestFrameworkCommon.Utility.NativeLibrary.NativeLibraryExists("tensorflow");
 

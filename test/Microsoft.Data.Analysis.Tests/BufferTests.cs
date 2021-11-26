@@ -188,94 +188,94 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Null(clone[i]);
         }
 
-//#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796
-//        [Fact]
-//        public void TestPrimitiveColumnGetReadOnlyBuffers()
-//        {
-//            RecordBatch recordBatch = new RecordBatch.Builder()
-//                .Append("Column1", false, col => col.Int32(array => array.AppendRange(Enumerable.Range(0, 10)))).Build();
-//            DataFrame df = DataFrame.FromArrowRecordBatch(recordBatch);
+        //#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796
+        //        [Fact]
+        //        public void TestPrimitiveColumnGetReadOnlyBuffers()
+        //        {
+        //            RecordBatch recordBatch = new RecordBatch.Builder()
+        //                .Append("Column1", false, col => col.Int32(array => array.AppendRange(Enumerable.Range(0, 10)))).Build();
+        //            DataFrame df = DataFrame.FromArrowRecordBatch(recordBatch);
 
-//            PrimitiveDataFrameColumn<int> column = df.Columns["Column1"] as PrimitiveDataFrameColumn<int>;
+        //            PrimitiveDataFrameColumn<int> column = df.Columns["Column1"] as PrimitiveDataFrameColumn<int>;
 
-//            IEnumerable<ReadOnlyMemory<int>> buffers = column.GetReadOnlyDataBuffers();
-//            IEnumerable<ReadOnlyMemory<byte>> nullBitMaps = column.GetReadOnlyNullBitMapBuffers();
+        //            IEnumerable<ReadOnlyMemory<int>> buffers = column.GetReadOnlyDataBuffers();
+        //            IEnumerable<ReadOnlyMemory<byte>> nullBitMaps = column.GetReadOnlyNullBitMapBuffers();
 
-//            long i = 0;
-//            IEnumerator<ReadOnlyMemory<int>> bufferEnumerator = buffers.GetEnumerator();
-//            IEnumerator<ReadOnlyMemory<byte>> nullBitMapsEnumerator = nullBitMaps.GetEnumerator();
-//            while (bufferEnumerator.MoveNext() && nullBitMapsEnumerator.MoveNext())
-//            {
-//                ReadOnlyMemory<int> dataBuffer = bufferEnumerator.Current;
-//                ReadOnlyMemory<byte> nullBitMap = nullBitMapsEnumerator.Current;
+        //            long i = 0;
+        //            IEnumerator<ReadOnlyMemory<int>> bufferEnumerator = buffers.GetEnumerator();
+        //            IEnumerator<ReadOnlyMemory<byte>> nullBitMapsEnumerator = nullBitMaps.GetEnumerator();
+        //            while (bufferEnumerator.MoveNext() && nullBitMapsEnumerator.MoveNext())
+        //            {
+        //                ReadOnlyMemory<int> dataBuffer = bufferEnumerator.Current;
+        //                ReadOnlyMemory<byte> nullBitMap = nullBitMapsEnumerator.Current;
 
-//                ReadOnlySpan<int> span = dataBuffer.Span;
-//                for (int j = 0; j < span.Length; j++)
-//                {
-//                    // Each buffer has a max length of int.MaxValue
-//                    Assert.Equal(span[j], column[j + i * int.MaxValue]);
-//                }
+        //                ReadOnlySpan<int> span = dataBuffer.Span;
+        //                for (int j = 0; j < span.Length; j++)
+        //                {
+        //                    // Each buffer has a max length of int.MaxValue
+        //                    Assert.Equal(span[j], column[j + i * int.MaxValue]);
+        //                }
 
-//                bool GetBit(byte curBitMap, int index)
-//                {
-//                    return ((curBitMap >> (index & 7)) & 1) != 0;
-//                }
-//                ReadOnlySpan<byte> bitMapSpan = nullBitMap.Span;
-//                // No nulls in this column, so each bit must be set
-//                for (int j = 0; j < bitMapSpan.Length; j++)
-//                {
-//                    for (int k = 0; k < 8; k++)
-//                    {
-//                        if (j * 8 + k == column.Length)
-//                            break;
-//                        Assert.True(GetBit(bitMapSpan[j], k));
-//                    }
-//                }
-//                i++;
-//            }
-//        }
+        //                bool GetBit(byte curBitMap, int index)
+        //                {
+        //                    return ((curBitMap >> (index & 7)) & 1) != 0;
+        //                }
+        //                ReadOnlySpan<byte> bitMapSpan = nullBitMap.Span;
+        //                // No nulls in this column, so each bit must be set
+        //                for (int j = 0; j < bitMapSpan.Length; j++)
+        //                {
+        //                    for (int k = 0; k < 8; k++)
+        //                    {
+        //                        if (j * 8 + k == column.Length)
+        //                            break;
+        //                        Assert.True(GetBit(bitMapSpan[j], k));
+        //                    }
+        //                }
+        //                i++;
+        //            }
+        //        }
 
-//        [Fact]
-//        public void TestArrowStringColumnGetReadOnlyBuffers()
-//        {
-//            // Test ArrowStringDataFrameColumn.
-//            StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
-//            Memory<byte> dataMemory = new byte[] { 102, 111, 111, 98, 97, 114 };
-//            Memory<byte> nullMemory = new byte[] { 1 };
-//            Memory<byte> offsetMemory = new byte[] { 0, 0, 0, 0, 3, 0, 0, 0, 6, 0, 0, 0 };
+        //        [Fact]
+        //        public void TestArrowStringColumnGetReadOnlyBuffers()
+        //        {
+        //            // Test ArrowStringDataFrameColumn.
+        //            StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
+        //            Memory<byte> dataMemory = new byte[] { 102, 111, 111, 98, 97, 114 };
+        //            Memory<byte> nullMemory = new byte[] { 1 };
+        //            Memory<byte> offsetMemory = new byte[] { 0, 0, 0, 0, 3, 0, 0, 0, 6, 0, 0, 0 };
 
-//            ArrowStringDataFrameColumn column = new ArrowStringDataFrameColumn("String", dataMemory, offsetMemory, nullMemory, strArray.Length, strArray.NullCount);
+        //            ArrowStringDataFrameColumn column = new ArrowStringDataFrameColumn("String", dataMemory, offsetMemory, nullMemory, strArray.Length, strArray.NullCount);
 
-//            IEnumerable<ReadOnlyMemory<byte>> dataBuffers = column.GetReadOnlyDataBuffers();
-//            IEnumerable<ReadOnlyMemory<byte>> nullBitMaps = column.GetReadOnlyNullBitMapBuffers();
-//            IEnumerable<ReadOnlyMemory<int>> offsetsBuffers = column.GetReadOnlyOffsetsBuffers();
+        //            IEnumerable<ReadOnlyMemory<byte>> dataBuffers = column.GetReadOnlyDataBuffers();
+        //            IEnumerable<ReadOnlyMemory<byte>> nullBitMaps = column.GetReadOnlyNullBitMapBuffers();
+        //            IEnumerable<ReadOnlyMemory<int>> offsetsBuffers = column.GetReadOnlyOffsetsBuffers();
 
-//            using (IEnumerator<ReadOnlyMemory<byte>> bufferEnumerator = dataBuffers.GetEnumerator())
-//            using (IEnumerator<ReadOnlyMemory<int>> offsetsEnumerator = offsetsBuffers.GetEnumerator())
-//            using (IEnumerator<ReadOnlyMemory<byte>> nullBitMapsEnumerator = nullBitMaps.GetEnumerator())
-//            {
-//                while (bufferEnumerator.MoveNext() && nullBitMapsEnumerator.MoveNext() && offsetsEnumerator.MoveNext())
-//                {
-//                    ReadOnlyMemory<byte> dataBuffer = bufferEnumerator.Current;
-//                    ReadOnlyMemory<byte> nullBitMap = nullBitMapsEnumerator.Current;
-//                    ReadOnlyMemory<int> offsets = offsetsEnumerator.Current;
+        //            using (IEnumerator<ReadOnlyMemory<byte>> bufferEnumerator = dataBuffers.GetEnumerator())
+        //            using (IEnumerator<ReadOnlyMemory<int>> offsetsEnumerator = offsetsBuffers.GetEnumerator())
+        //            using (IEnumerator<ReadOnlyMemory<byte>> nullBitMapsEnumerator = nullBitMaps.GetEnumerator())
+        //            {
+        //                while (bufferEnumerator.MoveNext() && nullBitMapsEnumerator.MoveNext() && offsetsEnumerator.MoveNext())
+        //                {
+        //                    ReadOnlyMemory<byte> dataBuffer = bufferEnumerator.Current;
+        //                    ReadOnlyMemory<byte> nullBitMap = nullBitMapsEnumerator.Current;
+        //                    ReadOnlyMemory<int> offsets = offsetsEnumerator.Current;
 
-//                    ReadOnlySpan<byte> dataSpan = dataBuffer.Span;
-//                    ReadOnlySpan<int> offsetsSpan = offsets.Span;
-//                    int dataStart = 0;
-//                    for (int j = 1; j < offsetsSpan.Length; j++)
-//                    {
-//                        int length = offsetsSpan[j] - offsetsSpan[j - 1];
-//                        ReadOnlySpan<byte> str = dataSpan.Slice(dataStart, length);
-//                        ReadOnlySpan<byte> columnStr = dataMemory.Span.Slice(dataStart, length);
-//                        Assert.Equal(str.Length, columnStr.Length);
-//                        for (int s = 0; s < str.Length; s++)
-//                            Assert.Equal(str[s], columnStr[s]);
-//                        dataStart = length;
-//                    }
-//                }
-//            }
-//        }
-//#endif //!NETFRAMEWORK
+        //                    ReadOnlySpan<byte> dataSpan = dataBuffer.Span;
+        //                    ReadOnlySpan<int> offsetsSpan = offsets.Span;
+        //                    int dataStart = 0;
+        //                    for (int j = 1; j < offsetsSpan.Length; j++)
+        //                    {
+        //                        int length = offsetsSpan[j] - offsetsSpan[j - 1];
+        //                        ReadOnlySpan<byte> str = dataSpan.Slice(dataStart, length);
+        //                        ReadOnlySpan<byte> columnStr = dataMemory.Span.Slice(dataStart, length);
+        //                        Assert.Equal(str.Length, columnStr.Length);
+        //                        for (int s = 0; s < str.Length; s++)
+        //                            Assert.Equal(str[s], columnStr[s]);
+        //                        dataStart = length;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //#endif //!NETFRAMEWORK
     }
 }

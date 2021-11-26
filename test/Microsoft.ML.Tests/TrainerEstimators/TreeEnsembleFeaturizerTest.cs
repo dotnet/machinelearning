@@ -37,8 +37,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             const string treesColumnName = "MyTrees";
             const string leavesColumnName = "MyLeaves";
             const string pathsColumnName = "MyPaths";
-            var args = new TreeEnsembleFeaturizerBindableMapper.Arguments() {
-                TreesColumnName = treesColumnName, LeavesColumnName = leavesColumnName, PathsColumnName = pathsColumnName };
+            var args = new TreeEnsembleFeaturizerBindableMapper.Arguments()
+            {
+                TreesColumnName = treesColumnName,
+                LeavesColumnName = leavesColumnName,
+                PathsColumnName = pathsColumnName
+            };
             var treeFeaturizer = new TreeEnsembleFeaturizerBindableMapper(Env, args, model.Model);
 
             // To get output schema, we need to create RoleMappedSchema for calling Bind(...).
