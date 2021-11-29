@@ -229,14 +229,21 @@ namespace Microsoft.Data.Analysis
                 {
                     var shrinkedOccurences = new Dictionary<long, ICollection<long>>();
 
-                    foreach (var kvp in newOccurrences)
+                    foreach (var newOccurrence in newOccurrences)
                     {
-                        var newValue = kvp.Value.Where(i => occurrences[kvp.Key].Contains(i)).ToArray();
-                        if (newValue.Any())
+                        var newOccurrenceKey = newOccurrence.Key;
+
+                        var occurrencesHash = new HashSet<long>(occurrences[newOccurrenceKey]);
+                        var newOccurrencesHash = new HashSet<long>(newOccurrence.Value);
+
+                        newOccurrencesHash.IntersectWith(occurrencesHash);
+
+                        if (newOccurrencesHash.Any())
                         {
-                            shrinkedOccurences.Add(kvp.Key, newValue);
+                            shrinkedOccurences.Add(newOccurrenceKey, newOccurrencesHash);
                         }
                     }
+
                     newOccurrences = shrinkedOccurences;
                 }
 
