@@ -89,5 +89,42 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(metrics.DaviesBouldinIndex, (double)0.0);
             Assert.Equal(metrics.AverageDistance, (double)0.0, 5);
         }
+
+        [Fact]
+        public void AgglomerativeClusteringTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            int k = 2;
+            // create data points
+            var data = new ClusteringData[5] { new ClusteringData() { Points = new float[2]{1,1} },
+                new ClusteringData() { Points = new float[2]{1,2} },
+                new ClusteringData() { Points = new float[2]{2,4} },
+                new ClusteringData() { Points = new float[2]{9,10} },
+                new ClusteringData() { Points = new float[2]{10,11} }
+            };
+
+
+            // Turn the data into the ML.NET data view.
+            // We can use CreateDataView or ReadFromEnumerable, depending on whether 'churnData' is an IList, 
+            // or merely an IEnumerable.
+            var trainData = mlContext.Data.LoadFromEnumerable(data);
+
+            // Create Estimator
+            var pipe = mlContext.Clustering.Trainers.AgglomerativeClustering(numberOfClusters: k);
+
+            // Train the pipeline
+            var trainedModel = pipe.Fit(trainData);
+
+            // Validate the agglomerative cluster model.
+            var clusters = trainedModel.Model.GetClusters();
+            Assert.Equal(2, clusters.Count);
+            Assert.Equal(clusters[0][0], 0);
+            Assert.Equal(clusters[0][1], 1);
+            Assert.Equal(clusters[0][2], 4);
+            Assert.Equal(clusters[1][0], 2);
+            Assert.Equal(clusters[1][1], 3);
+
+        }
     }
 }

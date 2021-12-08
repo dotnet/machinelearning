@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.HierarchicalClustering\Microsoft.ML.HierarchicalClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
