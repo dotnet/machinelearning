@@ -160,3 +160,4 @@ What's the timeline for intergrating Sweepable API into ML.Net
 ## Current feedback
 - the lambda function in `CreateSweepableEstimator` should not accept `MLContext` as first parameter.
 - Should provide a higher level API for training similar with Experiment API in AutoML.Net.
+- (From @torronen) Provides ways to access immediate results (accuracy/parameter/pipeline) to help better understand training process
