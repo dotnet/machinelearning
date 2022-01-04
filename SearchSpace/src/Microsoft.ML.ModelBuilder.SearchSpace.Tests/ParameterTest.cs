@@ -29,33 +29,33 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         [Fact]
         public void Parameter_with_single_value_test()
         {
-            var parameter = new Parameter(3);
+            var parameter = Parameter.FromInt(3);
 
             // integer
             parameter.AsType<int>().Should().Be(3);
 
             // double
-            parameter = new Parameter(3.1415926);
+            parameter = Parameter.FromDouble(3.1415926);
             parameter.AsType<double>().Should().Be(3.1415926);
 
             // float
-            parameter = new Parameter(3.1415926F);
+            parameter = Parameter.FromFloat(3.1415926F);
             parameter.AsType<float>().Should().Be(3.1415926F);
 
             // string
-            parameter = new Parameter("abc");
+            parameter = Parameter.FromString("abc");
             parameter.AsType<string>().Should().Be("abc");
 
             // bool
-            parameter = new Parameter(false);
+            parameter = Parameter.FromBool(false);
             parameter.AsType<bool>().Should().BeFalse();
 
             // string[]
-            parameter = new Parameter(new[] { "a", "b", "c" });
+            parameter = Parameter.FromIEnumerable(new[] {"a", "b", "c"});
             parameter.AsType<string[]>().Should().BeEquivalentTo("a", "b", "c");
 
             // enum
-            parameter = new Parameter(JTokenType.Array);
+            parameter = Parameter.FromEnum(JTokenType.Array);
             parameter.AsType<JTokenType>().Should().Be(JTokenType.Array);
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         public void Nested_parameter_test()
         {
             var b = new B();
-            var parameter = new Parameter(b);
+            var parameter = Parameter.FromObject(b);
 
             parameter["Int"].AsType<int>().Should().Be(0);
             parameter["Float"].AsType<float>().Should().Be(1f);
@@ -83,7 +83,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         {
             var b = new B();
             b.String = null;
-            var parameter = new Parameter(b);
+            var parameter = Parameter.FromObject(b);
             var json = JsonConvert.SerializeObject(parameter);
             Approvals.Verify(json);
 

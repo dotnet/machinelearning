@@ -42,7 +42,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         {
             var option = new UniformIntOption(0, 100);
 
-            var sampleInputs = Enumerable.Range(0, 10).Select(i => new Parameter(i * 10));
+            var sampleInputs = Enumerable.Range(0, 10).Select(i => Parameter.FromInt(i * 10));
             var sampleOutputs = sampleInputs.Select(i => option.MappingToFeatureSpace(i)[0]);
 
             sampleOutputs.Should().Equal(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9);
@@ -60,7 +60,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         {
             var option = new UniformIntOption(1, 1024, true);
 
-            var sampleInputs = Enumerable.Range(0, 10).Select(i => new Parameter(Convert.ToInt32(Math.Pow(2, i))));
+            var sampleInputs = Enumerable.Range(0, 10).Select(i => Parameter.FromInt(Convert.ToInt32(Math.Pow(2, i))));
             var sampleOutputs = sampleInputs.Select(i => option.MappingToFeatureSpace(i)[0]).ToArray();
 
             foreach (var i in Enumerable.Range(0, 10))
@@ -100,7 +100,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         {
             var option = new UniformDoubleOption(0, 100);
 
-            var sampleInputs = Enumerable.Range(0, 10).Select(i => new Parameter(i * 10.0));
+            var sampleInputs = Enumerable.Range(0, 10).Select(i => Parameter.FromDouble(i * 10.0));
             var sampleOutputs = sampleInputs.Select(i => option.MappingToFeatureSpace(i)[0]);
 
             sampleOutputs.Should().Equal(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9);
@@ -111,13 +111,22 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         {
             var option = new UniformDoubleOption(1, 1024, true);
 
-            var sampleInputs = Enumerable.Range(0, 10).Select(i => new Parameter(Math.Pow(2, i)));
+            var sampleInputs = Enumerable.Range(0, 10).Select(i => Parameter.FromDouble(Math.Pow(2, i)));
             var sampleOutputs = sampleInputs.Select(i => option.MappingToFeatureSpace(i)).ToArray();
 
             foreach (var i in Enumerable.Range(0, 10))
             {
                 sampleOutputs[i][0].Should().BeApproximately(0.1 * i, 1e-5);
             }
+        }
+
+        [Fact]
+        public void Uniform_log_double_option_round_up_test()
+        {
+            var option = new UniformDoubleOption(2e-10, 1, defaultValue: 2e-10, logBase: true);
+            option.Default.Should().Equal(0);
+            option.SampleFromFeatureSpace(option.Default).AsType<double>().Should().Be(2e-10);
+            option.SampleFromFeatureSpace(new[] {1.0}).AsType<double>().Should().Be(1.0);
         }
     }
 }

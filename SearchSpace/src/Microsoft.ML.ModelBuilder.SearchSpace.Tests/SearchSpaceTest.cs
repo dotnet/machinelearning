@@ -82,7 +82,6 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
                     },
                 },
             };
-
             var ss = new SearchSpace<NestSearchSpace>(option);
 
             ss.FeatureSpaceDim.Should().Be(6);
@@ -130,9 +129,12 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
             ss.Remove("UniformInt").Should().BeTrue();
             ss.FeatureSpaceDim.Should().Be(3);
             ss.Keys.Should().BeEquivalentTo("ChoiceStr", "UniformDouble", "UniformFloat");
-
+            
             ss.SampleFromFeatureSpace(new double[] { 0, 0, 0})
                 .DefaultSearchSpace.Strings.Should().BeEquivalentTo("A", "B", "C");
+
+            ss.SampleFromFeatureSpace(new double[] { 0, 0, 0 })
+                .DefaultSearchSpace.String.Should().BeNullOrEmpty();
         }
 
         [Fact]

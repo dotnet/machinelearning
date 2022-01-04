@@ -34,9 +34,9 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         public void Choice_option_mapping_to_uniform_space_test()
         {
             var option = new ChoiceOption("a", "b", "c");
-            option.MappingToFeatureSpace(new Parameter("a"))[0].Should().BeApproximately(0, 1e-5);
-            option.MappingToFeatureSpace(new Parameter("b"))[0].Should().BeApproximately(0.333333, 1e-5);
-            option.MappingToFeatureSpace(new Parameter("c"))[0].Should().BeApproximately(0.666666, 1e-5);
+            option.MappingToFeatureSpace(Parameter.FromString("a"))[0].Should().BeApproximately(0, 1e-5);
+            option.MappingToFeatureSpace(Parameter.FromString("b"))[0].Should().BeApproximately(0.333333, 1e-5);
+            option.MappingToFeatureSpace(Parameter.FromString("c"))[0].Should().BeApproximately(0.666666, 1e-5);
         }
 
         [Fact]
@@ -46,7 +46,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
             option.FeatureSpaceDim.Should().Be(0);
             option.Default.Should().BeEquivalentTo();
             option.SampleFromFeatureSpace(new double[0]).AsType<string>().Should().Be("b");
-            option.MappingToFeatureSpace(new Parameter("b")).Should().BeEmpty();
+            option.MappingToFeatureSpace(Parameter.FromString("b")).Should().BeEmpty();
         }
     }
 }
