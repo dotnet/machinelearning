@@ -5,7 +5,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.ML.ModelBuilder.SearchSpace.Converter;
 using Newtonsoft.Json;
@@ -16,8 +18,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
 {
     // TODO
     // Add tests
-    [JsonConverter(typeof(ParameterConverter))]
-    public class Parameter
+    public class Parameter : IParameter
     {
         private JsonSerializerSettings settings = new JsonSerializerSettings()
         {
@@ -30,214 +31,248 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
             },
         };
 
-        private JsonSerializer jsonSerializer;
-        private JToken jtoken;
-        private Type type;
+        private object value;
 
-        public Parameter(object value)
+        private Parameter(object value, ParameterType type)
         {
-            this.jsonSerializer = JsonSerializer.Create(this.settings);
-            this.jtoken = JToken.FromObject(value, this.jsonSerializer);
-            this.type = value.GetType();
+            this.value = value;
+            this.ParameterType = type;
         }
 
-        public Parameter()
+        public static Parameter FromDouble(double value)
         {
-            this.jsonSerializer = JsonSerializer.Create(this.settings);
-            this.jtoken = JObject.Parse("{}");
-            this.type = typeof(JObject);
+            return new Parameter(value, ParameterType.Float);
         }
 
-        public object Value { get => this.jtoken; }
+        public static Parameter FromFloat(float value)
+        {
+            return new Parameter(value, ParameterType.Float);
+        }
+
+        public static Parameter FromInt(int value)
+        {
+            return new Parameter(value, ParameterType.Integer);
+        }
+
+        public static Parameter FromString(string value)
+        {
+            return new Parameter(value, ParameterType.Integer);
+        }
+
+        public static Parameter FromBool(bool value)
+        {
+            return new Parameter(value, ParameterType.Bool);
+        }
+
+        public static Parameter FromEnum<T>(T value) where T: struct, Enum
+        {
+            return Parameter.FromEnum(value, typeof(T));
+        }
+
+        public static Parameter FromIEnumerable<T>(IEnumerable<T> values)
+        {
+            // check T
+            return Parameter.FromIEnumerable(values as IEnumerable);
+        }
+
+        private static Parameter FromIEnumerable(IEnumerable values)
+        {
+            return new Parameter(values, ParameterType.Array);
+        }
+
+        private static Parameter FromEnum(Enum e, Type t)
+        {
+            return Parameter.FromString(Enum.GetName(t, e));
+        }
+
+        public static Parameter FromObject<T>(T value) where T: class
+        {
+            return Parameter.FromObject(value, typeof(T));
+        }
+
+        private static Parameter FromObject(object value, Type type)
+        {
+            var param = value switch
+            {
+                int i => Parameter.FromInt(i),
+                double d => Parameter.FromDouble(d),
+                float f => Parameter.FromFloat(f),
+                string s => Parameter.FromString(s),
+                bool b => Parameter.FromBool(b),
+                IEnumerable vs => Parameter.FromIEnumerable(vs),
+                Enum e => Parameter.FromEnum(e, e.GetType()),
+                _ => null,
+            };
+
+            if (param != null)
+            {
+                return param;
+            }
+            else
+            {
+                var parameter = Parameter.CreateNestedParameter();
+                var properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                        .Where(p => p.CanRead && p.CanWrite);
+                foreach (var property in properties)
+                {
+                    var name = property.Name;
+                    var pValue = property.GetValue(value);
+                    if (pValue != null)
+                    {
+                        var _prameter = Parameter.FromObject(pValue, property.PropertyType);
+
+                        if (_prameter?.Count != 0)
+                        {
+                            parameter[name] = _prameter;
+                        }
+                    }
+                }
+
+                return parameter;
+            }
+        }
+
+        public static Parameter CreateNestedParameter(params KeyValuePair<string, IParameter>[] parameters)
+        {
+            var parameter = new Parameter(new Dictionary<string, IParameter>(), ParameterType.Object);
+            foreach (var param in parameters)
+            {
+                parameter[param.Key] = param.Value;
+            }
+
+            return parameter;
+        }
+
+        public object Value { get => this.value; }
+
+        public int Count => this.ParameterType == ParameterType.Object ? (this.value as Dictionary<string, IParameter>).Count : 1;
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                this.VerifyIfParameterIsObjectType();
+                return (this.value as IDictionary<string, IParameter>).IsReadOnly;
+            }
+        }
+
+        public ParameterType ParameterType { get; }
+
+        ICollection<IParameter> IDictionary<string, IParameter>.Values
+        {
+            get
+            {
+                this.VerifyIfParameterIsObjectType();
+                return (this.value as IDictionary<string, IParameter>).Values;
+            }
+        }
 
         public ICollection<string> Keys
         {
             get
             {
-                if (this.jtoken?.HasValues is null or false)
-                {
-                    return new string[0];
-                }
-
-                return this.jtoken.ToObject<JObject>(this.jsonSerializer).Properties().Select(prop => prop.Name).ToArray();
+                this.VerifyIfParameterIsObjectType();
+                return (this.value as IDictionary<string, IParameter>).Keys;
             }
         }
 
-        public ICollection<Parameter> Values
+        public IParameter this[string key]
         {
             get
             {
-                if (this.Keys.Count == 0)
-                {
-                    return new Parameter[0];
-                }
-
-                Contract.Requires(this.jtoken is JObject, "jtoken is not JObject");
-                var jobject = this.jtoken as JObject;
-                return this.Keys.Select(k => new Parameter(jobject[k])).ToArray();
+                this.VerifyIfParameterIsObjectType();
+                return (this.value as IDictionary<string, IParameter>)[key];
             }
-        }
 
-        public int Count => this.Keys.Count();
-
-        public bool IsReadOnly => true;
-
-        public Parameter this[string key]
-        {
-            get
+            set
             {
-                if (this.ContainsKey(key))
-                {
-                    return new Parameter(this.jtoken.ToObject<JObject>(this.jsonSerializer).GetValue(key));
-                }
-                else
-                {
-                    throw new KeyNotFoundException($"{key} not found");
-                }
+                this.VerifyIfParameterIsObjectType();
+                (this.value as IDictionary<string, IParameter>)[key] = value;
             }
-            set => (this.jtoken as JObject).Add(key, value.jtoken);
         }
 
         public T AsType<T>()
         {
-            if(this.jtoken.Type == JTokenType.Object)
+            if (this.value is T t)
             {
-                var json = JsonConvert.SerializeObject(this.jtoken, this.settings);
-                return JsonConvert.DeserializeObject<T>(json, this.settings);
+                return t;
             }
             else
             {
-                return this.jtoken.ToObject<T>(this.jsonSerializer);
+                var json = JsonConvert.SerializeObject(this.value, this.settings);
+                return JsonConvert.DeserializeObject<T>(json, this.settings);
             }
-        }
-
-        public void Add(string key, Parameter value)
-        {
-            Contract.Requires(this.jtoken is JObject, "jtoken is not JObject");
-            this[key] = value;
-        }
-
-        public bool ContainsKey(string key)
-        {
-            if (this.Count == 0)
-            {
-                return false;
-            }
-
-            var jobject = this.jtoken as JObject;
-            return jobject.TryGetValue(key, out var _);
-        }
-
-        public bool Remove(string key)
-        {
-            Contract.Requires(this.jtoken is JObject, "jtoken is not JObject");
-            var jobject = this.jtoken as JObject;
-
-            return jobject.Remove(key);
-        }
-
-        public bool TryGetValue(string key, out Parameter value)
-        {
-            Contract.Requires(this.jtoken is JObject, "jtoken is not JObject");
-            var jobject = this.jtoken as JObject;
-
-            var res = jobject.TryGetValue(key, out var token);
-            value = new Parameter(token);
-
-            return res;
-        }
-
-        public void Add(KeyValuePair<string, Parameter> item)
-        {
-            Contract.Requires(this.jtoken is JObject, "jtoken is not JObject");
-
-            this.Add(item.Key, item.Value);
         }
 
         public void Clear()
         {
-            this.jtoken = JObject.Parse("{}");
+            this.VerifyIfParameterIsObjectType();
+            (this.value as Dictionary<string, IParameter>).Clear();
         }
 
-        public bool Contains(KeyValuePair<string, Parameter> item)
+        public void Add(string key, IParameter value)
         {
-            if (this.Count == 0)
-            {
-                return false;
-            }
-
-            return this.ContainsKey(item.Key) && item.Value == this[item.Key];
+            this.VerifyIfParameterIsObjectType();
+            (this.value as Dictionary<string, IParameter>).Add(key, value);
         }
 
-        public void CopyTo(KeyValuePair<string, Parameter>[] array, int arrayIndex)
+        public bool TryGetValue(string key, out IParameter value)
         {
-            foreach (var kv in this)
-            {
-                array[arrayIndex++] = kv;
-            }
+            this.VerifyIfParameterIsObjectType();
+            return (this.value as Dictionary<string, IParameter>).TryGetValue(key, out value);
         }
 
-        public bool Remove(KeyValuePair<string, Parameter> item)
+        public void Add(KeyValuePair<string, IParameter> item)
         {
-            Contract.Requires(this.jtoken is JObject, "jtoken is not JObject");
-
-            if (this.Contains(item))
-            {
-                return this.Remove(item.Key);
-            }
-
-            return false;
+            this.VerifyIfParameterIsObjectType();
+            (this.value as Dictionary<string, IParameter>).Add(item.Key, item.Value);
         }
 
-        public IEnumerator<KeyValuePair<string, Parameter>> GetEnumerator()
+        public bool Contains(KeyValuePair<string, IParameter> item)
         {
-            Contract.Requires(this.jtoken is JObject, "jtoken is not JObject");
-
-            foreach (var key in this.Keys)
-            {
-                yield return new KeyValuePair<string, Parameter>(key, this[key]);
-            }
+            this.VerifyIfParameterIsObjectType();
+            return (this.value as Dictionary<string, IParameter>).Contains(item);
         }
 
-        public void Merge(Parameter p)
+        public bool Remove(KeyValuePair<string, IParameter> item)
         {
-            Contract.Requires(this.jtoken.Type == JTokenType.Object, "jtoken type is not object");
-            var left = this.jtoken.Root;
-            var right = p.jtoken.Root;
-
-            this.jtoken = this.Merge(left, right);
+            this.VerifyIfParameterIsObjectType();
+            return (this.value as IDictionary<string, IParameter>).Remove(item);
         }
 
-        private JToken Merge(JToken left, JToken right)
+        IEnumerator<KeyValuePair<string, IParameter>> IEnumerable<KeyValuePair<string, IParameter>>.GetEnumerator()
         {
-            if (left.Type != right.Type)
-            {
-                return left;
-            }
+            this.VerifyIfParameterIsObjectType();
+            return (this.value as IDictionary<string, IParameter>).GetEnumerator();
+        }
 
-            if (left.Type is JTokenType.Object)
-            {
-                var rightObject = (JObject)right;
-                var leftObject = (JObject)left;
-                foreach (var property in rightObject.Properties())
-                {
-                    var name = property.Name;
-                    if (leftObject.ContainsKey(name))
-                    {
-                        leftObject[name] = this.Merge(leftObject[name], property.Value);
-                    }
-                    else
-                    {
-                        leftObject.Add(name, property.Value);
-                    }
-                }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            this.VerifyIfParameterIsObjectType();
+            return (this.value as IDictionary<string, IParameter>).GetEnumerator();
+        }
 
-                return left;
-            }
-            else
-            {
-                return right;
-            }
+        private void VerifyIfParameterIsObjectType()
+        {
+            Contract.Requires(this.ParameterType == ParameterType.Object, "parameter is not object type.");
+        }
+
+        public void CopyTo(KeyValuePair<string, IParameter>[] array, int arrayIndex)
+        {
+            this.VerifyIfParameterIsObjectType();
+            (this.value as IDictionary<string, IParameter>).CopyTo(array, arrayIndex);
+        }
+
+        public bool ContainsKey(string key)
+        {
+            this.VerifyIfParameterIsObjectType();
+            return (this.value as IDictionary<string, IParameter>).ContainsKey(key);
+        }
+
+        public bool Remove(string key)
+        {
+            this.VerifyIfParameterIsObjectType();
+            return (this.value as IDictionary<string, IParameter>).Remove(key);
         }
     }
 }

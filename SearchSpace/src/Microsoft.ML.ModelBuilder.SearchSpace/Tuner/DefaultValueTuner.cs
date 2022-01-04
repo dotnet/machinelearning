@@ -20,7 +20,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tuner
             this.ss = ss;
         }
 
-        public Parameter Propose()
+        public IParameter Propose()
         {
             var defaultFeatureVec = this.ss.Default;
             return this.ss.SampleFromFeatureSpace(defaultFeatureVec);

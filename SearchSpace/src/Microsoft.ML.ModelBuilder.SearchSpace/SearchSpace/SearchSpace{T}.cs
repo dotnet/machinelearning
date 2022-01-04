@@ -22,7 +22,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
         }
 
         public SearchSpace(T defaultOption)
-            : base(typeof(T), new Parameter(defaultOption))
+            : base(typeof(T), Parameter.FromObject(defaultOption))
         {
             this.defaultOption = defaultOption;
         }
@@ -37,7 +37,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
 
         public double[] MappingToFeatureSpace(T input)
         {
-            var param = new Parameter(input);
+            var param = Parameter.FromObject(input);
             return this.MappingToFeatureSpace(param);
         }
     }

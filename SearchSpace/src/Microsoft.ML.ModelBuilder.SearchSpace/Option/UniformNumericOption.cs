@@ -31,7 +31,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
 
         public override int?[] Step => new int?[] { null };
 
-        public override double[] MappingToFeatureSpace(Parameter param)
+        public override double[] MappingToFeatureSpace(IParameter param)
         {
             var x = param.AsType<double>();
             Contract.Requires(x <= this.Max && x >= this.Min, $"{x} is not within [{this.Min}, {this.Max}]");
@@ -49,7 +49,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
             }
         }
 
-        public override Parameter SampleFromFeatureSpace(double[] values)
+        public override IParameter SampleFromFeatureSpace(double[] values)
         {
             Contract.Requires(values.Length == 1, "values length must be 1");
             var value = values[0];
@@ -57,12 +57,13 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
 
             if (this.LogBase)
             {
-                var order = Math.Log(this.Min) + Math.Log(this.Max / this.Min) * value;
-                return new Parameter(Math.Exp(order));
+                var order = Math.Pow(this.Max / this.Min, value);
+                var res = this.Min * order;
+                return Parameter.FromDouble(res);
             }
             else
             {
-                return new Parameter((this.Min + (this.Max - this.Min) * value));
+                return Parameter.FromDouble((this.Min + (this.Max - this.Min) * value));
             }
         }
     }
@@ -74,7 +75,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         {
             if (defaultValue != null)
             {
-                this.Default = this.MappingToFeatureSpace(new Parameter(defaultValue));
+                this.Default = this.MappingToFeatureSpace(Parameter.FromDouble(defaultValue.Value));
             }
         }
     }
@@ -86,22 +87,22 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         {
             if (defaultValue != null)
             {
-                this.Default = this.MappingToFeatureSpace(new Parameter(defaultValue));
+                this.Default = this.MappingToFeatureSpace(Parameter.FromFloat(defaultValue.Value));
             }
         }
 
-        public override double[] MappingToFeatureSpace(Parameter param)
+        public override double[] MappingToFeatureSpace(IParameter param)
         {
             var singleValue = param.AsType<float>();
             var doubleValue = Convert.ToDouble(singleValue);
-            return base.MappingToFeatureSpace(new Parameter(doubleValue));
+            return base.MappingToFeatureSpace(Parameter.FromDouble(doubleValue));
         }
 
-        public override Parameter SampleFromFeatureSpace(double[] values)
+        public override IParameter SampleFromFeatureSpace(double[] values)
         {
             var doubleValue = base.SampleFromFeatureSpace(values).AsType<double>();
             var singleValue = Convert.ToSingle(doubleValue);
-            return new Parameter(singleValue);
+            return Parameter.FromFloat(singleValue);
         }
     }
 
@@ -112,23 +113,23 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         {
             if (defaultValue != null)
             {
-                this.Default = this.MappingToFeatureSpace(new Parameter(defaultValue));
+                this.Default = this.MappingToFeatureSpace(Parameter.FromInt(defaultValue.Value));
             }
         }
 
-        public override Parameter SampleFromFeatureSpace(double[] values)
+        public override IParameter SampleFromFeatureSpace(double[] values)
         {
             var param = base.SampleFromFeatureSpace(values);
             var intValue = Convert.ToInt32(Math.Floor(param.AsType<double>() + 1e-6));
 
-            return new Parameter(intValue);
+            return Parameter.FromInt(intValue);
         }
 
-        public override double[] MappingToFeatureSpace(Parameter param)
+        public override double[] MappingToFeatureSpace(IParameter param)
         {
             var value = param.AsType<int>();
             var valueAsDouble = Convert.ToDouble(value);
-            return base.MappingToFeatureSpace(new Parameter(valueAsDouble));
+            return base.MappingToFeatureSpace(Parameter.FromDouble(valueAsDouble));
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         {
             if (defaultChoice != null)
             {
-                this.Default = this.MappingToFeatureSpace(new Parameter(defaultChoice));
+                this.Default = this.MappingToFeatureSpace(Parameter.FromString(defaultChoice));
             }
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
 
         public override int?[] Step => new int?[] { this.Choices.Length };
 
-        public override double[] MappingToFeatureSpace(Parameter param)
+        public override double[] MappingToFeatureSpace(IParameter param)
         {
             if(this.FeatureSpaceDim == 0)
             {
@@ -53,19 +53,19 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
             var x = Array.BinarySearch(this.Choices, value);
             Contract.Requires(x != -1, $"{value} not contains");
 
-            return this.option.MappingToFeatureSpace(new Parameter(x));
+            return this.option.MappingToFeatureSpace(Parameter.FromInt(x));
         }
 
-        public override Parameter SampleFromFeatureSpace(double[] values)
+        public override IParameter SampleFromFeatureSpace(double[] values)
         {
             Contract.Requires(values.Length >= 0, "values length must be greater than 0");
             if (values.Length == 0)
             {
-                return new Parameter(this.Choices[0]);
+                return Parameter.FromObject(this.Choices[0]);
             }
 
             var param = this.option.SampleFromFeatureSpace(values);
-            return new Parameter(this.Choices[param.AsType<int>()]);
+            return Parameter.FromObject(this.Choices[param.AsType<int>()]);
         }
     }
 }

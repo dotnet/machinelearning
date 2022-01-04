@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -30,21 +31,31 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Converter
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(Parameter);
+            return objectType == typeof(IParameter);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
 
             var jtoken = JToken.ReadFrom(reader);
-            return new Parameter(jtoken);
+            return jtoken.Type switch
+            {
+                JTokenType.Object => Parameter.CreateNestedParameter(jtoken.ToObject<Dictionary<string, IParameter>>().ToArray()),
+                JTokenType.String => Parameter.FromString(jtoken.ToObject<string>()),
+                JTokenType.Float => Parameter.FromDouble(jtoken.ToObject<double>()),
+                JTokenType.Boolean => Parameter.FromBool(jtoken.ToObject<bool>()),
+                JTokenType.Integer => Parameter.FromInt(jtoken.ToObject<int>()),
+                JTokenType.Array => Parameter.FromIEnumerable((JArray)jtoken),
+                JTokenType.Null => null,
+                _ => throw new ArgumentException($"Unsupported jtoken type {jtoken.Type}"),
+            };
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var param = (Parameter)value;
-            var json = JsonConvert.SerializeObject(param.Value, settings);
-            writer.WriteRawValue(json);
+            var param = (IParameter)value;
+            var s = JsonSerializer.Create(settings);
+            s.Serialize(writer, param.Value);
         }
     }
 }

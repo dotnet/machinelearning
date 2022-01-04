@@ -20,7 +20,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tuner
             this.stepSize = stepSize;
         }
 
-        public IEnumerable<Parameter> Propose()
+        public IEnumerable<IParameter> Propose()
         {
             var steps = this.searchSpace.Step.Select(x => x ?? this.stepSize)
                                         .Select(x => Enumerable.Range(0, x).Select(i => i * 1.0 / x).ToArray());

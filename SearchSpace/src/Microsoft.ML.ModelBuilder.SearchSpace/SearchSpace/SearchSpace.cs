@@ -84,10 +84,10 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
 
         public OptionBase this[string key] { get => ((IDictionary<string, OptionBase>)options)[key]; set => ((IDictionary<string, OptionBase>)options)[key] = value; }
 
-        public override Parameter SampleFromFeatureSpace(double[] feature)
+        public override IParameter SampleFromFeatureSpace(double[] feature)
         {
             Contract.Requires(feature.Length == this.FeatureSpaceDim, "input feature doesn't match");
-            var param = new Parameter();
+            var param = Parameter.CreateNestedParameter();
             var cur = 0;
 
             foreach (var key in this.options.Keys.OrderBy(k => k))
@@ -101,15 +101,13 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
 
             if (this.defaultOption != null)
             {
-                var _defaultOption = new Parameter(this.defaultOption.Value);
-                _defaultOption.Merge(param);
-                return _defaultOption;
+                return this.Update(this.defaultOption, param);
             }
 
             return param;
         }
 
-        public override double[] MappingToFeatureSpace(Parameter parameter)
+        public override double[] MappingToFeatureSpace(IParameter parameter)
         {
             var res = new List<double>();
             foreach (var key in this.options.Keys.OrderBy(k => k))
@@ -298,6 +296,29 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return ((System.Collections.IEnumerable)options).GetEnumerator();
+        }
+
+        private IParameter Update(IParameter left, IParameter right)
+        {
+            var res = (left?.ParameterType, right?.ParameterType) switch
+            {
+                (ParameterType.Object, ParameterType.Object) => null,
+                (_, null) => left,
+                _ => right,
+            };
+
+            if (res != null)
+            {
+                return res;
+            }
+
+            res = Parameter.CreateNestedParameter();
+            foreach (var kv in left.Concat(right))
+            {
+                res[kv.Key] = this.Update(left.ContainsKey(kv.Key) ? left[kv.Key] : null, right.ContainsKey(kv.Key) ? right[kv.Key] : null);
+            }
+
+            return res;
         }
     }
 }
