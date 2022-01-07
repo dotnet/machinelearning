@@ -25,7 +25,7 @@ namespace Microsoft.ML.Trainers
         private const string OneDalLibPath = "OneDalNative";
 
         [DllImport(OneDalLibPath, EntryPoint = "logisticRegressionLBFGSCompute")]
-        public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
+        public static extern unsafe void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
             long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads);
     }
 
@@ -536,7 +536,9 @@ namespace Microsoft.ML.Trainers
 
             unsafe
             {
+#pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
                 fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], weightsPtr = &weightsArray[0], betaPtr = &betaArray[0])
+#pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
                 {
                     OneDal.LogisticRegressionCompute(featuresPtr, labelsPtr, weightsPtr, useSampleWeights, betaPtr, NumGoodRows, nFeatures, ClassCount, L1Weight, L2Weight, OptTol, MaxIterations, MemorySize, numThreads);
                 }

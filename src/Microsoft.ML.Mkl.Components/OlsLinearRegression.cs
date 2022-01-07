@@ -183,10 +183,10 @@ namespace Microsoft.ML.Trainers
             private const string OneDalLibPath = "OneDalNative";
 
             [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineCompute")]
-            public unsafe static extern int RidgeRegressionOnlineCompute(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize);
+            public static extern unsafe int RidgeRegressionOnlineCompute(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize);
 
             [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineFinalize")]
-            public unsafe static extern void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, long nAllRows, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
+            public static extern unsafe void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, long nAllRows, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
                 void* betaPtr, void* xtyPtr, void* xtxPtr);
         }
 
@@ -218,7 +218,9 @@ namespace Microsoft.ML.Trainers
                     {
                         unsafe
                         {
+#pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
                             fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], partialResultPtr = &partialResultArray[0])
+#pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
                             {
                                 partialResultSize = OneDal.RidgeRegressionOnlineCompute(featuresPtr, labelsPtr, batchSize, m - 1, _l2Weight, partialResultPtr, partialResultSize);
                             }
@@ -259,7 +261,9 @@ namespace Microsoft.ML.Trainers
 
                 unsafe
                 {
+#pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
                     fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], partialResultPtr = &partialResultArray[0], betaPtr = &beta[0], xtyPtr = &xty[0], xtxPtr = &xtx[0])
+#pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
                     {
                         OneDal.RidgeRegressionOnlineFinalize(featuresPtr, labelsPtr, n, (int)(n % batchSize), m - 1, _l2Weight, partialResultPtr, partialResultSize, betaPtr, xtyPtr, xtxPtr);
                     }
