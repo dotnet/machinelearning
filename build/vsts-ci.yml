@@ -341,7 +341,7 @@ jobs:
   # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
   # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
   - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:OfficialBuildId=$(OfficialBuildId) /p:DotNetFinalVersionKind=$(DotnetVersionKind)
-    displayName: Build and Sign Packages
+    displayName: Build Packages
 
   - script: ./sign.cmd /p:SignNugetPackages=true
     displayName: sign packages
