@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms.Image;
 using Xunit;
 using Xunit.Abstractions;
@@ -472,7 +473,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [NotArmFact("System.Drawing has some issues on ARM. Disabling this test for CI stability. Tracked in https://github.com/dotnet/machinelearning/issues/6043")]
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
             IHostEnvironment env = new MLContext(1);

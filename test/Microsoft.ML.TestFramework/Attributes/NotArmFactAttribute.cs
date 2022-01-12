@@ -6,16 +6,16 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
-    class NotArm32FactAttribute : EnvironmentSpecificFactAttribute
+    class NotArmFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public NotArm32FactAttribute(string skipMessage) : base(skipMessage)
+        public NotArmFactAttribute(string skipMessage) : base(skipMessage)
         {
         }
 
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return RuntimeInformation.ProcessArchitecture != Architecture.Arm;
+            return RuntimeInformation.ProcessArchitecture != Architecture.Arm && RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
         }
     }
 }
