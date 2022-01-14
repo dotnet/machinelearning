@@ -20,9 +20,7 @@ namespace Microsoft.ML.Tests
 {
     public class ImageTests : TestDataPipeBase
     {
-        private static readonly Lazy<bool> _isNotArm = new(() => RuntimeInformation.ProcessArchitecture != Architecture.Arm && RuntimeInformation.ProcessArchitecture != Architecture.Arm64);
-        protected static bool IsNotArm => _isNotArm.Value;
-
+        private static bool IsNotArm => RuntimeInformation.ProcessArchitecture != Architecture.Arm && RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
         public ImageTests(ITestOutputHelper output) : base(output)
         {
         }
