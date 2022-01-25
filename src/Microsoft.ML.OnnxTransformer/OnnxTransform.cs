@@ -809,13 +809,13 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
     /// | Output column data type | As specified by the ONNX model |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.6.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.6.0 (for GPU processing if GPU is available) |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.10.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.10.0 (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
     /// To create this estimator use the following APIs:
     /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
     ///
-    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
+    /// Supports inferencing of models in ONNX 1.10 format (opset 15), using the [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
     /// Models are scored on CPU if the project references Microsoft.ML.OnnxRuntime and on the GPU if the project references Microsoft.ML.OnnxRuntime.Gpu.
     /// Every project using the OnnxScoringEstimator must reference one of the above two packages.
     ///
