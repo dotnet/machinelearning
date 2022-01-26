@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SerializablePipeline.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SearchSpace.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SerializablePipeline" />
+  </ItemGroup>
+
+</Project>
