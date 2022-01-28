@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.ModelBuilder.SearchSpace.Converter;
+using Microsoft.ML.SearchSpace.Converter;
 using Newtonsoft.Json;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace
+namespace Microsoft.ML.SearchSpace
 {
     public enum ParameterType
     {

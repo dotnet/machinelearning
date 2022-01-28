@@ -7,7 +7,7 @@ using System.Linq;
 
 #nullable enable
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
+namespace Microsoft.ML.SearchSpace.Option
 {
     public class ChoiceOption : OptionBase
     {

@@ -4,7 +4,7 @@
 
 using Newtonsoft.Json;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Schema
+namespace Microsoft.ML.SearchSpace.Schema
 {
     public abstract class SchemaBase
     {

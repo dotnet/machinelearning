@@ -5,7 +5,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Schema
+namespace Microsoft.ML.SearchSpace.Schema
 {
     [JsonConverter(typeof(StringEnumConverter))]
     public enum SchemaType

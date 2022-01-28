@@ -9,7 +9,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace
+namespace Microsoft.ML.SearchSpace
 {
     // TODO
     // Add tests

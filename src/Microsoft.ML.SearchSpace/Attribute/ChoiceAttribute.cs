@@ -5,9 +5,9 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using Microsoft.ML.ModelBuilder.SearchSpace.Option;
+using Microsoft.ML.SearchSpace.Option;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace
+namespace Microsoft.ML.SearchSpace
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
     public class ChoiceAttribute : Attribute

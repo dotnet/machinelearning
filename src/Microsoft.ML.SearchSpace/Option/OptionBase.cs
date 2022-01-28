@@ -5,7 +5,7 @@
 
 #nullable enable
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
+namespace Microsoft.ML.SearchSpace.Option
 {
     public abstract class OptionBase
     {

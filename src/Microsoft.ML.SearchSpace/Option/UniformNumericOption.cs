@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
+namespace Microsoft.ML.SearchSpace.Option
 {
     public abstract class UniformNumericOption : OptionBase
     {

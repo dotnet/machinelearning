@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.ModelBuilder.SearchSpace.Option;
+using Microsoft.ML.SearchSpace.Option;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace
+namespace Microsoft.ML.SearchSpace
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
     public class RangeAttribute : Attribute

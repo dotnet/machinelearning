@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Converter
+namespace Microsoft.ML.SearchSpace.Converter
 {
     internal class ParameterConverter : JsonConverter
     {

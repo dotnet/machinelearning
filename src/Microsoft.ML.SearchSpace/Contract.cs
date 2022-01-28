@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace
+namespace Microsoft.ML.SearchSpace
 {
     internal static class Contract
     {

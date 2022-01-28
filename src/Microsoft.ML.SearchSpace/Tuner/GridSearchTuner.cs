@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Tuner
+namespace Microsoft.ML.SearchSpace.Tuner
 {
     public class GridSearchTuner
     {
