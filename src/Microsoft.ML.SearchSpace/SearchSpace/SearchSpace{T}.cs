@@ -1,21 +1,14 @@
-﻿// <copyright file="SearchSpace{T}.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.ML.ModelBuilder.SearchSpace.Option;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.ML.ModelBuilder.SearchSpace
 {
     public class SearchSpace<T> : SearchSpace
         where T : class, new()
     {
-        private T defaultOption = null;
+        private readonly T _defaultOption = null;
+
         public SearchSpace()
             : base(typeof(T))
         {
@@ -24,7 +17,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
         public SearchSpace(T defaultOption)
             : base(typeof(T), Parameter.FromObject(defaultOption))
         {
-            this.defaultOption = defaultOption;
+            this._defaultOption = defaultOption;
         }
 
         public new T SampleFromFeatureSpace(double[] feature)

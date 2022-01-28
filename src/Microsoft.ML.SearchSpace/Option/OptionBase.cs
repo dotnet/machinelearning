@@ -1,10 +1,7 @@
-﻿// <copyright file="OptionBase.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 #nullable enable
 
@@ -21,7 +18,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
         /// <summary>
         /// sample from [0,1) uniform distribution.
         /// </summary>
-        /// <param name="value">value to sample.</param>
+        /// <param name="values">value to sample.</param>
         /// <returns>sampled value.</returns>
         public abstract IParameter SampleFromFeatureSpace(double[] values);
 

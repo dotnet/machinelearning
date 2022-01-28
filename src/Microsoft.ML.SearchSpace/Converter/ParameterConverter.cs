@@ -1,11 +1,10 @@
-﻿// <copyright file="ParameterConverter.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -14,7 +13,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Converter
 {
     internal class ParameterConverter : JsonConverter
     {
-        internal static JsonSerializerSettings settings = new JsonSerializerSettings()
+        internal static JsonSerializerSettings Settings = new JsonSerializerSettings()
         {
             Formatting = Formatting.Indented,
             Culture = System.Globalization.CultureInfo.InvariantCulture,
@@ -54,7 +53,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Converter
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var param = (IParameter)value;
-            var s = JsonSerializer.Create(settings);
+            var s = JsonSerializer.Create(Settings);
             s.Serialize(writer, param.Value);
         }
     }

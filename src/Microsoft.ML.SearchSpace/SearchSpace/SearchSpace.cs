@@ -1,36 +1,34 @@
-﻿// <copyright file="SearchSpace.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.ML.ModelBuilder.SearchSpace.Option;
-using Newtonsoft.Json;
 
 namespace Microsoft.ML.ModelBuilder.SearchSpace
 {
-    public class SearchSpace: OptionBase, IDictionary<string, OptionBase>
+    public class SearchSpace : OptionBase, IDictionary<string, OptionBase>
     {
-        private Dictionary<string, OptionBase> options;
-        private Parameter defaultOption;
+        private readonly Dictionary<string, OptionBase> _options;
+        private readonly Parameter _defaultOption;
 
         public SearchSpace(params KeyValuePair<string, OptionBase>[] options)
             : this()
         {
-            this.options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
+            this._options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         public SearchSpace(IEnumerable<KeyValuePair<string, OptionBase>> options)
             : this()
         {
-            this.options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
+            this._options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         public SearchSpace()
         {
-            this.options = new Dictionary<string, OptionBase>();
+            this._options = new Dictionary<string, OptionBase>();
         }
 
         public override double[] Default
@@ -46,31 +44,31 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
         protected SearchSpace(Type typeInfo, Parameter defaultOption = null)
             : this()
         {
-            this.options = this.GetOptionsFromType(typeInfo);
+            this._options = this.GetOptionsFromType(typeInfo);
             var nestedSS = this.GetNestedSearchSpaceFromType(typeInfo);
             foreach (var ss in nestedSS)
             {
-                this.options.Add(ss.Key, ss.Value);
+                this._options.Add(ss.Key, ss.Value);
             }
 
-            this.defaultOption = defaultOption;
+            this._defaultOption = defaultOption;
         }
 
         public override int FeatureSpaceDim
         {
             get
             {
-                return this.options.Values.Select(x => x.FeatureSpaceDim).Sum();
+                return this._options.Values.Select(x => x.FeatureSpaceDim).Sum();
             }
         }
 
-        public ICollection<string> Keys => ((IDictionary<string, OptionBase>)options).Keys;
+        public ICollection<string> Keys => ((IDictionary<string, OptionBase>)_options).Keys;
 
-        public ICollection<OptionBase> Values => ((IDictionary<string, OptionBase>)options).Values;
+        public ICollection<OptionBase> Values => ((IDictionary<string, OptionBase>)_options).Values;
 
-        public int Count => ((ICollection<KeyValuePair<string, OptionBase>>)options).Count;
+        public int Count => ((ICollection<KeyValuePair<string, OptionBase>>)_options).Count;
 
-        public bool IsReadOnly => ((ICollection<KeyValuePair<string, OptionBase>>)options).IsReadOnly;
+        public bool IsReadOnly => ((ICollection<KeyValuePair<string, OptionBase>>)_options).IsReadOnly;
 
         public override int?[] Step
         {
@@ -82,7 +80,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
             }
         }
 
-        public OptionBase this[string key] { get => ((IDictionary<string, OptionBase>)options)[key]; set => ((IDictionary<string, OptionBase>)options)[key] = value; }
+        public OptionBase this[string key] { get => ((IDictionary<string, OptionBase>)_options)[key]; set => ((IDictionary<string, OptionBase>)_options)[key] = value; }
 
         public override IParameter SampleFromFeatureSpace(double[] feature)
         {
@@ -90,18 +88,18 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
             var param = Parameter.CreateNestedParameter();
             var cur = 0;
 
-            foreach (var key in this.options.Keys.OrderBy(k => k))
+            foreach (var key in this._options.Keys.OrderBy(k => k))
             {
-                var option = this.options[key];
+                var option = this._options[key];
                 var input = feature.Skip(cur).Take(option.FeatureSpaceDim).ToArray();
                 var value = option.SampleFromFeatureSpace(input);
                 param[key] = value;
                 cur += option.FeatureSpaceDim;
             }
 
-            if (this.defaultOption != null)
+            if (this._defaultOption != null)
             {
-                return this.Update(this.defaultOption, param);
+                return this.Update(this._defaultOption, param);
             }
 
             return param;
@@ -110,9 +108,9 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
         public override double[] MappingToFeatureSpace(IParameter parameter)
         {
             var res = new List<double>();
-            foreach (var key in this.options.Keys.OrderBy(k => k))
+            foreach (var key in this._options.Keys.OrderBy(k => k))
             {
-                var option = this.options[key];
+                var option = this._options[key];
                 var input = parameter[key];
                 var value = option.MappingToFeatureSpace(input);
                 res.AddRange(value);
@@ -245,57 +243,57 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace
 
         public void Add(string key, OptionBase value)
         {
-            ((IDictionary<string, OptionBase>)options).Add(key, value);
+            ((IDictionary<string, OptionBase>)_options).Add(key, value);
         }
 
         public bool ContainsKey(string key)
         {
-            return ((IDictionary<string, OptionBase>)options).ContainsKey(key);
+            return ((IDictionary<string, OptionBase>)_options).ContainsKey(key);
         }
 
         public bool Remove(string key)
         {
-            return ((IDictionary<string, OptionBase>)options).Remove(key);
+            return ((IDictionary<string, OptionBase>)_options).Remove(key);
         }
 
         public bool TryGetValue(string key, out OptionBase value)
         {
-            return ((IDictionary<string, OptionBase>)options).TryGetValue(key, out value);
+            return ((IDictionary<string, OptionBase>)_options).TryGetValue(key, out value);
         }
 
         public void Add(KeyValuePair<string, OptionBase> item)
         {
-            ((ICollection<KeyValuePair<string, OptionBase>>)options).Add(item);
+            ((ICollection<KeyValuePair<string, OptionBase>>)_options).Add(item);
         }
 
         public void Clear()
         {
-            ((ICollection<KeyValuePair<string, OptionBase>>)options).Clear();
+            ((ICollection<KeyValuePair<string, OptionBase>>)_options).Clear();
         }
 
         public bool Contains(KeyValuePair<string, OptionBase> item)
         {
-            return ((ICollection<KeyValuePair<string, OptionBase>>)options).Contains(item);
+            return ((ICollection<KeyValuePair<string, OptionBase>>)_options).Contains(item);
         }
 
         public void CopyTo(KeyValuePair<string, OptionBase>[] array, int arrayIndex)
         {
-            ((ICollection<KeyValuePair<string, OptionBase>>)options).CopyTo(array, arrayIndex);
+            ((ICollection<KeyValuePair<string, OptionBase>>)_options).CopyTo(array, arrayIndex);
         }
 
         public bool Remove(KeyValuePair<string, OptionBase> item)
         {
-            return ((ICollection<KeyValuePair<string, OptionBase>>)options).Remove(item);
+            return ((ICollection<KeyValuePair<string, OptionBase>>)_options).Remove(item);
         }
 
         public IEnumerator<KeyValuePair<string, OptionBase>> GetEnumerator()
         {
-            return ((IEnumerable<KeyValuePair<string, OptionBase>>)options).GetEnumerator();
+            return ((IEnumerable<KeyValuePair<string, OptionBase>>)_options).GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return ((System.Collections.IEnumerable)options).GetEnumerator();
+            return ((System.Collections.IEnumerable)_options).GetEnumerator();
         }
 
         private IParameter Update(IParameter left, IParameter right)

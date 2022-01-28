@@ -1,32 +1,30 @@
-﻿// <copyright file="GridSearchTuner.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Microsoft.ML.ModelBuilder.SearchSpace.Tuner
 {
     public class GridSearchTuner
     {
-        private SearchSpace searchSpace;
-        private int stepSize;
+        private readonly SearchSpace _searchSpace;
+        private readonly int _stepSize;
 
         public GridSearchTuner(SearchSpace ss, int stepSize = 10)
         {
-            this.searchSpace = ss;
-            this.stepSize = stepSize;
+            this._searchSpace = ss;
+            this._stepSize = stepSize;
         }
 
         public IEnumerable<IParameter> Propose()
         {
-            var steps = this.searchSpace.Step.Select(x => x ?? this.stepSize)
+            var steps = this._searchSpace.Step.Select(x => x ?? this._stepSize)
                                         .Select(x => Enumerable.Range(0, x).Select(i => i * 1.0 / x).ToArray());
             foreach (var featureVec in this.CartesianProduct(steps))
             {
-                yield return this.searchSpace.SampleFromFeatureSpace(featureVec);
+                yield return this._searchSpace.SampleFromFeatureSpace(featureVec);
             }
         }
 

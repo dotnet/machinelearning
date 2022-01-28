@@ -1,12 +1,9 @@
-﻿// <copyright file="ChoiceOption.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 
 #nullable enable
 
@@ -14,7 +11,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
 {
     public class ChoiceOption : OptionBase
     {
-        private UniformIntOption option;
+        private readonly UniformIntOption _option;
 
         public ChoiceOption(params object[] choices)
         {
@@ -23,7 +20,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
             Contract.Requires(distinctChoices.Count() == choices.Length, $"choices must not contain repeated values");
 
             this.Choices = distinctChoices.OrderBy(x => x).ToArray();
-            this.option = new UniformIntOption(0, this.Choices.Length);
+            this._option = new UniformIntOption(0, this.Choices.Length);
             this.Default = Enumerable.Repeat(0.0, this.FeatureSpaceDim).ToArray();
         }
 
@@ -44,7 +41,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
 
         public override double[] MappingToFeatureSpace(IParameter param)
         {
-            if(this.FeatureSpaceDim == 0)
+            if (this.FeatureSpaceDim == 0)
             {
                 return new double[0];
             }
@@ -53,7 +50,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
             var x = Array.BinarySearch(this.Choices, value);
             Contract.Requires(x != -1, $"{value} not contains");
 
-            return this.option.MappingToFeatureSpace(Parameter.FromInt(x));
+            return this._option.MappingToFeatureSpace(Parameter.FromInt(x));
         }
 
         public override IParameter SampleFromFeatureSpace(double[] values)
@@ -64,7 +61,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Option
                 return Parameter.FromObject(this.Choices[0]);
             }
 
-            var param = this.option.SampleFromFeatureSpace(values);
+            var param = this._option.SampleFromFeatureSpace(values);
             return Parameter.FromObject(this.Choices[param.AsType<int>()]);
         }
     }
