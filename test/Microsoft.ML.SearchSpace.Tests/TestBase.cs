@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using ApprovalTests;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.SearchSpace.Tests
@@ -15,6 +16,11 @@ namespace Microsoft.ML.SearchSpace.Tests
     {
         public TestBase(ITestOutputHelper output)
         {
+            if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
+
             this.Output = output;
         }
 
