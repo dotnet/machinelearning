@@ -1,12 +1,12 @@
-﻿// <copyright file="TestBase.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
+namespace Microsoft.ML.SearchSpace.Tests
 {
     /// <summary>
     /// Test base class which provides some useful commands.
@@ -23,6 +23,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
         /// </summary>
         protected ITestOutputHelper Output { get; private set; }
 
+        /// <summary>
         /// Get relative path of <paramref name="fileName"/> from TestData Folder.
         /// </summary>
         /// <param name="fileName">file name.</param>

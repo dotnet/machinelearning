@@ -1,15 +1,20 @@
-﻿// <copyright file="ChoiceOptionTest.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using FluentAssertions;
-using Microsoft.ML.ModelBuilder.SearchSpace.Option;
+using Microsoft.ML.SearchSpace.Option;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
+namespace Microsoft.ML.SearchSpace.Tests
 {
-    public class ChoiceOptionTest
+    public class ChoiceOptionTest : TestBase
     {
+        public ChoiceOptionTest(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void Choice_option_sampling_from_uniform_space_test()
         {

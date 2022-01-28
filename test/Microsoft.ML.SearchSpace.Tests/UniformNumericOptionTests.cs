@@ -1,20 +1,22 @@
-﻿// <copyright file="UniformNumericOptionTests.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using FluentAssertions;
-using Microsoft.ML.ModelBuilder.SearchSpace.Option;
+using Microsoft.ML.SearchSpace.Option;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
+namespace Microsoft.ML.SearchSpace.Tests
 {
-    public class UniformNumericOptionTests
+    public class UniformNumericOptionTests : TestBase
     {
+        public UniformNumericOptionTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void Uniform_integer_option_sampling_from_uniform_space_test()
         {
@@ -126,7 +128,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
             var option = new UniformDoubleOption(2e-10, 1, defaultValue: 2e-10, logBase: true);
             option.Default.Should().Equal(0);
             option.SampleFromFeatureSpace(option.Default).AsType<double>().Should().Be(2e-10);
-            option.SampleFromFeatureSpace(new[] {1.0}).AsType<double>().Should().Be(1.0);
+            option.SampleFromFeatureSpace(new[] { 1.0 }).AsType<double>().Should().Be(1.0);
         }
     }
 }

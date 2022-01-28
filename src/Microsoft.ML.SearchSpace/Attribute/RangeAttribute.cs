@@ -10,17 +10,32 @@ namespace Microsoft.ML.SearchSpace
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
     public class RangeAttribute : Attribute
     {
-        public RangeAttribute(double min, double max, double? init = null, bool logBase = false)
+        public RangeAttribute(double min, double max, bool logBase = false)
+        {
+            this.Option = new UniformDoubleOption(min, max, logBase);
+        }
+
+        public RangeAttribute(double min, double max, double init, bool logBase = false)
         {
             this.Option = new UniformDoubleOption(min, max, logBase, init);
         }
 
-        public RangeAttribute(int min, int max, int? init = null, bool logBase = false)
+        public RangeAttribute(int min, int max, bool logBase = false)
+        {
+            this.Option = new UniformIntOption(min, max, logBase);
+        }
+
+        public RangeAttribute(int min, int max, int init, bool logBase = false)
         {
             this.Option = new UniformIntOption(min, max, logBase, init);
         }
 
-        public RangeAttribute(float min, float max, float? init = null, bool logBase = false)
+        public RangeAttribute(float min, float max, bool logBase = false)
+        {
+            this.Option = new UniformSingleOption(min, max, logBase);
+        }
+
+        public RangeAttribute(float min, float max, float init, bool logBase = false)
         {
             this.Option = new UniformSingleOption(min, max, logBase, init);
         }

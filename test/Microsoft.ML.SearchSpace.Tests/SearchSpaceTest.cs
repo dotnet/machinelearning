@@ -1,22 +1,16 @@
-﻿// <copyright file="SearchSpaceTest.cs" company="Microsoft">
-// Copyright (c) Microsoft. All rights reserved.
-// </copyright>
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using ApprovalTests;
-using ApprovalTests.Namers;
-using ApprovalTests.Reporters;
 using FluentAssertions;
-using Microsoft.ML.ModelBuilder.SearchSpace.Option;
-using Microsoft.ML.ModelBuilder.SearchSpace.Tuner;
-using Newtonsoft.Json;
+using Microsoft.ML.SearchSpace.Option;
+using Microsoft.ML.SearchSpace.Tuner;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
+namespace Microsoft.ML.SearchSpace.Tests
 {
     public class SearchSpaceTest : TestBase
     {
@@ -95,7 +89,7 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
             param.BasicSS.ChoiceStr.Should().Be("a");
             param.BasicSS.DefaultSearchSpace.Strings.Should().BeEquivalentTo("B", "C", "D");
 
-            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5});
+            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 });
 
             param.UniformDouble.Should().Be(0);
             param.UniformFloat.Should().Be(0);
@@ -129,8 +123,8 @@ namespace Microsoft.ML.ModelBuilder.SearchSpace.Tests
             ss.Remove("UniformInt").Should().BeTrue();
             ss.FeatureSpaceDim.Should().Be(3);
             ss.Keys.Should().BeEquivalentTo("ChoiceStr", "UniformDouble", "UniformFloat");
-            
-            ss.SampleFromFeatureSpace(new double[] { 0, 0, 0})
+
+            ss.SampleFromFeatureSpace(new double[] { 0, 0, 0 })
                 .DefaultSearchSpace.Strings.Should().BeEquivalentTo("A", "B", "C");
 
             ss.SampleFromFeatureSpace(new double[] { 0, 0, 0 })
