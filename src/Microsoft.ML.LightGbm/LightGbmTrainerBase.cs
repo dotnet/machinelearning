@@ -57,7 +57,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                {nameof(CategoricalSmoothing),                 "cat_smooth" },
                {nameof(L2CategoricalRegularization),          "cat_l2" },
                {nameof(HandleMissingValue),                   "use_missing" },
-               {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
+               {nameof(UseZeroAsMissingValue),                "zero_as_missing" },
                {nameof(NumberOfIterations),                   "num_trees" }
             };
 
