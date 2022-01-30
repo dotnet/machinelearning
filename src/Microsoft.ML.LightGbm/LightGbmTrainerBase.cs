@@ -58,6 +58,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                {nameof(L2CategoricalRegularization),          "cat_l2" },
                {nameof(HandleMissingValue),                   "use_missing" },
                {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
+               {nameof(NumberOfIterations),                   "num_trees" }
             };
 
             private protected string GetOptionName(string name)
