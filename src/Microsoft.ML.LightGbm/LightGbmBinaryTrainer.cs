@@ -155,7 +155,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
             [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
-            public double Sigmoid = 0.5;
+            public double Sigmoid = 1;
 
             /// <summary>
             /// Determines what evaluation metric to use.
