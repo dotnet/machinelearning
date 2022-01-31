@@ -265,11 +265,9 @@ namespace Microsoft.ML.Trainers.LightGbm
                 if (NumberOfThreads.HasValue)
                     res["nthread"] = NumberOfThreads.Value;
 
-                // keep lightgbm default seed if it has not been specified in Seed
+                // keep lightgbm default seed if it has not been specified in Seed property
                 if (Seed.HasValue)
-                {
                     res["seed"] = Seed;
-                }
 
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
                 res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
