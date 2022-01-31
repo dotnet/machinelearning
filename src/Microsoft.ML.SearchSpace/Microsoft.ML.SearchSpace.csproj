@@ -12,12 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SerializablePipeline.Tests" />
-    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SearchSpace.Tests" />
-    <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SerializablePipeline" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
   </ItemGroup>
 
