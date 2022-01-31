@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.ML.Runtime;
 
 #nullable enable
 
@@ -15,9 +16,9 @@ namespace Microsoft.ML.SearchSpace.Option
 
         public ChoiceOption(params object[] choices)
         {
-            Contract.Requires(choices.Length > 0 && choices.Length < 1074, $"the length of choices must be (0, 1074)");
+            Contracts.Check(choices.Length > 0 && choices.Length < 1074, "the length of choices must be (0, 1074)");
             var distinctChoices = choices.Distinct();
-            Contract.Requires(distinctChoices.Count() == choices.Length, $"choices must not contain repeated values");
+            Contracts.Check(distinctChoices.Count() == choices.Length, "choices must not contain repeated values");
 
             this.Choices = distinctChoices.OrderBy(x => x).ToArray();
             this._option = new UniformIntOption(0, this.Choices.Length);
@@ -48,14 +49,14 @@ namespace Microsoft.ML.SearchSpace.Option
 
             var value = param.AsType<string>();
             var x = Array.BinarySearch(this.Choices, value);
-            Contract.Requires(x != -1, $"{value} not contains");
+            Contracts.Check(x != -1, $"{value} not contains");
 
             return this._option.MappingToFeatureSpace(Parameter.FromInt(x));
         }
 
         public override IParameter SampleFromFeatureSpace(double[] values)
         {
-            Contract.Requires(values.Length >= 0, "values length must be greater than 0");
+            Contracts.Check(values.Length >= 0, "values length must be greater than 0");
             if (values.Length == 0)
             {
                 return Parameter.FromObject(this.Choices[0]);

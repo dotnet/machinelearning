@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.SearchSpace.Option;
 
 namespace Microsoft.ML.SearchSpace
@@ -84,7 +85,7 @@ namespace Microsoft.ML.SearchSpace
 
         public override IParameter SampleFromFeatureSpace(double[] feature)
         {
-            Contract.Requires(feature.Length == this.FeatureSpaceDim, "input feature doesn't match");
+            Contracts.Check(feature.Length == this.FeatureSpaceDim, "input feature doesn't match");
             var param = Parameter.CreateNestedParameter();
             var cur = 0;
 
@@ -188,7 +189,7 @@ namespace Microsoft.ML.SearchSpace
                 var rangeAttributes = field.GetCustomAttributes(typeof(RangeAttribute), false);
 
                 var attributes = choiceAttributes.Concat(rangeAttributes);
-                Contract.Requires(attributes.Count() <= 1, $"{field.Name} can only define one of the choice|range|option attribute");
+                Contracts.Check(attributes.Count() <= 1, $"{field.Name} can only define one of the choice|range|option attribute");
                 if (attributes.Count() == 0)
                 {
                     continue;
@@ -220,7 +221,7 @@ namespace Microsoft.ML.SearchSpace
                 var rangeAttributes = property.GetCustomAttributes(typeof(RangeAttribute), false);
 
                 var attributes = choiceAttributes.Concat(rangeAttributes);
-                Contract.Requires(attributes.Count() <= 1, $"{property.Name} can only define one of the choice|range|option attribute");
+                Contracts.Check(attributes.Count() <= 1, $"{property.Name} can only define one of the choice|range|option attribute");
                 if (attributes.Count() == 0)
                 {
                     continue;

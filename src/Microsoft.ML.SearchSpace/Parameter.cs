@@ -6,13 +6,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace Microsoft.ML.SearchSpace
 {
-    // TODO
-    // Add tests
     public class Parameter : IParameter
     {
         private readonly JsonSerializerSettings _settings = new JsonSerializerSettings()
@@ -42,6 +41,11 @@ namespace Microsoft.ML.SearchSpace
         public static Parameter FromFloat(float value)
         {
             return new Parameter(value, ParameterType.Float);
+        }
+
+        public static Parameter FromLong(long value)
+        {
+            return new Parameter(value, ParameterType.Integer);
         }
 
         public static Parameter FromInt(int value)
@@ -90,6 +94,7 @@ namespace Microsoft.ML.SearchSpace
             var param = value switch
             {
                 int i => Parameter.FromInt(i),
+                long l => Parameter.FromLong(l),
                 double d => Parameter.FromDouble(d),
                 float f => Parameter.FromFloat(f),
                 string s => Parameter.FromString(s),
@@ -249,7 +254,7 @@ namespace Microsoft.ML.SearchSpace
 
         private void VerifyIfParameterIsObjectType()
         {
-            Contract.Requires(this.ParameterType == ParameterType.Object, "parameter is not object type.");
+            Contracts.Check(this.ParameterType == ParameterType.Object, "parameter is not object type.");
         }
 
         public void CopyTo(KeyValuePair<string, IParameter>[] array, int arrayIndex)

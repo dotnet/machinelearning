@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+    <NoWarn>MSML_ContractsCheckMessageNotLiteralOrIdentifier</NoWarn>
     <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
@@ -14,6 +15,10 @@
     <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SerializablePipeline.Tests" />
     <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SearchSpace.Tests" />
     <InternalsVisibleTo Include="Microsoft.ML.ModelBuilder.SerializablePipeline" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -54,6 +54,10 @@ namespace Microsoft.ML.SearchSpace.Tests
             // enum
             parameter = Parameter.FromEnum(JTokenType.Array);
             parameter.AsType<JTokenType>().Should().Be(JTokenType.Array);
+
+            // long
+            parameter = Parameter.FromLong(long.MaxValue);
+            parameter.AsType<long>().Should().Be(long.MaxValue);
         }
 
         [Fact]

@@ -43,7 +43,7 @@ namespace Microsoft.ML.SearchSpace.Converter
                 JTokenType.String => Parameter.FromString(jtoken.ToObject<string>()),
                 JTokenType.Float => Parameter.FromDouble(jtoken.ToObject<double>()),
                 JTokenType.Boolean => Parameter.FromBool(jtoken.ToObject<bool>()),
-                JTokenType.Integer => Parameter.FromInt(jtoken.ToObject<int>()),
+                JTokenType.Integer => Parameter.FromLong(jtoken.ToObject<long>()),
                 JTokenType.Array => Parameter.FromIEnumerable((JArray)jtoken),
                 JTokenType.Null => null,
                 _ => throw new ArgumentException($"Unsupported jtoken type {jtoken.Type}"),
