@@ -277,6 +277,8 @@ namespace Microsoft.ML.Trainers.LightGbm
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
                 res[GetOptionName(nameof(L2CategoricalRegularization))] = L2CategoricalRegularization;
                 res[GetOptionName(nameof(NumberOfIterations))] = NumberOfIterations;
+                res[GetOptionName(nameof(LearningRate))] = LearningRate;
+                res[GetOptionName(nameof(MinimumExampleCountPerLeaf))] = MinimumExampleCountPerLeaf;
 
                 return res;
             }
