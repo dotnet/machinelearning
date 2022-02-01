@@ -273,11 +273,11 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly int _windowSize;
         private readonly double _tolerance;
         // Queue for moving window
-        private LinkedList<double> _window;
+        private readonly LinkedList<double> _window;
 
         // This queue keeps track of the iterations which are within tolerance from the best iteration
         // The first element of the queue is the early stopping candidate
-        private LinkedList<ValueIterationPair> _toleratedQueue;
+        private readonly LinkedList<ValueIterationPair> _toleratedQueue;
 
         // Average validation for the current window
         private double _currentWindowSum;

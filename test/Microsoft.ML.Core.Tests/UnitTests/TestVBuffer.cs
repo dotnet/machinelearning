@@ -109,15 +109,15 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 float d = 0;
                 switch (trial % 3)
                 {
-                case 0:
-                    d = 0;
-                    break;
-                case 1:
-                    d = 1;
-                    break;
-                case 2:
-                    d = rgen.NextDouble().ToFloat();
-                    break;
+                    case 0:
+                        d = 0;
+                        break;
+                    case 1:
+                        d = 1;
+                        break;
+                    case 2:
+                        d = rgen.NextDouble().ToFloat();
+                        break;
                 }
                 VectorUtils.ScaleBy(ref a, d);
                 var editor = VBufferEditor.CreateFromBuffer(ref aOrig);
@@ -952,14 +952,14 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         {
             switch (trial % 4)
             {
-            case 0:
-                return 0;
-            case 1:
-                return 1;
-            case 2:
-                return -1;
-            default:
-                return rgen.NextDouble().ToFloat() * 10 - 5;
+                case 0:
+                    return 0;
+                case 1:
+                    return 1;
+                case 2:
+                    return -1;
+                default:
+                    return rgen.NextDouble().ToFloat() * 10 - 5;
             }
         }
 
@@ -1101,62 +1101,62 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             VBufferEditor<float> bEditor;
             switch (subcase)
             {
-            case GenLogic.BothDense:
-                // Both dense.
-                GenerateVBuffer(rgen, len, len, out a);
-                GenerateVBuffer(rgen, len, len, out b);
-                break;
-            case GenLogic.ASparseBDense:
-            case GenLogic.ADenseBSparse:
-                GenerateVBuffer(rgen, len, len, out a);
-                GenerateVBuffer(rgen, len, rgen.Next(len), out b);
-                if (subcase == GenLogic.ASparseBDense)
-                    Utils.Swap(ref a, ref b);
-                break;
-            case GenLogic.BothSparseASameB:
-                GenerateVBuffer(rgen, len, rgen.Next(len), out a);
-                GenerateVBuffer(rgen, len, a.GetValues().Length, out b);
-                bEditor = VBufferEditor.CreateFromBuffer(ref b);
-                for (int i = 0; i < a.GetIndices().Length; ++i)
-                    bEditor.Indices[i] = a.GetIndices()[i];
-                b = bEditor.Commit();
-                break;
-            case GenLogic.BothSparseASubsetB:
-            case GenLogic.BothSparseBSubsetA:
-                GenerateVBuffer(rgen, len, rgen.Next(len), out a);
-                GenerateVBuffer(rgen, a.GetValues().Length, rgen.Next(a.GetValues().Length), out b);
-                bEditor = VBufferEditor.Create(ref b, len, b.GetValues().Length);
-                for (int i = 0; i < bEditor.Values.Length; ++i)
-                    bEditor.Indices[i] = a.GetIndices()[bEditor.Indices[i]];
-                b = bEditor.Commit();
-                if (subcase == GenLogic.BothSparseASubsetB)
-                    Utils.Swap(ref a, ref b);
-                break;
-            case GenLogic.BothSparseAUnrelatedB:
-                GenerateVBuffer(rgen, len, rgen.Next(len), out a);
-                GenerateVBuffer(rgen, len, rgen.Next(len), out b);
-                break;
-            case GenLogic.BothSparseADisjointB:
-                GenerateVBuffer(rgen, len, rgen.Next(len), out a);
-                int boundary = rgen.Next(a.GetValues().Length + 1);
-                GenerateVBuffer(rgen, len, a.GetValues().Length - boundary, out b);
-                if (a.GetValues().Length != 0 && b.GetValues().Length != 0 && a.GetValues().Length != b.GetValues().Length)
-                {
-                    var aEditor = VBufferEditor.CreateFromBuffer(ref a);
+                case GenLogic.BothDense:
+                    // Both dense.
+                    GenerateVBuffer(rgen, len, len, out a);
+                    GenerateVBuffer(rgen, len, len, out b);
+                    break;
+                case GenLogic.ASparseBDense:
+                case GenLogic.ADenseBSparse:
+                    GenerateVBuffer(rgen, len, len, out a);
+                    GenerateVBuffer(rgen, len, rgen.Next(len), out b);
+                    if (subcase == GenLogic.ASparseBDense)
+                        Utils.Swap(ref a, ref b);
+                    break;
+                case GenLogic.BothSparseASameB:
+                    GenerateVBuffer(rgen, len, rgen.Next(len), out a);
+                    GenerateVBuffer(rgen, len, a.GetValues().Length, out b);
                     bEditor = VBufferEditor.CreateFromBuffer(ref b);
-                    Utils.Shuffle(rgen, aEditor.Indices);
-                    aEditor.Indices.Slice(boundary).CopyTo(bEditor.Indices);
-
-                    GenericSpanSortHelper<int>.Sort(aEditor.Indices, 0, boundary);
-                    GenericSpanSortHelper<int>.Sort(bEditor.Indices, 0, bEditor.Indices.Length);
-                    a = aEditor.CommitTruncated(boundary);
+                    for (int i = 0; i < a.GetIndices().Length; ++i)
+                        bEditor.Indices[i] = a.GetIndices()[i];
                     b = bEditor.Commit();
-                }
-                if (rgen.Next(2) == 0)
-                    Utils.Swap(ref a, ref b);
-                break;
-            default:
-                throw Contracts.Except("Whoops, did you miss a case?");
+                    break;
+                case GenLogic.BothSparseASubsetB:
+                case GenLogic.BothSparseBSubsetA:
+                    GenerateVBuffer(rgen, len, rgen.Next(len), out a);
+                    GenerateVBuffer(rgen, a.GetValues().Length, rgen.Next(a.GetValues().Length), out b);
+                    bEditor = VBufferEditor.Create(ref b, len, b.GetValues().Length);
+                    for (int i = 0; i < bEditor.Values.Length; ++i)
+                        bEditor.Indices[i] = a.GetIndices()[bEditor.Indices[i]];
+                    b = bEditor.Commit();
+                    if (subcase == GenLogic.BothSparseASubsetB)
+                        Utils.Swap(ref a, ref b);
+                    break;
+                case GenLogic.BothSparseAUnrelatedB:
+                    GenerateVBuffer(rgen, len, rgen.Next(len), out a);
+                    GenerateVBuffer(rgen, len, rgen.Next(len), out b);
+                    break;
+                case GenLogic.BothSparseADisjointB:
+                    GenerateVBuffer(rgen, len, rgen.Next(len), out a);
+                    int boundary = rgen.Next(a.GetValues().Length + 1);
+                    GenerateVBuffer(rgen, len, a.GetValues().Length - boundary, out b);
+                    if (a.GetValues().Length != 0 && b.GetValues().Length != 0 && a.GetValues().Length != b.GetValues().Length)
+                    {
+                        var aEditor = VBufferEditor.CreateFromBuffer(ref a);
+                        bEditor = VBufferEditor.CreateFromBuffer(ref b);
+                        Utils.Shuffle(rgen, aEditor.Indices);
+                        aEditor.Indices.Slice(boundary).CopyTo(bEditor.Indices);
+
+                        GenericSpanSortHelper<int>.Sort(aEditor.Indices, 0, boundary);
+                        GenericSpanSortHelper<int>.Sort(bEditor.Indices, 0, bEditor.Indices.Length);
+                        a = aEditor.CommitTruncated(boundary);
+                        b = bEditor.Commit();
+                    }
+                    if (rgen.Next(2) == 0)
+                        Utils.Swap(ref a, ref b);
+                    break;
+                default:
+                    throw Contracts.Except("Whoops, did you miss a case?");
             }
             Contracts.Assert(a.Length == len);
             Contracts.Assert(b.Length == len);

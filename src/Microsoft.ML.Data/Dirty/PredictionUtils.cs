@@ -58,7 +58,7 @@ namespace Microsoft.ML.Internal.Internallearn
             return CmdParser.CombineSettings(settings) + " " + CmdParser.CombineSettings(SplitOnSemis(extraSettings));
         }
 
-        private static char[] _dontSplitChars = new char[] { ' ', '=', '{', '}', '\t' };
+        private static readonly char[] _dontSplitChars = new char[] { ' ', '=', '{', '}', '\t' };
 
         // REVIEW: Deprecate this!
         public static string[] SplitOnSemis(string[] args)

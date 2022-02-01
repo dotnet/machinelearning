@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,10 +8,10 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
             [VectorType(4)]
             public float[] B;
         }
-        private class TestDataDifferntType
+        private class TestDataDifferentType
         {
             [VectorType(4)]
             public string[] a;
@@ -76,14 +76,14 @@ namespace Microsoft.ML.Tests
                 }));
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[4], B = new float[4] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { a = new string[4], b = new string[4] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { a = new string[4], b = new string[4] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
             using var model = ML.Model.LoadTensorFlowModel(modelFile);
             var pipe = model.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
-            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable( stringData);
-            var invalidDataWrongVectorSize = ML.Data.LoadFromEnumerable( sizeData);
+            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.LoadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 

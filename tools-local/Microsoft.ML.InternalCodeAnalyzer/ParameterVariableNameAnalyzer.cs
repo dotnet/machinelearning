@@ -22,7 +22,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string Description =
             "Parameter and local variable names should be lowerCamelCased.";
 
-        private static DiagnosticDescriptor Rule =
+        private static readonly DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(Id, Title, Format, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 

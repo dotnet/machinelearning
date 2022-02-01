@@ -31,7 +31,7 @@ namespace Microsoft.ML.RunTests
 
             var file1 = Path.Combine(dirName, "a.txt");
             var file2 = Path.Combine(dirName, "b.txt");
-           
+
             File.WriteAllText(file1, "Unit Test");
             File.WriteAllText(file2, "Unit Test");
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.RunTests
             File.WriteAllText(fileDataSA, "Unit Test");
             File.WriteAllText(fileDataSB, "Unit Test");
 
-            fileSource = new MultiFileSource(dataDir+"/*");
+            fileSource = new MultiFileSource(dataDir + "/*");
             Assert.True(fileSource.Count == 2, $"Error passing concatenated paths to {nameof(MultiFileSource)}");
 
             fileSource = new MultiFileSource(dataFolderDir + "/.../*");

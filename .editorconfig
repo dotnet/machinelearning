@@ -306,6 +306,10 @@ dotnet_diagnostic.IDE2004.severity = warning
 dotnet_diagnostic.CA1822.severity = suggestion
 
 [test/**/*.cs]
+# IDE0044: Don't force readonly for tests
+dotnet_diagnostic.IDE0044.severity = none
+dotnet_style_readonly_field = false
+
 # MSML_GeneralName: This name should be PascalCased
 dotnet_diagnostic.MSML_GeneralName.severity = none
 
@@ -323,3 +327,17 @@ dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
 # The MSML_RelaxTestNaming suppressor for VSTHRD200 is not active for CodeAnalyzer.Tests, so we disable it altogether.
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = none
+
+[docs/**/*.cs]
+# IDE0073: Dont want license file header in samples
+dotnet_diagnostic.IDE0073.severity = none
+file_header_template = unset
+
+# IDE0044: Don't force readonly for samples
+dotnet_diagnostic.IDE0044.severity = none
+dotnet_style_readonly_field = false
+
+[test/Microsoft.ML.TestFrameworkCommon/Utility/*.cs]
+# IDE0073: Dont want license file header in code we are using from elsewhere
+dotnet_diagnostic.IDE0073.severity = none
+file_header_template = unset

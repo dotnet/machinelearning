@@ -81,7 +81,7 @@ namespace Microsoft.ML.IntegrationTests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.FastTree(
-                    new FastTreeBinaryTrainer.Options{ NumberOfLeaves = 5, NumberOfTrees= 3, NumberOfThreads = 1 }));
+                    new FastTreeBinaryTrainer.Options { NumberOfLeaves = 5, NumberOfTrees = 3, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -182,7 +182,7 @@ namespace Microsoft.ML.IntegrationTests
 
             // Define the pipeline.
             var pipeline = mlContext.Transforms.Text.ProduceWordBags("SentimentBag", "SentimentText")
-                .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "SentimentBag", 
+                .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "SentimentBag",
                 numberOfTopics: numTopics, maximumNumberOfIterations: 10));
 
             // Fit the pipeline.
@@ -194,7 +194,7 @@ namespace Microsoft.ML.IntegrationTests
             // Get the topics and summaries from the model.
             var ldaDetails = ldaTransform.GetLdaDetails(0);
             Assert.False(ldaDetails.ItemScoresPerTopic == null && ldaDetails.WordScoresPerTopic == null);
-            if(ldaDetails.ItemScoresPerTopic != null)
+            if (ldaDetails.ItemScoresPerTopic != null)
                 Assert.Equal(numTopics, ldaDetails.ItemScoresPerTopic.Count);
             if (ldaDetails.WordScoresPerTopic != null)
                 Assert.Equal(numTopics, ldaDetails.WordScoresPerTopic.Count);
@@ -212,7 +212,7 @@ namespace Microsoft.ML.IntegrationTests
         /// Introspective Training: Linear model parameters may be inspected.
         /// </summary>
         [Fact]
-        public void InpsectLinearModelParameters()
+        public void InspectLinearModelParameters()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -278,7 +278,7 @@ namespace Microsoft.ML.IntegrationTests
             Common.AssertFiniteNumbers(config.Scale);
         }
         /// <summary>
-        /// Introspective Training: I can inspect a pipeline to determine which transformers were included. 	 
+        /// Introspective Training: I can inspect a pipeline to determine which transformers were included.
         /// </summary>
         [Fact]
         public void InspectPipelineContents()
@@ -308,7 +308,7 @@ namespace Microsoft.ML.IntegrationTests
             {
                 // It is possible to get the type at runtime.
                 Assert.IsType(expectedTypes[i], transformer);
-                
+
                 // It's also possible to inspect the schema output from the transform.
                 currentSchema = transformer.GetOutputSchema(currentSchema);
                 foreach (var expectedColumn in expectedColumns[i])
@@ -345,7 +345,7 @@ namespace Microsoft.ML.IntegrationTests
             // Transform the data.
             var transformedData = model.Transform(data);
 
-            // Verify that the slotnames can be used to backtrack to the original values by confirming that 
+            // Verify that the slotnames can be used to backtrack to the original values by confirming that
             // all unique values in the input data are in the output data slot names.
             // First get a list of the unique values.
             VBuffer<ReadOnlyMemory<char>> categoricalSlotNames = new VBuffer<ReadOnlyMemory<char>>();
@@ -372,12 +372,12 @@ namespace Microsoft.ML.IntegrationTests
                 for (int i = 0; i < Adult.CategoricalFeatures.Length; i++)
                 {
                     // Fetch the categorical value.
-                    string value = (string) row.GetType().GetProperty(Adult.CategoricalFeatures[i]).GetValue(row, null);
+                    string value = (string)row.GetType().GetProperty(Adult.CategoricalFeatures[i]).GetValue(row, null);
                     Assert.Contains($"{i}:{value}", uniqueValues);
                 }
             }
         }
-        
+
         /// <summary>
         /// Introspective Training: I can create nested pipelines, and extract individual components.
         /// </summary>
@@ -431,9 +431,11 @@ namespace Microsoft.ML.IntegrationTests
         {
             return mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                new SdcaMaximumEntropyMulticlassTrainer.Options {
+                new SdcaMaximumEntropyMulticlassTrainer.Options
+                {
                     MaximumNumberOfIterations = 10,
-                    NumberOfThreads = 1 }));
+                    NumberOfThreads = 1
+                }));
         }
     }
 }

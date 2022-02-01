@@ -5,8 +5,8 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Transforms.TimeSeries;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests
             [VectorType(InputSize)]
             public float[] A;
         }
-        private class TestDataDifferntType
+        private class TestDataDifferentType
         {
             [VectorType(InputSize)]
             public string[] data_0;
@@ -60,11 +60,11 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < changeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new SsaChangePointEstimator(Env, "Change", 
+            var pipe = new SsaChangePointEstimator(Env, "Change",
                 confidence, changeHistorySize, maxTrainingSize, seasonalitySize, "Value");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests
                     confidenceUpperBoundColumn: "ConfidenceUpperBound");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Tests
                 confidence, pValueHistorySize, maxTrainingSize, seasonalitySize, "Value");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Tests
                 "Change", confidence, changeHistorySize, "Value");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests
                 "Change", confidence, pValueHistorySize, "Value");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);

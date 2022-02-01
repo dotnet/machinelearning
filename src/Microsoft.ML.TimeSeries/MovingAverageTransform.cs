@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public string Weights = null;
         }
 
-        private int _lag;
+        private readonly int _lag;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         ///
         /// Finite Value: no infinite value in the sliding window and at least a non NaN value
         /// NaN value: only NaN values in the sliding window or +/- Infinite
-        /// Inifinite value: one infinite value in the sliding window (sign is no relevant)
+        /// Infinite value: one infinite value in the sliding window (sign is no relevant)
         /// </summary>
         internal static Single ComputeMovingAverageUniform(FixedSizeQueue<Single> others, Single input, int lag,
                                                          Single lastDropped, ref Single currentSum,

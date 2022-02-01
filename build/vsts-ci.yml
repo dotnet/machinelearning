@@ -24,7 +24,7 @@ jobs:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
   pool:
-    name: DotNet-Build
+    name: DotnetBuild-1ES-Linux
     demands:
     - agent.os -equals linux
   container: CentosContainer
@@ -48,14 +48,14 @@ jobs:
 - job: Linux_arm
 ################################################################################
   variables:
-    BuildConfig: Release-netcoreapp3_1
+    BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
     ROOTFS_DIR: '/crossrootfs/arm'
   pool:
-    name: DotNet-Build
+    name: DotnetBuild-1ES-Linux
     demands:
     - agent.os -equals linux
   container: UbuntuCrossArmContainer
@@ -79,14 +79,14 @@ jobs:
 - job: Linux_arm64
 ################################################################################
   variables:
-    BuildConfig: Release-netcoreapp3_1
+    BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
     ROOTFS_DIR: '/crossrootfs/arm64'
   pool:
-    name: DotNet-Build
+    name: DotnetBuild-1ES-Linux
     demands:
     - agent.os -equals linux
   container: UbuntuCrossArm64Container
@@ -116,7 +116,7 @@ jobs:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
   pool:
-    name: Hosted macOS
+    vmImage: macOS-10.15
   steps:
   # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
   - script: |
@@ -144,7 +144,7 @@ jobs:
 - job: MacOS_Apple_Silicon
 ################################################################################
   variables:
-    BuildConfig: Release-netcoreapp3_1
+    BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -187,7 +187,7 @@ jobs:
     _UseEsrpSigning: true
     _TeamName: DotNetCore
   pool:
-    name: DotNetCore-Build
+    name: DotNetCore-Build-1ES
     demands:
       - agent.os -equals Windows_NT
   steps:
@@ -238,7 +238,7 @@ jobs:
     _UseEsrpSigning: true
     _TeamName: DotNetCore
   pool:
-    name: DotNetCore-Build
+    name: DotNetCore-Build-1ES
     demands:
       - agent.os -equals Windows_NT
   steps:
@@ -297,6 +297,7 @@ jobs:
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
+    NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
     _SignType: real
     _UseEsrpSigning: true
     _TeamName: DotNetCore
@@ -304,7 +305,7 @@ jobs:
     _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
     _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
   pool:
-    name: DotNetCore-Build
+    name: DotNetCore-Build-1ES
     demands:
       - agent.os -equals Windows_NT
   steps:

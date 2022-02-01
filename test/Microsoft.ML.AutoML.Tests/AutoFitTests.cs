@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -98,7 +98,7 @@ namespace Microsoft.ML.AutoML.Test
             else
             {
                 // When using this other API, if the trainset is under the
-                // crossValRowCounThreshold, AutoML will also perform CrossValidation
+                // crossValRowCountThreshold, AutoML will also perform CrossValidation
                 // but through a very different path that the one above,
                 // throw a CrossValSummaryRunner and will return
                 // a different type of object as "result" which would now be
@@ -143,7 +143,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact(Skip = "Takes too much time, ~10 minutes.")]
         public void AutoFitImageClassification()
         {
-            // This test executes the code path that model builder code will take to get a model using image 
+            // This test executes the code path that model builder code will take to get a model using image
             // classification API.
 
             var context = new MLContext(1);
@@ -338,7 +338,7 @@ namespace Microsoft.ML.AutoML.Test
             // STEP 2: Run AutoML experiment
             try
             {
-                ExperimentResult<RegressionMetrics>  experimentResult = mlContext.Auto()
+                ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
                     .CreateRecommendationExperiment(5)
                     .Execute(trainDataView, testDataView,
                         new ColumnInformation()
@@ -351,7 +351,7 @@ namespace Microsoft.ML.AutoML.Test
                 RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
                 Assert.True(experimentResult.RunDetails.Count() > 1);
                 Assert.NotNull(bestRun.ValidationMetrics);
-                Assert.True(experimentResult.RunDetails.Max(i => i?.ValidationMetrics?.RSquared* i?.ValidationMetrics?.RSquared) > 0.5);
+                Assert.True(experimentResult.RunDetails.Max(i => i?.ValidationMetrics?.RSquared * i?.ValidationMetrics?.RSquared) > 0.5);
 
                 var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
                 var expectedOutputNames = new string[] { labelColumnName, userColumnName, userColumnName, itemColumnName, itemColumnName, scoreColumnName };
@@ -468,7 +468,7 @@ namespace Microsoft.ML.AutoML.Test
                 var lastException = experiment.RunDetails.Last().Exception;
                 var containsMessage = lastException.Message.Contains(expectedExceptionMessage);
 
-                if(lastException is AggregateException lastAggregateException)
+                if (lastException is AggregateException lastAggregateException)
                 {
                     // Sometimes multiple threads might throw the same "Operation was cancelled"
                     // exception and all of them are grouped inside an AggregateException
@@ -487,7 +487,7 @@ namespace Microsoft.ML.AutoML.Test
                 Assert.True(containsMessage,
                             $"Did not obtain '{expectedExceptionMessage}' error." +
                             $"Obtained unexpected error of type {lastException.GetType()} with message: {lastException.Message}");
-       
+
                 // Ensure that the best found model can still run after maximum experiment time was reached.
                 IDataView predictions = experiment.BestRun.Model.Transform(trainData);
             }

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -278,8 +278,8 @@ namespace Microsoft.ML.EntryPoints.Tests
         public class ClassWithPrivateFieldsAndProperties
         {
             public ClassWithPrivateFieldsAndProperties() { seq++; _unusedStaticField++; _unusedPrivateField1 = 100; }
-            static public int seq;
-            static public int _unusedStaticField;
+            public static int seq;
+            public static int _unusedStaticField;
             private int _unusedPrivateField1;
             private string _fString;
 

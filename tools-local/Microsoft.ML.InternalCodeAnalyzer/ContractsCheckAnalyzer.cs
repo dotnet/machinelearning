@@ -77,7 +77,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 NameofDiagnostic.Rule, ExceptionDiagnostic.Rule, SimpleMessageDiagnostic.Rule,
                 DecodeMessageWithLoadContextDiagnostic.Rule);
 
-        private static HashSet<string> _targetSet = new HashSet<string>(new[]
+        private static readonly HashSet<string> _targetSet = new HashSet<string>(new[]
         {
             "Check", "CheckUserArg", "CheckParam", "CheckParamValue", "CheckRef", "CheckValue",
             "CheckNonEmpty", "CheckNonWhiteSpace", "CheckDecode", "CheckIO", "CheckAlive", "CheckValueOrNull",

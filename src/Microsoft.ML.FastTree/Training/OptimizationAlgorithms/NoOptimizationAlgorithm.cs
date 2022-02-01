@@ -11,8 +11,8 @@ namespace Microsoft.ML.Trainers.FastTree
     /// </summary>
     internal class RandomForestOptimizer : GradientDescent
     {
-        private IGradientAdjuster _gradientWrapper;
-        // REVIEW: When the FastTree appliation is decoupled with tree learner and boosting logic, this class should be removed.
+        private readonly IGradientAdjuster _gradientWrapper;
+        // REVIEW: When the FastTree application is decoupled with tree learner and boosting logic, this class should be removed.
         internal RandomForestOptimizer(InternalTreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores, gradientWrapper)
         {

@@ -13,11 +13,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public void AddScalarU()
             => SseIntrinsics.AddScalarU(DefaultScale, new Span<float>(dst, 0, Length));
-        
+
         [Benchmark]
         public void Scale()
             => SseIntrinsics.Scale(DefaultScale, new Span<float>(dst, 0, Length));
-        
+
         [Benchmark]
         public void ScaleSrcU()
             => SseIntrinsics.ScaleSrcU(DefaultScale, src, dst, Length);
@@ -25,7 +25,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public void ScaleAddU()
             => SseIntrinsics.ScaleAddU(DefaultScale, DefaultScale, new Span<float>(dst, 0, Length));
-        
+
         [Benchmark]
         public void AddScaleU()
             => SseIntrinsics.AddScaleU(DefaultScale, src, dst, Length);
@@ -57,11 +57,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public float SumSqU()
             => SseIntrinsics.SumSqU(new Span<float>(src, 0, Length));
-        
+
         [Benchmark]
         public float SumSqDiffU()
             => SseIntrinsics.SumSqDiffU(DefaultScale, new Span<float>(src, 0, Length));
-        
+
         [Benchmark]
         public float SumAbsU()
             => SseIntrinsics.SumAbsU(new Span<float>(src, 0, Length));
@@ -69,23 +69,23 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public float SumAbsDiffU()
             => SseIntrinsics.SumAbsDiffU(DefaultScale, new Span<float>(src, 0, Length));
-        
+
         [Benchmark]
         public float MaxAbsU()
             => SseIntrinsics.MaxAbsU(new Span<float>(src, 0, Length));
-        
+
         [Benchmark]
         public float MaxAbsDiffU()
             => SseIntrinsics.MaxAbsDiffU(DefaultScale, new Span<float>(src, 0, Length));
-        
+
         [Benchmark]
         public float DotU()
             => SseIntrinsics.DotU(src, dst, Length);
-        
+
         [Benchmark]
         public float DotSU()
             => SseIntrinsics.DotSU(src, dst, idx, IndexLength);
-        
+
         [Benchmark]
         public float Dist2()
             => SseIntrinsics.Dist2(src, dst, Length);

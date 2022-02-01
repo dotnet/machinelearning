@@ -2,13 +2,14 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <TargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net461</TargetFramework>
-    <TargetFramework Condition="$(Configuration.EndsWith('-netcoreapp3_1'))">netcoreapp3.1</TargetFramework>
-    <TargetFramework Condition="'$(TestTargetFramework)' != ''">$(TestTargetFramework)</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'arm64'">net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TestTargetFramework)' != ''">$(TestTargetFramework)</TargetFrameworks>
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461'">win-x64</RuntimeIdentifier>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
     <!--
       Don't warn about missing documentation in test projects.
 

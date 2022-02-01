@@ -18,15 +18,15 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly int[] _oneTwoThree;
 
         // reusable memory
-        private int[][] _permutationBuffers;
-        private double[][] _scoreBuffers;
-        private DcgPermutationComparer[] _comparers;
+        private readonly int[][] _permutationBuffers;
+        private readonly double[][] _scoreBuffers;
+        private readonly DcgPermutationComparer[] _comparers;
 
         /// <summary>
         /// Contains the instances for a second Level comparer, which gets applied after the initial rank
         /// based ordering has happened. The array stores one second level comparer per thread.
         /// </summary>
-        private DescendingStableIdealComparer[] _secondLevelcomparers;
+        private readonly DescendingStableIdealComparer[] _secondLevelcomparers;
 
         private double _result;
 

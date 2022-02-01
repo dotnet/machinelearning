@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms.Image
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private ImageGrayscalingTransformer _parent;
+            private readonly ImageGrayscalingTransformer _parent;
 
             public Mapper(ImageGrayscalingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)

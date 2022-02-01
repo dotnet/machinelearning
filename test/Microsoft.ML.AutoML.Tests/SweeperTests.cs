@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class SweeperTests : BaseTestClass
     {
         public SweeperTests(ITestOutputHelper output) : base(output)
@@ -27,7 +27,7 @@ namespace Microsoft.ML.AutoML.Test
             var floatLogValueGenerator = new FloatValueGenerator(new FloatParamArguments() { Name = "floatLog", Min = 1, Max = 1000, LogBase = true });
             var longValueGenerator = new LongValueGenerator(new LongParamArguments() { Name = "long", Min = 1, Max = 1000 });
             var longLogValueGenerator = new LongValueGenerator(new LongParamArguments() { Name = "longLog", Min = 1, Max = 1000, LogBase = true });
-            var discreteValueGeneator = new DiscreteValueGenerator(new DiscreteParamArguments() { Name = "discrete", Values = new[] { "200", "400", "600", "800" } });
+            var discreteValueGenerator = new DiscreteValueGenerator(new DiscreteParamArguments() { Name = "discrete", Values = new[] { "200", "400", "600", "800" } });
 
             var sweeper = new SmacSweeper(new MLContext(1), new SmacSweeper.Arguments()
             {
@@ -36,7 +36,7 @@ namespace Microsoft.ML.AutoML.Test
                     floatLogValueGenerator,
                     longValueGenerator,
                     longLogValueGenerator,
-                    discreteValueGeneator
+                    discreteValueGenerator
                 },
                 NumberInitialPopulation = numInitialPopulation
             });
@@ -46,7 +46,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(floatLogValueGenerator[0].ValueText);
             Assert.NotNull(longValueGenerator[0].ValueText);
             Assert.NotNull(longLogValueGenerator[0].ValueText);
-            Assert.NotNull(discreteValueGeneator[0].ValueText);
+            Assert.NotNull(discreteValueGenerator[0].ValueText);
 
             List<RunResult> results = new List<RunResult>();
 
@@ -95,7 +95,7 @@ namespace Microsoft.ML.AutoML.Test
                     new FloatValueGenerator(new FloatParamArguments() { Name = "x4", Min = 1, Max = 1000}),
                 },
             });
-            
+
             List<RunResult> results = new List<RunResult>();
 
             RunResult bestResult = null;
@@ -154,7 +154,7 @@ namespace Microsoft.ML.AutoML.Test
             while (true)
             {
                 ParameterSet[] pars = sweeper.ProposeSweeps(1, results);
-                if(pars == null)
+                if (pars == null)
                 {
                     break;
                 }

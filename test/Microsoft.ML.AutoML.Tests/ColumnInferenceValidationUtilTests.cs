@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class ColumnInferenceValidationUtilTests : BaseTestClass
     {
         public ColumnInferenceValidationUtilTests(ITestOutputHelper output) : base(output)

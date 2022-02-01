@@ -5,8 +5,8 @@
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

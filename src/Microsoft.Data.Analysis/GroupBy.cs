@@ -101,9 +101,9 @@ namespace Microsoft.Data.Analysis
 
         #endregion
 
-        private int _groupByColumnIndex;
-        private IDictionary<TKey, ICollection<long>> _keyToRowIndicesMap;
-        private DataFrame _dataFrame;
+        private readonly int _groupByColumnIndex;
+        private readonly IDictionary<TKey, ICollection<long>> _keyToRowIndicesMap;
+        private readonly DataFrame _dataFrame;
 
         public GroupBy(DataFrame dataFrame, int groupByColumnIndex, IDictionary<TKey, ICollection<long>> keyToRowIndices)
         {

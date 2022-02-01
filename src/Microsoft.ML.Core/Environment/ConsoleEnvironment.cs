@@ -352,7 +352,7 @@ namespace Microsoft.ML.Runtime
         private readonly MessageSensitivity _sensitivityFlags;
 
         // This object is used to write to the test log along with the console if the host process is a test environment
-        private TextWriter _testWriter;
+        private readonly TextWriter _testWriter;
 
         /// <summary>
         /// Create an ML.NET <see cref="IHostEnvironment"/> for local execution, with console feedback.

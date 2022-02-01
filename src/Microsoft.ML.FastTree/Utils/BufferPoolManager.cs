@@ -27,7 +27,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// A dictionary containing all buffer pool types
         /// </summary>
-        private static ConcurrentDictionary<Type, SortedList<int, List<Array>>> _bufferPools = new ConcurrentDictionary<Type, SortedList<int, List<Array>>>();
+        private static readonly ConcurrentDictionary<Type, SortedList<int, List<Array>>> _bufferPools = new ConcurrentDictionary<Type, SortedList<int, List<Array>>>();
 
         /// <summary>
         /// Gets a buffer from the pool with at least the same size as passed as input parameter

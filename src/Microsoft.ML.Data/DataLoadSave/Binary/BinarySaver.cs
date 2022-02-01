@@ -107,8 +107,8 @@ namespace Microsoft.ML.Data.IO
 
         private sealed class WritePipe<T> : WritePipe
         {
-            private ValueGetter<T> _getter;
-            private IValueCodec<T> _codec;
+            private readonly ValueGetter<T> _getter;
+            private readonly IValueCodec<T> _codec;
             private IValueWriter<T> _writer;
             private MemoryStream _currentStream;
             private T _value;

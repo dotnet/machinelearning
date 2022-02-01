@@ -90,7 +90,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="keepHidden">If true will keep hidden columns and false will remove hidden columns. The argument is
         /// ignored if the Estimator is in "drop mode".</param>
         /// <param name="ignoreMissing">If false will check for any columns given in <paramref name="keepColumns"/>
-        ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
+        ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing column exists a
         ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
         internal ColumnSelectingEstimator(IHostEnvironment env, string[] keepColumns,
                                     string[] dropColumns, bool keepHidden = Defaults.KeepHidden,
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms
         internal const string ChooseLoaderSignatureOld = "ChooseColumnsFunction";
 
         private readonly IHost _host;
-        private string[] _selectedColumns;
+        private readonly string[] _selectedColumns;
 
         bool ITransformer.IsRowToRowMapper => true;
 
@@ -697,7 +697,7 @@ namespace Microsoft.ML.Transforms
                 var inputCols = ((IRowToRowMapper)this).GetDependencies(columnsNeeded);
                 var inputs = Source.GetRowCursorSet(inputCols, n, rand);
 
-                // Build out the acitve state for the output
+                // Build out the active state for the output
                 var active = Utils.BuildArray(_mapper.OutputSchema.Count, columnsNeeded);
                 _host.AssertNonEmpty(inputs);
 

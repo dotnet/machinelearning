@@ -7,7 +7,7 @@ using Microsoft.ML.Internal.CpuMath;
 
 namespace Microsoft.ML.CpuMath.PerformanceTests
 {
-    public class SmallInputCpuMathPerformanceTests: PerformanceTests
+    public class SmallInputCpuMathPerformanceTests : PerformanceTests
     {
         private int _smallInputLength = 10;
 

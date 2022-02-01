@@ -220,28 +220,28 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             string dataPath = GetDataPath("QuotingData.csv");
             string inputGraph = @"
-            {  
-               'Nodes':[  
-                  {  
+            {
+               'Nodes':[
+                  {
                      'Name':'Data.TextLoader',
-                     'Inputs':{  
+                     'Inputs':{
                         'InputFile':'$inputFile',
-                        'Arguments':{  
+                        'Arguments':{
                            'UseThreads':true,
                            'HeaderFile':null,
                            'MaxRows':null,
                            'AllowQuoting':true,
                            'AllowSparse':false,
                            'InputSize':null,
-                           'Separator':[  
+                           'Separator':[
                               ','
                            ],
-                           'Column':[  
-                              {  
+                           'Column':[
+                              {
                                  'Name':'ID',
                                  'Type':'R4',
-                                 'Source':[  
-                                    {  
+                                 'Source':[
+                                    {
                                        'Min':0,
                                        'Max':0,
                                        'AutoEnd':false,
@@ -252,11 +252,11 @@ namespace Microsoft.ML.EntryPoints.Tests
                                  ],
                                  'KeyCount':null
                               },
-                              {  
+                              {
                                  'Name':'Text',
                                  'Type':'TX',
-                                 'Source':[  
-                                    {  
+                                 'Source':[
+                                    {
                                        'Min':1,
                                        'Max':1,
                                        'AutoEnd':false,
@@ -272,7 +272,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                            'HasHeader':true
                         }
                      },
-                     'Outputs':{  
+                     'Outputs':{
                         'Data':'$data'
                      }
                   }
@@ -737,7 +737,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             irisFirstRow["SepalWidth"] = 3.5f;
             irisFirstRow["PetalLength"] = 1.4f;
             irisFirstRow["PetalWidth"] = 0.2f;
-            
+
             var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
@@ -878,7 +878,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             TestCommaAsDecimalMarkerHelper<float>(useCsvVersion);
             TestCommaAsDecimalMarkerHelper<double>(useCsvVersion);
         }
-        
+
         private void TestCommaAsDecimalMarkerHelper<T>(bool useCsvVersion)
         {
             // Datasets iris.txt and iris-decimal-marker-as-comma.txt are the exact same, except for their
@@ -1012,12 +1012,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             using DataViewRowCursor cursor = textData.GetRowCursor(columns);
             VBuffer<Single> featuresPeriod = default;
             ValueGetter<VBuffer<Single>> featuresDelegatePeriod = cursor.GetGetter<VBuffer<Single>>(columns[1]);
-            
+
             // Iterate over each row and check that feature values are NaN.
             while (cursor.MoveNext())
             {
                 featuresDelegatePeriod.Invoke(ref featuresPeriod);
-                foreach(float feature in featuresPeriod.GetValues().ToArray())
+                foreach (float feature in featuresPeriod.GetValues().ToArray())
                     Assert.Equal(feature, Single.NaN);
             }
         }
@@ -1094,7 +1094,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     {
                         if (useCorrectPeriod && useCorrectComma)
                         {
-                            // Check that none of the two files loadad NaNs
+                            // Check that none of the two files loaded NaNs
                             // As both of them should have been loaded correctly
                             Assert.Equal(featuresPeriodArray[i], featuresCommaArray[i]);
                             Assert.NotEqual(Single.NaN, featuresPeriodArray[i]);
@@ -1135,7 +1135,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             [LoadColumn(1)]
             private float SepalWidth { get; }
 
-            public float GetSepalLenght()
+            public float GetSepalLength()
                 => _sepalLength;
 
             public void SetSepalLength(float sepalLength)
@@ -1315,7 +1315,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var ids = new List<string>();
             var descriptions = new List<string>();
             var animals = new List<string>();
-            using(var curs = data.GetRowCursorForAllColumns())
+            using (var curs = data.GetRowCursorForAllColumns())
             {
                 var idGetter = curs.GetGetter<int>(data.Schema["id"]);
                 var descriptionGetter = curs.GetGetter<ReadOnlyMemory<char>>(data.Schema["description"]);
@@ -1325,7 +1325,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 ReadOnlyMemory<char> description = default;
                 ReadOnlyMemory<char> animal = default;
 
-                while(curs.MoveNext())
+                while (curs.MoveNext())
                 {
                     idGetter(ref id);
                     descriptionGetter(ref description);
@@ -1346,7 +1346,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             string line;
             using (var file = new StreamReader(baselinePath))
             {
-                for(int i = 0; i < numRows; i++)
+                for (int i = 0; i < numRows; i++)
                 {
                     line = file.ReadLine();
                     Assert.Equal(ids[i], line);
@@ -1404,11 +1404,11 @@ namespace Microsoft.ML.EntryPoints.Tests
 
                 data.Preview();
             }
-            catch(EndOfStreamException)
+            catch (EndOfStreamException)
             {
                 threwException = true;
             }
-            catch(FormatException)
+            catch (FormatException)
             {
                 threwException = true;
             }
@@ -1452,8 +1452,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             IDataView baselineDV;
-            IDataView testDV ;
-            if(useImputeEmptyFloats)
+            IDataView testDV;
+            if (useImputeEmptyFloats)
             {
                 baselineDV = mlContext.Data.LoadFromTextFile(baselineWithImpute, options);
                 options.MissingRealsAsNaNs = true;

@@ -313,7 +313,7 @@ namespace Microsoft.ML.Data.IO
             private sealed class Writer : ValueWriterBase<ReadOnlyMemory<char>>
             {
                 private StringBuilder _builder;
-                private List<int> _boundaries;
+                private readonly List<int> _boundaries;
 
                 public Writer(TextCodec codec, Stream stream)
                     : base(codec.Factory, stream)
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Data.IO
                 private readonly int _entries;
                 private readonly int[] _boundaries;
                 private int _index;
-                private string _text;
+                private readonly string _text;
 
                 public Reader(TextCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)

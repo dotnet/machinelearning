@@ -22,12 +22,12 @@ namespace Microsoft.Data.Analysis
 
     internal class QuoteDelimitedFieldBuilder
     {
-        private StringBuilder _field;
+        private readonly StringBuilder _field;
         private bool _fieldFinished;
         private int _index;
         private int _delimiterLength;
-        private Regex _delimiterRegex;
-        private string _spaceChars;
+        private readonly Regex _delimiterRegex;
+        private readonly string _spaceChars;
         private bool _malformedLine;
 
         public QuoteDelimitedFieldBuilder(Regex delimiterRegex, string spaceChars)
@@ -148,7 +148,7 @@ namespace Microsoft.Data.Analysis
 
         private Regex _delimiterWithEndCharsRegex;
 
-        private int[] _whitespaceCodes = new int[] { '\u0009', '\u000B', '\u000C', '\u0020', '\u0085', '\u00A0', '\u1680', '\u2000', '\u2001', '\u2002', '\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A', '\u200B', '\u2028', '\u2029', '\u3000', '\uFEFF' };
+        private readonly int[] _whitespaceCodes = new int[] { '\u0009', '\u000B', '\u000C', '\u0020', '\u0085', '\u00A0', '\u1680', '\u2000', '\u2001', '\u2002', '\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A', '\u200B', '\u2028', '\u2029', '\u3000', '\uFEFF' };
 
         private Regex _beginQuotesRegex;
 
@@ -172,13 +172,13 @@ namespace Microsoft.Data.Analysis
 
         private string _spaceChars;
 
-        private int _maxLineSize = 10000000;
+        private readonly int _maxLineSize = 10000000;
 
-        private int _maxBufferSize = 10000000;
+        private readonly int _maxBufferSize = 10000000;
 
-        private bool _leaveOpen;
+        private readonly bool _leaveOpen;
 
-        private char[] newLineChars = Environment.NewLine.ToCharArray();
+        private readonly char[] _newLineChars = Environment.NewLine.ToCharArray();
 
         public string[] CommentTokens
         {
@@ -419,7 +419,7 @@ namespace Microsoft.Data.Analysis
             }
 
             _lineNumber++;
-            return line.TrimEnd(newLineChars);
+            return line.TrimEnd(_newLineChars);
         }
 
         public string[] ReadFields()
@@ -470,7 +470,7 @@ namespace Microsoft.Data.Analysis
                 return null;
             }
 
-            line = line.TrimEnd(newLineChars);
+            line = line.TrimEnd(_newLineChars);
             if (line.Length < numberOfChars)
             {
                 return line;
@@ -799,7 +799,7 @@ namespace Microsoft.Data.Analysis
                     endHelper.BuildField(line, index);
                     if (endHelper.MalformedLine)
                     {
-                        _errorLine = line.TrimEnd(newLineChars);
+                        _errorLine = line.TrimEnd(_newLineChars);
                         _errorLineNumber = currentLineNumber;
                         throw new Exception(string.Format(Strings.CannotParseWithDelimiters, currentLineNumber));
                     }
@@ -817,13 +817,13 @@ namespace Microsoft.Data.Analysis
                             string newLine = ReadNextDataLine();
                             if (newLine == null)
                             {
-                                _errorLine = line.TrimEnd(newLineChars);
+                                _errorLine = line.TrimEnd(_newLineChars);
                                 _errorLineNumber = currentLineNumber;
                                 throw new Exception(string.Format(Strings.CannotParseWithDelimiters, currentLineNumber));
                             }
                             if (line.Length + newLine.Length > _maxLineSize)
                             {
-                                _errorLine = line.TrimEnd(newLineChars);
+                                _errorLine = line.TrimEnd(_newLineChars);
                                 _errorLineNumber = currentLineNumber;
                                 throw new Exception(string.Format(Strings.LineExceedsMaxLineSize, currentLineNumber));
                             }
@@ -832,7 +832,7 @@ namespace Microsoft.Data.Analysis
                             endHelper.BuildField(line, endOfLine);
                             if (endHelper.MalformedLine)
                             {
-                                _errorLine = line.TrimEnd(newLineChars);
+                                _errorLine = line.TrimEnd(_newLineChars);
                                 _errorLineNumber = currentLineNumber;
                                 throw new Exception(string.Format(Strings.CannotParseWithDelimiters, currentLineNumber));
                             }
@@ -862,7 +862,7 @@ namespace Microsoft.Data.Analysis
                     index = delimiterMatch.Index + delimiterMatch.Length;
                     continue;
                 }
-                field = line.Substring(index).TrimEnd(newLineChars);
+                field = line.Substring(index).TrimEnd(_newLineChars);
                 if (_trimWhiteSpace)
                 {
                     field = field.Trim();
@@ -881,7 +881,7 @@ namespace Microsoft.Data.Analysis
             {
                 return null;
             }
-            line = line.TrimEnd(newLineChars);
+            line = line.TrimEnd(_newLineChars);
             StringInfo lineInfo = new StringInfo(line);
             ValidateFixedWidthLine(lineInfo, _lineNumber - 1);
             int index = 0;
@@ -897,7 +897,7 @@ namespace Microsoft.Data.Analysis
 
         private string GetFixedWidthField(StringInfo line, int index, int fieldLength)
         {
-            string field = (fieldLength > 0) ? line.SubstringByTextElements(index, fieldLength) : ((index < line.LengthInTextElements) ? line.SubstringByTextElements(index).TrimEnd(newLineChars) : string.Empty);
+            string field = (fieldLength > 0) ? line.SubstringByTextElements(index, fieldLength) : ((index < line.LengthInTextElements) ? line.SubstringByTextElements(index).TrimEnd(_newLineChars) : string.Empty);
             if (_trimWhiteSpace)
             {
                 return field.Trim();
@@ -1062,7 +1062,7 @@ namespace Microsoft.Data.Analysis
                 {
                     throw new Exception(Strings.EmptyDelimiters);
                 }
-                if (delimiter.IndexOfAny(newLineChars) > -1)
+                if (delimiter.IndexOfAny(_newLineChars) > -1)
                 {
                     throw new Exception(Strings.DelimiterCannotBeNewlineChar);
                 }

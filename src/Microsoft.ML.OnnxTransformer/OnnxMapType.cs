@@ -49,8 +49,8 @@ namespace Microsoft.ML.Transforms.Onnx
     /// </summary>
     public sealed class OnnxMapTypeAttribute : DataViewTypeAttribute
     {
-        private Type _keyType;
-        private Type _valueType;
+        private readonly Type _keyType;
+        private readonly Type _valueType;
 
         /// <summary>
         /// Create a map (aka dictionary) type.

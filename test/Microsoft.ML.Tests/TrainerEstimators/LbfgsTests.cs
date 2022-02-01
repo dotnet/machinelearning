@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             validateStats(linearModel);
 
             var modelAndSchemaPath = GetOutputPath("TestLRWithStats.zip");
-            
+
             // Save model. 
             ML.Model.Save(transformer, dataView.Schema, modelAndSchemaPath);
 

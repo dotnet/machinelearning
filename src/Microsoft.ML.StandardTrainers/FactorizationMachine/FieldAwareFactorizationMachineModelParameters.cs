@@ -28,7 +28,7 @@ namespace Microsoft.ML.Trainers
     {
         internal const string LoaderSignature = "FieldAwareFactMacPredict";
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        private bool _norm;
+        private readonly bool _norm;
 
         /// <summary>
         /// Get the number of fields. It's the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Trainers
         public int FeatureCount { get; }
 
         /// <summary>
-        /// Get the latent dimension. It's the tlngth of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// Get the latent dimension. It's the length of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
         /// </summary>
         public int LatentDimension { get; }
 
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The host environment</param>
         /// <param name="norm">True if user wants to normalize feature vector to unit length.</param>
-        /// <param name="fieldCount">The number of fileds, which is the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="fieldCount">The number of fields, which is the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
         /// <param name="featureCount">The number of features, which is the symbol `n` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
         /// <param name="latentDim">The latent dimensions, which is the length of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
         /// <param name="linearWeights">The linear coefficients of the features, which is the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Trainers
             // float[]: latent representation of features
 
             // REVIEW:FAFM needs to store the names of the features, so that they prediction data does not have the
-            // restriciton of the columns needing to be ordered the same as the training data.
+            // restriction of the columns needing to be ordered the same as the training data.
 
             Host.Assert(FieldCount > 0);
             Host.Assert(FeatureCount > 0);

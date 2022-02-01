@@ -29,14 +29,14 @@ namespace Microsoft.ML.AutoML.Test
                 topKAccuracy, perClassLogLoss);
         }
 
-        public static RegressionMetrics CreateRegressionMetrics(double l1, 
+        public static RegressionMetrics CreateRegressionMetrics(double l1,
             double l2, double rms, double lossFn, double rSquared)
         {
             return CreateInstance<RegressionMetrics>(l1, l2,
                 rms, lossFn, rSquared);
         }
 
-        public static RankingMetrics CreateRankingMetrics(double[] dcg, 
+        public static RankingMetrics CreateRankingMetrics(double[] dcg,
             double[] ndcg)
         {
             return CreateInstance<RankingMetrics>(dcg, ndcg);

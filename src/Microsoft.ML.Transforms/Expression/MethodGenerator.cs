@@ -68,7 +68,7 @@ namespace Microsoft.ML.Transforms
         public struct Temporary : IDisposable
         {
             private Action<LocalBuilder, bool> _dispose;
-            private bool _isRef;
+            private readonly bool _isRef;
 
             // Should only be created by MethodGenerator. Too bad C# can't enforce this without
             // reversing the class nesting.

@@ -36,12 +36,12 @@ jobs:
     container: CentosContainer
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_1
+        _configuration: Debug
         _config_short: DI
         _targetFramework: netcoreapp3.1
         _includeBenchmarkData: false
       Release_Build:
-        _configuration: Release-netcoreapp3_1
+        _configuration: Release
         _config_short: RI
         _targetFramework: netcoreapp3.1
         _includeBenchmarkData: true
@@ -72,11 +72,11 @@ jobs:
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_1
+        _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
       Release_Build:
-        _configuration: Release-netcoreapp3_1
+        _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
     nightlyBuild: true
@@ -97,13 +97,15 @@ jobs:
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netfx
+        _configuration: Debug
         _config_short: DFX
         _includeBenchmarkData: false
+        _targetFramework: net461
       Release_Build:
-        _configuration: Release-netfx
+        _configuration: Release
         _config_short: RFX
         _includeBenchmarkData: false
+        _targetFramework: net461
     nightlyBuild: true
     pool:
       vmImage: windows-2019

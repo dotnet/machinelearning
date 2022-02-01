@@ -94,12 +94,12 @@ namespace Microsoft.ML.TextAnalytics
 
     internal sealed class LdaSingleBox : IDisposable
     {
-        private LdaInterface.SafeLdaEngineHandle _engine;
+        private readonly LdaInterface.SafeLdaEngineHandle _engine;
         private bool _isDisposed;
-        private int[] _topics;
-        private int[] _probabilities;
-        private int[] _summaryTerm;
-        private float[] _summaryTermProb;
+        private readonly int[] _topics;
+        private readonly int[] _probabilities;
+        private readonly int[] _summaryTerm;
+        private readonly float[] _summaryTermProb;
         private readonly int _likelihoodInterval;
         private readonly float _alpha;
         private readonly float _beta;

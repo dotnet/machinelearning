@@ -22,9 +22,9 @@ namespace Microsoft.ML.Transforms
     {
         public const int MaxParams = 16;
 
-        private LambdaNode _top;
-        private Type _delType;
-        private MethodGenerator _meth;
+        private readonly LambdaNode _top;
+        private readonly Type _delType;
+        private readonly MethodGenerator _meth;
 
         public static Delegate Compile(out List<Error> errors, LambdaNode node)
         {
@@ -102,8 +102,8 @@ namespace Microsoft.ML.Transforms
             private static readonly MethodInfo _methGetFalseBL = ((Func<BL>)BuiltinFunctions.False).GetMethodInfo();
             private static readonly MethodInfo _methGetTrueBL = ((Func<BL>)BuiltinFunctions.True).GetMethodInfo();
 
-            private MethodGenerator _meth;
-            private ILGenerator _gen;
+            private readonly MethodGenerator _meth;
+            private readonly ILGenerator _gen;
             private List<Error> _errors;
 
             private sealed class CachedWithLocal
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Transforms
             // the value has been computed and stored yet. Lazy computed values avoid potentially
             // expensive computation that might not be needed, but result in code bloat since each
             // use tests the flag, and if false, computes and stores the value.
-            private List<CachedWithLocal> _cacheWith;
+            private readonly List<CachedWithLocal> _cacheWith;
 
             public Visitor(MethodGenerator meth)
             {

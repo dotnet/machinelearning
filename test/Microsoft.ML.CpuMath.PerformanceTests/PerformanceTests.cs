@@ -105,7 +105,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             }
 
             testMatrixAligned = new AlignedArray(matrixLength * matrixLength, align);
-            testMatrixAligned.CopyFrom(src.AsSpan(0, (matrixLength - 1) * ( matrixLength - 1)));
+            testMatrixAligned.CopyFrom(src.AsSpan(0, (matrixLength - 1) * (matrixLength - 1)));
 
             testSrcVectorAligned = new AlignedArray(matrixLength, align);
             testSrcVectorAligned.CopyFrom(src1.AsSpan(0, matrixLength - 1)); // odd input
