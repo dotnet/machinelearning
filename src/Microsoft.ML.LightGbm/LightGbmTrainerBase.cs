@@ -276,6 +276,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
                 res[GetOptionName(nameof(L2CategoricalRegularization))] = L2CategoricalRegularization;
+                res[GetOptionName(nameof(NumberOfIterations))] = NumberOfIterations;
 
                 return res;
             }
