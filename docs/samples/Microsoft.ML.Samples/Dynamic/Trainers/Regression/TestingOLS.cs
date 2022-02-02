@@ -13,15 +13,17 @@ namespace Samples.Dynamic.Trainers.Regression
         {
             Console.WriteLine("Running from TestingOLS...");
 
-#if false
-            Console.WriteLine("Writing from TestingOls");
+            var selectedBackend = Environment.GetEnvironmentVariable("MLNET_BACKEND");
+            Console.WriteLine($"found the backend to be [{selectedBackend}]");
+
             // Create a new context for ML.NET operations. It can be used for
             // exception tracking and logging, as a catalog of available operations
             // and as the source of randomness. Setting the seed to a fixed number
             // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-                        // Create a list of training data points.
+#if false
+            // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(1000);
             // Convert the list of data points to an IDataView object, which is
             // consumable by ML.NET API.
@@ -72,6 +74,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
 #endif
 #endif
+            Console.WriteLine("Done with TestingOLS...");
         }
 
 #if false
