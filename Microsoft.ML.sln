@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29209.152
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Core", "src\Microsoft.ML.Core\Microsoft.ML.Core.csproj", "{A6CA6CC6-5D7C-4D7F-A0F5-35E14B383B0A}"
 EndProject
@@ -399,6 +399,14 @@ Global
 		{A7222F41-1CF0-47D9-B80C-B4D77B027A61}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A7222F41-1CF0-47D9-B80C-B4D77B027A61}.Release|x64.ActiveCfg = Release|Any CPU
 		{A7222F41-1CF0-47D9-B80C-B4D77B027A61}.Release|x64.Build.0 = Release|Any CPU
+		{A7222F94-2AF1-10C9-A21C-C4D22B137A69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7222F94-2AF1-10C9-A21C-C4D22B137A69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7222F94-2AF1-10C9-A21C-C4D22B137A69}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A7222F94-2AF1-10C9-A21C-C4D22B137A69}.Debug|x64.Build.0 = Debug|Any CPU
+		{A7222F94-2AF1-10C9-A21C-C4D22B137A69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7222F94-2AF1-10C9-A21C-C4D22B137A69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7222F94-2AF1-10C9-A21C-C4D22B137A69}.Release|x64.ActiveCfg = Release|Any CPU
+		{A7222F94-2AF1-10C9-A21C-C4D22B137A69}.Release|x64.Build.0 = Release|Any CPU
 		{570A0B8A-5463-44D2-8521-54C0CA4CACA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{570A0B8A-5463-44D2-8521-54C0CA4CACA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{570A0B8A-5463-44D2-8521-54C0CA4CACA9}.Debug|x64.ActiveCfg = Debug|Any CPU
