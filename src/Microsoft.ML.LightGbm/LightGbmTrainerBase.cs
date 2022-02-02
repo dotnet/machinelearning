@@ -261,10 +261,12 @@ namespace Microsoft.ML.Trainers.LightGbm
                 res["boosting_type"] = boosterParams.BoosterName;
 
                 res["verbose"] = Silent ? "-1" : "1";
+
                 if (NumberOfThreads.HasValue)
                     res["nthread"] = NumberOfThreads.Value;
 
-                res["seed"] = (Seed.HasValue) ? Seed : host.Rand.Next();
+                if (Seed.HasValue)
+                    res["seed"] = Seed;
 
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
                 res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
