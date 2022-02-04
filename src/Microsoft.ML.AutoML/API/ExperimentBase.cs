@@ -247,7 +247,7 @@ namespace Microsoft.ML.AutoML
         public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData,
             uint numberOfCVFolds, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null,
-            Progress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
+            IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             var columnInformation = (_task == TaskKind.Ranking) ?
             new ColumnInformation()
