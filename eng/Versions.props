@@ -18,7 +18,7 @@
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
     <SystemThreadingChannelsPackageVersion>4.7.1</SystemThreadingChannelsPackageVersion>
     <!-- Other/External dependencies -->
-    <GoogleProtobufPackageVersion>3.10.1</GoogleProtobufPackageVersion>
+    <GoogleProtobufPackageVersion>3.19.4</GoogleProtobufPackageVersion>
     <LightGBMPackageVersion>2.3.1</LightGBMPackageVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
     <MicrosoftMLOnnxRuntimePackageVersion>1.10.0</MicrosoftMLOnnxRuntimePackageVersion>
