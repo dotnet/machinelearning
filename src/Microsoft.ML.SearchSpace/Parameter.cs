@@ -55,7 +55,7 @@ namespace Microsoft.ML.SearchSpace
 
         public static Parameter FromString(string value)
         {
-            return new Parameter(value, ParameterType.Integer);
+            return new Parameter(value, ParameterType.String);
         }
 
         public static Parameter FromBool(bool value)
