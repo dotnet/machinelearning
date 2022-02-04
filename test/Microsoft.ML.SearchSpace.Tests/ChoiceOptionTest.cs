@@ -25,6 +25,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             option.SampleFromFeatureSpace(new[] { 0.66 }).AsType<string>().Should().Be("b");
             option.SampleFromFeatureSpace(new[] { 0.67 }).AsType<string>().Should().Be("c");
             option.SampleFromFeatureSpace(new[] { 0.97 }).AsType<string>().Should().Be("c");
+            option.SampleFromFeatureSpace(new[] { 0.999999999 }).AsType<string>().Should().Be("c");
         }
 
         [Fact]

@@ -119,11 +119,11 @@ namespace Microsoft.ML.SearchSpace
                     var pValue = property.GetValue(value);
                     if (pValue != null)
                     {
-                        var parameter = Parameter.FromObject(pValue, property.PropertyType);
+                        var p = Parameter.FromObject(pValue, property.PropertyType);
 
-                        if (parameter?.Count != 0)
+                        if (p?.Count != 0)
                         {
-                            parameter[name] = parameter;
+                            parameter[name] = p;
                         }
                     }
                 }

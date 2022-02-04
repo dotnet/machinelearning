@@ -119,7 +119,7 @@ namespace Microsoft.ML.SearchSpace.Option
         public override IParameter SampleFromFeatureSpace(double[] values)
         {
             var param = base.SampleFromFeatureSpace(values);
-            var intValue = Convert.ToInt32(Math.Floor(param.AsType<double>() + 1e-6));
+            var intValue = Convert.ToInt32(Math.Floor(param.AsType<double>()));
 
             return Parameter.FromInt(intValue);
         }
