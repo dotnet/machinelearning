@@ -2313,7 +2313,7 @@ output Out [3] from H all;
         public void EnsemblesMultiStackCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiStacking{bp=mlr{t-}} tp=-"), "WE-Stacking");
-            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 4, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 

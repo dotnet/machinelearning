@@ -407,7 +407,7 @@ namespace Microsoft.ML.AutoML.Test
                     ex.Message);
             }
         }
-        
+
         [Fact]
         public void ValidateTrainDataColumnTestMultipleMismatchMoreThan5()
         {
@@ -422,6 +422,6 @@ namespace Microsoft.ML.AutoML.Test
                     ex.Message);
             }
         }
-        
+
     }
 }
