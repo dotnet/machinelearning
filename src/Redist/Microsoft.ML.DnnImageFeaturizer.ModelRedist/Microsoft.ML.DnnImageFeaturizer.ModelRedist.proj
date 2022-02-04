@@ -110,10 +110,9 @@
           DependsOnTargets="DownloadDnnModelFiles">
     <Message Importance="High" Text="Copying external model files... @(ModelFileCopy->'%(TargetPath)')" />
     <Copy SourceFiles="@(ModelFileCopy)"
-          DestinationFiles="@(ModelFileCopy->'%(TargetPath)')" />
-          <!-- disable for now as use symbol link will fail build package task
+          DestinationFiles="@(ModelFileCopy->'%(TargetPath)')"
           UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
-          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)" -->
+          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)" />
   </Target>
 
   <!-- The targets below are needed for arcade -->
