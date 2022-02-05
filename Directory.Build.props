@@ -27,8 +27,7 @@
 
     <PropertyGroup>
       <!-- Need to save space when running CI builds. -->
-      <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>True</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
-      <CreateHardLinksForPublishFilesIfPossible>True</CreateHardLinksForPublishFilesIfPossible>
+      <CreateHardLinksForPublishFilesIfPossible Condition="$(CreateHardLinksForPublishFilesIfPossible) == ''">True</CreateHardLinksForPublishFilesIfPossible>
       <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible Condition="'$(BuildingInsideVisualStudio)' == 'true' or '$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)' == ''">false</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
     </PropertyGroup>
 
