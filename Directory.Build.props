@@ -8,10 +8,6 @@
   <Import Project="eng/TensorflowMetaFiles.props" />
 
   <PropertyGroup>
-	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <Copyright>$(CopyrightNetFoundation)</Copyright>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <DebugType>portable</DebugType>
@@ -28,6 +24,12 @@
     <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
     <StrongNameKeyId>Open</StrongNameKeyId>
   </PropertyGroup>
+
+    <PropertyGroup>
+      <!-- Need to save space when running CI builds. -->
+      <CreateHardLinksForPublishFilesIfPossible Condition="$(CreateHardLinksForPublishFilesIfPossible) == ''">True</CreateHardLinksForPublishFilesIfPossible>
+      <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible Condition="'$(BuildingInsideVisualStudio)' == 'true' or '$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)' == ''">false</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+    </PropertyGroup>
 
   <PropertyGroup>
     <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
