@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.SearchSpace.Schema
 {
-    public abstract class SchemaBase
+    internal abstract class SchemaBase
     {
         [JsonPropertyName("schema_type")]
         public abstract SchemaType SchemaType { get; }

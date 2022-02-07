@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.SearchSpace.Schema
 {
-    public class UniformDoubleOptionSchemaV0 : SchemaBase
+    internal class UniformDoubleOptionSchemaV0 : SchemaBase
     {
         public override SchemaType SchemaType => SchemaType.UniformDoubleOption;
 

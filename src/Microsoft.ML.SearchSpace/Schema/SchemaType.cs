@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace Microsoft.ML.SearchSpace.Schema
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum SchemaType
+    internal enum SchemaType
     {
         UniformDoubleOption = 0,
         IntegerOption = 1,
