@@ -6,23 +6,20 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.ML.Runtime;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using Microsoft.ML.SearchSpace.Converter;
 
 namespace Microsoft.ML.SearchSpace
 {
+    [JsonConverter(typeof(ParameterConverter<Parameter>))]
     public class Parameter : IParameter
     {
-        private readonly JsonSerializerSettings _settings = new JsonSerializerSettings()
+        private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
         {
-            Formatting = Formatting.Indented,
-            Culture = System.Globalization.CultureInfo.InvariantCulture,
-            NullValueHandling = NullValueHandling.Ignore,
-            Converters = new JsonConverter[]
-            {
-                new StringEnumConverter(),
-            },
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
         private readonly object _value;
@@ -31,65 +28,66 @@ namespace Microsoft.ML.SearchSpace
         {
             this._value = value;
             this.ParameterType = type;
+            this._settings.Converters.Add(new JsonStringEnumConverter());
         }
 
-        public static Parameter FromDouble(double value)
+        public static IParameter FromDouble(double value)
         {
             return new Parameter(value, ParameterType.Float);
         }
 
-        public static Parameter FromFloat(float value)
+        public static IParameter FromFloat(float value)
         {
             return new Parameter(value, ParameterType.Float);
         }
 
-        public static Parameter FromLong(long value)
+        public static IParameter FromLong(long value)
         {
             return new Parameter(value, ParameterType.Integer);
         }
 
-        public static Parameter FromInt(int value)
+        public static IParameter FromInt(int value)
         {
             return new Parameter(value, ParameterType.Integer);
         }
 
-        public static Parameter FromString(string value)
+        public static IParameter FromString(string value)
         {
             return new Parameter(value, ParameterType.String);
         }
 
-        public static Parameter FromBool(bool value)
+        public static IParameter FromBool(bool value)
         {
             return new Parameter(value, ParameterType.Bool);
         }
 
-        public static Parameter FromEnum<T>(T value) where T : struct, Enum
+        public static IParameter FromEnum<T>(T value) where T : struct, Enum
         {
             return Parameter.FromEnum(value, typeof(T));
         }
 
-        public static Parameter FromIEnumerable<T>(IEnumerable<T> values)
+        public static IParameter FromIEnumerable<T>(IEnumerable<T> values)
         {
             // check T
             return Parameter.FromIEnumerable(values as IEnumerable);
         }
 
-        private static Parameter FromIEnumerable(IEnumerable values)
+        private static IParameter FromIEnumerable(IEnumerable values)
         {
             return new Parameter(values, ParameterType.Array);
         }
 
-        private static Parameter FromEnum(Enum e, Type t)
+        private static IParameter FromEnum(Enum e, Type t)
         {
             return Parameter.FromString(Enum.GetName(t, e));
         }
 
-        public static Parameter FromObject<T>(T value) where T : class
+        public static IParameter FromObject<T>(T value) where T : class
         {
             return Parameter.FromObject(value, typeof(T));
         }
 
-        private static Parameter FromObject(object value, Type type)
+        private static IParameter FromObject(object value, Type type)
         {
             var param = value switch
             {
@@ -132,7 +130,7 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
-        public static Parameter CreateNestedParameter(params KeyValuePair<string, IParameter>[] parameters)
+        public static IParameter CreateNestedParameter(params KeyValuePair<string, Parameter>[] parameters)
         {
             var parameter = new Parameter(new Dictionary<string, IParameter>(), ParameterType.Object);
             foreach (var param in parameters)
@@ -152,7 +150,7 @@ namespace Microsoft.ML.SearchSpace
             get
             {
                 this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, IParameter>).IsReadOnly;
+                return (this._value as IDictionary<string, IParameter>)?.IsReadOnly ?? false;
             }
         }
 
@@ -199,8 +197,8 @@ namespace Microsoft.ML.SearchSpace
             }
             else
             {
-                var json = JsonConvert.SerializeObject(this._value, this._settings);
-                return JsonConvert.DeserializeObject<T>(json, this._settings);
+                var json = JsonSerializer.Serialize(this._value, this._settings);
+                return JsonSerializer.Deserialize<T>(json, this._settings);
             }
         }
 

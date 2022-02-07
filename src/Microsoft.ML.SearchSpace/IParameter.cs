@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Microsoft.ML.SearchSpace.Converter;
-using Newtonsoft.Json;
 
 namespace Microsoft.ML.SearchSpace
 {
@@ -18,7 +18,7 @@ namespace Microsoft.ML.SearchSpace
         Array = 5,
     }
 
-    [JsonConverter(typeof(ParameterConverter))]
+    [JsonConverter(typeof(ParameterConverter<IParameter>))]
     public interface IParameter : IDictionary<string, IParameter>
     {
         ParameterType ParameterType { get; }

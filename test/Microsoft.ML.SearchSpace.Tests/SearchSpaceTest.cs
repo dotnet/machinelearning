@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.ML.SearchSpace.Option;
 using Microsoft.ML.SearchSpace.Tuner;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -154,7 +154,7 @@ namespace Microsoft.ML.SearchSpace.Tests
                 String = "String",
                 Int = 10,
                 Bool = true,
-                JTokenType = JTokenType.Null,
+                JTokenType = JsonTokenType.Null,
             };
 
             var ss = new SearchSpace<DefaultSearchSpace>(defaultSearchSpace);
@@ -166,7 +166,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             param.Bool.Should().BeTrue();
             param.String.Should().Be("String");
             param.Strings.Should().BeEquivalentTo("A", "B", "C");
-            param.JTokenType.Should().Be(JTokenType.Null);
+            param.JTokenType.Should().Be(JsonTokenType.Null);
             param.NullString.Should().BeNull();
             ss.FeatureSpaceDim.Should().Be(0);
             ss.MappingToFeatureSpace(param).Should().HaveCount(0);
@@ -186,7 +186,7 @@ namespace Microsoft.ML.SearchSpace.Tests
 
             public string[] Strings { get; set; } = new[] { "A", "B", "C" };
 
-            public JTokenType JTokenType { get; set; }
+            public JsonTokenType JTokenType { get; set; }
 
             public string NullString { get; set; }
         }

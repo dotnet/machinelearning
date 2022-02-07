@@ -1,8 +1,8 @@
 {
   "A": {
     "Int": 0,
-    "Float": 1.0,
-    "Double": 2.0,
+    "Float": 1,
+    "Double": 2,
     "Bool": false,
     "String": "String",
     "Strings": [
@@ -13,8 +13,8 @@
     "JTokenType": "Null"
   },
   "Int": 0,
-  "Float": 1.0,
-  "Double": 2.0,
+  "Float": 1,
+  "Double": 2,
   "Bool": false,
   "Strings": [
     "A",

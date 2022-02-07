@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.SearchSpace.Schema
 {
@@ -12,13 +12,13 @@ namespace Microsoft.ML.SearchSpace.Schema
 
         public override int Version => 0;
 
-        [JsonProperty(PropertyName = "min", Required = Required.Always)]
+        [JsonPropertyName("min")]
         public double Min { get; set; }
 
-        [JsonProperty(PropertyName = "max", Required = Required.Always)]
+        [JsonPropertyName("max")]
         public double Max { get; set; }
 
-        [JsonProperty(PropertyName = "log_base", Required = Required.AllowNull)]
+        [JsonPropertyName("log_base")]
         public bool? LogBase { get; set; }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.ML.SearchSpace
     public class SearchSpace : OptionBase, IDictionary<string, OptionBase>
     {
         private readonly Dictionary<string, OptionBase> _options;
-        private readonly Parameter _defaultOption;
+        private readonly IParameter _defaultOption;
 
         public SearchSpace(params KeyValuePair<string, OptionBase>[] options)
             : this()
@@ -42,7 +42,7 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
-        protected SearchSpace(Type typeInfo, Parameter defaultOption = null)
+        protected SearchSpace(Type typeInfo, IParameter defaultOption = null)
             : this()
         {
             this._options = this.GetOptionsFromType(typeInfo);

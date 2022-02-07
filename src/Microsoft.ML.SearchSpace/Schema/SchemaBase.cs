@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.SearchSpace.Schema
 {
     public abstract class SchemaBase
     {
-        [JsonProperty(PropertyName = "schema_type", Required = Required.Always)]
+        [JsonPropertyName("schema_type")]
         public abstract SchemaType SchemaType { get; }
 
-        [JsonProperty(PropertyName = "version", Required = Required.Always)]
+        [JsonPropertyName("schema_type")]
         public abstract int Version { get; }
     }
 }

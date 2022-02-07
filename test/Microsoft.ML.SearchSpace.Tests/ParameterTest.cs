@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
 using FluentAssertions;
 using Microsoft.ML.SearchSpace.Option;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,9 +18,30 @@ namespace Microsoft.ML.SearchSpace.Tests
 {
     public class ParameterTest : TestBase
     {
+        private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
+
         public ParameterTest(ITestOutputHelper output)
             : base(output)
         {
+        }
+
+        [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        [UseReporter(typeof(DiffReporter))]
+        public void Array_parameter_serialize_test()
+        {
+            var array = new[] { "A", "B", "C" };
+            var parameter = Parameter.FromIEnumerable(array);
+
+            var json = JsonSerializer.Serialize(parameter, this._settings);
+            Approvals.Verify(json);
+
+            parameter = JsonSerializer.Deserialize<Parameter>(json);
+            parameter.AsType<string[]>().Should().Equal("A", "B", "C");
         }
 
         [Fact]
@@ -52,8 +73,8 @@ namespace Microsoft.ML.SearchSpace.Tests
             parameter.AsType<string[]>().Should().BeEquivalentTo("a", "b", "c");
 
             // enum
-            parameter = Parameter.FromEnum(JTokenType.Array);
-            parameter.AsType<JTokenType>().Should().Be(JTokenType.Array);
+            parameter = Parameter.FromEnum(JsonTokenType.None);
+            parameter.AsType<JsonTokenType>().Should().Be(JsonTokenType.None);
 
             // long
             parameter = Parameter.FromLong(long.MaxValue);
@@ -72,7 +93,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             parameter["Bool"].AsType<bool>().Should().BeFalse();
             parameter["String"].AsType<string>().Should().Be("String");
             parameter["Strings"].AsType<string[]>().Should().BeEquivalentTo("A", "B", "C");
-            parameter["JTokenType"].AsType<JTokenType>().Should().Be(JTokenType.Null);
+            parameter["JTokenType"].AsType<JsonTokenType>().Should().Be(JsonTokenType.Null);
             parameter["A"].AsType<A>().Strings.Should().BeEquivalentTo("A", "B", "C");
             parameter.AsType<B>().Strings.Should().BeEquivalentTo("A", "B", "C");
         }
@@ -85,17 +106,17 @@ namespace Microsoft.ML.SearchSpace.Tests
             var b = new B();
             b.String = null;
             var parameter = Parameter.FromObject(b);
-            var json = JsonConvert.SerializeObject(parameter);
+            var json = JsonSerializer.Serialize(parameter, this._settings);
             Approvals.Verify(json);
 
-            parameter = JsonConvert.DeserializeObject<Parameter>(json);
+            parameter = JsonSerializer.Deserialize<Parameter>(json);
             parameter["Int"].AsType<int>().Should().Be(0);
             parameter["Float"].AsType<float>().Should().Be(1f);
             parameter["Double"].AsType<double>().Should().Be(2);
             parameter["Bool"].AsType<bool>().Should().BeFalse();
             parameter["Strings"].AsType<string[]>().Should().BeEquivalentTo("A", "B", "C");
-            parameter["JTokenType"].AsType<JTokenType>().Should().Be(JTokenType.Null);
-            json = JsonConvert.SerializeObject(parameter);
+            parameter["JTokenType"].AsType<JsonTokenType>().Should().Be(JsonTokenType.Null);
+            json = JsonSerializer.Serialize(parameter, this._settings);
             Approvals.Verify(json);
         }
 
@@ -126,7 +147,7 @@ namespace Microsoft.ML.SearchSpace.Tests
 
             public string[] Strings { get; set; } = new[] { "A", "B", "C" };
 
-            public JTokenType JTokenType { get; set; } = JTokenType.Null;
+            public JsonTokenType JTokenType { get; set; } = JsonTokenType.Null;
         }
 
         private class B : A

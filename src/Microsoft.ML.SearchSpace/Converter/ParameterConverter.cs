@@ -5,56 +5,56 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.SearchSpace.Converter
 {
-    internal class ParameterConverter : JsonConverter
+    internal class ParameterConverter<TParameter> : JsonConverter<TParameter>
+        where TParameter : IParameter
     {
-        internal static JsonSerializerSettings Settings = new JsonSerializerSettings()
+        public override TParameter Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            Formatting = Formatting.Indented,
-            Culture = System.Globalization.CultureInfo.InvariantCulture,
-            NullValueHandling = NullValueHandling.Ignore,
-            Converters = new JsonConverter[]
+            switch (reader.TokenType)
             {
-                new StringEnumConverter(),
-            },
-        };
+                case JsonTokenType.StartObject:
+                    var array = JsonSerializer.Deserialize<Dictionary<string, Parameter>>(ref reader, options).ToArray();
+                    return (TParameter)Parameter.CreateNestedParameter(array);
+                case JsonTokenType.String:
+                    return (TParameter)Parameter.FromString(JsonSerializer.Deserialize<string>(ref reader, options));
+                case JsonTokenType.Number:
+                    if (reader.TryGetInt64(out var _long))
+                    {
+                        return (TParameter)Parameter.FromLong(_long);
+                    }
+                    else if (reader.TryGetInt32(out var _int))
+                    {
+                        return (TParameter)Parameter.FromInt(_int);
+                    }
 
-        public override bool CanRead => true;
+                    return (TParameter)Parameter.FromDouble(JsonSerializer.Deserialize<double>(ref reader, options));
+                case JsonTokenType.True:
+                    return (TParameter)Parameter.FromBool(true);
+                case JsonTokenType.False:
+                    return (TParameter)Parameter.FromBool(false);
+                case JsonTokenType.Null:
+                    return default(TParameter);
+                case JsonTokenType.StartArray:
+                    var list = new List<object>();
+                    while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+                    {
+                        list.Add(this.Read(ref reader, null, options));
+                    }
 
-        public override bool CanWrite => true;
-
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(IParameter);
+                    return (TParameter)Parameter.FromIEnumerable(list);
+                default:
+                    throw new ArgumentException($"Unsupported reader type {reader.TokenType}");
+            }
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override void Write(Utf8JsonWriter writer, TParameter value, JsonSerializerOptions options)
         {
-
-            var jtoken = JToken.ReadFrom(reader);
-            return jtoken.Type switch
-            {
-                JTokenType.Object => Parameter.CreateNestedParameter(jtoken.ToObject<Dictionary<string, IParameter>>().ToArray()),
-                JTokenType.String => Parameter.FromString(jtoken.ToObject<string>()),
-                JTokenType.Float => Parameter.FromDouble(jtoken.ToObject<double>()),
-                JTokenType.Boolean => Parameter.FromBool(jtoken.ToObject<bool>()),
-                JTokenType.Integer => Parameter.FromLong(jtoken.ToObject<long>()),
-                JTokenType.Array => Parameter.FromIEnumerable((JArray)jtoken),
-                JTokenType.Null => null,
-                _ => throw new ArgumentException($"Unsupported jtoken type {jtoken.Type}"),
-            };
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            var param = (IParameter)value;
-            var s = JsonSerializer.Create(Settings);
-            s.Serialize(writer, param.Value);
+            JsonSerializer.Serialize(writer, value.Value, options);
         }
     }
 }
