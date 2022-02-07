@@ -11,9 +11,9 @@ namespace Microsoft.ML.SearchSpace.Tuner
     {
         private readonly SearchSpace _searchSpace;
 
-        public DefaultValueTuner(SearchSpace ss)
+        public DefaultValueTuner(SearchSpace searchSpace)
         {
-            this._searchSpace = ss;
+            this._searchSpace = searchSpace;
         }
 
         public IParameter Propose()

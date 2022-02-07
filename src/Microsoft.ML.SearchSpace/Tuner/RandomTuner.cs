@@ -12,15 +12,15 @@ namespace Microsoft.ML.SearchSpace.Tuner
         private readonly SearchSpace _searchSpace;
         private readonly Random _rnd;
 
-        public RandomTuner(SearchSpace ss)
+        public RandomTuner(SearchSpace searchSpace)
         {
-            this._searchSpace = ss;
+            this._searchSpace = searchSpace;
             this._rnd = new Random();
         }
 
-        public RandomTuner(SearchSpace ss, int seed)
+        public RandomTuner(SearchSpace searchSpace, int seed)
         {
-            this._searchSpace = ss;
+            this._searchSpace = searchSpace;
             this._rnd = new Random(seed);
         }
 

@@ -37,7 +37,7 @@ private class BasicSearchSpace
     public BasicSearchSpace NestSS { get; set; }
 }
 
-// Which is equal to the folloing CRUD API
+// Which is equal to the following CRUD API
 /*
 var ss = new SearchSpace()
 {
@@ -50,8 +50,7 @@ var ss = new SearchSpace()
 // Create search space
 var ss = new SearchSpace<BasicSearchSpace>();
 
-// Create a tuner which always return default value
-// it's defined in https://github.com/dotnet/machinelearning-tools/blob/928f2c1de51cae1c0df4c58db6d36c72ece6fa7c/src/Microsoft.ML.ModelBuilder.SearchSpace/Tuner/DefaultValueTuner.cs
+// Create a [DefaultValueTuner](./Tuner/DefaultValueTuner.cs) which always return default value
 var tuner = new DefaultValueTuner(ss);
 
 // Get one sampling result from tuner

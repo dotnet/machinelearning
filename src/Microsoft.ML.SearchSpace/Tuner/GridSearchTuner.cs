@@ -12,9 +12,9 @@ namespace Microsoft.ML.SearchSpace.Tuner
         private readonly SearchSpace _searchSpace;
         private readonly int _stepSize;
 
-        public GridSearchTuner(SearchSpace ss, int stepSize = 10)
+        public GridSearchTuner(SearchSpace searchSpace, int stepSize = 10)
         {
-            this._searchSpace = ss;
+            this._searchSpace = searchSpace;
             this._stepSize = stepSize;
         }
 
