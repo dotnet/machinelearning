@@ -3,7 +3,7 @@
 ## Introduction
 This library contains all search-space related code, including creating, updating and sampling. 
 
-![image](https://user-images.githubusercontent.com/16876986/133147775-4fc4ba54-255e-41cf-9079-dc523706893b.png)
+![image](https://user-images.githubusercontent.com/16876986/152891572-00168b3f-f84b-4a22-bb61-b9e673c6e94e.png)
 
 ### Numeric option | Choice option
 
