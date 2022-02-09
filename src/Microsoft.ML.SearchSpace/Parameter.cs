@@ -13,8 +13,18 @@ using Microsoft.ML.SearchSpace.Converter;
 
 namespace Microsoft.ML.SearchSpace
 {
-    [JsonConverter(typeof(ParameterConverter<Parameter>))]
-    public class Parameter : IParameter
+    public enum ParameterType
+    {
+        Integer = 0,
+        Float = 1,
+        Bool = 2,
+        String = 3,
+        Object = 4,
+        Array = 5,
+    }
+
+    [JsonConverter(typeof(ParameterConverter))]
+    public class Parameter : IDictionary<string, Parameter>
     {
         private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
         {
@@ -31,63 +41,63 @@ namespace Microsoft.ML.SearchSpace
             this._settings.Converters.Add(new JsonStringEnumConverter());
         }
 
-        public static IParameter FromDouble(double value)
+        public static Parameter FromDouble(double value)
         {
             return new Parameter(value, ParameterType.Float);
         }
 
-        public static IParameter FromFloat(float value)
+        public static Parameter FromFloat(float value)
         {
             return new Parameter(value, ParameterType.Float);
         }
 
-        public static IParameter FromLong(long value)
+        public static Parameter FromLong(long value)
         {
             return new Parameter(value, ParameterType.Integer);
         }
 
-        public static IParameter FromInt(int value)
+        public static Parameter FromInt(int value)
         {
             return new Parameter(value, ParameterType.Integer);
         }
 
-        public static IParameter FromString(string value)
+        public static Parameter FromString(string value)
         {
             return new Parameter(value, ParameterType.String);
         }
 
-        public static IParameter FromBool(bool value)
+        public static Parameter FromBool(bool value)
         {
             return new Parameter(value, ParameterType.Bool);
         }
 
-        public static IParameter FromEnum<T>(T value) where T : struct, Enum
+        public static Parameter FromEnum<T>(T value) where T : struct, Enum
         {
             return Parameter.FromEnum(value, typeof(T));
         }
 
-        public static IParameter FromIEnumerable<T>(IEnumerable<T> values)
+        public static Parameter FromIEnumerable<T>(IEnumerable<T> values)
         {
             // check T
             return Parameter.FromIEnumerable(values as IEnumerable);
         }
 
-        private static IParameter FromIEnumerable(IEnumerable values)
+        private static Parameter FromIEnumerable(IEnumerable values)
         {
             return new Parameter(values, ParameterType.Array);
         }
 
-        private static IParameter FromEnum(Enum e, Type t)
+        private static Parameter FromEnum(Enum e, Type t)
         {
             return Parameter.FromString(Enum.GetName(t, e));
         }
 
-        public static IParameter FromObject<T>(T value) where T : class
+        public static Parameter FromObject<T>(T value) where T : class
         {
             return Parameter.FromObject(value, typeof(T));
         }
 
-        private static IParameter FromObject(object value, Type type)
+        private static Parameter FromObject(object value, Type type)
         {
             var param = value switch
             {
@@ -130,9 +140,9 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
-        public static IParameter CreateNestedParameter(params KeyValuePair<string, Parameter>[] parameters)
+        public static Parameter CreateNestedParameter(params KeyValuePair<string, Parameter>[] parameters)
         {
-            var parameter = new Parameter(new Dictionary<string, IParameter>(), ParameterType.Object);
+            var parameter = new Parameter(new Dictionary<string, Parameter>(), ParameterType.Object);
             foreach (var param in parameters)
             {
                 parameter[param.Key] = param.Value;
@@ -143,25 +153,25 @@ namespace Microsoft.ML.SearchSpace
 
         public object Value { get => this._value; }
 
-        public int Count => this.ParameterType == ParameterType.Object ? (this._value as Dictionary<string, IParameter>).Count : 1;
+        public int Count => this.ParameterType == ParameterType.Object ? (this._value as Dictionary<string, Parameter>).Count : 1;
 
         public bool IsReadOnly
         {
             get
             {
                 this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, IParameter>)?.IsReadOnly ?? false;
+                return (this._value as IDictionary<string, Parameter>)?.IsReadOnly ?? false;
             }
         }
 
         public ParameterType ParameterType { get; }
 
-        ICollection<IParameter> IDictionary<string, IParameter>.Values
+        ICollection<Parameter> IDictionary<string, Parameter>.Values
         {
             get
             {
                 this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, IParameter>).Values;
+                return (this._value as IDictionary<string, Parameter>).Values;
             }
         }
 
@@ -170,22 +180,22 @@ namespace Microsoft.ML.SearchSpace
             get
             {
                 this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, IParameter>).Keys;
+                return (this._value as IDictionary<string, Parameter>).Keys;
             }
         }
 
-        public IParameter this[string key]
+        public Parameter this[string key]
         {
             get
             {
                 this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, IParameter>)[key];
+                return (this._value as IDictionary<string, Parameter>)[key];
             }
 
             set
             {
                 this.VerifyIfParameterIsObjectType();
-                (this._value as IDictionary<string, IParameter>)[key] = value;
+                (this._value as IDictionary<string, Parameter>)[key] = value;
             }
         }
 
@@ -205,49 +215,49 @@ namespace Microsoft.ML.SearchSpace
         public void Clear()
         {
             this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, IParameter>).Clear();
+            (this._value as Dictionary<string, Parameter>).Clear();
         }
 
-        public void Add(string key, IParameter value)
+        public void Add(string key, Parameter value)
         {
             this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, IParameter>).Add(key, value);
+            (this._value as Dictionary<string, Parameter>).Add(key, value);
         }
 
-        public bool TryGetValue(string key, out IParameter value)
+        public bool TryGetValue(string key, out Parameter value)
         {
             this.VerifyIfParameterIsObjectType();
-            return (this._value as Dictionary<string, IParameter>).TryGetValue(key, out value);
+            return (this._value as Dictionary<string, Parameter>).TryGetValue(key, out value);
         }
 
-        public void Add(KeyValuePair<string, IParameter> item)
+        public void Add(KeyValuePair<string, Parameter> item)
         {
             this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, IParameter>).Add(item.Key, item.Value);
+            (this._value as Dictionary<string, Parameter>).Add(item.Key, item.Value);
         }
 
-        public bool Contains(KeyValuePair<string, IParameter> item)
+        public bool Contains(KeyValuePair<string, Parameter> item)
         {
             this.VerifyIfParameterIsObjectType();
-            return (this._value as Dictionary<string, IParameter>).Contains(item);
+            return (this._value as Dictionary<string, Parameter>).Contains(item);
         }
 
-        public bool Remove(KeyValuePair<string, IParameter> item)
+        public bool Remove(KeyValuePair<string, Parameter> item)
         {
             this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, IParameter>).Remove(item);
+            return (this._value as IDictionary<string, Parameter>).Remove(item);
         }
 
-        IEnumerator<KeyValuePair<string, IParameter>> IEnumerable<KeyValuePair<string, IParameter>>.GetEnumerator()
+        IEnumerator<KeyValuePair<string, Parameter>> IEnumerable<KeyValuePair<string, Parameter>>.GetEnumerator()
         {
             this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, IParameter>).GetEnumerator();
+            return (this._value as IDictionary<string, Parameter>).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, IParameter>).GetEnumerator();
+            return (this._value as IDictionary<string, Parameter>).GetEnumerator();
         }
 
         private void VerifyIfParameterIsObjectType()
@@ -255,22 +265,22 @@ namespace Microsoft.ML.SearchSpace
             Contracts.Check(this.ParameterType == ParameterType.Object, "parameter is not object type.");
         }
 
-        public void CopyTo(KeyValuePair<string, IParameter>[] array, int arrayIndex)
+        public void CopyTo(KeyValuePair<string, Parameter>[] array, int arrayIndex)
         {
             this.VerifyIfParameterIsObjectType();
-            (this._value as IDictionary<string, IParameter>).CopyTo(array, arrayIndex);
+            (this._value as IDictionary<string, Parameter>).CopyTo(array, arrayIndex);
         }
 
         public bool ContainsKey(string key)
         {
             this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, IParameter>).ContainsKey(key);
+            return (this._value as IDictionary<string, Parameter>).ContainsKey(key);
         }
 
         public bool Remove(string key)
         {
             this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, IParameter>).Remove(key);
+            return (this._value as IDictionary<string, Parameter>).Remove(key);
         }
     }
 }

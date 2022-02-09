@@ -24,7 +24,7 @@ namespace Microsoft.ML.SearchSpace.Tuner
             this._rnd = new Random(seed);
         }
 
-        public IParameter Propose()
+        public Parameter Propose()
         {
             var d = this._searchSpace.FeatureSpaceDim;
             var featureVec = Enumerable.Repeat(0, d).Select(i => this._rnd.NextDouble()).ToArray();

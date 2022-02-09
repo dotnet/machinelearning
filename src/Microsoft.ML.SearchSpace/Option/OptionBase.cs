@@ -13,14 +13,14 @@ namespace Microsoft.ML.SearchSpace.Option
         /// mapping value to [0, 1) uniform distribution.
         /// </summary>
         /// <returns>mapping value in [0,1).</returns>
-        public abstract double[] MappingToFeatureSpace(IParameter value);
+        public abstract double[] MappingToFeatureSpace(Parameter value);
 
         /// <summary>
         /// sample from [0,1) uniform distribution.
         /// </summary>
         /// <param name="values">value to sample.</param>
         /// <returns>sampled value.</returns>
-        public abstract IParameter SampleFromFeatureSpace(double[] values);
+        public abstract Parameter SampleFromFeatureSpace(double[] values);
 
         /// <summary>
         /// the dimension of feature space, which is equal to the output length of <see cref="SampleFromFeatureSpace(double[])"/>.

@@ -13,7 +13,7 @@ namespace Microsoft.ML.SearchSpace
     public class SearchSpace : OptionBase, IDictionary<string, OptionBase>
     {
         private readonly Dictionary<string, OptionBase> _options;
-        private readonly IParameter _defaultOption;
+        private readonly Parameter _defaultOption;
 
         public SearchSpace(params KeyValuePair<string, OptionBase>[] options)
             : this()
@@ -42,7 +42,7 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
-        protected SearchSpace(Type typeInfo, IParameter defaultOption = null)
+        protected SearchSpace(Type typeInfo, Parameter defaultOption = null)
             : this()
         {
             this._options = this.GetOptionsFromType(typeInfo);
@@ -83,7 +83,7 @@ namespace Microsoft.ML.SearchSpace
 
         public OptionBase this[string key] { get => ((IDictionary<string, OptionBase>)_options)[key]; set => ((IDictionary<string, OptionBase>)_options)[key] = value; }
 
-        public override IParameter SampleFromFeatureSpace(double[] feature)
+        public override Parameter SampleFromFeatureSpace(double[] feature)
         {
             Contracts.Check(feature.Length == this.FeatureSpaceDim, "input feature doesn't match");
             var param = Parameter.CreateNestedParameter();
@@ -106,7 +106,7 @@ namespace Microsoft.ML.SearchSpace
             return param;
         }
 
-        public override double[] MappingToFeatureSpace(IParameter parameter)
+        public override double[] MappingToFeatureSpace(Parameter parameter)
         {
             var res = new List<double>();
             foreach (var key in this._options.Keys.OrderBy(k => k))
@@ -297,7 +297,7 @@ namespace Microsoft.ML.SearchSpace
             return ((System.Collections.IEnumerable)_options).GetEnumerator();
         }
 
-        private IParameter Update(IParameter left, IParameter right)
+        private Parameter Update(Parameter left, Parameter right)
         {
             var res = (left?.ParameterType, right?.ParameterType) switch
             {

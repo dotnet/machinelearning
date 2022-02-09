@@ -40,7 +40,7 @@ namespace Microsoft.ML.SearchSpace.Option
 
         public override int?[] Step => new int?[] { this.Choices.Length };
 
-        public override double[] MappingToFeatureSpace(IParameter param)
+        public override double[] MappingToFeatureSpace(Parameter param)
         {
             if (this.FeatureSpaceDim == 0)
             {
@@ -54,7 +54,7 @@ namespace Microsoft.ML.SearchSpace.Option
             return this._option.MappingToFeatureSpace(Parameter.FromInt(x));
         }
 
-        public override IParameter SampleFromFeatureSpace(double[] values)
+        public override Parameter SampleFromFeatureSpace(double[] values)
         {
             Contracts.Check(values.Length >= 0, "values length must be greater than 0");
             if (values.Length == 0)

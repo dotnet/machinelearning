@@ -30,7 +30,7 @@ namespace Microsoft.ML.SearchSpace.Option
 
         public override int?[] Step => new int?[] { null };
 
-        public override double[] MappingToFeatureSpace(IParameter param)
+        public override double[] MappingToFeatureSpace(Parameter param)
         {
             var x = param.AsType<double>();
             Contracts.Check(x <= this.Max && x >= this.Min, $"{x} is not within [{this.Min}, {this.Max}]");
@@ -48,7 +48,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
-        public override IParameter SampleFromFeatureSpace(double[] values)
+        public override Parameter SampleFromFeatureSpace(double[] values)
         {
             Contracts.Check(values.Length == 1, "values length must be 1");
             var value = values[0];
@@ -90,14 +90,14 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
-        public override double[] MappingToFeatureSpace(IParameter param)
+        public override double[] MappingToFeatureSpace(Parameter param)
         {
             var singleValue = param.AsType<float>();
             var doubleValue = Convert.ToDouble(singleValue);
             return base.MappingToFeatureSpace(Parameter.FromDouble(doubleValue));
         }
 
-        public override IParameter SampleFromFeatureSpace(double[] values)
+        public override Parameter SampleFromFeatureSpace(double[] values)
         {
             var doubleValue = base.SampleFromFeatureSpace(values).AsType<double>();
             var singleValue = Convert.ToSingle(doubleValue);
@@ -116,7 +116,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
-        public override IParameter SampleFromFeatureSpace(double[] values)
+        public override Parameter SampleFromFeatureSpace(double[] values)
         {
             var param = base.SampleFromFeatureSpace(values);
             var intValue = Convert.ToInt32(Math.Floor(param.AsType<double>()));
@@ -124,7 +124,7 @@ namespace Microsoft.ML.SearchSpace.Option
             return Parameter.FromInt(intValue);
         }
 
-        public override double[] MappingToFeatureSpace(IParameter param)
+        public override double[] MappingToFeatureSpace(Parameter param)
         {
             var value = param.AsType<int>();
             var valueAsDouble = Convert.ToDouble(value);

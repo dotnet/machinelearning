@@ -10,35 +10,34 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.SearchSpace.Converter
 {
-    internal class ParameterConverter<TParameter> : JsonConverter<TParameter>
-        where TParameter : IParameter
+    internal class ParameterConverter : JsonConverter<Parameter>
     {
-        public override TParameter Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override Parameter Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             switch (reader.TokenType)
             {
                 case JsonTokenType.StartObject:
                     var array = JsonSerializer.Deserialize<Dictionary<string, Parameter>>(ref reader, options).ToArray();
-                    return (TParameter)Parameter.CreateNestedParameter(array);
+                    return Parameter.CreateNestedParameter(array);
                 case JsonTokenType.String:
-                    return (TParameter)Parameter.FromString(JsonSerializer.Deserialize<string>(ref reader, options));
+                    return Parameter.FromString(JsonSerializer.Deserialize<string>(ref reader, options));
                 case JsonTokenType.Number:
                     if (reader.TryGetInt64(out var _long))
                     {
-                        return (TParameter)Parameter.FromLong(_long);
+                        return Parameter.FromLong(_long);
                     }
                     else if (reader.TryGetInt32(out var _int))
                     {
-                        return (TParameter)Parameter.FromInt(_int);
+                        return Parameter.FromInt(_int);
                     }
 
-                    return (TParameter)Parameter.FromDouble(JsonSerializer.Deserialize<double>(ref reader, options));
+                    return Parameter.FromDouble(JsonSerializer.Deserialize<double>(ref reader, options));
                 case JsonTokenType.True:
-                    return (TParameter)Parameter.FromBool(true);
+                    return Parameter.FromBool(true);
                 case JsonTokenType.False:
-                    return (TParameter)Parameter.FromBool(false);
+                    return Parameter.FromBool(false);
                 case JsonTokenType.Null:
-                    return default(TParameter);
+                    return default(Parameter);
                 case JsonTokenType.StartArray:
                     var list = new List<object>();
                     while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
@@ -46,13 +45,13 @@ namespace Microsoft.ML.SearchSpace.Converter
                         list.Add(this.Read(ref reader, null, options));
                     }
 
-                    return (TParameter)Parameter.FromIEnumerable(list);
+                    return Parameter.FromIEnumerable(list);
                 default:
                     throw new ArgumentException($"Unsupported reader type {reader.TokenType}");
             }
         }
 
-        public override void Write(Utf8JsonWriter writer, TParameter value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, Parameter value, JsonSerializerOptions options)
         {
             JsonSerializer.Serialize(writer, value.Value, options);
         }

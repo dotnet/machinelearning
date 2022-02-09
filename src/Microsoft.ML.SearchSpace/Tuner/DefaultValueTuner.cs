@@ -16,7 +16,7 @@ namespace Microsoft.ML.SearchSpace.Tuner
             this._searchSpace = searchSpace;
         }
 
-        public IParameter Propose()
+        public Parameter Propose()
         {
             var defaultFeatureVec = this._searchSpace.Default;
             return this._searchSpace.SampleFromFeatureSpace(defaultFeatureVec);
