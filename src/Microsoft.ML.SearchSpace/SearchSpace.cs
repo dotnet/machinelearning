@@ -266,7 +266,8 @@ namespace Microsoft.ML.SearchSpace
 
             if (attribute is ChoiceAttribute)
             {
-                Contracts.Assert(type == typeof(string) || type.IsEnum, "ChoiceAttribute can only apply to property or field which type is string or enum");
+                var supportTypes = new Type[] { typeof(string), typeof(int), typeof(short), typeof(long), typeof(float), typeof(double), typeof(char) };
+                Contracts.Assert(supportTypes.Contains(type) || type.IsEnum, $"ChoiceAttribute can only apply to enum or the following types {string.Join(",", supportTypes.Select(x => x.Name))}");
                 return;
             }
         }

@@ -216,7 +216,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             [BooleanChoice(true)]
             public bool ChoiceBoolean { get; set; }
 
-            [Choice(new object[] { "None", "EndObject", "StartArray", "Null" }, defaultValue: "Null")]
+            [Choice(new object[] { JsonTokenType.None, JsonTokenType.EndObject, JsonTokenType.StartArray, JsonTokenType.Null }, defaultValue: JsonTokenType.Null)]
             public JsonTokenType JTokenType { get; set; }
 
             public DefaultSearchSpace DefaultSearchSpace { get; set; } = new DefaultSearchSpace();
