@@ -23,14 +23,14 @@ namespace Microsoft.ML.SearchSpace.Tests
         public void SearchSpace_sample_from_feature_space_test()
         {
             var ss = new SearchSpace<BasicSearchSpace>();
-            var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0 });
+            var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0 });
 
             param.ChoiceStr.Should().Be("a");
             param.UniformDouble.Should().Be(-1000);
             param.UniformFloat.Should().Be(-1000);
             param.UniformInt.Should().Be(-1000);
 
-            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5 });
+            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 });
             param.ChoiceStr.Should().Be("c");
             param.UniformDouble.Should().Be(0);
             param.UniformFloat.Should().Be(0);
@@ -41,26 +41,26 @@ namespace Microsoft.ML.SearchSpace.Tests
         public void SearchSpace_mapping_to_feature_space_test()
         {
             var ss = new SearchSpace<BasicSearchSpace>();
-            var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0 });
+            var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0 });
             var features = ss.MappingToFeatureSpace(param);
-            features.Should().BeEquivalentTo(0, 0, 0, 0);
+            features.Should().Equal(0, 0, 0, 0, 0, 0);
 
-            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5 });
+            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0, 0.5, 0.5, 0.5 });
             features = ss.MappingToFeatureSpace(param);
-            features.Should().BeEquivalentTo(0.5, 0.5, 0.5, 0.5);
+            features.Should().Equal(0.5, 0.5, 0, 0.5, 0.5, 0.5);
         }
 
         [Fact]
         public void Nest_search_space_mapping_to_feature_space_test()
         {
             var ss = new SearchSpace<NestSearchSpace>();
-            var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0 });
+            var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0, 0, 0 });
             var features = ss.MappingToFeatureSpace(param);
-            features.Should().BeEquivalentTo(0, 0, 0, 0, 0, 0);
+            features.Should().Equal(0, 0, 0, 0, 0, 0, 0, 0);
 
-            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 });
+            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0.5, 0.5 });
             features = ss.MappingToFeatureSpace(param);
-            features.Should().BeEquivalentTo(0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
+            features.Should().Equal(0.5, 0.5, 0, 0.5, 0.5, 0.5, 0.5, 0.5);
         }
 
         [Fact]
@@ -78,8 +78,8 @@ namespace Microsoft.ML.SearchSpace.Tests
             };
             var ss = new SearchSpace<NestSearchSpace>(option);
 
-            ss.FeatureSpaceDim.Should().Be(6);
-            var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0 });
+            ss.FeatureSpaceDim.Should().Be(8);
+            var param = ss.SampleFromFeatureSpace(new[] { 0.0, 0, 0, 0, 0, 0, 0, 0 });
 
             param.UniformDouble.Should().Be(-1000);
             param.UniformFloat.Should().Be(-1000);
@@ -88,8 +88,10 @@ namespace Microsoft.ML.SearchSpace.Tests
             param.BasicSS.UniformFloat.Should().Be(-1000);
             param.BasicSS.ChoiceStr.Should().Be("a");
             param.BasicSS.DefaultSearchSpace.Strings.Should().BeEquivalentTo("B", "C", "D");
+            param.BasicSS.ChoiceBoolean.Should().BeFalse();
+            param.BasicSS.JTokenType.Should().Be(JsonTokenType.EndObject);
 
-            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 });
+            param = ss.SampleFromFeatureSpace(new[] { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 });
 
             param.UniformDouble.Should().Be(0);
             param.UniformFloat.Should().Be(0);
@@ -98,6 +100,8 @@ namespace Microsoft.ML.SearchSpace.Tests
             param.BasicSS.UniformFloat.Should().Be(0);
             param.BasicSS.ChoiceStr.Should().Be("c");
             param.BasicSS.DefaultSearchSpace.Strings.Should().BeEquivalentTo("B", "C", "D");
+            param.BasicSS.ChoiceBoolean.Should().BeTrue();
+            param.BasicSS.JTokenType.Should().Be(JsonTokenType.Null);
         }
 
         [Fact]
@@ -118,17 +122,19 @@ namespace Microsoft.ML.SearchSpace.Tests
         {
             var option = new BasicSearchSpace();
             var ss = new SearchSpace<BasicSearchSpace>(option);
-            ss.FeatureSpaceDim.Should().Be(4);
+            ss.FeatureSpaceDim.Should().Be(6);
 
             ss.Remove("UniformInt").Should().BeTrue();
-            ss.FeatureSpaceDim.Should().Be(3);
-            ss.Keys.Should().BeEquivalentTo("ChoiceStr", "UniformDouble", "UniformFloat");
+            ss.FeatureSpaceDim.Should().Be(5);
+            ss.Keys.Should().BeEquivalentTo("ChoiceStr", "UniformDouble", "UniformFloat", "ChoiceBoolean", "JTokenType");
 
-            ss.SampleFromFeatureSpace(new double[] { 0, 0, 0 })
-                .DefaultSearchSpace.Strings.Should().BeEquivalentTo("A", "B", "C");
+            var parameter = ss.SampleFromFeatureSpace(new double[] { 0, 0, 0, 0, 0 });
 
-            ss.SampleFromFeatureSpace(new double[] { 0, 0, 0 })
-                .DefaultSearchSpace.String.Should().BeNullOrEmpty();
+            parameter.DefaultSearchSpace.Strings.Should().BeEquivalentTo("A", "B", "C");
+            parameter.DefaultSearchSpace.String.Should().BeNullOrEmpty();
+            parameter.ChoiceStr.Should().Be("a");
+            parameter.ChoiceBoolean.Should().BeFalse();
+            parameter.JTokenType.Should().Be(JsonTokenType.EndObject);
         }
 
         [Fact]
@@ -144,6 +150,8 @@ namespace Microsoft.ML.SearchSpace.Tests
             param.BasicSS.UniformDouble.Should().Be(0);
             param.BasicSS.UniformFloat.Should().Be(0);
             param.BasicSS.ChoiceStr.Should().Be("a");
+            param.BasicSS.ChoiceBoolean.Should().BeTrue();
+            param.BasicSS.JTokenType.Should().Be(JsonTokenType.Null);
         }
 
         [Fact]
@@ -204,6 +212,12 @@ namespace Microsoft.ML.SearchSpace.Tests
 
             [Range(-1000.0f, 1000, init: 0)]
             public float UniformFloat { get; set; }
+
+            [BooleanChoice(true)]
+            public bool ChoiceBoolean { get; set; }
+
+            [Choice(new object[] { JsonTokenType.None, JsonTokenType.EndObject, JsonTokenType.StartArray, JsonTokenType.Null }, defaultValue: JsonTokenType.Null)]
+            public JsonTokenType JTokenType { get; set; }
 
             public DefaultSearchSpace DefaultSearchSpace { get; set; } = new DefaultSearchSpace();
         }

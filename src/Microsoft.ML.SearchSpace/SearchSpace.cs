@@ -187,8 +187,9 @@ namespace Microsoft.ML.SearchSpace
             {
                 var choiceAttributes = field.GetCustomAttributes(typeof(ChoiceAttribute), false);
                 var rangeAttributes = field.GetCustomAttributes(typeof(RangeAttribute), false);
+                var booleanChoiceAttributes = field.GetCustomAttributes(typeof(BooleanChoiceAttribute), false);
 
-                var attributes = choiceAttributes.Concat(rangeAttributes);
+                var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes);
                 Contracts.Check(attributes.Count() <= 1, $"{field.Name} can only define one of the choice|range|option attribute");
                 if (attributes.Count() == 0)
                 {
@@ -200,6 +201,7 @@ namespace Microsoft.ML.SearchSpace
                     {
                         ChoiceAttribute choice => choice.Option,
                         RangeAttribute range => range.Option,
+                        BooleanChoiceAttribute booleanChoice => booleanChoice.Option,
                         _ => throw new NotImplementedException(),
                     };
 
@@ -219,8 +221,9 @@ namespace Microsoft.ML.SearchSpace
             {
                 var choiceAttributes = property.GetCustomAttributes(typeof(ChoiceAttribute), false);
                 var rangeAttributes = property.GetCustomAttributes(typeof(RangeAttribute), false);
+                var booleanChoiceAttributes = property.GetCustomAttributes(typeof(BooleanChoiceAttribute), false);
 
-                var attributes = choiceAttributes.Concat(rangeAttributes);
+                var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes);
                 Contracts.Check(attributes.Count() <= 1, $"{property.Name} can only define one of the choice|range|option attribute");
                 if (attributes.Count() == 0)
                 {
@@ -232,6 +235,7 @@ namespace Microsoft.ML.SearchSpace
                     {
                         ChoiceAttribute choice => choice.Option,
                         RangeAttribute range => range.Option,
+                        BooleanChoiceAttribute booleanChoice => booleanChoice.Option,
                         _ => throw new NotImplementedException(),
                     };
 

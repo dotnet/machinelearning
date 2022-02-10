@@ -25,12 +25,12 @@ namespace Microsoft.ML.SearchSpace.Option
             this.Default = Enumerable.Repeat(0.0, this.FeatureSpaceDim).ToArray();
         }
 
-        public ChoiceOption(string[] choices, string? defaultChoice)
+        public ChoiceOption(object[] choices, object? defaultChoice)
             : this(choices)
         {
             if (defaultChoice != null)
             {
-                this.Default = this.MappingToFeatureSpace(Parameter.FromString(defaultChoice));
+                this.Default = this.MappingToFeatureSpace(Parameter.FromObject(defaultChoice));
             }
         }
 
@@ -47,7 +47,7 @@ namespace Microsoft.ML.SearchSpace.Option
                 return new double[0];
             }
 
-            var value = param.AsType<string>();
+            var value = param.AsType<object>();
             var x = Array.BinarySearch(this.Choices, value);
             Contracts.Check(x != -1, $"{value} not contains");
 
