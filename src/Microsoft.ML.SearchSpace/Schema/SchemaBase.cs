@@ -6,6 +6,15 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.SearchSpace.Schema
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    internal enum SchemaType
+    {
+        UniformDoubleOption = 0,
+        IntegerOption = 1,
+        ChoiceOption = 2,
+        NestOption = 3,
+    }
+
     internal abstract class SchemaBase
     {
         [JsonPropertyName("schema_type")]
