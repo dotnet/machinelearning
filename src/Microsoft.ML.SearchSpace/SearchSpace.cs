@@ -197,6 +197,8 @@ namespace Microsoft.ML.SearchSpace
                 }
                 else
                 {
+                    this.CheckOptionType(attributes.First(), field.FieldType);
+
                     OptionBase option = attributes.First() switch
                     {
                         ChoiceAttribute choice => choice.Option,
@@ -231,6 +233,8 @@ namespace Microsoft.ML.SearchSpace
                 }
                 else
                 {
+                    this.CheckOptionType(attributes.First(), property.PropertyType);
+
                     OptionBase option = attributes.First() switch
                     {
                         ChoiceAttribute choice => choice.Option,
@@ -245,6 +249,29 @@ namespace Microsoft.ML.SearchSpace
 
             return res;
         }
+
+        private void CheckOptionType(object attribute, Type type)
+        {
+            if (attribute is BooleanChoiceAttribute)
+            {
+                Contracts.Assert(type == typeof(bool), "BooleanChoice can only apply to property or field which type is bool");
+                return;
+            }
+
+            if (attribute is RangeAttribute range && (range.Option is UniformDoubleOption || range.Option is UniformSingleOption))
+            {
+                Contracts.Assert(type != typeof(int) && type != typeof(short) && type != typeof(long), "UniformDoubleOption or UniformSingleOption can't apply to property or field which type is int or short or long");
+                return;
+            }
+
+            if (attribute is ChoiceAttribute)
+            {
+                Contracts.Assert(type == typeof(string) || type.IsEnum, "ChoiceAttribute can only apply to property or field which type is string or enum");
+                return;
+            }
+        }
+
+
 
         public void Add(string key, OptionBase value)
         {
