@@ -320,4 +320,35 @@ namespace Microsoft.ML.SearchSpace
             return res;
         }
     }
+
+    public class SearchSpace<T> : SearchSpace
+        where T : class, new()
+    {
+        private readonly T _defaultOption = null;
+
+        public SearchSpace()
+            : base(typeof(T))
+        {
+        }
+
+        public SearchSpace(T defaultOption)
+            : base(typeof(T), Parameter.FromObject(defaultOption))
+        {
+            this._defaultOption = defaultOption;
+        }
+
+        public new T SampleFromFeatureSpace(double[] feature)
+        {
+            var param = base.SampleFromFeatureSpace(feature);
+            var option = param.AsType<T>();
+
+            return option;
+        }
+
+        public double[] MappingToFeatureSpace(T input)
+        {
+            var param = Parameter.FromObject(input);
+            return this.MappingToFeatureSpace(param);
+        }
+    }
 }
