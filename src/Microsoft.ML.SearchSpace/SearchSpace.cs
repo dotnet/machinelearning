@@ -142,7 +142,7 @@ namespace Microsoft.ML.SearchSpace
             foreach (var field in fieldInfos)
             {
                 var optionAttribute = field.GetCustomAttributes(typeof(OptionAttribute), false);
-                if (optionAttribute.Count() == 0)
+                if (optionAttribute.Length == 0)
                 {
                     continue;
                 }
@@ -164,7 +164,7 @@ namespace Microsoft.ML.SearchSpace
             foreach (var property in propertyInfos)
             {
                 var optionAttribute = property.GetCustomAttributes(typeof(OptionAttribute), false);
-                if (optionAttribute.Count() == 0)
+                if (optionAttribute.Length == 0)
                 {
                     continue;
                 }

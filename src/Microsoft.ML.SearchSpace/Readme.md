@@ -7,7 +7,7 @@ This library contains all search-space related code, including creating, updatin
 
 ### Numeric option | Choice option
 
-Option is the most basic unit in MB Search Space. And it represent a searching range for a specific hyper parameter. An Numeric option is an option where its corresponding parameter is of numeric type and usually its searching space is a certain range between min and max value. A choice option is an option where its parameter only accept specific values, like boolean (True/False), enum, etc..
+Option is the most basic unit in MB Search Space. And it represent a searching range for a specific hyper parameter. A Numeric option is an option where its corresponding parameter is of numeric type and usually its searching space is a certain range between min and max value. A choice option is an option where its parameter only accept specific values, like boolean (True/False), enum, etc..
 
 In implementation, each option represents a mapper function which maps its value into a known space. Thereby free tuners from managing the details of different options.
 
