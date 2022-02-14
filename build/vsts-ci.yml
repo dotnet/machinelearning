@@ -13,9 +13,6 @@ resources:
   - container: UbuntuCrossArm64Container
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64-20210512124625-2e59a5f
 
-parameters:
-  enableSbom: true
-
 jobs:
 ################################################################################
 - job: Linux_x64
@@ -109,7 +106,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.enableSbom, 'true')) }}:
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
@@ -146,7 +143,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.enableSbom, 'true')) }}:
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
@@ -183,7 +180,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.enableSbom, 'true')) }}:
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
@@ -233,7 +230,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.enableSbom, 'true')) }}:
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - template: /eng/common/templates/steps/generate-sbom.yml
 
   # Terminate all dotnet build processes.
@@ -290,7 +287,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.enableSbom, 'true')) }}:
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - template: /eng/common/templates/steps/generate-sbom.yml
 
   # Terminate all dotnet build processes.
@@ -365,7 +362,7 @@ jobs:
     displayName: sign packages
     continueOnError: false
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.enableSbom, 'true')) }}:
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - template: /eng/common/templates/steps/generate-sbom.yml
 
   # The generated .nupkgs and .snupkgs packages are published to Azure artifacts,
