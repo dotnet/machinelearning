@@ -44,6 +44,8 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
+  - template: /eng/common/templates/steps/generate-sbom.yml
+
 ################################################################################
 - job: Linux_arm
 ################################################################################
@@ -75,6 +77,8 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
+  - template: /eng/common/templates/steps/generate-sbom.yml
+
 ################################################################################
 - job: Linux_arm64
 ################################################################################
@@ -105,6 +109,8 @@ jobs:
       pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
+
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
 - job: MacOS
@@ -140,6 +146,8 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
+  - template: /eng/common/templates/steps/generate-sbom.yml
+
 ################################################################################
 - job: MacOS_Apple_Silicon
 ################################################################################
@@ -173,6 +181,8 @@ jobs:
       pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
+
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
 - job: Windows_x86
@@ -220,6 +230,8 @@ jobs:
       pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
+
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
@@ -274,6 +286,8 @@ jobs:
       pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
+
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
@@ -346,6 +360,8 @@ jobs:
   - script: ./sign.cmd /p:SignNugetPackages=true
     displayName: sign packages
     continueOnError: false
+
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
   # The generated .nupkgs and .snupkgs packages are published to Azure artifacts,
   # in case we need to debug them. They're found under Release/Shipping

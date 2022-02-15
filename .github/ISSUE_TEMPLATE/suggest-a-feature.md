@@ -2,7 +2,7 @@
 name: Suggest a feature
 about: Suggest a feature or idea for ML.NET
 title: ''
-labels: ''
+labels: ['enhancement']
 assignees: ''
 
 ---
