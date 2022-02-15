@@ -44,8 +44,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
 - job: Linux_arm
@@ -78,8 +77,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
 - job: Linux_arm64
@@ -112,8 +110,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
 - job: MacOS
@@ -149,8 +146,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
 - job: MacOS_Apple_Silicon
@@ -186,8 +182,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
 - job: Windows_x86
@@ -236,8 +231,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
@@ -293,8 +287,7 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
@@ -368,8 +361,7 @@ jobs:
     displayName: sign packages
     continueOnError: false
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/steps/generate-sbom.yml
 
   # The generated .nupkgs and .snupkgs packages are published to Azure artifacts,
   # in case we need to debug them. They're found under Release/Shipping
