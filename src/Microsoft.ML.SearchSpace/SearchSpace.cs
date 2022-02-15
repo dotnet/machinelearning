@@ -353,7 +353,7 @@ namespace Microsoft.ML.SearchSpace
         }
     }
 
-    public class SearchSpace<T> : SearchSpace
+    public sealed class SearchSpace<T> : SearchSpace
         where T : class, new()
     {
         private readonly T _defaultOption = null;

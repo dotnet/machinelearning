@@ -7,7 +7,7 @@ namespace Microsoft.ML.SearchSpace.Tuner
     /// <summary>
     /// A tuner which always return default value.
     /// </summary>
-    public class DefaultValueTuner
+    public sealed class DefaultValueTuner
     {
         private readonly SearchSpace _searchSpace;
 

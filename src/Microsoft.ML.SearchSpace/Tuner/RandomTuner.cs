@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.ML.SearchSpace.Tuner
 {
-    public class RandomTuner
+    public sealed class RandomTuner
     {
         private readonly SearchSpace _searchSpace;
         private readonly Random _rnd;

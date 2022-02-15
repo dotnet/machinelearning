@@ -24,7 +24,7 @@ namespace Microsoft.ML.SearchSpace
     }
 
     [JsonConverter(typeof(ParameterConverter))]
-    public class Parameter : IDictionary<string, Parameter>
+    public sealed class Parameter : IDictionary<string, Parameter>
     {
         private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
         {

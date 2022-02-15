@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.ML.SearchSpace.Tuner
 {
-    public class GridSearchTuner
+    public sealed class GridSearchTuner
     {
         private readonly SearchSpace _searchSpace;
         private readonly int _stepSize;

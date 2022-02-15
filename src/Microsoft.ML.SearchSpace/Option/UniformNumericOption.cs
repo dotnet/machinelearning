@@ -67,7 +67,7 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    public class UniformDoubleOption : UniformNumericOption
+    public sealed class UniformDoubleOption : UniformNumericOption
     {
         public UniformDoubleOption(double min, double max, bool logBase = false, double? defaultValue = null)
             : base(min, max, logBase)
@@ -79,7 +79,7 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    public class UniformSingleOption : UniformNumericOption
+    public sealed class UniformSingleOption : UniformNumericOption
     {
         public UniformSingleOption(float min, float max, bool logBase = false, float? defaultValue = null)
             : base(min, max, logBase)
@@ -105,7 +105,7 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    public class UniformIntOption : UniformNumericOption
+    public sealed class UniformIntOption : UniformNumericOption
     {
         public UniformIntOption(int min, int max, bool logBase = false, int? defaultValue = null)
             : base(min, max, logBase)
