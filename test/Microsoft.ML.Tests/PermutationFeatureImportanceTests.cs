@@ -95,6 +95,80 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
+        /// Test PFI Regression for Dense Features in a transformer chain
+        /// </summary>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiRegressionOnDenseFeaturesInTransformerChain(bool saveModel)
+        {
+            var data = GetDenseDataset();
+            var model = ML.Transforms.CopyColumns("Label", "Label").Append(ML.Regression.Trainers.OnlineGradientDescent()).Fit(data);
+
+            ImmutableArray<RegressionMetricsStatistics> pfi;
+            ImmutableDictionary<string, RegressionMetricsStatistics> pfiDict;
+
+            if (saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnDenseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+
+                ITransformer lastTransformer = null;
+                if (loadedModel is ITransformerChainAccessor chain)
+                {
+                    lastTransformer = chain.Transformers.Last();
+                }
+                var castedModel = lastTransformer as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
+                pfi = ML.Regression.PermutationFeatureImportance(castedModel, data);
+                pfiDict = ml2.Regression.PermutationFeatureImportance(loadedModel, data);
+            }
+            else
+            {
+                // PFI changes the random state, so we need to reset it and create another seed for both PFI to match
+                ML = new MLContext(42);
+                var ml2 = new MLContext(42);
+
+                pfi = ML.Regression.PermutationFeatureImportance(model.LastTransformer, data);
+                pfiDict = ml2.Regression.PermutationFeatureImportance(model, data);
+            }
+
+            // Pfi Indices:
+            // X1: 0
+            // X2Important: 1
+            // X3: 2
+            // X4Rand: 3
+
+            // Make sure that PFI from the array and the dictionary both have the same value for each feature.
+            Assert.Equal(JsonConvert.SerializeObject(pfi[0]), JsonConvert.SerializeObject(pfiDict["X1"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[1]), JsonConvert.SerializeObject(pfiDict["X2Important"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[2]), JsonConvert.SerializeObject(pfiDict["X3"]));
+            Assert.Equal(JsonConvert.SerializeObject(pfi[3]), JsonConvert.SerializeObject(pfiDict["X4Rand"]));
+
+            // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.Mean));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanAbsoluteError.Mean));
+
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanSquaredError.Mean));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanSquaredError.Mean));
+
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RootMeanSquaredError.Mean));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RootMeanSquaredError.Mean));
+
+            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.RSquared.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.RSquared.Mean));
+
+            Done();
+        }
+
+        /// <summary>
         /// Test PFI Regression Standard Deviation and Standard Error for Dense Features
         /// </summary>
         [Theory]
