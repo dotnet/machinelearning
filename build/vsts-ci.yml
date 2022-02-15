@@ -44,6 +44,9 @@ jobs:
       artifactName: PackageAssets
       artifactType: container
 
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - template: /eng/common/templates/steps/generate-sbom.yml
+
 ################################################################################
 - job: Linux_arm
 ################################################################################
@@ -74,6 +77,9 @@ jobs:
       pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
       artifactName: PackageAssets
       artifactType: container
+
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - template: /eng/common/templates/steps/generate-sbom.yml
 
 ################################################################################
 - job: Linux_arm64
