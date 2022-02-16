@@ -1,0 +1,21 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "image_classification_option",
+  "search_space": [
+    {
+      "name": "LabelColumnName",
+      "type": "string",
+      "default": "Label"
+    },
+    {
+      "name": "ScoreColumnName",
+      "type": "string",
+      "default": "Score"
+    },
+    {
+      "name": "FeatureColumnName",
+      "type": "string",
+      "default": "Feature"
+    }
+  ]
+}

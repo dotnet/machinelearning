@@ -4,12 +4,14 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 
-using Microsoft.ML.ModelBuilder.SearchSpace;
-using OptionAttribute = Microsoft.ML.ModelBuilder.SearchSpace.OptionAttribute;
+using Microsoft.ML.SearchSpace;
+using OptionAttribute = Microsoft.ML.SearchSpace.OptionAttribute;
 using ColorsOrder = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorsOrder;
 using ColorBits = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits;
 using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.ResizingKind;
 using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
+
+#nullable enable
 
 namespace <#=NameSpace#>
 {
@@ -20,6 +22,7 @@ namespace <#=NameSpace#>
 <#if(defaultValue == string.Empty){#>
         public <#=optionType#>? <#=optionName#> {get; set;}
 <#}else{#>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Declaration", "MSML_NoInstanceInitializers:No initializers on instance fields or properties")]
         public <#=optionType#> <#=optionName#> {get; set;} = <#=defaultValue#>;
 <#}#>
 <#}#>

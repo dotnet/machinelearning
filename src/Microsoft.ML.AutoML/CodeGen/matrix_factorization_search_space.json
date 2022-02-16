@@ -1,0 +1,54 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "matrix_factorization_option",
+  "search_space": [
+    {
+      "name": "LabelColumnName",
+      "type": "string",
+      "default": "Label"
+    },
+    {
+      "name": "MatrixColumnIndexColumnName",
+      "type": "string"
+    },
+    {
+      "name": "MatrixRowIndexColumnName",
+      "type": "string"
+    },
+    {
+      "name": "ApproximationRank",
+      "type": "integer",
+      "default": 20,
+      "search_space": {
+        "min": 10,
+        "max": 32768,
+        "log_base": true
+      }
+    },
+    {
+      "name": "LearningRate",
+      "type": "double",
+      "default": 1,
+      "search_space": {
+        "min": 2e-10,
+        "max": 1,
+        "log_base": true
+      }
+    },
+    {
+      "name": "NumberOfIterations",
+      "type": "integer",
+      "default": 128,
+      "search_space": {
+        "min": 4,
+        "max": 32768,
+        "log_base": true
+      }
+    },
+    {
+      "name": "Quiet",
+      "type": "boolean",
+      "default": true
+    }
+  ]
+}

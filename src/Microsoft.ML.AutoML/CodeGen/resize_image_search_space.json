@@ -1,0 +1,35 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "resize_image_option",
+  "search_space": [
+    {
+      "name": "OutputColumnName",
+      "type": "string",
+      "default": "Output"
+    },
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "ImageHeight",
+      "type": "integer",
+      "default": 225
+    },
+    {
+      "name": "ImageWidth",
+      "type": "integer",
+      "default": 225
+    },
+    {
+      "name": "CropAnchor",
+      "type": "anchor",
+      "default": "Anchor.Center"
+    },
+    {
+      "name": "Resizing",
+      "type": "resizingKind",
+      "default": "ResizingKind.Fill"
+    }
+  ]
+}

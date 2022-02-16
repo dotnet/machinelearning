@@ -26,12 +26,14 @@ namespace Microsoft.ML.AutoML.SourceGenerator.Template
         public virtual string TransformText()
         {
             this.Write(@"
-using Microsoft.ML.ModelBuilder.SearchSpace;
-using OptionAttribute = Microsoft.ML.ModelBuilder.SearchSpace.OptionAttribute;
+using Microsoft.ML.SearchSpace;
+using OptionAttribute = Microsoft.ML.SearchSpace.OptionAttribute;
 using ColorsOrder = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorsOrder;
 using ColorBits = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits;
 using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.ResizingKind;
 using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
+
+#nullable enable
 
 namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(NameSpace));
@@ -49,7 +51,9 @@ if(defaultValue == string.Empty){
             this.Write(this.ToStringHelper.ToStringWithCulture(optionName));
             this.Write(" {get; set;}\r\n");
 }else{
-            this.Write("        public ");
+            this.Write("        [System.Diagnostics.CodeAnalysis.SuppressMessage(\"Declaration\", \"MSML_NoI" +
+                    "nstanceInitializers:No initializers on instance fields or properties\")]\r\n       " +
+                    " public ");
             this.Write(this.ToStringHelper.ToStringWithCulture(optionType));
             this.Write(" ");
             this.Write(this.ToStringHelper.ToStringWithCulture(optionName));
