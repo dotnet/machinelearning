@@ -37,13 +37,6 @@ namespace Samples.Dynamic.Trainers.Regression
             // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-#if false
-            // Create a list of training data points.
-            var dataPoints = GenerateRandomDataPoints(1000);
-            // Convert the list of data points to an IDataView object, which is
-            // consumable by ML.NET API.
-            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
-#endif
             var data = LoadData(mlContext, selectedDataset, selectedTask);
             var featuresArray = GetFeaturesArray(data[0]);
             Console.WriteLine($"Found [{featuresArray.Length}] features.");
@@ -72,23 +65,6 @@ namespace Samples.Dynamic.Trainers.Regression
                 var trainer = mlContext.Regression.Trainers.Ols(labelColumnName: "target", featureColumnName: "Features");
                 var model = trainer.Fit(trainingData);
                 t1.Stop();
-#if false
-                var t2 = System.Diagnostics.Stopwatch.StartNew();
-                IDataView predictions = model.Transform(testingData);
-                t2.Stop();
-
-                var t3 = System.Diagnostics.Stopwatch.StartNew();
-                List<double> metricsList = new List<double>();
-                var metrics = mlContext.Regression.Evaluate(predictions, labelColumnName: "target", scoreColumnName: "Score");
-                t3.Stop();
-
-                tg.Stop();
-
-                Console.WriteLine("Dataset,Task,All time[ms],Reading time[ms],Fitting time[ms],Prediction time[ms],Evaluation time[ms],MAE,RMSE,R2");
-                Console.Write($"{args[0]},{args[1]},{tg.Elapsed.TotalMilliseconds},{t0.Elapsed.TotalMilliseconds},{t1.Elapsed.TotalMilliseconds},{t2.Elapsed.TotalMilliseconds},{t3.Elapsed.TotalMilliseconds},");
-                Console.Write($"{metrics.MeanAbsoluteError},{metrics.RootMeanSquaredError},{metrics.RSquared}\n");
-#endif
-
             }
             else if (selectedTask == "bin")
             {
@@ -203,14 +179,8 @@ namespace Samples.Dynamic.Trainers.Regression
             string datasetLocationTest = Microsoft.ML.SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory($"{dataset}_test.csv");
 
             List<IDataView> dataList = new List<IDataView>();
-#if false
-            dataList.Add(loader.Load($"{dataset}_train.csv"));
-            dataList.Add(loader.Load($"{dataset}_test.csv"));
-#else
             dataList.Add(loader.Load(datasetLocationTrain));
             dataList.Add(loader.Load(datasetLocationTest));
-
-#endif
             return dataList.ToArray();
         }
 
@@ -228,115 +198,6 @@ namespace Samples.Dynamic.Trainers.Regression
 
             return featuresList.ToArray();
         }
-
-#if false
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
-        {
-            var random = new Random(seed);
-            for (int i = 0; i < count; i++)
-            {
-                float label = (float)random.NextDouble();
-                yield return new DataPoint
-                {
-                    Label = label,
-                    // Create random features that are correlated with the label.
-                    Features = Enumerable.Repeat(label, 50).Select(
-                        x => x + (float)random.NextDouble()).ToArray()
-                };
-            }
-        }
-
-        // Example with label and 50 feature values. A data set is a collection of
-        // such examples.
-        private class DataPoint
-        {
-            public float Label { get; set; }
-            [VectorType(50)]
-            public float[] Features { get; set; }
-        }
-#if false
-        // Class used to capture predictions.
-        private class Prediction
-        {
-            // Original label.
-            public float Label { get; set; }
-            // Predicted score from the trainer.
-            public float Score { get; set; }
-        }
-
-        // Print some evaluation metrics to regression problems.
-        private static void PrintMetrics(RegressionMetrics metrics)
-        {
-            Console.WriteLine("Mean Absolute Error: " + metrics.MeanAbsoluteError);
-            Console.WriteLine("Mean Squared Error: " + metrics.MeanSquaredError);
-            Console.WriteLine(
-                "Root Mean Squared Error: " + metrics.RootMeanSquaredError);
-
-            Console.WriteLine("RSquared: " + metrics.RSquared);
-        }
-#endif
-#endif
-
     }
 }
 
-#if false
-using System.Linq;
-using System.Collections.Generic;
-using Microsoft.ML;
-using Microsoft.ML.Data;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        var tg = System.Diagnostics.Stopwatch.StartNew();
-        var t0 = System.Diagnostics.Stopwatch.StartNew();
-        MLContext mlContext = new MLContext();
-        var data = LoadData(mlContext, args[0]);
-        var featuresArray = GetFeaturesArray(data[0]);
-        var preprocessingModel = mlContext.Transforms.Concatenate("Features", featuresArray);
-        var trainingData = preprocessingModel.Fit(data[0]).Transform(data[0]);
-        var testingData = preprocessingModel.Fit(data[0]).Transform(data[1]);
-        t0.Stop();
-
-        var t1 = System.Diagnostics.Stopwatch.StartNew();
-        var trainer = mlContext.Regression.Trainers.Ols(labelColumnName: "target", featureColumnName: "Features");
-        var model = trainer.Fit(trainingData);
-        t1.Stop();
-
-        var t2 = System.Diagnostics.Stopwatch.StartNew();
-        IDataView predictions = model.Transform(testingData);
-        t2.Stop();
-
-        var t3 = System.Diagnostics.Stopwatch.StartNew();
-        List<double> metricsList = new List<double>();
-        var metrics = mlContext.Regression.Evaluate(predictions, labelColumnName: "target", scoreColumnName: "Score");
-        t3.Stop();
-        tg.Stop();
-
-        Console.WriteLine("Dataset,All time[ms],Reading time[ms],Fitting time[ms],Prediction time[ms],Evaluation time[ms],MAE,RMSE,R2");
-        Console.Write($"{args[0]},{tg.Elapsed.TotalMilliseconds},{t0.Elapsed.TotalMilliseconds},{t1.Elapsed.TotalMilliseconds},{t2.Elapsed.TotalMilliseconds},{t3.Elapsed.TotalMilliseconds},");
-        Console.Write($"{metrics.MeanAbsoluteError},{metrics.RootMeanSquaredError},{metrics.RSquared}\n");
-    }
-}
-#endif
-
-#if false
-class Program
-{
-    static void Main(string[] args)
-    {
-        var tg = System.Diagnostics.Stopwatch.StartNew();
-        var t0 = System.Diagnostics.Stopwatch.StartNew();
-        MLContext mlContext = new MLContext();
-        var data = LoadData(mlContext, args[0], args[1]);
-        var featuresArray = GetFeaturesArray(data[0]);
-        IDataView trainingData, testingData;
-
-        t0.Stop();
-
-
-    }
-}
-#endif
