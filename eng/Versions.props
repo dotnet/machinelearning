@@ -37,6 +37,8 @@
     <SystemTextEncodingVersion>4.3.0</SystemTextEncodingVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
+    <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
+    <ApprovalTestVersion>5.2.4</ApprovalTestVersion>
     <!-- Build/infrastructure Dependencies -->
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
     <CodecovVersion>1.12.4</CodecovVersion>
@@ -89,7 +91,7 @@
     <MonoOptionsVersion>5.3.0.1</MonoOptionsVersion>
     <McMasterExtensionsCommandLineUtils>2.3.0</McMasterExtensionsCommandLineUtils>
     <NewtonsoftJsonVersion>9.0.1</NewtonsoftJsonVersion>
-    <SystemTextJsonVersion>4.7.0</SystemTextJsonVersion>
+    <SystemTextJsonVersion>6.0.1</SystemTextJsonVersion>
     <NuGetVersioningVersion>4.4.0</NuGetVersioningVersion>
     <NuGetVersion>5.6.0-preview.2.6489</NuGetVersion>
     <OctokitVersion>0.32.0</OctokitVersion>
