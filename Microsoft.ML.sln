@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.0.32112.339
+VisualStudioVersion = 17.1.32120.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Core", "src\Microsoft.ML.Core\Microsoft.ML.Core.csproj", "{A6CA6CC6-5D7C-4D7F-A0F5-35E14B383B0A}"
 EndProject
@@ -150,6 +150,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Data.Analysis.Tests", "test\Microsoft.Data.Analysis.Tests\Microsoft.Data.Analysis.Tests.csproj", "{0B765344-11A4-4738-9759-5060599DC134}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Data.Analysis.Interactive.Tests", "test\Microsoft.Data.Analysis.Interactive.Tests\Microsoft.Data.Analysis.Interactive.Tests.csproj", "{8AFB8CC3-DA0B-4364-BFB3-296A7C54CC25}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.SearchSpace", "src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj", "{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.SearchSpace.Tests", "test\Microsoft.ML.SearchSpace.Tests\Microsoft.ML.SearchSpace.Tests.csproj", "{A3E9F25F-2718-4FF9-A35A-54C232A847AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -707,6 +711,22 @@ Global
 		{8AFB8CC3-DA0B-4364-BFB3-296A7C54CC25}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8AFB8CC3-DA0B-4364-BFB3-296A7C54CC25}.Release|x64.ActiveCfg = Release|Any CPU
 		{8AFB8CC3-DA0B-4364-BFB3-296A7C54CC25}.Release|x64.Build.0 = Release|Any CPU
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}.Debug|x64.Build.0 = Debug|Any CPU
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}.Release|x64.ActiveCfg = Release|Any CPU
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3}.Release|x64.Build.0 = Release|Any CPU
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB}.Debug|x64.Build.0 = Debug|Any CPU
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB}.Release|x64.ActiveCfg = Release|Any CPU
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -780,6 +800,8 @@ Global
 		{D9FDD2D5-BFFC-4A4D-8589-7F63AA3EA923} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{0B765344-11A4-4738-9759-5060599DC134} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{8AFB8CC3-DA0B-4364-BFB3-296A7C54CC25} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
+		{A8F4F08F-1F9D-4AAE-8C8D-502CDBBDE7D3} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{A3E9F25F-2718-4FF9-A35A-54C232A847AB} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
