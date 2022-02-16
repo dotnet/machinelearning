@@ -1,0 +1,34 @@
+﻿<#@ template language="C#" linePragmas="false" visibility = "internal" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using Microsoft.ML.ModelBuilder.SearchSpace;
+using OptionAttribute = Microsoft.ML.ModelBuilder.SearchSpace.OptionAttribute;
+using ColorsOrder = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorsOrder;
+using ColorBits = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits;
+using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.ResizingKind;
+using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
+
+namespace <#=NameSpace#>
+{
+    public class <#=ClassName#>
+    {
+<#foreach((var optionType, var optionName, var optionAttribution, var defaultValue) in Properties){#>
+        <#=optionAttribution#>
+<#if(defaultValue == string.Empty){#>
+        public <#=optionType#>? <#=optionName#> {get; set;}
+<#}else{#>
+        public <#=optionType#> <#=optionName#> {get; set;} = <#=defaultValue#>;
+<#}#>
+<#}#>
+
+    }
+}
+
+<#+
+public string NameSpace {get;set;}
+public string ClassName {get;set;}
+public IEnumerable<(string, string, string, string)> Properties {get; set;}
+#>
