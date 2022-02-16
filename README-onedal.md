@@ -16,6 +16,10 @@ This code is meant to be built and used on Windows or Linux (bare-metal, testing
 1. The above installation options include the OneDAL CMake modules that the ML.NET `build.*` script relies on.  Note that this is *not* the case for OneDAL installed via `conda`, so we discourage that route.
 1. No build requirements beyond the ones of ML.NET are expected, issuing the `build` script that corresponds to your platform should suffice
 
+<blockquote>
+We have verified this procedure (on Windows) with the VS2019 and VS2022 toolchains.  Please be mindful of which `cmake` you use, making sure that when you issue the `build.cmd` script the first instance of `cmake` in your `PATH` is the one that comes with Visual Studio (so that the right generator is used).
+</blockquote>
+
 ## Testing
 
 For an example on how to make use of the algorithms the OneDAL provides you can take a look at the samples included in `docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/TestingOLS.cs`.  To engage the OneDAL-based implementations, you'll need to set the `MLNET_BACKEND` environment variable with the value "ONEDAL" (if you leave `MLNET_BACKEND` unset or with any other value, the behavior from the "main" branch is unchanged).  This is expected to be the main "switching" control for implementations for the time being for accelerated implementations of algorithms that already exist in ML.NET.
