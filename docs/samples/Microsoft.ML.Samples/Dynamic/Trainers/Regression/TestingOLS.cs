@@ -14,8 +14,6 @@ namespace Samples.Dynamic.Trainers.Regression
     {
         public static void Example()
         {
-            Console.WriteLine($"Running from TestingOLS... from {Assembly.GetExecutingAssembly().Location}...");
-
             var selectedBackend = Environment.GetEnvironmentVariable("MLNET_BACKEND");
             Console.WriteLine($"found the backend to be [{selectedBackend}]");
 
@@ -39,10 +37,9 @@ namespace Samples.Dynamic.Trainers.Regression
 
             var data = LoadData(mlContext, selectedDataset, selectedTask);
             var featuresArray = GetFeaturesArray(data[0]);
-            Console.WriteLine($"Found [{featuresArray.Length}] features.");
             IDataView trainingData, testingData;
 
-            Console.WriteLine($"Arranging data for task: {selectedTask} (configuring preprocessing).");
+            // Arranging data for `selectedTask` (configuring preprocessing)
             if (selectedTask == "mcl")
             {
                 var preprocessingModel = mlContext.Transforms.Concatenate("Features", featuresArray).Append(mlContext.Transforms.Conversion.MapValueToKey("target"));
@@ -59,8 +56,6 @@ namespace Samples.Dynamic.Trainers.Regression
 
             if (selectedTask == "reg") // regression
             {
-                Console.WriteLine("Carrying out regression");
-
                 var t1 = System.Diagnostics.Stopwatch.StartNew();
                 var trainer = mlContext.Regression.Trainers.Ols(labelColumnName: "target", featureColumnName: "Features");
                 var model = trainer.Fit(trainingData);
@@ -68,7 +63,6 @@ namespace Samples.Dynamic.Trainers.Regression
             }
             else if (selectedTask == "bin")
             {
-                Console.WriteLine("Carrying out binary classification");
                 var t1 = System.Diagnostics.Stopwatch.StartNew();
                 var options = new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
@@ -101,7 +95,6 @@ namespace Samples.Dynamic.Trainers.Regression
             }
             else if (selectedTask == "mcl") // multi-class classification
             {
-                Console.WriteLine("Carrying out multi-class classification");
                 var t1 = System.Diagnostics.Stopwatch.StartNew();
                 var options = new LbfgsMaximumEntropyMulticlassTrainer.Options()
                 {
@@ -138,7 +131,7 @@ namespace Samples.Dynamic.Trainers.Regression
         public static IDataView[] LoadData(MLContext mlContext, string dataset, string task, string label = "target", char separator = ',')
         {
             //string modelLocation = Microsoft.ML.SamplesUtils.DatasetUtils.GetHousingRegressionDataset();
-            string datasetLocation = Microsoft.ML.SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory($"{dataset}_train.csv");
+            string datasetLocation = Microsoft.ML.SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory(Path.Combine("external", $"{dataset}_train.csv"));
             if (!File.Exists(datasetLocation))
             {
                 Console.WriteLine($"Cannot find dataset from expected [{datasetLocation}] location");
@@ -175,8 +168,8 @@ namespace Samples.Dynamic.Trainers.Regression
                 columns: columns.ToArray()
             );
 
-            string datasetLocationTrain = Microsoft.ML.SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory($"{dataset}_train.csv");
-            string datasetLocationTest = Microsoft.ML.SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory($"{dataset}_test.csv");
+            string datasetLocationTrain = Microsoft.ML.SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory(Path.Combine("external", $"{dataset}_train.csv"));
+            string datasetLocationTest = Microsoft.ML.SamplesUtils.DatasetUtils.GetFilePathFromDataDirectory(Path.Combine("external", $"{dataset}_test.csv"));
 
             List<IDataView> dataList = new List<IDataView>();
             dataList.Add(loader.Load(datasetLocationTrain));
