@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.DotNet.Interactive.Formatting;
 using Xunit;
 
@@ -10,7 +11,7 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
 {
     public class DataFrameInteractiveTests
     {
-        private const string ButtonHtmlPart = "button onclick";
+        private Regex _buttonHtmlPart = new Regex(@"<\s*button.*onclick=.*>");
         private const string TableHtmlPart = "<table";
 
         public static DataFrame MakeDataFrameWithTwoColumns(int length, bool withNulls = true)
@@ -36,7 +37,7 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
             var html = dataFrame.ToDisplayString("text/html");
 
             Assert.Contains(TableHtmlPart, html);
-            Assert.DoesNotContain(ButtonHtmlPart, html);
+            Assert.DoesNotMatch(_buttonHtmlPart, html);
         }
 
         [Fact]
@@ -47,7 +48,7 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
             var html = dataFrame.ToDisplayString("text/html");
 
             Assert.Contains(TableHtmlPart, html);
-            Assert.Contains(ButtonHtmlPart, html);
+            Assert.Matches(_buttonHtmlPart, html);
         }
 
         [Fact]
@@ -58,7 +59,7 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
             var html = dataFrame.Info().ToDisplayString("text/html");
 
             Assert.Contains(TableHtmlPart, html);
-            Assert.DoesNotContain(ButtonHtmlPart, html);
+            Assert.DoesNotMatch(_buttonHtmlPart, html);
         }
     }
 }
