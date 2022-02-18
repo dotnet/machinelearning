@@ -25,6 +25,7 @@ namespace <#=NameSpace#>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Declaration", "MSML_NoInstanceInitializers:No initializers on instance fields or properties")]
         public <#=optionType#> <#=optionName#> {get; set;} = <#=defaultValue#>;
 <#}#>
+
 <#}#>
 
     }

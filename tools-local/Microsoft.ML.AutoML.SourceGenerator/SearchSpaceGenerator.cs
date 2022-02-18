@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML.SourceGenerator.Template;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
             if (context.AdditionalFiles.Where(f => f.Path.Contains("code_gen_flag.json")).First() is AdditionalText text)
             {
                 var json = text.GetText().ToString();
-                var flags = JsonConvert.DeserializeObject<Dictionary<string, bool>>(json);
+                var flags = JsonSerializer.Deserialize<Dictionary<string, bool>>(json);
                 if (flags.TryGetValue(nameof(SearchSpaceGenerator), out var res) && res == false)
                 {
                     return;
@@ -30,19 +30,19 @@ namespace Microsoft.ML.AutoML.SourceGenerator
             var searchSpacesJson = context.AdditionalFiles.Where(f => f.Path.Contains("search_space.json"))
                                                           .Select(f => f.GetText().ToString())
                                                           .ToArray();
-            var searchSpacesJObjects = searchSpacesJson.Select(x => JObject.Parse(x));
+            var searchSpacesJNodes = searchSpacesJson.Select(x => JsonNode.Parse(x));
 
             //if (!Debugger.IsAttached)
             //    Debugger.Launch();
 
-            foreach (var jObject in searchSpacesJObjects)
+            foreach (var jNode in searchSpacesJNodes)
             {
-                var className = Utils.ToTitleCase(jObject.Value<string>("name"));
-                var searchSpaceJArray = jObject.Value<JArray>("search_space");
+                var className = Utils.ToTitleCase(jNode["name"].GetValue<string>());
+                var searchSpaceJArray = jNode["search_space"].AsArray();
                 var options = searchSpaceJArray.Select(t =>
                 {
-                    var optionName = Utils.ToTitleCase(t.Value<string>("name"));
-                    string optionTypeName = t.Value<string>("type") switch
+                    var optionName = Utils.ToTitleCase(t["name"].GetValue<string>());
+                    string optionTypeName = t["type"].GetValue<string>() switch
                     {
                         "integer" => "int",
                         "float" => "float",
@@ -57,39 +57,39 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         _ => throw new ArgumentException("unknown type"),
                     };
 
-                    t.ToObject<JObject>().TryGetValue("default", out var defaultToken);
-                    string optionDefaultValue = (defaultToken?.Type, optionTypeName) switch
+                    var defaultToken = t.AsObject().ContainsKey("default") ? t["default"] : null;
+                    string optionDefaultValue = (defaultToken, optionTypeName) switch
                     {
                         (null, _) => string.Empty,
-                        (_, "string") => $"\"{defaultToken.ToObject<string>()}\"",
-                        (_, "int") => $"{defaultToken.ToObject<int>()}",
-                        (_, "double") => $"{defaultToken.ToObject<double>()}",
-                        (_, "float") => $"{defaultToken.ToObject<float>()}F",
-                        (_, "bool") => defaultToken.ToObject<bool>() ? "true" : "false",
-                        (_, "Anchor") => defaultToken.ToObject<string>(),
-                        (_, "ResizingKind") => defaultToken.ToObject<string>(),
-                        (_, "ColorBits") => defaultToken.ToObject<string>(),
-                        (_, "ColorsOrder") => defaultToken.ToObject<string>(),
+                        (_, "string") => $"\"{defaultToken.GetValue<string>()}\"",
+                        (_, "int") => $"{defaultToken.GetValue<int>()}",
+                        (_, "double") => $"{defaultToken.GetValue<double>()}",
+                        (_, "float") => $"{defaultToken.GetValue<float>()}F",
+                        (_, "bool") => defaultToken.GetValue<bool>() ? "true" : "false",
+                        (_, "Anchor") => defaultToken.GetValue<string>(),
+                        (_, "ResizingKind") => defaultToken.GetValue<string>(),
+                        (_, "ColorBits") => defaultToken.GetValue<string>(),
+                        (_, "ColorsOrder") => defaultToken.GetValue<string>(),
                         (_, _) => throw new ArgumentException("unknown"),
                     };
 
-                    t.ToObject<JObject>().TryGetValue("search_space", out var searchSpaceToken);
+                    var searchSpaceNode = t.AsObject().ContainsKey("search_space") ? t["search_space"] : null;
                     string optionAttribution = null;
-                    if (searchSpaceToken?.ToObject<object>() is null)
+                    if (searchSpaceNode is null)
                     {
                         // default option
                         optionAttribution = string.Empty;
                     }
                     else
                     {
-                        var searchSpaceObject = searchSpaceToken.ToObject<JObject>();
-                        if (searchSpaceObject.TryGetValue("min", out var minToken))
+                        var searchSpaceObject = searchSpaceNode.AsObject();
+                        if (searchSpaceObject.ContainsKey("min"))
                         {
                             // range option
-                            var minValue = searchSpaceToken.Value<double>("min");
-                            var maxValue = searchSpaceToken.Value<double>("max");
-                            searchSpaceObject.TryGetValue("log_base", out var logBaseToken);
-                            var logBase = logBaseToken is null ? "false" : logBaseToken.ToObject<bool>() ? "true" : "false";
+                            var minToken = searchSpaceNode["min"];
+                            var minValue = searchSpaceNode["min"].GetValue<double>();
+                            var maxValue = searchSpaceNode["max"].GetValue<double>();
+                            var logBase = searchSpaceObject.ContainsKey("log_base") is false ? "false" : searchSpaceNode["log_base"].GetValue<bool>() ? "true" : "false";
                             optionAttribution = (optionTypeName, minValue, maxValue, logBase, optionDefaultValue) switch
                             {
                                 ("int", _, _, _, null) => $"Range((int){Convert.ToInt32(minValue)}, (int){Convert.ToInt32(maxValue)}, logBase: {logBase})",
@@ -105,7 +105,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         else
                         {
                             // choice option
-                            var values = searchSpaceToken.Value<string[]>("value");
+                            var values = searchSpaceNode["value"].GetValue<string[]>();
                             var valuesParam = optionTypeName switch
                             {
                                 "int" => $"new object[]{{ {string.Join(",", values)} }}",
