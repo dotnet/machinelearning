@@ -24,9 +24,8 @@ jobs:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
   pool:
-    name: DotnetBuild-1ES-Linux
-    demands:
-    - agent.os -equals linux
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
   container: CentosContainer
   steps:
   - script: ./restore.sh
@@ -57,9 +56,8 @@ jobs:
     DOTNET_MULTILEVEL_LOOKUP: 0
     ROOTFS_DIR: '/crossrootfs/arm'
   pool:
-    name: DotnetBuild-1ES-Linux
-    demands:
-    - agent.os -equals linux
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
   container: UbuntuCrossArmContainer
   steps:
   - script: ./restore.sh
@@ -90,9 +88,8 @@ jobs:
     DOTNET_MULTILEVEL_LOOKUP: 0
     ROOTFS_DIR: '/crossrootfs/arm64'
   pool:
-    name: DotnetBuild-1ES-Linux
-    demands:
-    - agent.os -equals linux
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
   container: UbuntuCrossArm64Container
   steps:
   - script: ./restore.sh
@@ -197,9 +194,8 @@ jobs:
     _UseEsrpSigning: true
     _TeamName: DotNetCore
   pool:
-    name: DotNetCore-Build-1ES
-    demands:
-      - agent.os -equals Windows_NT
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2019
   steps:
 
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
@@ -250,9 +246,8 @@ jobs:
     _UseEsrpSigning: true
     _TeamName: DotNetCore
   pool:
-    name: DotNetCore-Build-1ES
-    demands:
-      - agent.os -equals Windows_NT
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2019
   steps:
 
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
@@ -319,9 +314,8 @@ jobs:
     _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
     _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
   pool:
-    name: DotNetCore-Build-1ES
-    demands:
-      - agent.os -equals Windows_NT
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2019
   steps:
 
   # Install MicroBuild plugin
