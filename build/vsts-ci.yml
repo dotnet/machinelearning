@@ -367,10 +367,6 @@ jobs:
       artifactType: container
     continueOnError: true
 
-  - task: NuGetAuthenticate@0
-    inputs:
-      nuGetServiceConnections: machinelearning-dnceng-public-feed # To allow publishing to a feed of another organization
-
   - task: NuGetCommand@2
     displayName: Push packages to AzureDevOps feed
     inputs:
