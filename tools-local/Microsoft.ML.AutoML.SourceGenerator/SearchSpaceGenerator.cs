@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -62,9 +63,9 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                     {
                         (null, _) => string.Empty,
                         (_, "string") => $"\"{defaultToken.GetValue<string>()}\"",
-                        (_, "int") => $"{defaultToken.GetValue<int>()}",
-                        (_, "double") => $"{defaultToken.GetValue<double>()}",
-                        (_, "float") => $"{defaultToken.GetValue<float>()}F",
+                        (_, "int") => $"{defaultToken.GetValue<int>().ToString(CultureInfo.InvariantCulture)}",
+                        (_, "double") => $"{defaultToken.GetValue<double>().ToString(CultureInfo.InvariantCulture)}",
+                        (_, "float") => $"{defaultToken.GetValue<float>().ToString(CultureInfo.InvariantCulture)}F",
                         (_, "bool") => defaultToken.GetValue<bool>() ? "true" : "false",
                         (_, "Anchor") => defaultToken.GetValue<string>(),
                         (_, "ResizingKind") => defaultToken.GetValue<string>(),
@@ -92,12 +93,12 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                             var logBase = searchSpaceObject.ContainsKey("log_base") is false ? "false" : searchSpaceNode["log_base"].GetValue<bool>() ? "true" : "false";
                             optionAttribution = (optionTypeName, minValue, maxValue, logBase, optionDefaultValue) switch
                             {
-                                ("int", _, _, _, null) => $"Range((int){Convert.ToInt32(minValue)}, (int){Convert.ToInt32(maxValue)}, logBase: {logBase})",
-                                ("float", _, _, _, null) => $"Range((float){Convert.ToSingle(minValue)}, (float){Convert.ToSingle(maxValue)}, logBase: {logBase})",
-                                ("double", _, _, _, null) => $"Range((double){minValue}, (double){maxValue}, logBase: {logBase})",
-                                ("int", _, _, _, _) => $"Range((int){Convert.ToInt32(minValue)}, (int){Convert.ToInt32(maxValue)}, init: (int){optionDefaultValue}, logBase: {logBase})",
-                                ("float", _, _, _, _) => $"Range((float){Convert.ToSingle(minValue)}, (float){Convert.ToSingle(maxValue)}, init: (float){optionDefaultValue}, logBase: {logBase})",
-                                ("double", _, _, _, _) => $"Range((double){minValue}, (double){maxValue}, init: (double){optionDefaultValue}, logBase: {logBase})",
+                                ("int", _, _, _, null) => $"Range((int){Convert.ToInt32(minValue).ToString(CultureInfo.InvariantCulture)}, (int){Convert.ToInt32(maxValue).ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                                ("float", _, _, _, null) => $"Range((float){Convert.ToSingle(minValue).ToString(CultureInfo.InvariantCulture)}, (float){Convert.ToSingle(maxValue).ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                                ("double", _, _, _, null) => $"Range((double){minValue.ToString(CultureInfo.InvariantCulture)}, (double){maxValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                                ("int", _, _, _, _) => $"Range((int){Convert.ToInt32(minValue).ToString(CultureInfo.InvariantCulture)}, (int){Convert.ToInt32(maxValue).ToString(CultureInfo.InvariantCulture)}, init: (int){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                                ("float", _, _, _, _) => $"Range((float){Convert.ToSingle(minValue).ToString(CultureInfo.InvariantCulture)}, (float){Convert.ToSingle(maxValue).ToString(CultureInfo.InvariantCulture)}, init: (float){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                                ("double", _, _, _, _) => $"Range((double){minValue.ToString(CultureInfo.InvariantCulture)}, (double){maxValue.ToString(CultureInfo.InvariantCulture)}, init: (double){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
                                 _ => throw new NotImplementedException(),
                             };
                             optionAttribution = $"[{optionAttribution}]";
