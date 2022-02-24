@@ -198,7 +198,7 @@ jobs:
     demands: ImageOverride -equals Build.Server.Amd64.VS2019
   steps:
 
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@3
     displayName: Install MicroBuild Signing Plugin
     inputs:
       signType: '$(_SignType)'
@@ -250,7 +250,7 @@ jobs:
     demands: ImageOverride -equals Build.Server.Amd64.VS2019
   steps:
 
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@3
     displayName: Install MicroBuild Signing Plugin
     inputs:
       signType: '$(_SignType)'
@@ -319,7 +319,7 @@ jobs:
   steps:
 
   # Install MicroBuild plugin
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@3
     displayName: Install MicroBuild Signing Plugin
     inputs:
       signType: '$(_SignType)'
