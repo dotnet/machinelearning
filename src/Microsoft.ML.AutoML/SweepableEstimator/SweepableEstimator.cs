@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
@@ -11,7 +12,7 @@ namespace Microsoft.ML.AutoML
     /// <summary>
     /// Estimator with search space.
     /// </summary>
-    public abstract class SweepableEstimator : Estimator
+    public class SweepableEstimator : Estimator
     {
         private readonly Func<MLContext, Parameter, IEstimator<ITransformer>> _factory;
 
@@ -25,6 +26,15 @@ namespace Microsoft.ML.AutoML
 
         protected SweepableEstimator()
             : base()
+        {
+        }
+
+        /// <summary>
+        /// for test purpose only
+        /// </summary>
+        /// <param name="estimatorType"></param>
+        internal SweepableEstimator(EstimatorType estimatorType)
+            : base(estimatorType)
         {
         }
 
