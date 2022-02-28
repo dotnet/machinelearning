@@ -4,7 +4,6 @@
 
 using Microsoft.ML.SearchSpace;
 using Microsoft.ML.AutoML.CodeGen;
-using Newtonsoft.Json;
 
 namespace Microsoft.ML.AutoML
 {
