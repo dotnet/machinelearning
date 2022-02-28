@@ -5,11 +5,43 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
     internal class Utils
     {
+        public static EstimatorsContract GetEstimatorsFromJson(string json)
+        {
+            return JsonSerializer.Deserialize<EstimatorsContract>(json);
+        }
+
+        public static string CreateEstimatorName(string functionName, string estimatorType)
+        {
+            if (estimatorType == "BinaryClassification")
+            {
+                return functionName + "Binary";
+            }
+            if (estimatorType == "MultiClassification")
+            {
+                return functionName + "Multi";
+            }
+            if (estimatorType == "Regression")
+            {
+                return functionName + "Regression";
+            }
+            if (estimatorType == "Ranking")
+            {
+                return functionName + "Ranking";
+            }
+            if (estimatorType == "OneVersusAll")
+            {
+                return functionName + "Ova";
+            }
+
+            return functionName;
+        }
+
         public static string CapitalFirstLetter(string str)
         {
             if (str == null)
