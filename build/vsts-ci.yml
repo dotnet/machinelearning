@@ -314,7 +314,12 @@ jobs:
     _TeamName: DotNetCore
     _AzureDevopsFeedUrl: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
     _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
-    _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
+    _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection          # Publish-Build-Assets provides: MaestroAccessToken, BotAccount-dotnet-maestro-bot-PAT
+
+    # Only enable publishing in non-public, non PR scenarios.
+    - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+      # Publish-Build-Assets provides: MaestroAccessToken, BotAccount-dotnet-maestro-bot-PAT
+      - group: Publish-Build-Assets
   pool:
     name: NetCore1ESPool-Internal
     demands: ImageOverride -equals Build.Server.Amd64.VS2019
