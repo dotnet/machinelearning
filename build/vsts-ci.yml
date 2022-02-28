@@ -302,24 +302,25 @@ jobs:
   - Windows_x64
   - MacOS_Apple_Silicon
   variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-    NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
-    _SignType: real
-    _UseEsrpSigning: true
-    _TeamName: DotNetCore
-    _AzureDevopsFeedUrl: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
-    _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
-    _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection          # Publish-Build-Assets provides: MaestroAccessToken, BotAccount-dotnet-maestro-bot-PAT
+    - BuildConfig: Release
+    - OfficialBuildId: $(BUILD.BUILDNUMBER)
+    - DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
+    - DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    - DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    - DOTNET_MULTILEVEL_LOOKUP: 0
+    - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
+    - _SignType: real
+    - _UseEsrpSigning: true
+    - _TeamName: DotNetCore
+    - _AzureDevopsFeedUrl: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
+    - _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
+    - _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
 
     # Only enable publishing in non-public, non PR scenarios.
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-      # Publish-Build-Assets provides: MaestroAccessToken, BotAccount-dotnet-maestro-bot-PAT
-      - group: Publish-Build-Assets
+      # DotNet-Symbol-Server-Pats provides: microsoft-symbol-server-pat symweb-symbol-server-pat
+      - group: DotNet-Symbol-Server-Pats
+
   pool:
     name: NetCore1ESPool-Internal
     demands: ImageOverride -equals Build.Server.Amd64.VS2019
@@ -387,7 +388,7 @@ jobs:
     displayName: Publish Symbols to SymWeb Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(microsoft-symbol-server-pat)
       msbuildVersion: 15.0
     continueOnError: true
 
@@ -395,7 +396,7 @@ jobs:
     displayName: Publish Symbols to Msdl Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(symweb-symbol-server-pat)
       msbuildVersion: 15.0
     continueOnError: true
 
