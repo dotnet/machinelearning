@@ -1,0 +1,211 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "title": "estimator schema",
+
+  "type": "object",
+  "properties": {
+    "estimators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "estimatorTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "OneVersusAll",
+                "BinaryClassification",
+                "Regression",
+                "MultiClassification",
+                "Ranking",
+                "Recommendation",
+                "Transforms",
+                "Categorical",
+                "Conversion",
+                "Text",
+                "Calibrators",
+                "Forecasting"
+              ]
+            }
+          },
+          "functionName": {
+            "type": "string",
+            "description": "estimator's function name.",
+            "enum": [
+              "LightGbm",
+              "FastTree",
+              "FastForest",
+              "FastTreeTweedie",
+              "AveragedPerceptron",
+              "LinearSvm",
+              "LbfgsLogisticRegression",
+              "LbfgsMaximumEntropy",
+              "OnlineGradientDescent",
+              "Ols",
+              "LbfgsPoissonRegression",
+              "SdcaLogisticRegression",
+              "SdcaMaximumEntropy",
+              "Sdca",
+              "SgdCalibrated",
+              "SymbolicSgdLogisticRegression",
+              "MatrixFactorization",
+              "ImageClassification",
+              "Concatenate",
+              "OneHotEncoding",
+              "OneHotHashEncoding",
+              "LoadRawImageBytes",
+              "CopyColumns",
+              "Hash",
+              "MapKeyToValue",
+              "IndicateMissingValues",
+              "ReplaceMissingValues",
+              "NormalizeMinMax",
+              "LoadImages",
+              "FeaturizeText",
+              "ConvertType",
+              "MapValueToKey",
+              "ApplyOnnxModel",
+              "ResizeImages",
+              "ExtractPixels",
+              "Naive",
+              "ForecastBySsa"
+            ]
+          },
+          "nugetDependencies": {
+            "type": "array",
+            "description": "nuget dependencies",
+            "minItems": 0,
+            "items": {
+              "type": "string",
+              "enum": [
+                "Microsoft.ML",
+                "Microsoft.ML.LightGbm",
+                "Microsoft.ML.FastTree",
+                "Microsoft.ML.Mkl.Components",
+                "Microsoft.ML.Recommender",
+                "Microsoft.ML.Vision",
+                "Microsoft.ML.ImageAnalytics",
+                "SciSharp.TensorFlow.Redist",
+                "Microsoft.ML.OnnxTransformer",
+                "Microsoft.ML.OnnxRuntime",
+                "Microsoft.ML.TimeSeries"
+              ]
+            }
+          },
+          "usingStatements": {
+            "type": "array",
+            "description": "using statements",
+            "minItems": 0,
+            "items": {
+              "type": "string",
+              "enum": [
+                "Microsoft.ML",
+                "Microsoft.ML.Data",
+                "Microsoft.ML.Trainers",
+                "Microsoft.ML.Vision",
+                "Microsoft.ML.Transforms.Image",
+                "Microsoft.ML.Trainers.FastTree",
+                "Microsoft.ML.Trainers.LightGbm"
+              ]
+            }
+          },
+          "arguments": {
+            "type": "array",
+            "description": "arguments list",
+            "minItems": 0,
+            "items": {
+              "type": "object",
+              "properties": {
+                "argumentName": {
+                  "type": "string",
+                  "enum": [
+                    "labelColumnName",
+                    "featureColumnName",
+                    "exampleWeightColumnName",
+                    "rowGroupColumnName",
+                    "numberOfLeaves",
+                    "minimumExampleCountPerLeaf",
+                    "learningRate",
+                    "numberOfIterations",
+                    "numberOfTrees",
+                    "lossFunction",
+                    "decreaseLearningRate",
+                    "l1Regularization",
+                    "l2Regularization",
+                    "optimizationTolerance",
+                    "historySize",
+                    "enforceNonNegativity",
+                    "maximumNumberOfIterations",
+                    "matrixColumnIndexColumnName",
+                    "matrixRowIndexColumnName",
+                    "approximationRank",
+                    "scoreColumnName",
+                    "predictedLabelColumnName",
+                    "validationSet",
+                    "inputColumnNames",
+                    "outputColumnName",
+                    "inputColumnName",
+                    "outputKind",
+                    "maximumNumberOfKeys",
+                    "keyOrdinality",
+                    "keyData",
+                    "imageFolder",
+                    "maximumNumberOfInverts",
+                    "numberOfBits",
+                    "maximumExampleCount",
+                    "fixZero",
+                    "modelFile",
+                    "gpuDeviceId",
+                    "fallbackToCpu",
+                    "imageWidth",
+                    "colorsToExtract",
+                    "orderOfExtraction",
+                    "imageHeight",
+                    "cropAnchor",
+                    "resizing",
+                    "featureFraction",
+                    "maximumBinCountPerFeature",
+                    "subsampleFraction",
+                    "windowSize",
+                    "seriesLength",
+                    "trainSize",
+                    "horizon",
+                    "isAdaptive",
+                    "discountFactor",
+                    "rank",
+                    "maxRank",
+                    "shouldStabilize",
+                    "shouldMaintainInfo",
+                    "confidenceLowerBoundColumn",
+                    "confidenceUpperBoundColumn",
+                    "confidenceLevel",
+                    "variableHorizon"
+                  ]
+                },
+                "argumentType": {
+                  "type": "string",
+                  "enum": [
+                    "integer",
+                    "float",
+                    "double",
+                    "string",
+                    "boolean",
+                    "resizingKind",
+                    "colorBits",
+                    "colorsOrder",
+                    "anchor"
+                  ]
+                }
+              }
+            }
+          },
+          "searchOption": {
+            "$ref": "search-space-schema.json#/definitions/search_space_name"
+          }
+        },
+        "required": [ "estimatorTypes", "functionName" ]
+      }
+    }
+  }
+}
