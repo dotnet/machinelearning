@@ -302,19 +302,32 @@ jobs:
   - Windows_x64
   - MacOS_Apple_Silicon
   variables:
-    - BuildConfig: Release
-    - OfficialBuildId: $(BUILD.BUILDNUMBER)
-    - DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
-    - DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    - DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    - DOTNET_MULTILEVEL_LOOKUP: 0
-    - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
-    - _SignType: real
-    - _UseEsrpSigning: true
-    - _TeamName: DotNetCore
-    - _AzureDevopsFeedUrl: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
-    - _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
-    - _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
+    - name: BuildConfig
+      value:  Release
+    - name: OfficialBuildId
+      value: $(BUILD.BUILDNUMBER)
+    - name: DotnetVersionKind
+      value: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
+    - name: DOTNET_CLI_TELEMETRY_OPTOUT
+      value: 1
+    - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+      value: 1
+    - name: DOTNET_MULTILEVEL_LOOKUP
+      value: 0
+    - name: NUGET_PACKAGES
+      value: $(Build.SourcesDirectory)/.packages
+    - name: _SignType
+      value: real
+    - name: _UseEsrpSigning
+      value: true
+    - name: _TeamName
+      value: DotNetCore
+    - name: _AzureDevopsFeedUrl
+      value: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
+    - name: _SymwebSymbolServerPath
+      value: https://microsoft.artifacts.visualstudio.com/DefaultCollection
+    - name: _MsdlSymbolServerPath
+      value: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
 
     # Only enable publishing in non-public, non PR scenarios.
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
