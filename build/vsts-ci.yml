@@ -401,7 +401,7 @@ jobs:
     displayName: Publish Symbols to SymWeb Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(microsoft-symbol-server-pat)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(symweb-symbol-server-pat)
       msbuildVersion: 15.0
     continueOnError: true
 
@@ -409,7 +409,7 @@ jobs:
     displayName: Publish Symbols to Msdl Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(symweb-symbol-server-pat)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(microsoft-symbol-server-pat)
       msbuildVersion: 15.0
     continueOnError: true
 
