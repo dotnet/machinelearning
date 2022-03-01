@@ -5,6 +5,8 @@
     <PublicSign>false</PublicSign>
     <SourceLink></SourceLink>
     <PlatformTarget>$(TargetArchitecture)</PlatformTarget>
+    <!-- workaround https://github.com/dotnet/fsharp/issues/12778 -->
+    <DisableImplicitSystemValueTupleReference>true</DisableImplicitSystemValueTupleReference>
   </PropertyGroup>
 
   <ItemGroup>
