@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
@@ -277,6 +279,15 @@ namespace Microsoft.ML.AutoML
         {
             UserInputValidationUtil.ValidateInferColumnsArgs(path);
             return ColumnInferenceApi.InferColumns(_context, path, labelColumnIndex, hasHeader, separatorChar, allowQuoting, allowSparse, trimWhitespace, groupColumns);
+        }
+
+        /// <summary>
+        /// Create a sweepable estimator with a custom factory and search space.
+        /// </summary>
+        internal SweepableEstimator CreateSweepableEstimator<T>(Func<MLContext, T, IEstimator<ITransformer>> factory, SearchSpace<T> ss = null)
+            where T : class, new()
+        {
+            return new SweepableEstimator((MLContext context, Parameter param) => factory(context, param.AsType<T>()), ss);
         }
     }
 }
