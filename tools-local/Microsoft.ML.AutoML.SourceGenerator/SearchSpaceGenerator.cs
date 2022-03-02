@@ -33,9 +33,6 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                                                           .ToArray();
             var searchSpacesJNodes = searchSpacesJson.Select(x => JsonNode.Parse(x));
 
-            //if (!Debugger.IsAttached)
-            //    Debugger.Launch();
-
             foreach (var jNode in searchSpacesJNodes)
             {
                 var className = Utils.ToTitleCase(jNode["name"].GetValue<string>());
