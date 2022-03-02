@@ -1,0 +1,50 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "fast_forest_option",
+  "search_space": [
+    {
+      "name": "NumberOfTrees",
+      "type": "integer",
+      "default": 4,
+      "search_space": {
+        "min": 4,
+        "max": 32768,
+        "log_base": true
+      }
+    },
+    {
+      "name": "NumberOfLeaves",
+      "type": "integer",
+      "default": 4,
+      "search_space": {
+        "min": 4,
+        "max": 32768,
+        "log_base": true
+      }
+    },
+    {
+      "name": "FeatureFraction",
+      "type": "float",
+      "default": 1,
+      "search_space": {
+        "min": 2e-10,
+        "max": 1,
+        "log_base": false
+      }
+    },
+    {
+      "name": "LabelColumnName",
+      "type": "string",
+      "default": "Label"
+    },
+    {
+      "name": "FeatureColumnName",
+      "type": "string",
+      "default": "Feature"
+    },
+    {
+      "name": "ExampleWeightColumnName",
+      "type": "string"
+    }
+  ]
+}

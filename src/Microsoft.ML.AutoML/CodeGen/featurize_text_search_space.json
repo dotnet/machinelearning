@@ -1,0 +1,14 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "featurize_text_option",
+  "search_space": [
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "OutputColumnName",
+      "type": "string"
+    }
+  ]
+}

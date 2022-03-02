@@ -1,0 +1,14 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "concat_option",
+  "search_space": [
+    {
+      "name": "InputColumnNames",
+      "type": "strings"
+    },
+    {
+      "name": "OutputColumnName",
+      "type": "string"
+    }
+  ]
+}

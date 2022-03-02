@@ -1,0 +1,14 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "map_value_to_key_option",
+  "search_space": [
+    {
+      "name": "OutputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    }
+  ]
+}

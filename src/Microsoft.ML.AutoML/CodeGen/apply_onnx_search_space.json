@@ -1,0 +1,27 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "apply_onnx_model_option",
+  "search_space": [
+    {
+      "name": "ModelFile",
+      "type": "string"
+    },
+    {
+      "name": "GpuDeviceId",
+      "type": "integer"
+    },
+    {
+      "name": "FallbackToCpu",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "OutputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    }
+  ]
+}

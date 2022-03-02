@@ -1,0 +1,14 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "one_hot_option",
+  "search_space": [
+    {
+      "name": "OutputColumnNames",
+      "type": "strings"
+    },
+    {
+      "name": "InputColumnNames",
+      "type": "strings"
+    }
+  ]
+}

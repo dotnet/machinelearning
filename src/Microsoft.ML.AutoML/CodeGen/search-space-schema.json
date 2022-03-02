@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "title": "Search Space",
+  "definitions": {
+    "range": {
+      "type": "object",
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "log_base": { "type": "boolean" }
+      },
+      "required": [ "min", "max" ]
+    },
+    "choice": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "integer" },
+            { "type": "boolean" }
+          ]
+        }
+      },
+      "required": [ "value" ]
+    },
+    "option": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/option_name"
+        },
+        "type": {
+          "$ref": "#/definitions/option_type"
+        },
+        "default": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" }
+          ]
+        },
+        "search_space": {
+          "oneOf": [
+            { "$ref": "#/definitions/range" },
+            { "$ref": "#/definitions/choice" },
+            { "$ref": "#/definitions/nest_search_space" }
+          ]
+        }
+      },
+      "required": [ "name", "type" ]
+    },
+    "nest_search_space": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/option"
+      },
+      "minItems": 1
+    },
+    "search_space_name": {
+      "type": "string",
+      "enum": [
+        "lgbm_option",
+        "fast_tree_option",
+        "fast_forest_option",
+        "lbfgs_option",
+        "sdca_option",
+        "ssa_option",
+        "concat_option",
+        "naive_option",
+        "one_hot_option",
+        "one_hot_hash_option",
+        "load_raw_image_byte_option",
+        "copy_columns_option",
+        "hash_option",
+        "map_key_to_value_option",
+        "indicate_missing_value_option",
+        "replace_missing_value_option",
+        "normalize_min_max_option",
+        "featurize_text_option",
+        "convert_type_option",
+        "map_value_to_key_option",
+        "apply_onnx_model_option",
+        "resize_image_option",
+        "extract_pixels_option",
+        "load_image_option",
+        "image_classification_option",
+        "matrix_factorization_option"
+      ]
+    },
+    "option_name": {
+      "type": "string",
+      "enum": [
+        "NumberOfLeaves",
+        "MinimumExampleCountPerLeaf",
+        "LearningRate",
+        "NumberOfTrees",
+        "SubsampleFraction",
+        "MaximumBinCountPerFeature",
+        "FeatureFraction",
+        "L1Regularization",
+        "L2Regularization",
+        "LabelColumnName",
+        "FeatureColumnName",
+        "ExampleWeightColumnName",
+        "WindowSize",
+        "SeriesLength",
+        "TrainSize",
+        "Horizon",
+        "OutputColumnName",
+        "OutputColumnNames",
+        "InputColumnName",
+        "ConfidenceLowerBoundColumn",
+        "ConfidenceUpperBoundColumn",
+        "InputColumnNames",
+        "ModelFile",
+        "GpuDeviceId",
+        "FallbackToCpu",
+        "ScoreColumnName",
+        "ImageFolder",
+        "ImageWidth",
+        "ImageHeight",
+        "CropAnchor",
+        "Resizing",
+        "ColorsToExtract",
+        "OrderOfExtraction",
+        "MatrixColumnIndexColumnName",
+        "MatrixRowIndexColumnName",
+        "ApproximationRank",
+        "NumberOfIterations",
+        "Quiet",
+        "OutputAsFloatArray"
+      ]
+    },
+    "option_type": {
+      "type": "string",
+      "enum": [
+        "integer",
+        "float",
+        "double",
+        "string",
+        "strings",
+        "boolean",
+        "resizingKind",
+        "colorBits",
+        "colorsOrder",
+        "anchor"
+      ]
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "#/definitions/search_space_name"
+    },
+    "search_space": {
+      "$ref": "#/definitions/nest_search_space"
+    }
+  },
+  "required": [ "name", "search_space" ]
+}
