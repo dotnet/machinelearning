@@ -24,9 +24,8 @@ jobs:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
   pool:
-    name: DotnetBuild-1ES-Linux
-    demands:
-    - agent.os -equals linux
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
   container: CentosContainer
   steps:
   - script: ./restore.sh
@@ -57,9 +56,8 @@ jobs:
     DOTNET_MULTILEVEL_LOOKUP: 0
     ROOTFS_DIR: '/crossrootfs/arm'
   pool:
-    name: DotnetBuild-1ES-Linux
-    demands:
-    - agent.os -equals linux
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
   container: UbuntuCrossArmContainer
   steps:
   - script: ./restore.sh
@@ -90,9 +88,8 @@ jobs:
     DOTNET_MULTILEVEL_LOOKUP: 0
     ROOTFS_DIR: '/crossrootfs/arm64'
   pool:
-    name: DotnetBuild-1ES-Linux
-    demands:
-    - agent.os -equals linux
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
   container: UbuntuCrossArm64Container
   steps:
   - script: ./restore.sh
@@ -197,17 +194,17 @@ jobs:
     _UseEsrpSigning: true
     _TeamName: DotNetCore
   pool:
-    name: DotNetCore-Build-1ES
-    demands:
-      - agent.os -equals Windows_NT
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2019
   steps:
 
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
     displayName: Install MicroBuild Signing Plugin
     inputs:
       signType: '$(_SignType)'
       zipSources: false
       esrpSigning: '$(_UseEsrpSigning)'
+      feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
     env:
       TeamName: $(_TeamName)
     continueOnError: false
@@ -250,17 +247,17 @@ jobs:
     _UseEsrpSigning: true
     _TeamName: DotNetCore
   pool:
-    name: DotNetCore-Build-1ES
-    demands:
-      - agent.os -equals Windows_NT
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2019
   steps:
 
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
     displayName: Install MicroBuild Signing Plugin
     inputs:
       signType: '$(_SignType)'
       zipSources: false
       esrpSigning: '$(_UseEsrpSigning)'
+      feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
     env:
       TeamName: $(_TeamName)
     continueOnError: false
@@ -305,32 +302,51 @@ jobs:
   - Windows_x64
   - MacOS_Apple_Silicon
   variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-    NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
-    _SignType: real
-    _UseEsrpSigning: true
-    _TeamName: DotNetCore
-    _AzureDevopsFeedUrl: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
-    _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
-    _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
+    - name: BuildConfig
+      value:  Release
+    - name: OfficialBuildId
+      value: $(BUILD.BUILDNUMBER)
+    - name: DotnetVersionKind
+      value: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
+    - name: DOTNET_CLI_TELEMETRY_OPTOUT
+      value: 1
+    - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+      value: 1
+    - name: DOTNET_MULTILEVEL_LOOKUP
+      value: 0
+    - name: NUGET_PACKAGES
+      value: $(Build.SourcesDirectory)/.packages
+    - name: _SignType
+      value: real
+    - name: _UseEsrpSigning
+      value: true
+    - name: _TeamName
+      value: DotNetCore
+    - name: _AzureDevopsFeedUrl
+      value: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
+    - name: _SymwebSymbolServerPath
+      value: https://microsoft.artifacts.visualstudio.com/DefaultCollection
+    - name: _MsdlSymbolServerPath
+      value: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
+
+    # Only enable publishing in non-public, non PR scenarios.
+    - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+      # DotNet-Symbol-Server-Pats provides: microsoft-symbol-server-pat symweb-symbol-server-pat
+      - group: DotNet-Symbol-Server-Pats
+
   pool:
-    name: DotNetCore-Build-1ES
-    demands:
-      - agent.os -equals Windows_NT
+    name: NetCore1ESPool-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2019
   steps:
 
   # Install MicroBuild plugin
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
     displayName: Install MicroBuild Signing Plugin
     inputs:
       signType: '$(_SignType)'
       zipSources: false
       esrpSigning: '$(_UseEsrpSigning)'
+      feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
     env:
       TeamName: $(_TeamName)
     continueOnError: false
@@ -373,23 +389,19 @@ jobs:
       artifactType: container
     continueOnError: true
 
-  - task: NuGetAuthenticate@0
-    inputs:
-      nuGetServiceConnections: machinelearning-dnceng-public-feed # To allow publishing to a feed of another organization
-
   - task: NuGetCommand@2
     displayName: Push packages to AzureDevOps feed
     inputs:
       command: push
+      nuGetFeedType: 'internal'
+      publishVstsFeed: 'public/MachineLearning'
       packagesToPush: $(Build.SourcesDirectory)/artifacts/**/*.nupkg;!$(Build.SourcesDirectory)/artifacts/**/*.snupkg
-      nuGetFeedType: external
-      publishFeedCredentials: machinelearning-dnceng-public-feed
 
   - task: MSBuild@1
     displayName: Publish Symbols to SymWeb Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(symweb-symbol-server-pat)
       msbuildVersion: 15.0
     continueOnError: true
 
@@ -397,7 +409,7 @@ jobs:
     displayName: Publish Symbols to Msdl Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(microsoft-symbol-server-pat)
       msbuildVersion: 15.0
     continueOnError: true
 
