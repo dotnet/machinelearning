@@ -25,6 +25,7 @@ indent_size = 2
 # JSON files
 [*.json]
 indent_size = 2
+insert_final_newline = true
 
 # Powershell files
 [*.ps1]
