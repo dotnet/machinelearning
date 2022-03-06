@@ -48,24 +48,24 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(TOption));
             this.Write(" defaultOption, SearchSpace<");
             this.Write(this.ToStringHelper.ToStringWithCulture(TOption));
-            this.Write("> searchSpace = null)\r\n        {\r\n            this.Parameter = defaultOption;\r\n  " +
-                    "          this.SearchSpace = searchSpace;\r\n            this.EstimatorType = Esti" +
-                    "matorType.");
+            this.Write("> searchSpace = null)\r\n        {\r\n            this.TParameter = defaultOption;\r\n " +
+                    "           this.SearchSpace = searchSpace;\r\n            this.EstimatorType = Est" +
+                    "imatorType.");
             this.Write(this.ToStringHelper.ToStringWithCulture(ClassName));
             this.Write(";\r\n        }\r\n\r\n        internal ");
             this.Write(this.ToStringHelper.ToStringWithCulture(ClassName));
             this.Write("()\r\n        {\r\n            this.EstimatorType = EstimatorType.");
             this.Write(this.ToStringHelper.ToStringWithCulture(ClassName));
-            this.Write(";\r\n            this.Parameter = new ");
+            this.Write(";\r\n            this.TParameter = new ");
             this.Write(this.ToStringHelper.ToStringWithCulture(TOption));
-            this.Write("();\r\n        }\r\n    \r\n        public override IEnumerable<string> CSharpUsingStat" +
-                    "ements \r\n        {\r\n            get => new string[] {");
+            this.Write("();\r\n        }\r\n    \r\n        internal override IEnumerable<string> CSharpUsingSt" +
+                    "atements \r\n        {\r\n            get => new string[] {");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.PrettyPrintListOfString(UsingStatements.Select(x => $"using {x};"))));
-            this.Write("};\r\n        }\r\n\r\n        public override IEnumerable<string> NugetDependencies\r\n " +
-                    "       {\r\n            get => new string[] {");
+            this.Write("};\r\n        }\r\n\r\n        internal override IEnumerable<string> NugetDependencies\r" +
+                    "\n        {\r\n            get => new string[] {");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.PrettyPrintListOfString(NugetDependencies)));
-            this.Write("};\r\n        }\r\n\r\n        public override string FunctionName \r\n        {\r\n       " +
-                    "     get => \"");
+            this.Write("};\r\n        }\r\n\r\n        internal override string FunctionName \r\n        {\r\n     " +
+                    "       get => \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.GetPrefix(Type)));
             this.Write(".");
             this.Write(this.ToStringHelper.ToStringWithCulture(FunctionName));

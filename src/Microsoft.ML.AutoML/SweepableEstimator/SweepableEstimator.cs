@@ -50,11 +50,6 @@ namespace Microsoft.ML.AutoML
         internal virtual IEnumerable<string> NugetDependencies { get; }
 
         internal virtual string FunctionName { get; }
-
-        internal virtual string ToDisplayString(Parameter param)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     internal abstract class SweepableEstimator<TOption> : SweepableEstimator
@@ -74,13 +69,6 @@ namespace Microsoft.ML.AutoML
         public override IEstimator<ITransformer> BuildFromOption(MLContext context, Parameter param)
         {
             return this.BuildFromOption(context, param.AsType<TOption>());
-        }
-
-        internal abstract string ToDisplayString(TOption param);
-
-        internal override string ToDisplayString(Parameter param)
-        {
-            return this.ToDisplayString(param.AsType<TOption>());
         }
     }
 }

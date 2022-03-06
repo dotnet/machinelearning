@@ -20,7 +20,7 @@ namespace <#=NameSpace#>
     {
         public <#=ClassName#>(<#=TOption#> defaultOption, SearchSpace<<#=TOption#>> searchSpace = null)
         {
-            this.Parameter = defaultOption;
+            this.TParameter = defaultOption;
             this.SearchSpace = searchSpace;
             this.EstimatorType = EstimatorType.<#=ClassName#>;
         }
@@ -28,20 +28,20 @@ namespace <#=NameSpace#>
         internal <#=ClassName#>()
         {
             this.EstimatorType = EstimatorType.<#=ClassName#>;
-            this.Parameter = new <#=TOption#>();
+            this.TParameter = new <#=TOption#>();
         }
     
-        public override IEnumerable<string> CSharpUsingStatements 
+        internal override IEnumerable<string> CSharpUsingStatements 
         {
             get => new string[] {<#=Utils.PrettyPrintListOfString(UsingStatements.Select(x => $"using {x};"))#>};
         }
 
-        public override IEnumerable<string> NugetDependencies
+        internal override IEnumerable<string> NugetDependencies
         {
             get => new string[] {<#=Utils.PrettyPrintListOfString(NugetDependencies)#>};
         }
 
-        public override string FunctionName 
+        internal override string FunctionName 
         {
             get => "<#=Utils.GetPrefix(Type)#>.<#=FunctionName#>";
         }

@@ -54,52 +54,18 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
             this.Write(" { get; set; }\r\n\r\n");
 }
-            this.Write("        public override IEnumerable<string> CSharpUsingStatements \r\n        {\r\n  " +
-                    "          get => new string[] {");
+            this.Write("        internal override IEnumerable<string> CSharpUsingStatements \r\n        {\r\n" +
+                    "            get => new string[] {");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.PrettyPrintListOfString(UsingStatements.Select(x => $"using {x};"))));
-            this.Write("};\r\n        }\r\n\r\n        public override IEnumerable<string> NugetDependencies\r\n " +
-                    "       {\r\n            get => new string[] {");
+            this.Write("};\r\n        }\r\n\r\n        internal override IEnumerable<string> NugetDependencies\r" +
+                    "\n        {\r\n            get => new string[] {");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.PrettyPrintListOfString(NugetDependencies)));
-            this.Write("};\r\n        }\r\n\r\n        public override string FunctionName \r\n        {\r\n       " +
-                    "     get => \"");
+            this.Write("};\r\n        }\r\n\r\n        internal override string FunctionName \r\n        {\r\n     " +
+                    "       get => \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.GetPrefix(Type)));
             this.Write(".");
             this.Write(this.ToStringHelper.ToStringWithCulture(FunctionName));
-            this.Write("\";\r\n        }\r\n\r\n        public override string ToCSharpCode()\r\n        {\r\n");
-if (Type == "BinaryClassification" || Type == "MultiClassification" || Type == "Regression" || Type == "Ranking"){
-            this.Write("            return this.BuildCSharpCodeForTrainers();\r\n");
-}else if (Type == "OneVersusAll"){
-            this.Write("            return this.BuildCSharpCodeForOva();\r\n");
-}else{
-            this.Write("            return this.BuildCSharpCodeForTransformers();\r\n");
-}
-            this.Write("        }\r\n\r\n        internal override void UpdatePropertiesFromOptions(Dictionar" +
-                    "y<string, string> options)\r\n        {\r\n");
- foreach(var arg in ArgumentsList){
-    var typeAttributeName = arg.ArgumentType;
-    var propertyName = Utils.CapitalFirstLetter(arg.ArgumentName);
-    if(typeAttributeName == "integer"){
-            this.Write("            this.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
-            this.Write(" = options.ContainsKey(nameof(this.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
-            this.Write("))? this.ToIntegerString(options[nameof(this.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
-            this.Write(")]) : this.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
-            this.Write(";\r\n    ");
-}else{
-            this.Write("            this.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
-            this.Write(" = options.ContainsKey(nameof(this.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
-            this.Write("))? options[nameof(this.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
-            this.Write(")] : this.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
-            this.Write(";\r\n    ");
-}}
-            this.Write("        }\r\n    }\r\n}\r\n\r\n");
+            this.Write("\";\r\n        }\r\n    }\r\n}\r\n\r\n");
             return this.GenerationEnvironment.ToString();
         }
 

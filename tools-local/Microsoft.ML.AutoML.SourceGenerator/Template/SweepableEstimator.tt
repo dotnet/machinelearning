@@ -30,42 +30,19 @@ namespace <#=NameSpace#>
         public string <#=propertyName#> { get; set; }
 
 <#}#>
-        public override IEnumerable<string> CSharpUsingStatements 
+        internal override IEnumerable<string> CSharpUsingStatements 
         {
             get => new string[] {<#=Utils.PrettyPrintListOfString(UsingStatements.Select(x => $"using {x};"))#>};
         }
 
-        public override IEnumerable<string> NugetDependencies
+        internal override IEnumerable<string> NugetDependencies
         {
             get => new string[] {<#=Utils.PrettyPrintListOfString(NugetDependencies)#>};
         }
 
-        public override string FunctionName 
+        internal override string FunctionName 
         {
             get => "<#=Utils.GetPrefix(Type)#>.<#=FunctionName#>";
-        }
-
-        public override string ToCSharpCode()
-        {
-<#if (Type == "BinaryClassification" || Type == "MultiClassification" || Type == "Regression" || Type == "Ranking"){#>
-            return this.BuildCSharpCodeForTrainers();
-<#}else if (Type == "OneVersusAll"){#>
-            return this.BuildCSharpCodeForOva();
-<#}else{#>
-            return this.BuildCSharpCodeForTransformers();
-<#}#>
-        }
-
-        internal override void UpdatePropertiesFromOptions(Dictionary<string, string> options)
-        {
-<# foreach(var arg in ArgumentsList){
-    var typeAttributeName = arg.ArgumentType;
-    var propertyName = Utils.CapitalFirstLetter(arg.ArgumentName);
-    if(typeAttributeName == "integer"){#>
-            this.<#=propertyName#> = options.ContainsKey(nameof(this.<#=propertyName#>))? this.ToIntegerString(options[nameof(this.<#=propertyName#>)]) : this.<#=propertyName#>;
-    <#}else{#>
-            this.<#=propertyName#> = options.ContainsKey(nameof(this.<#=propertyName#>))? options[nameof(this.<#=propertyName#>)] : this.<#=propertyName#>;
-    <#}}#>
         }
     }
 }
