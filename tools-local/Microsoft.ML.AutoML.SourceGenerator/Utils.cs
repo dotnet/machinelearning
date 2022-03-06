@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -69,6 +70,60 @@ namespace Microsoft.ML.AutoML.SourceGenerator
         public static string ToTitleCase(string str)
         {
             return string.Join(string.Empty, str.Split('_', ' ', '-').Select(x => CapitalFirstLetter(x)));
+        }
+
+        public static string GetPrefix(string estimatorType)
+        {
+            if (estimatorType == "BinaryClassification")
+            {
+                return "BinaryClassification.Trainers";
+            }
+            if (estimatorType == "MultiClassification")
+            {
+                return "MulticlassClassification.Trainers";
+            }
+            if (estimatorType == "Regression")
+            {
+                return "Regression.Trainers";
+            }
+            if (estimatorType == "Ranking")
+            {
+                return "Ranking.Trainers";
+            }
+            if (estimatorType == "OneVersusAll")
+            {
+                return "BinaryClassification.Trainers";
+            }
+            if (estimatorType == "Recommendation")
+            {
+                return "Recommendation().Trainers";
+            }
+            if (estimatorType == "Transforms")
+            {
+                return "Transforms";
+            }
+            if (estimatorType == "Categorical")
+            {
+                return "Transforms.Categorical";
+            }
+            if (estimatorType == "Conversion")
+            {
+                return "Transforms.Conversion";
+            }
+            if (estimatorType == "Text")
+            {
+                return "Transforms.Text";
+            }
+            if (estimatorType == "Calibrators")
+            {
+                return "BinaryClassification.Calibrators";
+            }
+            if (estimatorType == "Forecasting")
+            {
+                return "Forecasting";
+            }
+
+            throw new NotImplementedException();
         }
     }
 }

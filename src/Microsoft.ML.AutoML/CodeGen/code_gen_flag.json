@@ -3,5 +3,5 @@
   "CodeGenCatalogGenerator": false,
   "EstimatorTypeGenerator": true,
   "SearchSpaceGenerator": true,
-  "SweepableEstimatorGenerator": false
+  "SweepableEstimatorGenerator": true
 }
