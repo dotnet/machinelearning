@@ -31,6 +31,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Template\SweepableEstimatorFactory.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SweepableEstimatorFactory.tt</DependentUpon>
+    </Compile>
     <Compile Update="Template\EstimatorType.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -54,6 +59,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Template\SweepableEstimatorFactory.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SweepableEstimatorFactory.cs</LastGenOutput>
+    </None>
     <None Update="Template\EstimatorType.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>EstimatorType.cs</LastGenOutput>
