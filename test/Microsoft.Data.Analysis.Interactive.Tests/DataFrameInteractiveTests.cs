@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.DotNet.Interactive.Formatting;
+using Microsoft.DotNet.Interactive.Formatting.TabularData;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Interactive.Tests
@@ -60,6 +63,33 @@ namespace Microsoft.Data.Analysis.Interactive.Tests
 
             Assert.Contains(TableHtmlPart, html);
             Assert.DoesNotMatch(_buttonHtmlPart, html);
+        }
+
+        [Fact]
+        public void LoadFromTabularDataResource()
+        {
+            var schema = new TableSchema();
+            schema.Fields.Add(new TableSchemaFieldDescriptor("TrueOrFalse", TableSchemaFieldType.Boolean));
+            schema.Fields.Add(new TableSchemaFieldDescriptor("Integer", TableSchemaFieldType.Integer));
+            schema.Fields.Add(new TableSchemaFieldDescriptor("Double", TableSchemaFieldType.Number));
+            schema.Fields.Add(new TableSchemaFieldDescriptor("Text", TableSchemaFieldType.String));
+            var data = new List<IDictionary<string, object>>();
+
+            for (var i = 0; i < 5; i++)
+            {
+                data.Add(new Dictionary<string, object>
+                {
+                    ["TrueOrFalse"] = ((i % 2) == 0),
+                    ["Integer"] = i,
+                    ["Double"] = i / 0.5,
+                    ["Text"] = $"hello {i}!"
+                });
+            }
+
+            var tableData = new TabularDataResource(schema, data);
+
+            var dataFrame = tableData.ToDataFrame();
+            Assert.Equal(dataFrame.Columns.Select(c => c.Name).ToArray(), new[] { "TrueOrFalse", "Integer", "Double", "Text" });
         }
     }
 }
