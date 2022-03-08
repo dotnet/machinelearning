@@ -8,7 +8,7 @@ using Microsoft.ML.SearchSpace.Option;
 namespace Microsoft.ML.SearchSpace
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
-    public sealed class RangeAttribute : Attribute
+    internal sealed class RangeAttribute : Attribute
     {
         public RangeAttribute(double min, double max, bool logBase = false)
         {

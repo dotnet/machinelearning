@@ -10,7 +10,7 @@ using Microsoft.ML.SearchSpace.Option;
 
 namespace Microsoft.ML.SearchSpace
 {
-    public class SearchSpace : OptionBase, IDictionary<string, OptionBase>
+    internal class SearchSpace : OptionBase, IDictionary<string, OptionBase>
     {
         private readonly Dictionary<string, OptionBase> _options;
         private readonly Parameter _defaultOption;
@@ -353,7 +353,7 @@ namespace Microsoft.ML.SearchSpace
         }
     }
 
-    public sealed class SearchSpace<T> : SearchSpace
+    internal sealed class SearchSpace<T> : SearchSpace
         where T : class, new()
     {
         private readonly T _defaultOption = null;

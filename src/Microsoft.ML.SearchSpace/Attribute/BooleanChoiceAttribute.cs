@@ -10,7 +10,7 @@ using Microsoft.ML.SearchSpace.Option;
 namespace Microsoft.ML.SearchSpace
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
-    public sealed class BooleanChoiceAttribute : Attribute
+    internal sealed class BooleanChoiceAttribute : Attribute
     {
         public BooleanChoiceAttribute()
         {

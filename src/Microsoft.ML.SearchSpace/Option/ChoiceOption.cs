@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.SearchSpace.Option
 {
-    public sealed class ChoiceOption : OptionBase
+    internal sealed class ChoiceOption : OptionBase
     {
         private readonly UniformIntOption _option;
 
