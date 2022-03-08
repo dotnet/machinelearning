@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -19,6 +20,7 @@ namespace Microsoft.ML.Tests
 {
     public class ImageTests : TestDataPipeBase
     {
+        private static bool IsNotArm => RuntimeInformation.ProcessArchitecture != Architecture.Arm && RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
         public ImageTests(ITestOutputHelper output) : base(output)
         {
         }
@@ -113,7 +115,7 @@ namespace Microsoft.ML.Tests
                 }
             }, new MultiFileSource(dataFile));
 
-            // Testing for invalid imageFolder path, should throw an ArgumentException 
+            // Testing for invalid imageFolder path, should throw an ArgumentException
             var incorrectImageFolder = correctImageFolder + "-nonExistantDirectory";
             Assert.Throws<ArgumentException>(() => new ImageLoadingTransformer(env, incorrectImageFolder, ("ImageReal", "ImagePath")).Transform(data));
 
@@ -472,7 +474,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(nameof(IsNotArm))] //"System.Drawing has some issues on ARM. Disabling this test for CI stability. Tracked in https://github.com/dotnet/machinelearning/issues/6043"
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
             IHostEnvironment env = new MLContext(1);
@@ -529,7 +531,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(nameof(IsNotArm))] //"System.Drawing has some issues on ARM. Disabling this test for CI stability. Tracked in https://github.com/dotnet/machinelearning/issues/6043"
         public void TestBackAndForthConversionWithoutAlphaNoInterleave()
         {
             IHostEnvironment env = new MLContext(1);
@@ -586,7 +588,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(nameof(IsNotArm))] //"System.Drawing has some issues on ARM. Disabling this test for CI stability. Tracked in https://github.com/dotnet/machinelearning/issues/6043"
         public void TestBackAndForthConversionWithAlphaInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext(1);
@@ -644,7 +646,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(nameof(IsNotArm))] //"System.Drawing has some issues on ARM. Disabling this test for CI stability. Tracked in https://github.com/dotnet/machinelearning/issues/6043"
         public void TestBackAndForthConversionWithoutAlphaInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext(1);
@@ -701,7 +703,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(nameof(IsNotArm))] //"System.Drawing has some issues on ARM. Disabling this test for CI stability. Tracked in https://github.com/dotnet/machinelearning/issues/6043"
         public void TestBackAndForthConversionWithAlphaNoInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext(1);

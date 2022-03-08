@@ -665,9 +665,9 @@ namespace Microsoft.ML
 
             ISingleFeaturePredictionTransformer lastTransformer = null;
 
-            if (model is TransformerChain<ITransformer> chain)
+            if (model is ITransformerChainAccessor chain)
             {
-                foreach (var transformer in chain.Reverse())
+                foreach (var transformer in chain.Transformers.Reverse())
                 {
                     if (transformer is ISingleFeaturePredictionTransformer singlePredictionTransformer)
                     {
