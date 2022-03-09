@@ -30,11 +30,11 @@
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>1</MajorVersion>
     <MinorVersion>7</MinorVersion>
-    <PatchVersion>0</PatchVersion>
+    <PatchVersion>1</PatchVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
     <MinorVersion>19</MinorVersion>
-    <PatchVersion>0</PatchVersion>
+    <PatchVersion>1</PatchVersion>
   </PropertyGroup>
 </Project>
