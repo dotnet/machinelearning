@@ -11,7 +11,7 @@ using Microsoft.ML.SearchSpace.Option;
 namespace Microsoft.ML.SearchSpace
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
-    public sealed class ChoiceAttribute : Attribute
+    internal sealed class ChoiceAttribute : Attribute
     {
         public ChoiceAttribute(params object[] candidates)
         {

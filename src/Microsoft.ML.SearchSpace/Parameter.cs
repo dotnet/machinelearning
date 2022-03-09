@@ -13,7 +13,7 @@ using Microsoft.ML.SearchSpace.Converter;
 
 namespace Microsoft.ML.SearchSpace
 {
-    public enum ParameterType
+    internal enum ParameterType
     {
         Integer = 0,
         Float = 1,
@@ -24,7 +24,7 @@ namespace Microsoft.ML.SearchSpace
     }
 
     [JsonConverter(typeof(ParameterConverter))]
-    public sealed class Parameter : IDictionary<string, Parameter>
+    internal sealed class Parameter : IDictionary<string, Parameter>
     {
         private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
         {

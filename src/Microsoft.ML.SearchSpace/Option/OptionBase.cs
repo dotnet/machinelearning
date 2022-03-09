@@ -7,7 +7,7 @@
 
 namespace Microsoft.ML.SearchSpace.Option
 {
-    public abstract class OptionBase
+    internal abstract class OptionBase
     {
         /// <summary>
         /// mapping value to [0, 1) uniform distribution.

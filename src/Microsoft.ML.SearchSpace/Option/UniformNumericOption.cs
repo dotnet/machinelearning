@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.SearchSpace.Option
 {
-    public abstract class UniformNumericOption : OptionBase
+    internal abstract class UniformNumericOption : OptionBase
     {
         public UniformNumericOption(double min, double max, bool logBase = false)
         {
@@ -67,7 +67,7 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    public sealed class UniformDoubleOption : UniformNumericOption
+    internal sealed class UniformDoubleOption : UniformNumericOption
     {
         public UniformDoubleOption(double min, double max, bool logBase = false, double? defaultValue = null)
             : base(min, max, logBase)
@@ -79,7 +79,7 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    public sealed class UniformSingleOption : UniformNumericOption
+    internal sealed class UniformSingleOption : UniformNumericOption
     {
         public UniformSingleOption(float min, float max, bool logBase = false, float? defaultValue = null)
             : base(min, max, logBase)
@@ -105,7 +105,7 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    public sealed class UniformIntOption : UniformNumericOption
+    internal sealed class UniformIntOption : UniformNumericOption
     {
         public UniformIntOption(int min, int max, bool logBase = false, int? defaultValue = null)
             : base(min, max, logBase)
