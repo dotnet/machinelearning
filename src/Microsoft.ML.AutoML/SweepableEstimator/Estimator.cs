@@ -7,7 +7,7 @@ using Microsoft.ML.AutoML.CodeGen;
 
 namespace Microsoft.ML.AutoML
 {
-    public class Estimator
+    internal class Estimator
     {
         protected Estimator()
         {

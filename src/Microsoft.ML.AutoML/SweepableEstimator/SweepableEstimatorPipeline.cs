@@ -10,7 +10,7 @@ using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
-    public class SweepableEstimatorPipeline
+    internal class SweepableEstimatorPipeline
     {
         private readonly List<SweepableEstimator> _estimators;
 

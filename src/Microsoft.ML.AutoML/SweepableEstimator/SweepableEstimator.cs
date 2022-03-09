@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML
     /// <summary>
     /// Estimator with search space.
     /// </summary>
-    public class SweepableEstimator : Estimator
+    internal class SweepableEstimator : Estimator
     {
         private readonly Func<MLContext, Parameter, IEstimator<ITransformer>> _factory;
 

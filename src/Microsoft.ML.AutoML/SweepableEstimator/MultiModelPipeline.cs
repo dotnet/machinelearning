@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.ML.AutoML
 {
-    public class MultiModelPipeline
+    internal class MultiModelPipeline
     {
         private static readonly StringEntity _nilStringEntity = new StringEntity("Nil");
         private static readonly EstimatorEntity _nilSweepableEntity = new EstimatorEntity(null);
