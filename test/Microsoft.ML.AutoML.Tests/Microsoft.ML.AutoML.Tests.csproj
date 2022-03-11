@@ -2,6 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
@@ -10,6 +11,7 @@
     <PackageReference Include="ApprovalTests" Version="$(ApprovalTestVersion)" />
     <PackageReference Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
   </ItemGroup>
 
   <ItemGroup>

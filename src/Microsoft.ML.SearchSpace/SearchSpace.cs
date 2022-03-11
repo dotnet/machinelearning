@@ -197,7 +197,7 @@ namespace Microsoft.ML.SearchSpace
                 }
                 else
                 {
-                    this.CheckOptionType(attributes.First(), field.FieldType);
+                    this.CheckOptionType(attributes.First(), field.Name, field.FieldType);
 
                     OptionBase option = attributes.First() switch
                     {
@@ -233,7 +233,7 @@ namespace Microsoft.ML.SearchSpace
                 }
                 else
                 {
-                    this.CheckOptionType(attributes.First(), property.PropertyType);
+                    this.CheckOptionType(attributes.First(), property.Name, property.PropertyType);
 
                     OptionBase option = attributes.First() switch
                     {
@@ -250,24 +250,24 @@ namespace Microsoft.ML.SearchSpace
             return res;
         }
 
-        private void CheckOptionType(object attribute, Type type)
+        private void CheckOptionType(object attribute, string optionName, Type type)
         {
             if (attribute is BooleanChoiceAttribute)
             {
-                Contracts.Assert(type == typeof(bool), "BooleanChoice can only apply to property or field which type is bool");
+                Contracts.Assert(type == typeof(bool), $"[Option:{optionName}] BooleanChoice can only apply to property or field which type is bool");
                 return;
             }
 
             if (attribute is RangeAttribute range && (range.Option is UniformDoubleOption || range.Option is UniformSingleOption))
             {
-                Contracts.Assert(type != typeof(int) && type != typeof(short) && type != typeof(long), "UniformDoubleOption or UniformSingleOption can't apply to property or field which type is int or short or long");
+                Contracts.Assert(type != typeof(int) && type != typeof(short) && type != typeof(long), $"[Option:{optionName}] UniformDoubleOption or UniformSingleOption can't apply to property or field which type is int or short or long");
                 return;
             }
 
             if (attribute is ChoiceAttribute)
             {
                 var supportTypes = new Type[] { typeof(string), typeof(int), typeof(short), typeof(long), typeof(float), typeof(double), typeof(char) };
-                Contracts.Assert(supportTypes.Contains(type) || type.IsEnum, $"ChoiceAttribute can only apply to enum or the following types {string.Join(",", supportTypes.Select(x => x.Name))}");
+                Contracts.Assert(supportTypes.Contains(type) || type.IsEnum, $"[Option:{optionName}] ChoiceAttribute can only apply to enum or the following types {string.Join(",", supportTypes.Select(x => x.Name))}");
                 return;
             }
         }
