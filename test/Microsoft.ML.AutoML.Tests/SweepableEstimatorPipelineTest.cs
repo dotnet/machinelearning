@@ -29,6 +29,11 @@ namespace Microsoft.ML.AutoML.Test
             {
                 WriteIndented = true,
             };
+
+            if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
         }
 
         [Fact]
