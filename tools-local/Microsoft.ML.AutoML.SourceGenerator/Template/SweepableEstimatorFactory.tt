@@ -14,7 +14,7 @@ using Microsoft.ML;
 
 namespace <#=NameSpace#>
 {
-    internal static class SweepableEsitmatorFactory
+    internal static class SweepableEstimatorFactory
     {
 <# foreach((var estimator, var tOption) in EstimatorNames){#>
         public static <#=estimator#> Create<#=estimator#>(<#=tOption#> defaultOption, SearchSpace<<#=tOption#>> searchSpace = null)

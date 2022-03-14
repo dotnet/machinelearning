@@ -29,7 +29,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator.Template
                     "tonsoft.Json;\r\nusing Newtonsoft.Json.Linq;\r\nusing Microsoft.ML.SearchSpace;\r\nusi" +
                     "ng Microsoft.ML;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(NameSpace));
-            this.Write("\r\n{\r\n    internal static class SweepableEsitmatorFactory\r\n    {\r\n");
+            this.Write("\r\n{\r\n    internal static class SweepableEstimatorFactory\r\n    {\r\n");
  foreach((var estimator, var tOption) in EstimatorNames){
             this.Write("        public static ");
             this.Write(this.ToStringHelper.ToStringWithCulture(estimator));
