@@ -18,6 +18,7 @@ namespace <#=NameSpace#>
 <# foreach(var e in TransformerNames){#>
         <#=e#>,
 <#}#>
+        Unknown,
     }
 
     public static class EstimatorTypeExtension

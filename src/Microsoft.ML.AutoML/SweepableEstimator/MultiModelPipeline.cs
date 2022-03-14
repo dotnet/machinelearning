@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.AutoML
 {
+    [JsonConverter(typeof(MultiModelPipelineConverter))]
     internal class MultiModelPipeline
     {
         private static readonly StringEntity _nilStringEntity = new StringEntity("Nil");

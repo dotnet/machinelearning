@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Microsoft.ML.AutoML
@@ -27,7 +28,34 @@ namespace Microsoft.ML.AutoML
 
         public static SweepableEstimatorPipeline Append(this SweepableEstimator estimator, IEstimator<ITransformer> estimator1)
         {
-            return estimator.Append(estimator1);
+            return new SweepableEstimatorPipeline().Append(estimator).Append(estimator1);
+        }
+
+        public static MultiModelPipeline Append(this IEstimator<ITransformer> estimator, params SweepableEstimator[] estimators)
+        {
+            var sweepableEstimator = new SweepableEstimator((context, parameter) => estimator, new SearchSpace.SearchSpace());
+            var multiModelPipeline = new MultiModelPipeline().Append(sweepableEstimator).Append(estimators);
+
+            return multiModelPipeline;
+        }
+
+        public static MultiModelPipeline Append(this SweepableEstimatorPipeline pipeline, params SweepableEstimator[] estimators)
+        {
+            var multiModelPipeline = new MultiModelPipeline();
+            foreach (var estimator in pipeline.Estimators)
+            {
+                multiModelPipeline = multiModelPipeline.Append(estimator);
+            }
+
+            return multiModelPipeline.Append(estimators);
+        }
+
+        public static MultiModelPipeline Append(this SweepableEstimator estimator, params SweepableEstimator[] estimators)
+        {
+            var multiModelPipeline = new MultiModelPipeline();
+            multiModelPipeline = multiModelPipeline.Append(estimator);
+
+            return multiModelPipeline.Append(estimators);
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.SearchSpace;
 
@@ -12,6 +13,7 @@ namespace Microsoft.ML.AutoML
     /// <summary>
     /// Estimator with search space.
     /// </summary>
+    [JsonConverter(typeof(SweepableEstimatorConverter))]
     internal class SweepableEstimator : Estimator
     {
         private readonly Func<MLContext, Parameter, IEstimator<ITransformer>> _factory;

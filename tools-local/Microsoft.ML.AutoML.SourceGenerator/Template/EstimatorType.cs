@@ -40,9 +40,9 @@ namespace Microsoft.ML.AutoML.SourceGenerator.Template
             this.Write(this.ToStringHelper.ToStringWithCulture(e));
             this.Write(",\r\n");
 }
-            this.Write("    }\r\n\r\n    public static class EstimatorTypeExtension\r\n    {\r\n        public st" +
-                    "atic bool IsTrainer(this EstimatorType estimatorType)\r\n        {\r\n            sw" +
-                    "itch(estimatorType)\r\n            {\r\n");
+            this.Write("        Unknown,\r\n    }\r\n\r\n    public static class EstimatorTypeExtension\r\n    {\r" +
+                    "\n        public static bool IsTrainer(this EstimatorType estimatorType)\r\n       " +
+                    " {\r\n            switch(estimatorType)\r\n            {\r\n");
  foreach(var estimator in TrainerNames){
             this.Write("                case EstimatorType.");
             this.Write(this.ToStringHelper.ToStringWithCulture(estimator));

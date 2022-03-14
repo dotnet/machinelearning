@@ -3,6 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.Data;
 using Microsoft.ML.SearchSpace;
 
@@ -288,6 +292,171 @@ namespace Microsoft.ML.AutoML
             where T : class, new()
         {
             return new SweepableEstimator((MLContext context, Parameter param) => factory(context, param.AsType<T>()), ss);
+        }
+
+        internal SweepableEstimator[] BinaryClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+            FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
+            SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
+        {
+            var res = new List<SweepableEstimator>();
+
+            if (useFastTree)
+            {
+                fastTreeOption = fastTreeOption ?? new FastTreeOption();
+                fastTreeOption.LabelColumnName = labelColumnName;
+                fastTreeOption.FeatureColumnName = featureColumnName;
+                fastTreeOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateFastTreeBinary(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
+            }
+
+            if (useFastForest)
+            {
+                fastForestOption = fastForestOption ?? new FastForestOption();
+                fastForestOption.LabelColumnName = labelColumnName;
+                fastForestOption.FeatureColumnName = featureColumnName;
+                fastForestOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateFastForestBinary(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>()));
+            }
+
+            if (useLgbm)
+            {
+                lgbmOption = lgbmOption ?? new LgbmOption();
+                lgbmOption.LabelColumnName = labelColumnName;
+                lgbmOption.FeatureColumnName = featureColumnName;
+                lgbmOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLightGbmBinary(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>()));
+            }
+
+            if (useLbfgs)
+            {
+                lbfgsOption = lbfgsOption ?? new LbfgsOption();
+                lbfgsOption.LabelColumnName = labelColumnName;
+                lbfgsOption.FeatureColumnName = featureColumnName;
+                lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionBinary(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>()));
+            }
+
+            if (useSdca)
+            {
+                sdcaOption = sdcaOption ?? new SdcaOption();
+                sdcaOption.LabelColumnName = labelColumnName;
+                sdcaOption.FeatureColumnName = featureColumnName;
+                sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionBinary(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>()));
+            }
+
+            return res.ToArray();
+        }
+
+        internal SweepableEstimator[] MultiClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+            FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
+            SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
+        {
+            var res = new List<SweepableEstimator>();
+
+            if (useFastTree)
+            {
+                fastTreeOption = fastTreeOption ?? new FastTreeOption();
+                fastTreeOption.LabelColumnName = labelColumnName;
+                fastTreeOption.FeatureColumnName = featureColumnName;
+                fastTreeOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateFastTreeOva(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
+            }
+
+            if (useFastForest)
+            {
+                fastForestOption = fastForestOption ?? new FastForestOption();
+                fastForestOption.LabelColumnName = labelColumnName;
+                fastForestOption.FeatureColumnName = featureColumnName;
+                fastForestOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateFastForestOva(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>()));
+            }
+
+            if (useLgbm)
+            {
+                lgbmOption = lgbmOption ?? new LgbmOption();
+                lgbmOption.LabelColumnName = labelColumnName;
+                lgbmOption.FeatureColumnName = featureColumnName;
+                lgbmOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLightGbmMulti(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>()));
+            }
+
+            if (useLbfgs)
+            {
+                lbfgsOption = lbfgsOption ?? new LbfgsOption();
+                lbfgsOption.LabelColumnName = labelColumnName;
+                lbfgsOption.FeatureColumnName = featureColumnName;
+                lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionOva(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>()));
+                res.Add(SweepableEstimatorFactory.CreateLbfgsMaximumEntropyMulti(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>()));
+            }
+
+            if (useSdca)
+            {
+                sdcaOption = sdcaOption ?? new SdcaOption();
+                sdcaOption.LabelColumnName = labelColumnName;
+                sdcaOption.FeatureColumnName = featureColumnName;
+                sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateSdcaMaximumEntropyMulti(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>()));
+                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionOva(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>()));
+            }
+
+            return res.ToArray();
+        }
+
+        internal SweepableEstimator[] Regression(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+            FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
+            SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
+        {
+            var res = new List<SweepableEstimator>();
+
+            if (useFastTree)
+            {
+                fastTreeOption = fastTreeOption ?? new FastTreeOption();
+                fastTreeOption.LabelColumnName = labelColumnName;
+                fastTreeOption.FeatureColumnName = featureColumnName;
+                fastTreeOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateFastTreeRegression(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
+                res.Add(SweepableEstimatorFactory.CreateFastTreeTweedieRegression(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
+            }
+
+            if (useFastForest)
+            {
+                fastForestOption = fastForestOption ?? new FastForestOption();
+                fastForestOption.LabelColumnName = labelColumnName;
+                fastForestOption.FeatureColumnName = featureColumnName;
+                fastForestOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateFastForestRegression(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>()));
+            }
+
+            if (useLgbm)
+            {
+                lgbmOption = lgbmOption ?? new LgbmOption();
+                lgbmOption.LabelColumnName = labelColumnName;
+                lgbmOption.FeatureColumnName = featureColumnName;
+                lgbmOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLightGbmRegression(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>()));
+            }
+
+            if (useLbfgs)
+            {
+                lbfgsOption = lbfgsOption ?? new LbfgsOption();
+                lbfgsOption.LabelColumnName = labelColumnName;
+                lbfgsOption.FeatureColumnName = featureColumnName;
+                lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLbfgsPoissonRegressionRegression(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>()));
+            }
+
+            if (useSdca)
+            {
+                sdcaOption = sdcaOption ?? new SdcaOption();
+                sdcaOption.LabelColumnName = labelColumnName;
+                sdcaOption.FeatureColumnName = featureColumnName;
+                sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateSdcaRegression(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>()));
+            }
+
+            return res.ToArray();
         }
     }
 }
