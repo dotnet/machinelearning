@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,6 +62,24 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
+        public AutoMLExperiment SetMonitor(IMonitor monitor)
+        {
+            this._settings.Monitor = monitor;
+            return this;
+        }
+
+        public AutoMLExperiment SetPipeline(MultiModelPipeline pipeline)
+        {
+            this._settings.Pipeline = pipeline;
+            return this;
+        }
+
+        public AutoMLExperiment SetPipeline(SweepableEstimatorPipeline pipeline)
+        {
+            this._settings.Pipeline = new MultiModelPipeline().Append(pipeline.Estimators.ToArray());
+            return this;
+        }
+
         public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string predictedColumn = "Predicted", string truthColumn = "label")
         {
             this._settings.EvaluateMetric = new BinaryMetricSettings()
@@ -107,8 +126,10 @@ namespace Microsoft.ML.AutoML
             var cts = new CancellationTokenSource();
             cts.CancelAfter((int)this._settings.MaxExperimentTimeInSeconds * 1000);
             this._settings.CancellationToken.Register(() => cts.Cancel());
+            var ct = cts.Token;
+            ct.Register(() => this._context.CancelExecution());
 
-            return this.RunAsync(cts.Token);
+            return this.RunAsync(ct);
         }
 
         private async Task<TrialResult> RunAsync(CancellationToken ct)

@@ -41,7 +41,7 @@ namespace Microsoft.ML.AutoML
 
         public void ReportCompletedTrial(TrialResult result)
         {
-            this._logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline}");
+            this._logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline} - Duration: {result.DurationInMilliseconds}");
             this._completedTrials.Add(result);
         }
 
