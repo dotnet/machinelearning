@@ -7,7 +7,10 @@
 
 namespace Microsoft.ML.SearchSpace.Option
 {
-    internal abstract class OptionBase
+    /// <summary>
+    /// abstrace class for Option.
+    /// </summary>
+    public abstract class OptionBase
     {
         /// <summary>
         /// mapping value to [0, 1) uniform distribution.
@@ -32,6 +35,10 @@ namespace Microsoft.ML.SearchSpace.Option
         /// </summary>
         public virtual double[]? Default { get; protected set; }
 
+        /// <summary>
+        /// Gets the step of this option. The <see cref="Step"/> is used to determine the number of grid this option should be divided into. In <see cref="ChoiceOption"/>, it's always the length of
+        /// <see cref="ChoiceOption.Choices"/>. And in <see cref="UniformNumericOption"/>, it's always [null]. And in <see cref="SearchSpace"/>, it's a combination of all <see cref="Step"/> in its options.
+        /// </summary>
         public abstract int?[] Step { get; }
     }
 }
