@@ -8,6 +8,8 @@ namespace Microsoft.ML.AutoML.Samples
         {
             try
             {
+                TitanicExperiment.Run();
+
                 RecommendationExperiment.Run();
                 Console.Clear();
 
