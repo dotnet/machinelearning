@@ -8,8 +8,17 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.SearchSpace.Option
 {
-    internal abstract class UniformNumericOption : OptionBase
+    /// <summary>
+    /// abstract class for numeric option.
+    /// </summary>
+    public abstract class UniformNumericOption : OptionBase
     {
+        /// <summary>
+        /// Create a <see cref="UniformNumericOption"/> using <paramref name="min"/> and <paramref name="max"/>.
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="logBase">Indicate whether it should be log base or not.</param>
         public UniformNumericOption(double min, double max, bool logBase = false)
         {
             Contracts.Check(max > min, "max must be larger than min.");
@@ -20,16 +29,34 @@ namespace Microsoft.ML.SearchSpace.Option
             this.Default = Enumerable.Repeat(0.0, this.FeatureSpaceDim).ToArray();
         }
 
+        /// <summary>
+        /// Gets minimum value of this option.
+        /// </summary>
         public double Min { get; }
 
+        /// <summary>
+        /// Gets maximum value of this option.
+        /// </summary>
         public double Max { get; }
 
+        /// <summary>
+        /// Gets if this option is log base or not.
+        /// </summary>
         public bool LogBase { get; }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override int FeatureSpaceDim => 1;
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override int?[] Step => new int?[] { null };
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var x = param.AsType<double>();
@@ -48,6 +75,9 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             Contracts.Check(values.Length == 1, "values length must be 1");
@@ -67,8 +97,18 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    internal sealed class UniformDoubleOption : UniformNumericOption
+    /// <summary>
+    /// class for uniform double option.
+    /// </summary>
+    public sealed class UniformDoubleOption : UniformNumericOption
     {
+        /// <summary>
+        /// Create a <see cref="UniformDoubleOption"/> using <paramref name="min"/>, <paramref name="max"/> and <paramref name="defaultValue"/>.
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="logBase"></param>
+        /// <param name="defaultValue"></param>
         public UniformDoubleOption(double min, double max, bool logBase = false, double? defaultValue = null)
             : base(min, max, logBase)
         {
@@ -79,8 +119,18 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    internal sealed class UniformSingleOption : UniformNumericOption
+    /// <summary>
+    /// class for uniform single option.
+    /// </summary>
+    public sealed class UniformSingleOption : UniformNumericOption
     {
+        /// <summary>
+        /// Create a <see cref="UniformSingleOption"/> using <paramref name="min"/>, <paramref name="max"/> and <paramref name="defaultValue"/>.
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="logBase"></param>
+        /// <param name="defaultValue"></param>
         public UniformSingleOption(float min, float max, bool logBase = false, float? defaultValue = null)
             : base(min, max, logBase)
         {
@@ -90,6 +140,9 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var singleValue = param.AsType<float>();
@@ -97,6 +150,9 @@ namespace Microsoft.ML.SearchSpace.Option
             return base.MappingToFeatureSpace(Parameter.FromDouble(doubleValue));
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             var doubleValue = base.SampleFromFeatureSpace(values).AsType<double>();
@@ -105,8 +161,18 @@ namespace Microsoft.ML.SearchSpace.Option
         }
     }
 
-    internal sealed class UniformIntOption : UniformNumericOption
+    /// <summary>
+    /// class for uniform int option.
+    /// </summary>
+    public sealed class UniformIntOption : UniformNumericOption
     {
+        /// <summary>
+        /// Create a <see cref="UniformIntOption"/> using <paramref name="min"/>, <paramref name="max"/> and <paramref name="defaultValue"/>.
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="logBase"></param>
+        /// <param name="defaultValue"></param>
         public UniformIntOption(int min, int max, bool logBase = false, int? defaultValue = null)
             : base(min, max, logBase)
         {
@@ -116,6 +182,9 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             var param = base.SampleFromFeatureSpace(values);
@@ -124,6 +193,9 @@ namespace Microsoft.ML.SearchSpace.Option
             return Parameter.FromInt(intValue);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var value = param.AsType<int>();
