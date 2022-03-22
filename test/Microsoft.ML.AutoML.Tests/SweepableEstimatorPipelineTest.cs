@@ -23,6 +23,7 @@ namespace Microsoft.ML.AutoML.Test
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         public SweepableEstimatorPipelineTest(ITestOutputHelper output)
+            : base(output)
         {
             this._jsonSerializerOptions = new JsonSerializerOptions()
             {
