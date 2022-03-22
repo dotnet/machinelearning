@@ -18,12 +18,13 @@ using ApprovalTests;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class SweepableExtensionTest : BaseTestClass
+#pragma warning disable MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
+    public class SweepableExtensionTest
+#pragma warning restore MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
     {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         public SweepableExtensionTest(ITestOutputHelper output)
-            : base(output)
         {
             this._jsonSerializerOptions = new JsonSerializerOptions()
             {
