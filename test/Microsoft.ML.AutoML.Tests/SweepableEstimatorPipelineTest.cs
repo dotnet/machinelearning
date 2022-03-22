@@ -18,9 +18,7 @@ using System.Text.Json;
 
 namespace Microsoft.ML.AutoML.Test
 {
-#pragma warning disable MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
-    public class SweepableEstimatorPipelineTest
-#pragma warning restore MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
+    public class SweepableEstimatorPipelineTest : BaseTestClass
     {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 

@@ -18,9 +18,7 @@ using ApprovalTests;
 
 namespace Microsoft.ML.AutoML.Test
 {
-#pragma warning disable MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
-    public class SweepableExtensionTest
-#pragma warning restore MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
+    public class SweepableExtensionTest : BaseTestClass
     {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
