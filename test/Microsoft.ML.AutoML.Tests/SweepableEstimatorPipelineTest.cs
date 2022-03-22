@@ -18,7 +18,9 @@ using System.Text.Json;
 
 namespace Microsoft.ML.AutoML.Test
 {
+#pragma warning disable MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
     public class SweepableEstimatorPipelineTest
+#pragma warning restore MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
     {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
@@ -29,10 +31,7 @@ namespace Microsoft.ML.AutoML.Test
                 WriteIndented = true,
             };
 
-            if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
-            {
-                Approvals.UseAssemblyLocationForApprovedFiles();
-            }
+            Approvals.UseAssemblyLocationForApprovedFiles();
         }
 
         [Fact]
@@ -107,7 +106,6 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
-        [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
         public void SweepableEstimatorPipeline_search_space_init_value_test()
         {
