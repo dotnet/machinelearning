@@ -18,12 +18,11 @@ using System.Text.Json;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class SweepableEstimatorPipelineTest : BaseTestClass
+    public class SweepableEstimatorPipelineTest
     {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         public SweepableEstimatorPipelineTest(ITestOutputHelper output)
-            : base(output)
         {
             this._jsonSerializerOptions = new JsonSerializerOptions()
             {
