@@ -50,7 +50,7 @@ namespace Microsoft.ML.SearchSpace
     }
 
     /// <summary>
-    /// <see cref="Parameter"/> is used to save sweeping result from <see cref="ITuner.Propose(SearchSpace)"/> and is used to restore mlnet pipeline from sweepable pipline.
+    /// <see cref="Parameter"/> is used to save sweeping result from tuner and is used to restore mlnet pipeline from sweepable pipline.
     /// </summary>
     [JsonConverter(typeof(ParameterConverter))]
     public sealed class Parameter : IDictionary<string, Parameter>
