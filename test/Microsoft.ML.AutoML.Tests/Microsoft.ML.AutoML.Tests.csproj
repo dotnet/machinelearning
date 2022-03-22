@@ -15,8 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ApprovalTests\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Include="ApprovalTests\*.approved.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestData\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
