@@ -18,18 +18,22 @@ using System.Text.Json;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class SweepableEstimatorPipelineTest
+    public class SweepableEstimatorPipelineTest : BaseTestClass
     {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         public SweepableEstimatorPipelineTest(ITestOutputHelper output)
+            : base(output)
         {
             this._jsonSerializerOptions = new JsonSerializerOptions()
             {
                 WriteIndented = true,
             };
 
-            Approvals.UseAssemblyLocationForApprovedFiles();
+            if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
         }
 
         [Fact]
@@ -105,6 +109,7 @@ namespace Microsoft.ML.AutoML.Test
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void SweepableEstimatorPipeline_search_space_init_value_test()
         {
             var singleModelPipeline = this.CreateSweepbaleEstimatorPipeline();

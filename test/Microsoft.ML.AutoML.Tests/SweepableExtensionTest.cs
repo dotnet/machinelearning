@@ -18,13 +18,12 @@ using ApprovalTests;
 
 namespace Microsoft.ML.AutoML.Test
 {
-#pragma warning disable MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
-    public class SweepableExtensionTest
-#pragma warning restore MSML_ExtendBaseTestClass // Test classes should be derived from BaseTestClass or FunctionalTestBaseClass
+    public class SweepableExtensionTest : BaseTestClass
     {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         public SweepableExtensionTest(ITestOutputHelper output)
+            : base(output)
         {
             this._jsonSerializerOptions = new JsonSerializerOptions()
             {
@@ -37,7 +36,10 @@ namespace Microsoft.ML.AutoML.Test
 
             this._jsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
 
-            Approvals.UseAssemblyLocationForApprovedFiles();
+            if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
         }
 
         [Fact]
@@ -83,6 +85,7 @@ namespace Microsoft.ML.AutoML.Test
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void CreateMultiModelPipelineFromIEstimatorAndBinaryClassifiers()
         {
             var context = new MLContext();
@@ -94,6 +97,7 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
         public void CreateMultiModelPipelineFromIEstimatorAndMultiClassifiers()
         {
@@ -106,6 +110,7 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
         public void CreateMultiModelPipelineFromIEstimatorAndRegressors()
         {
@@ -118,6 +123,7 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
         public void CreateMultiModelPipelineFromSweepableEstimatorAndMultiClassifiers()
         {
@@ -130,6 +136,7 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
         public void CreateMultiModelPipelineFromSweepableEstimatorPipelineAndMultiClassifiers()
         {
