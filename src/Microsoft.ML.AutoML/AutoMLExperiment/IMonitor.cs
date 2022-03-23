@@ -24,12 +24,14 @@ namespace Microsoft.ML.AutoML
     internal class MLContextMonitor : IMonitor
     {
         private readonly MLContext _context;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IChannel _logger;
         private readonly List<TrialResult> _completedTrials;
 
-        public MLContextMonitor(MLContext context)
+        public MLContextMonitor(MLContext context, IServiceProvider provider)
         {
             this._context = context;
+            this._serviceProvider = provider;
             this._logger = ((IChannelProvider)context).Start(nameof(AutoMLExperiment));
             this._completedTrials = new List<TrialResult>();
         }

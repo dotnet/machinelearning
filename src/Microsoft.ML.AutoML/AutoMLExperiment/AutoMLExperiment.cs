@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.SearchSpace;
@@ -20,11 +22,23 @@ namespace Microsoft.ML.AutoML
         private readonly MLContext _context;
         private double _bestError = double.MaxValue;
         private TrialResult _bestTrialResult = null;
+        private IServiceCollection _serviceCollection;
 
         public AutoMLExperiment(MLContext context, AutoMLExperimentSettings settings)
         {
             this._context = context;
             this._settings = settings;
+            this.InitializeServiceCollection();
+        }
+
+        private void InitializeServiceCollection()
+        {
+            this._serviceCollection = new ServiceCollection();
+            this._serviceCollection.TryAddSingleton(this._context);
+            this._serviceCollection.TryAddSingleton<IMonitor, MLContextMonitor>();
+            this._serviceCollection.TryAddSingleton<ITrialRunnerFactory, TrialRunnerFactory>();
+            this._serviceCollection.TryAddTransient<BinaryClassificationCVRunner>();
+            this._serviceCollection.TryAddTransient<BinaryClassificationTrainTestRunner>();
         }
 
         public AutoMLExperiment SetTrainingTimeInSeconds(int trainingTimeInSeconds)
@@ -64,13 +78,37 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetMonitor(IMonitor monitor)
         {
-            this._settings.Monitor = monitor;
+            var descriptor = new ServiceDescriptor(typeof(IMonitor), monitor);
+            if (this._serviceCollection.Contains(descriptor))
+            {
+                this._serviceCollection.Replace(descriptor);
+            }
+            else
+            {
+                this._serviceCollection.Add(descriptor);
+            }
+
             return this;
         }
 
         public AutoMLExperiment SetPipeline(MultiModelPipeline pipeline)
         {
             this._settings.Pipeline = pipeline;
+            return this;
+        }
+
+        public AutoMLExperiment SetTrialRunnerFactory(ITrialRunnerFactory factory)
+        {
+            var descriptor = new ServiceDescriptor(typeof(ITrialRunnerFactory), factory);
+            if (this._serviceCollection.Contains(descriptor))
+            {
+                this._serviceCollection.Replace(descriptor);
+            }
+            else
+            {
+                this._serviceCollection.Add(descriptor);
+            }
+
             return this;
         }
 
@@ -134,9 +172,12 @@ namespace Microsoft.ML.AutoML
 
         private async Task<TrialResult> RunAsync(CancellationToken ct)
         {
+            var serviceProvider = this._serviceCollection.BuildServiceProvider();
+            var monitor = serviceProvider.GetService<IMonitor>();
             var trialNum = 0;
             var pipelineProposer = new PipelineProposer(this._settings.Seed ?? 0);
             var hyperParameterProposer = new HyperParameterProposer();
+            var runnerFactory = serviceProvider.GetService<ITrialRunnerFactory>();
 
             while (true)
             {
@@ -153,17 +194,10 @@ namespace Microsoft.ML.AutoML
 
                 setting = pipelineProposer.Propose(setting);
                 setting = hyperParameterProposer.Propose(setting);
-
-                ITrialRunner runner = (this._settings.DatasetSettings, this._settings.EvaluateMetric) switch
-                {
-                    (CrossValidateDatasetSettings, BinaryMetricSettings) => new BinaryClassificationCVRunner(),
-                    (TrainTestDatasetSettings, BinaryMetricSettings) => new BinaryClassificationTrainTestRunner(),
-                    _ => throw new NotImplementedException(),
-                };
-
-                this._settings.Monitor.ReportRunningTrial(setting);
+                monitor.ReportRunningTrial(setting);
+                var runner = runnerFactory.CreateTrialRunner(setting);
                 var trialResult = runner.Run(this._context, setting);
-                this._settings.Monitor.ReportCompletedTrial(trialResult);
+                monitor.ReportCompletedTrial(trialResult);
                 hyperParameterProposer.Update(setting, trialResult);
                 pipelineProposer.Update(setting, trialResult);
 
@@ -172,7 +206,7 @@ namespace Microsoft.ML.AutoML
                 {
                     this._bestTrialResult = trialResult;
                     this._bestError = error;
-                    this._settings.Monitor.ReportBestTrial(trialResult);
+                    monitor.ReportBestTrial(trialResult);
                 }
             }
 
@@ -204,8 +238,6 @@ namespace Microsoft.ML.AutoML
             public MultiModelPipeline Pipeline { get; set; }
 
             public Func<ITuner> TunerFactory { get; set; }
-
-            public IMonitor Monitor { get; set; }
 
             public int? Seed { get; set; }
         }
