@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.SearchSpace;
+using Microsoft.ML.SearchSpace.Tuner;
 
 namespace Microsoft.ML.AutoML
 {
@@ -22,23 +23,26 @@ namespace Microsoft.ML.AutoML
         private readonly MLContext _context;
         private double _bestError = double.MaxValue;
         private TrialResult _bestTrialResult = null;
-        private IServiceCollection _serviceCollection;
+        private readonly IServiceCollection _serviceCollection;
 
         public AutoMLExperiment(MLContext context, AutoMLExperimentSettings settings)
         {
             this._context = context;
             this._settings = settings;
-            this.InitializeServiceCollection();
+            this._serviceCollection = new ServiceCollection();
         }
 
         private void InitializeServiceCollection()
         {
-            this._serviceCollection = new ServiceCollection();
             this._serviceCollection.TryAddSingleton(this._context);
+            this._serviceCollection.TryAddSingleton(this._settings);
             this._serviceCollection.TryAddSingleton<IMonitor, MLContextMonitor>();
             this._serviceCollection.TryAddSingleton<ITrialRunnerFactory, TrialRunnerFactory>();
+            this._serviceCollection.TryAddSingleton<ITunerFactory, CfoTunerFactory>();
             this._serviceCollection.TryAddTransient<BinaryClassificationCVRunner>();
             this._serviceCollection.TryAddTransient<BinaryClassificationTrainTestRunner>();
+            this._serviceCollection.TryAddScoped<HyperParameterProposer>();
+            this._serviceCollection.TryAddScoped<PipelineProposer>();
         }
 
         public AutoMLExperiment SetTrainingTimeInSeconds(int trainingTimeInSeconds)
@@ -69,9 +73,18 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetTunerFactory(Func<ITuner> tunerFactory)
+        public AutoMLExperiment SetTunerFactory<TTunerFactory>()
+            where TTunerFactory : ITunerFactory
         {
-            this._settings.TunerFactory = tunerFactory;
+            var descriptor = new ServiceDescriptor(typeof(ITunerFactory), typeof(TTunerFactory), ServiceLifetime.Singleton);
+            if (this._serviceCollection.Contains(descriptor))
+            {
+                this._serviceCollection.Replace(descriptor);
+            }
+            else
+            {
+                this._serviceCollection.Add(descriptor);
+            }
 
             return this;
         }
@@ -172,11 +185,12 @@ namespace Microsoft.ML.AutoML
 
         private async Task<TrialResult> RunAsync(CancellationToken ct)
         {
+            this.InitializeServiceCollection();
             var serviceProvider = this._serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
             var trialNum = 0;
-            var pipelineProposer = new PipelineProposer(this._settings.Seed ?? 0);
-            var hyperParameterProposer = new HyperParameterProposer();
+            var pipelineProposer = serviceProvider.GetService<PipelineProposer>();
+            var hyperParameterProposer = serviceProvider.GetService<HyperParameterProposer>();
             var runnerFactory = serviceProvider.GetService<ITrialRunnerFactory>();
 
             while (true)
@@ -224,7 +238,6 @@ namespace Microsoft.ML.AutoML
         {
             Contracts.Assert(this._settings.MaxExperimentTimeInSeconds > 0, $"{nameof(ExperimentSettings.MaxExperimentTimeInSeconds)} must be larger than 0");
             Contracts.Assert(this._settings.DatasetSettings != null, $"{nameof(this._settings.DatasetSettings)} must be not null");
-            Contracts.Assert(this._settings.TunerFactory != null, $"{nameof(this._settings.TunerFactory)} must be not null");
             Contracts.Assert(this._settings.EvaluateMetric != null, $"{nameof(this._settings.EvaluateMetric)} must be not null");
         }
 
@@ -236,8 +249,6 @@ namespace Microsoft.ML.AutoML
             public IMetricSettings EvaluateMetric { get; set; }
 
             public MultiModelPipeline Pipeline { get; set; }
-
-            public Func<ITuner> TunerFactory { get; set; }
 
             public int? Seed { get; set; }
         }

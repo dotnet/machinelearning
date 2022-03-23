@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.ML.SearchSpace;
 
-namespace Microsoft.ML.SearchSpace
+namespace Microsoft.ML.AutoML
 {
     internal interface ITuner
     {
-        Parameter Propose(SearchSpace searchSpace);
+        Parameter Propose(TrialSettings settings);
 
-        void Update(Parameter param, double metric, bool isMaximize);
+        void Update(TrialResult result);
     }
 }

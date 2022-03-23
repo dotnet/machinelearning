@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.AutoML.CodeGen;
 using Newtonsoft.Json;
+using static Microsoft.ML.AutoML.AutoMLExperiment;
 
 namespace Microsoft.ML.AutoML
 {
@@ -38,7 +39,7 @@ namespace Microsoft.ML.AutoML
         private readonly Random _rand;
         private MultiModelPipeline _multiModelPipeline;
 
-        public PipelineProposer(int seed)
+        public PipelineProposer(AutoMLExperimentSettings settings)
         {
             this._estimatorCost = new Dictionary<EstimatorType, double>()
             {
@@ -64,7 +65,7 @@ namespace Microsoft.ML.AutoML
                 { EstimatorType.ImageClassificationMulti, 1 },
                 { EstimatorType.MatrixFactorization, 1 },
             };
-            this._rand = new Random(seed);
+            this._rand = new Random(settings.Seed ?? 0);
 
             // TODO
             // use MultiModelPipeline from training configuration if possible.
