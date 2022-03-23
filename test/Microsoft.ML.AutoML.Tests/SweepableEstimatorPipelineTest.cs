@@ -15,6 +15,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.AutoML.CodeGen;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -28,6 +29,10 @@ namespace Microsoft.ML.AutoML.Test
             this._jsonSerializerOptions = new JsonSerializerOptions()
             {
                 WriteIndented = true,
+                Converters =
+                {
+                    new JsonStringEnumConverter(), new DoubleToDecimalConverter(), new FloatToDecimalConverter(),
+                },
             };
 
             if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)

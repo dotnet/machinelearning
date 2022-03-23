@@ -30,7 +30,7 @@ namespace Microsoft.ML.AutoML.Test
                 WriteIndented = true,
                 Converters =
                 {
-                    new JsonStringEnumConverter(),
+                    new JsonStringEnumConverter(), new DoubleToDecimalConverter(), new FloatToDecimalConverter(),
                 },
             };
 
