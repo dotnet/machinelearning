@@ -18,45 +18,64 @@ namespace Microsoft.ML.AutoML.SourceGenerator.Template
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "17.0.0.0")]
-    internal partial class EstimatorType : EstimatorTypeBase
+    internal partial class SweepableEstimator : SweepableEstimatorBase
     {
         /// <summary>
         /// Create the template output
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("\r\nusing Newtonsoft.Json;\r\nusing Newtonsoft.Json.Converters;\r\n\r\nnamespace ");
+            this.Write(@"
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using SweepableEstimator = Microsoft.ML.AutoML.SweepableEstimator;
+using Microsoft.ML.AutoML.CodeGen;
+using ColorsOrder = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorsOrder;
+using ColorBits = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits;
+using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.ResizingKind;
+using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
+
+namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(NameSpace));
-            this.Write("\r\n{\r\n    [JsonConverter(typeof(StringEnumConverter))]\r\n    public enum ");
+            this.Write("\r\n{\r\n    internal partial class ");
             this.Write(this.ToStringHelper.ToStringWithCulture(ClassName));
-            this.Write("\r\n    {\r\n");
- foreach(var e in TrainerNames){
-            this.Write("        ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(e));
-            this.Write(",\r\n");
+            this.Write(" : SweepableEstimator\r\n    {\r\n        public ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(ClassName));
+            this.Write("()\r\n        {\r\n            this.EstimatorType = EstimatorType.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(ClassName));
+            this.Write(";\r\n        }\r\n    \r\n");
+ foreach(var arg in ArgumentsList){
+    var typeAttributeName = Utils.CapitalFirstLetter(arg.ArgumentType);
+    var propertyName = Utils.CapitalFirstLetter(arg.ArgumentName);
+            this.Write("        [");
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeAttributeName));
+            this.Write("]\r\n        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]\r\n        pu" +
+                    "blic string ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(propertyName));
+            this.Write(" { get; set; }\r\n\r\n");
 }
- foreach(var e in TransformerNames){
-            this.Write("        ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(e));
-            this.Write(",\r\n");
-}
-            this.Write("        Unknown,\r\n    }\r\n\r\n    public static class EstimatorTypeExtension\r\n    {\r" +
-                    "\n        public static bool IsTrainer(this EstimatorType estimatorType)\r\n       " +
-                    " {\r\n            switch(estimatorType)\r\n            {\r\n");
- foreach(var estimator in TrainerNames){
-            this.Write("                case EstimatorType.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(estimator));
-            this.Write(":\r\n");
-}
-            this.Write("                    return true;\r\n                default:\r\n                    r" +
-                    "eturn false;\r\n            }\r\n        }\r\n    }\r\n}\r\n");
+            this.Write("        internal override IEnumerable<string> CSharpUsingStatements \r\n        {\r\n" +
+                    "            get => new string[] {");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.PrettyPrintListOfString(UsingStatements.Select(x => $"using {x};"))));
+            this.Write("};\r\n        }\r\n\r\n        internal override IEnumerable<string> NugetDependencies\r" +
+                    "\n        {\r\n            get => new string[] {");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.PrettyPrintListOfString(NugetDependencies)));
+            this.Write("};\r\n        }\r\n\r\n        internal override string FunctionName \r\n        {\r\n     " +
+                    "       get => \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.GetPrefix(Type)));
+            this.Write(".");
+            this.Write(this.ToStringHelper.ToStringWithCulture(FunctionName));
+            this.Write("\";\r\n        }\r\n    }\r\n}\r\n\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
 public string NameSpace {get;set;}
 public string ClassName {get;set;}
-public IEnumerable<string> TrainerNames {get;set;}
-public IEnumerable<string> TransformerNames {get;set;}
+public string FunctionName {get;set;}
+public string Type {get;set;}
+public IEnumerable<Argument> ArgumentsList {get;set;}
+public IEnumerable<string> UsingStatements {get; set;}
+public IEnumerable<string> NugetDependencies {get; set;}
 
     }
     #region Base class
@@ -64,7 +83,7 @@ public IEnumerable<string> TransformerNames {get;set;}
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "17.0.0.0")]
-    internal class EstimatorTypeBase
+    internal class SweepableEstimatorBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

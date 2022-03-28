@@ -1,7 +1,7 @@
 {
   "EstimatorFactoryGenerator": false,
-  "CodeGenCatalogGenerator": false,
+  "SweepableEstimatorFactory": true,
   "EstimatorTypeGenerator": true,
   "SearchSpaceGenerator": true,
-  "SweepableEstimatorGenerator": false
+  "SweepableEstimatorGenerator": true
 }

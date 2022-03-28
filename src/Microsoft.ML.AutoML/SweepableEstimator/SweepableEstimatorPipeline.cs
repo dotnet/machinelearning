@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using Microsoft.ML.Data;
 using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
+    [JsonConverter(typeof(SweepableEstimatorPipelineConverter))]
     internal class SweepableEstimatorPipeline
     {
         private readonly List<SweepableEstimator> _estimators;

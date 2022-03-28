@@ -31,6 +31,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Template\SweepableEstimatorFactory.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SweepableEstimatorFactory.tt</DependentUpon>
+    </Compile>
     <Compile Update="Template\EstimatorType.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -41,9 +46,23 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>SearchSpace.tt</DependentUpon>
     </Compile>
+    <Compile Update="Template\SweepableEstimator.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SweepableEstimator.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Template\SweepableEstimator_T_.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SweepableEstimator_T_.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Template\SweepableEstimatorFactory.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SweepableEstimatorFactory.cs</LastGenOutput>
+    </None>
     <None Update="Template\EstimatorType.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>EstimatorType.cs</LastGenOutput>
@@ -51,6 +70,14 @@
     <None Update="Template\SearchSpace.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>SearchSpace.cs</LastGenOutput>
+    </None>
+    <None Update="Template\SweepableEstimator.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SweepableEstimator.cs</LastGenOutput>
+    </None>
+    <None Update="Template\SweepableEstimator_T_.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SweepableEstimator_T_.cs</LastGenOutput>
     </None>
   </ItemGroup>
 

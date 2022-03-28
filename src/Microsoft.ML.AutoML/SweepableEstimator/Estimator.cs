@@ -12,6 +12,7 @@ namespace Microsoft.ML.AutoML
         protected Estimator()
         {
             this.Parameter = Parameter.CreateNestedParameter();
+            this.EstimatorType = EstimatorType.Unknown;
         }
 
         internal Estimator(EstimatorType estimatorType)

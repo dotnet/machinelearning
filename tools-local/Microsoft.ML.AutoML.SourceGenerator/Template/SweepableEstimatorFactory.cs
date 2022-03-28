@@ -18,45 +18,40 @@ namespace Microsoft.ML.AutoML.SourceGenerator.Template
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "17.0.0.0")]
-    internal partial class EstimatorType : EstimatorTypeBase
+    internal partial class SweepableEstimatorFactory : SweepableEstimatorFactoryBase
     {
         /// <summary>
         /// Create the template output
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("\r\nusing Newtonsoft.Json;\r\nusing Newtonsoft.Json.Converters;\r\n\r\nnamespace ");
+            this.Write("\r\nusing System;\r\nusing System.Collections.Generic;\r\nusing System.Text;\r\nusing New" +
+                    "tonsoft.Json;\r\nusing Newtonsoft.Json.Linq;\r\nusing Microsoft.ML.SearchSpace;\r\nusi" +
+                    "ng Microsoft.ML;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(NameSpace));
-            this.Write("\r\n{\r\n    [JsonConverter(typeof(StringEnumConverter))]\r\n    public enum ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(ClassName));
-            this.Write("\r\n    {\r\n");
- foreach(var e in TrainerNames){
-            this.Write("        ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(e));
-            this.Write(",\r\n");
-}
- foreach(var e in TransformerNames){
-            this.Write("        ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(e));
-            this.Write(",\r\n");
-}
-            this.Write("        Unknown,\r\n    }\r\n\r\n    public static class EstimatorTypeExtension\r\n    {\r" +
-                    "\n        public static bool IsTrainer(this EstimatorType estimatorType)\r\n       " +
-                    " {\r\n            switch(estimatorType)\r\n            {\r\n");
- foreach(var estimator in TrainerNames){
-            this.Write("                case EstimatorType.");
+            this.Write("\r\n{\r\n    internal static class SweepableEstimatorFactory\r\n    {\r\n");
+ foreach((var estimator, var tOption) in EstimatorNames){
+            this.Write("        public static ");
             this.Write(this.ToStringHelper.ToStringWithCulture(estimator));
-            this.Write(":\r\n");
+            this.Write(" Create");
+            this.Write(this.ToStringHelper.ToStringWithCulture(estimator));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(tOption));
+            this.Write(" defaultOption, SearchSpace<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(tOption));
+            this.Write("> searchSpace = null)\r\n        {\r\n            if(searchSpace == null){\r\n         " +
+                    "       searchSpace = new SearchSpace<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(tOption));
+            this.Write(">(defaultOption);\r\n            }\r\n\r\n            return new ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(estimator));
+            this.Write("(defaultOption, searchSpace);\r\n        }\r\n\r\n");
 }
-            this.Write("                    return true;\r\n                default:\r\n                    r" +
-                    "eturn false;\r\n            }\r\n        }\r\n    }\r\n}\r\n");
+            this.Write("    }\r\n}\r\n\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
 public string NameSpace {get;set;}
-public string ClassName {get;set;}
-public IEnumerable<string> TrainerNames {get;set;}
-public IEnumerable<string> TransformerNames {get;set;}
+public IEnumerable<(string, string)> EstimatorNames {get;set;}
 
     }
     #region Base class
@@ -64,7 +59,7 @@ public IEnumerable<string> TransformerNames {get;set;}
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "17.0.0.0")]
-    internal class EstimatorTypeBase
+    internal class SweepableEstimatorFactoryBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;
