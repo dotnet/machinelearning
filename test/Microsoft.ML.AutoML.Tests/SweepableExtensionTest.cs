@@ -30,11 +30,16 @@ namespace Microsoft.ML.AutoML.Test
                 WriteIndented = true,
                 Converters =
                 {
-                    new JsonStringEnumConverter(),
+                    new JsonStringEnumConverter(), new DoubleToDecimalConverter(), new FloatToDecimalConverter(),
                 },
             };
 
             this._jsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+
+            if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+            {
+                Approvals.UseAssemblyLocationForApprovedFiles();
+            }
         }
 
         [Fact]

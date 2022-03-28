@@ -6,9 +6,15 @@ using System;
 
 namespace Microsoft.ML.SearchSpace
 {
+    /// <summary>
+    /// attribution class for nest search space.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
-    internal sealed class OptionAttribute : Attribute
+    public sealed class OptionAttribute : Attribute
     {
+        /// <summary>
+        /// Create an <see cref="OptionAttribute"/>.
+        /// </summary>
         public OptionAttribute()
         {
         }

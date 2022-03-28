@@ -13,18 +13,47 @@ using Microsoft.ML.SearchSpace.Converter;
 
 namespace Microsoft.ML.SearchSpace
 {
-    internal enum ParameterType
+    /// <summary>
+    /// Parameter type. This type is used to determine the type of <see cref="Parameter"/> and is associated to corresponded Json token when serializing/deserializing.
+    /// </summary>
+    public enum ParameterType
     {
+        /// <summary>
+        /// Json int type.
+        /// </summary>
         Integer = 0,
-        Float = 1,
+
+        /// <summary>
+        /// Json number type.
+        /// </summary>
+        Number = 1,
+
+        /// <summary>
+        /// Json boolean type.
+        /// </summary>
         Bool = 2,
+
+        /// <summary>
+        /// Json string type.
+        /// </summary>
         String = 3,
+
+        /// <summary>
+        /// Json object type.
+        /// </summary>
         Object = 4,
+
+        /// <summary>
+        /// Json array type.
+        /// </summary>
         Array = 5,
     }
 
+    /// <summary>
+    /// <see cref="Parameter"/> is used to save sweeping result from tuner and is used to restore mlnet pipeline from sweepable pipline.
+    /// </summary>
     [JsonConverter(typeof(ParameterConverter))]
-    internal sealed class Parameter : IDictionary<string, Parameter>
+    public sealed class Parameter : IDictionary<string, Parameter>
     {
         private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
         {
@@ -41,41 +70,73 @@ namespace Microsoft.ML.SearchSpace
             this._settings.Converters.Add(new JsonStringEnumConverter());
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="double"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Number"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromDouble(double value)
         {
-            return new Parameter(value, ParameterType.Float);
+            return new Parameter(value, ParameterType.Number);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="float"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Number"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromFloat(float value)
         {
-            return new Parameter(value, ParameterType.Float);
+            return new Parameter(value, ParameterType.Number);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="long"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Integer"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromLong(long value)
         {
             return new Parameter(value, ParameterType.Integer);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="int"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Integer"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromInt(int value)
         {
             return new Parameter(value, ParameterType.Integer);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="string"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.String"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromString(string value)
         {
             return new Parameter(value, ParameterType.String);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="bool"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Bool"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromBool(bool value)
         {
             return new Parameter(value, ParameterType.Bool);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="Enum"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.String"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromEnum<T>(T value) where T : struct, Enum
         {
             return Parameter.FromEnum(value, typeof(T));
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="IEnumerable"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Array"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromIEnumerable<T>(IEnumerable<T> values)
         {
             // check T
@@ -92,6 +153,10 @@ namespace Microsoft.ML.SearchSpace
             return Parameter.FromString(Enum.GetName(t, e));
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from an <see cref="object"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Object"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromObject<T>(T value) where T : class
         {
             return Parameter.FromObject(value, typeof(T));
@@ -140,6 +205,10 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from <paramref name="parameters"/>. The <see cref="ParameterType"/> will be <see cref="ParameterType.Object"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter CreateNestedParameter(params KeyValuePair<string, Parameter>[] parameters)
         {
             var parameter = new Parameter(new Dictionary<string, Parameter>(), ParameterType.Object);
@@ -151,10 +220,16 @@ namespace Microsoft.ML.SearchSpace
             return parameter;
         }
 
-        public object Value { get => this._value; }
+        internal object Value { get => this._value; }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public int Count => this.ParameterType == ParameterType.Object ? (this._value as Dictionary<string, Parameter>).Count : 1;
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool IsReadOnly
         {
             get
@@ -164,6 +239,9 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
+        /// <summary>
+        /// Get <see cref="ParameterType"/> of this <see cref="ParameterType"/>
+        /// </summary>
         public ParameterType ParameterType { get; }
 
         ICollection<Parameter> IDictionary<string, Parameter>.Values
@@ -175,6 +253,9 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public ICollection<string> Keys
         {
             get
@@ -184,6 +265,9 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public Parameter this[string key]
         {
             get
@@ -199,6 +283,10 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
+        /// <summary>
+        /// Cast <see cref="ParameterType"/> to <typeparamref name="T"/>. This method will return immediately if the underlying value is of type <typeparamref name="T"/>, otherwise it uses <see cref="JsonSerializer"/> to
+        /// convert its value to <typeparamref name="T"/>.
+        /// </summary>
         public T AsType<T>()
         {
             if (this._value is T t)
@@ -212,48 +300,72 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public void Clear()
         {
             this.VerifyIfParameterIsObjectType();
             (this._value as Dictionary<string, Parameter>).Clear();
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public void Add(string key, Parameter value)
         {
             this.VerifyIfParameterIsObjectType();
             (this._value as Dictionary<string, Parameter>).Add(key, value);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool TryGetValue(string key, out Parameter value)
         {
             this.VerifyIfParameterIsObjectType();
             return (this._value as Dictionary<string, Parameter>).TryGetValue(key, out value);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public void Add(KeyValuePair<string, Parameter> item)
         {
             this.VerifyIfParameterIsObjectType();
             (this._value as Dictionary<string, Parameter>).Add(item.Key, item.Value);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool Contains(KeyValuePair<string, Parameter> item)
         {
             this.VerifyIfParameterIsObjectType();
             return (this._value as Dictionary<string, Parameter>).Contains(item);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool Remove(KeyValuePair<string, Parameter> item)
         {
             this.VerifyIfParameterIsObjectType();
             return (this._value as IDictionary<string, Parameter>).Remove(item);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         IEnumerator<KeyValuePair<string, Parameter>> IEnumerable<KeyValuePair<string, Parameter>>.GetEnumerator()
         {
             this.VerifyIfParameterIsObjectType();
             return (this._value as IDictionary<string, Parameter>).GetEnumerator();
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         IEnumerator IEnumerable.GetEnumerator()
         {
             this.VerifyIfParameterIsObjectType();
@@ -265,18 +377,27 @@ namespace Microsoft.ML.SearchSpace
             Contracts.Check(this.ParameterType == ParameterType.Object, "parameter is not object type.");
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public void CopyTo(KeyValuePair<string, Parameter>[] array, int arrayIndex)
         {
             this.VerifyIfParameterIsObjectType();
             (this._value as IDictionary<string, Parameter>).CopyTo(array, arrayIndex);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool ContainsKey(string key)
         {
             this.VerifyIfParameterIsObjectType();
             return (this._value as IDictionary<string, Parameter>).ContainsKey(key);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool Remove(string key)
         {
             this.VerifyIfParameterIsObjectType();

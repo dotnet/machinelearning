@@ -13,7 +13,7 @@
         "NumberOfTrees": 4,
         "MaximumBinCountPerFeature": 256,
         "FeatureFraction": 1,
-        "LearningRate": 0.10000000000000001,
+        "LearningRate": 0.1,
         "LabelColumnName": "Label",
         "FeatureColumnName": "Features"
       }
@@ -38,7 +38,7 @@
         "SubsampleFraction": 1,
         "MaximumBinCountPerFeature": 256,
         "FeatureFraction": 1,
-        "L1Regularization": 2.0000000000000001E-10,
+        "L1Regularization": 0.0000000002,
         "L2Regularization": 1,
         "LabelColumnName": "Label",
         "FeatureColumnName": "Features"
@@ -66,7 +66,7 @@
       "estimatorType": "SdcaMaximumEntropyMulti",
       "parameter": {
         "L1Regularization": 1,
-        "L2Regularization": 0.100000001,
+        "L2Regularization": 0.1,
         "LabelColumnName": "Label",
         "FeatureColumnName": "Features"
       }
@@ -75,7 +75,7 @@
       "estimatorType": "SdcaLogisticRegressionOva",
       "parameter": {
         "L1Regularization": 1,
-        "L2Regularization": 0.100000001,
+        "L2Regularization": 0.1,
         "LabelColumnName": "Label",
         "FeatureColumnName": "Features"
       }
