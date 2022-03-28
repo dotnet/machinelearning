@@ -84,8 +84,8 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
-        [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void CreateMultiModelPipelineFromIEstimatorAndBinaryClassifiers()
         {
             var context = new MLContext();
