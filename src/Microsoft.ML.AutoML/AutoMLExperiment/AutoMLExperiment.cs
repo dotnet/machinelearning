@@ -126,7 +126,14 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetPipeline(SweepableEstimatorPipeline pipeline)
         {
-            this._settings.Pipeline = new MultiModelPipeline().Append(pipeline.Estimators.ToArray());
+            var res = new MultiModelPipeline();
+            foreach (var e in pipeline.Estimators)
+            {
+                res = res.Append(e);
+            }
+
+            this.SetPipeline(res);
+
             return this;
         }
 
