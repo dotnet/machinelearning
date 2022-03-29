@@ -30,6 +30,10 @@ namespace Microsoft.ML.AutoML
             {
                 (CrossValidateDatasetSettings, BinaryMetricSettings) => this._provider.GetService<BinaryClassificationCVRunner>(),
                 (TrainTestDatasetSettings, BinaryMetricSettings) => this._provider.GetService<BinaryClassificationTrainTestRunner>(),
+                (CrossValidateDatasetSettings, MultiClassMetricSettings) => this._provider.GetService<MultiClassificationCVRunner>(),
+                (TrainTestDatasetSettings, MultiClassMetricSettings) => this._provider.GetService<MultiClassificationTrainTestRunner>(),
+                (CrossValidateDatasetSettings, RegressionMetricSettings) => this._provider.GetService<RegressionCVRunner>(),
+                (TrainTestDatasetSettings, RegressionMetricSettings) => this._provider.GetService<RegressionTrainTestRunner>(),
                 _ => throw new NotImplementedException(),
             };
 

@@ -3,17 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.SearchSpace;
-using Microsoft.ML.SearchSpace.Tuner;
 
 namespace Microsoft.ML.AutoML
 {
@@ -41,6 +36,10 @@ namespace Microsoft.ML.AutoML
             this._serviceCollection.TryAddSingleton<ITunerFactory, CfoTunerFactory>();
             this._serviceCollection.TryAddTransient<BinaryClassificationCVRunner>();
             this._serviceCollection.TryAddTransient<BinaryClassificationTrainTestRunner>();
+            this._serviceCollection.TryAddTransient<RegressionTrainTestRunner>();
+            this._serviceCollection.TryAddTransient<RegressionCVRunner>();
+            this._serviceCollection.TryAddTransient<MultiClassificationCVRunner>();
+            this._serviceCollection.TryAddTransient<MultiClassificationTrainTestRunner>();
             this._serviceCollection.TryAddScoped<HyperParameterProposer>();
             this._serviceCollection.TryAddScoped<PipelineProposer>();
         }
@@ -210,7 +209,7 @@ namespace Microsoft.ML.AutoML
                 setting = hyperParameterProposer.Propose(setting);
                 monitor.ReportRunningTrial(setting);
                 var runner = runnerFactory.CreateTrialRunner(setting);
-                var trialResult = runner.Run(this._context, setting);
+                var trialResult = runner.Run(setting);
                 monitor.ReportCompletedTrial(trialResult);
                 hyperParameterProposer.Update(setting, trialResult);
                 pipelineProposer.Update(setting, trialResult);
