@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<IncludeBuildOutput>true</IncludeBuildOutput>
+		<IsPackable>true</IsPackable>
+		<PackageDescription>Provides additional output while running AutoML in a .NET Interactive Notebook.</PackageDescription>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Remove="C:\Users\JakeRad\.nuget\packages\xplot.plotly\4.0.1\contentFiles\any\netstandard2.0\paket.references" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+        <PackageReference Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
+        <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveFormattingVersion)" />
+		<PackageReference Include="Microsoft.ML.AutoML" Version="0.20.3-dev.22174.1" />
+		<PackageReference Include="XPlot.Plotly" Version="4.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(OutputPath)/Microsoft.ML.AutoML.Interactive.dll" Pack="true" PackagePath="interactive-extensions/dotnet" />
+	</ItemGroup>
+
+</Project>
