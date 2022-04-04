@@ -46,6 +46,11 @@ namespace Microsoft.ML.AutoML
 
         public bool IsMaximize => this.Metric switch
         {
+            MulticlassClassificationMetric.MacroAccuracy => true,
+            MulticlassClassificationMetric.MicroAccuracy => true,
+            MulticlassClassificationMetric.LogLoss => false,
+            MulticlassClassificationMetric.LogLossReduction => false,
+            MulticlassClassificationMetric.TopKAccuracy => true,
             _ => throw new NotImplementedException(),
         };
     }
@@ -60,6 +65,10 @@ namespace Microsoft.ML.AutoML
 
         public bool IsMaximize => this.Metric switch
         {
+            RegressionMetric.RSquared => true,
+            RegressionMetric.RootMeanSquaredError => false,
+            RegressionMetric.MeanSquaredError => false,
+            RegressionMetric.MeanAbsoluteError => false,
             _ => throw new NotImplementedException(),
         };
     }
