@@ -139,29 +139,47 @@ namespace Microsoft.Data.Analysis.Tests
             return df;
         }
 
-        public static DataFrame MakeDataFrameWithNumericColumns(int length, bool withNulls = true)
+        public static DataFrame MakeDataFrameWithNumericColumns(int length, bool withNulls = true, int startingFrom = 0)
         {
-            DataFrameColumn byteColumn = new ByteDataFrameColumn("Byte", Enumerable.Range(0, length).Select(x => (byte)x));
-            DataFrameColumn decimalColumn = new DecimalDataFrameColumn("Decimal", Enumerable.Range(0, length).Select(x => (decimal)x));
-            DataFrameColumn doubleColumn = new DoubleDataFrameColumn("Double", Enumerable.Range(0, length).Select(x => (double)x));
-            DataFrameColumn floatColumn = new SingleDataFrameColumn("Float", Enumerable.Range(0, length).Select(x => (float)x));
-            DataFrameColumn intColumn = new Int32DataFrameColumn("Int", Enumerable.Range(0, length).Select(x => x));
-            DataFrameColumn longColumn = new Int64DataFrameColumn("Long", Enumerable.Range(0, length).Select(x => (long)x));
-            DataFrameColumn sbyteColumn = new SByteDataFrameColumn("Sbyte", Enumerable.Range(0, length).Select(x => (sbyte)x));
-            DataFrameColumn shortColumn = new Int16DataFrameColumn("Short", Enumerable.Range(0, length).Select(x => (short)x));
-            DataFrameColumn uintColumn = new UInt32DataFrameColumn("Uint", Enumerable.Range(0, length).Select(x => (uint)x));
-            DataFrameColumn ulongColumn = new UInt64DataFrameColumn("Ulong", Enumerable.Range(0, length).Select(x => (ulong)x));
-            DataFrameColumn ushortColumn = new UInt16DataFrameColumn("Ushort", Enumerable.Range(0, length).Select(x => (ushort)x));
+            IEnumerable<int> range = Enumerable.Range(startingFrom, length);
 
-            DataFrame dataFrame = new DataFrame(new List<DataFrameColumn> { byteColumn, decimalColumn, doubleColumn, floatColumn, intColumn, longColumn, sbyteColumn, shortColumn, uintColumn, ulongColumn, ushortColumn });
+            var byteColumn = new ByteDataFrameColumn("Byte", range.Select(x => (byte)x));
+            var decimalColumn = new DecimalDataFrameColumn("Decimal", range.Select(x => (decimal)x));
+            var doubleColumn = new DoubleDataFrameColumn("Double", range.Select(x => (double)x));
+            var floatColumn = new SingleDataFrameColumn("Float", range.Select(x => (float)x));
+            var intColumn = new Int32DataFrameColumn("Int", range.Select(x => x));
+            var longColumn = new Int64DataFrameColumn("Long", range.Select(x => (long)x));
+            var sbyteColumn = new SByteDataFrameColumn("Sbyte", range.Select(x => (sbyte)x));
+            var shortColumn = new Int16DataFrameColumn("Short", range.Select(x => (short)x));
+            var uintColumn = new UInt32DataFrameColumn("Uint", range.Select(x => (uint)x));
+            var ulongColumn = new UInt64DataFrameColumn("Ulong", range.Select(x => (ulong)x));
+            var ushortColumn = new UInt16DataFrameColumn("Ushort", range.Select(x => (ushort)x));
+
+            var columnsList = new List<DataFrameColumn>
+            {
+                byteColumn,
+                decimalColumn,
+                doubleColumn,
+                floatColumn,
+                intColumn,
+                longColumn,
+                sbyteColumn,
+                shortColumn,
+                uintColumn,
+                ulongColumn,
+                ushortColumn
+            };
+
+            var dataFrame = new DataFrame(columnsList);
 
             if (withNulls)
             {
-                for (int i = 0; i < dataFrame.Columns.Count; i++)
+                for (var i = 0; i < dataFrame.Columns.Count; i++)
                 {
                     dataFrame.Columns[i][length / 2] = null;
                 }
             }
+
             return dataFrame;
         }
 
@@ -975,6 +993,76 @@ namespace Microsoft.Data.Analysis.Tests
             }
         }
 
+        [Theory]
+        [InlineData(5, 10)]
+        [InlineData(-15, 10)]
+        [InlineData(-5, 10)]
+        public void TestComputations_WithNegativeNumbers_MaxMin_Calculated(int startingFrom, int length)
+        {
+            // Arrange
+
+            IEnumerable<int> range = Enumerable.Range(startingFrom, length);
+
+            int max = range.Max();
+            int min = range.Min();
+
+            DataFrame df = MakeDataFrameWithNumericColumns(length, withNulls: false, startingFrom);
+
+            var byteColumn = (PrimitiveDataFrameColumn<byte>)df.Columns["Byte"];
+            var decimalColumn = (PrimitiveDataFrameColumn<decimal>)df.Columns["Decimal"];
+            var doubleColumn = (PrimitiveDataFrameColumn<double>)df.Columns["Double"];
+            var floatColumn = (PrimitiveDataFrameColumn<float>)df.Columns["Float"];
+            var intColumn = (PrimitiveDataFrameColumn<int>)df.Columns["Int"];
+            var longColumn = (PrimitiveDataFrameColumn<long>)df.Columns["Long"];
+            var sbyteColumn = (PrimitiveDataFrameColumn<sbyte>)df.Columns["Sbyte"];
+            var shortColumn = (PrimitiveDataFrameColumn<short>)df.Columns["Short"];
+            var uintColumn = (PrimitiveDataFrameColumn<uint>)df.Columns["Uint"];
+            var ulongColumn = (PrimitiveDataFrameColumn<ulong>)df.Columns["Ulong"];
+            var ushortColumn = (PrimitiveDataFrameColumn<ushort>)df.Columns["Ushort"];
+
+            // Act, Assert
+
+            // We need to iterate over all range with conversion to byte due to negative numbers issue
+            Assert.Equal((byte)byteColumn.Max(), range.Select(x => (byte)x).Max());
+
+            Assert.Equal((decimal)decimalColumn.Max(), (decimal)max);
+            Assert.Equal((double)doubleColumn.Max(), (double)max);
+            Assert.Equal((float)floatColumn.Max(), (float)max);
+            Assert.Equal((int)intColumn.Max(), (int)max);
+            Assert.Equal((long)longColumn.Max(), (long)max);
+            Assert.Equal((sbyte)sbyteColumn.Max(), (sbyte)max);
+            Assert.Equal((short)shortColumn.Max(), (short)max);
+
+            // We need to iterate over all range with conversion to uint due to negative numbers issue
+            Assert.Equal((uint)uintColumn.Max(), range.Select(x => (uint)x).Max());
+
+            // We need to iterate over all range with conversion to ulong due to negative numbers issue
+            Assert.Equal((ulong)ulongColumn.Max(), range.Select(x => (ulong)x).Max());
+
+            // We need to iterate over all range with conversion to ushort due to negative numbers issue
+            Assert.Equal((ushort)ushortColumn.Max(), range.Select(x => (ushort)x).Max());
+
+            // We need to iterate over all range with conversion to byte due to negative numbers issue
+            Assert.Equal((byte)byteColumn.Min(), range.Select(x => (byte)x).Min());
+
+            Assert.Equal((decimal)decimalColumn.Min(), (decimal)min);
+            Assert.Equal((double)doubleColumn.Min(), (double)min);
+            Assert.Equal((float)floatColumn.Min(), (float)min);
+            Assert.Equal((int)intColumn.Min(), (int)min);
+            Assert.Equal((long)longColumn.Min(), (long)min);
+            Assert.Equal((sbyte)sbyteColumn.Min(), (sbyte)min);
+            Assert.Equal((short)shortColumn.Min(), (short)min);
+
+            // We need to iterate over all range with conversion to uint due to negative numbers issue
+            Assert.Equal((uint)uintColumn.Min(), range.Select(x => (uint)x).Min());
+
+            // We need to iterate over all range with conversion to ulong due to negative numbers issue
+            Assert.Equal((ulong)ulongColumn.Min(), range.Select(x => (ulong)x).Min());
+
+            // We need to iterate over all range with conversion to ushort due to negative numbers issue
+            Assert.Equal((ushort)ushortColumn.Min(), range.Select(x => (ushort)x).Min());
+        }
+
         [Fact]
         public void TestOrderBy()
         {
@@ -1417,7 +1505,7 @@ namespace Microsoft.Data.Analysis.Tests
                     if (originalColumn.Name == "Bool" || originalColumn.Name == "Char")
                         continue;
                     DataFrameColumn minColumn = min.Columns[originalColumn.Name];
-                    Assert.Equal("0", minColumn[r].ToString());
+                    Assert.Equal(r == 0 ? "0" : "1", minColumn[r].ToString());
 
                     DataFrameColumn productColumn = product.Columns[originalColumn.Name];
                     Assert.Equal("0", productColumn[r].ToString());
@@ -1442,7 +1530,7 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame columnMin = df.GroupBy("Bool").Min("Int");
             Assert.Equal(2, columnMin.Columns.Count);
             Assert.Equal(0, columnMin.Columns["Int"][0]);
-            Assert.Equal(0, columnMin.Columns["Int"][1]);
+            Assert.Equal(1, columnMin.Columns["Int"][1]);
 
             DataFrame countIntColumn = df.GroupBy("Bool").Count("Int");
             Assert.Equal(2, countIntColumn.Columns.Count);
