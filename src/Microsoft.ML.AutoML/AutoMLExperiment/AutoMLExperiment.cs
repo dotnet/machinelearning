@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.ML.Runtime;
+using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
 {
@@ -44,9 +45,9 @@ namespace Microsoft.ML.AutoML
             this._serviceCollection.TryAddScoped<PipelineProposer>();
         }
 
-        public AutoMLExperiment SetTrainingTimeInSeconds(int trainingTimeInSeconds)
+        public AutoMLExperiment SetTrainingTimeInSeconds(uint trainingTimeInSeconds)
         {
-            this._settings.MaxExperimentTimeInSeconds = (uint)trainingTimeInSeconds;
+            this._settings.MaxExperimentTimeInSeconds = trainingTimeInSeconds;
             return this;
         }
 
@@ -57,6 +58,13 @@ namespace Microsoft.ML.AutoML
                 TrainDataset = train,
                 TestDataset = test
             };
+
+            return this;
+        }
+
+        public AutoMLExperiment SetDataset(TrainTestData trainTestSplit)
+        {
+            this.SetDataset(trainTestSplit.TrainSet, trainTestSplit.TestSet);
 
             return this;
         }
@@ -137,37 +145,37 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string predictedColumn = "Predicted", string truthColumn = "label")
+        public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted", )
         {
             this._settings.EvaluateMetric = new BinaryMetricSettings()
             {
                 Metric = metric,
                 PredictedColumn = predictedColumn,
-                TruthColumn = truthColumn,
+                LabelColumn = labelColumn,
             };
 
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(MulticlassClassificationMetric metric, string predictedColumn = "Predicted", string truthColumn = "label")
+        public AutoMLExperiment SetEvaluateMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
         {
             this._settings.EvaluateMetric = new MultiClassMetricSettings()
             {
                 Metric = metric,
                 PredictedColumn = predictedColumn,
-                TruthColumn = truthColumn,
+                LabelColumn = labelColumn,
             };
 
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(RegressionMetric metric, string predictedColumn = "Predicted", string truthColumn = "label")
+        public AutoMLExperiment SetEvaluateMetric(RegressionMetric metric, string labelColumn = "label", string scoreColumn = "Score")
         {
             this._settings.EvaluateMetric = new RegressionMetricSettings()
             {
                 Metric = metric,
-                PredictedColumn = predictedColumn,
-                TruthColumn = truthColumn,
+                ScoreColumn = scoreColumn,
+                LabelColumn = labelColumn,
             };
 
             return this;

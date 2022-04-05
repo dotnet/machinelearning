@@ -31,7 +31,7 @@ namespace Microsoft.ML.AutoML
                 var fold = datasetSettings.Fold ?? 5;
 
                 var pipeline = settings.Pipeline.BuildTrainingPipeline(this._context, settings.Parameter);
-                var metrics = this._context.BinaryClassification.CrossValidateNonCalibrated(datasetSettings.Dataset, pipeline, fold, metricSettings.PredictedColumn);
+                var metrics = this._context.BinaryClassification.CrossValidateNonCalibrated(datasetSettings.Dataset, pipeline, fold, metricSettings.LabelColumn);
 
                 // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                 var res = metrics[rnd.Next(fold)];
@@ -81,7 +81,7 @@ namespace Microsoft.ML.AutoML
                 var pipeline = settings.Pipeline.BuildTrainingPipeline(this._context, settings.Parameter);
                 var model = pipeline.Fit(datasetSettings.TrainDataset);
                 var eval = model.Transform(datasetSettings.TestDataset);
-                var metrics = this._context.BinaryClassification.EvaluateNonCalibrated(eval, metricSettings.PredictedColumn, predictedLabelColumnName: metricSettings.TruthColumn);
+                var metrics = this._context.BinaryClassification.EvaluateNonCalibrated(eval, metricSettings.LabelColumn, predictedLabelColumnName: metricSettings.PredictedColumn);
 
                 // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                 var metric = metricSettings.Metric switch
@@ -128,9 +128,8 @@ namespace Microsoft.ML.AutoML
                 var pipeline = settings.Pipeline.BuildTrainingPipeline(this._context, settings.Parameter);
                 var model = pipeline.Fit(datasetSettings.TrainDataset);
                 var eval = model.Transform(datasetSettings.TestDataset);
-                var metrics = this._context.MulticlassClassification.Evaluate(eval, metricSettings.PredictedColumn, predictedLabelColumnName: metricSettings.TruthColumn);
+                var metrics = this._context.MulticlassClassification.Evaluate(eval, metricSettings.LabelColumn, predictedLabelColumnName: metricSettings.PredictedColumn);
 
-                // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                 var metric = metricSettings.Metric switch
                 {
                     MulticlassClassificationMetric.MicroAccuracy => metrics.MicroAccuracy,
@@ -176,7 +175,7 @@ namespace Microsoft.ML.AutoML
                 var fold = datasetSettings.Fold ?? 5;
 
                 var pipeline = settings.Pipeline.BuildTrainingPipeline(this._context, settings.Parameter);
-                var metrics = this._context.MulticlassClassification.CrossValidate(datasetSettings.Dataset, pipeline, fold, metricSettings.PredictedColumn, seed: settings.ExperimentSettings?.Seed);
+                var metrics = this._context.MulticlassClassification.CrossValidate(datasetSettings.Dataset, pipeline, fold, metricSettings.LabelColumn, seed: settings.ExperimentSettings?.Seed);
                 // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                 var res = metrics[rnd.Next(fold)];
                 var model = res.Model;
@@ -224,7 +223,7 @@ namespace Microsoft.ML.AutoML
                 var pipeline = settings.Pipeline.BuildTrainingPipeline(this._context, settings.Parameter);
                 var model = pipeline.Fit(datasetSettings.TrainDataset);
                 var eval = model.Transform(datasetSettings.TestDataset);
-                var metrics = this._context.Regression.Evaluate(eval, metricSettings.PredictedColumn, scoreColumnName: metricSettings.TruthColumn);
+                var metrics = this._context.Regression.Evaluate(eval, metricSettings.LabelColumn, scoreColumnName: metricSettings.ScoreColumn);
 
                 var metric = metricSettings.Metric switch
                 {
@@ -270,7 +269,7 @@ namespace Microsoft.ML.AutoML
                 var fold = datasetSettings.Fold ?? 5;
 
                 var pipeline = settings.Pipeline.BuildTrainingPipeline(this._context, settings.Parameter);
-                var metrics = this._context.Regression.CrossValidate(datasetSettings.Dataset, pipeline, fold, metricSettings.PredictedColumn, seed: settings.ExperimentSettings?.Seed);
+                var metrics = this._context.Regression.CrossValidate(datasetSettings.Dataset, pipeline, fold, metricSettings.LabelColumn, seed: settings.ExperimentSettings?.Seed);
                 // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                 var res = metrics[rnd.Next(fold)];
                 var model = res.Model;

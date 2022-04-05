@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML
 
         public string PredictedColumn { get; set; }
 
-        public string TruthColumn { get; set; }
+        public string LabelColumn { get; set; }
 
         public bool IsMaximize => this.Metric switch
         {
@@ -42,7 +42,7 @@ namespace Microsoft.ML.AutoML
 
         public string PredictedColumn { get; set; }
 
-        public string TruthColumn { get; set; }
+        public string LabelColumn { get; set; }
 
         public bool IsMaximize => this.Metric switch
         {
@@ -59,9 +59,9 @@ namespace Microsoft.ML.AutoML
     {
         public RegressionMetric Metric { get; set; }
 
-        public string PredictedColumn { get; set; }
+        public string ScoreColumn { get; set; }
 
-        public string TruthColumn { get; set; }
+        public string LabelColumn { get; set; }
 
         public bool IsMaximize => this.Metric switch
         {

@@ -16,6 +16,6 @@ namespace Microsoft.ML.AutoML
 
         public double Metric { get; set; }
 
-        public float DurationInMilliseconds { get; set; }
+        public double DurationInMilliseconds { get; set; }
     }
 }
