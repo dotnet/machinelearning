@@ -28,7 +28,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LbfgsOption>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CfoTuner(searchSpace, Parameter.FromObject(initValues));
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
             for (int i = 0; i != 1000; ++i)
             {
                 var trialSettings = new TrialSettings()
@@ -60,7 +60,7 @@ namespace Microsoft.ML.AutoML.Test
             };
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CfoTuner(searchSpace, Parameter.FromObject(initValues), true);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), true);
             var param = cfo.Propose(trialSettings).AsType<LSE3DSearchSpace>();
             var x = param.X;
             var y = param.Y;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CfoTuner(searchSpace, Parameter.FromObject(initValues), false);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), false);
             double bestMetric = 0;
             for (int i = 0; i != 100; ++i)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CfoTuner(searchSpace, Parameter.FromObject(initValues), true);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), true);
             double loss = 0;
             for (int i = 0; i != 100; ++i)
             {
@@ -148,7 +148,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CfoTuner(searchSpace, Parameter.FromObject(initValues), true);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), true);
             double bestMetric = 0;
             for (int i = 0; i != 1000; ++i)
             {
@@ -185,7 +185,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CfoTuner(searchSpace, Parameter.FromObject(initValues), true);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), true);
             var originalCuture = Thread.CurrentThread.CurrentCulture;
             var usCulture = new CultureInfo("en-US", false);
             Thread.CurrentThread.CurrentCulture = usCulture;

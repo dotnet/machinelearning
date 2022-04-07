@@ -8,7 +8,8 @@ using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
-    internal class CfoTuner : ITuner
+    // an implemetation of "Frugal Optimization for Cost-related Hyperparameters" : https://www.aaai.org/AAAI21Papers/AAAI-10128.WuQ.pdf
+    internal class CostFrugalTuner : ITuner
     {
         private readonly RandomNumberGenerator _rng = new RandomNumberGenerator();
         private readonly SearchSpace.SearchSpace _searchSpace;
@@ -24,7 +25,7 @@ namespace Microsoft.ML.AutoML
         private bool _initUsed = false;
         private double _bestMetric;
 
-        public CfoTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true)
+        public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true)
         {
             this._searchSpace = searchSpace;
             this._minimize = minimizeMode;

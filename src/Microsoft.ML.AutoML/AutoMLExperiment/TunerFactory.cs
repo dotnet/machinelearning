@@ -31,7 +31,7 @@ namespace Microsoft.ML.AutoML
             var initParameter = settings.Pipeline.Parameter;
             var isMaximize = experimentSetting.EvaluateMetric.IsMaximize;
 
-            return new CfoTuner(searchSpace, initParameter, !isMaximize);
+            return new CostFrugalTuner(searchSpace, initParameter, !isMaximize);
         }
     }
 

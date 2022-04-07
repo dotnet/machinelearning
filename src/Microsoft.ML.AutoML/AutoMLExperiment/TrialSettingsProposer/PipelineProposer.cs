@@ -67,8 +67,6 @@ namespace Microsoft.ML.AutoML
             };
             this._rand = new Random(settings.Seed ?? 0);
 
-            // TODO
-            // use MultiModelPipeline from training configuration if possible.
             this._multiModelPipeline = null;
         }
 

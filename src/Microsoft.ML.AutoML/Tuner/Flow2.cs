@@ -11,6 +11,9 @@ using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// An implementation of Flow2 from https://www.aaai.org/AAAI21Papers/AAAI-10128.WuQ.pdf
+    /// </summary>
     internal class Flow2
     {
         private const double _stepSize = 0.1;
@@ -100,11 +103,9 @@ namespace Microsoft.ML.AutoML
         public void ReceiveTrialResult(int trialId, double metric, double cost)
         {
             this._trialCount += 1;
-            double obj = metric;  // flipped in BlendSearch
-            //double obj = minimize ? metric : -metric;
-            if (this.BestObj == null || obj < this.BestObj)
+            if (this.BestObj == null || metric < this.BestObj)
             {
-                this.BestObj = obj;
+                this.BestObj = metric;
                 this._bestConfig = this._configs[trialId];
                 this._incumbent = this._searchSpace.MappingToFeatureSpace(this._bestConfig);
                 this.CostIncumbent = cost;
