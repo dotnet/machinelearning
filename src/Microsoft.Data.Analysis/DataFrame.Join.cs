@@ -403,16 +403,19 @@ namespace Microsoft.Data.Analysis
 
             DataFrame ret = new DataFrame();
 
+            PrimitiveDataFrameColumn<long> mapIndicesLeft = isLeftDataFrameRetained ? retainedRowIndices : supplementaryRowIndices;
+            PrimitiveDataFrameColumn<long> mapIndicesRight = isLeftDataFrameRetained ? supplementaryRowIndices : retainedRowIndices;
+
             // Insert columns from left dataframe (this)
             for (var i = 0; i < this.Columns.Count; i++)
             {
-                ret.Columns.Insert(i, this.Columns[i].Clone(isLeftDataFrameRetained ? retainedRowIndices : supplementaryRowIndices));
+                ret.Columns.Insert(i, this.Columns[i].Clone(mapIndicesLeft));
             }
 
             // Insert columns from right dataframe (other)
             for (var i = 0; i < other.Columns.Count; i++)
             {
-                DataFrameColumn column = other.Columns[i].Clone(isLeftDataFrameRetained ? supplementaryRowIndices : retainedRowIndices);
+                DataFrameColumn column = other.Columns[i].Clone(mapIndicesRight);
 
                 SetSuffixForDuplicatedColumnNames(ret, column, leftSuffix, rightSuffix);
                 ret.Columns.Insert(ret.Columns.Count, column);
