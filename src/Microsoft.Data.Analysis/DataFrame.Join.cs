@@ -199,7 +199,7 @@ namespace Microsoft.Data.Analysis
             Dictionary<long, ICollection<long>> occurrences = null;
             Dictionary<long, long> retainedIndicesReverseMapping = null;
 
-            for (var colNameIndex = 0; colNameIndex < retainedJoinColumnNames.Length; colNameIndex++)
+            for (int colNameIndex = 0; colNameIndex < retainedJoinColumnNames.Length; colNameIndex++)
             {
                 DataFrameColumn shrinkedRetainedColumn = retainedDataFrame.Columns[retainedJoinColumnNames[colNameIndex]];
 
@@ -212,7 +212,7 @@ namespace Microsoft.Data.Analysis
                     // Create reverse mapping of index of the row in the shrinked column to the index of this row in the original dataframe (new index -> original index)
                     var newRetainedIndicesReverseMapping = new Dictionary<long, long>(shrinkedRetainedIndices.Length);
 
-                    for (var i = 0; i < shrinkedRetainedIndices.Length; i++)
+                    for (int i = 0; i < shrinkedRetainedIndices.Length; i++)
                     {
                         // Store reverse mapping to restore original dataframe indices from indices in shrinked row
                         var originalIndex = shrinkedRetainedIndices[i];
@@ -232,7 +232,7 @@ namespace Microsoft.Data.Analysis
 
                 // Convert indices from in key from local (shrinked row) to indices in original dataframe
                 if (retainedIndicesReverseMapping != null)
-                    newOccurrences = newOccurrences.ToDictionary(x => retainedIndicesReverseMapping[x.Key], x => x.Value);
+                    newOccurrences = newOccurrences.ToDictionary(kvp => retainedIndicesReverseMapping[kvp.Key], kvp => kvp.Value);
 
                 supplementaryJoinColumnsNullIndices.UnionWith(supplementaryColumnNullIndices);
 
@@ -284,7 +284,7 @@ namespace Microsoft.Data.Analysis
 
             var retainJoinColumns = retainedJoinColumnNames.Select(name => retainedDataFrame.Columns[name]).ToArray();
 
-            for (var i = 0; i < retainedDataFrame.Columns.RowCount; i++)
+            for (long i = 0; i < retainedDataFrame.Columns.RowCount; i++)
             {
                 if (!IsAnyNullValueInColumns(retainJoinColumns, i))
                 {
@@ -407,13 +407,13 @@ namespace Microsoft.Data.Analysis
             PrimitiveDataFrameColumn<long> mapIndicesRight = isLeftDataFrameRetained ? supplementaryRowIndices : retainedRowIndices;
 
             // Insert columns from left dataframe (this)
-            for (var i = 0; i < this.Columns.Count; i++)
+            for (int i = 0; i < this.Columns.Count; i++)
             {
                 ret.Columns.Insert(i, this.Columns[i].Clone(mapIndicesLeft));
             }
 
             // Insert columns from right dataframe (other)
-            for (var i = 0; i < other.Columns.Count; i++)
+            for (int i = 0; i < other.Columns.Count; i++)
             {
                 DataFrameColumn column = other.Columns[i].Clone(mapIndicesRight);
 
