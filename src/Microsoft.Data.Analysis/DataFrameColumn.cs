@@ -207,7 +207,7 @@ namespace Microsoft.Data.Analysis
         /// Groups the rows of this column by their value.
         /// </summary>
         /// <typeparam name="TKey">The type of data held by this column</typeparam>
-        /// <returns>A mapping of value(<typeparamref name="TKey"/>) to the indices containing this value</returns>
+        /// <returns>A mapping of value(<typeparamref name="TKey"/>) to the indices containing this value. Should be sorted collection.</returns>
         public virtual Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>(out HashSet<long> nullIndices) => throw new NotImplementedException();
 
         /// <summary>

@@ -117,6 +117,8 @@ namespace Microsoft.ML.Tests
 
         public OnnxTransformTests(ITestOutputHelper output) : base(output)
         {
+            ML.GpuDeviceId = _gpuDeviceId;
+            ML.FallbackToCpu = _fallbackToCpu;
         }
 
         [OnnxTheory]
