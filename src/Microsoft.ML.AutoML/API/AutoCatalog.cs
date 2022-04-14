@@ -421,7 +421,7 @@ namespace Microsoft.ML.AutoML
                 fastTreeOption.LabelColumnName = labelColumnName;
                 fastTreeOption.FeatureColumnName = featureColumnName;
                 fastTreeOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateFastTreeRegression(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
+                res.Add(SweepableEstimatorFactory.CreateFastTreeRegression(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>(fastTreeOption)));
             }
 
             if (useFastForest)
