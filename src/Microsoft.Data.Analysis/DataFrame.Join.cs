@@ -188,7 +188,7 @@ namespace Microsoft.Data.Analysis
 
             bool isLeftDataFrameRetained = IsLeftDataFrameRetained(retainedDataFrame, supplementaryDataFrame, joinAlgorithm);
 
-            return PerformMerging(retainedDataFrame, isLeftDataFrameRetained, retainedJoinColumnNames, occurrences, supplementaryJoinColumnsNullIndices,
+            return PerformMerging(retainedDataFrame, retainedJoinColumnNames, isLeftDataFrameRetained, occurrences, supplementaryJoinColumnsNullIndices,
                 out retainedRowIndices, out supplementaryRowIndices, isInner, calculateIntersection, canAcceptRow);
         }
 
@@ -275,8 +275,8 @@ namespace Microsoft.Data.Analysis
             return shrinkedOccurences;
         }
 
-        private static HashSet<long> PerformMerging(DataFrame retainedDataFrame, bool isLeftDataFrameRetained,
-            string[] retainedJoinColumnNames, Dictionary<long, ICollection<long>> occurrences, HashSet<long> supplementaryJoinColumnsNullIndices,
+        private static HashSet<long> PerformMerging(DataFrame retainedDataFrame, string[] retainedJoinColumnNames, bool isLeftDataFrameRetained,
+            Dictionary<long, ICollection<long>> occurrences, HashSet<long> supplementaryJoinColumnsNullIndices,
             out PrimitiveDataFrameColumn<long> retainedRowIndices, out PrimitiveDataFrameColumn<long> supplementaryRowIndices,
             bool isInner, bool calculateIntersection,
             Func<long?, long?, bool> canAcceptRow = null)
@@ -338,7 +338,7 @@ namespace Microsoft.Data.Analysis
                         long? leftDataFrameIndex = isLeftDataFrameRetained ? i : row;
                         long? rightDataFrameIndex = isLeftDataFrameRetained ? row : i;
 
-                        if (canAcceptRow != null || canAcceptRow(leftDataFrameIndex, rightDataFrameIndex))
+                        if (canAcceptRow == null || canAcceptRow(leftDataFrameIndex, rightDataFrameIndex))
                         {
                             retainedRowIndices.Append(i);
                             supplementaryRowIndices.Append(row);
