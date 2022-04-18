@@ -38,7 +38,7 @@
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
-    <ApprovalTestVersion>5.2.4</ApprovalTestVersion>
+    <ApprovalTestVersion>5.4.7</ApprovalTestVersion>
     <!-- Build/infrastructure Dependencies -->
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
     <CodecovVersion>1.12.4</CodecovVersion>
