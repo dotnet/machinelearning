@@ -34,6 +34,10 @@
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <ProjectReference Include="..\..\src\Microsoft.ML.TorchSharp\Microsoft.ML.TorchSharp.csproj" />
+  </ItemGroup>
+
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />

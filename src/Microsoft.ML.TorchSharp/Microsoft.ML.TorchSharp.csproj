@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
+    <PackageReference Include="libtorch-cuda-11.3-win-x64" Version="1.10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+  </ItemGroup>
+
+</Project>
