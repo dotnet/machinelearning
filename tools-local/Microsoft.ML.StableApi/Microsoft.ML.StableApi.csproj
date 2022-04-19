@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.ML.TensorFlow" Version="1.7.0" />
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.7.0" />
     <PackageReference Include="Microsoft.ML.Vision" Version="1.7.0" />
-    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
+    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufVersion)" />
   </ItemGroup>
 
   <!-- The purpose of this target is to return a path from a referenced
