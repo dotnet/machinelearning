@@ -215,6 +215,13 @@ namespace Microsoft.ML.Transforms.Onnx
                 RecursionLimit = recursionLimit
             };
 
+            IHostEnvironmentInternal localEnvironment = env as IHostEnvironmentInternal;
+            if (localEnvironment is not null)
+            {
+                options.GpuDeviceId = localEnvironment.GpuDeviceId;
+                options.FallbackToCpu = localEnvironment.FallbackToCpu;
+            }
+
             return new OnnxTransformer(env, options, modelBytes);
         }
 

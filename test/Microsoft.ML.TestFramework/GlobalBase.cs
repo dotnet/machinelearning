@@ -76,7 +76,9 @@ namespace Microsoft.ML.Internal.Internallearn.Test
             }
             else
 #endif
+            {
                 Assert.True(false, $"Assert failed: {msg}");
+            }
         }
 
         public static void AssertHandlerTest()

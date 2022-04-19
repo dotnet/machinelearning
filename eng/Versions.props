@@ -90,8 +90,8 @@
     <MoqVersion>4.8.3</MoqVersion>
     <MonoOptionsVersion>5.3.0.1</MonoOptionsVersion>
     <McMasterExtensionsCommandLineUtils>2.3.0</McMasterExtensionsCommandLineUtils>
-    <NewtonsoftJsonVersion>9.0.1</NewtonsoftJsonVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>6.0.0</MicrosoftExtensionsDependencyInjectionVersion>
+    <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
     <SystemTextJsonVersion>6.0.1</SystemTextJsonVersion>
     <NuGetVersioningVersion>4.4.0</NuGetVersioningVersion>
     <NuGetVersion>5.6.0-preview.2.6489</NuGetVersion>
@@ -116,8 +116,8 @@
     <XUnitVersion>2.4.0</XUnitVersion>
     <XUnitAbstractionsVersion>2.0.3</XUnitAbstractionsVersion>
     <XUnitVSRunnerVersion>2.4.0</XUnitVSRunnerVersion>
-    <MicrosoftDotNetBuildTasksFeedVersion>7.0.0-beta.22168.2</MicrosoftDotNetBuildTasksFeedVersion>
-    <MicrosoftDotNetSignToolVersion>7.0.0-beta.22168.2</MicrosoftDotNetSignToolVersion>
+    <MicrosoftDotNetBuildTasksFeedVersion>7.0.0-beta.22206.10</MicrosoftDotNetBuildTasksFeedVersion>
+    <MicrosoftDotNetSignToolVersion>7.0.0-beta.22206.10</MicrosoftDotNetSignToolVersion>
     <MicrosoftAzureDocumentDBVersion>1.22.0</MicrosoftAzureDocumentDBVersion>
     <MicrosoftAzureCosmosDBTableVersion>1.1.2</MicrosoftAzureCosmosDBTableVersion>
     <MicrosoftAspNetCoreAllVersion>2.0.0</MicrosoftAspNetCoreAllVersion>
@@ -130,7 +130,7 @@
     <MicrosoftDotNetMaestroClientVersion>1.1.0-beta.20074.1</MicrosoftDotNetMaestroClientVersion>
     <MicrosoftSourceLinkGitHubVersion>1.1.0-beta-20464-02</MicrosoftSourceLinkGitHubVersion>
     <MicrosoftSourceLinkAzureReposGitVersion>1.1.0-beta-20464-02</MicrosoftSourceLinkAzureReposGitVersion>
-    <MicrosoftDotNetSwaggerGeneratorMSBuildVersion>7.0.0-beta.22168.2</MicrosoftDotNetSwaggerGeneratorMSBuildVersion>
+    <MicrosoftDotNetSwaggerGeneratorMSBuildVersion>7.0.0-beta.22206.10</MicrosoftDotNetSwaggerGeneratorMSBuildVersion>
     <MicrosoftDotNetXliffTasksVersion>1.0.0-beta.21376.1</MicrosoftDotNetXliffTasksVersion>
     <MicrosoftDotNetMaestroTasksVersion>1.1.0-beta.20074.1</MicrosoftDotNetMaestroTasksVersion>
     <MicrosoftDotNetXHarnessCLIVersion>1.0.0-prerelease.21254.2</MicrosoftDotNetXHarnessCLIVersion>
