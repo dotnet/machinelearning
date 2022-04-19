@@ -58,6 +58,7 @@
     <SystemDataSqlClientVersion>4.6.1</SystemDataSqlClientVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
     <SystemDataSQLiteCoreVersion>1.0.112.2</SystemDataSQLiteCoreVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.22215.2</MicrosoftDotNetXUnitExtensionsVersion>
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
     <UsingToolNetFrameworkReferenceAssemblies Condition="'$(DotNetBuildFromSource)' != 'true'">true</UsingToolNetFrameworkReferenceAssemblies>
@@ -112,9 +113,7 @@
     <SystemThreadingTasksExtensionVersion>4.5.2</SystemThreadingTasksExtensionVersion>
     <SystemValueTupleVersion>4.4.0</SystemValueTupleVersion>
     <WindowsAzureStorageVersion>8.5.0</WindowsAzureStorageVersion>
-    <XUnitVersion>2.4.0</XUnitVersion>
-    <XUnitAbstractionsVersion>2.0.3</XUnitAbstractionsVersion>
-    <XUnitVSRunnerVersion>2.4.0</XUnitVSRunnerVersion>
+    <XUnitVersion>2.4.2-pre.9</XUnitVersion>
     <MicrosoftDotNetBuildTasksFeedVersion>7.0.0-beta.22215.2</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftDotNetSignToolVersion>7.0.0-beta.22215.2</MicrosoftDotNetSignToolVersion>
     <MicrosoftAzureDocumentDBVersion>1.22.0</MicrosoftAzureDocumentDBVersion>
