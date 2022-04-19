@@ -41,6 +41,8 @@ namespace Microsoft.ML.AutoML
 
         public PipelineProposer(AutoMLExperimentSettings settings)
         {
+            // this cost is used to initialize eci when started, the smaller the number, the less cost this trainer will use at start, and more likely it will be
+            // picked.
             this._estimatorCost = new Dictionary<EstimatorType, double>()
             {
                 { EstimatorType.LightGbmRegression, 0.788 },
