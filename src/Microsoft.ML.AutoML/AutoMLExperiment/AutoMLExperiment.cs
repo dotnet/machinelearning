@@ -209,32 +209,46 @@ namespace Microsoft.ML.AutoML
 
             while (true)
             {
-                if (ct.IsCancellationRequested)
+                try
                 {
-                    break;
+                    if (ct.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    var setting = new TrialSettings()
+                    {
+                        ExperimentSettings = this._settings,
+                        TrialId = trialNum++,
+                    };
+
+                    setting = pipelineProposer.Propose(setting);
+                    setting = hyperParameterProposer.Propose(setting);
+                    monitor.ReportRunningTrial(setting);
+                    var runner = runnerFactory.CreateTrialRunner(setting);
+                    var trialResult = runner.Run(setting);
+                    monitor.ReportCompletedTrial(trialResult);
+                    hyperParameterProposer.Update(setting, trialResult);
+                    pipelineProposer.Update(setting, trialResult);
+
+                    var error = this._settings.EvaluateMetric.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
+                    if (error < this._bestError)
+                    {
+                        this._bestTrialResult = trialResult;
+                        this._bestError = error;
+                        monitor.ReportBestTrial(trialResult);
+                    }
                 }
-
-                var setting = new TrialSettings()
+                catch (Exception)
                 {
-                    ExperimentSettings = this._settings,
-                    TrialId = trialNum++,
-                };
-
-                setting = pipelineProposer.Propose(setting);
-                setting = hyperParameterProposer.Propose(setting);
-                monitor.ReportRunningTrial(setting);
-                var runner = runnerFactory.CreateTrialRunner(setting);
-                var trialResult = runner.Run(setting);
-                monitor.ReportCompletedTrial(trialResult);
-                hyperParameterProposer.Update(setting, trialResult);
-                pipelineProposer.Update(setting, trialResult);
-
-                var error = this._settings.EvaluateMetric.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
-                if (error < this._bestError)
-                {
-                    this._bestTrialResult = trialResult;
-                    this._bestError = error;
-                    monitor.ReportBestTrial(trialResult);
+                    if (ct.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
 
