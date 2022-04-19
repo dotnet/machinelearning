@@ -7,6 +7,7 @@
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'arm64'">net6.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(TestTargetFramework)' != ''">$(TestTargetFramework)</TargetFrameworks>
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461'">win-x64</RuntimeIdentifier>
+    <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateDependencyFile>true</GenerateDependencyFile>
