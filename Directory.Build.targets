@@ -3,7 +3,7 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <ItemGroup Condition="'$(IsUnitTestProject)' == 'true'">
-    <PackageReference Include="coverlet.msbuild" Version="2.9.0" PrivateAssets="all" />
+    <PackageReference Include="coverlet.msbuild" Version="$(CoverletMsbuildVersion)" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="SetCopyProperties">

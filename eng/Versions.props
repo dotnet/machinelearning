@@ -14,6 +14,7 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
 
     <!-- .NET Runtime product dependencies -->
+    <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
     <MicrosoftExtensionsVersion>2.1.0</MicrosoftExtensionsVersion>
     <SystemBuffersVersion>4.5.0</SystemBuffersVersion>
     <SystemCodeDomVersion>4.5.0</SystemCodeDomVersion>
@@ -22,9 +23,10 @@
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemMemoryVersion>4.5.3</SystemMemoryVersion>
     <SystemReflectionEmitLightweightVersion>4.3.0</SystemReflectionEmitLightweightVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>4.7.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
-    <SystemTextEncodingVersion>4.3.0</SystemTextEncodingVersion>
+    <SystemTextEncodingsWebVersion>6.0.0</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>6.0.1</SystemTextJsonVersion>
     <SystemThreadingChannelsVersion>4.7.1</SystemThreadingChannelsVersion>
 
@@ -32,13 +34,18 @@
     <ApacheArrowVersion>2.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.4</GoogleProtobufVersion>
     <LightGBMVersion>2.3.1</LightGBMVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.22103.1</MicrosoftDotNetInteractiveFormattingVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.22103.1</MicrosoftDotNetInteractiveVersion>
+    <MicrosoftMLFeaturizersVersion>0.4.1</MicrosoftMLFeaturizersVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.10.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
+    <MSTestTestAdapterVersion>2.1.0</MSTestTestAdapterVersion>
+    <MSTestTestFrameworkVersion>2.1.0</MSTestTestFrameworkVersion>
     <NewtonsoftJsonVersion>10.0.3</NewtonsoftJsonVersion>
     <ParquetDotNetVersion>2.1.3</ParquetDotNetVersion>
+    <SharpZipLibVersion>1.3.3</SharpZipLibVersion>
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
@@ -46,6 +53,7 @@
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>1.2.1</CoverletCollectorVersion>
+    <CoverletMsbuildVersion>2.9.0</CoverletMsbuildVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <MicrosoftDotNetApiCompatVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatVersion>
@@ -55,7 +63,7 @@
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
 
     <!-- Test-only Dependencies -->
-    <ApprovalTestVersion>5.4.7</ApprovalTestVersion>
+    <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
     <DotNetRuntime21Version>2.1.0</DotNetRuntime21Version>
     <DotNetRuntime31Version>3.1.0</DotNetRuntime31Version>
