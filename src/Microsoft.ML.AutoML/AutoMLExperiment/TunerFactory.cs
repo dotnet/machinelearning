@@ -15,11 +15,11 @@ namespace Microsoft.ML.AutoML
         ITuner CreateTuner(TrialSettings settings);
     }
 
-    internal class CfoTunerFactory : ITunerFactory
+    internal class CostFrugalTunerFactory : ITunerFactory
     {
         private readonly IServiceProvider _provider;
 
-        public CfoTunerFactory(IServiceProvider provider)
+        public CostFrugalTunerFactory(IServiceProvider provider)
         {
             this._provider = provider;
         }

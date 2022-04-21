@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML
             this._serviceCollection.TryAddSingleton(this._settings);
             this._serviceCollection.TryAddSingleton<IMonitor, MLContextMonitor>();
             this._serviceCollection.TryAddSingleton<ITrialRunnerFactory, TrialRunnerFactory>();
-            this._serviceCollection.TryAddSingleton<ITunerFactory, CfoTunerFactory>();
+            this._serviceCollection.TryAddSingleton<ITunerFactory, CostFrugalTunerFactory>();
             this._serviceCollection.TryAddTransient<BinaryClassificationCVRunner>();
             this._serviceCollection.TryAddTransient<BinaryClassificationTrainTestRunner>();
             this._serviceCollection.TryAddTransient<RegressionTrainTestRunner>();
