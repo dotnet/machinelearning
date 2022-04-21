@@ -14,21 +14,22 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <!-- .NET Runtime product dependencies -->
     <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
-    <MicrosoftExtensionsVersion>2.1.0</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsVersion>6.0.0</MicrosoftExtensionsVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>6.0.0</MicrosoftExtensionsDependencyInjectionVersion>
-    <SystemBuffersVersion>4.5.0</SystemBuffersVersion>
-    <SystemCodeDomVersion>4.5.0</SystemCodeDomVersion>
-    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
-    <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
-    <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
-    <SystemMemoryVersion>4.5.3</SystemMemoryVersion>
-    <SystemReflectionEmitLightweightVersion>4.3.0</SystemReflectionEmitLightweightVersion>
-    <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
+    <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
+    <SystemCodeDomVersion>6.0.0</SystemCodeDomVersion>
+    <SystemCollectionsImmutableVersion>6.0.0</SystemCollectionsImmutableVersion>
+    <SystemDrawingCommonVersion>5.0.3</SystemDrawingCommonVersion>
+    <SystemIOFileSystemAccessControlVersion>5.0.0</SystemIOFileSystemAccessControlVersion>
+    <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
+    <SystemReflectionEmitLightweightVersion>4.7.0</SystemReflectionEmitLightweightVersion>
+    <SystemReflectionEmitVersion>4.7.0</SystemReflectionEmitVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
-    <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
+    <SystemSecurityPrincipalWindowsVersion>5.0.0</SystemSecurityPrincipalWindowsVersion>
     <SystemTextEncodingsWebVersion>6.0.0</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>6.0.1</SystemTextJsonVersion>
-    <SystemThreadingChannelsVersion>4.7.1</SystemThreadingChannelsVersion>
+    <SystemThreadingChannelsVersion>6.0.0</SystemThreadingChannelsVersion>
+
     <!-- Other product dependencies -->
     <ApacheArrowVersion>2.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.4</GoogleProtobufVersion>
@@ -56,12 +57,13 @@
     <CoverletCollectorVersion>3.1.2</CoverletCollectorVersion>
     <CoverletMsbuildVersion>3.1.2</CoverletMsbuildVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
-    <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
+    <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <MicrosoftDotNetApiCompatVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatVersion>
     <MicrosoftSourceLinkVersion>1.1.0-beta-20206-02</MicrosoftSourceLinkVersion>
     <MicrosoftSymbolUploaderBuildTaskVersion>1.1.225302</MicrosoftSymbolUploaderBuildTaskVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
-    <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
+    <SystemCompositionVersion>6.0.0</SystemCompositionVersion>
+
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
@@ -69,14 +71,15 @@
     <DotNetRuntime31Version>3.1.0</DotNetRuntime31Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20374.2</MicrosoftCodeAnalysisTestingVersion>
-    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.22327.2</MicrosoftDotNetXUnitExtensionsVersion>
-    <MicrosoftExtensionsDependencyModelVersion>2.1.0</MicrosoftExtensionsDependencyModelVersion>
-    <MicrosoftExtensionsTestVersion>3.0.1</MicrosoftExtensionsTestVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.22215.2</MicrosoftDotNetXUnitExtensionsVersion>
+    <MicrosoftExtensionsDependencyModelVersion>6.0.0</MicrosoftExtensionsDependencyModelVersion>
+    <MicrosoftExtensionsTestVersion>6.0.0</MicrosoftExtensionsTestVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
     <MicrosoftMLTestModelsVersion>0.0.7-test</MicrosoftMLTestModelsVersion>
-    <SystemDataSqlClientVersion>4.6.1</SystemDataSqlClientVersion>
+    <MicrosoftDotNetPlatformAbstractionsVersion>3.1.6</MicrosoftDotNetPlatformAbstractionsVersion>
+    <SystemDataSqlClientVersion>4.8.3</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.112.2</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
     <XUnitVersion>2.4.2-pre.9</XUnitVersion>
