@@ -39,6 +39,14 @@ namespace Microsoft.ML.AutoML
             return multiModelPipeline;
         }
 
+        public static MultiModelPipeline Append(this MultiModelPipeline pipeline, IEstimator<ITransformer> estimator)
+        {
+            var sweepableEstimator = new SweepableEstimator((context, parameter) => estimator, new SearchSpace.SearchSpace());
+            var multiModelPipeline = pipeline.Append(sweepableEstimator);
+
+            return multiModelPipeline;
+        }
+
         public static MultiModelPipeline Append(this SweepableEstimatorPipeline pipeline, params SweepableEstimator[] estimators)
         {
             var multiModelPipeline = new MultiModelPipeline();
