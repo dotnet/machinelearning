@@ -294,6 +294,11 @@ namespace Microsoft.ML.AutoML
             return new SweepableEstimator((MLContext context, Parameter param) => factory(context, param.AsType<T>()), ss);
         }
 
+        internal AutoMLExperiment CreateExperiment()
+        {
+            return new AutoMLExperiment(this._context, new AutoMLExperiment.AutoMLExperimentSettings());
+        }
+
         internal SweepableEstimator[] BinaryClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
             FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
@@ -306,7 +311,7 @@ namespace Microsoft.ML.AutoML
                 fastTreeOption.LabelColumnName = labelColumnName;
                 fastTreeOption.FeatureColumnName = featureColumnName;
                 fastTreeOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateFastTreeBinary(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
+                res.Add(SweepableEstimatorFactory.CreateFastTreeBinary(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>(fastTreeOption)));
             }
 
             if (useFastForest)
@@ -315,7 +320,7 @@ namespace Microsoft.ML.AutoML
                 fastForestOption.LabelColumnName = labelColumnName;
                 fastForestOption.FeatureColumnName = featureColumnName;
                 fastForestOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateFastForestBinary(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>()));
+                res.Add(SweepableEstimatorFactory.CreateFastForestBinary(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>(fastForestOption)));
             }
 
             if (useLgbm)
@@ -324,7 +329,7 @@ namespace Microsoft.ML.AutoML
                 lgbmOption.LabelColumnName = labelColumnName;
                 lgbmOption.FeatureColumnName = featureColumnName;
                 lgbmOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLightGbmBinary(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>()));
+                res.Add(SweepableEstimatorFactory.CreateLightGbmBinary(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>(lgbmOption)));
             }
 
             if (useLbfgs)
@@ -333,7 +338,7 @@ namespace Microsoft.ML.AutoML
                 lbfgsOption.LabelColumnName = labelColumnName;
                 lbfgsOption.FeatureColumnName = featureColumnName;
                 lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionBinary(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>()));
+                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionBinary(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsOption)));
             }
 
             if (useSdca)
@@ -342,7 +347,7 @@ namespace Microsoft.ML.AutoML
                 sdcaOption.LabelColumnName = labelColumnName;
                 sdcaOption.FeatureColumnName = featureColumnName;
                 sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionBinary(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>()));
+                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionBinary(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
             }
 
             return res.ToArray();
@@ -360,7 +365,7 @@ namespace Microsoft.ML.AutoML
                 fastTreeOption.LabelColumnName = labelColumnName;
                 fastTreeOption.FeatureColumnName = featureColumnName;
                 fastTreeOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateFastTreeOva(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
+                res.Add(SweepableEstimatorFactory.CreateFastTreeOva(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>(fastTreeOption)));
             }
 
             if (useFastForest)
@@ -369,7 +374,7 @@ namespace Microsoft.ML.AutoML
                 fastForestOption.LabelColumnName = labelColumnName;
                 fastForestOption.FeatureColumnName = featureColumnName;
                 fastForestOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateFastForestOva(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>()));
+                res.Add(SweepableEstimatorFactory.CreateFastForestOva(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>(fastForestOption)));
             }
 
             if (useLgbm)
@@ -378,7 +383,7 @@ namespace Microsoft.ML.AutoML
                 lgbmOption.LabelColumnName = labelColumnName;
                 lgbmOption.FeatureColumnName = featureColumnName;
                 lgbmOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLightGbmMulti(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>()));
+                res.Add(SweepableEstimatorFactory.CreateLightGbmMulti(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>(lgbmOption)));
             }
 
             if (useLbfgs)
@@ -387,8 +392,8 @@ namespace Microsoft.ML.AutoML
                 lbfgsOption.LabelColumnName = labelColumnName;
                 lbfgsOption.FeatureColumnName = featureColumnName;
                 lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionOva(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>()));
-                res.Add(SweepableEstimatorFactory.CreateLbfgsMaximumEntropyMulti(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>()));
+                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionOva(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsOption)));
+                res.Add(SweepableEstimatorFactory.CreateLbfgsMaximumEntropyMulti(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsOption)));
             }
 
             if (useSdca)
@@ -397,8 +402,8 @@ namespace Microsoft.ML.AutoML
                 sdcaOption.LabelColumnName = labelColumnName;
                 sdcaOption.FeatureColumnName = featureColumnName;
                 sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateSdcaMaximumEntropyMulti(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>()));
-                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionOva(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>()));
+                res.Add(SweepableEstimatorFactory.CreateSdcaMaximumEntropyMulti(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
+                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionOva(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
             }
 
             return res.ToArray();
@@ -416,8 +421,7 @@ namespace Microsoft.ML.AutoML
                 fastTreeOption.LabelColumnName = labelColumnName;
                 fastTreeOption.FeatureColumnName = featureColumnName;
                 fastTreeOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateFastTreeRegression(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
-                res.Add(SweepableEstimatorFactory.CreateFastTreeTweedieRegression(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>()));
+                res.Add(SweepableEstimatorFactory.CreateFastTreeRegression(fastTreeOption, fastTreeSearchSpace ?? new SearchSpace<FastTreeOption>(fastTreeOption)));
             }
 
             if (useFastForest)
@@ -426,7 +430,7 @@ namespace Microsoft.ML.AutoML
                 fastForestOption.LabelColumnName = labelColumnName;
                 fastForestOption.FeatureColumnName = featureColumnName;
                 fastForestOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateFastForestRegression(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>()));
+                res.Add(SweepableEstimatorFactory.CreateFastForestRegression(fastForestOption, fastForestSearchSpace ?? new SearchSpace<FastForestOption>(fastForestOption)));
             }
 
             if (useLgbm)
@@ -435,7 +439,7 @@ namespace Microsoft.ML.AutoML
                 lgbmOption.LabelColumnName = labelColumnName;
                 lgbmOption.FeatureColumnName = featureColumnName;
                 lgbmOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLightGbmRegression(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>()));
+                res.Add(SweepableEstimatorFactory.CreateLightGbmRegression(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>(lgbmOption)));
             }
 
             if (useLbfgs)
@@ -444,7 +448,7 @@ namespace Microsoft.ML.AutoML
                 lbfgsOption.LabelColumnName = labelColumnName;
                 lbfgsOption.FeatureColumnName = featureColumnName;
                 lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLbfgsPoissonRegressionRegression(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>()));
+                res.Add(SweepableEstimatorFactory.CreateLbfgsPoissonRegressionRegression(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsOption)));
             }
 
             if (useSdca)
@@ -453,7 +457,7 @@ namespace Microsoft.ML.AutoML
                 sdcaOption.LabelColumnName = labelColumnName;
                 sdcaOption.FeatureColumnName = featureColumnName;
                 sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateSdcaRegression(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>()));
+                res.Add(SweepableEstimatorFactory.CreateSdcaRegression(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
             }
 
             return res.ToArray();
