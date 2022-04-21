@@ -1,10 +1,12 @@
 ﻿// Taken from https://raw.githubusercontent.com/mellinoe/nativelibraryloader/586f9738ff12688df8f0662027da8c319aee3841/NativeLibraryLoader/PathResolver.cs
-using Microsoft.DotNet.PlatformAbstractions;
-using Microsoft.Extensions.DependencyModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
+#if NETCOREAPP
+using System.Runtime.Loader;
+#endif
 
 namespace Microsoft.ML.TestFrameworkCommon.Utility
 {
@@ -34,6 +36,20 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
     /// </summary>
     public class DefaultPathResolver : PathResolver
     {
+#if NETCOREAPP
+        private AssemblyDependencyResolver _dependencyResolver = null;
+
+        public DefaultPathResolver()
+        {
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+
+            if (entryAssembly != null && entryAssembly.Location != null)
+            {
+                _dependencyResolver = new AssemblyDependencyResolver(entryAssembly.Location);
+            }
+        }
+#endif
+
         /// <summary>
         /// Returns an enumerator which yields possible library load targets, in priority order.
         /// </summary>
@@ -46,105 +62,13 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
                 yield return Path.Combine(AppContext.BaseDirectory, name);
             }
             yield return name;
-            if (TryLocateNativeAssetFromDeps(name, out string appLocalNativePath, out string depsResolvedPath))
+
+#if NETCOREAPP
+            if (_dependencyResolver != null)
             {
-                yield return appLocalNativePath;
-                yield return depsResolvedPath;
+                yield return _dependencyResolver.ResolveUnmanagedDllToPath(name);
             }
-        }
-
-        private bool TryLocateNativeAssetFromDeps(string name, out string appLocalNativePath, out string depsResolvedPath)
-        {
-            DependencyContext defaultContext = DependencyContext.Default;
-            if (defaultContext == null)
-            {
-                appLocalNativePath = null;
-                depsResolvedPath = null;
-                return false;
-            }
-
-#pragma warning disable MSML_ParameterLocalVarName // Parameter or local variable name not standard
-            string currentRID = DotNet.PlatformAbstractions.RuntimeEnvironment.GetRuntimeIdentifier();
-#pragma warning restore MSML_ParameterLocalVarName // Parameter or local variable name not standard
-
-            List<string> allRIDs = new List<string>();
-            allRIDs.Add(currentRID);
-            if (!AddFallbacks(allRIDs, currentRID, defaultContext.RuntimeGraph))
-            {
-#pragma warning disable MSML_ParameterLocalVarName // Parameter or local variable name not standard
-                string guessedFallbackRID = GuessFallbackRID(currentRID);
-#pragma warning restore MSML_ParameterLocalVarName // Parameter or local variable name not standard
-
-                if (guessedFallbackRID != null)
-                {
-                    allRIDs.Add(guessedFallbackRID);
-                    AddFallbacks(allRIDs, guessedFallbackRID, defaultContext.RuntimeGraph);
-                }
-            }
-
-            foreach (string rid in allRIDs)
-            {
-                foreach (var runtimeLib in defaultContext.RuntimeLibraries)
-                {
-                    foreach (var nativeAsset in runtimeLib.GetRuntimeNativeAssets(defaultContext, rid))
-                    {
-                        if (Path.GetFileName(nativeAsset) == name || Path.GetFileNameWithoutExtension(nativeAsset) == name)
-                        {
-                            appLocalNativePath = Path.Combine(
-                                AppContext.BaseDirectory,
-                                nativeAsset);
-                            appLocalNativePath = Path.GetFullPath(appLocalNativePath);
-
-                            depsResolvedPath = Path.Combine(
-                                GetNugetPackagesRootDirectory(),
-                                runtimeLib.Name.ToLowerInvariant(),
-                                runtimeLib.Version,
-                                nativeAsset);
-                            depsResolvedPath = Path.GetFullPath(depsResolvedPath);
-
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            appLocalNativePath = null;
-            depsResolvedPath = null;
-            return false;
-        }
-
-        private string GuessFallbackRID(string actualRuntimeIdentifier)
-        {
-            if (actualRuntimeIdentifier == "osx.10.13-x64")
-            {
-                return "osx.10.12-x64";
-            }
-            else if (actualRuntimeIdentifier.StartsWith("osx"))
-            {
-                return "osx-x64";
-            }
-
-            return null;
-        }
-
-        private bool AddFallbacks(List<string> fallbacks, string rid, IReadOnlyList<RuntimeFallbacks> allFallbacks)
-        {
-            foreach (RuntimeFallbacks fb in allFallbacks)
-            {
-                if (fb.Runtime == rid)
-                {
-                    fallbacks.AddRange(fb.Fallbacks);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private string GetNugetPackagesRootDirectory()
-        {
-            // TODO: Handle alternative package directories, if they are configured.
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+#endif
         }
     }
 }

@@ -72,13 +72,11 @@
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20374.2</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.22215.2</MicrosoftDotNetXUnitExtensionsVersion>
-    <MicrosoftExtensionsDependencyModelVersion>6.0.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsTestVersion>6.0.0</MicrosoftExtensionsTestVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
     <MicrosoftMLTestModelsVersion>0.0.7-test</MicrosoftMLTestModelsVersion>
-    <MicrosoftDotNetPlatformAbstractionsVersion>3.1.6</MicrosoftDotNetPlatformAbstractionsVersion>
     <SystemDataSqlClientVersion>4.8.3</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.112.2</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
