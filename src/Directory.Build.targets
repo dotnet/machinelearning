@@ -39,7 +39,7 @@
 
   <ItemGroup Condition="'$(RunApiCompat)' == 'true'">
     <PackageReference Include="Microsoft.DotNet.ApiCompat"
-                      Version="$(MicrosoftDotNetApiCompatPackageVersion)"
+                      Version="$(MicrosoftDotNetApiCompatVersion)"
                       PrivateAssets="All" />
   </ItemGroup>
 

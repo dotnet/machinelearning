@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Parquet.Net" Version="$(ParquetDotNetPackageVersion)" />
+    <PackageReference Include="Parquet.Net" Version="$(ParquetDotNetVersion)" />
   </ItemGroup>
 
   <ItemGroup>
