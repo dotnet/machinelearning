@@ -43,7 +43,7 @@ namespace Microsoft.ML.AutoML
         {
             // this cost is used to initialize eci when started, the smaller the number, the less cost this trainer will use at start, and more likely it will be
             // picked.
-            this._estimatorCost = new Dictionary<EstimatorType, double>()
+            _estimatorCost = new Dictionary<EstimatorType, double>()
             {
                 { EstimatorType.LightGbmRegression, 0.788 },
                 { EstimatorType.FastTreeRegression, 0.382 },
@@ -67,31 +67,31 @@ namespace Microsoft.ML.AutoML
                 { EstimatorType.ImageClassificationMulti, 1 },
                 { EstimatorType.MatrixFactorization, 1 },
             };
-            this._rand = new Random(settings.Seed ?? 0);
+            _rand = new Random(settings.Seed ?? 0);
 
-            this._multiModelPipeline = null;
+            _multiModelPipeline = null;
         }
 
         public TrialSettings Propose(TrialSettings settings)
         {
-            this._multiModelPipeline = settings.ExperimentSettings.Pipeline;
-            this._learnerInitialCost = _multiModelPipeline.PipelineIds.ToDictionary(kv => kv, kv => this.GetEstimatedCostForPipeline(kv, this._multiModelPipeline));
-            var pipelineIds = this._multiModelPipeline.PipelineIds;
+            _multiModelPipeline = settings.ExperimentSettings.Pipeline;
+            _learnerInitialCost = _multiModelPipeline.PipelineIds.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _multiModelPipeline));
+            var pipelineIds = _multiModelPipeline.PipelineIds;
 
-            if (this._eci == null)
+            if (_eci == null)
             {
                 // initialize eci with the estimated cost and always start from pipeline which has lowest cost.
-                this._eci = pipelineIds.ToDictionary(kv => kv, kv => this.GetEstimatedCostForPipeline(kv, this._multiModelPipeline));
-                settings.Schema = this._eci.OrderBy(kv => kv.Value).First().Key;
+                _eci = pipelineIds.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _multiModelPipeline));
+                settings.Schema = _eci.OrderBy(kv => kv.Value).First().Key;
             }
             else
             {
-                var probabilities = pipelineIds.Select(id => this._eci[id]).ToArray();
+                var probabilities = pipelineIds.Select(id => _eci[id]).ToArray();
                 probabilities = ArrayMath.Inverse(probabilities);
                 probabilities = ArrayMath.Normalize(probabilities);
 
                 // sample
-                var randdouble = this._rand.NextDouble();
+                var randdouble = _rand.NextDouble();
                 var sum = 0.0;
                 // selected pipeline id index
                 int i;
@@ -108,7 +108,7 @@ namespace Microsoft.ML.AutoML
                 settings.Schema = pipelineIds[i];
             }
 
-            settings.Pipeline = this._multiModelPipeline.BuildSweepableEstimatorPipeline(settings.Schema);
+            settings.Pipeline = _multiModelPipeline.BuildSweepableEstimatorPipeline(settings.Schema);
             return settings;
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.ML.AutoML
         {
             using (var writer = new FileStream(fileName, FileMode.Create))
             {
-                this.SaveStatusToStream(writer);
+                SaveStatusToStream(writer);
             }
         }
 
@@ -124,12 +124,12 @@ namespace Microsoft.ML.AutoML
         {
             var status = new Status()
             {
-                K1 = this._k1,
-                K2 = this._k2,
-                E1 = this._e1,
-                E2 = this._e2,
-                Eci = this._eci,
-                GlobalBestError = this._globalBestError,
+                K1 = _k1,
+                K2 = _k2,
+                E1 = _e1,
+                E2 = _e2,
+                Eci = _eci,
+                GlobalBestError = _globalBestError,
             };
 
             using (var fileWriter = new StreamWriter(stream))
@@ -145,21 +145,21 @@ namespace Microsoft.ML.AutoML
             {
                 var json = File.ReadAllText(fileName);
                 var status = JsonConvert.DeserializeObject<Status>(json);
-                this._k1 = status.K1;
-                this._k2 = status.K2;
-                this._e1 = status.E1;
-                this._e2 = status.E2;
-                this._eci = status.Eci;
-                this._globalBestError = status.GlobalBestError;
+                _k1 = status.K1;
+                _k2 = status.K2;
+                _e1 = status.E1;
+                _e2 = status.E2;
+                _eci = status.Eci;
+                _globalBestError = status.GlobalBestError;
             }
         }
 
         public void Update(TrialSettings parameter, TrialResult result)
         {
             var schema = parameter.Schema;
-            var error = this.CaculateError(result.Metric, result.TrialSettings.ExperimentSettings.EvaluateMetric.IsMaximize);
+            var error = CaculateError(result.Metric, result.TrialSettings.ExperimentSettings.EvaluateMetric.IsMaximize);
             var duration = result.DurationInMilliseconds / 1000;
-            var pipelineIds = this._multiModelPipeline.PipelineIds;
+            var pipelineIds = _multiModelPipeline.PipelineIds;
             var isSuccess = duration != 0;
 
             // if k1 is null, it means this is the first completed trial.
@@ -171,51 +171,51 @@ namespace Microsoft.ML.AutoML
 
             if (isSuccess)
             {
-                if (this._k1 == null)
+                if (_k1 == null)
                 {
-                    this._k1 = pipelineIds.ToDictionary(id => id, id => duration * this._learnerInitialCost[id] / this._learnerInitialCost[schema]);
-                    this._k2 = this._k1.ToDictionary(kv => kv.Key, kv => kv.Value);
-                    this._e1 = pipelineIds.ToDictionary(id => id, id => error);
-                    this._e2 = pipelineIds.ToDictionary(id => id, id => 1.05 * error);
-                    this._globalBestError = error;
+                    _k1 = pipelineIds.ToDictionary(id => id, id => duration * _learnerInitialCost[id] / _learnerInitialCost[schema]);
+                    _k2 = _k1.ToDictionary(kv => kv.Key, kv => kv.Value);
+                    _e1 = pipelineIds.ToDictionary(id => id, id => error);
+                    _e2 = pipelineIds.ToDictionary(id => id, id => 1.05 * error);
+                    _globalBestError = error;
                 }
-                else if (error >= this._e1[schema])
+                else if (error >= _e1[schema])
                 {
                     // if error is larger than current best error, which means there's no improvements for
                     // the last trial with the current learner.
                     // In that case, simply increase the total spent time since the last best error for that learner.
-                    this._k1[schema] += duration;
+                    _k1[schema] += duration;
                 }
                 else
                 {
                     // there's an improvement.
                     // k2 <= k1 && e2 <= e1, and update k1, e2.
-                    this._k2[schema] = this._k1[schema];
-                    this._k1[schema] = duration;
-                    this._e2[schema] = this._e1[schema];
-                    this._e1[schema] = error;
+                    _k2[schema] = _k1[schema];
+                    _k1[schema] = duration;
+                    _e2[schema] = _e1[schema];
+                    _e1[schema] = error;
 
                     // update global best error as well
-                    if (error < this._globalBestError)
+                    if (error < _globalBestError)
                     {
-                        this._globalBestError = error;
+                        _globalBestError = error;
                     }
                 }
 
                 // update eci
-                var eci1 = Math.Max(this._k1[schema], this._k2[schema]);
-                var estimatorCostForBreakThrough = 2 * (error - this._globalBestError) / ((this._e2[schema] - this._e1[schema]) / (this._k2[schema] + this._k1[schema]));
-                this._eci[schema] = Math.Max(eci1, estimatorCostForBreakThrough);
+                var eci1 = Math.Max(_k1[schema], _k2[schema]);
+                var estimatorCostForBreakThrough = 2 * (error - _globalBestError) / ((_e2[schema] - _e1[schema]) / (_k2[schema] + _k1[schema]));
+                _eci[schema] = Math.Max(eci1, estimatorCostForBreakThrough);
             }
             else
             {
                 // double eci of current trial twice of maxium ecis.
-                this._eci[schema] = this._eci.Select(kv => kv.Value).Max() * 2;
+                _eci[schema] = _eci.Select(kv => kv.Value).Max() * 2;
             }
 
             // normalize eci
-            var sum = this._eci.Select(x => x.Value).Sum();
-            this._eci = this._eci.Select(x => (x.Key, x.Value / sum)).ToDictionary(x => x.Key, x => x.Item2);
+            var sum = _eci.Select(x => x.Value).Sum();
+            _eci = _eci.Select(x => (x.Key, x.Value / sum)).ToDictionary(x => x.Key, x => x.Item2);
 
             // TODO
             // save k1,k2,e1,e2,eci,bestError to training configuration
@@ -243,9 +243,9 @@ namespace Microsoft.ML.AutoML
 
             foreach (var estimatorType in estimatorTypes)
             {
-                if (this._estimatorCost.ContainsKey(estimatorType))
+                if (_estimatorCost.ContainsKey(estimatorType))
                 {
-                    return this._estimatorCost[estimatorType];
+                    return _estimatorCost[estimatorType];
                 }
             }
 

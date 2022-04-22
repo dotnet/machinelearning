@@ -18,7 +18,7 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public RangeAttribute(double min, double max, bool logBase = false)
         {
-            this.Option = new UniformDoubleOption(min, max, logBase);
+            Option = new UniformDoubleOption(min, max, logBase);
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public RangeAttribute(double min, double max, double init, bool logBase = false)
         {
-            this.Option = new UniformDoubleOption(min, max, logBase, init);
+            Option = new UniformDoubleOption(min, max, logBase, init);
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public RangeAttribute(int min, int max, bool logBase = false)
         {
-            this.Option = new UniformIntOption(min, max, logBase);
+            Option = new UniformIntOption(min, max, logBase);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public RangeAttribute(int min, int max, int init, bool logBase = false)
         {
-            this.Option = new UniformIntOption(min, max, logBase, init);
+            Option = new UniformIntOption(min, max, logBase, init);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public RangeAttribute(float min, float max, bool logBase = false)
         {
-            this.Option = new UniformSingleOption(min, max, logBase);
+            Option = new UniformSingleOption(min, max, logBase);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public RangeAttribute(float min, float max, float init, bool logBase = false)
         {
-            this.Option = new UniformSingleOption(min, max, logBase, init);
+            Option = new UniformSingleOption(min, max, logBase, init);
         }
 
         internal OptionBase Option { get; }

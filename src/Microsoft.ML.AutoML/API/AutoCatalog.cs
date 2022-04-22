@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.Data;
 using Microsoft.ML.SearchSpace;
@@ -296,7 +294,7 @@ namespace Microsoft.ML.AutoML
 
         internal AutoMLExperiment CreateExperiment()
         {
-            return new AutoMLExperiment(this._context, new AutoMLExperiment.AutoMLExperimentSettings());
+            return new AutoMLExperiment(_context, new AutoMLExperiment.AutoMLExperimentSettings());
         }
 
         internal SweepableEstimator[] BinaryClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,

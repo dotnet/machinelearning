@@ -21,7 +21,7 @@ namespace Microsoft.ML.SearchSpace.Tests
                 Approvals.UseAssemblyLocationForApprovedFiles();
             }
 
-            this.Output = output;
+            Output = output;
         }
 
         /// <summary>

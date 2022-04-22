@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json.Serialization;
 
@@ -20,25 +19,25 @@ namespace Microsoft.ML.AutoML
 
         public MultiModelPipeline()
         {
-            this._estimators = new Dictionary<string, SweepableEstimator>();
-            this._schema = null;
+            _estimators = new Dictionary<string, SweepableEstimator>();
+            _schema = null;
         }
 
         internal MultiModelPipeline(Dictionary<string, SweepableEstimator> estimators, Entity schema)
         {
-            this._estimators = estimators;
-            this._schema = schema;
+            _estimators = estimators;
+            _schema = schema;
         }
 
-        public Dictionary<string, SweepableEstimator> Estimators { get => this._estimators; }
+        public Dictionary<string, SweepableEstimator> Estimators { get => _estimators; }
 
-        internal Entity Schema { get => this._schema; }
+        internal Entity Schema { get => _schema; }
 
         /// <summary>
         /// Get the schema of all single model pipelines in the form of strings.
         /// the pipeline id can be used to create a single model pipeline through <see cref="MultiModelPipeline.BuildSweepableEstimatorPipeline(string)"/>.
         /// </summary>
-        internal string[] PipelineIds { get => this.Schema.ToTerms().Select(t => t.ToString()).ToArray(); }
+        internal string[] PipelineIds { get => Schema.ToTerms().Select(t => t.ToString()).ToArray(); }
 
         public MultiModelPipeline Append(params SweepableEstimator[] estimators)
         {
@@ -54,7 +53,7 @@ namespace Microsoft.ML.AutoML
                 entity += estimator;
             }
 
-            return this.Append(entity);
+            return Append(entity);
         }
 
         public MultiModelPipeline AppendOrSkip(params SweepableEstimator[] estimators)
@@ -71,7 +70,7 @@ namespace Microsoft.ML.AutoML
                 entity += estimator;
             }
 
-            return this.AppendOrSkip(entity);
+            return AppendOrSkip(entity);
         }
 
         public SweepableEstimatorPipeline BuildSweepableEstimatorPipeline(string schema)
@@ -79,47 +78,47 @@ namespace Microsoft.ML.AutoML
             var pipelineNodes = Entity.FromExpression(schema)
                                       .ValueEntities()
                                       .Where(e => e is StringEntity se && se.Value != "Nil")
-                                      .Select((se) => this._estimators[((StringEntity)se).Value]);
+                                      .Select((se) => _estimators[((StringEntity)se).Value]);
 
             return new SweepableEstimatorPipeline(pipelineNodes);
         }
 
         internal MultiModelPipeline Append(Entity entity)
         {
-            return this.AppendEntity(false, entity);
+            return AppendEntity(false, entity);
         }
 
         internal MultiModelPipeline AppendOrSkip(Entity entity)
         {
-            return this.AppendEntity(true, entity);
+            return AppendEntity(true, entity);
         }
 
         internal MultiModelPipeline AppendOrSkip(MultiModelPipeline pipeline)
         {
-            return this.AppendPipeline(true, pipeline);
+            return AppendPipeline(true, pipeline);
         }
 
         internal MultiModelPipeline Append(MultiModelPipeline pipeline)
         {
-            return this.AppendPipeline(false, pipeline);
+            return AppendPipeline(false, pipeline);
         }
 
         private MultiModelPipeline AppendPipeline(bool allowSkip, MultiModelPipeline pipeline)
         {
-            var sweepableEntity = this.CreateSweepableEntityFromEntity(pipeline.Schema, pipeline.Estimators);
-            return this.AppendEntity(allowSkip, sweepableEntity);
+            var sweepableEntity = CreateSweepableEntityFromEntity(pipeline.Schema, pipeline.Estimators);
+            return AppendEntity(allowSkip, sweepableEntity);
         }
 
         private MultiModelPipeline AppendEntity(bool allowSkip, Entity entity)
         {
-            var estimators = this._estimators.ToDictionary(x => x.Key, x => x.Value);
-            var stringEntity = this.VisitAndReplaceSweepableEntityWithStringEntity(entity, ref estimators);
+            var estimators = _estimators.ToDictionary(x => x.Key, x => x.Value);
+            var stringEntity = VisitAndReplaceSweepableEntityWithStringEntity(entity, ref estimators);
             if (allowSkip)
             {
                 stringEntity += _nilStringEntity;
             }
 
-            var schema = this._schema;
+            var schema = _schema;
             if (schema == null)
             {
                 schema = stringEntity;
@@ -152,16 +151,16 @@ namespace Microsoft.ML.AutoML
             {
                 return new ConcatenateEntity()
                 {
-                    Left = this.CreateSweepableEntityFromEntity(concatenateEntity.Left, lookupTable),
-                    Right = this.CreateSweepableEntityFromEntity(concatenateEntity.Right, lookupTable),
+                    Left = CreateSweepableEntityFromEntity(concatenateEntity.Left, lookupTable),
+                    Right = CreateSweepableEntityFromEntity(concatenateEntity.Right, lookupTable),
                 };
             }
             else if (entity is OneOfEntity oneOfEntity)
             {
                 return new OneOfEntity()
                 {
-                    Left = this.CreateSweepableEntityFromEntity(oneOfEntity.Left, lookupTable),
-                    Right = this.CreateSweepableEntityFromEntity(oneOfEntity.Right, lookupTable),
+                    Left = CreateSweepableEntityFromEntity(oneOfEntity.Left, lookupTable),
+                    Right = CreateSweepableEntityFromEntity(oneOfEntity.Right, lookupTable),
                 };
             }
 
@@ -182,13 +181,13 @@ namespace Microsoft.ML.AutoML
                     return _nilStringEntity;
                 }
 
-                var id = this.GetNextId(estimators);
+                var id = GetNextId(estimators);
                 estimators[id] = (SweepableEstimator)sweepableEntity0.Estimator;
                 return new StringEntity(id);
             }
 
-            e.Left = this.VisitAndReplaceSweepableEntityWithStringEntity(e.Left, ref estimators);
-            e.Right = this.VisitAndReplaceSweepableEntityWithStringEntity(e.Right, ref estimators);
+            e.Left = VisitAndReplaceSweepableEntityWithStringEntity(e.Left, ref estimators);
+            e.Right = VisitAndReplaceSweepableEntityWithStringEntity(e.Right, ref estimators);
 
             return e;
         }

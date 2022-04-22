@@ -14,17 +14,17 @@ namespace Microsoft.ML.SearchSpace.Tuner
 
         public GridSearchTuner(SearchSpace searchSpace, int stepSize = 10)
         {
-            this._searchSpace = searchSpace;
-            this._stepSize = stepSize;
+            _searchSpace = searchSpace;
+            _stepSize = stepSize;
         }
 
         public IEnumerable<Parameter> Propose()
         {
-            var steps = this._searchSpace.Step.Select(x => x ?? this._stepSize)
+            var steps = _searchSpace.Step.Select(x => x ?? _stepSize)
                                         .Select(x => Enumerable.Range(0, x).Select(i => i * 1.0 / x).ToArray());
-            foreach (var featureVec in this.CartesianProduct(steps))
+            foreach (var featureVec in CartesianProduct(steps))
             {
-                yield return this._searchSpace.SampleFromFeatureSpace(featureVec);
+                yield return _searchSpace.SampleFromFeatureSpace(featureVec);
             }
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.ML.SearchSpace.Tuner
             {
                 foreach (var i in arrays.First())
                 {
-                    foreach (var i_s in this.CartesianProduct(arrays.Skip(1)))
+                    foreach (var i_s in CartesianProduct(arrays.Skip(1)))
                     {
                         yield return new[] { i }.Concat(i_s).ToArray();
                     }

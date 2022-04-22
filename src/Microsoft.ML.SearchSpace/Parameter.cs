@@ -65,9 +65,9 @@ namespace Microsoft.ML.SearchSpace
 
         private Parameter(object value, ParameterType type)
         {
-            this._value = value;
-            this.ParameterType = type;
-            this._settings.Converters.Add(new JsonStringEnumConverter());
+            _value = value;
+            ParameterType = type;
+            _settings.Converters.Add(new JsonStringEnumConverter());
         }
 
         /// <summary>
@@ -220,12 +220,12 @@ namespace Microsoft.ML.SearchSpace
             return parameter;
         }
 
-        internal object Value { get => this._value; }
+        internal object Value { get => _value; }
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        public int Count => this.ParameterType == ParameterType.Object ? (this._value as Dictionary<string, Parameter>).Count : 1;
+        public int Count => ParameterType == ParameterType.Object ? (_value as Dictionary<string, Parameter>).Count : 1;
 
         /// <summary>
         /// <inheritdoc/>
@@ -234,8 +234,8 @@ namespace Microsoft.ML.SearchSpace
         {
             get
             {
-                this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, Parameter>)?.IsReadOnly ?? false;
+                VerifyIfParameterIsObjectType();
+                return (_value as IDictionary<string, Parameter>)?.IsReadOnly ?? false;
             }
         }
 
@@ -248,8 +248,8 @@ namespace Microsoft.ML.SearchSpace
         {
             get
             {
-                this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, Parameter>).Values;
+                VerifyIfParameterIsObjectType();
+                return (_value as IDictionary<string, Parameter>).Values;
             }
         }
 
@@ -260,8 +260,8 @@ namespace Microsoft.ML.SearchSpace
         {
             get
             {
-                this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, Parameter>).Keys;
+                VerifyIfParameterIsObjectType();
+                return (_value as IDictionary<string, Parameter>).Keys;
             }
         }
 
@@ -272,14 +272,14 @@ namespace Microsoft.ML.SearchSpace
         {
             get
             {
-                this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, Parameter>)[key];
+                VerifyIfParameterIsObjectType();
+                return (_value as IDictionary<string, Parameter>)[key];
             }
 
             set
             {
-                this.VerifyIfParameterIsObjectType();
-                (this._value as IDictionary<string, Parameter>)[key] = value;
+                VerifyIfParameterIsObjectType();
+                (_value as IDictionary<string, Parameter>)[key] = value;
             }
         }
 
@@ -289,14 +289,14 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public T AsType<T>()
         {
-            if (this._value is T t)
+            if (_value is T t)
             {
                 return t;
             }
             else
             {
-                var json = JsonSerializer.Serialize(this._value, this._settings);
-                return JsonSerializer.Deserialize<T>(json, this._settings);
+                var json = JsonSerializer.Serialize(_value, _settings);
+                return JsonSerializer.Deserialize<T>(json, _settings);
             }
         }
 
@@ -305,8 +305,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public void Clear()
         {
-            this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, Parameter>).Clear();
+            VerifyIfParameterIsObjectType();
+            (_value as Dictionary<string, Parameter>).Clear();
         }
 
         /// <summary>
@@ -314,8 +314,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public void Add(string key, Parameter value)
         {
-            this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, Parameter>).Add(key, value);
+            VerifyIfParameterIsObjectType();
+            (_value as Dictionary<string, Parameter>).Add(key, value);
         }
 
         /// <summary>
@@ -323,8 +323,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public bool TryGetValue(string key, out Parameter value)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as Dictionary<string, Parameter>).TryGetValue(key, out value);
+            VerifyIfParameterIsObjectType();
+            return (_value as Dictionary<string, Parameter>).TryGetValue(key, out value);
         }
 
         /// <summary>
@@ -332,8 +332,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public void Add(KeyValuePair<string, Parameter> item)
         {
-            this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, Parameter>).Add(item.Key, item.Value);
+            VerifyIfParameterIsObjectType();
+            (_value as Dictionary<string, Parameter>).Add(item.Key, item.Value);
         }
 
         /// <summary>
@@ -341,8 +341,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public bool Contains(KeyValuePair<string, Parameter> item)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as Dictionary<string, Parameter>).Contains(item);
+            VerifyIfParameterIsObjectType();
+            return (_value as Dictionary<string, Parameter>).Contains(item);
         }
 
         /// <summary>
@@ -350,8 +350,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public bool Remove(KeyValuePair<string, Parameter> item)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).Remove(item);
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).Remove(item);
         }
 
         /// <summary>
@@ -359,8 +359,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         IEnumerator<KeyValuePair<string, Parameter>> IEnumerable<KeyValuePair<string, Parameter>>.GetEnumerator()
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).GetEnumerator();
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).GetEnumerator();
         }
 
         /// <summary>
@@ -368,13 +368,13 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).GetEnumerator();
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).GetEnumerator();
         }
 
         private void VerifyIfParameterIsObjectType()
         {
-            Contracts.Check(this.ParameterType == ParameterType.Object, "parameter is not object type.");
+            Contracts.Check(ParameterType == ParameterType.Object, "parameter is not object type.");
         }
 
         /// <summary>
@@ -382,8 +382,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public void CopyTo(KeyValuePair<string, Parameter>[] array, int arrayIndex)
         {
-            this.VerifyIfParameterIsObjectType();
-            (this._value as IDictionary<string, Parameter>).CopyTo(array, arrayIndex);
+            VerifyIfParameterIsObjectType();
+            (_value as IDictionary<string, Parameter>).CopyTo(array, arrayIndex);
         }
 
         /// <summary>
@@ -391,8 +391,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public bool ContainsKey(string key)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).ContainsKey(key);
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).ContainsKey(key);
         }
 
         /// <summary>
@@ -400,8 +400,8 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public bool Remove(string key)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).Remove(key);
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).Remove(key);
         }
     }
 }

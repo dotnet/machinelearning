@@ -26,7 +26,7 @@ namespace Microsoft.ML.SearchSpace
             var candidatesType = candidates.Select(o => o.GetType()).Distinct();
             Contracts.Assert(candidatesType.Count() == 1, "multiple candidates type detected");
 
-            this.Option = new ChoiceOption(candidates.Select(c => Convert.ToString(c, CultureInfo.InvariantCulture)).ToArray());
+            Option = new ChoiceOption(candidates.Select(c => Convert.ToString(c, CultureInfo.InvariantCulture)).ToArray());
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Microsoft.ML.SearchSpace
             Contracts.Assert(candidatesType.Count() == 1, "multiple candidates type detected");
             Contracts.Assert(candidatesType.First() == defaultValue.GetType(), "candidates type doesn't match with defaultValue type");
 
-            this.Option = new ChoiceOption(candidates.Select(c => Convert.ToString(c, CultureInfo.InvariantCulture)).ToArray(), Convert.ToString(defaultValue, CultureInfo.InvariantCulture));
+            Option = new ChoiceOption(candidates.Select(c => Convert.ToString(c, CultureInfo.InvariantCulture)).ToArray(), Convert.ToString(defaultValue, CultureInfo.InvariantCulture));
         }
 
         internal ChoiceOption Option { get; }

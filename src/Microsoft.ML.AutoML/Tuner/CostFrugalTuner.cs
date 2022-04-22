@@ -27,34 +27,34 @@ namespace Microsoft.ML.AutoML
 
         public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true)
         {
-            this._searchSpace = searchSpace;
-            this._minimize = minimizeMode;
+            _searchSpace = searchSpace;
+            _minimize = minimizeMode;
 
-            this._localSearch = new Flow2(searchSpace, initValue, true);
-            this._currentThreadId = 0;
-            this._lsBoundMin = this._searchSpace.MappingToFeatureSpace(initValue);
-            this._lsBoundMax = this._searchSpace.MappingToFeatureSpace(initValue);
-            this._initUsed = false;
-            this._bestMetric = double.MaxValue;
+            _localSearch = new Flow2(searchSpace, initValue, true);
+            _currentThreadId = 0;
+            _lsBoundMin = _searchSpace.MappingToFeatureSpace(initValue);
+            _lsBoundMax = _searchSpace.MappingToFeatureSpace(initValue);
+            _initUsed = false;
+            _bestMetric = double.MaxValue;
         }
 
         public Parameter Propose(TrialSettings settings)
         {
             var trialId = settings.TrialId;
-            if (this._initUsed)
+            if (_initUsed)
             {
-                var searchThread = this._searchThreadPool[this._currentThreadId];
-                this._configs[trialId] = this._searchSpace.MappingToFeatureSpace(searchThread.Suggest(trialId));
-                this._trialProposedBy[trialId] = this._currentThreadId;
+                var searchThread = _searchThreadPool[_currentThreadId];
+                _configs[trialId] = _searchSpace.MappingToFeatureSpace(searchThread.Suggest(trialId));
+                _trialProposedBy[trialId] = _currentThreadId;
             }
             else
             {
-                this._configs[trialId] = this.CreateInitConfigFromAdmissibleRegion();
-                this._trialProposedBy[trialId] = this._currentThreadId;
+                _configs[trialId] = CreateInitConfigFromAdmissibleRegion();
+                _trialProposedBy[trialId] = _currentThreadId;
             }
 
-            var param = this._configs[trialId];
-            return this._searchSpace.SampleFromFeatureSpace(param);
+            var param = _configs[trialId];
+            return _searchSpace.SampleFromFeatureSpace(param);
         }
 
         public Parameter BestConfig { get; set; }
@@ -63,30 +63,30 @@ namespace Microsoft.ML.AutoML
         {
             var trialId = result.TrialSettings.TrialId;
             var metric = result.Metric;
-            metric = this._minimize ? metric : -metric;
-            if (metric < this._bestMetric)
+            metric = _minimize ? metric : -metric;
+            if (metric < _bestMetric)
             {
-                this.BestConfig = this._searchSpace.SampleFromFeatureSpace(this._configs[trialId]);
-                this._bestMetric = metric;
+                BestConfig = _searchSpace.SampleFromFeatureSpace(_configs[trialId]);
+                _bestMetric = metric;
             }
 
             var cost = result.DurationInMilliseconds;
-            int threadId = this._trialProposedBy[trialId];
-            if (this._searchThreadPool.Count == 0)
+            int threadId = _trialProposedBy[trialId];
+            if (_searchThreadPool.Count == 0)
             {
-                var initParameter = this._searchSpace.SampleFromFeatureSpace(this._configs[trialId]);
-                this._searchThreadPool[this._currentThreadId] = this._localSearch.CreateSearchThread(initParameter, metric, cost);
-                this._initUsed = true;
-                this.UpdateAdmissibleRegion(this._configs[trialId]);
+                var initParameter = _searchSpace.SampleFromFeatureSpace(_configs[trialId]);
+                _searchThreadPool[_currentThreadId] = _localSearch.CreateSearchThread(initParameter, metric, cost);
+                _initUsed = true;
+                UpdateAdmissibleRegion(_configs[trialId]);
             }
             else
             {
-                this._searchThreadPool[threadId].OnTrialComplete(trialId, metric, cost);
-                if (this._searchThreadPool[threadId].IsConverged)
+                _searchThreadPool[threadId].OnTrialComplete(trialId, metric, cost);
+                if (_searchThreadPool[threadId].IsConverged)
                 {
-                    this._searchThreadPool.Remove(threadId);
-                    this._currentThreadId += 1;
-                    this._initUsed = false;
+                    _searchThreadPool.Remove(threadId);
+                    _currentThreadId += 1;
+                    _initUsed = false;
                 }
             }
         }
@@ -95,15 +95,15 @@ namespace Microsoft.ML.AutoML
         {
             for (int i = 0; i != config.Length; ++i)
             {
-                if (config[i] < this._lsBoundMin[i])
+                if (config[i] < _lsBoundMin[i])
                 {
-                    this._lsBoundMin[i] = config[i];
+                    _lsBoundMin[i] = config[i];
                     continue;
                 }
 
-                if (config[i] > this._lsBoundMax[i])
+                if (config[i] > _lsBoundMax[i])
                 {
-                    this._lsBoundMax[i] = config[i];
+                    _lsBoundMax[i] = config[i];
                     continue;
                 }
             }
@@ -111,10 +111,10 @@ namespace Microsoft.ML.AutoML
 
         private double[] CreateInitConfigFromAdmissibleRegion()
         {
-            var res = new double[this._lsBoundMax.Length];
-            for (int i = 0; i != this._lsBoundMax.Length; ++i)
+            var res = new double[_lsBoundMax.Length];
+            for (int i = 0; i != _lsBoundMax.Length; ++i)
             {
-                res[i] = this._rng.Uniform(this._lsBoundMin[i], this._lsBoundMax[i]);
+                res[i] = _rng.Uniform(_lsBoundMin[i], _lsBoundMax[i]);
             }
 
             return res;

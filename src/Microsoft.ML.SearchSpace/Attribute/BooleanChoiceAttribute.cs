@@ -20,7 +20,7 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public BooleanChoiceAttribute()
         {
-            this.Option = new ChoiceOption(true, false);
+            Option = new ChoiceOption(true, false);
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.ML.SearchSpace
         /// <param name="defaultValue">default value for this option.</param>
         public BooleanChoiceAttribute(bool defaultValue)
         {
-            this.Option = new ChoiceOption(new object[] { true, false }, defaultChoice: defaultValue);
+            Option = new ChoiceOption(new object[] { true, false }, defaultChoice: defaultValue);
         }
 
         internal ChoiceOption Option { get; }

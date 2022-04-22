@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -18,26 +17,26 @@ namespace Microsoft.ML.AutoML
 
         public SweepableEstimatorPipeline()
         {
-            this._estimators = new List<SweepableEstimator>();
-            this.Parameter = Parameter.CreateNestedParameter();
+            _estimators = new List<SweepableEstimator>();
+            Parameter = Parameter.CreateNestedParameter();
         }
 
         internal SweepableEstimatorPipeline(IEnumerable<SweepableEstimator> estimators)
         {
-            this._estimators = estimators.ToList();
-            this.Parameter = Parameter.CreateNestedParameter();
+            _estimators = estimators.ToList();
+            Parameter = Parameter.CreateNestedParameter();
             int i = 0;
             foreach (var e in estimators)
             {
-                this.Parameter[i.ToString()] = e.Parameter;
+                Parameter[i.ToString()] = e.Parameter;
                 i++;
             }
         }
 
         internal SweepableEstimatorPipeline(IEnumerable<SweepableEstimator> estimators, Parameter parameter)
         {
-            this._estimators = estimators.ToList();
-            this.Parameter = parameter;
+            _estimators = estimators.ToList();
+            Parameter = parameter;
             int i = 0;
             foreach (var e in estimators)
             {
@@ -51,7 +50,7 @@ namespace Microsoft.ML.AutoML
             get
             {
                 var searchSpace = new SearchSpace.SearchSpace();
-                var kvPairs = this._estimators.Select((e, i) => new KeyValuePair<string, SearchSpace.SearchSpace>(i.ToString(), e.SearchSpace));
+                var kvPairs = _estimators.Select((e, i) => new KeyValuePair<string, SearchSpace.SearchSpace>(i.ToString(), e.SearchSpace));
                 foreach (var kv in kvPairs)
                 {
                     if (kv.Value != null)
@@ -64,24 +63,24 @@ namespace Microsoft.ML.AutoML
             }
         }
 
-        public IEnumerable<SweepableEstimator> Estimators { get => this._estimators; }
+        public IEnumerable<SweepableEstimator> Estimators { get => _estimators; }
 
         public Parameter Parameter { get; set; }
 
         public SweepableEstimatorPipeline Append(SweepableEstimator estimator)
         {
-            return new SweepableEstimatorPipeline(this._estimators.Concat(new[] { estimator }));
+            return new SweepableEstimatorPipeline(_estimators.Concat(new[] { estimator }));
         }
 
         public EstimatorChain<ITransformer> BuildTrainingPipeline(MLContext context, Parameter parameter)
         {
-            this.Parameter = parameter;
+            Parameter = parameter;
             var pipeline = new EstimatorChain<ITransformer>();
 
-            for (int i = 0; i != this._estimators.Count(); ++i)
+            for (int i = 0; i != _estimators.Count(); ++i)
             {
                 var ssName = i.ToString();
-                pipeline = pipeline.Append(this._estimators[i].BuildFromOption(context, parameter[ssName]));
+                pipeline = pipeline.Append(_estimators[i].BuildFromOption(context, parameter[ssName]));
             }
 
             return pipeline;
@@ -89,7 +88,7 @@ namespace Microsoft.ML.AutoML
 
         public override string ToString()
         {
-            var estimatorName = this._estimators.Select(e => e.EstimatorType.ToString());
+            var estimatorName = _estimators.Select(e => e.EstimatorType.ToString());
             return string.Join("=>", estimatorName);
         }
     }

@@ -27,24 +27,24 @@ namespace Microsoft.ML.AutoML.Test
 
         private TaskAgnosticIterationResult(RunDetail baseRunDetail, object validationMetrics, string primaryMetricName)
         {
-            this.TrainerName = baseRunDetail.TrainerName;
-            this.Estimator = baseRunDetail.Estimator;
-            this.Pipeline = baseRunDetail.Pipeline;
+            TrainerName = baseRunDetail.TrainerName;
+            Estimator = baseRunDetail.Estimator;
+            Pipeline = baseRunDetail.Pipeline;
 
-            this.PipelineInferenceTimeInSeconds = (int)baseRunDetail.PipelineInferenceTimeInSeconds;
-            this.RuntimeInSeconds = (int)baseRunDetail.RuntimeInSeconds;
+            PipelineInferenceTimeInSeconds = (int)baseRunDetail.PipelineInferenceTimeInSeconds;
+            RuntimeInSeconds = (int)baseRunDetail.RuntimeInSeconds;
 
-            this._primaryMetricName = primaryMetricName;
-            this.PrimaryMetricValue = -1; // default value in case of exception.  TODO: won't work for minimizing metrics, use nullable?
+            _primaryMetricName = primaryMetricName;
+            PrimaryMetricValue = -1; // default value in case of exception.  TODO: won't work for minimizing metrics, use nullable?
 
             if (validationMetrics == null)
             {
                 return;
             }
 
-            this.MetricValues = MetricValuesToDictionary(validationMetrics);
+            MetricValues = MetricValuesToDictionary(validationMetrics);
 
-            this.PrimaryMetricValue = this.MetricValues[this._primaryMetricName];
+            PrimaryMetricValue = MetricValues[_primaryMetricName];
         }
 
         public TaskAgnosticIterationResult(RunDetail<RegressionMetrics> runDetail, string primaryMetricName = "RSquared")
@@ -52,10 +52,10 @@ namespace Microsoft.ML.AutoML.Test
         {
             if (runDetail.Exception == null)
             {
-                this.Model = runDetail.Model;
+                Model = runDetail.Model;
             }
 
-            this.Exception = runDetail.Exception;
+            Exception = runDetail.Exception;
         }
 
         public TaskAgnosticIterationResult(RunDetail<MulticlassClassificationMetrics> runDetail, string primaryMetricName = "MicroAccuracy")
@@ -63,10 +63,10 @@ namespace Microsoft.ML.AutoML.Test
         {
             if (runDetail.Exception == null)
             {
-                this.Model = runDetail.Model;
+                Model = runDetail.Model;
             }
 
-            this.Exception = runDetail.Exception;
+            Exception = runDetail.Exception;
         }
 
         public static Dictionary<string, double> MetricValuesToDictionary<T>(T metric)

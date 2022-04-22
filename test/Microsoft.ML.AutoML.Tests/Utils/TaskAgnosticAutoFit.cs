@@ -31,8 +31,8 @@ namespace Microsoft.ML.AutoML.Test
 
         internal TaskAgnosticAutoFit(TaskType taskType, MLContext context)
         {
-            this._taskType = taskType;
-            this._context = context;
+            _taskType = taskType;
+            _context = context;
         }
 
         internal IEnumerable<TaskAgnosticIterationResult> AutoFit(
@@ -47,7 +47,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var columnInformation = new ColumnInformation() { LabelColumnName = label };
 
-            switch (this._taskType)
+            switch (_taskType)
             {
                 case TaskType.Classification:
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML.Test
                         MaxModels = maxModels
                     };
 
-                    var classificationResult = this._context.Auto()
+                    var classificationResult = _context.Auto()
                         .CreateMulticlassClassificationExperiment(mcs)
                         .Execute(
                             trainData,
@@ -81,7 +81,7 @@ namespace Microsoft.ML.AutoML.Test
                         MaxModels = maxModels
                     };
 
-                    var regressionResult = this._context.Auto()
+                    var regressionResult = _context.Auto()
                         .CreateRegressionExperiment(rs)
                         .Execute(
                             trainData,
@@ -103,7 +103,7 @@ namespace Microsoft.ML.AutoML.Test
                         MaxModels = maxModels
                     };
 
-                    var recommendationResult = this._context.Auto()
+                    var recommendationResult = _context.Auto()
                         .CreateRecommendationExperiment(recommendationSettings)
                         .Execute(
                             trainData,
@@ -116,7 +116,7 @@ namespace Microsoft.ML.AutoML.Test
                     return iterationResults;
 
                 default:
-                    throw new ArgumentException($"Unknown task type {this._taskType}.", "TaskType");
+                    throw new ArgumentException($"Unknown task type {_taskType}.", "TaskType");
             }
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.ML.AutoML.Test
 
             result.ScoredTestData = model.Transform(testData);
 
-            switch (this._taskType)
+            switch (_taskType)
             {
                 case TaskType.Classification:
 
@@ -158,7 +158,7 @@ namespace Microsoft.ML.AutoML.Test
                     break;
 
                 default:
-                    throw new ArgumentException($"Unknown task type {this._taskType}.", "TaskType");
+                    throw new ArgumentException($"Unknown task type {_taskType}.", "TaskType");
             }
 
             return result;
