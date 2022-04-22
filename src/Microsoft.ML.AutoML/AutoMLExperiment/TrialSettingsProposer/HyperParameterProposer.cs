@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
@@ -16,20 +15,20 @@ namespace Microsoft.ML.AutoML
 
         public HyperParameterProposer(IServiceProvider provider)
         {
-            this._tuners = new Dictionary<string, ITuner>();
-            this._provider = provider;
+            _tuners = new Dictionary<string, ITuner>();
+            _provider = provider;
         }
 
         public TrialSettings Propose(TrialSettings settings)
         {
-            var tunerFactory = this._provider.GetService<ITunerFactory>();
-            if (!this._tuners.ContainsKey(settings.Schema))
+            var tunerFactory = _provider.GetService<ITunerFactory>();
+            if (!_tuners.ContainsKey(settings.Schema))
             {
                 var t = tunerFactory.CreateTuner(settings);
-                this._tuners.Add(settings.Schema, t);
+                _tuners.Add(settings.Schema, t);
             }
 
-            var tuner = this._tuners[settings.Schema];
+            var tuner = _tuners[settings.Schema];
             var parameter = tuner.Propose(settings);
             settings.Parameter = parameter;
 
@@ -39,7 +38,7 @@ namespace Microsoft.ML.AutoML
         public void Update(TrialSettings settings, TrialResult result)
         {
             var schema = settings.Schema;
-            if (this._tuners.TryGetValue(schema, out var tuner))
+            if (_tuners.TryGetValue(schema, out var tuner))
             {
                 tuner.Update(result);
             }

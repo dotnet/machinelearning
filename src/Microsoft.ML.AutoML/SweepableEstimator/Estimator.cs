@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.SearchSpace;
 using Microsoft.ML.AutoML.CodeGen;
+using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
@@ -11,14 +11,14 @@ namespace Microsoft.ML.AutoML
     {
         protected Estimator()
         {
-            this.Parameter = Parameter.CreateNestedParameter();
-            this.EstimatorType = EstimatorType.Unknown;
+            Parameter = Parameter.CreateNestedParameter();
+            EstimatorType = EstimatorType.Unknown;
         }
 
         internal Estimator(EstimatorType estimatorType)
             : this()
         {
-            this.EstimatorType = estimatorType;
+            EstimatorType = estimatorType;
         }
 
         public EstimatorType EstimatorType { get; set; }

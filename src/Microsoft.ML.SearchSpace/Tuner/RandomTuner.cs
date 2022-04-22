@@ -13,13 +13,13 @@ namespace Microsoft.ML.SearchSpace.Tuner
 
         public RandomTuner()
         {
-            this._rnd = new Random();
+            _rnd = new Random();
         }
 
         public Parameter Propose(SearchSpace searchSpace)
         {
             var d = searchSpace.FeatureSpaceDim;
-            var featureVec = Enumerable.Repeat(0, d).Select(i => this._rnd.NextDouble()).ToArray();
+            var featureVec = Enumerable.Repeat(0, d).Select(i => _rnd.NextDouble()).ToArray();
             return searchSpace.SampleFromFeatureSpace(featureVec);
         }
 

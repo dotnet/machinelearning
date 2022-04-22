@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -179,15 +178,15 @@ namespace Microsoft.ML.AutoML
     {
         public override string ToString()
         {
-            var left = this.Left.ToString();
-            var right = this.Right.ToString();
+            var left = Left.ToString();
+            var right = Right.ToString();
 
-            if (this.Left is OneOfEntity)
+            if (Left is OneOfEntity)
             {
                 left = $"({left})";
             }
 
-            if (this.Right is OneOfEntity)
+            if (Right is OneOfEntity)
             {
                 right = $"({right})";
             }
@@ -203,8 +202,8 @@ namespace Microsoft.ML.AutoML
     {
         public override string ToString()
         {
-            var left = this.Left.ToString();
-            var right = this.Right.ToString();
+            var left = Left.ToString();
+            var right = Right.ToString();
 
             return $"{left} + {right}";
         }
@@ -218,14 +217,14 @@ namespace Microsoft.ML.AutoML
     {
         public StringEntity(string value)
         {
-            this.Value = value;
+            Value = value;
         }
 
         public string Value { get; }
 
         public override string ToString()
         {
-            return this.Value;
+            return Value;
         }
     }
 
@@ -233,7 +232,7 @@ namespace Microsoft.ML.AutoML
     {
         public EstimatorEntity(Estimator estimator)
         {
-            this.Estimator = estimator;
+            Estimator = estimator;
         }
 
         public Estimator Estimator { get; }

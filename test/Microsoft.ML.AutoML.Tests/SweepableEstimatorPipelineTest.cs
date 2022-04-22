@@ -6,16 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
 using FluentAssertions;
+using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.AutoML.CodeGen;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -26,7 +26,7 @@ namespace Microsoft.ML.AutoML.Test
         public SweepableEstimatorPipelineTest(ITestOutputHelper output)
             : base(output)
         {
-            this._jsonSerializerOptions = new JsonSerializerOptions()
+            _jsonSerializerOptions = new JsonSerializerOptions()
             {
                 WriteIndented = true,
                 Converters =
@@ -92,7 +92,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void SweepableEstimatorPipeline_search_space_test()
         {
-            var pipeline = this.CreateSweepbaleEstimatorPipeline();
+            var pipeline = CreateSweepbaleEstimatorPipeline();
             pipeline.SearchSpace.FeatureSpaceDim.Should().Be(15);
 
             // TODO
@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void SweepableEstimatorPipeline_can_be_created_from_MultiModelPipeline()
         {
-            var multiModelPipeline = this.CreateMultiModelPipeline();
+            var multiModelPipeline = CreateMultiModelPipeline();
             var pipelines = multiModelPipeline.PipelineIds;
 
             pipelines.Should().BeEquivalentTo("e0 * e3 * e4", "e1 * e2 * e3 * e4", "e0 * Nil * e4", "e1 * e2 * Nil * e4", "Nil * e3 * e4", "e0 * e3 * e5", "e1 * e2 * e3 * e5", "e0 * Nil * e5", "e1 * e2 * Nil * e5", "Nil * e3 * e5", "Nil * Nil * e4", "Nil * Nil * e5");
@@ -117,9 +117,9 @@ namespace Microsoft.ML.AutoML.Test
         [UseApprovalSubdirectory("ApprovalTests")]
         public void SweepableEstimatorPipeline_search_space_init_value_test()
         {
-            var singleModelPipeline = this.CreateSweepbaleEstimatorPipeline();
+            var singleModelPipeline = CreateSweepbaleEstimatorPipeline();
             var defaultParam = singleModelPipeline.SearchSpace.SampleFromFeatureSpace(singleModelPipeline.SearchSpace.Default);
-            Approvals.Verify(JsonSerializer.Serialize(defaultParam, this._jsonSerializerOptions));
+            Approvals.Verify(JsonSerializer.Serialize(defaultParam, _jsonSerializerOptions));
         }
 
         private SweepableEstimatorPipeline CreateSweepbaleEstimatorPipeline()

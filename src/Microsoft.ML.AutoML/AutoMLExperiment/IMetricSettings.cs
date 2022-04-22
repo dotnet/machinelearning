@@ -3,9 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
 {
@@ -22,7 +19,7 @@ namespace Microsoft.ML.AutoML
 
         public string LabelColumn { get; set; }
 
-        public bool IsMaximize => this.Metric switch
+        public bool IsMaximize => Metric switch
         {
             BinaryClassificationMetric.Accuracy => true,
             BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => true,
@@ -44,7 +41,7 @@ namespace Microsoft.ML.AutoML
 
         public string LabelColumn { get; set; }
 
-        public bool IsMaximize => this.Metric switch
+        public bool IsMaximize => Metric switch
         {
             MulticlassClassificationMetric.MacroAccuracy => true,
             MulticlassClassificationMetric.MicroAccuracy => true,
@@ -63,7 +60,7 @@ namespace Microsoft.ML.AutoML
 
         public string LabelColumn { get; set; }
 
-        public bool IsMaximize => this.Metric switch
+        public bool IsMaximize => Metric switch
         {
             RegressionMetric.RSquared => true,
             RegressionMetric.RootMeanSquaredError => false,

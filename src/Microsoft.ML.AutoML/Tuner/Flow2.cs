@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Microsoft.ML.AutoMLService;
 using Microsoft.ML.SearchSpace;
@@ -42,36 +41,36 @@ namespace Microsoft.ML.AutoML
 
         public Flow2(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true, double convergeSpeed = 1.5)
         {
-            this._searchSpace = searchSpace;
-            this._minimize = minimizeMode;
+            _searchSpace = searchSpace;
+            _minimize = minimizeMode;
 
-            this._initConfig = initValue;
-            this._bestConfig = this._initConfig;
-            this._incumbent = this._searchSpace.MappingToFeatureSpace(this._bestConfig);
-            this._dim = this._searchSpace.Count;
-            this._numAllowed4Incumbent = 2 * this._dim;
-            this._step = _stepSize * Math.Sqrt(this._dim);
-            this._stepUpperBound = Math.Sqrt(this._dim);
-            this._convergeSpeed = convergeSpeed;
-            if (this._step > this._stepUpperBound)
+            _initConfig = initValue;
+            _bestConfig = _initConfig;
+            _incumbent = _searchSpace.MappingToFeatureSpace(_bestConfig);
+            _dim = _searchSpace.Count;
+            _numAllowed4Incumbent = 2 * _dim;
+            _step = _stepSize * Math.Sqrt(_dim);
+            _stepUpperBound = Math.Sqrt(_dim);
+            _convergeSpeed = convergeSpeed;
+            if (_step > _stepUpperBound)
             {
-                this._step = this._stepUpperBound;
+                _step = _stepUpperBound;
             }
         }
 
         public bool IsConverged
         {
-            get => this._step < _stepLowerBound;
+            get => _step < _stepLowerBound;
         }
 
         public Parameter BestConfig
         {
-            get => this._bestConfig;
+            get => _bestConfig;
         }
 
         public SearchThread CreateSearchThread(Parameter config, double metric, double cost)
         {
-            var flow2 = new Flow2(this._searchSpace, config, this._minimize, convergeSpeed: this._convergeSpeed);
+            var flow2 = new Flow2(_searchSpace, config, _minimize, convergeSpeed: _convergeSpeed);
             flow2.BestObj = metric;
             flow2.CostIncumbent = cost;
             return new SearchThread(flow2);
@@ -79,53 +78,53 @@ namespace Microsoft.ML.AutoML
 
         public Parameter Suggest(int trialId)
         {
-            this._numAllowed4Incumbent -= 1;
+            _numAllowed4Incumbent -= 1;
             double[] move;
-            if (this._directionTried != null)
+            if (_directionTried != null)
             {
-                move = ArrayMath.Sub(this._incumbent, this._directionTried);
+                move = ArrayMath.Sub(_incumbent, _directionTried);
 
-                this._directionTried = null;
+                _directionTried = null;
             }
             else
             {
-                this._directionTried = this.RandVectorSphere();
-                move = ArrayMath.Add(this._incumbent, this._directionTried);
+                _directionTried = RandVectorSphere();
+                move = ArrayMath.Add(_incumbent, _directionTried);
             }
 
-            move = this.Project(move);
-            var config = this._searchSpace.SampleFromFeatureSpace(move);
-            this._proposedBy[trialId] = this._incumbent;
-            this._configs[trialId] = config;
+            move = Project(move);
+            var config = _searchSpace.SampleFromFeatureSpace(move);
+            _proposedBy[trialId] = _incumbent;
+            _configs[trialId] = config;
             return config;
         }
 
         public void ReceiveTrialResult(int trialId, double metric, double cost)
         {
-            this._trialCount += 1;
-            if (this.BestObj == null || metric < this.BestObj)
+            _trialCount += 1;
+            if (BestObj == null || metric < BestObj)
             {
-                this.BestObj = metric;
-                this._bestConfig = this._configs[trialId];
-                this._incumbent = this._searchSpace.MappingToFeatureSpace(this._bestConfig);
-                this.CostIncumbent = cost;
-                this._costComplete4Incumbent = 0;
-                this._numAllowed4Incumbent = 2 * this._dim;
-                this._proposedBy.Clear();
-                this._step *= this._convergeSpeed;
-                this._step = Math.Min(this._step, this._stepUpperBound);
-                this._directionTried = null;
+                BestObj = metric;
+                _bestConfig = _configs[trialId];
+                _incumbent = _searchSpace.MappingToFeatureSpace(_bestConfig);
+                CostIncumbent = cost;
+                _costComplete4Incumbent = 0;
+                _numAllowed4Incumbent = 2 * _dim;
+                _proposedBy.Clear();
+                _step *= _convergeSpeed;
+                _step = Math.Min(_step, _stepUpperBound);
+                _directionTried = null;
                 return;
             }
             else
             {
-                this._costComplete4Incumbent += cost;
-                if (this._numAllowed4Incumbent == 0)
+                _costComplete4Incumbent += cost;
+                if (_numAllowed4Incumbent == 0)
                 {
-                    this._numAllowed4Incumbent = 2;
-                    if (!this.IsConverged)
+                    _numAllowed4Incumbent = 2;
+                    if (!IsConverged)
                     {
-                        this._step /= this._convergeSpeed;
+                        _step /= _convergeSpeed;
                     }
                 }
             }
@@ -133,9 +132,9 @@ namespace Microsoft.ML.AutoML
 
         private double[] RandVectorSphere()
         {
-            double[] vec = this._rng.Normal(0, 1, this._searchSpace.FeatureSpaceDim);
+            double[] vec = _rng.Normal(0, 1, _searchSpace.FeatureSpaceDim);
             double mag = ArrayMath.Norm(vec);
-            vec = ArrayMath.Mul(vec, this._step / mag);
+            vec = ArrayMath.Mul(vec, _step / mag);
 
             return vec;
         }

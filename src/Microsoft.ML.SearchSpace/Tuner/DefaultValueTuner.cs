@@ -13,13 +13,13 @@ namespace Microsoft.ML.SearchSpace.Tuner
 
         public DefaultValueTuner(SearchSpace searchSpace)
         {
-            this._searchSpace = searchSpace;
+            _searchSpace = searchSpace;
         }
 
         public Parameter Propose()
         {
-            var defaultFeatureVec = this._searchSpace.Default;
-            return this._searchSpace.SampleFromFeatureSpace(defaultFeatureVec);
+            var defaultFeatureVec = _searchSpace.Default;
+            return _searchSpace.SampleFromFeatureSpace(defaultFeatureVec);
         }
     }
 }

@@ -25,18 +25,19 @@ namespace Microsoft.ML.SearchSpace
         internal SearchSpace(params KeyValuePair<string, OptionBase>[] options)
             : this()
         {
-            this._options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
+            _options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         internal SearchSpace(IEnumerable<KeyValuePair<string, OptionBase>> options)
             : this()
         {
-            this._options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
+            _options = options.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
+        /// <inheritdoc/>
 
         public SearchSpace()
         {
-            this._options = new Dictionary<string, OptionBase>();
+            _options = new Dictionary<string, OptionBase>();
         }
 
         /// <summary>
@@ -51,18 +52,19 @@ namespace Microsoft.ML.SearchSpace
                            .ToArray();
             }
         }
+        /// <inheritdoc/>
 
         protected SearchSpace(Type typeInfo, Parameter defaultOption = null)
             : this()
         {
-            this._options = this.GetOptionsFromType(typeInfo);
-            var nestedSS = this.GetNestedSearchSpaceFromType(typeInfo);
+            _options = GetOptionsFromType(typeInfo);
+            var nestedSS = GetNestedSearchSpaceFromType(typeInfo);
             foreach (var ss in nestedSS)
             {
-                this._options.Add(ss.Key, ss.Value);
+                _options.Add(ss.Key, ss.Value);
             }
 
-            this._defaultOption = defaultOption;
+            _defaultOption = defaultOption;
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace Microsoft.ML.SearchSpace
         {
             get
             {
-                return this._options.Values.Select(x => x.FeatureSpaceDim).Sum();
+                return _options.Values.Select(x => x.FeatureSpaceDim).Sum();
             }
         }
 
@@ -119,22 +121,22 @@ namespace Microsoft.ML.SearchSpace
         /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] feature)
         {
-            Contracts.Check(feature.Length == this.FeatureSpaceDim, "input feature doesn't match");
+            Contracts.Check(feature.Length == FeatureSpaceDim, "input feature doesn't match");
             var param = Parameter.CreateNestedParameter();
             var cur = 0;
 
-            foreach (var key in this._options.Keys.OrderBy(k => k))
+            foreach (var key in _options.Keys.OrderBy(k => k))
             {
-                var option = this._options[key];
+                var option = _options[key];
                 var input = feature.Skip(cur).Take(option.FeatureSpaceDim).ToArray();
                 var value = option.SampleFromFeatureSpace(input);
                 param[key] = value;
                 cur += option.FeatureSpaceDim;
             }
 
-            if (this._defaultOption != null)
+            if (_defaultOption != null)
             {
-                return this.Update(this._defaultOption, param);
+                return Update(_defaultOption, param);
             }
 
             return param;
@@ -146,9 +148,9 @@ namespace Microsoft.ML.SearchSpace
         public override double[] MappingToFeatureSpace(Parameter parameter)
         {
             var res = new List<double>();
-            foreach (var key in this._options.Keys.OrderBy(k => k))
+            foreach (var key in _options.Keys.OrderBy(k => k))
             {
-                var option = this._options[key];
+                var option = _options[key];
                 var input = parameter[key];
                 var value = option.MappingToFeatureSpace(input);
                 res.AddRange(value);
@@ -159,15 +161,15 @@ namespace Microsoft.ML.SearchSpace
 
         private Dictionary<string, OptionBase> GetOptionsFromType(Type typeInfo)
         {
-            var fieldOptions = this.GetOptionsFromField(typeInfo);
-            var propertyOptions = this.GetOptionsFromProperty(typeInfo);
+            var fieldOptions = GetOptionsFromField(typeInfo);
+            var propertyOptions = GetOptionsFromProperty(typeInfo);
             return fieldOptions.Concat(propertyOptions).ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         private Dictionary<string, SearchSpace> GetNestedSearchSpaceFromType(Type typeInfo)
         {
-            var fieldSS = this.GetSearchSpacesFromField(typeInfo);
-            var propertySS = this.GetSearchSpacesFromProperty(typeInfo);
+            var fieldSS = GetSearchSpacesFromField(typeInfo);
+            var propertySS = GetSearchSpacesFromProperty(typeInfo);
             return fieldSS.Concat(propertySS).ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
@@ -234,7 +236,7 @@ namespace Microsoft.ML.SearchSpace
                 }
                 else
                 {
-                    this.CheckOptionType(attributes.First(), field.Name, field.FieldType);
+                    CheckOptionType(attributes.First(), field.Name, field.FieldType);
 
                     OptionBase option = attributes.First() switch
                     {
@@ -270,7 +272,7 @@ namespace Microsoft.ML.SearchSpace
                 }
                 else
                 {
-                    this.CheckOptionType(attributes.First(), property.Name, property.PropertyType);
+                    CheckOptionType(attributes.First(), property.Name, property.PropertyType);
 
                     OptionBase option = attributes.First() switch
                     {
@@ -415,7 +417,7 @@ namespace Microsoft.ML.SearchSpace
             res = Parameter.CreateNestedParameter();
             foreach (var kv in left.Concat(right))
             {
-                res[kv.Key] = this.Update(left.ContainsKey(kv.Key) ? left[kv.Key] : null, right.ContainsKey(kv.Key) ? right[kv.Key] : null);
+                res[kv.Key] = Update(left.ContainsKey(kv.Key) ? left[kv.Key] : null, right.ContainsKey(kv.Key) ? right[kv.Key] : null);
             }
 
             return res;
@@ -444,7 +446,7 @@ namespace Microsoft.ML.SearchSpace
         public SearchSpace(T defaultOption)
             : base(typeof(T), Parameter.FromObject(defaultOption))
         {
-            this._defaultOption = defaultOption;
+            _defaultOption = defaultOption;
         }
 
         /// <summary>
@@ -464,7 +466,7 @@ namespace Microsoft.ML.SearchSpace
         public double[] MappingToFeatureSpace(T input)
         {
             var param = Parameter.FromObject(input);
-            return this.MappingToFeatureSpace(param);
+            return MappingToFeatureSpace(param);
         }
     }
 }

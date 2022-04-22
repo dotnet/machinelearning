@@ -3,10 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.ML.AutoMLService
 {
@@ -16,28 +12,28 @@ namespace Microsoft.ML.AutoMLService
 
         public RandomNumberGenerator()
         {
-            this._random = new Random();
+            _random = new Random();
         }
 
         public RandomNumberGenerator(int seed)
         {
-            this._random = new Random(seed);
+            _random = new Random(seed);
         }
 
         public int Integer(int high)
         {
-            return this._random.Next(high);
+            return _random.Next(high);
         }
 
         public double Uniform(double low, double high)
         {
-            return (this._random.NextDouble() * (high - low)) + low;
+            return (_random.NextDouble() * (high - low)) + low;
         }
 
         public double Normal(double location, double scale)
         {
-            double u = 1 - this.Uniform(0, 1);
-            double v = 1 - this.Uniform(0, 1);
+            double u = 1 - Uniform(0, 1);
+            double v = 1 - Uniform(0, 1);
             double std = Math.Sqrt(-2.0 * Math.Log(u)) * Math.Sin(2.0 * Math.PI * v);
             return location + (std * scale);
         }
@@ -47,7 +43,7 @@ namespace Microsoft.ML.AutoMLService
             double[] ret = new double[size];
             for (int i = 0; i < size; i++)
             {
-                ret[i] = this.Normal(location, scale);
+                ret[i] = Normal(location, scale);
             }
 
             return ret;
@@ -55,7 +51,7 @@ namespace Microsoft.ML.AutoMLService
 
         public int Categorical(double[] possibility)
         {
-            double x = this.Uniform(0, 1);
+            double x = Uniform(0, 1);
             for (int i = 0; i < possibility.Length; i++)
             {
                 x -= possibility[i];
@@ -70,7 +66,7 @@ namespace Microsoft.ML.AutoMLService
             int[] ret = new int[size];
             for (int i = 0; i < ret.Length; i++)
             {
-                ret[i] = this.Categorical(possibility);
+                ret[i] = Categorical(possibility);
             }
 
             return ret;

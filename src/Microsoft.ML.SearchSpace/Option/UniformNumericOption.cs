@@ -23,10 +23,10 @@ namespace Microsoft.ML.SearchSpace.Option
         {
             Contracts.Check(max > min, "max must be larger than min.");
             Contracts.Check(min > 0 || logBase == false, "min must be larger than 0 if logBase is true.");
-            this.Min = min;
-            this.Max = max;
-            this.LogBase = logBase;
-            this.Default = Enumerable.Repeat(0.0, this.FeatureSpaceDim).ToArray();
+            Min = min;
+            Max = max;
+            LogBase = logBase;
+            Default = Enumerable.Repeat(0.0, FeatureSpaceDim).ToArray();
         }
 
         /// <summary>
@@ -60,18 +60,18 @@ namespace Microsoft.ML.SearchSpace.Option
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var x = param.AsType<double>();
-            Contracts.Check(x <= this.Max && x >= this.Min, $"{x} is not within [{this.Min}, {this.Max}]");
-            if (this.LogBase)
+            Contracts.Check(x <= Max && x >= Min, $"{x} is not within [{Min}, {Max}]");
+            if (LogBase)
             {
-                var logMax = Math.Log(this.Max);
-                var logMin = Math.Log(this.Min);
+                var logMax = Math.Log(Max);
+                var logMin = Math.Log(Min);
                 var logX = Math.Log(x);
 
                 return new[] { logX / (logMax - logMin) - logMin / (logMax - logMin) };
             }
             else
             {
-                return new[] { x / (this.Max - this.Min) - this.Min / (this.Max - this.Min) };
+                return new[] { x / (Max - Min) - Min / (Max - Min) };
             }
         }
 
@@ -84,15 +84,15 @@ namespace Microsoft.ML.SearchSpace.Option
             var value = values[0];
             Contracts.Check(value <= 1 && value >= 0, $"{value} must be between [0,1]");
 
-            if (this.LogBase)
+            if (LogBase)
             {
-                var order = Math.Pow(this.Max / this.Min, value);
-                var res = this.Min * order;
+                var order = Math.Pow(Max / Min, value);
+                var res = Min * order;
                 return Parameter.FromDouble(res);
             }
             else
             {
-                return Parameter.FromDouble((this.Min + (this.Max - this.Min) * value));
+                return Parameter.FromDouble((Min + (Max - Min) * value));
             }
         }
     }
@@ -114,7 +114,7 @@ namespace Microsoft.ML.SearchSpace.Option
         {
             if (defaultValue != null)
             {
-                this.Default = this.MappingToFeatureSpace(Parameter.FromDouble(defaultValue.Value));
+                Default = MappingToFeatureSpace(Parameter.FromDouble(defaultValue.Value));
             }
         }
     }
@@ -136,7 +136,7 @@ namespace Microsoft.ML.SearchSpace.Option
         {
             if (defaultValue != null)
             {
-                this.Default = this.MappingToFeatureSpace(Parameter.FromFloat(defaultValue.Value));
+                Default = MappingToFeatureSpace(Parameter.FromFloat(defaultValue.Value));
             }
         }
 
@@ -178,7 +178,7 @@ namespace Microsoft.ML.SearchSpace.Option
         {
             if (defaultValue != null)
             {
-                this.Default = this.MappingToFeatureSpace(Parameter.FromInt(defaultValue.Value));
+                Default = MappingToFeatureSpace(Parameter.FromInt(defaultValue.Value));
             }
         }
 

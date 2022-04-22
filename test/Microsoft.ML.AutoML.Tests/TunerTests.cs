@@ -8,11 +8,11 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 using FluentAssertions;
+using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.SearchSpace;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.AutoML.CodeGen;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -87,9 +87,9 @@ namespace Microsoft.ML.AutoML.Test
                 var x = param.X;
                 var y = param.Y;
                 var z = param.Z;
-                var metric = this.LSE3D(x, y, z);
+                var metric = LSE3D(x, y, z);
                 bestMetric = Math.Max(bestMetric, metric);
-                this.Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
+                Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
                 if (x == 10 && y == 10 && z == 10)
                 {
                     break;
@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML.Test
                 });
             }
 
-            bestMetric.Should().BeGreaterThan(this.LSE3D(10, 10, 10) - 2);
+            bestMetric.Should().BeGreaterThan(LSE3D(10, 10, 10) - 2);
         }
 
         [Fact]
@@ -123,9 +123,9 @@ namespace Microsoft.ML.AutoML.Test
                 var x = param.X;
                 var y = param.Y;
                 var z = param.Z;
-                loss = this.LSE3D(x, y, z);
-                this.Output.WriteLine(loss.ToString());
-                this.Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
+                loss = LSE3D(x, y, z);
+                Output.WriteLine(loss.ToString());
+                Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
 
                 if (x == -10 && y == -10 && z == -10)
                 {
@@ -140,7 +140,7 @@ namespace Microsoft.ML.AutoML.Test
                 });
             }
 
-            loss.Should().BeLessThan(this.LSE3D(-10, -10, -10) + 2);
+            loss.Should().BeLessThan(LSE3D(-10, -10, -10) + 2);
         }
 
         [Fact]
@@ -160,9 +160,9 @@ namespace Microsoft.ML.AutoML.Test
                 var x = param.X;
                 var y = param.Y;
                 var z = param.Z;
-                var metric = this.F1(x, y, z);
+                var metric = F1(x, y, z);
                 bestMetric = Math.Min(bestMetric, metric);
-                this.Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
+                Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
 
                 if (x == -1 && y == 1 && z == 0)
                 {
@@ -177,7 +177,7 @@ namespace Microsoft.ML.AutoML.Test
                 });
             }
 
-            bestMetric.Should().BeLessThan(this.F1(-1, 1, 0) + 2);
+            bestMetric.Should().BeLessThan(F1(-1, 1, 0) + 2);
         }
 
         [Fact]

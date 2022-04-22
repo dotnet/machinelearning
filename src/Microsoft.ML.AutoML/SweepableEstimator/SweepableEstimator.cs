@@ -21,9 +21,9 @@ namespace Microsoft.ML.AutoML
         public SweepableEstimator(Func<MLContext, Parameter, IEstimator<ITransformer>> factory, SearchSpace.SearchSpace ss)
             : this()
         {
-            this._factory = factory;
-            this.SearchSpace = ss;
-            this.Parameter = ss.SampleFromFeatureSpace(ss.Default);
+            _factory = factory;
+            SearchSpace = ss;
+            Parameter = ss.SampleFromFeatureSpace(ss.Default);
         }
 
         protected SweepableEstimator()
@@ -42,7 +42,7 @@ namespace Microsoft.ML.AutoML
 
         public virtual IEstimator<ITransformer> BuildFromOption(MLContext context, Parameter param)
         {
-            return this._factory(context, param);
+            return _factory(context, param);
         }
 
         public SearchSpace.SearchSpace SearchSpace { get; set; }
@@ -70,7 +70,7 @@ namespace Microsoft.ML.AutoML
 
         public override IEstimator<ITransformer> BuildFromOption(MLContext context, Parameter param)
         {
-            return this.BuildFromOption(context, param.AsType<TOption>());
+            return BuildFromOption(context, param.AsType<TOption>());
         }
     }
 }

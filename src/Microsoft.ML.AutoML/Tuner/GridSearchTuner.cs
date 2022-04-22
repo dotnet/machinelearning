@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.ML.SearchSpace;
-using Microsoft.ML.SearchSpace.Tuner;
 
 namespace Microsoft.ML.AutoML
 {
@@ -17,19 +14,19 @@ namespace Microsoft.ML.AutoML
 
         public GridSearchTuner(SearchSpace.SearchSpace searchSpace)
         {
-            this._tuner = new SearchSpace.Tuner.GridSearchTuner(searchSpace);
-            this._enumerator = this._tuner.Propose().GetEnumerator();
+            _tuner = new SearchSpace.Tuner.GridSearchTuner(searchSpace);
+            _enumerator = _tuner.Propose().GetEnumerator();
         }
         public Parameter Propose(TrialSettings settings)
         {
-            if (!this._enumerator.MoveNext())
+            if (!_enumerator.MoveNext())
             {
-                this._enumerator = this._tuner.Propose().GetEnumerator();
-                return this.Propose(settings);
+                _enumerator = _tuner.Propose().GetEnumerator();
+                return Propose(settings);
             }
             else
             {
-                var res = this._enumerator.Current;
+                var res = _enumerator.Current;
                 return res;
             }
         }

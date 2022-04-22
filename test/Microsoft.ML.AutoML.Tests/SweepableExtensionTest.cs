@@ -5,16 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xunit;
-using Microsoft.ML.AutoML.CodeGen;
-using FluentAssertions;
-using Microsoft.ML.TestFramework;
-using Xunit.Abstractions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using ApprovalTests;
+using FluentAssertions;
+using Microsoft.ML.AutoML.CodeGen;
+using Microsoft.ML.TestFramework;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -25,7 +25,7 @@ namespace Microsoft.ML.AutoML.Test
         public SweepableExtensionTest(ITestOutputHelper output)
             : base(output)
         {
-            this._jsonSerializerOptions = new JsonSerializerOptions()
+            _jsonSerializerOptions = new JsonSerializerOptions()
             {
                 WriteIndented = true,
                 Converters =
@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML.Test
                 },
             };
 
-            this._jsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+            _jsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
 
             if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("output", "input")
                                 .Append(context.Auto().BinaryClassification());
 
-            var json = JsonSerializer.Serialize(pipeline, this._jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
             Approvals.Verify(json);
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("output", "input")
                                 .Append(context.Auto().MultiClassification());
 
-            var json = JsonSerializer.Serialize(pipeline, this._jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
             Approvals.Verify(json);
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("output", "input")
                                 .Append(context.Auto().MultiClassification());
 
-            var json = JsonSerializer.Serialize(pipeline, this._jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
             Approvals.Verify(json);
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption())
                                 .Append(context.Auto().MultiClassification());
 
-            var json = JsonSerializer.Serialize(pipeline, this._jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
             Approvals.Verify(json);
         }
 
@@ -145,7 +145,7 @@ namespace Microsoft.ML.AutoML.Test
                                 .Append(SweepableEstimatorFactory.CreateFeaturizeText(new FeaturizeTextOption()))
                                 .Append(context.Auto().MultiClassification());
 
-            var json = JsonSerializer.Serialize(pipeline, this._jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
             Approvals.Verify(json);
         }
     }

@@ -42,7 +42,7 @@ namespace Microsoft.ML.SearchSpace.Converter
                     var list = new List<object>();
                     while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                     {
-                        list.Add(this.Read(ref reader, null, options));
+                        list.Add(Read(ref reader, null, options));
                     }
 
                     return Parameter.FromIEnumerable(list);

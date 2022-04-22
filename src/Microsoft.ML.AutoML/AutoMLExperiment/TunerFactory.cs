@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.ML.SearchSpace.Tuner;
 
 namespace Microsoft.ML.AutoML
 {
@@ -21,12 +18,12 @@ namespace Microsoft.ML.AutoML
 
         public CostFrugalTunerFactory(IServiceProvider provider)
         {
-            this._provider = provider;
+            _provider = provider;
         }
 
         public ITuner CreateTuner(TrialSettings settings)
         {
-            var experimentSetting = this._provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
+            var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
             var searchSpace = settings.Pipeline.SearchSpace;
             var initParameter = settings.Pipeline.Parameter;
             var isMaximize = experimentSetting.EvaluateMetric.IsMaximize;
@@ -41,7 +38,7 @@ namespace Microsoft.ML.AutoML
 
         public RandomTunerFactory(IServiceProvider provider)
         {
-            this._provider = provider;
+            _provider = provider;
         }
 
         public ITuner CreateTuner(TrialSettings settings)
@@ -58,7 +55,7 @@ namespace Microsoft.ML.AutoML
 
         public GridSearchTunerFactory(IServiceProvider provider)
         {
-            this._provider = provider;
+            _provider = provider;
         }
 
         public ITuner CreateTuner(TrialSettings settings)
