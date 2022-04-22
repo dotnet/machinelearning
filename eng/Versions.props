@@ -67,8 +67,7 @@
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
-    <DotNetRuntime21Version>2.1.0</DotNetRuntime21Version>
-    <DotNetRuntime31Version>3.1.0</DotNetRuntime31Version>
+    <DotNetRuntime31Version>3.1.24</DotNetRuntime31Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20374.2</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.22215.2</MicrosoftDotNetXUnitExtensionsVersion>
