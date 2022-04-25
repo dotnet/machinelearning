@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.AutoML
 {
-    internal static class SweepableExtension
+    public static class SweepableExtension
     {
         public static SweepableEstimatorPipeline Append(this IEstimator<ITransformer> estimator, SweepableEstimator estimator1)
         {

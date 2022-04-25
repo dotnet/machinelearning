@@ -232,8 +232,8 @@ namespace Microsoft.ML.AutoML
                     setting = pipelineProposer.Propose(setting);
                     setting = hyperParameterProposer.Propose(setting);
                     monitor.ReportRunningTrial(setting);
-                    var runner = runnerFactory.CreateTrialRunner(setting);
-                    var trialResult = runner.Run(setting);
+                    var runner = runnerFactory.CreateTrialRunner();
+                    var trialResult = runner.Run(setting, serviceProvider);
                     monitor.ReportCompletedTrial(trialResult);
                     hyperParameterProposer.Update(setting, trialResult);
                     pipelineProposer.Update(setting, trialResult);

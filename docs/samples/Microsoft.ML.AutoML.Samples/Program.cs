@@ -8,6 +8,7 @@ namespace Microsoft.ML.AutoML.Samples
         {
             try
             {
+                Sonar.Run();
                 RecommendationExperiment.Run();
                 Console.Clear();
 

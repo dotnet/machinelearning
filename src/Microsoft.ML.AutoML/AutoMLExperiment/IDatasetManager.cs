@@ -4,18 +4,18 @@
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface IDatasetManager
+    public interface IDatasetManager
     {
     }
 
-    internal class TrainTestDatasetManager : IDatasetManager
+    public class TrainTestDatasetManager : IDatasetManager
     {
         public IDataView TrainDataset { get; set; }
 
         public IDataView TestDataset { get; set; }
     }
 
-    internal class CrossValidateDatasetManager : IDatasetManager
+    public class CrossValidateDatasetManager : IDatasetManager
     {
         public IDataView Dataset { get; set; }
 

@@ -9,7 +9,7 @@ namespace Microsoft.ML.AutoML
 {
     public interface ITrialRunner
     {
-        TrialResult Run(TrialSettings settings);
+        TrialResult Run(TrialSettings settings, IServiceProvider provider = null);
     }
 
     internal class BinaryClassificationCVRunner : ITrialRunner
@@ -25,7 +25,7 @@ namespace Microsoft.ML.AutoML
             _metricManager = metricManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             var rnd = new Random(settings.ExperimentSettings.Seed ?? 0);
             if (_datasetManager is CrossValidateDatasetManager datasetSettings
@@ -80,7 +80,7 @@ namespace Microsoft.ML.AutoML
             _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             if (_datasetManager is TrainTestDatasetManager datasetSettings
                 && _metricManager is BinaryMetricManager metricSettings)
@@ -133,7 +133,7 @@ namespace Microsoft.ML.AutoML
             _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             if (_datasetManager is TrainTestDatasetManager datasetSettings
                 && _metricManager is MultiClassMetricManager metricSettings)
@@ -186,7 +186,7 @@ namespace Microsoft.ML.AutoML
             _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             var rnd = new Random(settings.ExperimentSettings.Seed ?? 0);
             if (_datasetManager is CrossValidateDatasetManager datasetSettings
@@ -240,7 +240,7 @@ namespace Microsoft.ML.AutoML
             _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             if (_datasetManager is TrainTestDatasetManager datasetSettings
                 && _metricManager is RegressionMetricManager metricSettings)
@@ -292,7 +292,7 @@ namespace Microsoft.ML.AutoML
             _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             var rnd = new Random(settings.ExperimentSettings.Seed ?? 0);
             if (_datasetManager is CrossValidateDatasetManager datasetSettings
