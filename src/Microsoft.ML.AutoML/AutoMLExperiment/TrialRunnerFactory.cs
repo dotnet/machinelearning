@@ -10,7 +10,22 @@ namespace Microsoft.ML.AutoML
 {
     public interface ITrialRunnerFactory
     {
-        ITrialRunner? CreateTrialRunner(TrialSettings settings);
+        ITrialRunner? CreateTrialRunner();
+    }
+
+    internal class CustomRunnerFactory : ITrialRunnerFactory
+    {
+        private readonly ITrialRunner _instance;
+
+        public CustomRunnerFactory(ITrialRunner runner)
+        {
+            _instance = runner;
+        }
+
+        public ITrialRunner? CreateTrialRunner()
+        {
+            return _instance;
+        }
     }
 
     internal class TrialRunnerFactory : ITrialRunnerFactory
@@ -22,10 +37,12 @@ namespace Microsoft.ML.AutoML
             _provider = provider;
         }
 
-        public ITrialRunner? CreateTrialRunner(TrialSettings settings)
+        public ITrialRunner? CreateTrialRunner()
         {
             var datasetManager = this._provider.GetService<IDatasetManager>();
-            ITrialRunner? runner = (datasetManager, settings.ExperimentSettings.EvaluateMetric) switch
+            var metricManager = this._provider.GetService<IMetricManager>();
+
+            ITrialRunner? runner = (datasetManager, metricManager) switch
             {
                 (CrossValidateDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationCVRunner>(),
                 (TrainTestDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationTrainTestRunner>(),

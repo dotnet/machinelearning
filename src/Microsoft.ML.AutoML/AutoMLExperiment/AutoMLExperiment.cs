@@ -120,8 +120,9 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetTrialRunnerFactory(ITrialRunnerFactory factory)
+        public AutoMLExperiment SetTrialRunner(ITrialRunner runner)
         {
+            var factory = new CustomRunnerFactory(runner);
             var descriptor = new ServiceDescriptor(typeof(ITrialRunnerFactory), factory);
             if (_serviceCollection.Contains(descriptor))
             {
