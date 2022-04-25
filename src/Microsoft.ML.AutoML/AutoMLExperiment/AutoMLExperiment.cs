@@ -120,6 +120,12 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
+        public AutoMLExperiment SetIsMaximizeMetric(bool isMaximize)
+        {
+            _settings.IsMaximizeMetric = isMaximize;
+            return this;
+        }
+
         public AutoMLExperiment SetTrialRunner(ITrialRunner runner)
         {
             var factory = new CustomRunnerFactory(runner);
@@ -158,6 +164,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
+            this.SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -171,6 +178,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
+            this.SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -184,6 +192,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
+            this.SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -238,7 +247,7 @@ namespace Microsoft.ML.AutoML
                     hyperParameterProposer.Update(setting, trialResult);
                     pipelineProposer.Update(setting, trialResult);
 
-                    var error = trialResult.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
+                    var error = _settings.IsMaximizeMetric ? 1 - trialResult.Metric : trialResult.Metric;
                     if (error < _bestError)
                     {
                         _bestTrialResult = trialResult;
@@ -280,6 +289,8 @@ namespace Microsoft.ML.AutoML
             public MultiModelPipeline Pipeline { get; set; }
 
             public int? Seed { get; set; }
+
+            public bool IsMaximizeMetric { get; set; }
         }
     }
 }

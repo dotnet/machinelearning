@@ -24,10 +24,9 @@ namespace Microsoft.ML.AutoML
         public ITuner CreateTuner(TrialSettings settings)
         {
             var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-            var metricManager = _provider.GetService<IMetricManager>();
             var searchSpace = settings.Pipeline.SearchSpace;
             var initParameter = settings.Pipeline.Parameter;
-            var isMaximize = metricManager.IsMaximize;
+            var isMaximize = experimentSetting.IsMaximizeMetric;
 
             return new CostFrugalTuner(searchSpace, initParameter, !isMaximize);
         }
