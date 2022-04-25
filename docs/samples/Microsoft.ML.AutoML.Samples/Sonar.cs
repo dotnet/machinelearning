@@ -12,7 +12,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.AutoML.Samples
 {
     /// <summary>
-    /// Time series forecasting using Sonar dataset.
+    /// Time series automl forecasting using Sonar dataset.
     /// </summary>
     public static class Sonar
     {
