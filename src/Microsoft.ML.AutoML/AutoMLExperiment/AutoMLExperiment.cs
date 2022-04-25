@@ -12,7 +12,7 @@ using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
 {
-    internal class AutoMLExperiment
+    public class AutoMLExperiment
     {
         private readonly AutoMLExperimentSettings _settings;
         private readonly MLContext _context;
@@ -52,11 +52,13 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetDataset(IDataView train, IDataView test)
         {
-            _settings.DatasetSettings = new TrainTestDatasetSettings()
+            var datasetManager = new TrainTestDatasetManager()
             {
                 TrainDataset = train,
                 TestDataset = test
             };
+
+            _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
 
             return this;
         }
@@ -70,11 +72,13 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetDataset(IDataView dataset, int fold = 10)
         {
-            _settings.DatasetSettings = new CrossValidateDatasetSettings()
+            var datasetManager = new CrossValidateDatasetManager()
             {
                 Dataset = dataset,
                 Fold = fold,
             };
+
+            _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
 
             return this;
         }
@@ -264,15 +268,12 @@ namespace Microsoft.ML.AutoML
         private void ValidateSettings()
         {
             Contracts.Assert(_settings.MaxExperimentTimeInSeconds > 0, $"{nameof(ExperimentSettings.MaxExperimentTimeInSeconds)} must be larger than 0");
-            Contracts.Assert(_settings.DatasetSettings != null, $"{nameof(_settings.DatasetSettings)} must be not null");
             Contracts.Assert(_settings.EvaluateMetric != null, $"{nameof(_settings.EvaluateMetric)} must be not null");
         }
 
 
         public class AutoMLExperimentSettings : ExperimentSettings
         {
-            public IDatasetSettings DatasetSettings { get; set; }
-
             public IMetricSettings EvaluateMetric { get; set; }
 
             public MultiModelPipeline Pipeline { get; set; }

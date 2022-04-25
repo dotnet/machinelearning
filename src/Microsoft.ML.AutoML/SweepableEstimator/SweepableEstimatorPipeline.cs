@@ -11,7 +11,7 @@ using Microsoft.ML.SearchSpace;
 namespace Microsoft.ML.AutoML
 {
     [JsonConverter(typeof(SweepableEstimatorPipelineConverter))]
-    internal class SweepableEstimatorPipeline
+    public class SweepableEstimatorPipeline
     {
         private readonly List<SweepableEstimator> _estimators;
 

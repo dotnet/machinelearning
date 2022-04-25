@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 #nullable enable
 namespace Microsoft.ML.AutoML
 {
-    internal interface ITrialRunnerFactory
+    public interface ITrialRunnerFactory
     {
         ITrialRunner? CreateTrialRunner(TrialSettings settings);
     }
@@ -24,14 +24,15 @@ namespace Microsoft.ML.AutoML
 
         public ITrialRunner? CreateTrialRunner(TrialSettings settings)
         {
-            ITrialRunner? runner = (settings.ExperimentSettings.DatasetSettings, settings.ExperimentSettings.EvaluateMetric) switch
+            var datasetManager = this._provider.GetService<IDatasetManager>();
+            ITrialRunner? runner = (datasetManager, settings.ExperimentSettings.EvaluateMetric) switch
             {
-                (CrossValidateDatasetSettings, BinaryMetricSettings) => _provider.GetService<BinaryClassificationCVRunner>(),
-                (TrainTestDatasetSettings, BinaryMetricSettings) => _provider.GetService<BinaryClassificationTrainTestRunner>(),
-                (CrossValidateDatasetSettings, MultiClassMetricSettings) => _provider.GetService<MultiClassificationCVRunner>(),
-                (TrainTestDatasetSettings, MultiClassMetricSettings) => _provider.GetService<MultiClassificationTrainTestRunner>(),
-                (CrossValidateDatasetSettings, RegressionMetricSettings) => _provider.GetService<RegressionCVRunner>(),
-                (TrainTestDatasetSettings, RegressionMetricSettings) => _provider.GetService<RegressionTrainTestRunner>(),
+                (CrossValidateDatasetManager, BinaryMetricSettings) => _provider.GetService<BinaryClassificationCVRunner>(),
+                (TrainTestDatasetManager, BinaryMetricSettings) => _provider.GetService<BinaryClassificationTrainTestRunner>(),
+                (CrossValidateDatasetManager, MultiClassMetricSettings) => _provider.GetService<MultiClassificationCVRunner>(),
+                (TrainTestDatasetManager, MultiClassMetricSettings) => _provider.GetService<MultiClassificationTrainTestRunner>(),
+                (CrossValidateDatasetManager, RegressionMetricSettings) => _provider.GetService<RegressionCVRunner>(),
+                (TrainTestDatasetManager, RegressionMetricSettings) => _provider.GetService<RegressionTrainTestRunner>(),
                 _ => throw new NotImplementedException(),
             };
 

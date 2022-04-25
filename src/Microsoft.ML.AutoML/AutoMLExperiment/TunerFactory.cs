@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface ITunerFactory
+    public interface ITunerFactory
     {
         ITuner CreateTuner(TrialSettings settings);
     }

@@ -7,7 +7,7 @@ using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
-    internal class Estimator
+    public class Estimator
     {
         protected Estimator()
         {

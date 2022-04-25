@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface IMetricSettings
+    public interface IMetricSettings
     {
         bool IsMaximize { get; }
     }

@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface IMonitor
+    public interface IMonitor
     {
         void ReportCompletedTrial(TrialResult result);
 
