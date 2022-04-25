@@ -10,18 +10,12 @@
     <ProjectReference Include="..\..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
-    <ProjectReference Include="..\..\..\src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
-    <NativeAssemblyReference Include="MklProxyNative" />
-    <NativeAssemblyReference Include="CpuMathNative" />
-    <NativeAssemblyReference Include="SymSgdNative" />
-    <NativeAssemblyReference Include="FastTreeNative" />
-    <NativeAssemblyReference Include="LdaNative" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
-    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Include="FastTreeNative" />
     <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
   </ItemGroup>
 </Project>
