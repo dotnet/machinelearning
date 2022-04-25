@@ -27,12 +27,12 @@ namespace Microsoft.ML.AutoML
             var datasetManager = this._provider.GetService<IDatasetManager>();
             ITrialRunner? runner = (datasetManager, settings.ExperimentSettings.EvaluateMetric) switch
             {
-                (CrossValidateDatasetManager, BinaryMetricSettings) => _provider.GetService<BinaryClassificationCVRunner>(),
-                (TrainTestDatasetManager, BinaryMetricSettings) => _provider.GetService<BinaryClassificationTrainTestRunner>(),
-                (CrossValidateDatasetManager, MultiClassMetricSettings) => _provider.GetService<MultiClassificationCVRunner>(),
-                (TrainTestDatasetManager, MultiClassMetricSettings) => _provider.GetService<MultiClassificationTrainTestRunner>(),
-                (CrossValidateDatasetManager, RegressionMetricSettings) => _provider.GetService<RegressionCVRunner>(),
-                (TrainTestDatasetManager, RegressionMetricSettings) => _provider.GetService<RegressionTrainTestRunner>(),
+                (CrossValidateDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationCVRunner>(),
+                (TrainTestDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationTrainTestRunner>(),
+                (CrossValidateDatasetManager, MultiClassMetricManager) => _provider.GetService<MultiClassificationCVRunner>(),
+                (TrainTestDatasetManager, MultiClassMetricManager) => _provider.GetService<MultiClassificationTrainTestRunner>(),
+                (CrossValidateDatasetManager, RegressionMetricManager) => _provider.GetService<RegressionCVRunner>(),
+                (TrainTestDatasetManager, RegressionMetricManager) => _provider.GetService<RegressionTrainTestRunner>(),
                 _ => throw new NotImplementedException(),
             };
 

@@ -6,12 +6,12 @@ using System;
 
 namespace Microsoft.ML.AutoML
 {
-    public interface IMetricSettings
+    internal interface IMetricManager
     {
         bool IsMaximize { get; }
     }
 
-    internal class BinaryMetricSettings : IMetricSettings
+    internal class BinaryMetricManager : IMetricManager
     {
         public BinaryClassificationMetric Metric { get; set; }
 
@@ -33,7 +33,7 @@ namespace Microsoft.ML.AutoML
         };
     }
 
-    internal class MultiClassMetricSettings : IMetricSettings
+    internal class MultiClassMetricManager : IMetricManager
     {
         public MulticlassClassificationMetric Metric { get; set; }
 
@@ -52,7 +52,7 @@ namespace Microsoft.ML.AutoML
         };
     }
 
-    internal class RegressionMetricSettings : IMetricSettings
+    internal class RegressionMetricManager : IMetricManager
     {
         public RegressionMetric Metric { get; set; }
 

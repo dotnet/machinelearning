@@ -150,36 +150,39 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
         {
-            _settings.EvaluateMetric = new BinaryMetricSettings()
+            var metricManager = new BinaryMetricManager()
             {
                 Metric = metric,
                 PredictedColumn = predictedColumn,
                 LabelColumn = labelColumn,
             };
+            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
 
             return this;
         }
 
         public AutoMLExperiment SetEvaluateMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
         {
-            _settings.EvaluateMetric = new MultiClassMetricSettings()
+            var metricManager = new MultiClassMetricManager()
             {
                 Metric = metric,
                 PredictedColumn = predictedColumn,
                 LabelColumn = labelColumn,
             };
+            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
 
             return this;
         }
 
         public AutoMLExperiment SetEvaluateMetric(RegressionMetric metric, string labelColumn = "label", string scoreColumn = "Score")
         {
-            _settings.EvaluateMetric = new RegressionMetricSettings()
+            var metricManager = new RegressionMetricManager()
             {
                 Metric = metric,
                 ScoreColumn = scoreColumn,
                 LabelColumn = labelColumn,
             };
+            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
 
             return this;
         }
@@ -234,7 +237,7 @@ namespace Microsoft.ML.AutoML
                     hyperParameterProposer.Update(setting, trialResult);
                     pipelineProposer.Update(setting, trialResult);
 
-                    var error = _settings.EvaluateMetric.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
+                    var error = trialResult.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
                     if (error < _bestError)
                     {
                         _bestTrialResult = trialResult;
@@ -268,14 +271,11 @@ namespace Microsoft.ML.AutoML
         private void ValidateSettings()
         {
             Contracts.Assert(_settings.MaxExperimentTimeInSeconds > 0, $"{nameof(ExperimentSettings.MaxExperimentTimeInSeconds)} must be larger than 0");
-            Contracts.Assert(_settings.EvaluateMetric != null, $"{nameof(_settings.EvaluateMetric)} must be not null");
         }
 
 
         public class AutoMLExperimentSettings : ExperimentSettings
         {
-            public IMetricSettings EvaluateMetric { get; set; }
-
             public MultiModelPipeline Pipeline { get; set; }
 
             public int? Seed { get; set; }
