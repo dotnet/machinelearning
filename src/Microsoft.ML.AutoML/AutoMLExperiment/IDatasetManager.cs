@@ -4,6 +4,10 @@
 
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// Interface for dataset manager. This interface doesn't include any method or property definition and is used by <see cref="AutoMLExperiment"/> and other components to retrieve the instance of the actual
+    /// dataset manager from containers.
+    /// </summary>
     public interface IDatasetManager
     {
     }

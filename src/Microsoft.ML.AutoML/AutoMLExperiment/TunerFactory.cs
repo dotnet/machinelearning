@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// interface for all tuner factories.
+    /// </summary>
     public interface ITunerFactory
     {
         ITuner CreateTuner(TrialSettings settings);

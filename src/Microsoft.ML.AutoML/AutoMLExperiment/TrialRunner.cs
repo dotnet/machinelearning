@@ -7,6 +7,9 @@ using System.Diagnostics;
 
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// interface for all trial runners.
+    /// </summary>
     public interface ITrialRunner
     {
         TrialResult Run(TrialSettings settings, IServiceProvider provider = null);

@@ -6,6 +6,9 @@ using System;
 
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// Interface for metric manager.
+    /// </summary>
     internal interface IMetricManager
     {
         bool IsMaximize { get; }

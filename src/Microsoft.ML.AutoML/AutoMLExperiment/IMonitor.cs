@@ -8,6 +8,9 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// instance for monitor, which is used by <see cref="AutoMLExperiment"/> to report training progress.
+    /// </summary>
     public interface IMonitor
     {
         void ReportCompletedTrial(TrialResult result);

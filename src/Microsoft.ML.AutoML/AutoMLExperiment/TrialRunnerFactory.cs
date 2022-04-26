@@ -8,6 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 #nullable enable
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// interface for trial runner factory.
+    /// </summary>
     public interface ITrialRunnerFactory
     {
         ITrialRunner? CreateTrialRunner();
