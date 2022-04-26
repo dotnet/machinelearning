@@ -39,8 +39,8 @@ namespace Microsoft.ML.AutoML
 
         public ITrialRunner? CreateTrialRunner()
         {
-            var datasetManager = this._provider.GetService<IDatasetManager>();
-            var metricManager = this._provider.GetService<IMetricManager>();
+            var datasetManager = _provider.GetService<IDatasetManager>();
+            var metricManager = _provider.GetService<IMetricManager>();
 
             ITrialRunner? runner = (datasetManager, metricManager) switch
             {

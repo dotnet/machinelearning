@@ -164,7 +164,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            this.SetIsMaximizeMetric(metricManager.IsMaximize);
+            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -178,7 +178,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            this.SetIsMaximizeMetric(metricManager.IsMaximize);
+            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -192,7 +192,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            this.SetIsMaximizeMetric(metricManager.IsMaximize);
+            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
