@@ -7,7 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface ITunerFactory
+    /// <summary>
+    /// interface for all tuner factories.
+    /// </summary>
+    public interface ITunerFactory
     {
         ITuner CreateTuner(TrialSettings settings);
     }
@@ -26,7 +29,7 @@ namespace Microsoft.ML.AutoML
             var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
             var searchSpace = settings.Pipeline.SearchSpace;
             var initParameter = settings.Pipeline.Parameter;
-            var isMaximize = experimentSetting.EvaluateMetric.IsMaximize;
+            var isMaximize = experimentSetting.IsMaximizeMetric;
 
             return new CostFrugalTuner(searchSpace, initParameter, !isMaximize);
         }

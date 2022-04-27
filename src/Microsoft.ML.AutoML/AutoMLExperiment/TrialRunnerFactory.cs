@@ -8,9 +8,27 @@ using Microsoft.Extensions.DependencyInjection;
 #nullable enable
 namespace Microsoft.ML.AutoML
 {
-    internal interface ITrialRunnerFactory
+    /// <summary>
+    /// interface for trial runner factory.
+    /// </summary>
+    public interface ITrialRunnerFactory
     {
-        ITrialRunner? CreateTrialRunner(TrialSettings settings);
+        ITrialRunner? CreateTrialRunner();
+    }
+
+    internal class CustomRunnerFactory : ITrialRunnerFactory
+    {
+        private readonly ITrialRunner _instance;
+
+        public CustomRunnerFactory(ITrialRunner runner)
+        {
+            _instance = runner;
+        }
+
+        public ITrialRunner? CreateTrialRunner()
+        {
+            return _instance;
+        }
     }
 
     internal class TrialRunnerFactory : ITrialRunnerFactory
@@ -22,16 +40,19 @@ namespace Microsoft.ML.AutoML
             _provider = provider;
         }
 
-        public ITrialRunner? CreateTrialRunner(TrialSettings settings)
+        public ITrialRunner? CreateTrialRunner()
         {
-            ITrialRunner? runner = (settings.ExperimentSettings.DatasetSettings, settings.ExperimentSettings.EvaluateMetric) switch
+            var datasetManager = _provider.GetService<IDatasetManager>();
+            var metricManager = _provider.GetService<IMetricManager>();
+
+            ITrialRunner? runner = (datasetManager, metricManager) switch
             {
-                (CrossValidateDatasetSettings, BinaryMetricSettings) => _provider.GetService<BinaryClassificationCVRunner>(),
-                (TrainTestDatasetSettings, BinaryMetricSettings) => _provider.GetService<BinaryClassificationTrainTestRunner>(),
-                (CrossValidateDatasetSettings, MultiClassMetricSettings) => _provider.GetService<MultiClassificationCVRunner>(),
-                (TrainTestDatasetSettings, MultiClassMetricSettings) => _provider.GetService<MultiClassificationTrainTestRunner>(),
-                (CrossValidateDatasetSettings, RegressionMetricSettings) => _provider.GetService<RegressionCVRunner>(),
-                (TrainTestDatasetSettings, RegressionMetricSettings) => _provider.GetService<RegressionTrainTestRunner>(),
+                (CrossValidateDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationCVRunner>(),
+                (TrainTestDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationTrainTestRunner>(),
+                (CrossValidateDatasetManager, MultiClassMetricManager) => _provider.GetService<MultiClassificationCVRunner>(),
+                (TrainTestDatasetManager, MultiClassMetricManager) => _provider.GetService<MultiClassificationTrainTestRunner>(),
+                (CrossValidateDatasetManager, RegressionMetricManager) => _provider.GetService<RegressionCVRunner>(),
+                (TrainTestDatasetManager, RegressionMetricManager) => _provider.GetService<RegressionTrainTestRunner>(),
                 _ => throw new NotImplementedException(),
             };
 

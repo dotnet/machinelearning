@@ -14,7 +14,7 @@ namespace Microsoft.ML.AutoML
     /// Estimator with search space.
     /// </summary>
     [JsonConverter(typeof(SweepableEstimatorConverter))]
-    internal class SweepableEstimator : Estimator
+    public class SweepableEstimator : Estimator
     {
         private readonly Func<MLContext, Parameter, IEstimator<ITransformer>> _factory;
 

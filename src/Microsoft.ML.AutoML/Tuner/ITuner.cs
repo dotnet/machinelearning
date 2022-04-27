@@ -6,7 +6,7 @@ using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface ITuner
+    public interface ITuner
     {
         Parameter Propose(TrialSettings settings);
 

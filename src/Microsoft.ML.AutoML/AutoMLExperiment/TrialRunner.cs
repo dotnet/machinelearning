@@ -7,24 +7,32 @@ using System.Diagnostics;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface ITrialRunner
+    /// <summary>
+    /// interface for all trial runners.
+    /// </summary>
+    public interface ITrialRunner
     {
-        TrialResult Run(TrialSettings settings);
+        TrialResult Run(TrialSettings settings, IServiceProvider provider = null);
     }
 
     internal class BinaryClassificationCVRunner : ITrialRunner
     {
         private readonly MLContext _context;
-        public BinaryClassificationCVRunner(MLContext context)
+        private readonly IDatasetManager _datasetManager;
+        private readonly IMetricManager _metricManager;
+
+        public BinaryClassificationCVRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager)
         {
             _context = context;
+            _datasetManager = datasetManager;
+            _metricManager = metricManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             var rnd = new Random(settings.ExperimentSettings.Seed ?? 0);
-            if (settings.ExperimentSettings.DatasetSettings is CrossValidateDatasetSettings datasetSettings
-                && settings.ExperimentSettings.EvaluateMetric is BinaryMetricSettings metricSettings)
+            if (_datasetManager is CrossValidateDatasetManager datasetSettings
+                && _metricManager is BinaryMetricManager metricSettings)
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -54,6 +62,7 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -64,16 +73,20 @@ namespace Microsoft.ML.AutoML
     internal class BinaryClassificationTrainTestRunner : ITrialRunner
     {
         private readonly MLContext _context;
-        public BinaryClassificationTrainTestRunner(MLContext context)
+        private readonly IDatasetManager _datasetManager;
+        private readonly IMetricManager _metricManager;
+
+        public BinaryClassificationTrainTestRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager)
         {
             _context = context;
+            _metricManager = metricManager;
+            _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
-            var rnd = new Random(settings.ExperimentSettings.Seed ?? 0);
-            if (settings.ExperimentSettings.DatasetSettings is TrainTestDatasetSettings datasetSettings
-                && settings.ExperimentSettings.EvaluateMetric is BinaryMetricSettings metricSettings)
+            if (_datasetManager is TrainTestDatasetManager datasetSettings
+                && _metricManager is BinaryMetricManager metricSettings)
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -102,6 +115,7 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -112,15 +126,20 @@ namespace Microsoft.ML.AutoML
     internal class MultiClassificationTrainTestRunner : ITrialRunner
     {
         private readonly MLContext _context;
-        public MultiClassificationTrainTestRunner(MLContext context)
+        private readonly IDatasetManager _datasetManager;
+        private readonly IMetricManager _metricManager;
+
+        public MultiClassificationTrainTestRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager)
         {
             _context = context;
+            _metricManager = metricManager;
+            _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
-            if (settings.ExperimentSettings.DatasetSettings is TrainTestDatasetSettings datasetSettings
-                && settings.ExperimentSettings.EvaluateMetric is MultiClassMetricSettings metricSettings)
+            if (_datasetManager is TrainTestDatasetManager datasetSettings
+                && _metricManager is MultiClassMetricManager metricSettings)
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -149,6 +168,7 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -159,16 +179,21 @@ namespace Microsoft.ML.AutoML
     internal class MultiClassificationCVRunner : ITrialRunner
     {
         private readonly MLContext _context;
-        public MultiClassificationCVRunner(MLContext context)
+        private readonly IDatasetManager _datasetManager;
+        private readonly IMetricManager _metricManager;
+
+        public MultiClassificationCVRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager)
         {
             _context = context;
+            _metricManager = metricManager;
+            _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             var rnd = new Random(settings.ExperimentSettings.Seed ?? 0);
-            if (settings.ExperimentSettings.DatasetSettings is CrossValidateDatasetSettings datasetSettings
-                && settings.ExperimentSettings.EvaluateMetric is MultiClassMetricSettings metricSettings)
+            if (_datasetManager is CrossValidateDatasetManager datasetSettings
+                && _metricManager is MultiClassMetricManager metricSettings)
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -197,6 +222,7 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -207,15 +233,20 @@ namespace Microsoft.ML.AutoML
     internal class RegressionTrainTestRunner : ITrialRunner
     {
         private readonly MLContext _context;
-        public RegressionTrainTestRunner(MLContext context)
+        private readonly IDatasetManager _datasetManager;
+        private readonly IMetricManager _metricManager;
+
+        public RegressionTrainTestRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager)
         {
             _context = context;
+            _metricManager = metricManager;
+            _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
-            if (settings.ExperimentSettings.DatasetSettings is TrainTestDatasetSettings datasetSettings
-                && settings.ExperimentSettings.EvaluateMetric is RegressionMetricSettings metricSettings)
+            if (_datasetManager is TrainTestDatasetManager datasetSettings
+                && _metricManager is RegressionMetricManager metricSettings)
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -243,6 +274,7 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -253,16 +285,21 @@ namespace Microsoft.ML.AutoML
     internal class RegressionCVRunner : ITrialRunner
     {
         private readonly MLContext _context;
-        public RegressionCVRunner(MLContext context)
+        private readonly IDatasetManager _datasetManager;
+        private readonly IMetricManager _metricManager;
+
+        public RegressionCVRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager)
         {
             _context = context;
+            _metricManager = metricManager;
+            _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings)
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
             var rnd = new Random(settings.ExperimentSettings.Seed ?? 0);
-            if (settings.ExperimentSettings.DatasetSettings is CrossValidateDatasetSettings datasetSettings
-                && settings.ExperimentSettings.EvaluateMetric is RegressionMetricSettings metricSettings)
+            if (_datasetManager is CrossValidateDatasetManager datasetSettings
+                && _metricManager is RegressionMetricManager metricSettings)
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -290,6 +327,7 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 

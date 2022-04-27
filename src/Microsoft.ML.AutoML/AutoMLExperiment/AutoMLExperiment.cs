@@ -12,7 +12,7 @@ using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
 {
-    internal class AutoMLExperiment
+    public class AutoMLExperiment
     {
         private readonly AutoMLExperimentSettings _settings;
         private readonly MLContext _context;
@@ -52,11 +52,13 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetDataset(IDataView train, IDataView test)
         {
-            _settings.DatasetSettings = new TrainTestDatasetSettings()
+            var datasetManager = new TrainTestDatasetManager()
             {
                 TrainDataset = train,
                 TestDataset = test
             };
+
+            _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
 
             return this;
         }
@@ -70,11 +72,13 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetDataset(IDataView dataset, int fold = 10)
         {
-            _settings.DatasetSettings = new CrossValidateDatasetSettings()
+            var datasetManager = new CrossValidateDatasetManager()
             {
                 Dataset = dataset,
                 Fold = fold,
             };
+
+            _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
 
             return this;
         }
@@ -116,8 +120,15 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetTrialRunnerFactory(ITrialRunnerFactory factory)
+        public AutoMLExperiment SetIsMaximizeMetric(bool isMaximize)
         {
+            _settings.IsMaximizeMetric = isMaximize;
+            return this;
+        }
+
+        public AutoMLExperiment SetTrialRunner(ITrialRunner runner)
+        {
+            var factory = new CustomRunnerFactory(runner);
             var descriptor = new ServiceDescriptor(typeof(ITrialRunnerFactory), factory);
             if (_serviceCollection.Contains(descriptor))
             {
@@ -146,36 +157,42 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
         {
-            _settings.EvaluateMetric = new BinaryMetricSettings()
+            var metricManager = new BinaryMetricManager()
             {
                 Metric = metric,
                 PredictedColumn = predictedColumn,
                 LabelColumn = labelColumn,
             };
+            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
+            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
 
         public AutoMLExperiment SetEvaluateMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
         {
-            _settings.EvaluateMetric = new MultiClassMetricSettings()
+            var metricManager = new MultiClassMetricManager()
             {
                 Metric = metric,
                 PredictedColumn = predictedColumn,
                 LabelColumn = labelColumn,
             };
+            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
+            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
 
         public AutoMLExperiment SetEvaluateMetric(RegressionMetric metric, string labelColumn = "label", string scoreColumn = "Score")
         {
-            _settings.EvaluateMetric = new RegressionMetricSettings()
+            var metricManager = new RegressionMetricManager()
             {
                 Metric = metric,
                 ScoreColumn = scoreColumn,
                 LabelColumn = labelColumn,
             };
+            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
+            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -224,13 +241,13 @@ namespace Microsoft.ML.AutoML
                     setting = pipelineProposer.Propose(setting);
                     setting = hyperParameterProposer.Propose(setting);
                     monitor.ReportRunningTrial(setting);
-                    var runner = runnerFactory.CreateTrialRunner(setting);
-                    var trialResult = runner.Run(setting);
+                    var runner = runnerFactory.CreateTrialRunner();
+                    var trialResult = runner.Run(setting, serviceProvider);
                     monitor.ReportCompletedTrial(trialResult);
                     hyperParameterProposer.Update(setting, trialResult);
                     pipelineProposer.Update(setting, trialResult);
 
-                    var error = _settings.EvaluateMetric.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
+                    var error = _settings.IsMaximizeMetric ? 1 - trialResult.Metric : trialResult.Metric;
                     if (error < _bestError)
                     {
                         _bestTrialResult = trialResult;
@@ -264,20 +281,16 @@ namespace Microsoft.ML.AutoML
         private void ValidateSettings()
         {
             Contracts.Assert(_settings.MaxExperimentTimeInSeconds > 0, $"{nameof(ExperimentSettings.MaxExperimentTimeInSeconds)} must be larger than 0");
-            Contracts.Assert(_settings.DatasetSettings != null, $"{nameof(_settings.DatasetSettings)} must be not null");
-            Contracts.Assert(_settings.EvaluateMetric != null, $"{nameof(_settings.EvaluateMetric)} must be not null");
         }
 
 
         public class AutoMLExperimentSettings : ExperimentSettings
         {
-            public IDatasetSettings DatasetSettings { get; set; }
-
-            public IMetricSettings EvaluateMetric { get; set; }
-
             public MultiModelPipeline Pipeline { get; set; }
 
             public int? Seed { get; set; }
+
+            public bool IsMaximizeMetric { get; set; }
         }
     }
 }

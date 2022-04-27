@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.Data;
 using Microsoft.ML.SearchSpace;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.AutoML
 {
@@ -286,18 +287,43 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Create a sweepable estimator with a custom factory and search space.
         /// </summary>
-        internal SweepableEstimator CreateSweepableEstimator<T>(Func<MLContext, T, IEstimator<ITransformer>> factory, SearchSpace<T> ss = null)
+        public SweepableEstimator CreateSweepableEstimator<T>(Func<MLContext, T, IEstimator<ITransformer>> factory, SearchSpace<T> ss = null)
             where T : class, new()
         {
             return new SweepableEstimator((MLContext context, Parameter param) => factory(context, param.AsType<T>()), ss);
         }
 
-        internal AutoMLExperiment CreateExperiment()
+        /// <summary>
+        /// Create an <see cref="AutoMLExperiment"/>.
+        /// </summary>
+        public AutoMLExperiment CreateExperiment()
         {
             return new AutoMLExperiment(_context, new AutoMLExperiment.AutoMLExperimentSettings());
         }
 
-        internal SweepableEstimator[] BinaryClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for binary classification.
+        /// </summary>
+        /// <param name="labelColumnName">label column name.</param>
+        /// <param name="featureColumnName">feature column name.</param>
+        /// <param name="exampleWeightColumnName">example weight column name.</param>
+        /// <param name="useFastForest">true if use fast forest as available trainer.</param>
+        /// <param name="useLgbm">true if use lgbm as available trainer.</param>
+        /// <param name="useFastTree">true if use fast tree as available trainer.</param>
+        /// <param name="useLbfgs">true if use lbfgs as available trainer.</param>
+        /// <param name="useSdca">true if use sdca as available trainer.</param>
+        /// <param name="fastTreeOption">if provided, use it as initial option for fast tree, otherwise the default option will be used.</param>
+        /// <param name="lgbmOption">if provided, use it as initial option for lgbm, otherwise the default option will be used.</param>
+        /// <param name="fastForestOption">if provided, use it as initial option for fast forest, otherwise the default option will be used.</param>
+        /// <param name="lbfgsOption">if provided, use it as initial option for lbfgs, otherwise the default option will be used.</param>
+        /// <param name="sdcaOption">if provided, use it as initial option for sdca, otherwise the default option will be used.</param>
+        /// <param name="fastTreeSearchSpace">if provided, use it as search space for fast tree, otherwise the default search space will be used.</param>
+        /// <param name="lgbmSearchSpace">if provided, use it as search space for lgbm, otherwise the default search space will be used.</param>
+        /// <param name="fastForestSearchSpace">if provided, use it as search space for fast forest, otherwise the default search space will be used.</param>
+        /// <param name="lbfgsSearchSpace">if provided, use it as search space for lbfgs, otherwise the default search space will be used.</param>
+        /// <param name="sdcaSearchSpace">if provided, use it as search space for sdca, otherwise the default search space will be used.</param>
+        /// <returns></returns>
+        public SweepableEstimator[] BinaryClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
             FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
         {
@@ -351,7 +377,29 @@ namespace Microsoft.ML.AutoML
             return res.ToArray();
         }
 
-        internal SweepableEstimator[] MultiClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for multiclass classification.
+        /// </summary>
+        /// <param name="labelColumnName">label column name.</param>
+        /// <param name="featureColumnName">feature column name.</param>
+        /// <param name="exampleWeightColumnName">example weight column name.</param>
+        /// <param name="useFastForest">true if use fast forest as available trainer.</param>
+        /// <param name="useLgbm">true if use lgbm as available trainer.</param>
+        /// <param name="useFastTree">true if use fast tree as available trainer.</param>
+        /// <param name="useLbfgs">true if use lbfgs as available trainer.</param>
+        /// <param name="useSdca">true if use sdca as available trainer.</param>
+        /// <param name="fastTreeOption">if provided, use it as initial option for fast tree, otherwise the default option will be used.</param>
+        /// <param name="lgbmOption">if provided, use it as initial option for lgbm, otherwise the default option will be used.</param>
+        /// <param name="fastForestOption">if provided, use it as initial option for fast forest, otherwise the default option will be used.</param>
+        /// <param name="lbfgsOption">if provided, use it as initial option for lbfgs, otherwise the default option will be used.</param>
+        /// <param name="sdcaOption">if provided, use it as initial option for sdca, otherwise the default option will be used.</param>
+        /// <param name="fastTreeSearchSpace">if provided, use it as search space for fast tree, otherwise the default search space will be used.</param>
+        /// <param name="lgbmSearchSpace">if provided, use it as search space for lgbm, otherwise the default search space will be used.</param>
+        /// <param name="fastForestSearchSpace">if provided, use it as search space for fast forest, otherwise the default search space will be used.</param>
+        /// <param name="lbfgsSearchSpace">if provided, use it as search space for lbfgs, otherwise the default search space will be used.</param>
+        /// <param name="sdcaSearchSpace">if provided, use it as search space for sdca, otherwise the default search space will be used.</param>
+        /// <returns></returns>
+        public SweepableEstimator[] MultiClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
             FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
         {
@@ -407,7 +455,29 @@ namespace Microsoft.ML.AutoML
             return res.ToArray();
         }
 
-        internal SweepableEstimator[] Regression(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for regression.
+        /// </summary>
+        /// <param name="labelColumnName">label column name.</param>
+        /// <param name="featureColumnName">feature column name.</param>
+        /// <param name="exampleWeightColumnName">example weight column name.</param>
+        /// <param name="useFastForest">true if use fast forest as available trainer.</param>
+        /// <param name="useLgbm">true if use lgbm as available trainer.</param>
+        /// <param name="useFastTree">true if use fast tree as available trainer.</param>
+        /// <param name="useLbfgs">true if use lbfgs as available trainer.</param>
+        /// <param name="useSdca">true if use sdca as available trainer.</param>
+        /// <param name="fastTreeOption">if provided, use it as initial option for fast tree, otherwise the default option will be used.</param>
+        /// <param name="lgbmOption">if provided, use it as initial option for lgbm, otherwise the default option will be used.</param>
+        /// <param name="fastForestOption">if provided, use it as initial option for fast forest, otherwise the default option will be used.</param>
+        /// <param name="lbfgsOption">if provided, use it as initial option for lbfgs, otherwise the default option will be used.</param>
+        /// <param name="sdcaOption">if provided, use it as initial option for sdca, otherwise the default option will be used.</param>
+        /// <param name="fastTreeSearchSpace">if provided, use it as search space for fast tree, otherwise the default search space will be used.</param>
+        /// <param name="lgbmSearchSpace">if provided, use it as search space for lgbm, otherwise the default search space will be used.</param>
+        /// <param name="fastForestSearchSpace">if provided, use it as search space for fast forest, otherwise the default search space will be used.</param>
+        /// <param name="lbfgsSearchSpace">if provided, use it as search space for lbfgs, otherwise the default search space will be used.</param>
+        /// <param name="sdcaSearchSpace">if provided, use it as search space for sdca, otherwise the default search space will be used.</param>
+        /// <returns></returns>
+        public SweepableEstimator[] Regression(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
             FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
         {

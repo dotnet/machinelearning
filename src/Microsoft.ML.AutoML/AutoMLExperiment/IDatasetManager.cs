@@ -4,18 +4,22 @@
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface IDatasetSettings
+    /// <summary>
+    /// Interface for dataset manager. This interface doesn't include any method or property definition and is used by <see cref="AutoMLExperiment"/> and other components to retrieve the instance of the actual
+    /// dataset manager from containers.
+    /// </summary>
+    public interface IDatasetManager
     {
     }
 
-    internal class TrainTestDatasetSettings : IDatasetSettings
+    public class TrainTestDatasetManager : IDatasetManager
     {
         public IDataView TrainDataset { get; set; }
 
         public IDataView TestDataset { get; set; }
     }
 
-    internal class CrossValidateDatasetSettings : IDatasetSettings
+    public class CrossValidateDatasetManager : IDatasetManager
     {
         public IDataView Dataset { get; set; }
 
