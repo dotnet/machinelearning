@@ -15,4 +15,4 @@ jobs:
         _targetFramework: netcoreapp3.1
     codeCoverage: true
     pool:
-      name: Hosted VS2017
+      vmImage: windows-2019
