@@ -12,7 +12,6 @@
     <VersionPrefix>2.0.0</VersionPrefix>
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-
     <!-- .NET Runtime product dependencies -->
     <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
     <MicrosoftExtensionsVersion>2.1.0</MicrosoftExtensionsVersion>
@@ -30,7 +29,6 @@
     <SystemTextEncodingsWebVersion>6.0.0</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>6.0.1</SystemTextJsonVersion>
     <SystemThreadingChannelsVersion>4.7.1</SystemThreadingChannelsVersion>
-
     <!-- Other product dependencies -->
     <ApacheArrowVersion>2.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.4</GoogleProtobufVersion>
@@ -50,7 +48,6 @@
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
-
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>1.2.1</CoverletCollectorVersion>
@@ -62,7 +59,6 @@
     <MicrosoftSymbolUploaderBuildTaskVersion>1.1.225302</MicrosoftSymbolUploaderBuildTaskVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
-
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
@@ -70,7 +66,7 @@
     <DotNetRuntime31Version>3.1.0</DotNetRuntime31Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20374.2</MicrosoftCodeAnalysisTestingVersion>
-    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.22215.2</MicrosoftDotNetXUnitExtensionsVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.22222.4</MicrosoftDotNetXUnitExtensionsVersion>
     <MicrosoftExtensionsDependencyModelVersion>2.1.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsTestVersion>3.0.1</MicrosoftExtensionsTestVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
@@ -81,7 +77,6 @@
     <SystemDataSQLiteCoreVersion>1.0.112.2</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
     <XUnitVersion>2.4.2-pre.9</XUnitVersion>
-
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
