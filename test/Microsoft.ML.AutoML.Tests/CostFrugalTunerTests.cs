@@ -16,9 +16,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class TunerTests : BaseTestClass
+    public class CostFrugalTunerTests : BaseTestClass
     {
-        public TunerTests(ITestOutputHelper output)
+        public CostFrugalTunerTests(ITestOutputHelper output)
             : base(output)
         {
         }
