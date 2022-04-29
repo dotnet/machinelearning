@@ -133,6 +133,27 @@ namespace Microsoft.ML.SearchSpace.Tests
             Thread.CurrentThread.CurrentCulture = originalCuture;
         }
 
+        [Fact]
+        public void Parameter_equatable_test()
+        {
+            var b = new B()
+            {
+                String = "StringA",
+                Strings = new[] { "a" },
+            };
+
+            var paramB1 = Parameter.FromObject(b);
+            var paramB2 = Parameter.FromObject(b);
+
+            paramB1.Should().Equal(paramB2);
+
+            b.Bool = true;
+            paramB2 = Parameter.FromObject(b);
+
+            paramB1.Should().NotEqual(paramB2);
+            paramB1.Should().NotEqual(null);
+        }
+
         private class A
         {
             public int Int { get; set; } = 0;

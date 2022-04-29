@@ -24,22 +24,34 @@ namespace Microsoft.ML.AutoML.Tests
         [Fact]
         public void GridSearchTuner_should_search_entire_naive_search_space()
         {
+            // the behavior of a grid search tuner is it will exhaustively generate 
+            // candidates from a grid of parameter value. And once exhausted, it will start
+            // over again.
+            // So we use the following way to test a grid search tuner: we go through the grid search
+            // twice, and check if all candidates are repeated twice. By doing so we know if grid search
+            // tuner either search grid of parameter value exhaustively or or generate candidates exactly one
+            // time in each search.
+
+            // default step is used when an option is continous, like double option or single option.
             var defaultStep = 10;
             var searchSpace = new SearchSpace<NaiveSearchSpace>();
             var tuner = new GridSearchTuner(searchSpace, defaultStep);
             var parameters = new List<Parameter>();
+
+            // calculate the total steps, which is the sum of all grid points.
             var steps = 1;
             foreach (var step in searchSpace.Step)
             {
                 steps *= step ?? defaultStep;
             }
 
-            foreach (var i in Enumerable.Range(0, steps))
+            foreach (var i in Enumerable.Range(0, steps * 2))
             {
                 var settings = new TrialSettings();
                 parameters.Add(tuner.Propose(settings));
             }
 
+            steps.Should().Be(600);
             parameters.Distinct().Count().Should().Be(steps);
         }
 
