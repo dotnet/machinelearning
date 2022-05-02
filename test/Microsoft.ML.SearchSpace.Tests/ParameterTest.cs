@@ -145,13 +145,13 @@ namespace Microsoft.ML.SearchSpace.Tests
             var paramB1 = Parameter.FromObject(b);
             var paramB2 = Parameter.FromObject(b);
 
-            paramB1.Should().Equal(paramB2);
+            (paramB1.Equals(paramB2)).Should().BeTrue();
 
             b.Bool = true;
             paramB2 = Parameter.FromObject(b);
 
-            paramB1.Should().NotEqual(paramB2);
-            paramB1.Should().NotEqual(null);
+            (paramB1.Equals(paramB2)).Should().BeFalse();
+            (paramB1.Equals(null)).Should().BeFalse();
         }
 
         private class A
