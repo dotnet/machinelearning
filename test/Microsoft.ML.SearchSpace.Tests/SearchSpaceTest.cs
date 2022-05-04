@@ -224,7 +224,7 @@ namespace Microsoft.ML.SearchSpace.Tests
 
         private class NestSearchSpace
         {
-            [Option]
+            [NestOption]
             public BasicSearchSpace BasicSS { get; set; }
 
             [Range(-1000.0, 1000, init: 0)]

@@ -58,12 +58,6 @@ namespace Microsoft.ML.SearchSpace
             : this()
         {
             _options = GetOptionsFromType(typeInfo);
-            var nestedSS = GetNestedSearchSpaceFromType(typeInfo);
-            foreach (var ss in nestedSS)
-            {
-                _options.Add(ss.Key, ss.Value);
-            }
-
             _defaultOption = defaultOption;
         }
 
@@ -166,55 +160,18 @@ namespace Microsoft.ML.SearchSpace
             return fieldOptions.Concat(propertyOptions).ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
-        private Dictionary<string, SearchSpace> GetNestedSearchSpaceFromType(Type typeInfo)
-        {
-            var fieldSS = GetSearchSpacesFromField(typeInfo);
-            var propertySS = GetSearchSpacesFromProperty(typeInfo);
-            return fieldSS.Concat(propertySS).ToDictionary(kv => kv.Key, kv => kv.Value);
-        }
 
-        private Dictionary<string, SearchSpace> GetSearchSpacesFromField(Type typeInfo)
+        private NestOption GetNestOptionFromType(Type typeInfo)
         {
-            var fieldInfos = typeInfo.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            var res = new Dictionary<string, SearchSpace>();
-
-            foreach (var field in fieldInfos)
+            var propertyOptions = GetOptionsFromProperty(typeInfo);
+            var fieldOptions = GetOptionsFromField(typeInfo);
+            var nestOption = new NestOption();
+            foreach (var kv in propertyOptions.Concat(fieldOptions))
             {
-                var optionAttribute = field.GetCustomAttributes(typeof(OptionAttribute), false);
-                if (optionAttribute.Length == 0)
-                {
-                    continue;
-                }
-                else
-                {
-                    var ss = new SearchSpace(field.FieldType);
-                    res.Add(field.Name, ss);
-                }
+                nestOption[kv.Key] = kv.Value;
             }
 
-            return res;
-        }
-
-        private Dictionary<string, SearchSpace> GetSearchSpacesFromProperty(Type typeInfo)
-        {
-            var propertyInfos = typeInfo.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            var res = new Dictionary<string, SearchSpace>();
-
-            foreach (var property in propertyInfos)
-            {
-                var optionAttribute = property.GetCustomAttributes(typeof(OptionAttribute), false);
-                if (optionAttribute.Length == 0)
-                {
-                    continue;
-                }
-                else
-                {
-                    var ss = new SearchSpace(property.PropertyType);
-                    res.Add(property.Name, ss);
-                }
-            }
-
-            return res;
+            return nestOption;
         }
 
         private Dictionary<string, OptionBase> GetOptionsFromField(Type typeInfo)
@@ -227,8 +184,9 @@ namespace Microsoft.ML.SearchSpace
                 var choiceAttributes = field.GetCustomAttributes(typeof(ChoiceAttribute), false);
                 var rangeAttributes = field.GetCustomAttributes(typeof(RangeAttribute), false);
                 var booleanChoiceAttributes = field.GetCustomAttributes(typeof(BooleanChoiceAttribute), false);
+                var nestOptionAttributes = field.GetCustomAttributes(typeof(NestOptionAttribute), false);
 
-                var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes);
+                var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes).Concat(nestOptionAttributes);
                 Contracts.Check(attributes.Count() <= 1, $"{field.Name} can only define one of the choice|range|option attribute");
                 if (attributes.Count() == 0)
                 {
@@ -243,6 +201,7 @@ namespace Microsoft.ML.SearchSpace
                         ChoiceAttribute choice => choice.Option,
                         RangeAttribute range => range.Option,
                         BooleanChoiceAttribute booleanChoice => booleanChoice.Option,
+                        NestOptionAttribute nest => GetNestOptionFromType(field.FieldType),
                         _ => throw new NotImplementedException(),
                     };
 
@@ -263,8 +222,9 @@ namespace Microsoft.ML.SearchSpace
                 var choiceAttributes = property.GetCustomAttributes(typeof(ChoiceAttribute), false);
                 var rangeAttributes = property.GetCustomAttributes(typeof(RangeAttribute), false);
                 var booleanChoiceAttributes = property.GetCustomAttributes(typeof(BooleanChoiceAttribute), false);
+                var nestOptionAttributes = property.GetCustomAttributes(typeof(NestOptionAttribute), false);
 
-                var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes);
+                var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes).Concat(nestOptionAttributes);
                 Contracts.Check(attributes.Count() <= 1, $"{property.Name} can only define one of the choice|range|option attribute");
                 if (attributes.Count() == 0)
                 {
@@ -279,6 +239,7 @@ namespace Microsoft.ML.SearchSpace
                         ChoiceAttribute choice => choice.Option,
                         RangeAttribute range => range.Option,
                         BooleanChoiceAttribute booleanChoice => booleanChoice.Option,
+                        NestOptionAttribute nest => GetNestOptionFromType(property.PropertyType),
                         _ => throw new NotImplementedException(),
                     };
 
@@ -433,7 +394,7 @@ namespace Microsoft.ML.SearchSpace
         private readonly T _defaultOption = null;
 
         /// <summary>
-        /// Create <see cref="SearchSpace{T}"/> from <typeparamref name="T"/>. This initializer search for the <see cref="OptionAttribute"/> in <typeparamref name="T"/> and create searching space accordingly.
+        /// Create <see cref="SearchSpace{T}"/> from <typeparamref name="T"/>. This initializer search for the <see cref="NestOptionAttribute"/> in <typeparamref name="T"/> and create searching space accordingly.
         /// </summary>
         public SearchSpace()
             : base(typeof(T))
@@ -441,7 +402,7 @@ namespace Microsoft.ML.SearchSpace
         }
 
         /// <summary>
-        /// Create <see cref="SearchSpace{T}"/> from <typeparamref name="T"/> and <paramref name="defaultOption"/>. This initializer search for the <see cref="OptionAttribute"/> in <typeparamref name="T"/> and create searching space accordingly.
+        /// Create <see cref="SearchSpace{T}"/> from <typeparamref name="T"/> and <paramref name="defaultOption"/>. This initializer search for the <see cref="NestOptionAttribute"/> in <typeparamref name="T"/> and create searching space accordingly.
         /// </summary>
         public SearchSpace(T defaultOption)
             : base(typeof(T), Parameter.FromObject(defaultOption))
