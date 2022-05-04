@@ -11,7 +11,7 @@ using Microsoft.ML.SearchSpace.Option;
 namespace Microsoft.ML.SearchSpace
 {
     /// <summary>
-    /// This class is used to represent a set of <see cref="OptionBase"/>, which can be either one of <see cref="ChoiceOption"/>, <see cref="UniformNumericOption"/> or <see cref="SearchSpace"/>.
+    /// This class is used to represent a set of <see cref="OptionBase"/>, which can be either one of <see cref="ChoiceOption"/>, <see cref="UniformNumericOption"/> or <see cref="NestOption"/>.
     /// </summary>
     public class SearchSpace : OptionBase, IDictionary<string, OptionBase>
     {
