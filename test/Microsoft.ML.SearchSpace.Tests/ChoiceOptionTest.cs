@@ -44,6 +44,11 @@ namespace Microsoft.ML.SearchSpace.Tests
             option.MappingToFeatureSpace(Parameter.FromString("a"))[0].Should().BeApproximately(0, 1e-5);
             option.MappingToFeatureSpace(Parameter.FromString("b"))[0].Should().BeApproximately(0.333333, 1e-5);
             option.MappingToFeatureSpace(Parameter.FromString("c"))[0].Should().BeApproximately(0.666666, 1e-5);
+
+            option = new ChoiceOption("a", "b", "c", "d");
+            var parameter = option.SampleFromFeatureSpace(new[] { 0.5 });
+            parameter.AsType<string>().Should().Be("c");
+            option.MappingToFeatureSpace(parameter).Should().Equal(0.5);
         }
 
         [Fact]
