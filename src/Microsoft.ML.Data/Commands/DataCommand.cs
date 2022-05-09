@@ -406,7 +406,7 @@ namespace Microsoft.ML.Data
 
             using (var stream = file.CreateWriteStream())
             {
-                SaveLoader(loader, stream, ectx);
+                SaveLoader(loader, stream, host);
             }
         }
 
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(stream, nameof(stream));
             Contracts.CheckParam(stream.CanWrite, nameof(stream), "Must be writable");
 
-            using (var rep = RepositoryWriter.CreateNew(stream, ectx))
+            using (var rep = RepositoryWriter.CreateNew(stream, host))
             {
                 ModelSaveContext.SaveModel(rep, loader, ModelFileUtils.DirDataLoaderModel);
                 rep.Commit();
