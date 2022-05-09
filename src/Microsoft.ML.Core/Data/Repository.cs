@@ -120,12 +120,11 @@ namespace Microsoft.ML
 
         private static string GetShortTempDir(IExceptionContext ectx)
         {
-            string path;
-            if (ectx is IHostEnvironmentInternal iHostInternal)
-                path = Path.Combine(Path.GetFullPath(iHostInternal.TempFilePath), "ml_dotnet", Path.GetRandomFileName());
-            else
-                path = Path.Combine(Path.GetFullPath(Path.GetTempPath()), "ml_dotnet", Path.GetRandomFileName());
+            string tempPath = ectx is IHostEnvironmentInternal iHostInternal ?
+                iHostInternal.TempFilePath :
+                Path.GetTempPath();
 
+            string path = Path.Combine(Path.GetFullPath(tempPath), "ml_dotnet", Path.GetRandomFileName());
             Directory.CreateDirectory(path);
             return path;
         }

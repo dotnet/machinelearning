@@ -398,7 +398,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="file"/>.
         /// </summary>
-        public static void SaveLoader(ILegacyDataLoader loader, IFileHandle file, IExceptionContext ectx)
+        public static void SaveLoader(ILegacyDataLoader loader, IFileHandle file, IHostEnvironment host)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(file, nameof(file));
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="stream"/>.
         /// </summary>
-        public static void SaveLoader(ILegacyDataLoader loader, Stream stream, IExceptionContext ectx)
+        public static void SaveLoader(ILegacyDataLoader loader, Stream stream, IHostEnvironment host)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(stream, nameof(stream));
