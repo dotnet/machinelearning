@@ -37,7 +37,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             var array = new[] { "A", "B", "C" };
             var parameter = Parameter.FromIEnumerable(array);
 
-            var json = JsonSerializer.Serialize(parameter, this._settings);
+            var json = JsonSerializer.Serialize(parameter, _settings);
             Approvals.Verify(json);
 
             parameter = JsonSerializer.Deserialize<Parameter>(json);
@@ -106,7 +106,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             var b = new B();
             b.String = null;
             var parameter = Parameter.FromObject(b);
-            var json = JsonSerializer.Serialize(parameter, this._settings);
+            var json = JsonSerializer.Serialize(parameter, _settings);
             Approvals.Verify(json);
 
             parameter = JsonSerializer.Deserialize<Parameter>(json);
@@ -116,7 +116,7 @@ namespace Microsoft.ML.SearchSpace.Tests
             parameter["Bool"].AsType<bool>().Should().BeFalse();
             parameter["Strings"].AsType<string[]>().Should().BeEquivalentTo("A", "B", "C");
             parameter["JTokenType"].AsType<JsonTokenType>().Should().Be(JsonTokenType.Null);
-            json = JsonSerializer.Serialize(parameter, this._settings);
+            json = JsonSerializer.Serialize(parameter, _settings);
             Approvals.Verify(json);
         }
 

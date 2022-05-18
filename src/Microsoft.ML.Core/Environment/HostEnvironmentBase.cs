@@ -330,6 +330,10 @@ namespace Microsoft.ML.Runtime
         public string TempFilePath { get; set; } = System.IO.Path.GetTempPath();
 #pragma warning restore MSML_NoInstanceInitializers
 
+        public int? GpuDeviceId { get; set; }
+
+        public bool FallbackToCpu { get; set; }
+
         protected readonly TEnv Root;
         // This is non-null iff this environment was a fork of another. Disposing a fork
         // doesn't free temp files. That is handled when the master is disposed.

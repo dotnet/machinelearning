@@ -1,0 +1,30 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "extract_pixels_option",
+  "search_space": [
+    {
+      "name": "OutputColumnName",
+      "type": "string",
+      "default": "Output"
+    },
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "ColorsToExtract",
+      "type": "colorBits",
+      "default": "ColorBits.Rgb"
+    },
+    {
+      "name": "OrderOfExtraction",
+      "type": "colorsOrder",
+      "default": "ColorsOrder.ARGB"
+    },
+    {
+      "name": "OutputAsFloatArray",
+      "type": "boolean",
+      "default": true
+    }
+  ]
+}

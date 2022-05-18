@@ -3,21 +3,23 @@
   <PropertyGroup>
     <!-- needs to contain all frameworks which src projects wish to restore -->
     <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
+    <MLNetPreviousVersion>1.7.0</MLNetPreviousVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.ML" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.DataView" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.CpuMath" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.FastTree" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.LightGbm" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.TimeSeries" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.TensorFlow" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.Vision" Version="1.4.0" />
+    <PackageReference Include="Microsoft.Extensions.ML" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.DataView" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.CpuMath" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.FastTree" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.LightGbm" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.TimeSeries" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.TensorFlow" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Microsoft.ML.Vision" Version="$(MLNetPreviousVersion)" />
+    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufVersion)" />
   </ItemGroup>
 
   <!-- The purpose of this target is to return a path from a referenced

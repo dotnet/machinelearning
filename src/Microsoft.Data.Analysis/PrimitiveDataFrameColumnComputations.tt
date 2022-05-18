@@ -55,7 +55,7 @@ namespace Microsoft.Data.Analysis
                 return (IPrimitiveColumnComputation<T>)new <#=type.ClassPrefix#>Computation();
             }
 <# } #>
-            else if (typeof(T) == typeof(DateTime)) 
+            else if (typeof(T) == typeof(DateTime))
             {
                 return (IPrimitiveColumnComputation<T>)new DateTimeComputation();
             }
@@ -86,7 +86,13 @@ namespace Microsoft.Data.Analysis
             throw new NotSupportedException();
 <# } else { #>
 <# if ((method.MethodName == "Max" || method.MethodName == "Min" || method.MethodName == "Product" || method.MethodName == "Sum") && method.SupportsRowSubsets == true) { #>
+<# if (method.MethodName == "Max") { #>
+            ret = <#=type.TypeName#>.MinValue;
+<# } else if (method.MethodName == "Min") { #>
+            ret = <#=type.TypeName#>.MaxValue;
+<# } else { #>
             ret = default;
+<# } #>
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<<#=type.TypeName#>>.MaxCapacity;
@@ -117,7 +123,13 @@ namespace Microsoft.Data.Analysis
 <# } #>
             }
 <# } else if ((method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") && method.SupportsRowSubsets == true) { #>
+<# if (method.MethodName == "CumulativeMax") { #>
+            var ret = <#=type.TypeName#>.MinValue;
+<# } else if (method.MethodName == "CumulativeMin") { #>
+            var ret = <#=type.TypeName#>.MaxValue;
+<# } else { #>
             var ret = default(<#=type.TypeName#>);
+<# } #>
             var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -179,7 +191,7 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.SupportsRowSubsets == false) { #>
             ret = (<#=type.TypeName#>)0;
 <# } #>
-            for (int b = 0 ; b < column.Buffers.Count; b++)
+            for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
 <# if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") { #>

@@ -7,28 +7,25 @@ using System.Linq;
 
 namespace Microsoft.ML.SearchSpace.Tuner
 {
-    public sealed class RandomTuner
+    internal sealed class RandomTuner
     {
-        private readonly SearchSpace _searchSpace;
         private readonly Random _rnd;
 
-        public RandomTuner(SearchSpace searchSpace)
+        public RandomTuner()
         {
-            this._searchSpace = searchSpace;
-            this._rnd = new Random();
+            _rnd = new Random();
         }
 
-        public RandomTuner(SearchSpace searchSpace, int seed)
+        public Parameter Propose(SearchSpace searchSpace)
         {
-            this._searchSpace = searchSpace;
-            this._rnd = new Random(seed);
+            var d = searchSpace.FeatureSpaceDim;
+            var featureVec = Enumerable.Repeat(0, d).Select(i => _rnd.NextDouble()).ToArray();
+            return searchSpace.SampleFromFeatureSpace(featureVec);
         }
 
-        public Parameter Propose()
+        public void Update(Parameter param, double metric, bool isMaximize)
         {
-            var d = this._searchSpace.FeatureSpaceDim;
-            var featureVec = Enumerable.Repeat(0, d).Select(i => this._rnd.NextDouble()).ToArray();
-            return this._searchSpace.SampleFromFeatureSpace(featureVec);
+            // do nothing
         }
     }
 }

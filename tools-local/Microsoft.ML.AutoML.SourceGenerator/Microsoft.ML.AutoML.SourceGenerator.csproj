@@ -1,0 +1,84 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" PrivateAssets="All" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" PrivateAssets="All" GeneratePathProperty="true" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" PrivateAssets="All" GeneratePathProperty="true" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" PrivateAssets="All" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <Target Name="GetDependencyTargetPaths">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(PkgSystem_Text_Json)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PkgSystem_Runtime_CompilerServices_Unsafe)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PkgSystem_Text_Encodings_Web)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Template\SweepableEstimatorFactory.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SweepableEstimatorFactory.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Template\EstimatorType.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EstimatorType.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Template\SearchSpace.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SearchSpace.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Template\SweepableEstimator.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SweepableEstimator.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Template\SweepableEstimator_T_.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SweepableEstimator_T_.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Template\SweepableEstimatorFactory.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SweepableEstimatorFactory.cs</LastGenOutput>
+    </None>
+    <None Update="Template\EstimatorType.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>EstimatorType.cs</LastGenOutput>
+    </None>
+    <None Update="Template\SearchSpace.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SearchSpace.cs</LastGenOutput>
+    </None>
+    <None Update="Template\SweepableEstimator.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SweepableEstimator.cs</LastGenOutput>
+    </None>
+    <None Update="Template\SweepableEstimator_T_.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SweepableEstimator_T_.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>

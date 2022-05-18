@@ -50,11 +50,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
-    <PackageReference Include="Microsoft.ML.TestDatabases" Version="$(MicrosoftMLTestDatabasesPackageVersion)" />
-    <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
+    <PackageReference Include="Microsoft.ML.TestDatabases" Version="$(MicrosoftMLTestDatabasesVersion)" />
+    <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsVersion)" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
     <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
     <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" />
   </ItemGroup>
 

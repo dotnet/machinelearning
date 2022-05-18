@@ -1,0 +1,66 @@
+{
+  "schema": "e0 * (e1 + e2 + e3 + e4 + e5)",
+  "estimators": {
+    "e0": {
+      "estimatorType": "Unknown",
+      "parameter": {}
+    },
+    "e1": {
+      "estimatorType": "FastTreeBinary",
+      "parameter": {
+        "NumberOfLeaves": 4,
+        "MinimumExampleCountPerLeaf": 20,
+        "NumberOfTrees": 4,
+        "MaximumBinCountPerFeature": 256,
+        "FeatureFraction": 1,
+        "LearningRate": 0.1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Features"
+      }
+    },
+    "e2": {
+      "estimatorType": "FastForestBinary",
+      "parameter": {
+        "NumberOfTrees": 4,
+        "NumberOfLeaves": 4,
+        "FeatureFraction": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Features"
+      }
+    },
+    "e3": {
+      "estimatorType": "LightGbmBinary",
+      "parameter": {
+        "NumberOfLeaves": 4,
+        "MinimumExampleCountPerLeaf": 20,
+        "LearningRate": 1,
+        "NumberOfTrees": 4,
+        "SubsampleFraction": 1,
+        "MaximumBinCountPerFeature": 256,
+        "FeatureFraction": 1,
+        "L1Regularization": 0.0000000002,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Features"
+      }
+    },
+    "e4": {
+      "estimatorType": "LbfgsLogisticRegressionBinary",
+      "parameter": {
+        "L1Regularization": 1,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Features"
+      }
+    },
+    "e5": {
+      "estimatorType": "SdcaLogisticRegressionBinary",
+      "parameter": {
+        "L1Regularization": 1,
+        "L2Regularization": 0.1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Features"
+      }
+    }
+  }
+}

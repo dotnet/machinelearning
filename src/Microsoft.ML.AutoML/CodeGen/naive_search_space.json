@@ -1,0 +1,16 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "naive_option",
+  "search_space": [
+    {
+      "name": "LabelColumnName",
+      "type": "string",
+      "default": "Label"
+    },
+    {
+      "name": "ScoreColumnName",
+      "type": "string",
+      "default": "Score"
+    }
+  ]
+}

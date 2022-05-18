@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LightGBM" Version="$(LightGBMPackageVersion)" />
+    <PackageReference Include="LightGBM" Version="$(LightGBMVersion)" />
   </ItemGroup>
 
 </Project>

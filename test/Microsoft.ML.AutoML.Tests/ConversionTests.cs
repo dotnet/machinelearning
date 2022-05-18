@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML.Test
 
         public ConversionTests(ITestOutputHelper output) : base(output)
         {
-            this._output = output;
+            _output = output;
         }
 
         [Fact]

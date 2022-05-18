@@ -1,0 +1,28 @@
+{
+  "0": {},
+  "1": {},
+  "2": {},
+  "3": {
+    "NumberOfLeaves": 4,
+    "MinimumExampleCountPerLeaf": 20,
+    "LearningRate": 1,
+    "NumberOfTrees": 4,
+    "SubsampleFraction": 1,
+    "MaximumBinCountPerFeature": 255,
+    "FeatureFraction": 1,
+    "L1Regularization": 0.0000000002,
+    "L2Regularization": 1,
+    "LabelColumnName": "Label",
+    "FeatureColumnName": "Feature"
+  },
+  "4": {
+    "NumberOfLeaves": 4,
+    "MinimumExampleCountPerLeaf": 20,
+    "NumberOfTrees": 4,
+    "MaximumBinCountPerFeature": 255,
+    "FeatureFraction": 1,
+    "LearningRate": 0.10,
+    "LabelColumnName": "Label",
+    "FeatureColumnName": "Feature"
+  }
+}

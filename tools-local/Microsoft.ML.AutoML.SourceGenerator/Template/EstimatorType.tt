@@ -1,0 +1,45 @@
+﻿<#@ template language="C#" linePragmas="false" visibility = "internal" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+namespace <#=NameSpace#>
+{
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum <#=ClassName#>
+    {
+<# foreach(var e in TrainerNames){#>
+        <#=e#>,
+<#}#>
+<# foreach(var e in TransformerNames){#>
+        <#=e#>,
+<#}#>
+        Unknown,
+    }
+
+    public static class EstimatorTypeExtension
+    {
+        public static bool IsTrainer(this EstimatorType estimatorType)
+        {
+            switch(estimatorType)
+            {
+<# foreach(var estimator in TrainerNames){#>
+                case EstimatorType.<#=estimator#>:
+<#}#>
+                    return true;
+                default:
+                    return false;
+            }
+        }
+    }
+}
+<#+
+public string NameSpace {get;set;}
+public string ClassName {get;set;}
+public IEnumerable<string> TrainerNames {get;set;}
+public IEnumerable<string> TransformerNames {get;set;}
+#>

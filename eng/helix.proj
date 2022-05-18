@@ -39,13 +39,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalDotNetPackage Include="$(MicrosoftNETCore3PlatformsVersion)" Condition="'$(BuildArchitecture)' != 'arm64' Or !$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">
+    <AdditionalDotNetPackage Include="$(DotNetRuntime31Version)" Condition="'$(BuildArchitecture)' != 'arm64' Or !$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
     </AdditionalDotNetPackage>
 
-    <AdditionalDotNetPackage Include="$(MicrosoftNETCorePlatformsVersion)" Condition="'$(BuildArchitecture)' != 'arm64' Or !$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">
+    <AdditionalDotNetPackage Include="$(DotNetRuntime21Version)" Condition="'$(BuildArchitecture)' != 'arm64' Or !$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>

@@ -1,0 +1,14 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "convert_type_option",
+  "search_space": [
+    {
+      "name": "OutputColumnNames",
+      "type": "strings"
+    },
+    {
+      "name": "InputColumnNames",
+      "type": "strings"
+    }
+  ]
+}

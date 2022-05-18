@@ -1,0 +1,580 @@
+{
+  "$schema": "estimator-schema.json#",
+  "estimators": [
+    {
+      "functionName": "LightGbm",
+      "estimatorTypes": [
+        "BinaryClassification",
+        "MultiClassification",
+        "Regression"
+      ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "numberOfLeaves",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "minimumExampleCountPerLeaf",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "learningRate",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "numberOfIterations",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "subsampleFraction",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "featureFraction",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "l1Regularization",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "l2Regularization",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "maximumBinCountPerFeature",
+          "argumentType": "integer"
+        }
+      ],
+      "nugetDependencies": [
+        "Microsoft.ML",
+        "Microsoft.ML.LightGbm"
+      ],
+      "usingStatements": [
+        "Microsoft.ML",
+        "Microsoft.ML.Trainers",
+        "Microsoft.ML.Trainers.LightGbm"
+      ],
+      "searchOption": "lgbm_option"
+    },
+    {
+      "functionName": "FastForest",
+      "estimatorTypes": [
+        "BinaryClassification",
+        "OneVersusAll",
+        "Regression"
+      ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "numberOfLeaves",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "minimumExampleCountPerLeaf",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "numberOfTrees",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "featureFraction",
+          "argumentType": "double"
+        }
+      ],
+      "nugetDependencies": [
+        "Microsoft.ML",
+        "Microsoft.ML.FastTree"
+      ],
+      "usingStatements": [
+        "Microsoft.ML",
+        "Microsoft.ML.Trainers",
+        "Microsoft.ML.Trainers.FastTree"
+      ],
+      "searchOption": "fast_forest_option"
+    },
+    {
+      "functionName": "FastTree",
+      "estimatorTypes": [
+        "BinaryClassification",
+        "OneVersusAll",
+        "Regression"
+      ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "numberOfLeaves",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "minimumExampleCountPerLeaf",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "numberOfTrees",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "learningRate",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "featureFraction",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "maximumBinCountPerFeature",
+          "argumentType": "integer"
+        }
+      ],
+      "nugetDependencies": [
+        "Microsoft.ML",
+        "Microsoft.ML.FastTree"
+      ],
+      "usingStatements": [
+        "Microsoft.ML",
+        "Microsoft.ML.Trainers",
+        "Microsoft.ML.Trainers.FastTree"
+      ],
+      "searchOption": "fast_tree_option"
+    },
+    {
+      "functionName": "FastTreeTweedie",
+      "estimatorTypes": [ "Regression" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "numberOfLeaves",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "minimumExampleCountPerLeaf",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "numberOfTrees",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "learningRate",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "featureFraction",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "maximumBinCountPerFeature",
+          "argumentType": "integer"
+        }
+      ],
+      "nugetDependencies": [
+        "Microsoft.ML",
+        "Microsoft.ML.FastTree"
+      ],
+      "usingStatements": [
+        "Microsoft.ML",
+        "Microsoft.ML.Trainers",
+        "Microsoft.ML.Trainers.FastTree"
+      ],
+      "searchOption": "fast_tree_option"
+    },
+    {
+      "functionName": "LbfgsLogisticRegression",
+      "estimatorTypes": [
+        "BinaryClassification",
+        "OneVersusAll"
+      ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "l1Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "l2Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "optimizationTolerance",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "historySize",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "enforceNonNegativity",
+          "argumentType": "boolean"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
+      "searchOption": "lbfgs_option"
+    },
+    {
+      "functionName": "LbfgsMaximumEntropy",
+      "estimatorTypes": [ "MultiClassification" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "l1Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "l2Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "optimizationTolerance",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "historySize",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "enforceNonNegativity",
+          "argumentType": "boolean"
+        }
+      ],
+      "nugetDependencies": ["Microsoft.ML"],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
+      "searchOption": "lbfgs_option"
+    },
+    {
+      "functionName": "LbfgsPoissonRegression",
+      "estimatorTypes": [ "Regression" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "l1Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "l2Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "optimizationTolerance",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "historySize",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "enforceNonNegativity",
+          "argumentType": "boolean"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
+      "searchOption": "lbfgs_option"
+    },
+    {
+      "functionName": "SdcaLogisticRegression",
+      "estimatorTypes": [
+        "BinaryClassification",
+        "OneVersusAll"
+      ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "l1Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "l2Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "maximumNumberOfIterations",
+          "argumentType": "integer"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
+      "searchOption": "sdca_option"
+    },
+    {
+      "functionName": "SdcaMaximumEntropy",
+      "estimatorTypes": [ "MultiClassification" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "l1Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "l2Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "maximumNumberOfIterations",
+          "argumentType": "integer"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
+      "searchOption": "sdca_option"
+    },
+    {
+      "functionName": "Sdca",
+      "estimatorTypes": [ "Regression" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "exampleWeightColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "l1Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "l2Regularization",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "maximumNumberOfIterations",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "lossFunction",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
+      "searchOption": "sdca_option"
+    },
+    {
+      "functionName": "MatrixFactorization",
+      "estimatorTypes": [ "Recommendation" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "matrixColumnIndexColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "matrixRowIndexColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "approximationRank",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "learningRate",
+          "argumentType": "double"
+        },
+        {
+          "argumentName": "numberOfIterations",
+          "argumentType": "integer"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.Recommender" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
+      "searchOption": "matrix_factorization_option"
+    },
+    {
+      "functionName": "ImageClassification",
+      "estimatorTypes": [ "MultiClassification" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "featureColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "scoreColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.Vision", "SciSharp.TensorFlow.Redist" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Vision" ],
+      "searchOption": "image_classification_option"
+    },
+    {
+      "functionName": "ForecastBySsa",
+      "estimatorTypes": [ "Forecasting" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "windowSize",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "seriesLength",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "trainSize",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "horizon",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "isAdaptive",
+          "argumentType": "boolean"
+        },
+        {
+          "argumentName": "discountFactor",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "shouldStabilize",
+          "argumentType": "boolean"
+        },
+        {
+          "argumentName": "shouldMaintainInfo",
+          "argumentType": "boolean"
+        },
+        {
+          "argumentName": "confidenceLowerBoundColumn",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "confidenceUpperBoundColumn",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "confidenceLevel",
+          "argumentType": "float"
+        },
+        {
+          "argumentName": "variableHorizon",
+          "argumentType": "boolean"
+        }
+      ],
+      "usingStatements": [ "Microsoft.ML" ],
+      "nugetDependencies": [ "Microsoft.ML.TimeSeries" ],
+      "searchOption": "ssa_option"
+    }
+  ]
+}

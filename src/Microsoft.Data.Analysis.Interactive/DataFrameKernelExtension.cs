@@ -8,18 +8,28 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 using Microsoft.DotNet.Interactive;
+using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.Formatting;
+using Microsoft.DotNet.Interactive.Formatting.TabularData;
 using static Microsoft.DotNet.Interactive.Formatting.PocketViewTags;
 
 namespace Microsoft.Data.Analysis.Interactive
 {
     public class DataFrameKernelExtension : IKernelExtension
     {
-        public Task OnLoadAsync(Kernel kernel)
+        public async Task OnLoadAsync(Kernel kernel)
         {
             RegisterDataFrame();
+            if (Kernel.Root?.FindKernel("csharp") is { } csKernel)
+            {
+                await LoadExtensionApiAsync(csKernel);
+            }
+        }
 
-            return Task.CompletedTask;
+        private static async Task LoadExtensionApiAsync(Kernel cSharpKernel)
+        {
+            await cSharpKernel.SendAsync(new SubmitCode($@"#r ""{typeof(DataFrameKernelExtension).Assembly.Location}""
+using {typeof(TabularDataResource).Namespace};"));
         }
 
         public static void RegisterDataFrame()

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.MLFeaturizers" Version="0.4.1" />
+    <PackageReference Include="Microsoft.MLFeaturizers" Version="$(MicrosoftMLFeaturizersVersion)" />
   </ItemGroup>
 
   <ItemGroup>

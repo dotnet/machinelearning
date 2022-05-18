@@ -7,19 +7,19 @@ namespace Microsoft.ML.SearchSpace.Tuner
     /// <summary>
     /// A tuner which always return default value.
     /// </summary>
-    public sealed class DefaultValueTuner
+    internal sealed class DefaultValueTuner
     {
         private readonly SearchSpace _searchSpace;
 
         public DefaultValueTuner(SearchSpace searchSpace)
         {
-            this._searchSpace = searchSpace;
+            _searchSpace = searchSpace;
         }
 
         public Parameter Propose()
         {
-            var defaultFeatureVec = this._searchSpace.Default;
-            return this._searchSpace.SampleFromFeatureSpace(defaultFeatureVec);
+            var defaultFeatureVec = _searchSpace.Default;
+            return _searchSpace.SampleFromFeatureSpace(defaultFeatureVec);
         }
     }
 }

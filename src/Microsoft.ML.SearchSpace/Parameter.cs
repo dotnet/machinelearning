@@ -13,16 +13,45 @@ using Microsoft.ML.SearchSpace.Converter;
 
 namespace Microsoft.ML.SearchSpace
 {
+    /// <summary>
+    /// Parameter type. This type is used to determine the type of <see cref="Parameter"/> and is associated to corresponded Json token when serializing/deserializing.
+    /// </summary>
     public enum ParameterType
     {
+        /// <summary>
+        /// Json int type.
+        /// </summary>
         Integer = 0,
-        Float = 1,
+
+        /// <summary>
+        /// Json number type.
+        /// </summary>
+        Number = 1,
+
+        /// <summary>
+        /// Json boolean type.
+        /// </summary>
         Bool = 2,
+
+        /// <summary>
+        /// Json string type.
+        /// </summary>
         String = 3,
+
+        /// <summary>
+        /// Json object type.
+        /// </summary>
         Object = 4,
+
+        /// <summary>
+        /// Json array type.
+        /// </summary>
         Array = 5,
     }
 
+    /// <summary>
+    /// <see cref="Parameter"/> is used to save sweeping result from tuner and is used to restore mlnet pipeline from sweepable pipline.
+    /// </summary>
     [JsonConverter(typeof(ParameterConverter))]
     public sealed class Parameter : IDictionary<string, Parameter>
     {
@@ -36,46 +65,78 @@ namespace Microsoft.ML.SearchSpace
 
         private Parameter(object value, ParameterType type)
         {
-            this._value = value;
-            this.ParameterType = type;
-            this._settings.Converters.Add(new JsonStringEnumConverter());
+            _value = value;
+            ParameterType = type;
+            _settings.Converters.Add(new JsonStringEnumConverter());
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="double"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Number"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromDouble(double value)
         {
-            return new Parameter(value, ParameterType.Float);
+            return new Parameter(value, ParameterType.Number);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="float"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Number"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromFloat(float value)
         {
-            return new Parameter(value, ParameterType.Float);
+            return new Parameter(value, ParameterType.Number);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="long"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Integer"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromLong(long value)
         {
             return new Parameter(value, ParameterType.Integer);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="int"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Integer"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromInt(int value)
         {
             return new Parameter(value, ParameterType.Integer);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="string"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.String"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromString(string value)
         {
             return new Parameter(value, ParameterType.String);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="bool"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Bool"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromBool(bool value)
         {
             return new Parameter(value, ParameterType.Bool);
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="Enum"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.String"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromEnum<T>(T value) where T : struct, Enum
         {
             return Parameter.FromEnum(value, typeof(T));
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from a <see cref="IEnumerable"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Array"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromIEnumerable<T>(IEnumerable<T> values)
         {
             // check T
@@ -92,6 +153,10 @@ namespace Microsoft.ML.SearchSpace
             return Parameter.FromString(Enum.GetName(t, e));
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from an <see cref="object"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Object"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter FromObject<T>(T value) where T : class
         {
             return Parameter.FromObject(value, typeof(T));
@@ -140,6 +205,10 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from <paramref name="parameters"/>. The <see cref="ParameterType"/> will be <see cref="ParameterType.Object"/>.
+        /// </summary>
+        /// <returns><see cref="Parameter"/></returns>
         public static Parameter CreateNestedParameter(params KeyValuePair<string, Parameter>[] parameters)
         {
             var parameter = new Parameter(new Dictionary<string, Parameter>(), ParameterType.Object);
@@ -151,136 +220,188 @@ namespace Microsoft.ML.SearchSpace
             return parameter;
         }
 
-        public object Value { get => this._value; }
+        internal object Value { get => _value; }
 
-        public int Count => this.ParameterType == ParameterType.Object ? (this._value as Dictionary<string, Parameter>).Count : 1;
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public int Count => ParameterType == ParameterType.Object ? (_value as Dictionary<string, Parameter>).Count : 1;
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool IsReadOnly
         {
             get
             {
-                this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, Parameter>)?.IsReadOnly ?? false;
+                VerifyIfParameterIsObjectType();
+                return (_value as IDictionary<string, Parameter>)?.IsReadOnly ?? false;
             }
         }
 
+        /// <summary>
+        /// Get <see cref="ParameterType"/> of this <see cref="ParameterType"/>
+        /// </summary>
         public ParameterType ParameterType { get; }
 
         ICollection<Parameter> IDictionary<string, Parameter>.Values
         {
             get
             {
-                this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, Parameter>).Values;
+                VerifyIfParameterIsObjectType();
+                return (_value as IDictionary<string, Parameter>).Values;
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public ICollection<string> Keys
         {
             get
             {
-                this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, Parameter>).Keys;
+                VerifyIfParameterIsObjectType();
+                return (_value as IDictionary<string, Parameter>).Keys;
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public Parameter this[string key]
         {
             get
             {
-                this.VerifyIfParameterIsObjectType();
-                return (this._value as IDictionary<string, Parameter>)[key];
+                VerifyIfParameterIsObjectType();
+                return (_value as IDictionary<string, Parameter>)[key];
             }
 
             set
             {
-                this.VerifyIfParameterIsObjectType();
-                (this._value as IDictionary<string, Parameter>)[key] = value;
+                VerifyIfParameterIsObjectType();
+                (_value as IDictionary<string, Parameter>)[key] = value;
             }
         }
 
+        /// <summary>
+        /// Cast <see cref="ParameterType"/> to <typeparamref name="T"/>. This method will return immediately if the underlying value is of type <typeparamref name="T"/>, otherwise it uses <see cref="JsonSerializer"/> to
+        /// convert its value to <typeparamref name="T"/>.
+        /// </summary>
         public T AsType<T>()
         {
-            if (this._value is T t)
+            if (_value is T t)
             {
                 return t;
             }
             else
             {
-                var json = JsonSerializer.Serialize(this._value, this._settings);
-                return JsonSerializer.Deserialize<T>(json, this._settings);
+                var json = JsonSerializer.Serialize(_value, _settings);
+                return JsonSerializer.Deserialize<T>(json, _settings);
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public void Clear()
         {
-            this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, Parameter>).Clear();
+            VerifyIfParameterIsObjectType();
+            (_value as Dictionary<string, Parameter>).Clear();
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public void Add(string key, Parameter value)
         {
-            this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, Parameter>).Add(key, value);
+            VerifyIfParameterIsObjectType();
+            (_value as Dictionary<string, Parameter>).Add(key, value);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool TryGetValue(string key, out Parameter value)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as Dictionary<string, Parameter>).TryGetValue(key, out value);
+            VerifyIfParameterIsObjectType();
+            return (_value as Dictionary<string, Parameter>).TryGetValue(key, out value);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public void Add(KeyValuePair<string, Parameter> item)
         {
-            this.VerifyIfParameterIsObjectType();
-            (this._value as Dictionary<string, Parameter>).Add(item.Key, item.Value);
+            VerifyIfParameterIsObjectType();
+            (_value as Dictionary<string, Parameter>).Add(item.Key, item.Value);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool Contains(KeyValuePair<string, Parameter> item)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as Dictionary<string, Parameter>).Contains(item);
+            VerifyIfParameterIsObjectType();
+            return (_value as Dictionary<string, Parameter>).Contains(item);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool Remove(KeyValuePair<string, Parameter> item)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).Remove(item);
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).Remove(item);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         IEnumerator<KeyValuePair<string, Parameter>> IEnumerable<KeyValuePair<string, Parameter>>.GetEnumerator()
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).GetEnumerator();
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).GetEnumerator();
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).GetEnumerator();
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).GetEnumerator();
         }
 
         private void VerifyIfParameterIsObjectType()
         {
-            Contracts.Check(this.ParameterType == ParameterType.Object, "parameter is not object type.");
+            Contracts.Check(ParameterType == ParameterType.Object, "parameter is not object type.");
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public void CopyTo(KeyValuePair<string, Parameter>[] array, int arrayIndex)
         {
-            this.VerifyIfParameterIsObjectType();
-            (this._value as IDictionary<string, Parameter>).CopyTo(array, arrayIndex);
+            VerifyIfParameterIsObjectType();
+            (_value as IDictionary<string, Parameter>).CopyTo(array, arrayIndex);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool ContainsKey(string key)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).ContainsKey(key);
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).ContainsKey(key);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool Remove(string key)
         {
-            this.VerifyIfParameterIsObjectType();
-            return (this._value as IDictionary<string, Parameter>).Remove(key);
+            VerifyIfParameterIsObjectType();
+            return (_value as IDictionary<string, Parameter>).Remove(key);
         }
     }
 }
