@@ -115,7 +115,7 @@ namespace Microsoft.Data.Analysis
                 case ArrowTypeId.Time32:
                 case ArrowTypeId.Time64:
                 default:
-                    throw new NotImplementedException(nameof(fieldType.Name));
+                    throw new NotImplementedException($"{fieldType.Name}");
             }
 
             if (dataFrameColumn != null)
