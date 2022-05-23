@@ -27,7 +27,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator.Template
         {
             this.Write(@"
 using Microsoft.ML.SearchSpace;
-using OptionAttribute = Microsoft.ML.SearchSpace.OptionAttribute;
+using OptionAttribute = Microsoft.ML.SearchSpace.NestOptionAttribute;
 using ColorsOrder = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorsOrder;
 using ColorBits = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits;
 using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.ResizingKind;
