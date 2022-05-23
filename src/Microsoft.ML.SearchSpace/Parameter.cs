@@ -53,7 +53,7 @@ namespace Microsoft.ML.SearchSpace
     /// <see cref="Parameter"/> is used to save sweeping result from tuner and is used to restore mlnet pipeline from sweepable pipline.
     /// </summary>
     [JsonConverter(typeof(ParameterConverter))]
-    public sealed class Parameter : IDictionary<string, Parameter>
+    public sealed class Parameter : IDictionary<string, Parameter>, IEquatable<Parameter>
     {
         private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
         {
@@ -402,6 +402,26 @@ namespace Microsoft.ML.SearchSpace
         {
             VerifyIfParameterIsObjectType();
             return (_value as IDictionary<string, Parameter>).Remove(key);
+        }
+
+        public bool Equals(Parameter other)
+        {
+            //Check whether the compared object is null.
+            if (Object.ReferenceEquals(other, null)) return false;
+
+            //Check whether the compared object references the same data.
+            if (Object.ReferenceEquals(this, other)) return true;
+
+            var thisJson = JsonSerializer.Serialize(this);
+            var otherJson = JsonSerializer.Serialize(other);
+
+            return thisJson == otherJson;
+        }
+
+        public override int GetHashCode()
+        {
+            var thisJson = JsonSerializer.Serialize(this);
+            return thisJson.GetHashCode();
         }
     }
 }
