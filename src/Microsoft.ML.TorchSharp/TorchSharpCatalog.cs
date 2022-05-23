@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.ML.Data;
+using Microsoft.ML.TorchSharp.NasBert;
 
 namespace Microsoft.ML.TorchSharp
 {
@@ -17,14 +18,27 @@ namespace Microsoft.ML.TorchSharp
     /// </remarks>
     public static class TorchSharpCatalog
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "<Pending>")]
-        public static MNISTTrainer MNIST(
-    this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-    string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string scoreColumn = DefaultColumnNames.Score,
-            string predictedLabelColumn = DefaultColumnNames.PredictedLabel,
-            IDataView validationSet = null) =>
-        new MNISTTrainer(CatalogUtils.GetEnvironment(catalog), labelColumn, featureColumn, scoreColumn, predictedLabelColumn, validationSet);
+        /// <summary>
+        /// Fine tune a NAS-BERT model for NLP classification.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="labelColumnName">Name of the label column. Column should be of type Int64.</param>
+        /// <param name="outputColumnName">Name of the output column. It will be of type Double. It is the predicted label.</param>
+        /// <param name="sentence1ColumnName">Name of the column for the first sentence.</param>
+        /// <param name="sentence2ColumnName">Name of the column for the second sentence. Only required if your NLP classification requires sentence pairs.</param>
+        /// <param name="numberOfClasses">Number of classes to train on.</param>
+        /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
+        /// <param name="maxUpdates">Maximum number of updated rows. Will stop training when this number is hit.</param>
+        /// <returns></returns>
+        public static NasBertEstimator NasBertSentenceClassification(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string outputColumnName = DefaultColumnNames.PredictedLabel,
+            string sentence1ColumnName = "Sentence1",
+            string sentence2ColumnName = default,
+            int numberOfClasses = 2,
+            int maxEpochs = 10,
+            int maxUpdates = 2147483647) =>
+            new NasBertEstimator(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, sentence2ColumnName, numberOfClasses, maxEpochs, maxUpdates);
     }
 }

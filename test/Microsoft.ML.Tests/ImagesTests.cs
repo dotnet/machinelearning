@@ -191,15 +191,7 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal", ImageResizingEstimator.ResizingKind.Fill).Transform(images);
 
             IDataView grey = new ImageGrayscalingTransformer(env, ("ImageGrey", "ImageCropped")).Transform(cropped);
-#if NETCOREAPP3_1
-            ML.FallbackToCpu = true;
-            var pipeline = ML.Transforms.ConvertToGrayscale("ImageGrey", "ImageCropped")
-                .Append(ML.Transforms.ExtractPixels("OutputImage", "ImageGrey", ImagePixelExtractingEstimator.ColorBits.Green))
-                .Append(ML.MulticlassClassification.Trainers.MNIST("Name", "OutputImage"));
-            var o = pipeline.GetOutputSchema(SchemaShape.Create(cropped.Schema));
-            var d = pipeline.Fit(cropped).Transform(cropped);
-            var p = d.Preview();
-#endif
+
             var fname = nameof(TestGreyscaleTransformImages) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);

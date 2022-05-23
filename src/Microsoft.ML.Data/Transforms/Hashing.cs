@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found column with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
+                    throw Host.ExceptParam(nameof(columns), $"Found column with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use {nameof(HashingEstimator)} instead");
 
                 if (column.Combine && column.UseOrderedHashing)
                     throw Host.ExceptParam(nameof(HashingEstimator.ColumnOptions.Combine), "When the 'Combine' option is specified, ordered hashing is not supported.");

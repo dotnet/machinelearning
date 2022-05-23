@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms.Text
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(NgramHashingEstimator)} instead");
+                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use {nameof(NgramHashingEstimator)} instead");
             }
         }
 
