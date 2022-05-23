@@ -27,18 +27,22 @@ namespace Microsoft.ML.TorchSharp
         /// <param name="sentence1ColumnName">Name of the column for the first sentence.</param>
         /// <param name="sentence2ColumnName">Name of the column for the second sentence. Only required if your NLP classification requires sentence pairs.</param>
         /// <param name="numberOfClasses">Number of classes to train on.</param>
+        /// <param name="batchSize">Number of rows in the batch.</param>
         /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
-        /// <param name="maxUpdates">Maximum number of updated rows. Will stop training when this number is hit.</param>
+        /// <param name="maxUpdates">Maximum number of batches to run. Will stop training when this number is hit.</param>
+        /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
         /// <returns></returns>
-        public static NasBertEstimator NasBertSentenceClassification(
+        public static SentenceClassificationTrainer SentenceClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string outputColumnName = DefaultColumnNames.PredictedLabel,
             string sentence1ColumnName = "Sentence1",
             string sentence2ColumnName = default,
             int numberOfClasses = 2,
+            int batchSize = 32,
             int maxEpochs = 10,
-            int maxUpdates = 2147483647) =>
-            new NasBertEstimator(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, sentence2ColumnName, numberOfClasses, maxEpochs, maxUpdates);
+            int maxUpdates = 2147483647,
+            SentenceClassificationTrainer.Architecture architecture = SentenceClassificationTrainer.Architecture.Roberta) =>
+            new SentenceClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, sentence2ColumnName, numberOfClasses, batchSize, maxEpochs, maxUpdates, architecture);
     }
 }

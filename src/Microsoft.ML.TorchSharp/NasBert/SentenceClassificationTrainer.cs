@@ -26,20 +26,28 @@ using Microsoft.ML.TorchSharp.NasBert;
 using Microsoft.ML.TorchSharp.Extensions;
 using System.IO;
 
-[assembly: LoadableClass(typeof(NasBertTransformer), null, typeof(SignatureLoadModel),
-    NasBertTransformer.UserName, NasBertTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(SentenceClassificationTransformer), null, typeof(SignatureLoadModel),
+    SentenceClassificationTransformer.UserName, SentenceClassificationTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(NasBertTransformer), null, typeof(SignatureLoadRowMapper),
-    NasBertTransformer.UserName, NasBertTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(SentenceClassificationTransformer), null, typeof(SignatureLoadRowMapper),
+    SentenceClassificationTransformer.UserName, SentenceClassificationTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.TorchSharp.NasBert
 {
-    public sealed class NasBertEstimator : IEstimator<NasBertTransformer>
+    public sealed class SentenceClassificationTrainer : IEstimator<SentenceClassificationTransformer>
     {
         private readonly IHost _host;
         private readonly Options _options;
-        private NasBertTransformer _transformer;
+        private SentenceClassificationTransformer _transformer;
         private const string ModelUrl = "models/NasBert2000000.tsm";
+
+        /// <summary>
+        /// Sentence classification model.
+        /// </summary>
+        public enum Architecture
+        {
+            Roberta
+        };
 
         internal sealed class Options : TransformInputBase
         {
@@ -220,33 +228,37 @@ namespace Microsoft.ML.TorchSharp.NasBert
             internal torch.nn.Reduction Reduction = Reduction.Sum;
         }
 
-        internal NasBertEstimator(IHostEnvironment env,
+        internal SentenceClassificationTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string outputColumnName = DefaultColumnNames.PredictedLabel,
             string sentence1ColumnName = "Sentence1",
             string sentence2ColumnName = default,
             int numberOfClasses = 2,
+            int batchSize = 32,
             int maxEpochs = 10,
-            int maxUpdates = 2147483647) :
+            int maxUpdates = 2147483647,
+            SentenceClassificationTrainer.Architecture architecture = Architecture.Roberta) :
             this(env, new Options
             {
                 OutputColumnName = outputColumnName,
                 Sentence1ColumnName = sentence1ColumnName,
                 Sentence2ColumnName = sentence2ColumnName,
                 LabelColumnName = labelColumnName,
+                BatchSize = batchSize,
                 NumberOfClasses = numberOfClasses,
-                MaxEpoch = 10,
+                MaxEpoch = maxEpochs,
+                MaxUpdate = maxUpdates,
             })
         {
         }
 
-        internal NasBertEstimator(IHostEnvironment env, Options options)
+        internal SentenceClassificationTrainer(IHostEnvironment env, Options options)
         {
-            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(NasBertEstimator));
+            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SentenceClassificationTrainer));
             _options = options;
         }
 
-        public NasBertTransformer Fit(IDataView input)
+        public SentenceClassificationTransformer Fit(IDataView input)
         {
             using (var ch2 = _host.Start("TrainModel"))
             using (var pch = _host.StartProgressChannel("Training model"))
@@ -257,7 +269,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     ch2.Info($"Starting epoch {i}");
                     trainer.Train(input, i);
                 }
-                _transformer = new NasBertTransformer(_host, _options, trainer.Model, trainer.Tokenizer.Vocabulary);
+                _transformer = new SentenceClassificationTransformer(_host, _options, trainer.Model, trainer.Tokenizer.Vocabulary);
 
                 _transformer.GetOutputSchema(input.Schema);
             }
@@ -271,10 +283,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
             public torch.Device Device;
             public BaseOptimizer Optimizer;
             public optim.lr_scheduler.LRScheduler LearningRateScheduler;
-            private readonly NasBertEstimator _parent;
+            private readonly SentenceClassificationTrainer _parent;
             public int Updates;
 
-            public Trainer(NasBertEstimator parent)
+            public Trainer(SentenceClassificationTrainer parent)
             {
                 _parent = parent;
                 Updates = 0;
@@ -387,17 +399,17 @@ namespace Microsoft.ML.TorchSharp.NasBert
                         long target = default;
                         labelGetter(ref target);
                         targets.Add(target);
-                        Updates += _parent._options.BatchSize;
                     }
                     else
                     {
                         inputTensors.TrimExcess();
                         targets.TrimExcess();
-                        Updates += inputTensors.Count();
                         if (inputTensors.Count() == 0)
                             return cursorValid;
                     }
                 }
+
+                Updates++;
 
                 Optimizer.zero_grad();
 
@@ -498,7 +510,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
         }
     }
 
-    public sealed class NasBertTransformer : RowToRowTransformerBase
+    public sealed class SentenceClassificationTransformer : RowToRowTransformerBase
     {
         internal const string LoadName = "NASBERTTrainer";
         internal const string UserName = "NASBERT Trainer";
@@ -508,7 +520,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
         private readonly Device _device;
         private readonly SentenceClassificationModel _model;
         private readonly Vocabulary _vocabulary;
-        private readonly NasBertEstimator.Options _options;
+        private readonly SentenceClassificationTrainer.Options _options;
 
         private readonly string _predictedLabelColumnName;
 
@@ -518,8 +530,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         internal const string LoaderSignature = "NASBERT";
 
-        internal NasBertTransformer(IHostEnvironment env, NasBertEstimator.Options options, SentenceClassificationModel model, Vocabulary vocabulary)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NasBertTransformer)))
+        internal SentenceClassificationTransformer(IHostEnvironment env, SentenceClassificationTrainer.Options options, SentenceClassificationModel model, Vocabulary vocabulary)
+           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(SentenceClassificationTransformer)))
         {
             Contracts.Assert(((IHostEnvironmentInternal)env).FallbackToCpu != false || _device != CPU, "Fallback to CPU is false but no GPU detected");
 
@@ -548,7 +560,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureLoadModel.
-        private static NasBertTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static SentenceClassificationTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -571,7 +583,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             // bool: dynamic dropout
             // double: pooler dropout
             // stream: state dictionary
-            var options = new NasBertEstimator.Options()
+            var options = new SentenceClassificationTrainer.Options()
             {
                 LabelColumnName = ctx.LoadString(),
                 OutputColumnName = ctx.LoadString(),
@@ -598,7 +610,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 
-            return new NasBertTransformer(env, options, model, vocabulary);
+            return new SentenceClassificationTransformer(env, options, model, vocabulary);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -647,7 +659,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(NasBertTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(SentenceClassificationTransformer).Assembly.FullName);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -700,10 +712,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private sealed class Mapper : MapperBase
         {
-            private readonly NasBertTransformer _parent;
+            private readonly SentenceClassificationTransformer _parent;
             private readonly HashSet<int> _inputColIndices;
 
-            public Mapper(NasBertTransformer parent, DataViewSchema inputSchema) :
+            public Mapper(SentenceClassificationTransformer parent, DataViewSchema inputSchema) :
                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;

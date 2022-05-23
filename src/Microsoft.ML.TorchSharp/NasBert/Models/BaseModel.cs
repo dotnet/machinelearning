@@ -13,7 +13,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
     internal abstract class BaseModel : BaseModule
     {
-        protected readonly NasBertEstimator.Options Options;
+        protected readonly SentenceClassificationTrainer.Options Options;
         public TaskType HeadType => Options.TaskType;
 
         protected readonly TransformerEncoder Encoder;
@@ -24,7 +24,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
         public abstract BaseHead GetHead();
 #pragma warning restore CA1024 // Use properties where appropriate
 
-        protected BaseModel(NasBertEstimator.Options options, Vocabulary vocabulary)
+        protected BaseModel(SentenceClassificationTrainer.Options options, Vocabulary vocabulary)
             : base(nameof(BaseModel))
         {
             vocabulary = vocabulary ?? throw new ArgumentNullException(nameof(vocabulary));

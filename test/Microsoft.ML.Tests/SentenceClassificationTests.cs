@@ -16,9 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.ML.Tests
 {
     [Collection("NoParallelization")]
-    public class NasBertEstimatorTests : TestDataPipeBase
+    public class SentenceClassificationTests : TestDataPipeBase
     {
-        public NasBertEstimatorTests(ITestOutputHelper output) : base(output)
+        public SentenceClassificationTests(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests
                      }
                 }));
 
-            var estimator = ML.MulticlassClassification.Trainers.NasBertSentenceClassification(outputColumnName: "outputColumn");
+            var estimator = ML.MulticlassClassification.Trainers.SentenceClassification(outputColumnName: "outputColumn");
 
             TestEstimatorCore(estimator, dataView);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests
                      }
                 }));
 
-            var estimator = ML.MulticlassClassification.Trainers.NasBertSentenceClassification(outputColumnName: "outputColumn", numberOfClasses: 3);
+            var estimator = ML.MulticlassClassification.Trainers.SentenceClassification(outputColumnName: "outputColumn", numberOfClasses: 3);
 
             TestEstimatorCore(estimator, dataView);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Tests
                      }
                 }));
 
-            var estimator = ML.MulticlassClassification.Trainers.NasBertSentenceClassification(outputColumnName: "outputColumn", sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2");
+            var estimator = ML.MulticlassClassification.Trainers.SentenceClassification(outputColumnName: "outputColumn", sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2");
 
             TestEstimatorCore(estimator, dataView);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));

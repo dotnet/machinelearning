@@ -22,7 +22,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Optimizers
         /// </summary>
         /// <param name="options"></param>
         /// <param name="parameters">The parameters to be optimized by the optimizer.</param>
-        public static BaseOptimizer GetOptimizer(NasBertEstimator.Options options, IEnumerable<Parameter> parameters)
+        public static BaseOptimizer GetOptimizer(SentenceClassificationTrainer.Options options, IEnumerable<Parameter> parameters)
         {
             return new Adam(options, parameters);
             //var optimizerName = options.Optimizer.ToLower();
@@ -34,13 +34,13 @@ namespace Microsoft.ML.TorchSharp.NasBert.Optimizers
             //};
         }
 
-        protected NasBertEstimator.Options Options { get; set; }
+        protected SentenceClassificationTrainer.Options Options { get; set; }
         protected string Name { get; set; }
         protected IEnumerable<Parameter> Parameters { get; set; }
         public torch.optim.Optimizer Optimizer { get; protected set; }
         public double LearningRate => Optimizer.ParamGroups.ToArray()[0].LearningRate;
 
-        protected BaseOptimizer(string name, NasBertEstimator.Options options, IEnumerable<Parameter> parameters)
+        protected BaseOptimizer(string name, SentenceClassificationTrainer.Options options, IEnumerable<Parameter> parameters)
         {
             Name = name;
             Options = options;
