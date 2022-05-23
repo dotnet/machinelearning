@@ -13,9 +13,6 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Image;
-#if NETCOREAPP3_1
-using Microsoft.ML.TorchSharp;
-#endif
 using Xunit;
 using Xunit.Abstractions;
 
@@ -174,8 +171,8 @@ namespace Microsoft.ML.Tests
         public void TestGreyscaleTransformImages()
         {
             IHostEnvironment env = new MLContext(1);
-            var imageHeight = 28;
-            var imageWidth = 28;
+            var imageHeight = 150;
+            var imageWidth = 100;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Options()
@@ -188,10 +185,9 @@ namespace Microsoft.ML.Tests
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
 
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal", ImageResizingEstimator.ResizingKind.Fill).Transform(images);
+            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             IDataView grey = new ImageGrayscalingTransformer(env, ("ImageGrey", "ImageCropped")).Transform(cropped);
-
             var fname = nameof(TestGreyscaleTransformImages) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
