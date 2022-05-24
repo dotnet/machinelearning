@@ -345,7 +345,7 @@ namespace Microsoft.ML.Data
 
             using (var stream = new MemoryStream())
             {
-                LoaderUtils.SaveLoader(loader, stream);
+                LoaderUtils.SaveLoader(loader, stream, _host);
                 return stream.GetBuffer();
             }
         }

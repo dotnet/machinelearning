@@ -113,14 +113,18 @@ namespace Microsoft.ML
             PathMap = new ConcurrentDictionary<string, string>();
             _open = new List<Entry>();
             if (needDir)
-                DirTemp = GetShortTempDir();
+                DirTemp = GetShortTempDir(ectx);
             else
                 GC.SuppressFinalize(this);
         }
 
-        private static string GetShortTempDir()
+        private static string GetShortTempDir(IExceptionContext ectx)
         {
-            var path = Path.Combine(Path.GetFullPath(Path.GetTempPath()), "ml_dotnet", Path.GetRandomFileName());
+            string tempPath = ectx is IHostEnvironmentInternal iHostInternal ?
+                iHostInternal.TempFilePath :
+                Path.GetTempPath();
+
+            string path = Path.Combine(Path.GetFullPath(tempPath), "ml_dotnet", Path.GetRandomFileName());
             Directory.CreateDirectory(path);
             return path;
         }
