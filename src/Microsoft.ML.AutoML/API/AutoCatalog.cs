@@ -530,5 +530,63 @@ namespace Microsoft.ML.AutoML
 
             return res.ToArray();
         }
+
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for featurizing text.
+        /// </summary>
+        /// <param name="outputColumnName">output column name.</param>
+        /// <param name="inputColumnName">input column name.</param>
+        internal SweepableEstimator[] TextFeaturizer(string outputColumnName, string inputColumnName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for featurizing numeric columns.
+        /// </summary>
+        /// <param name="outputColumnName">output column name.</param>
+        /// <param name="inputColumnName">input column name.</param>
+        internal SweepableEstimator[] NumericFeaturizer(string outputColumnName, string inputColumnName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for featurizing catalog columns.
+        /// </summary>
+        /// <param name="outputColumnName">output column name.</param>
+        /// <param name="inputColumnName">input column name.</param>
+        internal SweepableEstimator[] CatalogFeaturizer(string outputColumnName, string inputColumnName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Create a single featurize pipeline according to <paramref name="data"/>. This function will collect all columns in <paramref name="data"/> and not in <paramref name="excludeColumns"/>,
+        /// featurizing them using <see cref="CatalogFeaturizer(string, string)"/>, <see cref="NumericFeaturizer(string, string)"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
+        /// them into a single feature column as output.
+        /// </summary>
+        /// <param name="data">input data.</param>
+        /// <param name="catalogColumns">columns that should be treated as catalog. If not specified, it will automatically infer if a column is catalog or not.</param>
+        /// <param name="outputColumnName">output feature column.</param>
+        /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
+        internal MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] excludeColumns = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Create a single featurize pipeline according to <paramref name="columnInformation"/>. This function will collect all columns in <paramref name="columnInformation"/> and not in <paramref name="excludeColumns"/>,
+        /// featurizing them using <see cref="CatalogFeaturizer(string, string)"/>, <see cref="NumericFeaturizer(string, string)"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
+        /// them into a single feature column as output.
+        /// </summary>
+        /// <param name="columnInformation">column information.</param>
+        /// <param name="outputColumnName">output feature column.</param>
+        /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
+        /// <returns></returns>
+        internal MultiModelPipeline Featurizer(ColumnInformation columnInformation, string outputColumnName = "Features", string[] excludeColumns = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
