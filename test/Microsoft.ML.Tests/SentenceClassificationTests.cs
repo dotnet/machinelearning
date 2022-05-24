@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests
             public long Label;
         }
 
-        [TorchSharpFact]
+        [Fact]
         public void TestSingleSentence2Classes()
         {
             var dataView = ML.Data.LoadFromEnumerable(
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Tests
             Assert.True(transformedData.ColumnView[2].Values.All(value => (double)value == 0D));
         }
 
-        [TorchSharpFact]
+        [Fact]
         public void TestSingleSentence3Classes()
         {
             var dataView = ML.Data.LoadFromEnumerable(
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(2D, (double)transformedData.ColumnView[2].Values[7]);
         }
 
-        [TorchSharpFact]
+        [Fact]
         public void TestDoubleSentence2Classes()
         {
             var dataView = ML.Data.LoadFromEnumerable(
