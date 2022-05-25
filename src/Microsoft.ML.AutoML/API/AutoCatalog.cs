@@ -626,6 +626,22 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
+            if (numericColumns != null)
+            {
+                foreach (var column in numericColumns)
+                {
+                    columnInfo.NumericColumnNames.Add(column);
+                }
+            }
+
+            if (textColumns != null)
+            {
+                foreach (var column in textColumns)
+                {
+                    columnInfo.TextColumnNames.Add(column);
+                }
+            }
+
             return this.Featurizer(data, columnInfo, outputColumnName);
         }
 
