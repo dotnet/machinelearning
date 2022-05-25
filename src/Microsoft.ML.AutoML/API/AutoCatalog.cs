@@ -592,10 +592,22 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="data">input data.</param>
         /// <param name="catalogColumns">columns that should be treated as catalog. If not specified, it will automatically infer if a column is catalog or not.</param>
+        /// <param name="numericColumns">columns that should be treated as numeric. If not specified, it will automatically infer if a column is catalog or not.</param>
+        /// <param name="textColumns">columns that should be treated as text. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="outputColumnName">output feature column.</param>
         /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
-        internal MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] excludeColumns = null)
+        public MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] excludeColumns = null)
         {
+            // validate if there's overlapping among catalogColumns, numericColumns, textColumns and excludeColumns
+            var overallColumns = new string[][] { catalogColumns, numericColumns, textColumns, excludeColumns }
+                                    .Where(c => c != null)
+                                    .SelectMany(c => c);
+
+            if (overallColumns != null)
+            {
+                Contracts.Assert(overallColumns.Count() == overallColumns.Distinct().Count(), "detect overlapping among catalogColumns, numericColumns, textColumns and excludedColumns");
+            }
+
             var columnInfo = new ColumnInformation();
 
             if (excludeColumns != null)
