@@ -24,6 +24,8 @@ namespace Microsoft.ML.AutoML.Test
 
         private static IDataView _uciAdultDataView;
 
+        private static IDataView _irisDataView;
+
         public static string GetUciAdultDataset() => GetDataPath("adult.tiny.with-schema.txt");
 
         public static string GetMlNetGeneratedRegressionDataset() => GetDataPath("generated_regression_dataset.csv");
@@ -48,6 +50,19 @@ namespace Microsoft.ML.AutoML.Test
                 _uciAdultDataView = textLoader.Load(uciAdultDataFile);
             }
             return _uciAdultDataView;
+        }
+
+        public static IDataView GetIrisDataView()
+        {
+            if (_irisDataView == null)
+            {
+                var context = new MLContext(1);
+                var dataFile = GetIrisDataset();
+                var columnInferenceResult = context.Auto().InferColumns(dataFile, 0, groupColumns: false);
+                var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderOptions);
+                _irisDataView = textLoader.Load(dataFile);
+            }
+            return _irisDataView;
         }
 
         public static string GetFlowersDataset()

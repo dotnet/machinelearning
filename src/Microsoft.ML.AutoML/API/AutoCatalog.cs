@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Linq;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.SearchSpace;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -538,32 +541,53 @@ namespace Microsoft.ML.AutoML
         /// <param name="inputColumnName">input column name.</param>
         internal SweepableEstimator[] TextFeaturizer(string outputColumnName, string inputColumnName)
         {
-            throw new NotImplementedException();
+            var option = new FeaturizeTextOption
+            {
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+            };
+
+            return new[] { SweepableEstimatorFactory.CreateFeaturizeText(option) };
         }
 
         /// <summary>
         /// Create a list of <see cref="SweepableEstimator"/> for featurizing numeric columns.
         /// </summary>
-        /// <param name="outputColumnName">output column name.</param>
-        /// <param name="inputColumnName">input column name.</param>
-        internal SweepableEstimator[] NumericFeaturizer(string outputColumnName, string inputColumnName)
+        /// <param name="outputColumnNames">output column names.</param>
+        /// <param name="inputColumnNames">input column names.</param>
+        internal SweepableEstimator[] NumericFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
         {
-            throw new NotImplementedException();
+            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
+            var replaceMissingValueOption = new ReplaceMissingValueOption
+            {
+                InputColumnNames = inputColumnNames,
+                OutputColumnNames = outputColumnNames,
+            };
+
+            return new[] { SweepableEstimatorFactory.CreateReplaceMissingValues(replaceMissingValueOption) };
         }
 
         /// <summary>
         /// Create a list of <see cref="SweepableEstimator"/> for featurizing catalog columns.
         /// </summary>
-        /// <param name="outputColumnName">output column name.</param>
-        /// <param name="inputColumnName">input column name.</param>
-        internal SweepableEstimator[] CatalogFeaturizer(string outputColumnName, string inputColumnName)
+        /// <param name="outputColumnNames">output column names.</param>
+        /// <param name="inputColumnNames">input column names.</param>
+        internal SweepableEstimator[] CatalogFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
         {
-            throw new NotImplementedException();
+            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
+
+            var option = new OneHotOption
+            {
+                InputColumnNames = inputColumnNames,
+                OutputColumnNames = outputColumnNames,
+            };
+
+            return new SweepableEstimator[] { SweepableEstimatorFactory.CreateOneHotEncoding(option), SweepableEstimatorFactory.CreateOneHotHashEncoding(option) };
         }
 
         /// <summary>
         /// Create a single featurize pipeline according to <paramref name="data"/>. This function will collect all columns in <paramref name="data"/> and not in <paramref name="excludeColumns"/>,
-        /// featurizing them using <see cref="CatalogFeaturizer(string, string)"/>, <see cref="NumericFeaturizer(string, string)"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
+        /// featurizing them using <see cref="CatalogFeaturizer(string[], string[])"/>, <see cref="NumericFeaturizer(string[], string[])"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
         /// them into a single feature column as output.
         /// </summary>
         /// <param name="data">input data.</param>
@@ -572,21 +596,75 @@ namespace Microsoft.ML.AutoML
         /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
         internal MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] excludeColumns = null)
         {
-            throw new NotImplementedException();
+            var columnInfo = new ColumnInformation();
+
+            if (excludeColumns != null)
+            {
+                foreach (var ignoreColumn in excludeColumns)
+                {
+                    columnInfo.IgnoredColumnNames.Add(ignoreColumn);
+                }
+            }
+
+            if (catalogColumns != null)
+            {
+                foreach (var catalogColumn in catalogColumns)
+                {
+                    columnInfo.CategoricalColumnNames.Add(catalogColumn);
+                }
+            }
+
+            return this.Featurizer(data, columnInfo, outputColumnName);
         }
 
         /// <summary>
-        /// Create a single featurize pipeline according to <paramref name="columnInformation"/>. This function will collect all columns in <paramref name="columnInformation"/> and not in <paramref name="excludeColumns"/>,
-        /// featurizing them using <see cref="CatalogFeaturizer(string, string)"/>, <see cref="NumericFeaturizer(string, string)"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
+        /// Create a single featurize pipeline according to <paramref name="columnInformation"/>. This function will collect all columns in <paramref name="columnInformation"/>,
+        /// featurizing them using <see cref="CatalogFeaturizer(string[], string[])"/>, <see cref="NumericFeaturizer(string[], string[])"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
         /// them into a single feature column as output.
         /// </summary>
+        /// <param name="data">input data.</param>
         /// <param name="columnInformation">column information.</param>
         /// <param name="outputColumnName">output feature column.</param>
-        /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
         /// <returns></returns>
-        internal MultiModelPipeline Featurizer(ColumnInformation columnInformation, string outputColumnName = "Features", string[] excludeColumns = null)
+        internal MultiModelPipeline Featurizer(IDataView data, ColumnInformation columnInformation, string outputColumnName = "Features")
         {
-            throw new NotImplementedException();
+            var columnPurposes = PurposeInference.InferPurposes(this._context, data, columnInformation);
+            var textFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.TextFeature);
+            var numericFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature);
+            var catalogFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.CategoricalFeature);
+            var textFeatureColumnNames = textFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
+            var numericFeatureColumnNames = numericFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
+            var catalogFeatureColumnNames = catalogFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
+
+            var pipeline = new MultiModelPipeline();
+            if (numericFeatureColumnNames.Length > 0)
+            {
+                pipeline = pipeline.Append(this.NumericFeaturizer(numericFeatureColumnNames, numericFeatureColumnNames));
+            }
+
+            if (catalogFeatureColumnNames.Length > 0)
+            {
+                pipeline = pipeline.Append(this.CatalogFeaturizer(catalogFeatureColumnNames, catalogFeatureColumnNames));
+            }
+
+            foreach (var textColumn in textFeatureColumnNames)
+            {
+                pipeline = pipeline.Append(this.TextFeaturizer(textColumn, textColumn));
+            }
+
+            var option = new ConcatOption
+            {
+                InputColumnNames = textFeatureColumnNames.Concat(numericFeatureColumnNames).Concat(catalogFeatureColumnNames).ToArray(),
+                OutputColumnName = outputColumnName,
+            };
+
+            if (option.InputColumnNames.Length > 0)
+            {
+                pipeline = pipeline.Append(SweepableEstimatorFactory.CreateConcatenate(option));
+            }
+
+            return pipeline;
+
         }
     }
 }
