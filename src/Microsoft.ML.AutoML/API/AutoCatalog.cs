@@ -638,7 +638,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="columnInformation">column information.</param>
         /// <param name="outputColumnName">output feature column.</param>
         /// <returns></returns>
-        internal MultiModelPipeline Featurizer(IDataView data, ColumnInformation columnInformation, string outputColumnName = "Features")
+        public MultiModelPipeline Featurizer(IDataView data, ColumnInformation columnInformation, string outputColumnName = "Features")
         {
             var columnPurposes = PurposeInference.InferPurposes(this._context, data, columnInformation);
             var textFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.TextFeature);
