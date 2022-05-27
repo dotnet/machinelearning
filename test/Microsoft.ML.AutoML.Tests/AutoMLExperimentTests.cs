@@ -41,7 +41,7 @@ namespace Microsoft.ML.AutoML.Test
             {
                 if (e.RawMessage.Contains("Update Running Trial"))
                 {
-                    cts.CancelAfter(1);
+                    cts.Cancel();
                 }
             };
 
