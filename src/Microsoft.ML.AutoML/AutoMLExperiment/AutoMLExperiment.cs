@@ -233,7 +233,7 @@ namespace Microsoft.ML.AutoML
             {
                 try
                 {
-                    if (ct.IsCancellationRequested)
+                    if (cts.Token.IsCancellationRequested)
                     {
                         break;
                     }
@@ -263,7 +263,7 @@ namespace Microsoft.ML.AutoML
                 }
                 catch (Exception)
                 {
-                    if (ct.IsCancellationRequested)
+                    if (cts.Token.IsCancellationRequested)
                     {
                         break;
                     }

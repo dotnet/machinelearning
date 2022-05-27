@@ -76,6 +76,26 @@ namespace Microsoft.ML.AutoML.Test
             res.Metric.Should().BeGreaterThan(0);
         }
 
+        [Fact]
+        public async Task AutoMLExperiment_finish_training_when_time_is_up_Async()
+        {
+            var context = new MLContext(1);
+            var pipeline = context.Transforms.Concatenate("Features", "Features")
+                            .Append(context.Auto().Regression());
+
+            var experiment = context.Auto().CreateExperiment();
+            experiment.SetPipeline(pipeline)
+                      .SetDataset(GetDummyData(), 10)
+                      .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
+                      .SetTrainingTimeInSeconds(5);
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(10 * 1000);
+
+            var res = await experiment.RunAsync(cts.Token);
+            res.Metric.Should().BeGreaterThan(0);
+            cts.IsCancellationRequested.Should().BeFalse();
+        }
+
         private IDataView GetDummyData()
         {
             var x = Enumerable.Range(-10000, 10000).Select(value => value * 1f).ToArray();
