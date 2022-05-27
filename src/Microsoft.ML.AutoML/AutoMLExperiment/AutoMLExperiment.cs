@@ -183,7 +183,7 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(RegressionMetric metric, string labelColumn = "label", string scoreColumn = "Score")
+        public AutoMLExperiment SetEvaluateMetric(RegressionMetric metric, string labelColumn = "Label", string scoreColumn = "Score")
         {
             var metricManager = new RegressionMetricManager()
             {
@@ -198,23 +198,29 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// Run experiment and return the best trial result.
+        /// Run experiment and return the best trial result synchronizely.
+        /// </summary>
+        public TrialResult Run()
+        {
+            return this.RunAsync().Result;
+        }
+
+        /// <summary>
+        /// Run experiment and return the best trial result asynchronizely. The experiment returns the current best trial result if there's any trial completed when <paramref name="ct"/> get cancelled,
+        /// and throws <see cref="TimeoutException"/> with message "Training time finished without completing a trial run" when no trial has completed.
+        /// Another thing needs to notice is that this function won't immediately return after <paramref name="ct"/> get cancelled. Instead, it will call <see cref="MLContext.CancelExecution"/> to cancel all training process
+        /// and wait all running trials get cancelled or completed.
         /// </summary>
         /// <returns></returns>
-        public Task<TrialResult> Run()
+        public async Task<TrialResult> RunAsync(CancellationToken ct = default)
         {
             ValidateSettings();
             var cts = new CancellationTokenSource();
+            _settings.CancellationToken = ct;
             cts.CancelAfter((int)_settings.MaxExperimentTimeInSeconds * 1000);
             _settings.CancellationToken.Register(() => cts.Cancel());
-            var ct = cts.Token;
-            ct.Register(() => _context.CancelExecution());
+            cts.Token.Register(() => _context.CancelExecution());
 
-            return RunAsync(ct);
-        }
-
-        private async Task<TrialResult> RunAsync(CancellationToken ct)
-        {
             InitializeServiceCollection();
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
