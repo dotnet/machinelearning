@@ -62,7 +62,6 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -115,7 +114,6 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -168,7 +166,6 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -222,7 +219,6 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -274,7 +270,6 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 
@@ -327,7 +322,6 @@ namespace Microsoft.ML.AutoML
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    IsMaximize = _metricManager.IsMaximize,
                 };
             }
 

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Data.Analysis;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
@@ -28,12 +29,13 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext(1);
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
-
+            var dummyTrainer = new DummyTrialRunner(context, 5);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
                       .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
-                      .SetTrainingTimeInSeconds(100);
+                      .SetTrainingTimeInSeconds(1)
+                      .SetTrialRunner(dummyTrainer);
 
             var cts = new CancellationTokenSource();
 
@@ -57,11 +59,14 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
 
+            var dummyTrainer = new DummyTrialRunner(context, 1);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
                       .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
-                      .SetTrainingTimeInSeconds(100);
+                      .SetTrainingTimeInSeconds(100)
+                      .SetTrialRunner(dummyTrainer);
+
             var cts = new CancellationTokenSource();
 
             context.Log += (o, e) =>
@@ -83,11 +88,14 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
 
+            var dummyTrainer = new DummyTrialRunner(context, 1);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
                       .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
-                      .SetTrainingTimeInSeconds(5);
+                      .SetTrainingTimeInSeconds(5)
+                      .SetTrialRunner(dummyTrainer);
+
             var cts = new CancellationTokenSource();
             cts.CancelAfter(10 * 1000);
 
@@ -106,6 +114,31 @@ namespace Microsoft.ML.AutoML.Test
             df["Label"] = DataFrameColumn.Create("Label", y);
 
             return df;
+        }
+
+        class DummyTrialRunner : ITrialRunner
+        {
+            private readonly int _finishAfterNSeconds;
+            private readonly MLContext _context;
+
+            public DummyTrialRunner(MLContext context, int finishAfterNSeconds)
+            {
+                _finishAfterNSeconds = finishAfterNSeconds;
+                _context = context;
+            }
+
+            public TrialResult Run(TrialSettings settings, IServiceProvider provider = null)
+            {
+                Task.Delay(_finishAfterNSeconds * 1000).Wait();
+                settings.ExperimentSettings.CancellationToken.ThrowIfCancellationRequested();
+
+                return new TrialResult
+                {
+                    TrialSettings = settings,
+                    DurationInMilliseconds = _finishAfterNSeconds * 1000,
+                    Metric = 1.000 + 0.01 * settings.TrialId,
+                };
+            }
         }
     }
 }
