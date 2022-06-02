@@ -157,7 +157,7 @@ namespace Microsoft.ML.AutoML
         public void Update(TrialSettings parameter, TrialResult result)
         {
             var schema = parameter.Schema;
-            var error = CaculateError(result.Metric, result.IsMaximize);
+            var error = CaculateError(result.Metric, parameter.ExperimentSettings.IsMaximizeMetric);
             var duration = result.DurationInMilliseconds / 1000;
             var pipelineIds = _multiModelPipeline.PipelineIds;
             var isSuccess = duration != 0;
