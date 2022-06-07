@@ -156,7 +156,7 @@ jobs:
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - ${{ if eq(parameters.codeCoverage, True) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run CI Tests.
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml
