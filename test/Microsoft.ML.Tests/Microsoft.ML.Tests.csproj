@@ -61,6 +61,12 @@
     <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
+    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all"/>
+    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all"/>
+    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" PrivateAssets="all"/>
+  </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindExInput.txt" />
     <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindInput.txt" />

@@ -30,9 +30,10 @@ namespace Microsoft.ML.TorchSharp
         /// <param name="batchSize">Number of rows in the batch.</param>
         /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
         /// <param name="maxUpdates">Maximum number of batches to run. Will stop training when this number is hit.</param>
+        /// <param name="validationSet">The validation set used while training to improve model quality.</param>
         /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
         /// <returns></returns>
-        public static SentenceClassificationTrainer SentenceClassification(
+        public static TextClassificationTrainer SentenceClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string outputColumnName = DefaultColumnNames.PredictedLabel,
@@ -42,7 +43,8 @@ namespace Microsoft.ML.TorchSharp
             int batchSize = 32,
             int maxEpochs = 10,
             int maxUpdates = 2147483647,
-            SentenceClassificationTrainer.Architecture architecture = SentenceClassificationTrainer.Architecture.Roberta) =>
-            new SentenceClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, sentence2ColumnName, numberOfClasses, batchSize, maxEpochs, maxUpdates, architecture);
+            IDataView validationSet = null,
+            TextClassificationTrainer.Architecture architecture = TextClassificationTrainer.Architecture.Roberta) =>
+            new TextClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, sentence2ColumnName, numberOfClasses, batchSize, maxEpochs, maxUpdates, validationSet, architecture);
     }
 }
