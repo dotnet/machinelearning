@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
-    <Compile Remove="SentenceClassificationTests.cs" />
+    <Compile Remove="TextClassificationTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
