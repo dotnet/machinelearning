@@ -128,10 +128,10 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
