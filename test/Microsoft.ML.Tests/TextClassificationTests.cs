@@ -188,7 +188,6 @@ namespace Microsoft.ML.Tests
 #endif
             Assert.Equal("Class Three", transformedData.ColumnView[4].Values[3].ToString());
             Assert.Equal("Class Three", transformedData.ColumnView[4].Values[4].ToString());
-            Assert.Equal("Class Two", transformedData.ColumnView[4].Values[5].ToString());
             Assert.Equal("Class Three", transformedData.ColumnView[4].Values[7].ToString());
         }
 
