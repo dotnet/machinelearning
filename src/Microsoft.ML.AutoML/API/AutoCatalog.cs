@@ -296,9 +296,9 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Create an <see cref="AutoMLExperiment"/>.
         /// </summary>
-        public AutoMLExperiment CreateExperiment()
+        public AutoMLExperiment CreateExperiment(AutoMLExperiment.AutoMLExperimentSettings settings = null)
         {
-            return new AutoMLExperiment(_context, new AutoMLExperiment.AutoMLExperimentSettings());
+            return new AutoMLExperiment(_context, settings ?? new AutoMLExperiment.AutoMLExperimentSettings());
         }
 
         /// <summary>
