@@ -14,32 +14,21 @@ namespace Microsoft.ML.TorchSharp.Utils
         public static void DisposeDictionaryWithTensor<TKey, TResult>(Dictionary<TKey, TResult> dictionary)
         {
             if (dictionary == null)
-            {
                 return;
-            }
 
-            foreach (var value in dictionary.Values)
+            foreach (var kvp in dictionary)
             {
-                if (value is torch.Tensor tensor)
-                {
+                if (kvp.Value is torch.Tensor tensor)
                     tensor.Dispose();
-                }
-                else if (value is Dictionary<dynamic, dynamic> subDictionary)
-                {
-                    DisposeDictionaryWithTensor(subDictionary);
-                }
-            }
 
-            foreach (var key in dictionary.Keys)
-            {
-                if (key is torch.Tensor tensor)
-                {
-                    tensor.Dispose();
-                }
-                else if (key is Dictionary<dynamic, dynamic> subDictionary)
-                {
+                else if (kvp.Value is Dictionary<dynamic, dynamic> subDictionary)
                     DisposeDictionaryWithTensor(subDictionary);
-                }
+
+                if (kvp.Key is torch.Tensor keyTensor)
+                    keyTensor.Dispose();
+
+                else if (kvp.Key is Dictionary<dynamic, dynamic> subDictionary)
+                    DisposeDictionaryWithTensor(subDictionary);
             }
         }
     }

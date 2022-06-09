@@ -8,11 +8,11 @@ using System.Text;
 
 namespace Microsoft.ML.TorchSharp.NasBert
 {
-    public enum TaskType
+    /// <summary>
+    /// Sentence classification model.
+    /// </summary>
+    public enum BertArchitecture
     {
-        None = 0,
-        MaskedLM = 1,
-        SentenceClassification = 2,
-        SentenceRegression = 3
-    }
+        Roberta
+    };
 }

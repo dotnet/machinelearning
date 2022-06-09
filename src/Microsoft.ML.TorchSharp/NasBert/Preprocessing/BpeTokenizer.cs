@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TorchSharp.Extensions;
 using Microsoft.ML.TorchSharp.Utils;
 using Newtonsoft.Json;
@@ -43,42 +44,37 @@ namespace Microsoft.ML.TorchSharp.NasBert.Preprocessing
         /// <summary>
         /// Get the singleton of BPE tokenizer with vocabulary files in <paramref name="path"/>.
         /// </summary>
-        public static BpeTokenizer GetInstance(string path = null)
+        public static BpeTokenizer GetInstance(IChannel ch, string path = null)
         {
             if (_instance == null)
             {
                 _path = path ?? "";
-                _instance = new BpeTokenizer();
-            }
-
-            if (!string.Equals(_path, path, StringComparison.Ordinal))
-            {
-                Console.WriteLine($"There has been a BPE instance with file path {_path}.");
+                _instance = new BpeTokenizer(ch);
             }
 
             return _instance;
         }
 
-        private BpeTokenizer()
+        private BpeTokenizer(IChannel ch)
         {
-            Vocabulary = GetVocabulary();
-            _encoder = GetEncoder();
+            Vocabulary = GetVocabulary(ch);
+            _encoder = GetEncoder(ch);
             _decoder = _encoder.Reverse();
-            _merges = GetMerges();
+            _merges = GetMerges(ch);
             _mergeRanks = GetMergeRanks();
             _byteToUnicode = GetByteToUnicode();
             _unicodeToByte = _byteToUnicode.Reverse();
         }
 
-        private static Vocabulary GetVocabulary()
+        private static Vocabulary GetVocabulary(IChannel ch)
         {
-            _ = FileUtils.LoadFromFileOrDownloadFromWeb(_path, DictName, _dictUrl);
+            _ = FileUtils.LoadFromFileOrDownloadFromWeb(_path, DictName, _dictUrl, ch);
             return Vocabulary.Load(System.IO.Path.Combine(_path, DictName));
         }
 
-        private Dictionary<string, int> GetEncoder()
+        private Dictionary<string, int> GetEncoder(IChannel ch)
         {
-            var contents = FileUtils.LoadFromFileOrDownloadFromWeb(_path, EncoderJsonName, _encoderJsonUrl);
+            var contents = FileUtils.LoadFromFileOrDownloadFromWeb(_path, EncoderJsonName, _encoderJsonUrl, ch);
 
             // Parse JSON
             try
@@ -99,9 +95,9 @@ namespace Microsoft.ML.TorchSharp.NasBert.Preprocessing
             }
         }
 
-        private static (string, string)[] GetMerges()
+        private static (string, string)[] GetMerges(IChannel ch)
         {
-            var contents = FileUtils.LoadFromFileOrDownloadFromWeb(_path, MergeName, _mergeUrl);
+            var contents = FileUtils.LoadFromFileOrDownloadFromWeb(_path, MergeName, _mergeUrl, ch);
 
             // Parse merge info
             var splitContents = contents.Split('\n');

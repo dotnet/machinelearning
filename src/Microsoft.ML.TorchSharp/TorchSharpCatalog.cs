@@ -44,7 +44,7 @@ namespace Microsoft.ML.TorchSharp
             int maxEpochs = 10,
             int maxUpdates = 2147483647,
             IDataView validationSet = null,
-            TextClassificationTrainer.Architecture architecture = TextClassificationTrainer.Architecture.Roberta) =>
-            new TextClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, sentence2ColumnName, numberOfClasses, batchSize, maxEpochs, maxUpdates, validationSet, architecture);
+            BertArchitecture architecture = BertArchitecture.Roberta)
+            => new TextClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, sentence2ColumnName, numberOfClasses, batchSize, maxEpochs, maxUpdates, validationSet, architecture);
     }
 }

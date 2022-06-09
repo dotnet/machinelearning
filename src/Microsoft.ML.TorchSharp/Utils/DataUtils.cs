@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Runtime;
 using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.Utils
@@ -15,10 +17,8 @@ namespace Microsoft.ML.TorchSharp.Utils
         public static torch.Tensor CollateTokens(IList<torch.Tensor> values, int padIndex, int? eosIndex = null,
             bool leftPad = false, bool moveEosToBeginning = false, torch.Device device = null)
         {
-            if (values.Any(v => v.dim() != 1))
-            {
-                throw new ArgumentException("All tensors should be 1D to collate.");
-            }
+            Contracts.AssertNonEmpty(values, "Can't collate 0 values");
+            Contracts.Assert(values.All(v => v.dim() == 1), "All tensors should be 1D to collate.");
 
             var size = values.Select(v => v.size(0)).Max();
             var res = values[0].new_full(values.Count, size, padIndex, device: device);

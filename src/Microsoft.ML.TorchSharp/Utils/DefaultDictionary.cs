@@ -36,8 +36,7 @@ namespace Microsoft.ML.TorchSharp.Utils
             }
             set
             {
-                if (!ContainsKey(key)) Add(key, value);
-                else _dictionary[key] = value;
+                _dictionary[key] = value;
             }
         }
 
@@ -70,7 +69,7 @@ namespace Microsoft.ML.TorchSharp.Utils
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).CopyTo(array, arrayIndex);
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)

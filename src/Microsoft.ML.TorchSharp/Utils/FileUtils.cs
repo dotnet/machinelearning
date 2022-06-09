@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TorchSharp.Utils
 {
@@ -26,8 +28,10 @@ namespace Microsoft.ML.TorchSharp.Utils
             typeof(double),
         };
 
-        public static string LoadFromFileOrDownloadFromWeb(string path, string fileName, Uri url)
+        public static string LoadFromFileOrDownloadFromWeb(string path, string fileName, Uri url, IChannel ch)
         {
+            Contracts.AssertNonWhiteSpace(fileName, "Filename can't be empty");
+
             var contents = "";
             var filePath = Path.Combine(path, fileName);
             if (!File.Exists(filePath))
@@ -36,25 +40,25 @@ namespace Microsoft.ML.TorchSharp.Utils
                 {
                     using var webClient = new WebClient();
                     contents = webClient.DownloadString(url);
+
                 }
                 catch (WebException e)
                 {
                     throw new WebException($"File {fileName} not found and cannot be downloaded from {url}.\n" +
-                                           $"Error message: {e.Message}");
+                                           $"Error message: {e.Message}", e);
                 }
 
                 try
                 {
                     File.WriteAllText(filePath, contents);
-                    Console.WriteLine($"File {fileName} successfully downloaded from {url} and saved to {path}.");
+                    ch.Info($"File {fileName} successfully downloaded from {url} and saved to {path}.");
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"{DateTime.Now} - WARNING: File {fileName} successfully downloaded from {url}, " +
+                    ch.Warning($"{DateTime.Now} - WARNING: File {fileName} successfully downloaded from {url}, " +
                                       $"but error occurs when saving file {fileName} into {path}.\n" +
                                       $"Error message: {e.Message}");
                 }
-
             }
             else
             {
@@ -65,7 +69,7 @@ namespace Microsoft.ML.TorchSharp.Utils
                 catch (Exception e)
                 {
                     throw new IOException($"Problems met when reading {filePath}.\n" +
-                                          $"Error message: {e.Message}");
+                                          $"Error message: {e.Message}", e);
                 }
             }
 

@@ -14,7 +14,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
     internal abstract class BaseModel : BaseModule
     {
         protected readonly TextClassificationTrainer.Options Options;
-        public TaskType HeadType => Options.TaskType;
+        public BertTaskType HeadType => Options.TaskType;
 
         protected readonly TransformerEncoder Encoder;
 
