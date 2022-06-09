@@ -48,10 +48,12 @@
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
+    <TorchSharpVersion>0.96.7</TorchSharpVersion>
+    <LibTorchVersion>1.11.0.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
-    <CoverletCollectorVersion>1.2.1</CoverletCollectorVersion>
-    <CoverletMsbuildVersion>2.9.0</CoverletMsbuildVersion>
+    <CoverletCollectorVersion>3.1.2</CoverletCollectorVersion>
+    <CoverletMsbuildVersion>3.1.2</CoverletMsbuildVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <MicrosoftDotNetApiCompatVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatVersion>

@@ -413,6 +413,13 @@ namespace Microsoft.ML.Runtime
                 _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
                 Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                 host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+
+                // Need to manually copy over the parameters
+                //((IHostEnvironmentInternal)host).Seed = this.Seed;
+                ((IHostEnvironmentInternal)host).TempFilePath = TempFilePath;
+                ((IHostEnvironmentInternal)host).GpuDeviceId = GpuDeviceId;
+                ((IHostEnvironmentInternal)host).FallbackToCpu = FallbackToCpu;
+
                 _children.Add(new WeakReference<IHost>(host));
             }
             return host;
