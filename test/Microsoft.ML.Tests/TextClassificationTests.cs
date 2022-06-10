@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests
                      }
                 }));
             var estimator = ML.Transforms.Conversion.MapValueToKey("Label")
-                .Append(ML.MulticlassClassification.Trainers.SentenceClassification(outputColumnName: "outputColumn"))
+                .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn"))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
             TestEstimatorCore(estimator, dataView);
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Tests
                 }));
 
             var estimator = ML.Transforms.Conversion.MapValueToKey("Label")
-                .Append(ML.MulticlassClassification.Trainers.SentenceClassification(outputColumnName: "outputColumn", numberOfClasses: 3))
+                .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn", numberOfClasses: 3))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
             TestEstimatorCore(estimator, dataView);
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Tests
             var dataPrepTransformer = dataPrep.Fit(dataView);
             var preppedData = dataPrepTransformer.Transform(dataView);
 
-            var estimator = ML.MulticlassClassification.Trainers.SentenceClassification(outputColumnName: "outputColumn", sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2", validationSet: preppedData)
+            var estimator = ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn", sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2", validationSet: preppedData)
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
             TestEstimatorCore(estimator, preppedData);
