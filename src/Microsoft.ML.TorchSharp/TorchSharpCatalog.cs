@@ -33,7 +33,7 @@ namespace Microsoft.ML.TorchSharp
         /// <param name="validationSet">The validation set used while training to improve model quality.</param>
         /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
         /// <returns></returns>
-        public static TextClassificationTrainer SentenceClassification(
+        public static TextClassificationTrainer TextClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string outputColumnName = DefaultColumnNames.PredictedLabel,
