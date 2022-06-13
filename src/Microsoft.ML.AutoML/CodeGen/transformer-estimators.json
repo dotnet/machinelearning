@@ -63,7 +63,7 @@
         }
       ],
       "nugetDependencies": [ "Microsoft.ML" ],
-      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms" ],
       "searchOption": "one_hot_option"
     },
     {
@@ -80,7 +80,7 @@
         }
       ],
       "nugetDependencies": [ "Microsoft.ML" ],
-      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms" ],
       "searchOption": "one_hot_option"
     },
     {
