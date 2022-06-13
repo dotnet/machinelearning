@@ -34,6 +34,36 @@ using System.IO;
 
 namespace Microsoft.ML.TorchSharp.NasBert
 {
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a Deep Neural Network(DNN) to classify text.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [TextClassification](xref:Microsoft.ML.TorchSharpCatalog.TextClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Int32,System.String,System.String,System.String,System.String,Int32,Int32,Int32,Microsoft.ML.TorchSharp.NasBert.BertArchitecture,Microsoft.ML.IDataView)).
+    ///
+    /// ### Input and Output Columns
+    /// The input label column data must be [key](xref:Microsoft.ML.Data.KeyDataViewType) type and the sentence columns must be of type<xref:Microsoft.ML.Data.TextDataViewType>.
+    ///
+    /// This trainer outputs the following columns:
+    ///
+    /// | Output Column Name | Column Type | Description|
+    /// | -- | -- | -- |
+    /// | `PredictedLabel` | [key](xref:Microsoft.ML.Data.KeyDataViewType) type | The predicted label's index. If its value is i, the actual label would be the i-th category in the key-valued input label type. |
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | No |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.TorchSharp and libtorch-cpu or libtorch-cuda-11.3 or any of the OS specific variants. |
+    /// | Exportable to ONNX | No |
+    ///    ///
+    /// ### Training Algorithm Details
+    /// Trains a Deep Neural Network(DNN) by leveraging an existing pre-trained NAS-BERT roBERTa model for the purpose of classifying text.
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class TextClassificationTrainer : IEstimator<TextClassificationTransformer>
     {
         private readonly IHost _host;
@@ -536,14 +566,25 @@ namespace Microsoft.ML.TorchSharp.NasBert
             {
                 ReadOnlyMemory<char> sentence1 = default;
                 sentence1Getter(ref sentence1);
+                Tensor t;
                 if (sentence2Getter == default)
-                    return torch.tensor((new[] { BpeTokenizer.InitToken }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString())).ToList(), device: Device);
+                {
+                    t = torch.tensor((new[] { BpeTokenizer.InitToken }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString())).ToList(), device: Device);
+                }
+                else
+                {
 
-                ReadOnlyMemory<char> sentence2 = default;
-                sentence2Getter(ref sentence2);
+                    ReadOnlyMemory<char> sentence2 = default;
+                    sentence2Getter(ref sentence2);
 
-                return torch.tensor((new[] { BpeTokenizer.InitToken }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString()))
-                    .Concat(new[] { BpeTokenizer.SeperatorToken }).Concat(Tokenizer.EncodeToConverted(sentence2.ToString())).ToList(), device: Device);
+                    t = torch.tensor((new[] { BpeTokenizer.InitToken }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString()))
+                        .Concat(new[] { BpeTokenizer.SeperatorToken }).Concat(Tokenizer.EncodeToConverted(sentence2.ToString())).ToList(), device: Device);
+                }
+
+                if (t.NumberOfElements > 512)
+                    t = t.slice(0, 0, 512, 1);
+
+                return t;
             }
         }
 
@@ -816,6 +857,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
                         using (torch.no_grad())
                         {
                             inputTensor = torch.tensor(tokenizer.EncodeToConverted(sentence1.ToString()), device: _parent._device);
+                            if (inputTensor.NumberOfElements > 512)
+                                inputTensor = inputTensor.slice(0, 0, 512, 1);
                             inputTensor = inputTensor.reshape(1, inputTensor.NumberOfElements);
                             var result = _parent._model.forward(inputTensor);
                             dst = (UInt32)result.argmax(-1).cpu().item<long>() + 1;
@@ -826,6 +869,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                     inputTensor = torch.tensor((new[] { BpeTokenizer.InitToken }).Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
                         .Concat(new[] { BpeTokenizer.SeperatorToken }).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList(), device: _parent._device);
+                    if (inputTensor.NumberOfElements > 512)
+                        inputTensor = inputTensor.slice(0, 0, 512, 1);
                     inputTensor = inputTensor.reshape(1, inputTensor.NumberOfElements);
 
                     using (torch.no_grad())
