@@ -108,7 +108,7 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
-      - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated > $(versionFilePath)
+      - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated --framework $(testTargetFramework) > $(versionFilePath)
         displayName: List latest package versions
       - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
         displayName: Update package versions for nightly build
