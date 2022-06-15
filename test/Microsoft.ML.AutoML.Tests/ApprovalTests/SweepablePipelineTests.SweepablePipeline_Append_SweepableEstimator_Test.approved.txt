@@ -1,0 +1,267 @@
+{
+  "schema": "e0 * (e1 \u002B e2) * (e3 \u002B e4 * (e5 \u002B e6)) * (e7 * (e8 \u002B e9) * (e10 \u002B e11 * (e12 \u002B e13)) \u002B e14 * (e15 \u002B e16) * (e17 \u002B e18 * (e19 \u002B e20)))",
+  "currentSchema": "e0 * e1 * e3 * e7 * e8 * e10",
+  "estimators": {
+    "e0": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e1": {
+      "estimatorType": "LightGbmBinary",
+      "parameter": {
+        "NumberOfLeaves": 4,
+        "MinimumExampleCountPerLeaf": 20,
+        "LearningRate": 1,
+        "NumberOfTrees": 4,
+        "SubsampleFraction": 1,
+        "MaximumBinCountPerFeature": 256,
+        "FeatureFraction": 1,
+        "L1Regularization": 0.0000000002,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Feature"
+      }
+    },
+    "e2": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e3": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e4": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e5": {
+      "estimatorType": "LightGbmBinary",
+      "parameter": {
+        "NumberOfLeaves": 4,
+        "MinimumExampleCountPerLeaf": 20,
+        "LearningRate": 1,
+        "NumberOfTrees": 4,
+        "SubsampleFraction": 1,
+        "MaximumBinCountPerFeature": 256,
+        "FeatureFraction": 1,
+        "L1Regularization": 0.0000000002,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Feature"
+      }
+    },
+    "e6": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e7": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e8": {
+      "estimatorType": "LightGbmBinary",
+      "parameter": {
+        "NumberOfLeaves": 4,
+        "MinimumExampleCountPerLeaf": 20,
+        "LearningRate": 1,
+        "NumberOfTrees": 4,
+        "SubsampleFraction": 1,
+        "MaximumBinCountPerFeature": 256,
+        "FeatureFraction": 1,
+        "L1Regularization": 0.0000000002,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Feature"
+      }
+    },
+    "e9": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e10": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e11": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e12": {
+      "estimatorType": "LightGbmBinary",
+      "parameter": {
+        "NumberOfLeaves": 4,
+        "MinimumExampleCountPerLeaf": 20,
+        "LearningRate": 1,
+        "NumberOfTrees": 4,
+        "SubsampleFraction": 1,
+        "MaximumBinCountPerFeature": 256,
+        "FeatureFraction": 1,
+        "L1Regularization": 0.0000000002,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Feature"
+      }
+    },
+    "e13": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e14": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e15": {
+      "estimatorType": "LightGbmBinary",
+      "parameter": {
+        "NumberOfLeaves": 4,
+        "MinimumExampleCountPerLeaf": 20,
+        "LearningRate": 1,
+        "NumberOfTrees": 4,
+        "SubsampleFraction": 1,
+        "MaximumBinCountPerFeature": 256,
+        "FeatureFraction": 1,
+        "L1Regularization": 0.0000000002,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Feature"
+      }
+    },
+    "e16": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e17": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e18": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    },
+    "e19": {
+      "estimatorType": "LightGbmBinary",
+      "parameter": {
+        "NumberOfLeaves": 4,
+        "MinimumExampleCountPerLeaf": 20,
+        "LearningRate": 1,
+        "NumberOfTrees": 4,
+        "SubsampleFraction": 1,
+        "MaximumBinCountPerFeature": 256,
+        "FeatureFraction": 1,
+        "L1Regularization": 0.0000000002,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Feature"
+      }
+    },
+    "e20": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "a",
+          "b",
+          "c"
+        ],
+        "OutputColumnName": "a"
+      }
+    }
+  }
+}
