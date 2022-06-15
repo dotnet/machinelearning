@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 
@@ -53,11 +54,29 @@ namespace Microsoft.ML.Fairlearn
             // 3. calculate binary metrics for different groups
             // 4. create datafrome from result of step 3
             // 5. return it.
+            var sensitiveCol = _eval.Schema[_sensitiveFeatureColumn];
+            // get all the columns of the schema
+            DataViewSchema columns = _eval.Schema;
 
+            var evalDf = _eval.ToDataFrame();
+            var groups = evalDf.Rows.GroupBy(r => r[sensitiveCol.Index]);
+            var groupMetric = new Dictionary<object, CalibratedBinaryClassificationMetrics>();
+            foreach (var kv in groups)
+            {
+                var data = new DataFrame();
+                data.Append(kv);
+                CalibratedBinaryClassificationMetrics metrics = _context.BinaryClassification.Evaluate(data, _labelColumn);
+                groupMetric[kv.Key] = metrics;
+            }
 
             DataFrame result = new DataFrame();
+            result[_sensitiveFeatureColumn] = DataFrameColumn.Create(_sensitiveFeatureColumn, groupMetric.Keys.Select(x => x.ToString()));
+            result["AUC"] = DataFrameColumn.Create("AUC", groupMetric.Keys.Select(k => groupMetric[k].Accuracy)); //coloumn name?
+
             return result;
         }
+
+
 
         public Dictionary<string, double> DifferenceBetweenGroups()
         {
@@ -78,7 +97,7 @@ namespace Microsoft.ML.Fairlearn
             metricsDict.Add("NegRecall", metrics.NegativeRecall);
             metricsDict.Add("F1Score", metrics.F1Score);
             metricsDict.Add("AreaUnderPrecisionRecallCurve", metrics.AreaUnderPrecisionRecallCurve);
-
+            // following metrics are from the extensions
             metricsDict.Add("LogLoss", metrics.LogLoss);
             metricsDict.Add("LogLossReduction", metrics.LogLossReduction);
             metricsDict.Add("Entropy", metrics.Entropy);
