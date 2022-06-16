@@ -557,6 +557,8 @@ namespace Microsoft.ML.AutoML
         /// <param name="inputColumnNames">input column names.</param>
         internal SweepableEstimator[] NumericFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
         {
+            Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
+            Contracts.CheckValue(outputColumnNames, nameof(outputColumnNames));
             Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
             var replaceMissingValueOption = new ReplaceMissingValueOption
             {
@@ -598,14 +600,16 @@ namespace Microsoft.ML.AutoML
         /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
         public MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] excludeColumns = null)
         {
-            // validate if there's overlapping among catalogColumns, numericColumns, textColumns, and excludeColumns
+            Contracts.CheckValue(data, nameof(data));
+
+            // validate if there's overlapping among catalogColumns, numericColumns, textColumns and excludeColumns
             var overallColumns = new string[][] { catalogColumns, numericColumns, textColumns, excludeColumns }
                                     .Where(c => c != null)
                                     .SelectMany(c => c);
 
             if (overallColumns != null)
             {
-                Contracts.Assert(overallColumns.Count() == overallColumns.Distinct().Count(), "detected overlapping among catalogColumns, numericColumns, textColumns, and excludedColumns");
+                Contracts.Assert(overallColumns.Count() == overallColumns.Distinct().Count(), "detect overlapping among catalogColumns, numericColumns, textColumns and excludedColumns");
             }
 
             var columnInfo = new ColumnInformation();
@@ -653,9 +657,12 @@ namespace Microsoft.ML.AutoML
         /// <param name="data">input data.</param>
         /// <param name="columnInformation">column information.</param>
         /// <param name="outputColumnName">output feature column.</param>
-        /// <returns></returns>
+        /// <returns>A <see cref="MultiModelPipeline"/> for featurization.</returns>
         public MultiModelPipeline Featurizer(IDataView data, ColumnInformation columnInformation, string outputColumnName = "Features")
         {
+            Contracts.CheckValue(data, nameof(data));
+            Contracts.CheckValue(columnInformation, nameof(columnInformation));
+
             var columnPurposes = PurposeInference.InferPurposes(this._context, data, columnInformation);
             var textFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.TextFeature);
             var numericFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature);
