@@ -598,14 +598,14 @@ namespace Microsoft.ML.AutoML
         /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
         public MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] excludeColumns = null)
         {
-            // validate if there's overlapping among catalogColumns, numericColumns, textColumns and excludeColumns
+            // validate if there's overlapping among catalogColumns, numericColumns, textColumns, and excludeColumns
             var overallColumns = new string[][] { catalogColumns, numericColumns, textColumns, excludeColumns }
                                     .Where(c => c != null)
                                     .SelectMany(c => c);
 
             if (overallColumns != null)
             {
-                Contracts.Assert(overallColumns.Count() == overallColumns.Distinct().Count(), "detect overlapping among catalogColumns, numericColumns, textColumns and excludedColumns");
+                Contracts.Assert(overallColumns.Count() == overallColumns.Distinct().Count(), "detected overlapping among catalogColumns, numericColumns, textColumns, and excludedColumns");
             }
 
             var columnInfo = new ColumnInformation();
