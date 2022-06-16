@@ -692,7 +692,6 @@ namespace Microsoft.ML.AutoML
             }
 
             return pipeline;
-
         }
     }
 }
