@@ -1,0 +1,83 @@
+{
+  "schema": "e0 * (e1 \u002B e2) * e3",
+  "estimators": {
+    "e0": {
+      "estimatorType": "ReplaceMissingValues",
+      "parameter": {
+        "OutputColumnNames": [
+          "Features"
+        ],
+        "InputColumnNames": [
+          "Features"
+        ]
+      }
+    },
+    "e1": {
+      "estimatorType": "OneHotEncoding",
+      "parameter": {
+        "OutputColumnNames": [
+          "Workclass",
+          "education",
+          "marital-status",
+          "occupation",
+          "relationship",
+          "ethnicity",
+          "sex",
+          "native-country-region"
+        ],
+        "InputColumnNames": [
+          "Workclass",
+          "education",
+          "marital-status",
+          "occupation",
+          "relationship",
+          "ethnicity",
+          "sex",
+          "native-country-region"
+        ]
+      }
+    },
+    "e2": {
+      "estimatorType": "OneHotHashEncoding",
+      "parameter": {
+        "OutputColumnNames": [
+          "Workclass",
+          "education",
+          "marital-status",
+          "occupation",
+          "relationship",
+          "ethnicity",
+          "sex",
+          "native-country-region"
+        ],
+        "InputColumnNames": [
+          "Workclass",
+          "education",
+          "marital-status",
+          "occupation",
+          "relationship",
+          "ethnicity",
+          "sex",
+          "native-country-region"
+        ]
+      }
+    },
+    "e3": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "Features",
+          "Workclass",
+          "education",
+          "marital-status",
+          "occupation",
+          "relationship",
+          "ethnicity",
+          "sex",
+          "native-country-region"
+        ],
+        "OutputColumnName": "OutputFeature"
+      }
+    }
+  }
+}
