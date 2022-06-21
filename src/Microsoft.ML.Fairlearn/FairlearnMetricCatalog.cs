@@ -19,14 +19,14 @@ namespace Microsoft.ML.Fairlearn
         }
 
         #region binary classification
-        public BinaryGroupMetric BinaryClassificationMetrics(IDataView eval, string labelColumn, string predictedColumn, string sensitiveFeatureColumn)
+        public BinaryGroupMetric BinaryClassification(IDataView eval, string labelColumn, string predictedColumn, string sensitiveFeatureColumn)
         {
             return new BinaryGroupMetric(eval, labelColumn, predictedColumn, sensitiveFeatureColumn);
         }
         #endregion
 
         #region regression
-        public RegressionMetric RegressionMetrics(IDataView eval, string labelColumn, string predictedColumn, string sensitiveFeatureColumn)
+        public RegressionMetric Regression(IDataView eval, string labelColumn, string predictedColumn, string sensitiveFeatureColumn)
         {
             return new RegressionMetric(eval, labelColumn, predictedColumn, sensitiveFeatureColumn);
         }
