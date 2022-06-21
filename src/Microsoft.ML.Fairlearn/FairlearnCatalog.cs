@@ -5,10 +5,22 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.ML.AutoML;
 
 namespace Microsoft.ML.Fairlearn
 {
-    internal class Class1
+    public class FairlearnCatalog
     {
+        private readonly MLContext _context;
+        public FairlearnMetricCatalog Metric;
+
+        public FairlearnCatalog(MLContext context)
+        {
+            this._context = context;
+            this._context.BinaryClassification.Evaluate();
+
+            this._context.Auto().
+            this.Metric = new FairlearnMetricCatalog(context);
+        }
     }
 }
