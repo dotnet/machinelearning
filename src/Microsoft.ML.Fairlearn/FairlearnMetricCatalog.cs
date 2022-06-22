@@ -26,9 +26,9 @@ namespace Microsoft.ML.Fairlearn
         #endregion
 
         #region regression
-        public RegressionMetric Regression(IDataView eval, string labelColumn, string predictedColumn, string sensitiveFeatureColumn)
+        public RegressionMetric Regression(IDataView eval, string labelColumn, string scoreColumn, string sensitiveFeatureColumn)
         {
-            return new RegressionMetric(eval, labelColumn, predictedColumn, sensitiveFeatureColumn);
+            return new RegressionMetric(eval, labelColumn, scoreColumn, sensitiveFeatureColumn);
         }
         #endregion
     }
@@ -41,6 +41,7 @@ namespace Microsoft.ML.Fairlearn
         private readonly string _labelColumn;
         private readonly string _predictedColumn;
         private readonly string _sensitiveFeatureColumn;
+        private readonly MLContext _context = new MLContext();
 
         public BinaryGroupMetric(IDataView eval, string labelColumn, string predictedColumn, string sensitiveFeatureColumn)
         {
@@ -49,7 +50,6 @@ namespace Microsoft.ML.Fairlearn
             _predictedColumn = predictedColumn;
             _sensitiveFeatureColumn = sensitiveFeatureColumn;
         }
-        private readonly MLContext _context;
 
         /// <summary>
         /// 
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Fairlearn
                     }
                 }).Where(x => x != null));
                 // create the column
-                data.Append(kv);
+                data.Append(kv, inPlace: true);
                 CalibratedBinaryClassificationMetrics metrics = _context.BinaryClassification.Evaluate(data, _labelColumn); // how does this work?
                 groupMetric[kv.Key] = metrics;
             }
@@ -160,17 +160,17 @@ namespace Microsoft.ML.Fairlearn
     {
         private readonly IDataView _eval;
         private readonly string _labelColumn;
-        private readonly string _predictedColumn;
+        private readonly string _scoreColumn;
         private readonly string _sensitiveFeatureColumn;
+        private readonly MLContext _context = new MLContext();
 
-        public RegressionMetric(IDataView eval, string labelColumn, string predictedColumn, string sensitiveFeatureColumn)
+        public RegressionMetric(IDataView eval, string labelColumn, string scoreColumn, string sensitiveFeatureColumn)
         {
             _eval = eval;
             _labelColumn = labelColumn;
-            _predictedColumn = predictedColumn;
+            _scoreColumn = scoreColumn;
             _sensitiveFeatureColumn = sensitiveFeatureColumn;
         }
-        private readonly MLContext _context;
 
         /// <summary>
         /// 
@@ -237,8 +237,8 @@ namespace Microsoft.ML.Fairlearn
                     }
                 }).Where(x => x != null));
                 // create the column
-                data.Append(kv);
-                RegressionMetrics metrics = _context.Regression.Evaluate(data, _labelColumn); // how does this work?
+                data.Append(kv, inPlace: true);
+                RegressionMetrics metrics = _context.Regression.Evaluate(data, _labelColumn, _scoreColumn);
                 groupMetric[kv.Key] = metrics;
             }
 
