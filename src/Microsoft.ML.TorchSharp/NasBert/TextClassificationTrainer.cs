@@ -279,6 +279,12 @@ namespace Microsoft.ML.TorchSharp.NasBert
         internal TextClassificationTrainer(IHostEnvironment env, Options options)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TextClassificationTrainer));
+            Contracts.Assert(options.BatchSize > 0);
+            Contracts.Assert(options.MaxEpoch > 0);
+            Contracts.AssertValue(options.Sentence1ColumnName);
+            Contracts.AssertValue(options.LabelColumnName);
+            Contracts.AssertValue(options.PredictionColumnName);
+            Contracts.AssertValue(options.ScoreColumnName);
             _options = options;
         }
 
@@ -338,7 +344,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                 // Figure out if we are running on GPU or CPU
                 Device = ((IHostEnvironmentInternal)_parent._host).GpuDeviceId != null && cuda.is_available() ? CUDA : CPU;
-                Contracts.Assert(Device == CPU || (((IHostEnvironmentInternal)_parent._host).FallbackToCpu != false || Device != CPU), "Fallback to CPU is false but no GPU detected");
+                Contracts.Assert(!(((IHostEnvironmentInternal)_parent._host).FallbackToCpu == false && Device == CPU && ((IHostEnvironmentInternal)_parent._host).GpuDeviceId != null), "Fallback to CPU is false but no GPU detected");
 
                 // Move to GPU if we are running there
                 if (Device == CUDA)
@@ -679,7 +685,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextClassificationTransformer)))
         {
             _device = ((IHostEnvironmentInternal)env).GpuDeviceId != null && cuda.is_available() ? CUDA : CPU;
-            Contracts.Assert(_device == CPU || (((IHostEnvironmentInternal)env).FallbackToCpu != false || _device != CPU), "Fallback to CPU is false but no GPU detected");
+            Contracts.Assert(!(((IHostEnvironmentInternal)env).FallbackToCpu == false && _device == CPU && ((IHostEnvironmentInternal)env).GpuDeviceId != null), "Fallback to CPU is false but no GPU detected");
 
             _options = options;
             LabelColumn = new SchemaShape.Column(_options.LabelColumnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
