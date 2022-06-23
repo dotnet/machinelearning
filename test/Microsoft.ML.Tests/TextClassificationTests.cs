@@ -13,7 +13,6 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TorchSharp;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.Data.Analysis;
 
 namespace Microsoft.ML.Tests
 {
