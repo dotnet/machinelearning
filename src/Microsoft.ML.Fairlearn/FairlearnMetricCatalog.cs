@@ -269,6 +269,8 @@ namespace Microsoft.ML.Fairlearn
             Dictionary<string, double> metricsDict = new Dictionary<string, double>();
             metricsDict.Add("RSquared", metrics.RSquared);
             metricsDict.Add("RMS", metrics.RootMeanSquaredError);
+            metricsDict.Add("MSE", metrics.MeanSquaredError);
+            metricsDict.Add("MAE", metrics.MeanAbsoluteError);
             return metricsDict;
         }
 

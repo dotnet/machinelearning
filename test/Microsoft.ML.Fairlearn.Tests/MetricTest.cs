@@ -4,6 +4,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 
@@ -33,7 +34,7 @@ namespace Microsoft.ML.Fairlearn.Tests
                 new HouseData() { Size = 3.4F, Price = 3.7F, Gender = "Female", Score = 7.7F } };
 
         [Fact]
-        public void RegressionTest()
+        public void RegressionMetricTest()
         {
             RegressionMetric regressionMetric = mlContext.Fairlearn().Metric.Regression(eval: data, labelColumn: "Price", scoreColumn: "Score", sensitiveFeatureColumn: "Gender");
             var metricByGroup = regressionMetric.ByGroup();
@@ -41,6 +42,12 @@ namespace Microsoft.ML.Fairlearn.Tests
             Assert.Equal(-2039.81453, Convert.ToSingle(metricByGroup["RSquared"][1]), 3);
             Assert.Equal(1.00000, Convert.ToSingle(metricByGroup["RMS"][0]), 3);
             Assert.Equal(15.811388, Convert.ToSingle(metricByGroup["RMS"][1]), 3);
+            metricByGroup.Description();
+            Dictionary<string, double> metricOverall = regressionMetric.Overall();
+            Assert.Equal(125.5, metricOverall["MSE"], 1);
+            Assert.Equal(11.202678, metricOverall["RMS"], 4);
+
+
         }
     }
 }
