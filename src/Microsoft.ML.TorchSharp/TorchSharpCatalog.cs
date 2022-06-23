@@ -24,29 +24,27 @@ namespace Microsoft.ML.TorchSharp
         /// so in general this limit will be 510 words for all sentences.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="numberOfClasses">Number of classes to train on.</param>
         /// <param name="labelColumnName">Name of the label column. Column should be a key type.</param>
+        /// <param name="scoreColumnName">Name of the score column.</param>
         /// <param name="outputColumnName">Name of the output column. It will be a key type. It is the predicted label.</param>
         /// <param name="sentence1ColumnName">Name of the column for the first sentence.</param>
         /// <param name="sentence2ColumnName">Name of the column for the second sentence. Only required if your NLP classification requires sentence pairs.</param>
         /// <param name="batchSize">Number of rows in the batch.</param>
         /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
-        /// <param name="maxUpdates">Maximum number of batches to run. Will stop training when this number is hit.</param>
         /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
         /// <param name="validationSet">The validation set used while training to improve model quality.</param>
         /// <returns></returns>
         public static TextClassificationTrainer TextClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            int numberOfClasses,
             string labelColumnName = DefaultColumnNames.Label,
+            string scoreColumnName = DefaultColumnNames.Score,
             string outputColumnName = DefaultColumnNames.PredictedLabel,
             string sentence1ColumnName = "Sentence1",
             string sentence2ColumnName = default,
             int batchSize = 32,
             int maxEpochs = 10,
-            int maxUpdates = 2147483647,
             BertArchitecture architecture = BertArchitecture.Roberta,
             IDataView validationSet = null)
-            => new TextClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, sentence2ColumnName, numberOfClasses, batchSize, maxEpochs, maxUpdates, validationSet, architecture);
+            => new TextClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, scoreColumnName, sentence1ColumnName, sentence2ColumnName, batchSize, maxEpochs, validationSet, architecture);
     }
 }
