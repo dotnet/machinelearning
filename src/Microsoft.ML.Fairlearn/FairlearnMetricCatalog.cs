@@ -254,7 +254,11 @@ namespace Microsoft.ML.Fairlearn
 
         public Dictionary<string, double> DifferenceBetweenGroups()
         {
-            throw new NotImplementedException();
+            Dictionary<string, double> diffDict = new Dictionary<string, double>();
+            DataFrame groupMetrics = ByGroup();
+            diffDict.Add("RSquared", (double)groupMetrics["RSquared"].Max() - (double)groupMetrics["RSquared"].Min());
+            diffDict.Add("RMS", (double)groupMetrics["RMS"].Max() - (double)groupMetrics["RMS"].Min());
+            return diffDict;
         }
 
         public Dictionary<string, double> Overall()

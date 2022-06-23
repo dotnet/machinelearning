@@ -9,8 +9,15 @@ using Xunit;
 
 namespace Microsoft.ML.Fairlearn.Tests
 {
-    public class UnitTest1
+    public class MetricTest
     {
+        MLContext mlContext;
+        IDataView data;
+        public MetricTest()
+        {
+            mlContext = new MLContext();
+            data = mlContext.Data.LoadFromEnumerable(houseData);
+        }
         public class HouseData
         {
             public float Size { get; set; }
@@ -26,10 +33,8 @@ namespace Microsoft.ML.Fairlearn.Tests
                 new HouseData() { Size = 3.4F, Price = 3.7F, Gender = "Female", Score = 7.7F } };
 
         [Fact]
-        public void Test1()
+        public void RegressionTest()
         {
-            MLContext mlContext = new MLContext();
-            IDataView data = mlContext.Data.LoadFromEnumerable(houseData);
             RegressionMetric regressionMetric = mlContext.Fairlearn().Metric.Regression(eval: data, labelColumn: "Price", scoreColumn: "Score", sensitiveFeatureColumn: "Gender");
             var metricByGroup = regressionMetric.ByGroup();
             Assert.Equal(-2.30578, Convert.ToSingle(metricByGroup["RSquared"][0]), 3);
