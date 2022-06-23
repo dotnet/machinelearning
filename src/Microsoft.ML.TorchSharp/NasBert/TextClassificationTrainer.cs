@@ -343,9 +343,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 Model.train();
 
                 // Figure out if we are running on GPU or CPU
-                Device = ((IHostEnvironmentInternal)_parent._host).GpuDeviceId != null && cuda.is_available() ? CUDA : CPU;
-                if (((IHostEnvironmentInternal)_parent._host).FallbackToCpu == false && Device == CPU && ((IHostEnvironmentInternal)_parent._host).GpuDeviceId != null)
-                    throw new Exception("Fallback to CPU is false but no GPU detected");
+                Device = TorchUtils.InitializeDevice(_parent._host);
 
                 // Move to GPU if we are running there
                 if (Device == CUDA)
@@ -685,9 +683,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
         internal TextClassificationTransformer(IHostEnvironment env, TextClassificationTrainer.Options options, TextClassificationModel model, Vocabulary vocabulary)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextClassificationTransformer)))
         {
-            _device = ((IHostEnvironmentInternal)env).GpuDeviceId != null && cuda.is_available() ? CUDA : CPU;
-            if (((IHostEnvironmentInternal)env).FallbackToCpu == false && _device == CPU && ((IHostEnvironmentInternal)env).GpuDeviceId != null)
-                throw new Exception("Fallback to CPU is false but no GPU detected");
+            _device = TorchUtils.InitializeDevice(env);
 
             _options = options;
             LabelColumn = new SchemaShape.Column(_options.LabelColumnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
