@@ -246,7 +246,7 @@ namespace Microsoft.ML.Fairlearn
             result[_sensitiveFeatureColumn] = DataFrameColumn.Create(_sensitiveFeatureColumn, groupMetric.Keys.Select(x => x.ToString()));
             result["RSquared"] = DataFrameColumn.Create("RSquared", groupMetric.Keys.Select(k => groupMetric[k].RSquared));
             result["RMS"] = DataFrameColumn.Create("RMS", groupMetric.Keys.Select(k => groupMetric[k].RootMeanSquaredError));
-
+            result["MSE"] = DataFrameColumn.Create("MSE", groupMetric.Keys.Select(k => groupMetric[k].MeanSquaredError));
             return result;
         }
 
@@ -256,8 +256,9 @@ namespace Microsoft.ML.Fairlearn
         {
             Dictionary<string, double> diffDict = new Dictionary<string, double>();
             DataFrame groupMetrics = ByGroup();
-            diffDict.Add("RSquared", (double)groupMetrics["RSquared"].Max() - (double)groupMetrics["RSquared"].Min());
-            diffDict.Add("RMS", (double)groupMetrics["RMS"].Max() - (double)groupMetrics["RMS"].Min());
+            diffDict.Add("RSquared", Math.Abs((double)groupMetrics["RSquared"].Max() - (double)groupMetrics["RSquared"].Min()));
+            diffDict.Add("RMS", Math.Abs((double)groupMetrics["RMS"].Max() - (double)groupMetrics["RMS"].Min()));
+            diffDict.Add("MSE", Math.Abs((double)groupMetrics["MSE"].Max() - (double)groupMetrics["MSE"].Min()));
             return diffDict;
         }
 

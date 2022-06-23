@@ -46,7 +46,9 @@ namespace Microsoft.ML.Fairlearn.Tests
             Dictionary<string, double> metricOverall = regressionMetric.Overall();
             Assert.Equal(125.5, metricOverall["MSE"], 1);
             Assert.Equal(11.202678, metricOverall["RMS"], 4);
-
+            Dictionary<string, double> diff = regressionMetric.DifferenceBetweenGroups();
+            Assert.Equal(14.81138, diff["RMS"], 4);
+            Assert.Equal(2037.5, diff["RSquared"], 1);
 
         }
     }
