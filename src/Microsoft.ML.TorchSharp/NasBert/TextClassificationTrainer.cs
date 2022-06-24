@@ -25,6 +25,8 @@ using Microsoft.ML;
 using Microsoft.ML.TorchSharp.NasBert;
 using Microsoft.ML.TorchSharp.Extensions;
 using System.IO;
+using System.CodeDom;
+using System.Runtime.CompilerServices;
 
 [assembly: LoadableClass(typeof(TextClassificationTransformer), null, typeof(SignatureLoadModel),
     TextClassificationTransformer.UserName, TextClassificationTransformer.LoaderSignature)]
@@ -49,7 +51,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
     /// | Output Column Name | Column Type | Description|
     /// | -- | -- | -- |
     /// | `PredictedLabel` | [key](xref:Microsoft.ML.Data.KeyDataViewType) type | The predicted label's index. If its value is i, the actual label would be the i-th category in the key-valued input label type. |
-    ///
+    /// | `Score` | Vector of<xref:System.Single> | The scores of all classes.Higher value means higher probability to fall into the associated class. If the i-th element has the largest value, the predicted label index would be i.Note that i is zero-based index. |
     /// ### Trainer Characteristics
     /// |  |  |
     /// | -- | -- |
@@ -79,9 +81,14 @@ namespace Microsoft.ML.TorchSharp.NasBert
             public string LabelColumnName = DefaultColumnNames.Label;
 
             /// <summary>
-            /// The label column name.
+            /// The Score column name.
             /// </summary>
-            public string OutputColumnName = DefaultColumnNames.PredictedLabel;
+            public string ScoreColumnName = DefaultColumnNames.Score;
+
+            /// <summary>
+            /// The Prediction column name.
+            /// </summary>
+            public string PredictionColumnName = DefaultColumnNames.PredictedLabel;
 
             /// <summary>
             /// The first sentence column.
@@ -97,11 +104,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// Number of samples to use for mini-batch training.
             /// </summary>
             public int BatchSize = 32;
-
-            /// <summary>
-            /// Number of classes for the data.
-            /// </summary>
-            public int NumberOfClasses = 2;
 
             /// <summary>
             /// Whether to freeze encoder parameters.
@@ -184,11 +186,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
             public double WarmupRatio = .06;
 
             /// <summary>
-            /// Stop training when reaching this number of updates.
-            /// </summary>
-            public int MaxUpdate = 2147483647;
-
-            /// <summary>
             /// Stop training when reaching this number of epochs.
             /// </summary>
             public int MaxEpoch = 100;
@@ -197,6 +194,11 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// The validation set used while training to improve model quality.
             /// </summary>
             public IDataView ValidationSet = null;
+
+            /// <summary>
+            /// Number of classes for the data.
+            /// </summary>
+            internal int NumberOfClasses;
 
             /// <summary>
             /// Learning rate for the first N epochs; all epochs >N using LR_N.
@@ -252,25 +254,23 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         internal TextClassificationTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
-            string outputColumnName = DefaultColumnNames.PredictedLabel,
+            string predictionColumnName = DefaultColumnNames.PredictedLabel,
+            string scoreColumnName = DefaultColumnNames.Score,
             string sentence1ColumnName = "Sentence1",
             string sentence2ColumnName = default,
-            int numberOfClasses = 2,
             int batchSize = 32,
             int maxEpochs = 10,
-            int maxUpdates = 2147483647,
             IDataView validationSet = null,
             BertArchitecture architecture = BertArchitecture.Roberta) :
             this(env, new Options
             {
-                OutputColumnName = outputColumnName,
+                PredictionColumnName = predictionColumnName,
+                ScoreColumnName = scoreColumnName,
                 Sentence1ColumnName = sentence1ColumnName,
                 Sentence2ColumnName = sentence2ColumnName,
                 LabelColumnName = labelColumnName,
                 BatchSize = batchSize,
-                NumberOfClasses = numberOfClasses,
                 MaxEpoch = maxEpochs,
-                MaxUpdate = maxUpdates,
                 ValidationSet = validationSet,
             })
         {
@@ -279,6 +279,12 @@ namespace Microsoft.ML.TorchSharp.NasBert
         internal TextClassificationTrainer(IHostEnvironment env, Options options)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TextClassificationTrainer));
+            Contracts.Assert(options.BatchSize > 0);
+            Contracts.Assert(options.MaxEpoch > 0);
+            Contracts.AssertValue(options.Sentence1ColumnName);
+            Contracts.AssertValue(options.LabelColumnName);
+            Contracts.AssertValue(options.PredictionColumnName);
+            Contracts.AssertValue(options.ScoreColumnName);
             _options = options;
         }
 
@@ -288,9 +294,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
             using (var pch = _host.StartProgressChannel("Training model"))
             {
                 var header = new ProgressHeader(new[] { "Accuracy" }, null);
-                var trainer = new Trainer(this, ch);
+                var trainer = new Trainer(this, ch, input);
                 pch.SetHeader(header, e => e.SetMetric(0, trainer.Accuracy));
-                for (int i = 0; i < _options.MaxEpoch && trainer.Updates < _options.MaxUpdate; i++)
+                for (int i = 0; i < _options.MaxEpoch; i++)
                 {
                     ch.Trace($"Starting epoch {i}");
                     trainer.Train(input);
@@ -316,7 +322,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             public int Updates;
             public float Accuracy;
 
-            public Trainer(TextClassificationTrainer parent, IChannel ch)
+            public Trainer(TextClassificationTrainer parent, IChannel ch, IDataView input)
             {
                 _parent = parent;
                 Updates = 0;
@@ -328,13 +334,16 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 var vocabulary = Tokenizer.Vocabulary;
                 vocabulary.AddMaskSymbol();
 
+                // Get row count and figure out num of unique labels
+                var rowCount = GetRowCountAndSetLabelCount(input);
+
                 // Initialize the model and load pre-trained weights
                 Model = new TextClassificationModel(_parent._options, vocabulary, _parent._options.NumberOfClasses);
                 Model.GetEncoder().load(GetModelPath());
                 Model.train();
 
                 // Figure out if we are running on GPU or CPU
-                Device = ((IHostEnvironmentInternal)_parent._host).GpuDeviceId != null && cuda.is_available() ? CUDA : CPU;
+                Device = TorchUtils.InitializeDevice(_parent._host);
 
                 // Move to GPU if we are running there
                 if (Device == CUDA)
@@ -346,11 +355,27 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 LearningRateScheduler = torch.optim.lr_scheduler.OneCycleLR(
                    Optimizer.Optimizer,
                    max_lr: _parent._options.LearningRate[0],
-                   total_steps: _parent._options.MaxUpdate,
+                   total_steps: ((rowCount / _parent._options.BatchSize) + 1) * _parent._options.MaxEpoch,
                    pct_start: _parent._options.WarmupRatio,
                    anneal_strategy: torch.optim.lr_scheduler.impl.OneCycleLR.AnnealStrategy.Linear,
                    div_factor: 1.0 / _parent._options.StartLearningRateRatio,
                    final_div_factor: 1.0 / _parent._options.FinalLearningRateRatio);
+            }
+
+            private int GetRowCountAndSetLabelCount(IDataView input)
+            {
+                var labelCol = input.GetColumn<uint>(_parent._options.LabelColumnName);
+                var rowCount = 0;
+                var uniqueLabels = new HashSet<uint>();
+
+                foreach (var label in labelCol)
+                {
+                    rowCount++;
+                    uniqueLabels.Add(label);
+                }
+
+                _parent._options.NumberOfClasses = uniqueLabels.Count;
+                return rowCount;
             }
 
             private string GetModelPath()
@@ -556,8 +581,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             private void OptimizeStep()
             {
-                // the gradients will accumulate until [TrainingStates.OptimizeStep] steps,
-                // and then we update the parameters. In this way, we can enlarge the actual batch size
                 Optimizer.Step();
                 LearningRateScheduler.step();
             }
@@ -599,8 +622,13 @@ namespace Microsoft.ML.TorchSharp.NasBert
             metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
                 TextDataViewType.Instance, false));
 
-            outColumns[_options.OutputColumnName] = new SchemaShape.Column(_options.OutputColumnName, SchemaShape.Column.VectorKind.Scalar,
+            // Get label column for score column annotations. Already verified it exists.
+            inputSchema.TryFindColumn(_options.LabelColumnName, out var labelCol);
+
+            outColumns[_options.PredictionColumnName] = new SchemaShape.Column(_options.PredictionColumnName, SchemaShape.Column.VectorKind.Scalar,
                     NumberDataViewType.UInt32, true, new SchemaShape(metadata.ToArray()));
+            outColumns[_options.ScoreColumnName] = new SchemaShape.Column(_options.ScoreColumnName, SchemaShape.Column.VectorKind.Vector,
+                NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol)));
 
             return new SchemaShape(outColumns.Values);
         }
@@ -644,6 +672,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
         private readonly TextClassificationTrainer.Options _options;
 
         private readonly string _predictedLabelColumnName;
+        private readonly string _scoreColumnName;
 
         public readonly SchemaShape.Column SentenceColumn;
         public readonly SchemaShape.Column SentenceColumn2;
@@ -654,25 +683,20 @@ namespace Microsoft.ML.TorchSharp.NasBert
         internal TextClassificationTransformer(IHostEnvironment env, TextClassificationTrainer.Options options, TextClassificationModel model, Vocabulary vocabulary)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextClassificationTransformer)))
         {
-            _device = ((IHostEnvironmentInternal)env).GpuDeviceId != null && cuda.is_available() ? CUDA : CPU;
-            Contracts.Assert(_device == CPU || (((IHostEnvironmentInternal)env).FallbackToCpu != false || _device != CUDA), "Fallback to CPU is false but no GPU detected");
+            _device = TorchUtils.InitializeDevice(env);
 
             _options = options;
             LabelColumn = new SchemaShape.Column(_options.LabelColumnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
             SentenceColumn = new SchemaShape.Column(_options.Sentence1ColumnName, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false);
             SentenceColumn2 = _options.Sentence2ColumnName == default ? default : new SchemaShape.Column(_options.Sentence2ColumnName, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false);
-            _predictedLabelColumnName = _options.OutputColumnName;
+            _predictedLabelColumnName = _options.PredictionColumnName;
+            _scoreColumnName = _options.ScoreColumnName;
 
             _vocabulary = vocabulary;
             _model = model;
 
             if (_device == CUDA)
                 _model.cuda();
-
-            //if (((IHostEnvironmentInternal)env).Seed.HasValue)
-            torch.random.manual_seed(1);
-            torch.cuda.manual_seed(1);
-
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -688,6 +712,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             // *** Binary format ***
             // int: id of label column name
+            // int: id of score column name
             // int: id of output column name
             // int: id of sentence 1 column name
             // int: id of sentence 2 column name
@@ -695,7 +720,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
             var options = new TextClassificationTrainer.Options()
             {
                 LabelColumnName = ctx.LoadString(),
-                OutputColumnName = ctx.LoadString(),
+                ScoreColumnName = ctx.LoadString(),
+                PredictionColumnName = ctx.LoadString(),
                 Sentence1ColumnName = ctx.LoadString(),
                 Sentence2ColumnName = ctx.LoadStringOrNull(),
                 NumberOfClasses = ctx.Reader.ReadInt32(),
@@ -725,6 +751,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
             var outColumns = inputSchema.ToDictionary(x => x.Name);
             outColumns[_predictedLabelColumnName] = new SchemaShape.Column(_predictedLabelColumnName, SchemaShape.Column.VectorKind.Scalar,
                     NumberDataViewType.UInt32, true, predLabelMetadata);
+
+            outColumns[_scoreColumnName] = new SchemaShape.Column(_scoreColumnName, SchemaShape.Column.VectorKind.Vector,
+                   NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol)));
 
             return new SchemaShape(outColumns.Values);
         }
@@ -773,13 +802,15 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             // *** Binary format ***
             // int: id of label column name
+            // int: id of the score column name
             // int: id of output column name
             // int: id of sentence 1 column name
             // int: id of sentence 2 column name
             // int: number of classes
 
             ctx.SaveNonEmptyString(_options.LabelColumnName);
-            ctx.SaveNonEmptyString(_options.OutputColumnName);
+            ctx.SaveNonEmptyString(_options.ScoreColumnName);
+            ctx.SaveNonEmptyString(_options.PredictionColumnName);
             ctx.SaveNonEmptyString(_options.Sentence1ColumnName);
             ctx.SaveStringOrNull(_options.Sentence2ColumnName);
             ctx.Writer.Write(_options.NumberOfClasses);
@@ -797,6 +828,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private readonly TextClassificationTransformer _parent;
             private readonly HashSet<int> _inputColIndices;
             private readonly DataViewSchema.Column _labelCol;
+            private readonly DataViewSchema _inputSchema;
+            private static readonly FuncInstanceMethodInfo1<Mapper, Delegate> _makeLabelAnnotationGetter
+                = FuncInstanceMethodInfo1<Mapper, Delegate>.Create(target => target.GetLabelAnnotations<int>);
 
             public Mapper(TextClassificationTransformer parent, DataViewSchema inputSchema) :
                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
@@ -812,27 +846,114 @@ namespace Microsoft.ML.TorchSharp.NasBert
                         _inputColIndices.Add(col);
 
                 _labelCol = inputSchema[_parent._options.LabelColumnName];
+                _inputSchema = inputSchema;
+
+                torch.random.manual_seed(1);
+                torch.cuda.manual_seed(1);
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var info = new DataViewSchema.DetachedColumn[1];
-                //var meta = new DataViewSchema.Annotations.Builder();
-                //foreach (var kvp in _labelCol.Annotations)
-                //    meta.Add(kvp.Value.Kind, kvp.Value.AnnotationType, kvp.Value.GetGetterDelegate());
+                var info = new DataViewSchema.DetachedColumn[2];
+                var keyType = _labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
+                var getter = Microsoft.ML.Internal.Utilities.Utils.MarshalInvoke(_makeLabelAnnotationGetter, this, keyType.ItemType.RawType);
 
-                info[0] = new DataViewSchema.DetachedColumn(_parent._options.OutputColumnName, new KeyDataViewType(typeof(uint), _parent._options.NumberOfClasses), _labelCol.Annotations);
+                var meta = new DataViewSchema.Annotations.Builder();
+                meta.Add(AnnotationUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification.AsMemory(); });
+                meta.Add(AnnotationUtils.Kinds.ScoreColumnSetId, new KeyDataViewType(typeof(uint), _parent._options.NumberOfClasses), GetScoreColumnSetId(_inputSchema));
+                meta.Add(AnnotationUtils.Kinds.ScoreValueKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreValueKind.Score.AsMemory(); });
+                meta.Add(AnnotationUtils.Kinds.TrainingLabelValues, keyType, getter);
+                meta.Add(AnnotationUtils.Kinds.SlotNames, keyType, getter);
+
+                info[0] = new DataViewSchema.DetachedColumn(_parent._options.PredictionColumnName, new KeyDataViewType(typeof(uint), _parent._options.NumberOfClasses), _labelCol.Annotations);
+
+                info[1] = new DataViewSchema.DetachedColumn(_parent._options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._options.NumberOfClasses), meta.ToAnnotations());
                 return info;
             }
 
+            private Delegate GetLabelAnnotations<T>()
+            {
+                return _labelCol.Annotations.GetGetter<VBuffer<T>>(_labelCol.Annotations.Schema[AnnotationUtils.Kinds.KeyValues]);
+            }
+
+            private ValueGetter<uint> GetScoreColumnSetId(DataViewSchema schema)
+            {
+                int c;
+                var max = schema.GetMaxAnnotationKind(out c, AnnotationUtils.Kinds.ScoreColumnSetId);
+                uint id = checked(max + 1);
+                return
+                    (ref uint dst) => dst = id;
+            }
+
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+                => throw new NotImplementedException("This should never be called!");
+
+            private Delegate CreateGetter(DataViewRow input, int iinfo, TensorCacher outputCacher)
+            {
+                var ch = Host.Start("Make Getter");
+                if (iinfo == 0)
+                    return MakePredictedLabelGetter(input, ch, outputCacher);
+                else
+                    return MakeScoreGetter(input, ch, outputCacher);
+            }
+
+            public override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
-                var ch = Host.Start("Make Getter");
-                disposer = null;
+                Contracts.Assert(input.Schema == InputSchema);
 
-                Host.Assert(_inputColIndices.All(i => input.IsColumnActive(input.Schema[i])));
+                TensorCacher outputCacher = new TensorCacher();
+                var ch = Host.Start("Make Getters");
+                _parent._model.eval();
 
+                int n = OutputColumns.Value.Length;
+                var result = new Delegate[n];
+                for (int i = 0; i < n; i++)
+                {
+                    if (!activeOutput(i))
+                        continue;
+                    result[i] = CreateGetter(input, i, outputCacher);
+                }
+                disposer = () =>
+                {
+                    outputCacher.Dispose();
+                };
+                return result;
+            }
+
+            private Delegate MakeScoreGetter(DataViewRow input, IChannel ch, TensorCacher outputCacher)
+            {
+                ValueGetter<ReadOnlyMemory<char>> getSentence1 = default;
+                ValueGetter<ReadOnlyMemory<char>> getSentence2 = default;
+
+                BpeTokenizer tokenizer = BpeTokenizer.GetInstance(ch);
+
+                getSentence1 = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[_parent.SentenceColumn.Name]);
+                if (_parent.SentenceColumn2.IsValid)
+                    getSentence2 = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[_parent.SentenceColumn2.Name]);
+
+                ReadOnlyMemory<char> sentence1 = default;
+                ReadOnlyMemory<char> sentence2 = default;
+
+                ValueGetter<VBuffer<float>> score = (ref VBuffer<float> dst) =>
+                {
+                    using var disposeScope = torch.NewDisposeScope();
+                    var editor = VBufferEditor.Create(ref dst, _parent._options.NumberOfClasses);
+                    UpdateCacheIfNeeded(input.Position, outputCacher, ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, ref tokenizer);
+                    var values = outputCacher.Result.cpu().ToArray<float>();
+
+                    for (var i = 0; i < values.Length; i++)
+                    {
+                        editor.Values[i] = values[i];
+                    }
+                    dst = editor.Commit();
+                };
+
+                return score;
+            }
+
+            private Delegate MakePredictedLabelGetter(DataViewRow input, IChannel ch, TensorCacher outputCacher)
+            {
                 ValueGetter<ReadOnlyMemory<char>> getSentence1 = default;
                 ValueGetter<ReadOnlyMemory<char>> getSentence2 = default;
 
@@ -848,44 +969,77 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 ValueGetter<UInt32> classification = (ref UInt32 dst) =>
                 {
                     using var disposeScope = torch.NewDisposeScope();
-                    _parent._model.eval();
-
-                    getSentence1(ref sentence1);
-                    Tensor inputTensor = default;
-                    if (getSentence2 == default)
-                    {
-                        using (torch.no_grad())
-                        {
-                            inputTensor = torch.tensor(tokenizer.EncodeToConverted(sentence1.ToString()), device: _parent._device);
-                            if (inputTensor.NumberOfElements > 512)
-                                inputTensor = inputTensor.slice(0, 0, 512, 1);
-                            inputTensor = inputTensor.reshape(1, inputTensor.NumberOfElements);
-                            var result = _parent._model.forward(inputTensor);
-                            dst = (UInt32)result.argmax(-1).cpu().item<long>() + 1;
-                        }
-                        return;
-                    }
-                    getSentence2(ref sentence2);
-
-                    inputTensor = torch.tensor((new[] { BpeTokenizer.InitToken }).Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
-                        .Concat(new[] { BpeTokenizer.SeperatorToken }).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList(), device: _parent._device);
-                    if (inputTensor.NumberOfElements > 512)
-                        inputTensor = inputTensor.slice(0, 0, 512, 1);
-                    inputTensor = inputTensor.reshape(1, inputTensor.NumberOfElements);
-
-                    using (torch.no_grad())
-                    {
-                        var result2 = _parent._model.forward(inputTensor);
-                        dst = (UInt32)result2.argmax(-1).cpu().item<long>() + 1;
-                    }
+                    UpdateCacheIfNeeded(input.Position, outputCacher, ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, ref tokenizer);
+                    dst = (UInt32)outputCacher.Result.argmax(-1).cpu().item<long>() + 1;
                 };
 
                 return classification;
             }
 
+            private IList<int> PrepInputTokens(ref ReadOnlyMemory<char> sentence1, ref ReadOnlyMemory<char> sentence2, ref ValueGetter<ReadOnlyMemory<char>> getSentence1, ref ValueGetter<ReadOnlyMemory<char>> getSentence2, ref BpeTokenizer tokenizer)
+            {
+                getSentence1(ref sentence1);
+                if (getSentence2 == default)
+                {
+                    return new[] { BpeTokenizer.InitToken }.Concat(tokenizer.EncodeToConverted(sentence1.ToString())).ToList();
+                }
+                else
+                {
+                    getSentence2(ref sentence2);
+                    return new[] { BpeTokenizer.InitToken }.Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
+                                              .Concat(new[] { BpeTokenizer.SeperatorToken }).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList();
+                }
+            }
+
+            private Tensor PrepAndRunModel(IList<int> tokens)
+            {
+                using (torch.no_grad())
+                {
+                    var inputTensor = torch.tensor(tokens, device: _parent._device);
+                    if (inputTensor.NumberOfElements > 512)
+                        inputTensor = inputTensor.slice(0, 0, 512, 1);
+                    inputTensor = inputTensor.reshape(1, inputTensor.NumberOfElements);
+                    return _parent._model.forward(inputTensor);
+                }
+            }
+
+            private class TensorCacher : IDisposable
+            {
+                public long Position;
+                public Tensor Result;
+
+                public TensorCacher()
+                {
+                    Position = -1;
+                    Result = default;
+                }
+
+                private bool _isDisposed;
+
+                public void Dispose()
+                {
+                    if (_isDisposed)
+                        return;
+
+                    Result?.Dispose();
+                    _isDisposed = true;
+                }
+            }
+
+            private void UpdateCacheIfNeeded(long position, TensorCacher outputCache, ref ReadOnlyMemory<char> sentence1, ref ReadOnlyMemory<char> sentence2, ref ValueGetter<ReadOnlyMemory<char>> getSentence1, ref ValueGetter<ReadOnlyMemory<char>> getSentence2, ref BpeTokenizer tokenizer)
+            {
+                if (outputCache.Position != position)
+                {
+                    outputCache.Result?.Dispose();
+                    outputCache.Result = PrepAndRunModel(PrepInputTokens(ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, ref tokenizer));
+                    outputCache.Result.MoveToOuterDisposeScope();
+                    outputCache.Position = position;
+                }
+            }
+
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                return col => activeOutput(0) && _inputColIndices.Any(i => i == col);
+                return col => (activeOutput(0) || activeOutput(1)) && _inputColIndices.Any(i => i == col);
             }
 
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);

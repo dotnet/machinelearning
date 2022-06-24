@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.ML.Runtime;
 using TorchSharp;
+using static TorchSharp.torch;
 
 namespace Microsoft.ML.TorchSharp.Utils
 {
@@ -30,6 +32,15 @@ namespace Microsoft.ML.TorchSharp.Utils
                 else if (kvp.Key is Dictionary<dynamic, dynamic> subDictionary)
                     DisposeDictionaryWithTensor(subDictionary);
             }
+        }
+
+        public static torch.Device InitializeDevice(IHostEnvironment env)
+        {
+            var device = ((IHostEnvironmentInternal)env).GpuDeviceId != null && cuda.is_available() ? CUDA : CPU;
+            if (((IHostEnvironmentInternal)env).FallbackToCpu == false && device == CPU && ((IHostEnvironmentInternal)env).GpuDeviceId != null)
+                throw new Exception("Fallback to CPU is false but no GPU detected");
+
+            return device;
         }
     }
 }

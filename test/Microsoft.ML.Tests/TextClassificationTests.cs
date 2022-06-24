@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests
         private class TestSingleSentenceData
         {
             public string Sentence1;
-            public string Label;
+            public string Sentiment;
         }
 
         private class TestDoubleSentenceData
@@ -44,66 +44,72 @@ namespace Microsoft.ML.Tests
                     new TestSingleSentenceData()
                     {   // Testing longer than 512 words.
                         Sentence1 = "ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .",
-                        Label = "Negative"
+                        Sentiment = "Negative"
                     },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "with a sharp script and strong performances",
-                         Label = "Positive"
+                         Sentiment = "Positive"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "that director m. night shyamalan can weave an eerie spell and",
-                         Label = "Positive"
+                         Sentiment = "Positive"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "comfortable",
-                         Label = "Positive"
+                         Sentiment = "Positive"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "does have its charms .",
-                         Label = "Positive"
+                         Sentiment = "Positive"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "banal as the telling",
-                         Label = "Negative"
+                         Sentiment = "Negative"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "faithful without being forceful , sad without being shrill , `` a walk to remember '' succeeds through sincerity .",
-                         Label = "Negative"
+                         Sentiment = "Negative"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "leguizamo 's best movie work so far",
-                         Label = "Negative"
+                         Sentiment = "Negative"
                      }
                 }));
-            var estimator = ML.Transforms.Conversion.MapValueToKey("Label")
-                .Append(ML.MulticlassClassification.Trainers.TextClassification(2, outputColumnName: "outputColumn"))
+            var estimator = ML.Transforms.Conversion.MapValueToKey("Label", "Sentiment")
+                .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn"))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
             TestEstimatorCore(estimator, dataView);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
-            Assert.Equal(3, estimatorSchema.Count);
-            Assert.Equal("outputColumn", estimatorSchema[2].Name);
-            Assert.Equal(TextDataViewType.Instance, estimatorSchema[2].ItemType);
+            Assert.Equal(5, estimatorSchema.Count);
+            Assert.Equal("outputColumn", estimatorSchema[3].Name);
+            Assert.Equal(TextDataViewType.Instance, estimatorSchema[3].ItemType);
 
             var transformer = estimator.Fit(dataView);
             var transformerSchema = transformer.GetOutputSchema(dataView.Schema);
 
-            Assert.Equal(5, transformerSchema.Count);
+            Assert.Equal(6, transformerSchema.Count);
             Assert.Equal("outputColumn", transformerSchema[4].Name);
             Assert.Equal(TextDataViewType.Instance, transformerSchema[4].Type);
 
-            var transformedData = transformer.Transform(dataView).Preview();
+            var predictedLabel = transformer.Transform(dataView).GetColumn<ReadOnlyMemory<char>>(transformerSchema[4].Name);
 
-            // Not enough training is done to get good results so all are 0
-            Assert.True(transformedData.ColumnView[4].Values.All(value => value.ToString() == "Negative"));
+            // Make sure that we can use the multiclass evaluate method
+            var metrics = ML.MulticlassClassification.Evaluate(transformer.Transform(dataView), predictedLabelColumnName: "outputColumn");
+            Assert.NotNull(metrics);
+
+            // Not enough training is done to get good results so just make sure the count is right and are negative.
+            var a = predictedLabel.ToList();
+            Assert.Equal(8, a.Count());
+            Assert.True(predictedLabel.All(value => value.ToString() == "Negative"));
         }
 
         [Fact]
@@ -114,60 +120,60 @@ namespace Microsoft.ML.Tests
                     new TestSingleSentenceData()
                     {
                         Sentence1 = "ultimately feels as flat as the scruffy sands of its titular community .",
-                        Label = "Class One"
+                        Sentiment = "Class One"
                     },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "with a sharp script and strong performances",
-                         Label = "Class Two"
+                         Sentiment = "Class Two"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "that director m. night shyamalan can weave an eerie spell and",
-                         Label = "Class Three"
+                         Sentiment = "Class Three"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "comfortable",
-                         Label = "Class One"
+                         Sentiment = "Class One"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "does have its charms .",
-                         Label = "Class Two"
+                         Sentiment = "Class Two"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "banal as the telling",
-                         Label = "Class Three"
+                         Sentiment = "Class Three"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "faithful without being forceful , sad without being shrill , `` a walk to remember '' succeeds through sincerity .",
-                         Label = "Class One"
+                         Sentiment = "Class One"
                      },
                      new TestSingleSentenceData()
                      {
                          Sentence1 = "leguizamo 's best movie work so far",
-                         Label = "Class Two"
+                         Sentiment = "Class Two"
                      }
                 }));
 
-            var estimator = ML.Transforms.Conversion.MapValueToKey("Label")
-                .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn", numberOfClasses: 3))
+            var estimator = ML.Transforms.Conversion.MapValueToKey("Label", "Sentiment")
+                .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn"))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
             TestEstimatorCore(estimator, dataView);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
-            Assert.Equal(3, estimatorSchema.Count);
-            Assert.Equal("outputColumn", estimatorSchema[2].Name);
-            Assert.Equal(TextDataViewType.Instance, estimatorSchema[2].ItemType);
+            Assert.Equal(5, estimatorSchema.Count);
+            Assert.Equal("outputColumn", estimatorSchema[3].Name);
+            Assert.Equal(TextDataViewType.Instance, estimatorSchema[3].ItemType);
 
             var transformer = estimator.Fit(dataView);
             var transformerSchema = transformer.GetOutputSchema(dataView.Schema);
 
-            Assert.Equal(5, transformerSchema.Count);
+            Assert.Equal(6, transformerSchema.Count);
             Assert.Equal("outputColumn", transformerSchema[4].Name);
             Assert.Equal(TextDataViewType.Instance, transformerSchema[4].Type);
 
@@ -175,20 +181,21 @@ namespace Microsoft.ML.Tests
 
             Assert.NotNull(transformedData);
 #if NET461
-            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[0].ToString());
+            Assert.Equal("Class One", transformedData.ColumnView[4].Values[0].ToString());
             Assert.Equal("Class Two", transformedData.ColumnView[4].Values[1].ToString());
             Assert.Equal("Class Three", transformedData.ColumnView[4].Values[2].ToString());
-            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[6].ToString());
+            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[4].ToString());
+            Assert.Equal("Class One", transformedData.ColumnView[4].Values[6].ToString());
 #else
             Assert.Equal("Class One", transformedData.ColumnView[4].Values[0].ToString());
             Assert.Equal("Class Two", transformedData.ColumnView[4].Values[1].ToString());
-            Assert.Equal("Class One", transformedData.ColumnView[4].Values[2].ToString());
-            Assert.Equal("Class Two", transformedData.ColumnView[4].Values[6].ToString());
+            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[2].ToString());
+            Assert.Equal("Class One", transformedData.ColumnView[4].Values[4].ToString());
+            Assert.Equal("Class One", transformedData.ColumnView[4].Values[6].ToString());
 
 #endif
-            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[3].ToString());
-            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[4].ToString());
-            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[7].ToString());
+            Assert.Equal("Class One", transformedData.ColumnView[4].Values[3].ToString());
+            Assert.Equal("Class Two", transformedData.ColumnView[4].Values[7].ToString());
         }
 
         [Fact]
@@ -250,28 +257,26 @@ namespace Microsoft.ML.Tests
             var dataPrepTransformer = dataPrep.Fit(dataView);
             var preppedData = dataPrepTransformer.Transform(dataView);
 
-            var estimator = ML.MulticlassClassification.Trainers.TextClassification(2, outputColumnName: "outputColumn", sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2", validationSet: preppedData)
+            var estimator = ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn", sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2", validationSet: preppedData)
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
             TestEstimatorCore(estimator, preppedData);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(preppedData.Schema));
 
-            Assert.Equal(4, estimatorSchema.Count);
+            Assert.Equal(5, estimatorSchema.Count);
             Assert.Equal("outputColumn", estimatorSchema[3].Name);
             Assert.Equal(TextDataViewType.Instance, estimatorSchema[3].ItemType);
 
             var transformer = estimator.Fit(preppedData);
             var transformerSchema = transformer.GetOutputSchema(preppedData.Schema);
 
-            Assert.Equal(6, transformerSchema.Count);
+            Assert.Equal(7, transformerSchema.Count);
             Assert.Equal("outputColumn", transformerSchema[5].Name);
             Assert.Equal(TextDataViewType.Instance, transformerSchema[5].Type);
 
-            var transformedData = transformer.Transform(preppedData).Preview();
-
-            // Not enough training is done to get good results so all are 0
-            Assert.NotNull(transformedData);
-            Assert.True(transformedData.ColumnView[5].Values.All(value => value.ToString() == "Class One"));
+            var predictedLabel = transformer.Transform(preppedData).GetColumn<ReadOnlyMemory<char>>(transformerSchema[5].Name);
+            // Not enough training is done to get good results so just make sure there is the correct number.
+            Assert.NotNull(predictedLabel);
         }
     }
 
