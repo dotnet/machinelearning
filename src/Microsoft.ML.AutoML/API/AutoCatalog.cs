@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Linq;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.SearchSpace;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -296,9 +299,9 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Create an <see cref="AutoMLExperiment"/>.
         /// </summary>
-        public AutoMLExperiment CreateExperiment()
+        public AutoMLExperiment CreateExperiment(AutoMLExperiment.AutoMLExperimentSettings settings = null)
         {
-            return new AutoMLExperiment(_context, new AutoMLExperiment.AutoMLExperimentSettings());
+            return new AutoMLExperiment(_context, settings ?? new AutoMLExperiment.AutoMLExperimentSettings());
         }
 
         /// <summary>
@@ -529,6 +532,173 @@ namespace Microsoft.ML.AutoML
             }
 
             return res.ToArray();
+        }
+
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for featurizing text.
+        /// </summary>
+        /// <param name="outputColumnName">output column name.</param>
+        /// <param name="inputColumnName">input column name.</param>
+        internal SweepableEstimator[] TextFeaturizer(string outputColumnName, string inputColumnName)
+        {
+            var option = new FeaturizeTextOption
+            {
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+            };
+
+            return new[] { SweepableEstimatorFactory.CreateFeaturizeText(option) };
+        }
+
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for featurizing numeric columns.
+        /// </summary>
+        /// <param name="outputColumnNames">output column names.</param>
+        /// <param name="inputColumnNames">input column names.</param>
+        internal SweepableEstimator[] NumericFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
+        {
+            Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
+            Contracts.CheckValue(outputColumnNames, nameof(outputColumnNames));
+            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
+            var replaceMissingValueOption = new ReplaceMissingValueOption
+            {
+                InputColumnNames = inputColumnNames,
+                OutputColumnNames = outputColumnNames,
+            };
+
+            return new[] { SweepableEstimatorFactory.CreateReplaceMissingValues(replaceMissingValueOption) };
+        }
+
+        /// <summary>
+        /// Create a list of <see cref="SweepableEstimator"/> for featurizing catalog columns.
+        /// </summary>
+        /// <param name="outputColumnNames">output column names.</param>
+        /// <param name="inputColumnNames">input column names.</param>
+        internal SweepableEstimator[] CatalogFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
+        {
+            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
+
+            var option = new OneHotOption
+            {
+                InputColumnNames = inputColumnNames,
+                OutputColumnNames = outputColumnNames,
+            };
+
+            return new SweepableEstimator[] { SweepableEstimatorFactory.CreateOneHotEncoding(option), SweepableEstimatorFactory.CreateOneHotHashEncoding(option) };
+        }
+
+        /// <summary>
+        /// Create a single featurize pipeline according to <paramref name="data"/>. This function will collect all columns in <paramref name="data"/> and not in <paramref name="excludeColumns"/>,
+        /// featurizing them using <see cref="CatalogFeaturizer(string[], string[])"/>, <see cref="NumericFeaturizer(string[], string[])"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
+        /// them into a single feature column as output.
+        /// </summary>
+        /// <param name="data">input data.</param>
+        /// <param name="catalogColumns">columns that should be treated as catalog. If not specified, it will automatically infer if a column is catalog or not.</param>
+        /// <param name="numericColumns">columns that should be treated as numeric. If not specified, it will automatically infer if a column is catalog or not.</param>
+        /// <param name="textColumns">columns that should be treated as text. If not specified, it will automatically infer if a column is catalog or not.</param>
+        /// <param name="outputColumnName">output feature column.</param>
+        /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
+        public MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] excludeColumns = null)
+        {
+            Contracts.CheckValue(data, nameof(data));
+
+            // validate if there's overlapping among catalogColumns, numericColumns, textColumns and excludeColumns
+            var overallColumns = new string[][] { catalogColumns, numericColumns, textColumns, excludeColumns }
+                                    .Where(c => c != null)
+                                    .SelectMany(c => c);
+
+            if (overallColumns != null)
+            {
+                Contracts.Assert(overallColumns.Count() == overallColumns.Distinct().Count(), "detect overlapping among catalogColumns, numericColumns, textColumns and excludedColumns");
+            }
+
+            var columnInfo = new ColumnInformation();
+
+            if (excludeColumns != null)
+            {
+                foreach (var ignoreColumn in excludeColumns)
+                {
+                    columnInfo.IgnoredColumnNames.Add(ignoreColumn);
+                }
+            }
+
+            if (catalogColumns != null)
+            {
+                foreach (var catalogColumn in catalogColumns)
+                {
+                    columnInfo.CategoricalColumnNames.Add(catalogColumn);
+                }
+            }
+
+            if (numericColumns != null)
+            {
+                foreach (var column in numericColumns)
+                {
+                    columnInfo.NumericColumnNames.Add(column);
+                }
+            }
+
+            if (textColumns != null)
+            {
+                foreach (var column in textColumns)
+                {
+                    columnInfo.TextColumnNames.Add(column);
+                }
+            }
+
+            return this.Featurizer(data, columnInfo, outputColumnName);
+        }
+
+        /// <summary>
+        /// Create a single featurize pipeline according to <paramref name="columnInformation"/>. This function will collect all columns in <paramref name="columnInformation"/>,
+        /// featurizing them using <see cref="CatalogFeaturizer(string[], string[])"/>, <see cref="NumericFeaturizer(string[], string[])"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
+        /// them into a single feature column as output.
+        /// </summary>
+        /// <param name="data">input data.</param>
+        /// <param name="columnInformation">column information.</param>
+        /// <param name="outputColumnName">output feature column.</param>
+        /// <returns>A <see cref="MultiModelPipeline"/> for featurization.</returns>
+        public MultiModelPipeline Featurizer(IDataView data, ColumnInformation columnInformation, string outputColumnName = "Features")
+        {
+            Contracts.CheckValue(data, nameof(data));
+            Contracts.CheckValue(columnInformation, nameof(columnInformation));
+
+            var columnPurposes = PurposeInference.InferPurposes(this._context, data, columnInformation);
+            var textFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.TextFeature);
+            var numericFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature);
+            var catalogFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.CategoricalFeature);
+            var textFeatureColumnNames = textFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
+            var numericFeatureColumnNames = numericFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
+            var catalogFeatureColumnNames = catalogFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
+
+            var pipeline = new MultiModelPipeline();
+            if (numericFeatureColumnNames.Length > 0)
+            {
+                pipeline = pipeline.Append(this.NumericFeaturizer(numericFeatureColumnNames, numericFeatureColumnNames));
+            }
+
+            if (catalogFeatureColumnNames.Length > 0)
+            {
+                pipeline = pipeline.Append(this.CatalogFeaturizer(catalogFeatureColumnNames, catalogFeatureColumnNames));
+            }
+
+            foreach (var textColumn in textFeatureColumnNames)
+            {
+                pipeline = pipeline.Append(this.TextFeaturizer(textColumn, textColumn));
+            }
+
+            var option = new ConcatOption
+            {
+                InputColumnNames = textFeatureColumnNames.Concat(numericFeatureColumnNames).Concat(catalogFeatureColumnNames).ToArray(),
+                OutputColumnName = outputColumnName,
+            };
+
+            if (option.InputColumnNames.Length > 0)
+            {
+                pipeline = pipeline.Append(SweepableEstimatorFactory.CreateConcatenate(option));
+            }
+
+            return pipeline;
         }
     }
 }

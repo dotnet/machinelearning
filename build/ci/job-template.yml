@@ -39,6 +39,10 @@ jobs:
         spaceValue: '%20'
       ${{ if and(eq(parameters.pool.vmImage, 'ubuntu-18.04'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
+      ${{ if eq(parameters.codeCoverage, 'true') }}:
+        hardLink: ''
+      ${{ if eq(parameters.codeCoverage, 'false') }}:
+        hardLink: '/p:CreateHardLinksForCopyLocalIfPossible=True'
       testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
       CODECOV_TOKEN: 03031e35-fe75-4e4c-87ee-e919ae601748
     strategy:
@@ -70,7 +74,7 @@ jobs:
         continueOnError: true
     # Extra MacOS step required to install OS-specific dependencies
     - ${{ if and(eq(parameters.pool.vmImage, 'macOS-10.15'), not(contains(parameters.name, 'cross')))  }}:
-      - script: brew update && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
+      - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE && brew update && brew install mono-libgdiplus && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
         displayName: Install MacOS build dependencies
     # Extra Apple MacOS step required to install OS-specific dependencies
     - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
@@ -79,7 +83,7 @@ jobs:
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.vmImage, 'ubuntu-18.04')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
       displayName: Build
     - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
       - task: Bash@3
@@ -124,10 +128,10 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: set PATH=%PATH%;%USERPROFILE%\.nuget\packages\libtorch-cpu-win-x64\1.11.0.1\runtimes\win-x64\native;%USERPROFILE%\.nuget\packages\torchsharp\0.96.7\runtimes\win-x64\native & ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -152,7 +156,7 @@ jobs:
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - ${{ if eq(parameters.codeCoverage, True) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run CI Tests.
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml

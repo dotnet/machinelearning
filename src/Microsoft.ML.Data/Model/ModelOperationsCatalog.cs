@@ -47,7 +47,7 @@ namespace Microsoft.ML
             var chainedModel = model == null ? null : new TransformerChain<ITransformer>(model);
             var compositeLoader = new CompositeDataLoader<TSource, ITransformer>(loader, chainedModel);
 
-            using (var rep = RepositoryWriter.CreateNew(stream))
+            using (var rep = RepositoryWriter.CreateNew(stream, _env))
             {
                 ModelSaveContext.SaveModel(rep, compositeLoader, null);
                 rep.Commit();
@@ -86,7 +86,7 @@ namespace Microsoft.ML
             _env.CheckValueOrNull(inputSchema);
             _env.CheckValue(stream, nameof(stream));
 
-            using (var rep = RepositoryWriter.CreateNew(stream))
+            using (var rep = RepositoryWriter.CreateNew(stream, _env))
             {
                 ModelSaveContext.SaveModel(rep, model, CompositeDataLoader<object, ITransformer>.TransformerDirectory);
                 SaveInputSchema(inputSchema, rep);

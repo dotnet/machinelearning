@@ -95,7 +95,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     OnnxRuntimePackageVersion = _settings.OnnxRuntimePackageVersion,
                     Target = _settings.Target,
                 }.TransformText(),
-                Name = $"{ _settings.OutputName }.Model.csproj",
+                Name = $"{_settings.OutputName}.Model.csproj",
             };
 
             ConsumeModel = new CSharpCodeFile()

@@ -27,7 +27,7 @@ namespace Microsoft.ML.Transforms.Onnx
         public string[] OutputColumns;
 
         /// <summary>
-        /// GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 9.1.
+        /// GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 10.1.
         /// </summary>
         public int? GpuDeviceId = null;
 

@@ -359,7 +359,7 @@ namespace Microsoft.Data.Analysis
         public virtual bool HasDescription() => false;
 
         /// <summary>
-        /// Returns a <seealso cref="StringDataFrameColumn"/> containing the DataType and Length of this column
+        /// Returns a <see cref="StringDataFrameColumn"/> containing the DataType and Length of this column
         /// </summary>
         public virtual StringDataFrameColumn Info()
         {

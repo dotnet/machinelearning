@@ -12,8 +12,6 @@ namespace Microsoft.ML.AutoML
 
         public double Metric { get; set; }
 
-        public bool IsMaximize { get; set; }
-
         public double DurationInMilliseconds { get; set; }
     }
 }

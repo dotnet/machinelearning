@@ -31,7 +31,7 @@ namespace Microsoft.ML.AutoML
             BinaryClassificationMetric.NegativePrecision => true,
             BinaryClassificationMetric.NegativeRecall => true,
             BinaryClassificationMetric.PositiveRecall => true,
-            BinaryClassificationMetric.F1Score => throw new NotImplementedException(),
+            BinaryClassificationMetric.F1Score => true,
             _ => throw new NotImplementedException(),
         };
     }

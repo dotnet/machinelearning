@@ -12,9 +12,9 @@ namespace Microsoft.ML.AutoML
         private readonly SearchSpace.Tuner.GridSearchTuner _tuner;
         private IEnumerator<Parameter> _enumerator;
 
-        public GridSearchTuner(SearchSpace.SearchSpace searchSpace)
+        public GridSearchTuner(SearchSpace.SearchSpace searchSpace, int stepSize = 10)
         {
-            _tuner = new SearchSpace.Tuner.GridSearchTuner(searchSpace);
+            _tuner = new SearchSpace.Tuner.GridSearchTuner(searchSpace, stepSize);
             _enumerator = _tuner.Propose().GetEnumerator();
         }
         public Parameter Propose(TrialSettings settings)

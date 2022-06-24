@@ -1,0 +1,34 @@
+{
+  "schema": "e0 * e1",
+  "estimators": {
+    "e0": {
+      "estimatorType": "ReplaceMissingValues",
+      "parameter": {
+        "OutputColumnNames": [
+          "col1",
+          "col2",
+          "col3",
+          "col4"
+        ],
+        "InputColumnNames": [
+          "col1",
+          "col2",
+          "col3",
+          "col4"
+        ]
+      }
+    },
+    "e1": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "col1",
+          "col2",
+          "col3",
+          "col4"
+        ],
+        "OutputColumnName": "Features"
+      }
+    }
+  }
+}
