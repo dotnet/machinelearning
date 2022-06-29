@@ -36,14 +36,7 @@ namespace Microsoft.ML.OneDal
             }
         }
 
-#if _WINDOWS
-    const string libDirPath = @"C:\Users\rgesteve\Documents\projects\onedal_simple\build";
-    const string libPath = libDirPath + @"\Debug\OneDALNative_lib.dll";
-#else
-        //const string libDirPath = @"/data/Documents/Snippets/onedal/first/build";
-        private const string LibDirPath = @"/home/rgesteve/projects/onedal_simple/build";
-        private const string LibPath = LibDirPath + "/libOneDALNative_lib.so";
-#endif
+	const string LibPath = "OneDALNative";
 
         [DllImport(LibPath)]
         public static extern unsafe SafeKnnAlgorithmHandle CreateEngine(int numClasses);

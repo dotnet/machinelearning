@@ -42,6 +42,7 @@ namespace Microsoft.ML.OneDal
         {
             Contracts.CheckValue(env, nameof(env));
             _host = Contracts.CheckRef(env, nameof(env)).Register("KnnClassificationTrainer");
+            Contracts.Assert(numClasses > 0);
             _knnAlgorithm = new KnnAlgorithm(numClasses);
         }
 
