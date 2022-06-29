@@ -15,14 +15,17 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML;
 using Microsoft.ML.OneDal;
 
+#if false
 [assembly: LoadableClass(typeof(KnnClassificationTransformer), null, typeof(SignatureLoadModel),
     KnnClassificationTransformer.UserName, KnnClassificationTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(KnnClassificationTransformer), null, typeof(SignatureLoadRowMapper),
     KnnClassificationTransformer.UserName, KnnClassificationTransformer.LoaderSignature)]
+#endif
 
 namespace Microsoft.ML.OneDal
 {
+#if false
     public class KnnClassificationTrainer : IEstimator<KnnClassificationTransformer>
     {
 	private readonly IHost _host;
@@ -170,4 +173,5 @@ namespace Microsoft.ML.OneDal
             throw new NotImplementedException();
         }
     }
+ #endif
  }

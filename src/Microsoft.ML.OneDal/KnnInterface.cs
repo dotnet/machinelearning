@@ -18,7 +18,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.ML.OneDal
 {
-
+#if false
     internal static class KnnInterface
     {
         public sealed class SafeKnnAlgorithmHandle : SafeHandleZeroOrMinusOneIsInvalid
@@ -120,4 +120,5 @@ namespace Microsoft.ML.OneDal
             _engine.Dispose();
         }
     }
+#endif
 }

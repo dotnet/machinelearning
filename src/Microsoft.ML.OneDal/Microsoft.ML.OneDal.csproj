@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.OneDal</IncludeInPackage>
@@ -9,6 +10,7 @@
     <!-- WL Merge Note: Remove "CopyProjectReferencesToPackage" for "-pack" work currently-->
     <!-- WL Merge Note: Need to add "target" for "CopyProjectReferencesToPackage" correctly-->
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
@@ -24,7 +26,14 @@
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
+
+  <ItemGroup>
+<!--    <PackageReference Include="Nvidia.Dcgm.Client-Amd64Linux" Version="2.1.4" /> -->
+    <PackageReference Include="TestNative" Version="0.0.1" />
+  </ItemGroup>
+
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
+
 </Project>
