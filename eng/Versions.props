@@ -35,8 +35,8 @@
     <LightGBMVersion>2.3.1</LightGBMVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
-    <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.22103.1</MicrosoftDotNetInteractiveFormattingVersion>
-    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.22103.1</MicrosoftDotNetInteractiveVersion>
+    <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.22314.1</MicrosoftDotNetInteractiveFormattingVersion>
+    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.22314.1</MicrosoftDotNetInteractiveVersion>
     <MicrosoftMLFeaturizersVersion>0.4.1</MicrosoftMLFeaturizersVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.10.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
@@ -44,6 +44,7 @@
     <MSTestTestFrameworkVersion>2.1.0</MSTestTestFrameworkVersion>
     <NewtonsoftJsonVersion>10.0.3</NewtonsoftJsonVersion>
     <ParquetDotNetVersion>2.1.3</ParquetDotNetVersion>
+    <PlotlyNETCSharpVersion>0.0.1</PlotlyNETCSharpVersion>
     <SharpZipLibVersion>1.3.3</SharpZipLibVersion>
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
