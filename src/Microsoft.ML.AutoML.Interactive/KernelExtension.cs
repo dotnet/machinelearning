@@ -15,9 +15,7 @@ namespace Microsoft.ML.AutoML
 {
     public class KernelExtension : IKernelExtension
     {
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public Task OnLoadAsync(Kernel kernel)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             Formatter.Register<NotebookMonitor>((monitor, writer) =>
             {
