@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.Html;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.AspNetCore.Html;
 using Microsoft.Data.Analysis;
 using Microsoft.DotNet.Interactive;
+using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.Formatting;
 using System.Collections.Generic;
 using System.IO;
@@ -13,9 +18,9 @@ using static Microsoft.DotNet.Interactive.Formatting.PocketViewTags;
 
 namespace Microsoft.ML.AutoML
 {
-    public class KernelExtension : IKernelExtension
+    public class AutoMLMonitorKernelExtension : IKernelExtension
     {
-        public Task OnLoadAsync(Kernel kernel)
+        public async Task OnLoadAsync(Kernel kernel)
         {
             Formatter.Register<NotebookMonitor>((monitor, writer) =>
             {
@@ -24,7 +29,16 @@ namespace Microsoft.ML.AutoML
                 WriteTable(monitor, writer);
             }, "text/html");
 
-            return Task.CompletedTask;
+            if (Kernel.Root?.FindKernel("csharp") is { } csKernel)
+            {
+                await LoadExtensionApiAsync(csKernel);
+            }
+        }
+
+        private static async Task LoadExtensionApiAsync(Kernel cSharpKernel)
+        {
+            await cSharpKernel.SendAsync(new SubmitCode($@"#r ""{typeof(AutoMLMonitorKernelExtension).Assembly.Location}""
+using {typeof(NotebookMonitor).Namespace};"));
         }
 
         private static void WriteSummary(NotebookMonitor monitor, TextWriter writer)
