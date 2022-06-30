@@ -10,6 +10,7 @@ usage()
     echo "  --configuration <Configuration>   Build Configuration (Debug, Release)"
     echo "  --stripSymbols                    Enable symbol stripping (to external file)"
     echo "  --mkllibpath                      Path to mkl library."
+    echo "  --onedalpath                      Path to OneDal library."
     exit 1
 }
 
@@ -30,6 +31,8 @@ __baseIntermediateOutputPath="$RootRepo/artifacts/obj"
 __versionSourceFile="$__baseIntermediateOutputPath/version.c"
 __mkllibpath=""
 __mkllibrpath=""
+# TODO: remove CONDA_PREFIX with fix
+__onedallibpath=$CONDA_PREFIX
 
 while [ "$1" != "" ]; do
         lowerI="$(echo $1 | awk '{print tolower($0)}')"
@@ -54,6 +57,10 @@ while [ "$1" != "" ]; do
             shift
             __mkllibrpath=$1
             ;;
+        --onedalpath)
+            shift
+            __onedallibpath=$1
+            ;;
         --stripsymbols)
             __strip_argument="-DSTRIP_SYMBOLS=true"
             ;;
@@ -63,7 +70,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-__cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath} -DMKL_LIB_RPATH=${__mkllibrpath}"
+__cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath} -DMKL_LIB_RPATH=${__mkllibrpath} -DONEDAL_LIB_PATH=${__onedallibpath}"
 
 __IntermediatesDir="$__baseIntermediateOutputPath/Native/$__build_arch.$__configuration"
 __BinDir="$__rootBinPath/Native/$__build_arch.$__configuration"

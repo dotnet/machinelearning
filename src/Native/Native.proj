@@ -117,6 +117,10 @@
       <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.FastTree\runtimes\$(PackageRid)\native" />
+      <!-- TODO: Probably should break up OneDal-backed learners more granularly -->
+      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+                          Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)OneDalNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
     </ItemGroup>
 
     <ItemGroup>

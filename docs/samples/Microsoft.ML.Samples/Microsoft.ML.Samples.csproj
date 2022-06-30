@@ -34,6 +34,7 @@
     <ProjectReference Include="..\..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.csproj" />
 
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
@@ -41,6 +42,8 @@
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="OneDalNative" />
+    <NativeAssemblyReference Include="MklImports" />
     <None Include="Dynamic\Trainers\BinaryClassification\FastForest.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
