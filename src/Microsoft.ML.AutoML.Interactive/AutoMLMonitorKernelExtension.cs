@@ -76,7 +76,18 @@ using {typeof(NotebookMonitor).Namespace};"));
             .WithXAxisStyle<double, double, string>(TitleText: "Trial", ShowGrid: false)
             .WithYAxisStyle<double, double, string>(TitleText: "Metric", ShowGrid: false);
 
+            var chartHeader = new List<IHtmlContent>();
+            chartHeader.Add(h1("Plot metrics over trials."));
+            writer.Write(div(chartHeader));
+
+
             Formatter.GetPreferredFormatterFor(typeof(Plotly.NET.GenericChart.GenericChart), "text/html").Format(chart, writer);
+
+            // Works around issue with earlier versions of Plotly.NET - https://github.com/plotly/Plotly.NET/pull/305
+            if (writer.ToString().EndsWith("</div    \r\n"))
+            {
+                writer.Write(">");
+            }
         }
 
         private static void WriteTable(NotebookMonitor notebookMonitor, TextWriter writer)
