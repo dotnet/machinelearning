@@ -71,13 +71,13 @@ using {typeof(NotebookMonitor).Namespace};"));
             var x = monitor.CompletedTrials.Select(x => x.TrialSettings.TrialId);
             var y = monitor.CompletedTrials.Select(x => x.Metric);
 
-            var chart = Chart.Point<int, double, string>(x, y, "Hello")
+            var chart = Chart.Point<int, double, string>(x, y, "Plot Metrics over Trials.")
             .WithTraceInfo(ShowLegend: false)
             .WithXAxisStyle<double, double, string>(TitleText: "Trial", ShowGrid: false)
             .WithYAxisStyle<double, double, string>(TitleText: "Metric", ShowGrid: false);
 
             var chartHeader = new List<IHtmlContent>();
-            chartHeader.Add(h1("Plot metrics over trials."));
+            chartHeader.Add(h1("Plot Metrics over Trials."));
             writer.Write(div(chartHeader));
 
 
