@@ -77,7 +77,7 @@ using {typeof(NotebookMonitor).Namespace};"));
             .WithYAxisStyle<double, double, string>(TitleText: "Metric", ShowGrid: false);
 
             var chartHeader = new List<IHtmlContent>();
-            chartHeader.Add(h1("Plot Metrics over Trials."));
+            chartHeader.Add(h3("Plot Metrics over Trials"));
             writer.Write(div(chartHeader));
 
 
@@ -92,6 +92,9 @@ using {typeof(NotebookMonitor).Namespace};"));
 
         private static void WriteTable(NotebookMonitor notebookMonitor, TextWriter writer)
         {
+            var tableHeader = new List<IHtmlContent>();
+            tableHeader.Add(h3("All Trials Table"));
+            writer.Write(div(tableHeader));
             Formatter.GetPreferredFormatterFor(typeof(DataFrame), "text/html").Format(notebookMonitor.DataFrame, writer);
         }
     }
