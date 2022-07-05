@@ -77,13 +77,15 @@ namespace Microsoft.ML.AutoML
                 {
                     int timeRemaining = 5000 - (int)(DateTime.UtcNow.Millisecond - _lastUpdate.Millisecond);
                     _updatePending = true;
+
                     if (timeRemaining > 0)
                     {
                         await Task.Delay(timeRemaining);
                     }
+
+                    _updatePending = false;
                     if (_valueToUpdate != null)
                     {
-                        _updatePending = false;
                         _lastUpdate = DateTime.UtcNow;
                         _valueToUpdate.Update(this);
                     }
