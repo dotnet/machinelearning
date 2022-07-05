@@ -95,7 +95,7 @@ using {typeof(NotebookMonitor).Namespace};"));
             var tableHeader = new List<IHtmlContent>();
             tableHeader.Add(h3("All Trials Table"));
             writer.Write(div(tableHeader));
-            Formatter.GetPreferredFormatterFor(typeof(DataFrame), "text/html").Format(notebookMonitor.DataFrame, writer);
+            Formatter.GetPreferredFormatterFor(typeof(DataFrame), "text/html").Format(notebookMonitor.TrialData, writer);
         }
     }
 }

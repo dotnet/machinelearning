@@ -21,28 +21,28 @@ namespace Microsoft.ML.AutoML
         public TrialResult MostRecentTrial { get; set; }
         public TrialSettings ActiveTrial { get; set; }
         public List<TrialResult> CompletedTrials { get; set; }
-        public DataFrame DataFrame { get; set; }
+        public DataFrame TrialData { get; set; }
 
         public NotebookMonitor()
         {
-            this.CompletedTrials = new List<TrialResult>();
-            this.DataFrame = new DataFrame(new PrimitiveDataFrameColumn<int>("Trial"), new PrimitiveDataFrameColumn<float>("Metric"), new StringDataFrameColumn("Trainer"), new StringDataFrameColumn("Parameters"));
+            CompletedTrials = new List<TrialResult>();
+            TrialData = new DataFrame(new PrimitiveDataFrameColumn<int>("Trial"), new PrimitiveDataFrameColumn<float>("Metric"), new StringDataFrameColumn("Trainer"), new StringDataFrameColumn("Parameters"));
         }
 
         public void ReportBestTrial(TrialResult result)
         {
-            this.BestTrial = result;
+            BestTrial = result;
             Update();
         }
 
         public void ReportCompletedTrial(TrialResult result)
         {
-            this.MostRecentTrial = result;
-            this.CompletedTrials.Add(result);
+            MostRecentTrial = result;
+            CompletedTrials.Add(result);
 
             var activeRunParam = JsonSerializer.Serialize(result.TrialSettings.Parameter, new JsonSerializerOptions() { WriteIndented = false, });
 
-            this.DataFrame.Append(new List<KeyValuePair<string, object>>()
+            TrialData.Append(new List<KeyValuePair<string, object>>()
             {
                 new KeyValuePair<string, object>("Trial",result.TrialSettings.TrialId),
                 new KeyValuePair<string, object>("Metric", result.Metric),
@@ -60,7 +60,7 @@ namespace Microsoft.ML.AutoML
 
         public void ReportRunningTrial(TrialSettings setting)
         {
-            this.ActiveTrial = setting;
+            ActiveTrial = setting;
             Update();
         }
 
@@ -75,17 +75,17 @@ namespace Microsoft.ML.AutoML
                 }
                 else
                 {
-                    int timeRemaining = 5000 - (int)(DateTime.Now.Millisecond - this._lastUpdate.Millisecond);
+                    int timeRemaining = 5000 - (int)(DateTime.UtcNow.Millisecond - _lastUpdate.Millisecond);
                     _updatePending = true;
                     if (timeRemaining > 0)
                     {
                         await Task.Delay(timeRemaining);
                     }
-                    if (this._valueToUpdate != null)
+                    if (_valueToUpdate != null)
                     {
                         _updatePending = false;
-                        this._lastUpdate = DateTime.Now;
-                        this._valueToUpdate.Update(this);
+                        _lastUpdate = DateTime.UtcNow;
+                        _valueToUpdate.Update(this);
                     }
                 }
             });
@@ -94,7 +94,7 @@ namespace Microsoft.ML.AutoML
 
         public void SetUpdate(DisplayedValue valueToUpdate)
         {
-            this._valueToUpdate = valueToUpdate;
+            _valueToUpdate = valueToUpdate;
             Update();
         }
     }
