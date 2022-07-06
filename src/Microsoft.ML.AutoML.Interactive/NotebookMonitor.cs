@@ -8,7 +8,7 @@ using Microsoft.Data.Analysis;
 using System;
 using System.Threading.Tasks;
 using System.Text.Json;
-
+using System.Threading;
 
 namespace Microsoft.ML.AutoML
 {
@@ -64,31 +64,22 @@ namespace Microsoft.ML.AutoML
             Update();
         }
 
-        private bool _updatePending = false;
+        private int _updatePending = 0;
         public void Update()
         {
             Task.Run(async () =>
             {
-                if (_updatePending == true)
+                if (Interlocked.CompareExchange(ref _updatePending, 1, 0) == 0) // _updatePending is int initialized with 0
                 {
-                    // Keep waiting
-                }
-                else
-                {
-                    int timeRemaining = 5000 - (int)(DateTime.UtcNow.Millisecond - _lastUpdate.Millisecond);
-                    _updatePending = true;
-
-                    if (timeRemaining > 0)
+                    DateTime n = DateTime.UtcNow;
+                    if (n - _lastUpdate < TimeSpan.FromSeconds(5))
                     {
-                        await Task.Delay(timeRemaining);
+                        await Task.Delay(n - _lastUpdate);
                     }
 
-                    _updatePending = false;
-                    if (_valueToUpdate != null)
-                    {
-                        _lastUpdate = DateTime.UtcNow;
-                        _valueToUpdate.Update(this);
-                    }
+                    _valueToUpdate.Update(this);
+                    _lastUpdate = n;
+                    _updatePending = 0;
                 }
             });
 
