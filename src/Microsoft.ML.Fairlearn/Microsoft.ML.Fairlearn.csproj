@@ -12,4 +12,8 @@
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="metrics\" />
+  </ItemGroup>
+
 </Project>

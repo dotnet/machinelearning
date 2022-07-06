@@ -51,5 +51,11 @@ namespace Microsoft.ML.Fairlearn.Tests
             Assert.Equal(2037.5, diff["RSquared"], 1);
 
         }
+
+        [Fact]
+        public void BinaryClassificationMetricTest()
+        {
+            Assert.Equal(1, 1);
+        }
     }
 }
