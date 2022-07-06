@@ -14,8 +14,8 @@ namespace Microsoft.ML.AutoML
 {
     public class NotebookMonitor : IMonitor
     {
+        private readonly ActionThrottler _updateThrottler;
         private DisplayedValue _valueToUpdate;
-        private DateTime _lastUpdate = DateTime.MinValue;
 
         public TrialResult BestTrial { get; set; }
         public TrialResult MostRecentTrial { get; set; }
@@ -27,12 +27,14 @@ namespace Microsoft.ML.AutoML
         {
             CompletedTrials = new List<TrialResult>();
             TrialData = new DataFrame(new PrimitiveDataFrameColumn<int>("Trial"), new PrimitiveDataFrameColumn<float>("Metric"), new StringDataFrameColumn("Trainer"), new StringDataFrameColumn("Parameters"));
+            _updateThrottler = new ActionThrottler(Update, TimeSpan.FromSeconds(5));
         }
 
         public void ReportBestTrial(TrialResult result)
         {
             BestTrial = result;
-            Update();
+
+            ThrottledUpdate();
         }
 
         public void ReportCompletedTrial(TrialResult result)
@@ -49,46 +51,36 @@ namespace Microsoft.ML.AutoML
                 new KeyValuePair<string, object>("Trainer",result.TrialSettings.Pipeline.ToString().Replace("Unknown=>","")),
                 new KeyValuePair<string, object>("Parameters",activeRunParam),
             }, true);
-            Update();
+
+            ThrottledUpdate();
         }
 
         public void ReportFailTrial(TrialResult result)
         {
             // TODO figure out what to do with failed trials.
-            Update();
+            ThrottledUpdate();
         }
 
         public void ReportRunningTrial(TrialSettings setting)
         {
             ActiveTrial = setting;
-            Update();
+            ThrottledUpdate();
         }
 
-        private int _updatePending = 0;
+        private void ThrottledUpdate()
+        {
+            Task.Run(async () => await _updateThrottler.ExecuteAsync());
+        }
+
         public void Update()
         {
-            Task.Run(async () =>
-            {
-                if (Interlocked.CompareExchange(ref _updatePending, 1, 0) == 0) // _updatePending is int initialized with 0
-                {
-                    DateTime n = DateTime.UtcNow;
-                    if (n - _lastUpdate < TimeSpan.FromSeconds(5))
-                    {
-                        await Task.Delay(n - _lastUpdate);
-                    }
-
-                    _valueToUpdate.Update(this);
-                    _lastUpdate = n;
-                    _updatePending = 0;
-                }
-            });
-
+            _valueToUpdate.Update(this);
         }
 
         public void SetUpdate(DisplayedValue valueToUpdate)
         {
             _valueToUpdate = valueToUpdate;
-            Update();
+            ThrottledUpdate();
         }
     }
 }
