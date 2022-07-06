@@ -155,7 +155,7 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
+        public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "PredictedLabel")
         {
             var metricManager = new BinaryMetricManager()
             {
@@ -169,7 +169,7 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
+        public AutoMLExperiment SetEvaluateMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "PredictedLabel")
         {
             var metricManager = new MultiClassMetricManager()
             {
@@ -231,23 +231,23 @@ namespace Microsoft.ML.AutoML
 
             while (true)
             {
+                if (cts.Token.IsCancellationRequested)
+                {
+                    break;
+                }
+                var setting = new TrialSettings()
+                {
+                    ExperimentSettings = _settings,
+                    TrialId = trialNum++,
+                };
+
+                setting = pipelineProposer.Propose(setting);
+                setting = hyperParameterProposer.Propose(setting);
+                monitor.ReportRunningTrial(setting);
+                var runner = runnerFactory.CreateTrialRunner();
+
                 try
                 {
-                    if (cts.Token.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    var setting = new TrialSettings()
-                    {
-                        ExperimentSettings = _settings,
-                        TrialId = trialNum++,
-                    };
-
-                    setting = pipelineProposer.Propose(setting);
-                    setting = hyperParameterProposer.Propose(setting);
-                    monitor.ReportRunningTrial(setting);
-                    var runner = runnerFactory.CreateTrialRunner();
                     var trialResult = runner.Run(setting, serviceProvider);
                     monitor.ReportCompletedTrial(trialResult);
                     hyperParameterProposer.Update(setting, trialResult);
@@ -261,7 +261,7 @@ namespace Microsoft.ML.AutoML
                         monitor.ReportBestTrial(trialResult);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     if (cts.Token.IsCancellationRequested)
                     {
@@ -269,6 +269,11 @@ namespace Microsoft.ML.AutoML
                     }
                     else
                     {
+                        // TODO
+                        // it's questionable on whether to abort the entire training process
+                        // for a single fail trial. We should make it an option and only exit
+                        // when error is fatal (like schema mismatch).
+                        monitor.ReportFailTrial(setting, ex);
                         throw;
                     }
                 }

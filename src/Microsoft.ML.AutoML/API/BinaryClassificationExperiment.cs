@@ -147,6 +147,9 @@ namespace Microsoft.ML.AutoML
     /// </example>
     public sealed class BinaryClassificationExperiment : ExperimentBase<BinaryClassificationMetrics, BinaryExperimentSettings>
     {
+        private readonly AutoMLExperiment _experiment;
+        private const string Features = "__Features__";
+
         internal BinaryClassificationExperiment(MLContext context, BinaryExperimentSettings settings)
             : base(context,
                   new BinaryMetricsAgent(context, settings.OptimizingMetric),
@@ -155,6 +158,161 @@ namespace Microsoft.ML.AutoML
                   TaskKind.BinaryClassification,
                   TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
+            _experiment = context.Auto().CreateExperiment();
+        }
+
+        public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
+        {
+            var label = columnInformation.LabelColumnName;
+            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
+
+            // Cross val threshold for # of dataset rows --
+            // If dataset has < threshold # of rows, use cross val.
+            // Else, run experiment using train-validate split.
+            const int crossValRowCountThreshold = 15000;
+            var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
+            // TODO
+            // split cross validation result according to sample key as well.
+            if (rowCount < crossValRowCountThreshold)
+            {
+                const int numCrossValFolds = 10;
+                _experiment.SetDataset(trainData, numCrossValFolds);
+            }
+            else
+            {
+                var splitData = Context.Data.TrainTestSplit(trainData);
+                _experiment.SetDataset(splitData.TrainSet, splitData.TestSet);
+            }
+
+            MultiModelPipeline pipeline = new MultiModelPipeline();
+            if (preFeaturizer != null)
+            {
+                pipeline = pipeline.Append(preFeaturizer);
+            }
+
+            pipeline = pipeline.Append(Context.Auto().Featurizer(trainData, columnInformation, Features))
+                               .Append(Context.Auto().BinaryClassification(label, Features));
+            _experiment.SetPipeline(pipeline);
+
+            var monitor = new BinaryClassificationTrialResultMonitor();
+            monitor.OnTrialCompleted += (o, e) =>
+            {
+                var detail = ToRunDetail(e);
+                progressHandler?.Report(detail);
+            };
+
+            _experiment.SetMonitor(monitor);
+            _experiment.Run();
+
+            var runDetails = monitor.RunDetails.Select(e => ToRunDetail(e));
+            var bestRun = ToRunDetail(monitor.BestRun);
+            var result = new ExperimentResult<BinaryClassificationMetrics>(runDetails, bestRun);
+
+            return result;
+        }
+
+        public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
+        {
+            var label = columnInformation.LabelColumnName;
+            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
+            _experiment.SetDataset(trainData, validationData);
+
+            MultiModelPipeline pipeline = new MultiModelPipeline();
+            if (preFeaturizer != null)
+            {
+                pipeline = pipeline.Append(preFeaturizer);
+            }
+
+            pipeline = pipeline.Append(Context.Auto().Featurizer(trainData, columnInformation, "__Features__"))
+                               .Append(Context.Auto().BinaryClassification(label, featureColumnName: Features));
+
+            _experiment.SetPipeline(pipeline);
+            var monitor = new BinaryClassificationTrialResultMonitor();
+            monitor.OnTrialCompleted += (o, e) =>
+            {
+                var detail = ToRunDetail(e);
+                progressHandler?.Report(detail);
+            };
+
+            _experiment.SetMonitor(monitor);
+            _experiment.Run();
+
+            var runDetails = monitor.RunDetails.Select(e => ToRunDetail(e));
+            var bestRun = ToRunDetail(monitor.BestRun);
+            var result = new ExperimentResult<BinaryClassificationMetrics>(runDetails, bestRun);
+
+            return result;
+        }
+
+        public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, IDataView validationData, string labelColumnName = "Label", IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
+        {
+            var columnInformation = new ColumnInformation()
+            {
+                LabelColumnName = labelColumnName,
+            };
+
+            return this.Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
+        }
+
+        public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, string labelColumnName = "Label", string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
+        {
+            var columnInformation = new ColumnInformation()
+            {
+                LabelColumnName = labelColumnName,
+                SamplingKeyColumnName = samplingKeyColumn,
+            };
+
+            return this.Execute(trainData, columnInformation, preFeaturizer, progressHandler);
+        }
+
+        public override CrossValidationExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<BinaryClassificationMetrics>> progressHandler = null)
+        {
+            var label = columnInformation.LabelColumnName;
+            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
+            _experiment.SetDataset(trainData, (int)numberOfCVFolds);
+
+            MultiModelPipeline pipeline = new MultiModelPipeline();
+            if (preFeaturizer != null)
+            {
+                pipeline = pipeline.Append(preFeaturizer);
+            }
+
+            pipeline = pipeline.Append(Context.Auto().Featurizer(trainData, columnInformation, "__Features__"))
+                               .Append(Context.Auto().BinaryClassification(label, featureColumnName: Features));
+
+            _experiment.SetPipeline(pipeline);
+
+            var monitor = new BinaryClassificationTrialResultMonitor();
+            monitor.OnTrialCompleted += (o, e) =>
+            {
+                var runDetails = ToCrossValidationRunDetail(e);
+
+                progressHandler?.Report(runDetails);
+            };
+
+            _experiment.SetMonitor(monitor);
+            _experiment.Run();
+
+            var runDetails = monitor.RunDetails.Select(e => ToCrossValidationRunDetail(e));
+            var bestResult = ToCrossValidationRunDetail(monitor.BestRun);
+
+            var result = new CrossValidationExperimentResult<BinaryClassificationMetrics>(runDetails, bestResult);
+
+            return result;
+        }
+
+        public override CrossValidationExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, string labelColumnName = "Label", string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<BinaryClassificationMetrics>> progressHandler = null)
+        {
+            var columnInformation = new ColumnInformation()
+            {
+                LabelColumnName = labelColumnName,
+                SamplingKeyColumnName = samplingKeyColumn,
+            };
+
+            return this.Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
         }
 
         private protected override RunDetail<BinaryClassificationMetrics> GetBestRun(IEnumerable<RunDetail<BinaryClassificationMetrics>> results)
@@ -165,6 +323,80 @@ namespace Microsoft.ML.AutoML
         private protected override CrossValidationRunDetail<BinaryClassificationMetrics> GetBestCrossValRun(IEnumerable<CrossValidationRunDetail<BinaryClassificationMetrics>> results)
         {
             return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
+        }
+
+        private RunDetail<BinaryClassificationMetrics> ToRunDetail(BinaryClassificationTrialResult result)
+        {
+            var pipeline = result.TrialSettings.Pipeline;
+            var trainerName = pipeline.ToString();
+            var parameter = result.TrialSettings.Parameter;
+            var estimator = pipeline.BuildTrainingPipeline(Context, parameter);
+            var modelContainer = new ModelContainer(Context, result.Model);
+            return new RunDetail<BinaryClassificationMetrics>(trainerName, estimator, null, modelContainer, result.BinaryClassificationMetrics, result.Exception);
+        }
+
+        private CrossValidationRunDetail<BinaryClassificationMetrics> ToCrossValidationRunDetail(BinaryClassificationTrialResult result)
+        {
+            var pipeline = result.TrialSettings.Pipeline;
+            var trainerName = pipeline.ToString();
+            var parameter = result.TrialSettings.Parameter;
+            var estimator = pipeline.BuildTrainingPipeline(Context, parameter);
+            var crossValidationResult = result.CrossValidationMetrics.Select(m => new TrainResult<BinaryClassificationMetrics>(new ModelContainer(Context, m.Model), m.Metrics, result.Exception));
+            return new CrossValidationRunDetail<BinaryClassificationMetrics>(trainerName, estimator, null, crossValidationResult);
+        }
+    }
+
+    internal class BinaryClassificationTrialResultMonitor : IMonitor
+    {
+        public BinaryClassificationTrialResultMonitor()
+        {
+            this.RunDetails = new List<BinaryClassificationTrialResult>();
+        }
+
+        public event EventHandler<BinaryClassificationTrialResult> OnTrialCompleted;
+
+        public List<BinaryClassificationTrialResult> RunDetails { get; }
+
+        public BinaryClassificationTrialResult BestRun { get; private set; }
+
+        public void ReportBestTrial(TrialResult result)
+        {
+            if (result is BinaryClassificationTrialResult binaryClassificationResult)
+            {
+                BestRun = binaryClassificationResult;
+            }
+            else
+            {
+                throw new ArgumentException($"result must be of type {typeof(BinaryClassificationTrialResult)}");
+            }
+        }
+
+        public void ReportCompletedTrial(TrialResult result)
+        {
+            if (result is BinaryClassificationTrialResult binaryClassificationResult)
+            {
+                RunDetails.Add(binaryClassificationResult);
+                OnTrialCompleted?.Invoke(this, binaryClassificationResult);
+            }
+            else
+            {
+                throw new ArgumentException($"result must be of type {typeof(BinaryClassificationTrialResult)}");
+            }
+        }
+
+        public void ReportFailTrial(TrialSettings settings, Exception exp)
+        {
+            var result = new BinaryClassificationTrialResult
+            {
+                TrialSettings = settings,
+                Exception = exp,
+            };
+
+            RunDetails.Add(result);
+        }
+
+        public void ReportRunningTrial(TrialSettings setting)
+        {
         }
     }
 }

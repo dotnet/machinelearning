@@ -64,7 +64,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public ExperimentResult<TMetrics> Execute(IDataView trainData, string labelColumnName = DefaultColumnNames.Label,
+        public virtual ExperimentResult<TMetrics> Execute(IDataView trainData, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             ColumnInformation columnInformation;
@@ -106,7 +106,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public ExperimentResult<TMetrics> Execute(IDataView trainData, ColumnInformation columnInformation,
+        public virtual ExperimentResult<TMetrics> Execute(IDataView trainData, ColumnInformation columnInformation,
             IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             // Cross val threshold for # of dataset rows --
@@ -156,7 +156,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, string labelColumnName = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
+        public virtual ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, string labelColumnName = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             var columnInformation = (_task == TaskKind.Ranking) ?
                 new ColumnInformation() { LabelColumnName = labelColumnName, GroupIdColumnName = DefaultColumnNames.GroupId } :
@@ -184,7 +184,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData,
+        public virtual ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData,
             ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null,
             IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
@@ -214,7 +214,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, uint numberOfCVFolds,
+        public virtual CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, uint numberOfCVFolds,
             ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null,
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
@@ -244,7 +244,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData,
+        public virtual CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData,
             uint numberOfCVFolds, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null,
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
