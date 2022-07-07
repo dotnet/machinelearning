@@ -13,37 +13,38 @@ namespace Microsoft.ML.Fairlearn.reductions
     /// General Moment of :class:`Moment` objects to describe the disparity constraints imposed
     /// on the solution.This is an abstract class for all such objects.
     /// </summary>
-    internal class Moment
+    public class Moment
     {
         private bool _dataLoaded = false;
-        protected IDataView _x; //uppercase?
-        protected IDataView _y;
-        protected DataFrame _tags;
+        protected IDataView X; //uppercase?
+        protected DataFrameColumn Y;
+        protected DataFrame Tags;
 
         public Moment()
         {
 
         }
-        public void LoadData(IDataView x, IDataView y, StringDataFrameColumn sensitiveFeature = null)
+        public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature = null)
         {
             if (_dataLoaded)
             {
                 throw new InvalidOperationException("data can be loaded only once");
             }
 
-            _x = x;
-            _y = y;
-            _tags = new DataFrame();
+            X = x;
+            Y = y;
+            Tags = new DataFrame();
+            Tags["label"] = y;
 
             if (sensitiveFeature != null)
             {
                 // _tags["group_id"] = DataFrameColumn.Create; maybe convert from a vector?
-                _tags["group_id"] = sensitiveFeature;
+                Tags["group_id"] = sensitiveFeature;
             }
             _dataLoaded = true;
         }
 
-        public DataFrame Gamma()
+        public DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred)
         {
             throw new NotImplementedException();
         }
@@ -63,7 +64,7 @@ namespace Microsoft.ML.Fairlearn.reductions
     /// <summary>
     /// Moment that can be expressed as weighted classification error.
     /// </summary>
-    internal class ClassificationMoment : Moment
+    public class ClassificationMoment : Moment
     {
 
     }

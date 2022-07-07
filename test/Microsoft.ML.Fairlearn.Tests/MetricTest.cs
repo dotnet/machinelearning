@@ -55,7 +55,7 @@ namespace Microsoft.ML.Fairlearn.Tests
         [Fact]
         public void BinaryClassificationMetricTest()
         {
-            Assert.Equal(1, 1);
+            Assert.True(true);
         }
     }
 }

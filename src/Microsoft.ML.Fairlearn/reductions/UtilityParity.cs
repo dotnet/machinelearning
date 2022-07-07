@@ -11,7 +11,7 @@ using Microsoft.Data.Analysis;
 
 namespace Microsoft.ML.Fairlearn.reductions
 {
-    internal class UtilityParity : ClassificationMoment
+    public class UtilityParity : ClassificationMoment
     {
         private const float _defaultDifferenceBound = 0.01F;
 
@@ -29,13 +29,14 @@ namespace Microsoft.ML.Fairlearn.reductions
                 _epsilon = differenceBound;
                 _ratio = 1.0F;
             }
-            else if (!Single.NaN.Equals(differenceBound) && !Single.NaN.Equals(ratioBond))
+            else if (Single.NaN.Equals(differenceBound) && !Single.NaN.Equals(ratioBond))
             {
                 _epsilon = ratioBoundSlack;
                 if (ratioBond <= 0.0f || ratioBond > 1.0f)
                 {
                     throw new Exception("ratio must lie between (0.1]");
                 }
+                _ratio = ratioBond;
             }
             else
             {
@@ -51,11 +52,11 @@ namespace Microsoft.ML.Fairlearn.reductions
         /// <param name="sensitiveFeature"></param>
         /// <param name="events"></param>
         /// <param name="utilities"></param>
-        public void LoadData(IDataView x, IDataView y, StringDataFrameColumn sensitiveFeature, StringDataFrameColumn events, StringDataFrameColumn utilities = null)
+        public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature, StringDataFrameColumn events, StringDataFrameColumn utilities = null)
         {
             base.LoadData(x, y, sensitiveFeature);
-            _tags["event"] = events;
-            _tags["utilities"] = utilities;
+            Tags["event"] = events;
+            Tags["utilities"] = utilities;
 
             if (utilities == null)
             {
@@ -67,24 +68,29 @@ namespace Microsoft.ML.Fairlearn.reductions
         /// Calculate the degree to which constraints are currently violated by the predictor.
         /// </summary>
         /// <returns></returns>
-        public new DataFrame Gamma(/*TODO: add a predictor*/)
+        public new DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred/*TODO: change to a predictor*/)
         {
+            Tags["pred"] = yPred;
             //TODO: add the utility into the calculation of the violation, will be needed for other parity methods
+            //TODO: also we need to add the events column to the returned gamma singed
             //calculate upper bound difference and lower bound difference
-            var expectEvent = _tags["pred"].Mean();
-            var expectGroupEvent = _tags.GroupBy("group_id").Mean()["pred"];
+            var expectEvent = Tags["pred"].Mean();
+            var expectGroupEvent = Tags.GroupBy("group_id").Mean()["pred"];
             var upperBoundDiff = _ratio * expectGroupEvent - expectEvent;
             var lowerBoundDiff = -1.0 /*to add a negative sign*/ * expectGroupEvent + _ratio * expectEvent;
+
+            //the two diffs are going to be in the same column later on
+            upperBoundDiff.SetName("value");
+            lowerBoundDiff.SetName("value");
 
             //create the columns that hold the signs 
             StringDataFrameColumn posSign = new StringDataFrameColumn("sign", upperBoundDiff.Length);
 
             // a string column that has all the group names
-            var groupID = _tags.GroupBy("group_id").Mean()["group_id"];
+            var groupID = Tags.GroupBy("group_id").Mean()["group_id"];
 
-            // gSigned is the dataframe that we return in the end that presents the uitility parity
+            // gSigned (gamma signed) is the dataframe that we return in the end that presents the uitility parity
             DataFrame gSigned = new DataFrame(posSign, groupID, upperBoundDiff);
-            gSigned["pred"].SetName("value");
 
             // plus sign for the upper bound
             gSigned["sign"].FillNulls("+", inPlace: true);
@@ -92,13 +98,16 @@ namespace Microsoft.ML.Fairlearn.reductions
             // a temp dataframe that hold the utility rows for the lowerbound values
             StringDataFrameColumn negSign = new StringDataFrameColumn("sign", lowerBoundDiff.Length);
             DataFrame dfNeg = new DataFrame(negSign, groupID, lowerBoundDiff);
-            dfNeg["pred"].SetName("value");
             dfNeg["sign"].FillNulls("-", inPlace: true);
 
             // stack the temp dataframe dfNeg to the bottom dataframe that we want to return
-            dfNeg.Rows.ToList<DataFrameRow>().ForEach(row => { gSigned.Append(row, /*append in place*/ true); });
+            dfNeg.Rows.ToList<DataFrameRow>().ForEach(row => { gSigned.Append(row, inPlace: true); });
 
             return gSigned;
         }
+    }
+
+    public class DemographicParity : UtilityParity
+    {
     }
 }
