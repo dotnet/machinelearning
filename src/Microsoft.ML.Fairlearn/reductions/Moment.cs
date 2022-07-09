@@ -16,9 +16,11 @@ namespace Microsoft.ML.Fairlearn.reductions
     public class Moment
     {
         private bool _dataLoaded = false;
-        protected IDataView X; //uppercase?
         protected DataFrameColumn Y;
-        protected DataFrame Tags;
+        public DataFrame Tags { get; private set; }
+        public IDataView X { get; protected set; } //uppercase?
+
+        public DataFrameColumn SensitiveFeatureColumn { get => Tags["group_id"]; }
 
         public Moment()
         {
