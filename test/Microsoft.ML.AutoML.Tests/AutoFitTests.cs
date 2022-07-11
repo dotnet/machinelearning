@@ -55,7 +55,7 @@ namespace Microsoft.ML.AutoML.Test
                 "were not relayed to the main MLContext.");
         }
 
-        [Fact]
+        [LightGBMFact]
         public void AutoFit_UCI_Adult_Test()
         {
             var context = new MLContext(1);
@@ -72,7 +72,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [Fact]
+        [LightGBMFact]
         public void AutoFit_UCI_Adult_Train_Test_Split_Test()
         {
             var context = new MLContext(1);
@@ -90,7 +90,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [Fact]
+        [LightGBMFact]
         public void AutoFit_UCI_Adult_CrossValidation_10_Test()
         {
             var context = new MLContext(1);
