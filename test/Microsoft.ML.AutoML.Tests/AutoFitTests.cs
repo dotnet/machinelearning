@@ -64,7 +64,7 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(1)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
             Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
@@ -82,7 +82,7 @@ namespace Microsoft.ML.AutoML.Test
             var trainData = textLoader.Load(dataPath);
             var dataTrainTest = context.Data.TrainTestSplit(trainData);
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(1)
                 .Execute(dataTrainTest.TrainSet, dataTrainTest.TestSet, DatasetUtil.UciAdultLabel);
             Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
@@ -99,7 +99,7 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(1)
                 .Execute(trainData, 10, DatasetUtil.UciAdultLabel);
             Assert.True(result.BestRun.Results.Select(x => x.ValidationMetrics.Accuracy).Min() > 0.70);
             Assert.NotNull(result.BestRun.Estimator);

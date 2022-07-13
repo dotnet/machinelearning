@@ -219,7 +219,13 @@ namespace Microsoft.ML.AutoML
             _settings.CancellationToken = ct;
             cts.CancelAfter((int)_settings.MaxExperimentTimeInSeconds * 1000);
             _settings.CancellationToken.Register(() => cts.Cancel());
-            cts.Token.Register(() => _context.CancelExecution());
+            cts.Token.Register(() =>
+            {
+                // only force-canceling running trials when there's completed trials.
+                // otherwise, wait for the current running trial to be completed.
+                if (_bestTrialResult != null)
+                    _context.CancelExecution();
+            });
 
             InitializeServiceCollection();
             var serviceProvider = _serviceCollection.BuildServiceProvider();
