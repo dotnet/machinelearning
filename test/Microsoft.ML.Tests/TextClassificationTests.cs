@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -152,6 +153,28 @@ namespace Microsoft.ML.Tests
             // Not enough training is done to get good results so just make sure the count is right.
             var a = predictedLabel.ToList();
             Assert.Equal(8, a.Count());
+        }
+
+        // To run the TestTextClassificationWithBigDataOnGpu, set the EnableRunningGpuTest property to true and in the csproj enable the package TorchSharp-cuda-windows and disable libtorch-cpu-win-x64.
+        private static bool EnableRunningGpuTest => false;
+
+        [ConditionalFact(nameof(EnableRunningGpuTest))]
+        public void TestTextClassificationWithBigDataOnGpu()
+        {
+            var mlContext = new MLContext();
+            mlContext.GpuDeviceId = 0;
+            mlContext.FallbackToCpu = false;
+            var df = DataFrame.LoadCsv(@"Data\github-issues-train.tsv", separator: '\t', header: true, columnNames: new[] { "ID", "Label", "Title", "Description" });
+            var trainTestSplit = mlContext.Data.TrainTestSplit(df, testFraction: 0.2);
+            var pipeline =
+                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                        .Append(mlContext.MulticlassClassification.Trainers.TextClassification(sentence1ColumnName: "Title", sentence2ColumnName: "Description", maxEpochs: 10, batchSize: 8))
+                        .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+            var model = pipeline.Fit(trainTestSplit.TrainSet);
+            var predictionIdv = model.Transform(trainTestSplit.TestSet);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predictionIdv);
+            Assert.True(metrics.MacroAccuracy > .69);
+            Assert.True(metrics.MicroAccuracy > .70);
         }
 
         [Fact]

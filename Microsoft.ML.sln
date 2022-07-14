@@ -159,6 +159,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.SourceG
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TorchSharp", "src\Microsoft.ML.TorchSharp\Microsoft.ML.TorchSharp.csproj", "{FF0BD187-4451-4A3B-934B-2AE3454896E2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Tokenizers", "src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj", "{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Tokenizers.Tests", "test\Microsoft.ML.Tokenizers.Tests\Microsoft.ML.Tokenizers.Tests.csproj", "{C3D82402-F207-4F19-8C57-5AF0FBAF9682}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -747,6 +751,22 @@ Global
 		{FF0BD187-4451-4A3B-934B-2AE3454896E2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FF0BD187-4451-4A3B-934B-2AE3454896E2}.Release|x64.ActiveCfg = Release|Any CPU
 		{FF0BD187-4451-4A3B-934B-2AE3454896E2}.Release|x64.Build.0 = Release|Any CPU
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}.Debug|x64.Build.0 = Debug|Any CPU
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}.Release|x64.ActiveCfg = Release|Any CPU
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}.Release|x64.Build.0 = Release|Any CPU
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Debug|x64.Build.0 = Debug|Any CPU
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Release|x64.ActiveCfg = Release|Any CPU
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -825,6 +845,8 @@ Global
 		{A3E9F25F-2718-4FF9-A35A-54C232A847AB} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{C804B990-390E-41D7-8FF1-6774495D70E2} = {7F13E156-3EBA-4021-84A5-CD56BA72F99E}
 		{FF0BD187-4451-4A3B-934B-2AE3454896E2} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{C3D82402-F207-4F19-8C57-5AF0FBAF9682} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
