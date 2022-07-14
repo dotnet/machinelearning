@@ -55,6 +55,7 @@ namespace Microsoft.ML.Fairlearn.Tests
         [Fact]
         public void BinaryClassificationMetricTest()
         {
+            RegressionMetric regressionMetric = mlContext.Fairlearn().Metric.BinaryClassification (eval: data, labelColumn: "Price", scoreColumn: "Score", sensitiveFeatureColumn: "Gender");
             Assert.True(true);
         }
     }

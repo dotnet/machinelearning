@@ -105,6 +105,8 @@ namespace Microsoft.ML.Fairlearn.reductions
 
             return gSigned;
         }
+
+        //public float Signed
     }
 
     public class DemographicParity : UtilityParity

@@ -123,7 +123,17 @@ namespace Microsoft.ML.Fairlearn
 
             DataFrame result = new DataFrame();
             result[_sensitiveFeatureColumn] = DataFrameColumn.Create(_sensitiveFeatureColumn, groupMetric.Keys.Select(x => x.ToString()));
-            result["AUC"] = DataFrameColumn.Create("AUC", groupMetric.Keys.Select(k => groupMetric[k].Accuracy)); //coloumn name?
+            result["AUC"] = DataFrameColumn.Create("AUC", groupMetric.Keys.Select(k => groupMetric[k].AreaUnderRocCurve)); //coloumn name?
+            result["Accuracy"] = DataFrameColumn.Create("Accuracy", groupMetric.Keys.Select(k => groupMetric[k].Accuracy));
+            result["PosPrec"] = DataFrameColumn.Create("PosPrec", groupMetric.Keys.Select(k => groupMetric[k].PositivePrecision));
+            result["PosRecall"] = DataFrameColumn.Create("PosRecall", groupMetric.Keys.Select(k => groupMetric[k].PositiveRecall));
+            result["NegPrec"] = DataFrameColumn.Create("NegPrec", groupMetric.Keys.Select(k => groupMetric[k].NegativePrecision));
+            result["NegRecall"] = DataFrameColumn.Create("NegRecall", groupMetric.Keys.Select(k => groupMetric[k].NegativeRecall));
+            result["F1Score"] = DataFrameColumn.Create("F1Score", groupMetric.Keys.Select(k => groupMetric[k].F1Score));
+            result["AreaUnderPrecisionRecallCurve"] = DataFrameColumn.Create("AreaUnderPrecisionRecallCurve", groupMetric.Keys.Select(k => groupMetric[k].AreaUnderPrecisionRecallCurve));
+            result["LogLoss"] = DataFrameColumn.Create("LogLoss", groupMetric.Keys.Select(k => groupMetric[k].LogLoss));
+            result["LogLossReduction"] = DataFrameColumn.Create("LogLossReduction", groupMetric.Keys.Select(k => groupMetric[k].LogLossReduction));
+            result["Entropy"] = DataFrameColumn.Create("Entropy", groupMetric.Keys.Select(k => groupMetric[k].Entropy));
 
             return result;
         }
@@ -247,9 +257,9 @@ namespace Microsoft.ML.Fairlearn
             result["RSquared"] = DataFrameColumn.Create("RSquared", groupMetric.Keys.Select(k => groupMetric[k].RSquared));
             result["RMS"] = DataFrameColumn.Create("RMS", groupMetric.Keys.Select(k => groupMetric[k].RootMeanSquaredError));
             result["MSE"] = DataFrameColumn.Create("MSE", groupMetric.Keys.Select(k => groupMetric[k].MeanSquaredError));
+            result["MAE"] = DataFrameColumn.Create("MAE", groupMetric.Keys.Select(k => groupMetric[k].MeanAbsoluteError));
             return result;
         }
-
 
 
         public Dictionary<string, double> DifferenceBetweenGroups()
@@ -259,6 +269,7 @@ namespace Microsoft.ML.Fairlearn
             diffDict.Add("RSquared", Math.Abs((double)groupMetrics["RSquared"].Max() - (double)groupMetrics["RSquared"].Min()));
             diffDict.Add("RMS", Math.Abs((double)groupMetrics["RMS"].Max() - (double)groupMetrics["RMS"].Min()));
             diffDict.Add("MSE", Math.Abs((double)groupMetrics["MSE"].Max() - (double)groupMetrics["MSE"].Min()));
+            diffDict.Add("MAE", Math.Abs((double)groupMetrics["MAE"].Max() - (double)groupMetrics["MAE"].Min()));
             return diffDict;
         }
 
