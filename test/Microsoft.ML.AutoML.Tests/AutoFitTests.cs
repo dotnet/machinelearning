@@ -419,7 +419,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [LightGbmFact]
+        [LightGBMFact]
         public void AutoFitWithPresplittedData()
         {
             // Models created in AutoML should work over the same data,
