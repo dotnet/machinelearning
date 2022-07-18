@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML
 
         void ReportBestTrial(TrialResult result);
 
-        void ReportFailTrial(TrialResult result);
+        void ReportFailTrial(TrialSettings settings, Exception exception = null);
 
         void ReportRunningTrial(TrialSettings setting);
     }
@@ -49,9 +49,9 @@ namespace Microsoft.ML.AutoML
             _completedTrials.Add(result);
         }
 
-        public void ReportFailTrial(TrialResult result)
+        public void ReportFailTrial(TrialSettings settings, Exception exception = null)
         {
-            _logger.Info($"Update Failed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline}");
+            _logger.Info($"Update Failed Trial - Id: {settings.TrialId} - Pipeline: {settings.Pipeline}");
         }
 
         public void ReportRunningTrial(TrialSettings setting)

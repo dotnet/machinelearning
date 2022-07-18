@@ -55,8 +55,8 @@ namespace Microsoft.ML.AutoML.Test
                 "were not relayed to the main MLContext.");
         }
 
-        [Fact]
-        public void AutoFitBinaryTest()
+        [LightGBMFact]
+        public void AutoFit_UCI_Adult_Test()
         {
             var context = new MLContext(1);
             var dataPath = DatasetUtil.GetUciAdultDataset();
@@ -64,11 +64,45 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(0)
+                .CreateBinaryClassificationExperiment(1)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
             Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.Model);
+            Assert.NotNull(result.BestRun.TrainerName);
+        }
+
+        [LightGBMFact]
+        public void AutoFit_UCI_Adult_Train_Test_Split_Test()
+        {
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
+            var dataTrainTest = context.Data.TrainTestSplit(trainData);
+            var result = context.Auto()
+                .CreateBinaryClassificationExperiment(1)
+                .Execute(dataTrainTest.TrainSet, dataTrainTest.TestSet, DatasetUtil.UciAdultLabel);
+            Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.Model);
+            Assert.NotNull(result.BestRun.TrainerName);
+        }
+
+        [LightGBMFact]
+        public void AutoFit_UCI_Adult_CrossValidation_10_Test()
+        {
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
+            var result = context.Auto()
+                .CreateBinaryClassificationExperiment(1)
+                .Execute(trainData, 10, DatasetUtil.UciAdultLabel);
+            Assert.True(result.BestRun.Results.Select(x => x.ValidationMetrics.Accuracy).Min() > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
@@ -385,7 +419,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [Fact]
+        [LightGBMFact]
         public void AutoFitWithPresplittedData()
         {
             // Models created in AutoML should work over the same data,
@@ -401,21 +435,25 @@ namespace Microsoft.ML.AutoML.Test
             var dataCV = context.Data.CrossValidationSplit(dataFull, numberOfFolds: 2);
 
             var modelFull = context.Auto()
-                .CreateBinaryClassificationExperiment(0)
+                .CreateBinaryClassificationExperiment(10)
                 .Execute(dataFull,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
                 .Model;
 
+            // AutoMLExperiment can't run on canceled context.
+            // Therefore, we need to create a new context after an experiment is completed.
+            context = new MLContext(1);
             var modelTrainTest = context.Auto()
-                .CreateBinaryClassificationExperiment(0)
+                .CreateBinaryClassificationExperiment(10)
                 .Execute(dataTrainTest.TrainSet,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
                 .Model;
 
+            context = new MLContext(1);
             var modelCV = context.Auto()
-                .CreateBinaryClassificationExperiment(0)
+                .CreateBinaryClassificationExperiment(10)
                 .Execute(dataCV.First().TrainSet,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
@@ -429,9 +467,9 @@ namespace Microsoft.ML.AutoML.Test
                 var resTrainTest = model.Transform(dataTrainTest.TrainSet);
                 var resCV = model.Transform(dataCV.First().TrainSet);
 
-                Assert.Equal(30, resFull.Schema.Count);
-                Assert.Equal(30, resTrainTest.Schema.Count);
-                Assert.Equal(30, resCV.Schema.Count);
+                Assert.Equal(31, resFull.Schema.Count);
+                Assert.Equal(31, resTrainTest.Schema.Count);
+                Assert.Equal(31, resCV.Schema.Count);
 
                 foreach (var col in resFull.Schema)
                 {
@@ -439,7 +477,6 @@ namespace Microsoft.ML.AutoML.Test
                     Assert.Equal(col.Name, resCV.Schema[col.Index].Name);
                 }
             }
-
         }
 
         [LightGBMFact]

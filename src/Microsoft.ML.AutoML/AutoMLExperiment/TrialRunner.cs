@@ -56,12 +56,14 @@ namespace Microsoft.ML.AutoML
                 stopWatch.Stop();
 
 
-                return new TrialResult()
+                return new BinaryClassificationTrialResult()
                 {
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    BinaryClassificationMetrics = res.Metrics,
+                    CrossValidationMetrics = metrics,
                 };
             }
 
@@ -108,12 +110,13 @@ namespace Microsoft.ML.AutoML
                 stopWatch.Stop();
 
 
-                return new TrialResult()
+                return new BinaryClassificationTrialResult()
                 {
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    BinaryClassificationMetrics = metrics,
                 };
             }
 

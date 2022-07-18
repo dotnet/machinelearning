@@ -55,7 +55,7 @@ namespace Microsoft.ML.AutoML
             ThrottledUpdate();
         }
 
-        public void ReportFailTrial(TrialResult result)
+        public void ReportFailTrial(TrialSettings setting, Exception exp = null)
         {
             // TODO figure out what to do with failed trials.
             ThrottledUpdate();
