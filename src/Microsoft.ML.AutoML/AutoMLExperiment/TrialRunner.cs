@@ -95,7 +95,7 @@ namespace Microsoft.ML.AutoML
                 var eval = model.Transform(datasetSettings.TestDataset);
                 var metrics = _context.BinaryClassification.EvaluateNonCalibrated(eval, metricSettings.LabelColumn, predictedLabelColumnName: metricSettings.PredictedColumn);
 
-                // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
+                // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the closest to average or the best.
                 var metric = metricSettings.Metric switch
                 {
                     BinaryClassificationMetric.PositivePrecision => metrics.PositivePrecision,
