@@ -14,9 +14,11 @@ namespace Microsoft.ML.Fairlearn.reductions
     public class UtilityParity : ClassificationMoment
     {
         private const float _defaultDifferenceBound = 0.01F;
-
         private readonly float _epsilon;
         private readonly float _ratio;
+
+        public float ProbEvent { get; protected set; }
+        public DataFrameColumn ProbGroupEvent { get; protected set; }
         public UtilityParity(float differenceBound = Single.NaN, float ratioBond = Single.NaN, float ratioBoundSlack = 0.0f)
         {
             if (Single.NaN.Equals(differenceBound) && Single.NaN.Equals(ratioBond))
@@ -52,7 +54,7 @@ namespace Microsoft.ML.Fairlearn.reductions
         /// <param name="sensitiveFeature"></param>
         /// <param name="events"></param>
         /// <param name="utilities"></param>
-        public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature, StringDataFrameColumn events, StringDataFrameColumn utilities = null)
+        public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature, StringDataFrameColumn events = null, StringDataFrameColumn utilities = null)
         {
             base.LoadData(x, y, sensitiveFeature);
             Tags["event"] = events;
@@ -60,9 +62,15 @@ namespace Microsoft.ML.Fairlearn.reductions
 
             if (utilities == null)
             {
-
+                // TODO: set up the default utitlity
             }
+            //probEvent will contain the probabilities for each of the event, since we are now focusing on
+            //TODO: implementing the demography parity which has only one event, we will set it like this for now.
+            ProbEvent = 1.0F;
+            //ProbEvent = Tags.GroupBy("event").Count / TotalSamples; We should use this if we have an event
 
+            //Here the "label" column is just a dummy column for the end goal of getting the number of data rows
+            ProbGroupEvent = Tags.GroupBy("group_id").Count("label").OrderBy("Group_id")["label"] / TotalSamples;
         }
         /// <summary>
         /// Calculate the degree to which constraints are currently violated by the predictor.
@@ -106,7 +114,24 @@ namespace Microsoft.ML.Fairlearn.reductions
             return gSigned;
         }
 
-        //public float Signed
+        public new DataFrameColumn SignedWeights(DataFrame lambdaVec)
+        {
+            //TODO: calculate the propper Lambda Event and ProbEvent.
+            // In the case of Demographic Parity, LambdaEvent contains one value, and ProbEvent is just 1, so we will skip it for now
+            // lambdaEvent = (lambdaVec["+"] - _ratio * lambdaVec["-"])
+
+            var gPos = lambdaVec.Filter(lambdaVec["sign"].ElementwiseEquals("+")).OrderBy("group_id");
+            var gNeg = lambdaVec.Filter(lambdaVec["sign"].ElementwiseEquals("-")).OrderBy("group_id");
+            var lambdaEvent = (float)(gPos["value"] - _ratio * gNeg["value"]).Sum() / ProbEvent;
+            var lambdaGroupEvent = (_ratio * gPos["value"] - gNeg["value"]) / ProbGroupEvent;
+            //TODO: maybe add a index column to adjust in the future to ensure the data entry of adjust correspond that of tag
+            var adjust = lambdaEvent - lambdaGroupEvent;
+            //TODO: chech for null values i.e., if any entry in adjust is 0, make the corrosponding of singed weight to 0
+            //TODO: add utility calculation, for now it is just 1 for everything
+            var signedWeights = adjust;
+
+            return signedWeights;
+        }
     }
 
     public class DemographicParity : UtilityParity

@@ -7,18 +7,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Data;
-using Microsoft.ML.Fairlearn.reductions;
 using Microsoft.ML.SearchSpace;
 using Microsoft.ML.SearchSpace.Option;
 
-namespace Microsoft.ML.Fairlearn
+namespace Microsoft.ML.Fairlearn.reductions
 {
     public static class Utilities
     {
         public static SearchSpace.SearchSpace GenerateBinaryClassificationLambdaSearchSpace(MLContext context, Moment moment, float gridLimit, bool negativeAllowed = true)
         {
             var searchSpace = new SearchSpace.SearchSpace();
-            var convertToString = context.Transforms.Conversion.ConvertType(moment.SensitiveFeatureColumn.Name, moment.SensitiveFeatureColumn.Name, Data.DataKind.String);
+            var convertToString = context.Transforms.Conversion.ConvertType(moment.SensitiveFeatureColumn.Name, moment.SensitiveFeatureColumn.Name, DataKind.String);
             var sensitiveFeatureColumnValue = convertToString.Fit(moment.X).Transform(moment.X).GetColumn<string>(moment.SensitiveFeatureColumn.Name).Distinct();
 
             // for different_bound only

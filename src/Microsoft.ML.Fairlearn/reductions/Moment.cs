@@ -16,9 +16,10 @@ namespace Microsoft.ML.Fairlearn.reductions
     public class Moment
     {
         private bool _dataLoaded = false;
-        protected DataFrameColumn Y;
+        protected DataFrameColumn Y; //maybe lowercase this?
         public DataFrame Tags { get; private set; }
-        public IDataView X { get; protected set; } //uppercase?
+        public IDataView X { get; protected set; }
+        public long TotalSamples { get; protected set; }
 
         public DataFrameColumn SensitiveFeatureColumn { get => Tags["group_id"]; }
 
@@ -34,6 +35,7 @@ namespace Microsoft.ML.Fairlearn.reductions
             }
 
             X = x;
+            TotalSamples = y.Length;
             Y = y;
             Tags = new DataFrame();
             Tags["label"] = y;
@@ -58,7 +60,7 @@ namespace Microsoft.ML.Fairlearn.reductions
         {
             throw new NotImplementedException();
         }
-        public float SignedWeights()
+        public float SignedWeights(DataFrame lambdaVec)
         {
             throw new NotImplementedException();
         }
