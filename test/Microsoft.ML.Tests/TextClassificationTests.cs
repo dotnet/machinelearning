@@ -29,6 +29,11 @@ namespace Microsoft.ML.Tests
             public string Sentiment;
         }
 
+        private class TestSingleSentenceDataNoLabel
+        {
+            public string Sentence1;
+        }
+
         private class TestDoubleSentenceData
         {
             public string Sentence;
@@ -82,7 +87,8 @@ namespace Microsoft.ML.Tests
                          Sentiment = "Negative"
                      }
                 }));
-            var estimator = ML.Transforms.Conversion.MapValueToKey("Label", "Sentiment")
+            var chain = new EstimatorChain<ITransformer>();
+            var estimator = chain.Append(ML.Transforms.Conversion.MapValueToKey("Label", "Sentiment"), TransformerScope.TrainTest)
                 .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn"))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
@@ -96,11 +102,49 @@ namespace Microsoft.ML.Tests
             var transformer = estimator.Fit(dataView);
             var transformerSchema = transformer.GetOutputSchema(dataView.Schema);
 
+            var filteredModel = transformer.GetModelFor(TransformerScope.Scoring);
+
             Assert.Equal(6, transformerSchema.Count);
             Assert.Equal("outputColumn", transformerSchema[4].Name);
             Assert.Equal(TextDataViewType.Instance, transformerSchema[4].Type);
 
-            var predictedLabel = transformer.Transform(dataView).GetColumn<ReadOnlyMemory<char>>(transformerSchema[4].Name);
+            var dataNoLabel = ML.Data.LoadFromEnumerable(
+                new List<TestSingleSentenceDataNoLabel>(new TestSingleSentenceDataNoLabel[] {
+                    new ()
+                    {   // Testing longer than 512 words.
+                        Sentence1 = "ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .",
+                    },
+                     new ()
+                     {
+                         Sentence1 = "with a sharp script and strong performances",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "that director m. night shyamalan can weave an eerie spell and",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "comfortable",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "does have its charms .",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "banal as the telling",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "faithful without being forceful , sad without being shrill , `` a walk to remember '' succeeds through sincerity .",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "leguizamo 's best movie work so far",
+                     }
+                }));
+
+            var predictedLabel = filteredModel.Transform(dataNoLabel).GetColumn<ReadOnlyMemory<char>>(transformerSchema[4].Name);
 
             // Make sure that we can use the multiclass evaluate method
             var metrics = ML.MulticlassClassification.Evaluate(transformer.Transform(dataView), predictedLabelColumnName: "outputColumn");
