@@ -290,7 +290,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         public TextClassificationTransformer Fit(IDataView input)
         {
+            CheckInputSchema(SchemaShape.Create(input.Schema));
+
             TextClassificationTransformer transformer = default;
+
             using (var ch = _host.Start("TrainModel"))
             using (var pch = _host.StartProgressChannel("Training model"))
             {
