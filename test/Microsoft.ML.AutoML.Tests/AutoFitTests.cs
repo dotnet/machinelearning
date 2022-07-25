@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
@@ -115,17 +116,23 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
-
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.Message);
+                }
+            };
             if (useNumberOfCVFolds)
             {
                 // When setting numberOfCVFolds
                 // The results object is a CrossValidationExperimentResults<> object
                 uint numberOfCVFolds = 5;
                 var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(0)
+                    .CreateMulticlassClassificationExperiment(5)
                     .Execute(trainData, numberOfCVFolds, DatasetUtil.TrivialMulticlassDatasetLabel);
 
-                Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
+                result.BestRun.Results.First().ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.7);
                 var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
                 Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
             }
@@ -141,7 +148,7 @@ namespace Microsoft.ML.AutoML.Test
                 int crossValRowCountThreshold = 15000;
                 trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
                 var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(0)
+                    .CreateMulticlassClassificationExperiment(10)
                     .Execute(trainData, DatasetUtil.TrivialMulticlassDatasetLabel);
 
                 Assert.True(result.BestRun.ValidationMetrics.MicroAccuracy >= 0.7);
@@ -165,7 +172,7 @@ namespace Microsoft.ML.AutoML.Test
             IDataView trainDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TrainSet, originalColumnNames);
             IDataView testDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TestSet, originalColumnNames);
             var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(0)
+                            .CreateMulticlassClassificationExperiment(1)
                             .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
 
             Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, 3);

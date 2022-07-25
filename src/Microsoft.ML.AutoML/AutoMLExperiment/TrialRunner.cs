@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
 {
@@ -56,13 +57,13 @@ namespace Microsoft.ML.AutoML
                 stopWatch.Stop();
 
 
-                return new BinaryClassificationTrialResult()
+                return new TrialResult<BinaryClassificationMetrics>()
                 {
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    BinaryClassificationMetrics = res.Metrics,
+                    Metrics = res.Metrics,
                     CrossValidationMetrics = metrics,
                 };
             }
@@ -110,13 +111,13 @@ namespace Microsoft.ML.AutoML
                 stopWatch.Stop();
 
 
-                return new BinaryClassificationTrialResult()
+                return new TrialResult<BinaryClassificationMetrics>()
                 {
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    BinaryClassificationMetrics = metrics,
+                    Metrics = metrics,
                 };
             }
 
@@ -163,8 +164,9 @@ namespace Microsoft.ML.AutoML
                 stopWatch.Stop();
 
 
-                return new TrialResult()
+                return new TrialResult<MulticlassClassificationMetrics>()
                 {
+                    Metrics = metrics,
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
@@ -216,12 +218,13 @@ namespace Microsoft.ML.AutoML
 
                 stopWatch.Stop();
 
-                return new TrialResult()
+                return new TrialResult<MulticlassClassificationMetrics>()
                 {
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    CrossValidationMetrics = metrics,
                 };
             }
 

@@ -96,6 +96,28 @@ namespace Microsoft.ML.AutoML
             return isMetricMaximizing ? GetIndexOfMaxScore(scores) : GetIndexOfMinScore(scores);
         }
 
+        public static RunDetail<TMetrics> ToRunDetail<TMetrics>(MLContext context, TrialResult<TMetrics> result)
+            where TMetrics : class
+        {
+            var pipeline = result.TrialSettings.Pipeline;
+            var trainerName = pipeline.ToString();
+            var parameter = result.TrialSettings.Parameter;
+            var estimator = pipeline.BuildTrainingPipeline(context, parameter);
+            var modelContainer = new ModelContainer(context, result.Model);
+            return new RunDetail<TMetrics>(trainerName, estimator, null, modelContainer, result.Metrics, result.Exception);
+        }
+
+        public static CrossValidationRunDetail<TMetrics> ToCrossValidationRunDetail<TMetrics>(MLContext context, TrialResult<TMetrics> result)
+            where TMetrics : class
+        {
+            var pipeline = result.TrialSettings.Pipeline;
+            var trainerName = pipeline.ToString();
+            var parameter = result.TrialSettings.Parameter;
+            var estimator = pipeline.BuildTrainingPipeline(context, parameter);
+            var crossValidationResult = result.CrossValidationMetrics.Select(m => new TrainResult<TMetrics>(new ModelContainer(context, m.Model), m.Metrics, result.Exception));
+            return new CrossValidationRunDetail<TMetrics>(trainerName, estimator, null, crossValidationResult);
+        }
+
         private static int GetIndexOfMinScore(IEnumerable<double> scores)
         {
             var minScore = double.PositiveInfinity;
