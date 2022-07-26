@@ -61,6 +61,7 @@
     <AdditionalFiles Include="CodeGen\*search_space.json" />
     <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
     <AdditionalFiles Include="CodeGen\*-estimators.json" />
+    <None Remove="CodeGen\dnn_featurizer_image_search_space.json" />
     <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
   </ItemGroup>
 
