@@ -13,7 +13,7 @@ namespace Microsoft.ML.Fairlearn.reductions
     /// General Moment of :class:`Moment` objects to describe the disparity constraints imposed
     /// on the solution.This is an abstract class for all such objects.
     /// </summary>
-    public class Moment
+    public abstract class Moment
     {
         private bool _dataLoaded = false;
         protected DataFrameColumn Y; //maybe lowercase this?
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Fairlearn.reductions
         {
             if (_dataLoaded)
             {
-                throw new InvalidOperationException("data can be loaded only once");
+                //throw new InvalidOperationException("data can be loaded only once");
             }
 
             X = x;
@@ -48,10 +48,7 @@ namespace Microsoft.ML.Fairlearn.reductions
             _dataLoaded = true;
         }
 
-        public DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred);
         public float Bound()
         {
             throw new NotImplementedException();
@@ -60,7 +57,7 @@ namespace Microsoft.ML.Fairlearn.reductions
         {
             throw new NotImplementedException();
         }
-        public float SignedWeights(DataFrame lambdaVec)
+        public virtual DataFrameColumn SignedWeights(DataFrame lambdaVec)
         {
             throw new NotImplementedException();
         }
@@ -68,7 +65,7 @@ namespace Microsoft.ML.Fairlearn.reductions
     /// <summary>
     /// Moment that can be expressed as weighted classification error.
     /// </summary>
-    public class ClassificationMoment : Moment
+    public abstract class ClassificationMoment : Moment
     {
 
     }
