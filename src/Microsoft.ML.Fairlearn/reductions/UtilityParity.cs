@@ -56,9 +56,10 @@ namespace Microsoft.ML.Fairlearn.reductions
         /// <param name="utilities"></param>
         public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature, StringDataFrameColumn events = null, StringDataFrameColumn utilities = null)
         {
+            //TODO: Accept sensitive feature as a DataFrameColumn and convert it to string
             base.LoadData(x, y, sensitiveFeature);
-            Tags["event"] = events;
-            Tags["utilities"] = utilities;
+            //Tags["event"] = events;
+            //Tags["utilities"] = utilities;
 
             if (utilities == null)
             {
@@ -70,20 +71,20 @@ namespace Microsoft.ML.Fairlearn.reductions
             //ProbEvent = Tags.GroupBy("event").Count / TotalSamples; We should use this if we have an event
 
             //Here the "label" column is just a dummy column for the end goal of getting the number of data rows
-            ProbGroupEvent = Tags.GroupBy("group_id").Count("label").OrderBy("Group_id")["label"] / TotalSamples;
+            ProbGroupEvent = Tags.GroupBy("group_id").Count()["label"] / (TotalSamples * 1.0);
         }
         /// <summary>
         /// Calculate the degree to which constraints are currently violated by the predictor.
         /// </summary>
         /// <returns></returns>
-        public new DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred/*TODO: change to a predictor*/)
+        public override DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred/*TODO: change to a predictor*/)
         {
             Tags["pred"] = yPred;
             //TODO: add the utility into the calculation of the violation, will be needed for other parity methods
             //TODO: also we need to add the events column to the returned gamma singed
             //calculate upper bound difference and lower bound difference
             var expectEvent = Tags["pred"].Mean();
-            var expectGroupEvent = Tags.GroupBy("group_id").Mean()["pred"];
+            var expectGroupEvent = Tags.GroupBy("group_id").Mean("pred").OrderBy(("group_id"))["pred"];
             var upperBoundDiff = _ratio * expectGroupEvent - expectEvent;
             var lowerBoundDiff = -1.0 /*to add a negative sign*/ * expectGroupEvent + _ratio * expectEvent;
 
@@ -95,8 +96,9 @@ namespace Microsoft.ML.Fairlearn.reductions
             StringDataFrameColumn posSign = new StringDataFrameColumn("sign", upperBoundDiff.Length);
 
             // a string column that has all the group names
-            var groupID = Tags.GroupBy("group_id").Mean()["group_id"];
 
+            // var groupID = DataFrameColumn.Create("group_id", Tags["group_id"].Cast<string>());
+            var groupID = Tags.GroupBy("group_id").Mean("pred").OrderBy("group_id")["group_id"];
             // gSigned (gamma signed) is the dataframe that we return in the end that presents the uitility parity
             DataFrame gSigned = new DataFrame(posSign, groupID, upperBoundDiff);
 
@@ -114,7 +116,7 @@ namespace Microsoft.ML.Fairlearn.reductions
             return gSigned;
         }
 
-        public new DataFrameColumn SignedWeights(DataFrame lambdaVec)
+        public override DataFrameColumn SignedWeights(DataFrame lambdaVec)
         {
             //TODO: calculate the propper Lambda Event and ProbEvent.
             // In the case of Demographic Parity, LambdaEvent contains one value, and ProbEvent is just 1, so we will skip it for now
@@ -124,11 +126,24 @@ namespace Microsoft.ML.Fairlearn.reductions
             var gNeg = lambdaVec.Filter(lambdaVec["sign"].ElementwiseEquals("-")).OrderBy("group_id");
             var lambdaEvent = (float)(gPos["value"] - _ratio * gNeg["value"]).Sum() / ProbEvent;
             var lambdaGroupEvent = (_ratio * gPos["value"] - gNeg["value"]) / ProbGroupEvent;
-            //TODO: maybe add a index column to adjust in the future to ensure the data entry of adjust correspond that of tag
-            var adjust = lambdaEvent - lambdaGroupEvent;
+
+            DataFrameColumn adjust = lambdaEvent - lambdaGroupEvent;
+            DataFrame lookUp = new DataFrame(gPos["group_id"], adjust);
             //TODO: chech for null values i.e., if any entry in adjust is 0, make the corrosponding of singed weight to 0
             //TODO: add utility calculation, for now it is just 1 for everything
-            var signedWeights = adjust;
+            long dataSetLength = Tags.Rows.Count();
+            float[] signedWeightsFloat = new float[dataSetLength];
+            // iterate through the rows of the original dataset of features
+            long i = 0;
+            foreach (DataFrameRow row in Tags.Rows)
+            {
+                // we are creating a new array where it will store the weight according the the lookup table (adjust) we created
+                // TODO: right now this only supports one event, we have to filter through the event column so that this supports multiple events
+                signedWeightsFloat[i] = Convert.ToSingle(lookUp.Filter(lookUp["group_id"].ElementwiseEquals(row["group_id"]))["value"][0]);
+                i++;
+            }
+
+            DataFrameColumn signedWeights = new PrimitiveDataFrameColumn<float>("signedWeights", signedWeightsFloat);
 
             return signedWeights;
         }
