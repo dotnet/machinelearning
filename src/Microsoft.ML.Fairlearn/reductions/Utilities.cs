@@ -17,19 +17,18 @@ namespace Microsoft.ML.Fairlearn.reductions
         public static SearchSpace.SearchSpace GenerateBinaryClassificationLambdaSearchSpace(MLContext context, Moment moment, float gridLimit, bool negativeAllowed = true)
         {
             var searchSpace = new SearchSpace.SearchSpace();
-            var convertToString = context.Transforms.Conversion.ConvertType(moment.SensitiveFeatureColumn.Name, moment.SensitiveFeatureColumn.Name, DataKind.String);
-            var sensitiveFeatureColumnValue = convertToString.Fit(moment.X).Transform(moment.X).GetColumn<string>(moment.SensitiveFeatureColumn.Name).Distinct();
+            var sensitiveFeatureColumnValue = moment.SensitiveFeatureColumn.Cast<string>().Distinct();
 
             // for different_bound only
             // if sensitive feature column value is "a", "b", "c",
             // the search space will contains 6 options with name format {sensitive column value}_{pos/neg}
             // a_pos, a_neg, b_pos, b_neg, c_pos, c_neg.
-
+            var rand = new Random();
             foreach (var p in from _groupValue in sensitiveFeatureColumnValue
                               from _indicator in new[] { "pos", "neg" }
                               select new { _groupValue, _indicator })
             {
-                var option = new UniformSingleOption(-gridLimit, gridLimit, defaultValue: 0);
+                var option = new UniformSingleOption(-gridLimit, gridLimit, defaultValue: Convert.ToSingle(rand.NextDouble()) * 2.0f * gridLimit - gridLimit);
                 var optionName = $"{p._groupValue}_{p._indicator}";
                 searchSpace[optionName] = option;
             }
