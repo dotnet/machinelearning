@@ -384,13 +384,11 @@ namespace Microsoft.ML.Transforms.Onnx
         private static IEnumerable<int> AdjustDimensions(OnnxShape shape)
         {
             if (shape.Count > 0 && shape[0] < 0)
-            {
                 shape[0] = 1;
-            }
+
             if (shape.Count > 1)
-            {
                 return shape.Select(x => (x <= 0) ? 0 : x);
-            }
+
             return new[] { 1 };
         }
 
@@ -448,6 +446,11 @@ namespace Microsoft.ML.Transforms.Onnx
                     var shape = inputNodeInfo.Shape;
 
                     var inputShape = AdjustDimensions(inputNodeInfo.Shape);
+
+                    // Only allow a single unkown size dimension
+                    if (inputShape.Where(x => x == 0).Count() > 1)
+                        throw new ArgumentOutOfRangeException(_parent.Inputs[i], "Only 1 unknown dimension is allowed");
+
                     _inputTensorShapes[i] = inputShape.ToList();
                     _inputOnnxTypes[i] = inputNodeInfo.TypeInOnnxRuntime;
 
@@ -459,9 +462,6 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     var type = inputSchema[_inputColIndices[i]].Type;
                     var vectorType = type as VectorDataViewType;
-
-                    //if (vectorType != null && vectorType.Size == 0)
-                    //    throw Host.Except($"Variable length input columns not supported");
 
                     var itemType = type.GetItemType();
                     var nodeItemType = inputNodeInfo.DataViewType.GetItemType();
@@ -478,11 +478,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
                     // Compute the total size of the known dimensions of the shape.
-                    if (inputShape.Any(x => x == 0))
-                    {
-
-                    }
-                    else
+                    if (!inputShape.Any(x => x == 0))
                     {
                         int valCount = inputShape.Where(x => x > 0).Aggregate((x, y) => x * y);
                         // The column length should be divisible by this, so that the other dimensions can be integral.
@@ -792,12 +788,18 @@ namespace Microsoft.ML.Transforms.Onnx
 
             private class NamedOnnxValueGetterVec<T> : INamedOnnxValueGetter
             {
+                private delegate NamedOnnxValue GetNamedOnnxVal();
+
                 private readonly ValueGetter<VBuffer<T>> _srcGetter;
                 private readonly OnnxShape _tensorShape;
                 private readonly string _colName;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
                 private readonly bool _isKnownSize;
+                private readonly int _denominator;
+                private readonly int _zeroIndex;
+                private readonly GetNamedOnnxVal _namedOnnxValueDelegate;
+
                 public NamedOnnxValueGetterVec(DataViewRow input, int colIndex, OnnxShape tensorShape)
                 {
                     _srcGetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
@@ -806,14 +808,36 @@ namespace Microsoft.ML.Transforms.Onnx
                     _colName = input.Schema[colIndex].Name;
                     _vBuffer = default;
                     _vBufferDense = default;
+                    _denominator = _tensorShape.Where(x => x > 0).Aggregate((a, x) => a * x);
+                    _zeroIndex = _tensorShape.IndexOf(0);
+
+                    if (_isKnownSize)
+                        _namedOnnxValueDelegate = GetNamedOnnxValueKnownSize;
+                    else
+                        _namedOnnxValueDelegate = GetNamedOnnxValueUnknownSize;
                 }
                 public NamedOnnxValue GetNamedOnnxValue()
                 {
+                    return _namedOnnxValueDelegate();
+                }
+
+                private void GetNamedOnnxValueCore()
+                {
                     _srcGetter(ref _vBuffer);
                     _vBuffer.CopyToDense(ref _vBufferDense);
-                    if (!_isKnownSize)
-                        _tensorShape[1] = _vBufferDense.Length;
+                }
 
+                private NamedOnnxValue GetNamedOnnxValueKnownSize()
+                {
+                    GetNamedOnnxValueCore();
+                    return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
+                }
+
+                private NamedOnnxValue GetNamedOnnxValueUnknownSize()
+                {
+                    GetNamedOnnxValueCore();
+
+                    _tensorShape[_zeroIndex] = _vBufferDense.Length / _denominator;
                     return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
                 }
             }
@@ -924,13 +948,13 @@ namespace Microsoft.ML.Transforms.Onnx
                 // Get the i-th IDataView input column's name in the underlying ONNX transformer.
                 var input = Transformer.Inputs[i];
 
+                // Only allow 1 unknown dimension
+                if (Transformer.Model.ModelInfo.InputsInfo[i].Shape.Where(x => x == 0).Count() > 1)
+                    throw new ArgumentOutOfRangeException(input, "Only 1 unknown dimension is allowed");
+
                 // Make sure inputSchema contains the i-th input column.
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-
-                // Make sure that the input columns in inputSchema are fixed shape tensors.
-                //if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                //    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
                 var idx = Transformer.Model.ModelInfo.InputNames.IndexOf(input);
