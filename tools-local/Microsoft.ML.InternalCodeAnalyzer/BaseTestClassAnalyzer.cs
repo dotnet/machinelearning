@@ -71,20 +71,14 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 if (ExtendsBaseTestClass(namedType))
                     return;
 
-                var hasTestMethod = false;
                 foreach (var member in namedType.GetMembers())
                 {
                     if (member is IMethodSymbol method && method.IsTestMethod(_knownTestAttributes, _factAttribute))
                     {
-                        hasTestMethod = true;
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, namedType.Locations[0], namedType));
                         break;
                     }
                 }
-
-                if (!hasTestMethod)
-                    return;
-
-                context.ReportDiagnostic(Diagnostic.Create(Rule, namedType.Locations[0], namedType));
             }
 
             private bool ExtendsBaseTestClass(INamedTypeSymbol namedType)
