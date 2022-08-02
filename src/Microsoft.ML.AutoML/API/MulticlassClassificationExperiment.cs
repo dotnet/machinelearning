@@ -293,7 +293,7 @@ namespace Microsoft.ML.AutoML
             pipeline = pipeline.Append(Context.Auto().Featurizer(trainData, columnInformation, Features));
             pipeline = pipeline.Append(Context.Transforms.Conversion.MapValueToKey(label, label));
             pipeline = pipeline.Append(Context.Auto().MultiClassification(label, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgs: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
-            pipeline = pipeline.Append(Context.Transforms.Conversion.MapKeyToValue(label, label));
+            pipeline = pipeline.Append(Context.Transforms.Conversion.MapKeyToValue(DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel));
 
             return pipeline;
         }

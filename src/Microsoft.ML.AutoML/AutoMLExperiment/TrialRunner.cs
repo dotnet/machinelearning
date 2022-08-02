@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
@@ -225,6 +226,7 @@ namespace Microsoft.ML.AutoML
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
                     CrossValidationMetrics = metrics,
+                    Metrics = res.Metrics,
                 };
             }
 
