@@ -383,11 +383,14 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         private static IEnumerable<int> AdjustDimensions(OnnxShape shape)
         {
-            if (shape.Count > 0 && shape[0] < 0)
-                shape[0] = 1;
-
-            if (shape.Count > 1)
+            if (shape.Count > 0)
+            {
+                if (shape[0] < 0)
+                {
+                    shape[0] = 1;
+                }
                 return shape.Select(x => (x <= 0) ? 0 : x);
+            }
 
             return new[] { 1 };
         }
@@ -795,7 +798,6 @@ namespace Microsoft.ML.Transforms.Onnx
                 private readonly string _colName;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
-                private readonly bool _isKnownSize;
                 private readonly int _denominator;
                 private readonly int _zeroIndex;
                 private readonly GetNamedOnnxVal _namedOnnxValueDelegate;
@@ -803,7 +805,6 @@ namespace Microsoft.ML.Transforms.Onnx
                 public NamedOnnxValueGetterVec(DataViewRow input, int colIndex, OnnxShape tensorShape)
                 {
                     _srcGetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
-                    _isKnownSize = (input.Schema[colIndex].Type as VectorDataViewType).IsKnownSize;
                     _tensorShape = tensorShape;
                     _colName = input.Schema[colIndex].Name;
                     _vBuffer = default;
@@ -811,7 +812,9 @@ namespace Microsoft.ML.Transforms.Onnx
                     _denominator = _tensorShape.Where(x => x > 0).Aggregate((a, x) => a * x);
                     _zeroIndex = _tensorShape.IndexOf(0);
 
-                    if (_isKnownSize)
+                    var isKnownSize = (input.Schema[colIndex].Type as VectorDataViewType).IsKnownSize;
+
+                    if (isKnownSize)
                         _namedOnnxValueDelegate = GetNamedOnnxValueKnownSize;
                     else
                         _namedOnnxValueDelegate = GetNamedOnnxValueUnknownSize;
