@@ -68,6 +68,7 @@
               "ApplyOnnxModel",
               "ResizeImages",
               "ExtractPixels",
+              "DnnFeaturizerImage",
               "Naive",
               "ForecastBySsa"
             ]
@@ -180,22 +181,12 @@
                     "confidenceLowerBoundColumn",
                     "confidenceUpperBoundColumn",
                     "confidenceLevel",
-                    "variableHorizon"
+                    "variableHorizon",
+                    "modelFactory"
                   ]
                 },
                 "argumentType": {
-                  "type": "string",
-                  "enum": [
-                    "integer",
-                    "float",
-                    "double",
-                    "string",
-                    "boolean",
-                    "resizingKind",
-                    "colorBits",
-                    "colorsOrder",
-                    "anchor"
-                  ]
+                  "$ref": "search-space-schema.json#/definitions/option_type"
                 }
               }
             }

@@ -587,6 +587,44 @@ namespace Microsoft.ML.AutoML
             return new SweepableEstimator[] { SweepableEstimatorFactory.CreateOneHotEncoding(option), SweepableEstimatorFactory.CreateOneHotHashEncoding(option) };
         }
 
+        internal MultiModelPipeline ImagePathFeaturizer(string outputColumnName, string inputColumnName)
+        {
+            // load image => resize image (224, 224) => extract pixels => dnn featurizer
+            var loadImageOption = new LoadImageOption
+            {
+                ImageFolder = null,
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+            };
+
+            var resizeImageOption = new ResizeImageOption
+            {
+                ImageHeight = 224,
+                ImageWidth = 224,
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+            };
+
+            var extractPixelOption = new ExtractPixelsOption
+            {
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+            };
+
+            var dnnFeaturizerOption = new DnnFeaturizerImageOption
+            {
+                InputColumnName = inputColumnName,
+                OutputColumnName = outputColumnName,
+            };
+
+            var pipeline = new MultiModelPipeline();
+
+            return pipeline.Append(SweepableEstimatorFactory.CreateLoadImages(loadImageOption))
+                        .Append(SweepableEstimatorFactory.CreateResizeImages(resizeImageOption))
+                        .Append(SweepableEstimatorFactory.CreateExtractPixels(extractPixelOption))
+                        .Append(SweepableEstimatorFactory.CreateDnnFeaturizerImage(dnnFeaturizerOption));
+        }
+
         /// <summary>
         /// Create a single featurize pipeline according to <paramref name="data"/>. This function will collect all columns in <paramref name="data"/> and not in <paramref name="excludeColumns"/>,
         /// featurizing them using <see cref="CatalogFeaturizer(string[], string[])"/>, <see cref="NumericFeaturizer(string[], string[])"/> or <see cref="TextFeaturizer(string, string)"/>. And combine
@@ -596,9 +634,10 @@ namespace Microsoft.ML.AutoML
         /// <param name="catalogColumns">columns that should be treated as catalog. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="numericColumns">columns that should be treated as numeric. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="textColumns">columns that should be treated as text. If not specified, it will automatically infer if a column is catalog or not.</param>
+        /// <param name="imagePathColumns">columns that should be treated as image path. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="outputColumnName">output feature column.</param>
         /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
-        public MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] excludeColumns = null)
+        public MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] imagePathColumns = null, string[] excludeColumns = null)
         {
             Contracts.CheckValue(data, nameof(data));
 
@@ -646,6 +685,14 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
+            if (imagePathColumns != null)
+            {
+                foreach (var column in imagePathColumns)
+                {
+                    columnInfo.ImagePathColumnNames.Add(column);
+                }
+            }
+
             return this.Featurizer(data, columnInfo, outputColumnName);
         }
 
@@ -667,9 +714,11 @@ namespace Microsoft.ML.AutoML
             var textFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.TextFeature);
             var numericFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature);
             var catalogFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.CategoricalFeature);
+            var imagePathFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.ImagePath);
             var textFeatureColumnNames = textFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
             var numericFeatureColumnNames = numericFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
             var catalogFeatureColumnNames = catalogFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
+            var imagePathColumnNames = imagePathFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
 
             var pipeline = new MultiModelPipeline();
             if (numericFeatureColumnNames.Length > 0)
@@ -682,6 +731,11 @@ namespace Microsoft.ML.AutoML
                 pipeline = pipeline.Append(this.CatalogFeaturizer(catalogFeatureColumnNames, catalogFeatureColumnNames));
             }
 
+            foreach (var imagePathColumn in imagePathColumnNames)
+            {
+                pipeline = pipeline.Append(this.ImagePathFeaturizer(imagePathColumn, imagePathColumn));
+            }
+
             foreach (var textColumn in textFeatureColumnNames)
             {
                 pipeline = pipeline.Append(this.TextFeaturizer(textColumn, textColumn));
@@ -689,7 +743,7 @@ namespace Microsoft.ML.AutoML
 
             var option = new ConcatOption
             {
-                InputColumnNames = textFeatureColumnNames.Concat(numericFeatureColumnNames).Concat(catalogFeatureColumnNames).ToArray(),
+                InputColumnNames = textFeatureColumnNames.Concat(numericFeatureColumnNames).Concat(catalogFeatureColumnNames).Concat(imagePathColumnNames).ToArray(),
                 OutputColumnName = outputColumnName,
             };
 
