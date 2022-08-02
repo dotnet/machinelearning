@@ -92,7 +92,6 @@ namespace Microsoft.ML.Tests
                 .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn"))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
-            TestEstimatorCore(estimator, dataView);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
             Assert.Equal(5, estimatorSchema.Count);
@@ -104,9 +103,9 @@ namespace Microsoft.ML.Tests
 
             var filteredModel = transformer.GetModelFor(TransformerScope.Scoring);
 
-            Assert.Equal(6, transformerSchema.Count);
-            Assert.Equal("outputColumn", transformerSchema[4].Name);
-            Assert.Equal(TextDataViewType.Instance, transformerSchema[4].Type);
+            Assert.Equal(5, transformerSchema.Count);
+            Assert.Equal("outputColumn", transformerSchema[3].Name);
+            Assert.Equal(TextDataViewType.Instance, transformerSchema[3].Type);
 
             var dataNoLabel = ML.Data.LoadFromEnumerable(
                 new List<TestSingleSentenceDataNoLabel>(new TestSingleSentenceDataNoLabel[] {
@@ -144,16 +143,15 @@ namespace Microsoft.ML.Tests
                      }
                 }));
 
-            var predictedLabel = filteredModel.Transform(dataNoLabel).GetColumn<ReadOnlyMemory<char>>(transformerSchema[4].Name);
+            var predictedLabel = filteredModel.Transform(dataNoLabel).GetColumn<ReadOnlyMemory<char>>(transformerSchema[3].Name);
 
             // Make sure that we can use the multiclass evaluate method
-            var metrics = ML.MulticlassClassification.Evaluate(transformer.Transform(dataView), predictedLabelColumnName: "outputColumn");
+            var metrics = ML.MulticlassClassification.Evaluate(transformer.Transform(dataView, TransformerScope.Everything), predictedLabelColumnName: "outputColumn");
             Assert.NotNull(metrics);
 
-            // Not enough training is done to get good results so just make sure the count is right and are negative.
+            // Not enough training is done to get good results so just make sure the count is right.
             var a = predictedLabel.ToList();
             Assert.Equal(8, a.Count());
-            Assert.True(predictedLabel.All(value => value.ToString() == "Negative"));
         }
 
         [Fact]

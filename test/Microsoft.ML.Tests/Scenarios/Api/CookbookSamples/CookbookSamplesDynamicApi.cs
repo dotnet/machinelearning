@@ -657,7 +657,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Train the model.
             var model = pipeline.Fit(split.TrainSet);
             // Compute quality metrics on the test set.
-            var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(split.TestSet));
+            var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(split.TestSet, TransformerScope.Everything));
             Console.WriteLine(metrics.MicroAccuracy);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.
