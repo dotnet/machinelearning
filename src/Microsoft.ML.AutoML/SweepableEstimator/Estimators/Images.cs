@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
+using System;
 namespace Microsoft.ML.AutoML.CodeGen
 {
     internal partial class LoadImages
@@ -42,6 +42,30 @@ namespace Microsoft.ML.AutoML.CodeGen
         {
 
             return context.MulticlassClassification.Trainers.ImageClassification(param.LabelColumnName, param.FeatureColumnName, param.ScoreColumnName);
+        }
+    }
+
+    internal partial class DnnFeaturizerImage
+    {
+        public override IEstimator<ITransformer> BuildFromOption(MLContext context, DnnFeaturizerImageOption param)
+        {
+            switch (param.ModelFactory)
+            {
+                case "resnet_50":
+                    return context.Transforms.DnnFeaturizeImage(param.OutputColumnName,
+                        m => m.ModelSelector.ResNet50(context, param.OutputColumnName, param.InputColumnName), param.InputColumnName);
+                case "resnet_18":
+                    return context.Transforms.DnnFeaturizeImage(param.OutputColumnName,
+                        m => m.ModelSelector.ResNet18(context, param.OutputColumnName, param.InputColumnName), param.InputColumnName);
+                case "resnet_101":
+                    return context.Transforms.DnnFeaturizeImage(param.OutputColumnName,
+                        m => m.ModelSelector.ResNet101(context, param.OutputColumnName, param.InputColumnName), param.InputColumnName);
+                case "alexnet":
+                    return context.Transforms.DnnFeaturizeImage(param.OutputColumnName,
+                        m => m.ModelSelector.AlexNet(context, param.OutputColumnName, param.InputColumnName), param.InputColumnName);
+                default:
+                    throw new NotImplementedException();
+            }
         }
     }
 }

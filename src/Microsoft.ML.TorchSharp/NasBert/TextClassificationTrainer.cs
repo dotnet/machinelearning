@@ -27,6 +27,7 @@ using Microsoft.ML.TorchSharp.Extensions;
 using System.IO;
 using System.CodeDom;
 using System.Runtime.CompilerServices;
+using Microsoft.ML.Data.IO;
 
 [assembly: LoadableClass(typeof(TextClassificationTransformer), null, typeof(SignatureLoadModel),
     TextClassificationTransformer.UserName, TextClassificationTransformer.LoaderSignature)]
@@ -70,7 +71,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
     {
         private readonly IHost _host;
         private readonly Options _options;
-        private TextClassificationTransformer _transformer;
         private const string ModelUrl = "models/NasBert2000000.tsm";
 
         internal sealed class Options : TransformInputBase
@@ -290,6 +290,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         public TextClassificationTransformer Fit(IDataView input)
         {
+            CheckInputSchema(SchemaShape.Create(input.Schema));
+
+            TextClassificationTransformer transformer = default;
+
             using (var ch = _host.Start("TrainModel"))
             using (var pch = _host.StartProgressChannel("Training model"))
             {
@@ -304,11 +308,13 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     if (_options.ValidationSet != null)
                         trainer.Validate(pch, ch, i);
                 }
-                _transformer = new TextClassificationTransformer(_host, _options, trainer.Model, trainer.Tokenizer.Vocabulary);
+                var labelCol = input.Schema.GetColumnOrNull(_options.LabelColumnName);
 
-                _transformer.GetOutputSchema(input.Schema);
+                transformer = new TextClassificationTransformer(_host, _options, trainer.Model, new DataViewSchema.DetachedColumn(labelCol.Value));
+
+                transformer.GetOutputSchema(input.Schema);
             }
-            return _transformer;
+            return transformer;
         }
 
         private class Trainer
@@ -668,7 +674,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private readonly Device _device;
         private readonly TextClassificationModel _model;
-        private readonly Vocabulary _vocabulary;
         private readonly TextClassificationTrainer.Options _options;
 
         private readonly string _predictedLabelColumnName;
@@ -676,23 +681,25 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         public readonly SchemaShape.Column SentenceColumn;
         public readonly SchemaShape.Column SentenceColumn2;
-        public readonly SchemaShape.Column LabelColumn;
+        public readonly DataViewSchema.DetachedColumn LabelColumn;
 
         internal const string LoaderSignature = "NASBERT";
 
-        internal TextClassificationTransformer(IHostEnvironment env, TextClassificationTrainer.Options options, TextClassificationModel model, Vocabulary vocabulary)
+        private static readonly FuncStaticMethodInfo1<object, Delegate> _decodeInitMethodInfo
+                = new FuncStaticMethodInfo1<object, Delegate>(DecodeInit<int>);
+
+        internal TextClassificationTransformer(IHostEnvironment env, TextClassificationTrainer.Options options, TextClassificationModel model, DataViewSchema.DetachedColumn labelColumn)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextClassificationTransformer)))
         {
             _device = TorchUtils.InitializeDevice(env);
 
             _options = options;
-            LabelColumn = new SchemaShape.Column(_options.LabelColumnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
+            LabelColumn = labelColumn;
             SentenceColumn = new SchemaShape.Column(_options.Sentence1ColumnName, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false);
             SentenceColumn2 = _options.Sentence2ColumnName == default ? default : new SchemaShape.Column(_options.Sentence2ColumnName, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false);
             _predictedLabelColumnName = _options.PredictionColumnName;
             _scoreColumnName = _options.ScoreColumnName;
 
-            _vocabulary = vocabulary;
             _model = model;
 
             if (_device == CUDA)
@@ -736,7 +743,28 @@ namespace Microsoft.ML.TorchSharp.NasBert
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 
-            return new TextClassificationTransformer(env, options, model, vocabulary);
+            BinarySaver saver = new BinarySaver(env, new BinarySaver.Arguments());
+            DataViewType type;
+            object value;
+            env.CheckDecode(saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out type, out value));
+            var vecType = type as VectorDataViewType;
+            env.CheckDecode(vecType != null);
+            env.CheckDecode(value != null);
+            var labelGetter = Microsoft.ML.Internal.Utilities.Utils.MarshalInvoke(_decodeInitMethodInfo, vecType.ItemType.RawType, value);
+
+            var meta = new DataViewSchema.Annotations.Builder();
+            meta.Add(AnnotationUtils.Kinds.KeyValues, type, labelGetter);
+
+            var labelCol = new DataViewSchema.DetachedColumn(options.LabelColumnName, type, meta.ToAnnotations());
+
+            return new TextClassificationTransformer(env, options, model, labelCol);
+        }
+
+        private static Delegate DecodeInit<T>(object value)
+        {
+            VBuffer<T> buffValue = (VBuffer<T>)value;
+            ValueGetter<VBuffer<T>> buffGetter = (ref VBuffer<T> dst) => buffValue.CopyTo(ref dst);
+            return buffGetter;
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -744,8 +772,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             CheckInputSchema(inputSchema);
-            inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
-            var predLabelMetadata = new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues)
+            var labelAnnotationsColumn = new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.SlotNames].Type, false);
+            var predLabelMetadata = new SchemaShape(new SchemaShape.Column[] { labelAnnotationsColumn }
                 .Concat(AnnotationUtils.GetTrainerOutputAnnotation()));
 
             var outColumns = inputSchema.ToDictionary(x => x.Name);
@@ -753,7 +781,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     NumberDataViewType.UInt32, true, predLabelMetadata);
 
             outColumns[_scoreColumnName] = new SchemaShape.Column(_scoreColumnName, SchemaShape.Column.VectorKind.Vector,
-                   NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol)));
+                   NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelAnnotationsColumn)));
 
             return new SchemaShape(outColumns.Values);
         }
@@ -775,12 +803,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", SentenceColumn2.Name,
                         SentenceColumn2.GetTypeString(), sentenceCol2.GetTypeString());
             }
-
-            if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", LabelColumn.Name);
-            if (!LabelColumn.IsCompatibleWith(labelCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", LabelColumn.Name,
-                    LabelColumn.GetTypeString(), labelCol.GetTypeString());
         }
 
         private static VersionInfo GetVersionInfo()
@@ -819,6 +841,22 @@ namespace Microsoft.ML.TorchSharp.NasBert
             {
                 _model.save(w);
             });
+
+            var labelColType = LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.KeyValues].Type as VectorDataViewType;
+            Microsoft.ML.Internal.Utilities.Utils.MarshalActionInvoke(SaveLabelValues<int>, labelColType.ItemType.RawType, ctx);
+        }
+
+        private void SaveLabelValues<T>(ModelSaveContext ctx)
+        {
+            ValueGetter<VBuffer<T>> getter = LabelColumn.Annotations.GetGetter<VBuffer<T>>(LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.KeyValues]);
+            var val = default(VBuffer<T>);
+            getter(ref val);
+
+            BinarySaver saver = new BinarySaver(Host, new BinarySaver.Arguments());
+            int bytesWritten;
+            var labelColType = LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.KeyValues].Type as VectorDataViewType;
+            if (!saver.TryWriteTypeAndValue<VBuffer<T>>(ctx.Writer.BaseStream, labelColType, ref val, out bytesWritten))
+                throw Host.Except("We do not know how to serialize label names of type '{0}'", labelColType.ItemType);
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
@@ -827,25 +865,24 @@ namespace Microsoft.ML.TorchSharp.NasBert
         {
             private readonly TextClassificationTransformer _parent;
             private readonly HashSet<int> _inputColIndices;
-            private readonly DataViewSchema.Column _labelCol;
             private readonly DataViewSchema _inputSchema;
-            private static readonly FuncInstanceMethodInfo1<Mapper, Delegate> _makeLabelAnnotationGetter
-                = FuncInstanceMethodInfo1<Mapper, Delegate>.Create(target => target.GetLabelAnnotations<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewSchema.DetachedColumn, Delegate> _makeLabelAnnotationGetter
+                = FuncInstanceMethodInfo1<Mapper, DataViewSchema.DetachedColumn, Delegate>.Create(target => target.GetLabelAnnotations<int>);
+
 
             public Mapper(TextClassificationTransformer parent, DataViewSchema inputSchema) :
                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
                 _inputColIndices = new HashSet<int>();
-                int col = 0;
-                if (inputSchema.TryGetColumnIndex(parent._options.Sentence1ColumnName, out col))
+                if (inputSchema.TryGetColumnIndex(parent._options.Sentence1ColumnName, out var col))
                     _inputColIndices.Add(col);
 
                 if (parent._options.Sentence2ColumnName != default)
                     if (inputSchema.TryGetColumnIndex(parent._options.Sentence2ColumnName, out col))
                         _inputColIndices.Add(col);
 
-                _labelCol = inputSchema[_parent._options.LabelColumnName];
                 _inputSchema = inputSchema;
 
                 torch.random.manual_seed(1);
@@ -855,8 +892,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 var info = new DataViewSchema.DetachedColumn[2];
-                var keyType = _labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
-                var getter = Microsoft.ML.Internal.Utilities.Utils.MarshalInvoke(_makeLabelAnnotationGetter, this, keyType.ItemType.RawType);
+                var keyType = _parent.LabelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
+                var getter = Microsoft.ML.Internal.Utilities.Utils.MarshalInvoke(_makeLabelAnnotationGetter, this, keyType.ItemType.RawType, _parent.LabelColumn);
+
 
                 var meta = new DataViewSchema.Annotations.Builder();
                 meta.Add(AnnotationUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification.AsMemory(); });
@@ -865,15 +903,18 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 meta.Add(AnnotationUtils.Kinds.TrainingLabelValues, keyType, getter);
                 meta.Add(AnnotationUtils.Kinds.SlotNames, keyType, getter);
 
-                info[0] = new DataViewSchema.DetachedColumn(_parent._options.PredictionColumnName, new KeyDataViewType(typeof(uint), _parent._options.NumberOfClasses), _labelCol.Annotations);
+                var labelBuilder = new DataViewSchema.Annotations.Builder();
+                labelBuilder.Add(AnnotationUtils.Kinds.KeyValues, keyType, getter);
+
+                info[0] = new DataViewSchema.DetachedColumn(_parent._options.PredictionColumnName, new KeyDataViewType(typeof(uint), _parent._options.NumberOfClasses), labelBuilder.ToAnnotations());
 
                 info[1] = new DataViewSchema.DetachedColumn(_parent._options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._options.NumberOfClasses), meta.ToAnnotations());
                 return info;
             }
 
-            private Delegate GetLabelAnnotations<T>()
+            private Delegate GetLabelAnnotations<T>(DataViewSchema.DetachedColumn labelCol)
             {
-                return _labelCol.Annotations.GetGetter<VBuffer<T>>(_labelCol.Annotations.Schema[AnnotationUtils.Kinds.KeyValues]);
+                return labelCol.Annotations.GetGetter<VBuffer<T>>(labelCol.Annotations.Schema[AnnotationUtils.Kinds.KeyValues]);
             }
 
             private ValueGetter<uint> GetScoreColumnSetId(DataViewSchema schema)
