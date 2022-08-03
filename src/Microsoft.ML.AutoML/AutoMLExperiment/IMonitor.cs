@@ -45,7 +45,14 @@ namespace Microsoft.ML.AutoML
 
         public void ReportCompletedTrial(TrialResult result)
         {
-            _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline} - Duration: {result.DurationInMilliseconds}");
+            if (result is FairnessTrialResult fResult)
+            {   //TODO: now we are assuming the higher the raw metric the better and the lower the fairness metric the better. If we have a raw metric that needs to be minimized then this should change
+                _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Raw Metric: {result.Metric + fResult.FairnessMetric} - Fairness Metric: {-fResult.FairnessMetric} - Total Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline} - Duration: {result.DurationInMilliseconds}");
+            }
+            else
+            {
+                _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline} - Duration: {result.DurationInMilliseconds}");
+            }
             _completedTrials.Add(result);
         }
 
