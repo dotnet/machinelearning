@@ -53,6 +53,23 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
+        /// An indexer to return the value at <paramref name="columnName"/>.
+        /// </summary>
+        /// <param name="columnName">The name of the column that corresponds to the return value</param>
+        /// <returns>The value at this <paramref name="columnName"/>.</returns>
+        public object this[string columnName]
+        {
+            get
+            {
+                return _dataFrame[columnName][_rowIndex];
+            }
+            set
+            {
+                _dataFrame[columnName][_rowIndex] = value;
+            }
+        }
+
+        /// <summary>
         /// A simple string representation of the values in this row
         /// </summary>
         public override string ToString()
