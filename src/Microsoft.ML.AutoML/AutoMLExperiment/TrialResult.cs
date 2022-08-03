@@ -14,4 +14,9 @@ namespace Microsoft.ML.AutoML
 
         public double DurationInMilliseconds { get; set; }
     }
+
+    public class FairnessTrialResult : TrialResult
+    {
+        public double FairnessMetric { get; set; }
+    }
 }
