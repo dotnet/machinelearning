@@ -197,6 +197,7 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
+        internal IServiceCollection ServiceCollection { get => _serviceCollection; }
         /// <summary>
         /// Run experiment and return the best trial result synchronizely.
         /// </summary>
