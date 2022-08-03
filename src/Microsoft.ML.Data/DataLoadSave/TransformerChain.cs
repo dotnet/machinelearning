@@ -120,25 +120,45 @@ namespace Microsoft.ML.Data
 
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
+            // Default to only scoring scope.
+            return GetOutputSchema(inputSchema, TransformerScope.Scoring);
+        }
+
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema, TransformerScope scope)
+        {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
 
+            var chain = GetModelFor(scope);
+
             var s = inputSchema;
-            foreach (var xf in _transformers)
+            foreach (var xf in chain)
                 s = xf.GetOutputSchema(s);
             return s;
         }
 
         public IDataView Transform(IDataView input)
         {
+            // Default to only scoring scope.
+            return Transform(input, TransformerScope.Scoring);
+        }
+
+        public IDataView Transform(IDataView input, TransformerScope scope)
+        {
             Contracts.CheckValue(input, nameof(input));
+
+            // Default to all scopes, but still allow for smaller scopes.
+            var chain = GetModelFor(scope);
 
             // Trigger schema propagation prior to transforming.
             // REVIEW: does this actually constitute 'early warning', given that Transform call is lazy anyway?
-            GetOutputSchema(input.Schema);
+            chain.GetOutputSchema(input.Schema);
 
             var dv = input;
-            foreach (var xf in _transformers)
-                dv = xf.Transform(dv);
+            foreach (var transformer in chain)
+            {
+                dv = transformer.Transform(dv);
+            }
+
             return dv;
         }
 
