@@ -52,7 +52,7 @@ namespace Microsoft.ML.AutoML
         }
     }
 
-    internal class GridSearchTunerFactory : ITunerFactory
+    public class GridSearchTunerFactory : ITunerFactory
     {
         private readonly IServiceProvider _provider;
 
