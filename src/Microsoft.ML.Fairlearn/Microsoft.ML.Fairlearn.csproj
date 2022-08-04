@@ -12,20 +12,16 @@
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj">
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
-    <ProjectReference Include="..\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" >
+    <ProjectReference Include="..\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj">
       <PrivateAssets>all</PrivateAssets>
       <IncludeInNuget>true</IncludeInNuget>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
 
-    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj">
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
 
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="metrics\" />
   </ItemGroup>
 
 </Project>

@@ -26,9 +26,9 @@ namespace Microsoft.ML.Fairlearn
         #endregion
 
         #region regression
-        public RegressionMetric Regression(IDataView eval, string labelColumn, string scoreColumn, string sensitiveFeatureColumn)
+        public RegressionGroupMetric Regression(IDataView eval, string labelColumn, string scoreColumn, string sensitiveFeatureColumn)
         {
-            return new RegressionMetric(eval, labelColumn, scoreColumn, sensitiveFeatureColumn);
+            return new RegressionGroupMetric(eval, labelColumn, scoreColumn, sensitiveFeatureColumn);
         }
         #endregion
     }
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Fairlearn
             return metricsDict;
         }
     }
-    public class RegressionMetric : IGroupMetric
+    public class RegressionGroupMetric : IGroupMetric
     {
         private readonly IDataView _eval;
         private readonly string _labelColumn;
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Fairlearn
         private readonly string _sensitiveFeatureColumn;
         private readonly MLContext _context = new MLContext();
 
-        public RegressionMetric(IDataView eval, string labelColumn, string scoreColumn, string sensitiveFeatureColumn)
+        public RegressionGroupMetric(IDataView eval, string labelColumn, string scoreColumn, string sensitiveFeatureColumn)
         {
             _eval = eval;
             _labelColumn = labelColumn;

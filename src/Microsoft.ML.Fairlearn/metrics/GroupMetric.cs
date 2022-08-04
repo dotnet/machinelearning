@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Data.Analysis;
 
-namespace Microsoft.ML.Fairlearn
+namespace Microsoft.ML.Fairlearn.metrics
 {
     internal interface IGroupMetric
     {
