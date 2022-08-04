@@ -55,18 +55,12 @@ namespace Microsoft.ML.Fairlearn.reductions
         /// <param name="yPred">Contains the predictions of the label</param>
         /// <returns></returns>
         public abstract DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred);
-        public float Bound()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract float Bound();
         public float ProjectLambda()
         {
             throw new NotImplementedException();
         }
-        public virtual DataFrameColumn SignedWeights(DataFrame lambdaVec)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract DataFrameColumn SignedWeights(DataFrame lambdaVec);
     }
     /// <summary>
     /// Moment that can be expressed as weighted classification error.
