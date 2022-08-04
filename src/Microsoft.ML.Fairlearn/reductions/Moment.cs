@@ -10,12 +10,16 @@ using Microsoft.Data.Analysis;
 namespace Microsoft.ML.Fairlearn.reductions
 {
     /// <summary>
-    /// General Moment of :class:`Moment` objects to describe the disparity constraints imposed
-    /// on the solution.This is an abstract class for all such objects.
+    /// Generic moment.
+    /// Modeled after the original Fairlearn <see href="https://github.com/fairlearn/fairlearn/blob/931963c40c0ba0cdd1a9e51c29adcc509da224a6/fairlearn/reductions/_moments/moment.py#L15">repo</see>
+    /// Our implementations of the reductions approach to fairness
+    /// <see href="https://arxiv.org/abs/1803.02453">agarwal2018reductions</see> 
+    /// make use of Moment objects to describe both the optimization objective
+    /// and the fairness constraints imposed on the solution.
+    /// This is an abstract class for all such objects.
     /// </summary>
     public abstract class Moment
     {
-        private bool _dataLoaded = false;
         protected DataFrameColumn Y; //maybe lowercase this?
         public DataFrame Tags { get; private set; }
         public IDataView X { get; protected set; }
@@ -27,12 +31,14 @@ namespace Microsoft.ML.Fairlearn.reductions
         {
 
         }
-        public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature = null)
+        /// <summary>
+        /// Load the data into the moment to generate parity constarint
+        /// </summary>
+        /// <param name="x">The feature set</param>
+        /// <param name="y">The label</param>
+        /// <param name="sensitiveFeature">The sentivite featue that contain the sensitive groups</param>
+        public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature)
         {
-            if (_dataLoaded)
-            {
-                //throw new InvalidOperationException("data can be loaded only once");
-            }
 
             X = x;
             TotalSamples = y.Length;
@@ -40,14 +46,14 @@ namespace Microsoft.ML.Fairlearn.reductions
             Tags = new DataFrame();
             Tags["label"] = y;
 
-            if (sensitiveFeature != null)
-            {
-                // _tags["group_id"] = DataFrameColumn.Create; maybe convert from a vector?
-                Tags["group_id"] = sensitiveFeature;
-            }
-            _dataLoaded = true;
+            Tags["group_id"] = sensitiveFeature;
         }
 
+        /// <summary>
+        /// Calculate the degree to which constraints are currently violated by the predictor.
+        /// </summary>
+        /// <param name="yPred">Contains the predictions of the label</param>
+        /// <returns></returns>
         public abstract DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred);
         public float Bound()
         {
