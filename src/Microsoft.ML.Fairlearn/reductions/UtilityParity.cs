@@ -11,6 +11,16 @@ using Microsoft.Data.Analysis;
 
 namespace Microsoft.ML.Fairlearn.reductions
 {
+    /// <summary>
+    /// Modeled after the original <see href="https://github.com/fairlearn/fairlearn/blob/931963c40c0ba0cdd1a9e51c29adcc509da224a6/fairlearn/reductions/_moments/utility_parity.py#L45">repo</see>
+    /// A generic moment for parity in utilities (or costs) under classification.
+    /// This serves as the base class for <see cref="DemographicParity">Demographic Parity</see>
+    /// can be used as difference-based constraints or ratio-based constraints.
+    /// 
+    /// Constraints compare the group-level mean utility for each group with the
+    /// overall mean utility
+    /// 
+    /// </summary>
     public class UtilityParity : ClassificationMoment
     {
         private const float _defaultDifferenceBound = 0.01F;
@@ -49,22 +59,20 @@ namespace Microsoft.ML.Fairlearn.reductions
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="sensitiveFeature"></param>
-        /// <param name="events"></param>
-        /// <param name="utilities"></param>
-        public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature, StringDataFrameColumn events = null, StringDataFrameColumn utilities = null)
+        /// <param name="x">The features</param>
+        /// <param name="y">The label</param>
+        /// <param name="sensitiveFeature">The sensitive groups</param>
+        public new void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature)//, StringDataFrameColumn events = null, StringDataFrameColumn utilities = null)
         {
-            //TODO: Accept sensitive feature as a DataFrameColumn and convert it to string
             base.LoadData(x, y, sensitiveFeature);
             //Tags["event"] = events;
             //Tags["utilities"] = utilities;
 
-            if (utilities == null)
-            {
-                // TODO: set up the default utitlity
-            }
+            //if (utilities == null)
+            //{
+            //    // TODO: set up the default utitlity
+            //}
+
             //probEvent will contain the probabilities for each of the event, since we are now focusing on
             //TODO: implementing the demography parity which has only one event, we will set it like this for now.
             ProbEvent = 1.0F;
@@ -77,7 +85,7 @@ namespace Microsoft.ML.Fairlearn.reductions
         /// Calculate the degree to which constraints are currently violated by the predictor.
         /// </summary>
         /// <returns></returns>
-        public override DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred/*TODO: change to a predictor*/)
+        public override DataFrame Gamma(PrimitiveDataFrameColumn<float> yPred/* Maybe change this to a predictor (func)*/)
         {
             Tags["pred"] = yPred;
             //TODO: add the utility into the calculation of the violation, will be needed for other parity methods
@@ -114,6 +122,11 @@ namespace Microsoft.ML.Fairlearn.reductions
             dfNeg.Rows.ToList<DataFrameRow>().ForEach(row => { gSigned.Append(row, inPlace: true); });
 
             return gSigned;
+        }
+
+        public override float Bound()
+        {
+            return _epsilon;
         }
 
         public override DataFrameColumn SignedWeights(DataFrame lambdaVec)
