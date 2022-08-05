@@ -8,6 +8,7 @@ namespace Microsoft.ML.AutoML.Samples
         {
             try
             {
+                Cifar10.Run();
                 RecommendationExperiment.Run();
                 Console.Clear();
 
