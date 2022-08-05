@@ -88,7 +88,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [Theory]
+        [LightGBMTheory]
         [InlineData(true)]
         [InlineData(false)]
         public void AutoFitMultiTest(bool useNumberOfCVFolds)
