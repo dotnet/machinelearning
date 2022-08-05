@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
+using Microsoft.ML.Fairlearn.metrics;
 
 namespace Microsoft.ML.Fairlearn
 {
