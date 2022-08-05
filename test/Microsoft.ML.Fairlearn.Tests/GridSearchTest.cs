@@ -137,19 +137,13 @@ namespace Microsoft.ML.Fairlearn.Tests
                         .SetEvaluateMetric(BinaryClassificationMetric.Accuracy, "y", "PredictedLabel")
                         .SetTrialRunner(trialRunner)
                         .SetBinaryClassificationMoment(moment)
+                        .SetGridLimit(10F)
                         .SetTrainingTimeInSeconds(10);//100
 
             var bestResult = experiment.Run();
             var model = bestResult.Model;
             var df2 = CreateGridScearhDataset();
-            //bestResult.Metric.Should().BeGreaterOrEqualTo(0.75);
-            var eval = model.Transform(df2);
-            //Consoel.WriteLine("Test")
-            var predictedColumn = eval.GetColumn<bool>("PredictedLabel");
-            foreach (var item in predictedColumn)
-            {
-                _output.WriteLine(item.ToString());
-            }
+            bestResult.Metric.Should().BeGreaterOrEqualTo(0.70);
         }
     }
 }

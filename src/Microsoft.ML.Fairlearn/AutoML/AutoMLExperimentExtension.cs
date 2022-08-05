@@ -11,11 +11,32 @@ using Microsoft.ML.Fairlearn.reductions;
 
 namespace Microsoft.ML.Fairlearn.AutoML
 {
+    /// <summary>
+    /// An internal class that holds the gridLimit value to conduct gridsearch.
+    /// Needed to pass the value into the AutoMLExperiment as a singleton
+    /// </summary>
+    internal class GridLimit
+    {
+        public float Value { get; set; }
+    }
+    /// <summary>
+    /// An extension class used to add more options to the Fairlearn girdsearch experiment
+    /// </summary>
     public static class AutoMLExperimentExtension
     {
         public static AutoMLExperiment SetBinaryClassificationMoment(this AutoMLExperiment experiment, ClassificationMoment moment)
         {
             experiment.ServiceCollection.AddSingleton(moment);
+            experiment.SetTunerFactory<CostFrugalWithLambdaTunerFactory>();
+
+            return experiment;
+        }
+
+        public static AutoMLExperiment SetGridLimit(this AutoMLExperiment experiment, float gridLimit)
+        {
+            var gridLimitObject = new GridLimit();
+            gridLimitObject.Value = gridLimit;
+            experiment.ServiceCollection.AddSingleton(gridLimitObject);
             experiment.SetTunerFactory<CostFrugalWithLambdaTunerFactory>();
 
             return experiment;
