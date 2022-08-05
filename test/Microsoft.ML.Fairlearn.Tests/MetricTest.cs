@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.Analysis;
+using Microsoft.ML.Data;
 using Xunit;
 
 
@@ -36,7 +38,7 @@ namespace Microsoft.ML.Fairlearn.Tests
         [Fact]
         public void RegressionMetricTest()
         {
-            RegressionMetric regressionMetric = mlContext.Fairlearn().Metric.Regression(eval: data, labelColumn: "Price", scoreColumn: "Score", sensitiveFeatureColumn: "Gender");
+            RegressionGroupMetric regressionMetric = mlContext.Fairlearn().Metric.Regression(eval: data, labelColumn: "Price", scoreColumn: "Score", sensitiveFeatureColumn: "Gender");
             var metricByGroup = regressionMetric.ByGroup();
             Assert.Equal(-2.30578, Convert.ToSingle(metricByGroup["RSquared"][0]), 3);
             Assert.Equal(-2039.81453, Convert.ToSingle(metricByGroup["RSquared"][1]), 3);
@@ -55,8 +57,25 @@ namespace Microsoft.ML.Fairlearn.Tests
         [Fact]
         public void BinaryClassificationMetricTest()
         {
-            RegressionMetric regressionMetric = mlContext.Fairlearn().Metric.BinaryClassification (eval: data, labelColumn: "Price", scoreColumn: "Score", sensitiveFeatureColumn: "Gender");
-            Assert.True(true);
+            //create dummy dataset
+            float[] vs = { 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 };
+            PrimitiveDataFrameColumn<float> label = new PrimitiveDataFrameColumn<float>("label", vs);
+            string[] str = { "a", "b", "a", "a", "b", "a", "b", "b", "a", "b" };
+            StringDataFrameColumn groupId = new StringDataFrameColumn("group_id", str);
+            float[] fl = { 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F };
+            PrimitiveDataFrameColumn<float> pred = new PrimitiveDataFrameColumn<float>("PredictedLabel", fl);
+            float[] fl2 = { 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F };
+            PrimitiveDataFrameColumn<float> score = new PrimitiveDataFrameColumn<float>("Score", fl2);
+            float[] fl3 = { 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F };
+            PrimitiveDataFrameColumn<float> prob = new PrimitiveDataFrameColumn<float>("Probability", fl3);
+            DataFrame df = new DataFrame(label, groupId, pred, score, prob);
+
+            BinaryGroupMetric metrics = mlContext.Fairlearn().Metric.BinaryClassification(eval: df, labelColumn: "label", predictedColumn: "PredictedLabel", sensitiveFeatureColumn: "group_id");
+            var metricByGroup = metrics.ByGroup();
+            Assert.Equal(0.8, Convert.ToSingle(metricByGroup["Accuracy"][0]), 1);
+            Assert.Equal(0.6, Convert.ToSingle(metricByGroup["Accuracy"][1]), 1);
+            var metricOverall = metrics.Overall();
+            Assert.Equal(0.7, Convert.ToSingle(metricOverall["Accuracy"]), 1);
         }
     }
 }
