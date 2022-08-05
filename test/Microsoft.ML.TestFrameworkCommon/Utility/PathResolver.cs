@@ -32,7 +32,9 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
     /// Enumerates possible library load targets. This default implementation returns the following load targets:
     /// First: The library contained in the applications base folder.
     /// Second: The simple name, unchanged.
-    /// Third: The library as resolved via the default DependencyContext, in the default nuget package cache folder.
+    /// Third: On .NETCore the library as resolved via AssemblyDependencyResolver, which uses information from the 
+    /// AssemblyLoadContext / application deps file to locate the assembly in either an application subfolder or the
+    /// NuGet packages folder.
     /// </summary>
     public class DefaultPathResolver : PathResolver
     {
