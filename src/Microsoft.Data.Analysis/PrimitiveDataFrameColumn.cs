@@ -282,7 +282,7 @@ namespace Microsoft.Data.Analysis
         public override bool IsNumericColumn()
         {
             bool ret = true;
-            if (typeof(T) == typeof(char) || typeof(T) == typeof(bool))
+            if (typeof(T) == typeof(char) || typeof(T) == typeof(bool) || typeof(T) == typeof(DateTime))
                 ret = false;
             return ret;
         }
@@ -325,7 +325,10 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <inheritdoc/>
-        public override bool HasDescription() => IsNumericColumn();
+        public override bool HasDescription()
+        {
+            return this.IsNumericColumn() || typeof(T) == typeof(DateTime);
+        }
 
         /// <summary>
         /// Returns a preview of the column contents as a formatted string.
@@ -687,7 +690,7 @@ namespace Microsoft.Data.Analysis
             builder.AddColumn(Name, GetDataViewType());
         }
 
-        private static DataViewType GetDataViewType()
+        public static DataViewType GetDataViewType()
         {
             if (typeof(T) == typeof(bool))
             {
@@ -700,6 +703,10 @@ namespace Microsoft.Data.Analysis
             else if (typeof(T) == typeof(double))
             {
                 return NumberDataViewType.Double;
+            }
+            else if (typeof(T) == typeof(DateTime))
+            {
+                return DateTimeDataViewType.Instance;
             }
             else if (typeof(T) == typeof(float))
             {
@@ -744,7 +751,7 @@ namespace Microsoft.Data.Analysis
                 return NumberDataViewType.Double;
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException("Type is " + typeof(T).Name);
         }
 
         protected internal override Delegate GetDataViewGetter(DataViewRowCursor cursor)

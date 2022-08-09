@@ -380,6 +380,8 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseEqualsImplementation(column as PrimitiveDataFrameColumn<byte>);
                 case PrimitiveDataFrameColumn<char> charColumn:
                     return ElementwiseEqualsImplementation(column as PrimitiveDataFrameColumn<char>);
+                case PrimitiveDataFrameColumn<DateTime> dateTimeColumn:
+                    return ElementwiseEqualsImplementation(column as PrimitiveDataFrameColumn<DateTime>);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
                     return ElementwiseEqualsImplementation(column as PrimitiveDataFrameColumn<decimal>);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
@@ -1743,6 +1745,14 @@ namespace Microsoft.Data.Analysis
                     PrimitiveDataFrameColumn<bool> retColumn = CloneAsBooleanColumn();
                     (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer, retColumn._columnContainer);
                     return retColumn;
+                case Type dateTimeType when dateTimeType == typeof(DateTime):
+                    if (typeof(U) != typeof(DateTime))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    PrimitiveDataFrameColumn<bool> newcolumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer, newcolumn._columnContainer);
+                    return newcolumn;
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {

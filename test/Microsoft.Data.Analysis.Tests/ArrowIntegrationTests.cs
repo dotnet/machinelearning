@@ -156,6 +156,29 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestDateTimeType()
+        {
+            var dataFrame = new DataFrame(
+    new List<DataFrameColumn>(){
+        new SingleDataFrameColumn("Temp", new List<float>(){.22F}),
+        new DateTimeDataFrameColumn("Dteday", new List<DateTime>() {new DateTime(2022, 6, 2)}),
+    }
+);
+
+            var col1 = new DateTimeDataFrameColumn("Dteday", new List<DateTime>() { new DateTime(2022, 6, 2) });
+            var col2 = new DateTimeDataFrameColumn("Dteday2", new List<DateTime>() { new DateTime(2022, 6, 2) });
+
+            // var res21 = col1.Add(col2);
+
+            var stringCol = new StringDataFrameColumn("test1", new List<string>() { "Hello" });
+            var stringCol2 = new StringDataFrameColumn("test2", new List<string>() { "Hello" });
+
+            var res2 = stringCol.Add(stringCol2);
+
+            var res = DateTimeDataFrameColumn.GetDataViewType();
+        }
+
+        [Fact]
         public void TestMutationOnArrowColumn()
         {
             RecordBatch originalBatch = new RecordBatch.Builder()
