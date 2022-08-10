@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tokenizers
         private static readonly IReadOnlyList<Split> _emptyList = new List<Split>();
 
         /// <summary>
-        /// Splits the given string in multiple substrings at teh word boundary, keeping track of the offsets of said substrings from the original string.
+        /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
         /// <param name="sentence">The string to split into tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
