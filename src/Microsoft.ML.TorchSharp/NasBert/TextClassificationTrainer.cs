@@ -10,8 +10,8 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Tokenizers;
 using Microsoft.ML.TorchSharp.NasBert.Models;
-using Microsoft.ML.TorchSharp.NasBert.Preprocessing;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using TorchSharp;
@@ -319,7 +319,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private class Trainer
         {
-            public BpeTokenizer Tokenizer;
+            public Tokenizer Tokenizer;
             public TextClassificationModel Model;
             public torch.Device Device;
             public BaseOptimizer Optimizer;
@@ -333,18 +333,16 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 _parent = parent;
                 Updates = 0;
                 Accuracy = 0;
-                // Get the tokenizer
-                Tokenizer = BpeTokenizer.GetInstance(ch);
 
-                // Initialize the vocab
-                var vocabulary = Tokenizer.Vocabulary;
-                vocabulary.AddMaskSymbol();
+                // Get the tokenizer
+                Tokenizer = TokenizerExtensions.GetInstance(ch);
+                EnglishRoberta tokenizerModel = Tokenizer.RobertaModel();
 
                 // Get row count and figure out num of unique labels
                 var rowCount = GetRowCountAndSetLabelCount(input);
 
                 // Initialize the model and load pre-trained weights
-                Model = new TextClassificationModel(_parent._options, vocabulary, _parent._options.NumberOfClasses);
+                Model = new TextClassificationModel(_parent._options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, _parent._options.NumberOfClasses);
                 Model.GetEncoder().load(GetModelPath());
                 Model.train();
 
@@ -355,7 +353,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 if (Device == CUDA)
                     Model.cuda();
 
-                // Get the paramters that need optimization and set up the optimizer
+                // Get the parameters that need optimization and set up the optimizer
                 var parameters = Model.parameters().Where(p => p.requires_grad);
                 Optimizer = BaseOptimizer.GetOptimizer(_parent._options, parameters);
                 LearningRateScheduler = torch.optim.lr_scheduler.OneCycleLR(
@@ -479,7 +477,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                 using (torch.no_grad())
                 {
-                    var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.Vocabulary.PadIndex, device: Device);
+                    var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
                     var targetsTensor = tensor(targets, device: Device);
                     var logits = Model.forward(inputTensor);
                     var predictions = GetPredictions(logits);
@@ -556,7 +554,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                 Optimizer.zero_grad();
 
-                var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.Vocabulary.PadIndex, device: Device);
+                var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
                 var targetsTensor = tensor(targets, device: Device);
                 var logits = Model.forward(inputTensor);
                 var lossFunction = torch.nn.functional.cross_entropy_loss(reduction: _parent._options.Reduction);
@@ -598,7 +596,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 Tensor t;
                 if (sentence2Getter == default)
                 {
-                    t = torch.tensor((new[] { BpeTokenizer.InitToken }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString())).ToList(), device: Device);
+                    t = torch.tensor((new[] { 0 /* InitToken */ }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString())).ToList(), device: Device);
                 }
                 else
                 {
@@ -606,8 +604,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     ReadOnlyMemory<char> sentence2 = default;
                     sentence2Getter(ref sentence2);
 
-                    t = torch.tensor((new[] { BpeTokenizer.InitToken }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString()))
-                        .Concat(new[] { BpeTokenizer.SeperatorToken }).Concat(Tokenizer.EncodeToConverted(sentence2.ToString())).ToList(), device: Device);
+                    t = torch.tensor((new[] { 0 /* InitToken */ }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString()))
+                        .Concat(new[] { 2 /* SeparatorToken */ }).Concat(Tokenizer.EncodeToConverted(sentence2.ToString())).ToList(), device: Device);
                 }
 
                 if (t.NumberOfElements > 512)
@@ -735,11 +733,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
             };
 
             var ch = env.Start("Load Model");
-            var tokenizer = BpeTokenizer.GetInstance(ch);
-            var vocabulary = tokenizer.Vocabulary;
-            vocabulary.AddMaskSymbol();
+            var tokenizer = TokenizerExtensions.GetInstance(ch);
+            EnglishRoberta tokenizerModel = tokenizer.RobertaModel();
 
-            var model = new TextClassificationModel(options, vocabulary, options.NumberOfClasses);
+            var model = new TextClassificationModel(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 
@@ -967,7 +964,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 ValueGetter<ReadOnlyMemory<char>> getSentence1 = default;
                 ValueGetter<ReadOnlyMemory<char>> getSentence2 = default;
 
-                BpeTokenizer tokenizer = BpeTokenizer.GetInstance(ch);
+                Tokenizer tokenizer = TokenizerExtensions.GetInstance(ch);
 
                 getSentence1 = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[_parent.SentenceColumn.Name]);
                 if (_parent.SentenceColumn2.IsValid)
@@ -980,7 +977,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 {
                     using var disposeScope = torch.NewDisposeScope();
                     var editor = VBufferEditor.Create(ref dst, _parent._options.NumberOfClasses);
-                    UpdateCacheIfNeeded(input.Position, outputCacher, ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, ref tokenizer);
+                    UpdateCacheIfNeeded(input.Position, outputCacher, ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, tokenizer);
                     var values = outputCacher.Result.cpu().ToArray<float>();
 
                     for (var i = 0; i < values.Length; i++)
@@ -998,7 +995,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 ValueGetter<ReadOnlyMemory<char>> getSentence1 = default;
                 ValueGetter<ReadOnlyMemory<char>> getSentence2 = default;
 
-                BpeTokenizer tokenizer = BpeTokenizer.GetInstance(ch);
+                Tokenizer tokenizer = TokenizerExtensions.GetInstance(ch);
 
                 getSentence1 = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[_parent.SentenceColumn.Name]);
                 if (_parent.SentenceColumn2.IsValid)
@@ -1010,25 +1007,25 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 ValueGetter<UInt32> classification = (ref UInt32 dst) =>
                 {
                     using var disposeScope = torch.NewDisposeScope();
-                    UpdateCacheIfNeeded(input.Position, outputCacher, ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, ref tokenizer);
+                    UpdateCacheIfNeeded(input.Position, outputCacher, ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, tokenizer);
                     dst = (UInt32)outputCacher.Result.argmax(-1).cpu().item<long>() + 1;
                 };
 
                 return classification;
             }
 
-            private IList<int> PrepInputTokens(ref ReadOnlyMemory<char> sentence1, ref ReadOnlyMemory<char> sentence2, ref ValueGetter<ReadOnlyMemory<char>> getSentence1, ref ValueGetter<ReadOnlyMemory<char>> getSentence2, ref BpeTokenizer tokenizer)
+            private IList<int> PrepInputTokens(ref ReadOnlyMemory<char> sentence1, ref ReadOnlyMemory<char> sentence2, ref ValueGetter<ReadOnlyMemory<char>> getSentence1, ref ValueGetter<ReadOnlyMemory<char>> getSentence2, Tokenizer tokenizer)
             {
                 getSentence1(ref sentence1);
                 if (getSentence2 == default)
                 {
-                    return new[] { BpeTokenizer.InitToken }.Concat(tokenizer.EncodeToConverted(sentence1.ToString())).ToList();
+                    return new[] { 0 /* InitToken */ }.Concat(tokenizer.EncodeToConverted(sentence1.ToString())).ToList();
                 }
                 else
                 {
                     getSentence2(ref sentence2);
-                    return new[] { BpeTokenizer.InitToken }.Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
-                                              .Concat(new[] { BpeTokenizer.SeperatorToken }).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList();
+                    return new[] { 0 /* InitToken */ }.Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
+                                              .Concat(new[] { 2 /* SeperatorToken */ }).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList();
                 }
             }
 
@@ -1067,12 +1064,12 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 }
             }
 
-            private void UpdateCacheIfNeeded(long position, TensorCacher outputCache, ref ReadOnlyMemory<char> sentence1, ref ReadOnlyMemory<char> sentence2, ref ValueGetter<ReadOnlyMemory<char>> getSentence1, ref ValueGetter<ReadOnlyMemory<char>> getSentence2, ref BpeTokenizer tokenizer)
+            private void UpdateCacheIfNeeded(long position, TensorCacher outputCache, ref ReadOnlyMemory<char> sentence1, ref ReadOnlyMemory<char> sentence2, ref ValueGetter<ReadOnlyMemory<char>> getSentence1, ref ValueGetter<ReadOnlyMemory<char>> getSentence2, Tokenizer tokenizer)
             {
                 if (outputCache.Position != position)
                 {
                     outputCache.Result?.Dispose();
-                    outputCache.Result = PrepAndRunModel(PrepInputTokens(ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, ref tokenizer));
+                    outputCache.Result = PrepAndRunModel(PrepInputTokens(ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, tokenizer));
                     outputCache.Result.MoveToOuterDisposeScope();
                     outputCache.Position = position;
                 }

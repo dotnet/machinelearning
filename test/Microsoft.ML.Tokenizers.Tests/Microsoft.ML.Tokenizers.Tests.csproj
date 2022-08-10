@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Microsoft.ML.Tokenizers.Tests</AssemblyName>
+    <StrongNameKeyId>Test</StrongNameKeyId>
+    <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Import the test signing certificate -->
+  <Import Project="../Cert.props" />
+  <ItemGroup>
+    <None Remove="Data\wiki.test.raw" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Data\wiki.test.raw">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <LogicalName>wiki.test.raw</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="6.0.5" />
+  </ItemGroup>
+
+</Project>

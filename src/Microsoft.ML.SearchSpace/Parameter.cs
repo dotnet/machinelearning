@@ -404,6 +404,9 @@ namespace Microsoft.ML.SearchSpace
             return (_value as IDictionary<string, Parameter>).Remove(key);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool Equals(Parameter other)
         {
             //Check whether the compared object is null.
@@ -418,6 +421,9 @@ namespace Microsoft.ML.SearchSpace
             return thisJson == otherJson;
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override int GetHashCode()
         {
             var thisJson = JsonSerializer.Serialize(this);
