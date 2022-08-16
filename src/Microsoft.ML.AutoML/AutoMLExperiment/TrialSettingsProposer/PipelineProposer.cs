@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.AutoML.CodeGen;
+using Microsoft.ML.SearchSpace.Option;
 using Newtonsoft.Json;
+using Tensorflow;
 using static Microsoft.ML.AutoML.AutoMLExperiment;
 
 namespace Microsoft.ML.AutoML
@@ -38,9 +40,10 @@ namespace Microsoft.ML.AutoML
 
         private readonly Random _rand;
         private readonly SweepablePipeline _sweepablePipeline;
+        private readonly IMetricManager _metricManager;
         private readonly string[] _pipelineSchemas;
 
-        public PipelineProposer(SweepablePipeline sweepablePipeline, AutoMLExperimentSettings settings)
+        public PipelineProposer(SweepablePipeline sweepablePipeline, AutoMLExperimentSettings settings, IMetricManager metricManager)
         {
             // this cost is used to initialize eci when started, the smaller the number, the less cost this trainer will use at start, and more likely it will be
             // picked.
@@ -70,11 +73,21 @@ namespace Microsoft.ML.AutoML
             };
 
             _sweepablePipeline = sweepablePipeline;
-            _rand = new Random(settings.Seed ?? 0);
+
+            if (settings.Seed.HasValue)
+            {
+                _rand = new Random(settings.Seed.Value);
+            }
+            else
+            {
+                _rand = new Random();
+            }
+
             _pipelineSchemas = _sweepablePipeline.Schema.ToTerms().Select(t => t.ToString()).ToArray();
+            _metricManager = metricManager;
         }
 
-        public (SweepableEstimatorPipeline, string) ProposePipeline(TrialSettings settings)
+        public (SearchSpace.SearchSpace, string) ProposeSearchSpace()
         {
             _learnerInitialCost = _pipelineSchemas.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _sweepablePipeline));
             string schema;
@@ -108,13 +121,12 @@ namespace Microsoft.ML.AutoML
                 schema = _pipelineSchemas[i];
             }
 
-
-            return (_sweepablePipeline.BuildSweepableEstimatorPipeline(schema), schema);
+            return (_sweepablePipeline.BuildSweepableEstimatorPipeline(schema).SearchSpace, schema);
         }
 
         public void Update(TrialSettings parameter, TrialResult result, string schema)
         {
-            var error = CaculateError(result.Metric, parameter.ExperimentSettings.IsMaximizeMetric);
+            var error = CaculateError(result.Metric, _metricManager.IsMaximize);
             var duration = result.DurationInMilliseconds / 1000;
             var isSuccess = duration != 0;
 

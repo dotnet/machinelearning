@@ -17,49 +17,42 @@ namespace Microsoft.ML.AutoML
     internal class EciHyperParameterProposer : IHyperParameterProposer
     {
         private readonly Dictionary<string, ITuner> _tuners;
-        private readonly IServiceProvider _provider;
         private readonly PipelineProposer _pipelineProposer;
         // this dictionary records the schema for each trial.
         // the key is trial id, and value is the schema for that trial.
-        private readonly Dictionary<int, string> _schemasLookupMap;
+        private readonly IMetricManager _metricManager;
 
-        public EciHyperParameterProposer(PipelineProposer pipelineProposer, IServiceProvider provider)
+        public EciHyperParameterProposer(SweepablePipeline sweepablePipeline, IMetricManager metricManager, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
             _tuners = new Dictionary<string, ITuner>();
-            _pipelineProposer = pipelineProposer;
-            _provider = provider;
-            _schemasLookupMap = new Dictionary<int, string>();
+            _pipelineProposer = new PipelineProposer(sweepablePipeline, settings, metricManager);
+            _metricManager = metricManager;
         }
 
         public TrialSettings Propose(TrialSettings settings)
         {
-            (var pipeline, var schema) = _pipelineProposer.ProposePipeline(settings);
-            settings.Pipeline = pipeline;
-            var tunerFactory = _provider.GetService<ITunerFactory>();
+            (var searchSpace, var schema) = _pipelineProposer.ProposeSearchSpace();
             if (!_tuners.ContainsKey(schema))
             {
-                var t = tunerFactory.CreateTuner(settings);
+                var t = new CostFrugalTuner(searchSpace, searchSpace.SampleFromFeatureSpace(searchSpace.Default), !_metricManager.IsMaximize);
                 _tuners.Add(schema, t);
             }
 
             var tuner = _tuners[schema];
             var parameter = tuner.Propose(settings);
             settings.Parameter = parameter;
-            _schemasLookupMap[settings.TrialId] = schema;
             return settings;
         }
 
         public void Update(TrialSettings settings, TrialResult result)
         {
-            if (_schemasLookupMap.TryGetValue(settings.TrialId, out var schema))
+            var schema = settings.Parameter["_SCHEMA_"].AsType<string>();
+            if (_tuners.TryGetValue(schema, out var tuner))
             {
-                if (_tuners.TryGetValue(schema, out var tuner))
-                {
-                    tuner.Update(result);
-                }
-
-                _pipelineProposer.Update(settings, result, schema);
+                tuner.Update(result);
             }
+
+            _pipelineProposer.Update(settings, result, schema);
         }
     }
 
@@ -80,7 +73,6 @@ namespace Microsoft.ML.AutoML
             settings.Parameter = parameter;
             var keys = parameter[AutoMLExperiment.PipelineSearchspaceName]["_SCHEMA_"].AsType<string>().Replace(" ", string.Empty).Split('*');
             var estimators = keys.Select(k => _pipeline.Estimators[k]);
-            settings.Pipeline = new SweepableEstimatorPipeline(estimators);
 
             return settings;
         }

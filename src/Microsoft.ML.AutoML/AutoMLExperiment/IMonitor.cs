@@ -29,34 +29,35 @@ namespace Microsoft.ML.AutoML
         private readonly IServiceProvider _serviceProvider;
         private readonly IChannel _logger;
         private readonly List<TrialResult> _completedTrials;
-
-        public MLContextMonitor(MLContext context, IServiceProvider provider)
+        private readonly SweepablePipeline _pipeline;
+        public MLContextMonitor(MLContext context, SweepablePipeline pipeline, IServiceProvider provider)
         {
             _context = context;
             _serviceProvider = provider;
             _logger = ((IChannelProvider)context).Start(nameof(AutoMLExperiment));
             _completedTrials = new List<TrialResult>();
+            _pipeline = pipeline;
         }
 
         public void ReportBestTrial(TrialResult result)
         {
-            _logger.Info($"Update Best Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline}");
+            _logger.Info($"Update Best Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)}");
         }
 
         public void ReportCompletedTrial(TrialResult result)
         {
-            _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline} - Duration: {result.DurationInMilliseconds}");
+            _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)} - Duration: {result.DurationInMilliseconds}");
             _completedTrials.Add(result);
         }
 
         public void ReportFailTrial(TrialSettings settings, Exception exception = null)
         {
-            _logger.Info($"Update Failed Trial - Id: {settings.TrialId} - Pipeline: {settings.Pipeline}");
+            _logger.Info($"Update Failed Trial - Id: {settings.TrialId} - Pipeline: {_pipeline.ToString(settings.Parameter)}");
         }
 
         public void ReportRunningTrial(TrialSettings setting)
         {
-            _logger.Info($"Update Running Trial - Id: {setting.TrialId} - Pipeline: {setting.Pipeline}");
+            _logger.Info($"Update Running Trial - Id: {setting.TrialId} - Pipeline: {_pipeline.ToString(setting.Parameter)}");
         }
     }
 }

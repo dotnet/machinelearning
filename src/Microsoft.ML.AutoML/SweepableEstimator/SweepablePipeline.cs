@@ -28,12 +28,11 @@ namespace Microsoft.ML.AutoML
             get
             {
                 var searchSpace = new SearchSpace.SearchSpace();
-                var kvPairs = _estimators.Select((e, i) => new KeyValuePair<string, SearchSpace.SearchSpace>(i.ToString(), e.Value.SearchSpace));
-                foreach (var kv in kvPairs)
+                foreach (var kv in _estimators)
                 {
                     if (kv.Value != null)
                     {
-                        searchSpace.Add(kv.Key, kv.Value);
+                        searchSpace.Add(kv.Key, kv.Value.SearchSpace);
                     }
                 }
 
@@ -98,7 +97,7 @@ namespace Microsoft.ML.AutoML
                                    {
                                        var key = ((StringEntity)se).Value;
                                        var estimator = _estimators[key];
-                                       var param = parameter[key.Substring(1)];
+                                       var param = parameter[key];
                                        return (estimator, param);
                                    });
 
@@ -110,14 +109,14 @@ namespace Microsoft.ML.AutoML
             return pipeline;
         }
 
-        public SweepableEstimatorPipeline BuildSweepableEstimatorPipeline(string schema)
+        public SweepablePipeline BuildSweepableEstimatorPipeline(string schema)
         {
-            var pipelineNodes = Entity.FromExpression(schema)
-                                      .ValueEntities()
+            var entity = Entity.FromExpression(schema);
+            var pipelineNodes = entity.ValueEntities()
                                       .Where(e => e is StringEntity se && se.Value != "Nil")
-                                      .Select((se) => _estimators[((StringEntity)se).Value]);
+                                      .ToDictionary((se) => se.ToString(), (se) => _estimators[((StringEntity)se).Value]);
 
-            return new SweepableEstimatorPipeline(pipelineNodes);
+            return new SweepablePipeline(pipelineNodes, entity, schema);
         }
 
         public SweepablePipeline Append(params ISweepable<IEstimator<ITransformer>>[] sweepables)
@@ -152,6 +151,27 @@ namespace Microsoft.ML.AutoML
             }
 
             return AppendEntity(false, entity);
+        }
+
+        public string ToString(Parameter parameter)
+        {
+            if (parameter.TryGetValue(AutoMLExperiment.PipelineSearchspaceName, out var pipelineParameter))
+            {
+                var schema = pipelineParameter["_SCHEMA_"].AsType<string>();
+                var estimatorStrings = Entity.FromExpression(_currentSchema)
+                                   .ValueEntities()
+                                   .Where(e => e is StringEntity se && se.Value != "Nil")
+                                   .Select((se) =>
+                                   {
+                                       var key = ((StringEntity)se).Value;
+                                       var estimator = _estimators[key];
+                                       return estimator.EstimatorType.ToString();
+                                   });
+
+                return string.Join("=>", estimatorStrings);
+            }
+
+            return string.Empty;
         }
 
         private SweepablePipeline AppendEntity(bool allowSkip, Entity entity)

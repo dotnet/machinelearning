@@ -37,7 +37,6 @@ namespace Microsoft.ML.AutoML
         {
             _serviceCollection.TryAddSingleton(_context);
             _serviceCollection.TryAddSingleton(_settings);
-            _serviceCollection.TryAddSingleton<IMonitor, MLContextMonitor>();
             _serviceCollection.TryAddSingleton<ITunerFactory, CostFrugalTunerFactory>();
             _serviceCollection.TryAddTransient<BinaryClassificationCVRunner>();
             _serviceCollection.TryAddTransient<SweepablePipelineCVRunner>();
@@ -110,9 +109,25 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetMonitor(IMonitor monitor)
+        public AutoMLExperiment SetMonitor<TMonitor>(TMonitor monitor)
+            where TMonitor : class, IMonitor
         {
             var descriptor = new ServiceDescriptor(typeof(IMonitor), monitor);
+            if (_serviceCollection.Contains(descriptor))
+            {
+                _serviceCollection.Replace(descriptor);
+            }
+            else
+            {
+                _serviceCollection.Add(descriptor);
+            }
+
+            return this;
+        }
+
+        public AutoMLExperiment SetMonitor<TMonitor>()
+        {
+            var descriptor = new ServiceDescriptor(typeof(IMonitor), typeof(TMonitor), ServiceLifetime.Singleton);
             if (_serviceCollection.Contains(descriptor))
             {
                 _serviceCollection.Replace(descriptor);
@@ -131,13 +146,7 @@ namespace Microsoft.ML.AutoML
             _serviceCollection.AddSingleton(pipeline);
 
             SetTrialRunnerFactory<SweepablePipelineTrialRunnerFactory>();
-
-            return this;
-        }
-
-        public AutoMLExperiment SetIsMaximizeMetric(bool isMaximize)
-        {
-            _settings.IsMaximizeMetric = isMaximize;
+            SetMonitor<MLContextMonitor>();
             return this;
         }
 
@@ -225,7 +234,6 @@ namespace Microsoft.ML.AutoML
             var metricManager = new BinaryMetricManager(metric, predictedColumn, labelColumn);
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
             _serviceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
-            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -239,7 +247,6 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -253,7 +260,6 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            SetIsMaximizeMetric(metricManager.IsMaximize);
 
             return this;
         }
@@ -294,6 +300,7 @@ namespace Microsoft.ML.AutoML
             var trialNum = 0;
             var hyperParameterProposer = serviceProvider.GetService<IHyperParameterProposer>();
             var runnerFactory = serviceProvider.GetService<ITrialRunnerFactory>();
+            var metricManager = serviceProvider.GetService<IMetricManager>();
 
             while (true)
             {
@@ -317,7 +324,7 @@ namespace Microsoft.ML.AutoML
                     monitor.ReportCompletedTrial(trialResult);
                     hyperParameterProposer.Update(setting, trialResult);
 
-                    var error = _settings.IsMaximizeMetric ? 1 - trialResult.Metric : trialResult.Metric;
+                    var error = metricManager.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
                     if (error < _bestError)
                     {
                         _bestTrialResult = trialResult;
@@ -367,8 +374,6 @@ namespace Microsoft.ML.AutoML
         public class AutoMLExperimentSettings : ExperimentSettings
         {
             public int? Seed { get; set; }
-
-            public bool IsMaximizeMetric { get; set; }
 
             internal SearchSpace.SearchSpace SearchSpace { get; set; }
         }

@@ -17,57 +17,51 @@ namespace Microsoft.ML.AutoML
 
     internal class CostFrugalTunerFactory : ITunerFactory
     {
-        private readonly IServiceProvider _provider;
+        private readonly SearchSpace.SearchSpace _searchSpace;
+        private readonly IMetricManager _metricManager;
 
-        public CostFrugalTunerFactory(IServiceProvider provider)
+        public CostFrugalTunerFactory(AutoMLExperiment.AutoMLExperimentSettings settings, IMetricManager metricManager)
         {
-            _provider = provider;
+            _searchSpace = settings.SearchSpace;
+            _metricManager = metricManager;
         }
 
         public ITuner CreateTuner(TrialSettings settings)
         {
-            var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-            var searchSpace = settings?.Pipeline?.SearchSpace ?? experimentSetting.SearchSpace;
-            var initParameter = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var isMaximize = experimentSetting.IsMaximizeMetric;
+            var initParameter = _searchSpace.SampleFromFeatureSpace(_searchSpace.Default);
+            var isMaximize = _metricManager.IsMaximize;
 
-            return new CostFrugalTuner(searchSpace, initParameter, !isMaximize);
+            return new CostFrugalTuner(_searchSpace, initParameter, !isMaximize);
         }
     }
 
     internal class RandomTunerFactory : ITunerFactory
     {
-        private readonly IServiceProvider _provider;
+        private readonly SearchSpace.SearchSpace _searchSpace;
 
-        public RandomTunerFactory(IServiceProvider provider)
+        public RandomTunerFactory(AutoMLExperiment.AutoMLExperimentSettings settings)
         {
-            _provider = provider;
+            _searchSpace = settings.SearchSpace;
         }
 
         public ITuner CreateTuner(TrialSettings settings)
         {
-            var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-            var searchSpace = settings?.Pipeline?.SearchSpace ?? experimentSetting.SearchSpace;
-
-            return new RandomSearchTuner(searchSpace);
+            return new RandomSearchTuner(_searchSpace);
         }
     }
 
     internal class GridSearchTunerFactory : ITunerFactory
     {
-        private readonly IServiceProvider _provider;
+        private readonly SearchSpace.SearchSpace _searchSpace;
 
-        public GridSearchTunerFactory(IServiceProvider provider)
+        public GridSearchTunerFactory(AutoMLExperiment.AutoMLExperimentSettings settings)
         {
-            _provider = provider;
+            _searchSpace = settings.SearchSpace;
         }
 
         public ITuner CreateTuner(TrialSettings settings)
         {
-            var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-            var searchSpace = settings?.Pipeline?.SearchSpace ?? experimentSetting.SearchSpace;
-
-            return new GridSearchTuner(searchSpace);
+            return new GridSearchTuner(_searchSpace);
         }
     }
 }

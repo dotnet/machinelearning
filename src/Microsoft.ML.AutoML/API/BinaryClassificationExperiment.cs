@@ -344,14 +344,14 @@ namespace Microsoft.ML.AutoML
 
         private RunDetail<BinaryClassificationMetrics> ToRunDetail(BinaryClassificationTrialResult result)
         {
-            var trainerName = result.TrialSettings.Pipeline.ToString();
+            var trainerName = _pipeline.ToString(result.TrialSettings.Parameter);
             var modelContainer = new ModelContainer(Context, result.Model);
             return new RunDetail<BinaryClassificationMetrics>(trainerName, result.Pipeline, null, modelContainer, result.BinaryClassificationMetrics, result.Exception);
         }
 
         private CrossValidationRunDetail<BinaryClassificationMetrics> ToCrossValidationRunDetail(BinaryClassificationTrialResult result)
         {
-            var trainerName = result.TrialSettings.Pipeline.ToString();
+            var trainerName = _pipeline.ToString(result.TrialSettings.Parameter);
             var crossValidationResult = result.CrossValidationMetrics.Select(m => new TrainResult<BinaryClassificationMetrics>(new ModelContainer(Context, m.Model), m.Metrics, result.Exception));
             return new CrossValidationRunDetail<BinaryClassificationMetrics>(trainerName, result.Pipeline, null, crossValidationResult);
         }
@@ -416,15 +416,14 @@ namespace Microsoft.ML.AutoML
         private readonly MLContext _context;
         private readonly IDatasetManager _datasetManager;
         private readonly IMetricManager _metricManager;
+        private readonly SweepablePipeline _pipeline;
 
-        private readonly EciHyperParameterProposer _proposer;
-
-        public BinaryClassificationCVRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciHyperParameterProposer proposer)
+        public BinaryClassificationCVRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciHyperParameterProposer proposer, SweepablePipeline pipeline)
         {
             _context = context;
             _datasetManager = datasetManager;
             _metricManager = metricManager;
-            _proposer = proposer;
+            _pipeline = pipeline;
         }
 
         public TrialResult Run(TrialSettings settings, IServiceProvider provider)
@@ -436,7 +435,7 @@ namespace Microsoft.ML.AutoML
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
                 var fold = datasetSettings.Fold ?? 5;
-                var pipeline = settings.Pipeline.BuildTrainingPipeline(_context, settings.Parameter);
+                var pipeline = _pipeline.BuildFromOption(_context, settings.Parameter);
                 var metrics = _context.BinaryClassification.CrossValidateNonCalibrated(datasetSettings.Dataset, pipeline, fold, metricSettings.LabelColumn);
 
                 // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
@@ -476,14 +475,14 @@ namespace Microsoft.ML.AutoML
         private readonly MLContext _context;
         private readonly IDatasetManager _datasetManager;
         private readonly IMetricManager _metricManager;
-        private readonly EciHyperParameterProposer _proposer;
+        private readonly SweepablePipeline _pipeline;
 
-        public BinaryClassificationTrainTestRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciHyperParameterProposer proposer)
+        public BinaryClassificationTrainTestRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciHyperParameterProposer proposer, SweepablePipeline pipeline)
         {
             _context = context;
             _metricManager = metricManager;
             _datasetManager = datasetManager;
-            _proposer = proposer;
+            _pipeline = pipeline;
         }
 
         public TrialResult Run(TrialSettings settings, IServiceProvider provider)
@@ -493,7 +492,7 @@ namespace Microsoft.ML.AutoML
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                var pipeline = settings.Pipeline.BuildTrainingPipeline(_context, settings.Parameter);
+                var pipeline = _pipeline.BuildFromOption(_context, settings.Parameter);
                 var model = pipeline.Fit(datasetSettings.TrainDataset);
                 var eval = model.Transform(datasetSettings.TestDataset);
                 var metrics = _context.BinaryClassification.EvaluateNonCalibrated(eval, metricSettings.LabelColumn, predictedLabelColumnName: metricSettings.PredictedColumn);
