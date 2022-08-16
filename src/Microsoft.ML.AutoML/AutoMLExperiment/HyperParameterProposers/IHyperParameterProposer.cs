@@ -5,18 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
-    public interface ISweepable
+    internal interface IHyperParameterProposer : ITrialSettingsProposer
     {
-        public SearchSpace.SearchSpace SearchSpace { get; }
-    }
-
-    public interface ISweepable<out T> : ISweepable
-        where T : IEstimator<ITransformer>
-    {
-        public T BuildFromOption(MLContext context, Parameter parameter);
     }
 }

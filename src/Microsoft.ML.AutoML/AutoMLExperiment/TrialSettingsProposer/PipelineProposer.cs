@@ -15,7 +15,7 @@ namespace Microsoft.ML.AutoML
     /// <summary>
     /// propose sweepable estimator pipeline from a group of candidates using eci in flaml (https://arxiv.org/abs/1911.04706)
     /// </summary>
-    internal class PipelineProposer : ISavableProposer
+    internal class PipelineProposer
     {
         private readonly Dictionary<EstimatorType, double> _estimatorCost;
         private Dictionary<string, double> _learnerInitialCost;
@@ -37,9 +37,10 @@ namespace Microsoft.ML.AutoML
         private double _globalBestError;
 
         private readonly Random _rand;
-        private MultiModelPipeline _multiModelPipeline;
+        private readonly SweepablePipeline _sweepablePipeline;
+        private readonly string[] _pipelineSchemas;
 
-        public PipelineProposer(AutoMLExperimentSettings settings)
+        public PipelineProposer(SweepablePipeline sweepablePipeline, AutoMLExperimentSettings settings)
         {
             // this cost is used to initialize eci when started, the smaller the number, the less cost this trainer will use at start, and more likely it will be
             // picked.
@@ -67,26 +68,25 @@ namespace Microsoft.ML.AutoML
                 { EstimatorType.ImageClassificationMulti, 1 },
                 { EstimatorType.MatrixFactorization, 1 },
             };
-            _rand = new Random(settings.Seed ?? 0);
 
-            _multiModelPipeline = null;
+            _sweepablePipeline = sweepablePipeline;
+            _rand = new Random(settings.Seed ?? 0);
+            _pipelineSchemas = _sweepablePipeline.Schema.ToTerms().Select(t => t.ToString()).ToArray();
         }
 
-        public TrialSettings Propose(TrialSettings settings)
+        public (SweepableEstimatorPipeline, string) ProposePipeline(TrialSettings settings)
         {
-            _multiModelPipeline = settings.ExperimentSettings.Pipeline;
-            _learnerInitialCost = _multiModelPipeline.PipelineIds.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _multiModelPipeline));
-            var pipelineIds = _multiModelPipeline.PipelineIds;
-
+            _learnerInitialCost = _pipelineSchemas.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _sweepablePipeline));
+            string schema;
             if (_eci == null)
             {
                 // initialize eci with the estimated cost and always start from pipeline which has lowest cost.
-                _eci = pipelineIds.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _multiModelPipeline));
-                settings.Schema = _eci.OrderBy(kv => kv.Value).First().Key;
+                _eci = _pipelineSchemas.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _sweepablePipeline));
+                schema = _eci.OrderBy(kv => kv.Value).First().Key;
             }
             else
             {
-                var probabilities = pipelineIds.Select(id => _eci[id]).ToArray();
+                var probabilities = _pipelineSchemas.Select(id => _eci[id]).ToArray();
                 probabilities = ArrayMath.Inverse(probabilities);
                 probabilities = ArrayMath.Normalize(probabilities);
 
@@ -96,70 +96,26 @@ namespace Microsoft.ML.AutoML
                 // selected pipeline id index
                 int i;
 
-                for (i = 0; i != pipelineIds.Length; ++i)
+                for (i = 0; i != _pipelineSchemas.Length; ++i)
                 {
-                    sum += ((double[])probabilities)[i];
+                    sum += probabilities[i];
                     if (sum > randdouble)
                     {
                         break;
                     }
                 }
 
-                settings.Schema = pipelineIds[i];
+                schema = _pipelineSchemas[i];
             }
 
-            settings.Pipeline = _multiModelPipeline.BuildSweepableEstimatorPipeline(settings.Schema);
-            return settings;
+
+            return (_sweepablePipeline.BuildSweepableEstimatorPipeline(schema), schema);
         }
 
-        public void SaveStatusToFile(string fileName)
+        public void Update(TrialSettings parameter, TrialResult result, string schema)
         {
-            using (var writer = new FileStream(fileName, FileMode.Create))
-            {
-                SaveStatusToStream(writer);
-            }
-        }
-
-        public void SaveStatusToStream(Stream stream)
-        {
-            var status = new Status()
-            {
-                K1 = _k1,
-                K2 = _k2,
-                E1 = _e1,
-                E2 = _e2,
-                Eci = _eci,
-                GlobalBestError = _globalBestError,
-            };
-
-            using (var fileWriter = new StreamWriter(stream))
-            {
-                var json = JsonConvert.SerializeObject(status);
-                fileWriter.Write(json);
-            }
-        }
-
-        public void LoadStatusFromFile(string fileName)
-        {
-            if (File.Exists(fileName))
-            {
-                var json = File.ReadAllText(fileName);
-                var status = JsonConvert.DeserializeObject<Status>(json);
-                _k1 = status.K1;
-                _k2 = status.K2;
-                _e1 = status.E1;
-                _e2 = status.E2;
-                _eci = status.Eci;
-                _globalBestError = status.GlobalBestError;
-            }
-        }
-
-        public void Update(TrialSettings parameter, TrialResult result)
-        {
-            var schema = parameter.Schema;
             var error = CaculateError(result.Metric, parameter.ExperimentSettings.IsMaximizeMetric);
             var duration = result.DurationInMilliseconds / 1000;
-            var pipelineIds = _multiModelPipeline.PipelineIds;
             var isSuccess = duration != 0;
 
             // if k1 is null, it means this is the first completed trial.
@@ -173,10 +129,10 @@ namespace Microsoft.ML.AutoML
             {
                 if (_k1 == null)
                 {
-                    _k1 = pipelineIds.ToDictionary(id => id, id => duration * _learnerInitialCost[id] / _learnerInitialCost[schema]);
+                    _k1 = _pipelineSchemas.ToDictionary(id => id, id => duration * _learnerInitialCost[id] / _learnerInitialCost[schema]);
                     _k2 = _k1.ToDictionary(kv => kv.Key, kv => kv.Value);
-                    _e1 = pipelineIds.ToDictionary(id => id, id => error);
-                    _e2 = pipelineIds.ToDictionary(id => id, id => 1.05 * error);
+                    _e1 = _pipelineSchemas.ToDictionary(id => id, id => error);
+                    _e2 = _pipelineSchemas.ToDictionary(id => id, id => 1.05 * error);
                     _globalBestError = error;
                 }
                 else if (error >= _e1[schema])
@@ -227,15 +183,15 @@ namespace Microsoft.ML.AutoML
             return isMaximize ? 1 - loss : loss;
         }
 
-        private double GetEstimatedCostForPipeline(string kv, MultiModelPipeline multiModelPipeline)
+        private double GetEstimatedCostForPipeline(string schema, SweepablePipeline pipeline)
         {
-            var entity = Entity.FromExpression(kv);
+            var entity = Entity.FromExpression(schema);
 
             var estimatorTypes = entity.ValueEntities().Where(v => v is StringEntity s && s.Value != "Nil")
                                          .Select(v =>
                                          {
                                              var s = v as StringEntity;
-                                             var estimator = multiModelPipeline.Estimators[s.Value];
+                                             var estimator = pipeline.Estimators[s.Value];
                                              return estimator.EstimatorType;
                                          });
 

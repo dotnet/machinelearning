@@ -1,12 +1,17 @@
 {
-  "schema": "e0 * (e1 + e2 + e3 + e4 + e5)",
+  "schema": "e0 * e1 * (e2 + e3 + e4 + e5 + e6 + e7 + e8)",
+  "currentSchema": "e0 * e1 * e2",
   "estimators": {
     "e0": {
       "estimatorType": "Unknown",
       "parameter": {}
     },
     "e1": {
-      "estimatorType": "FastTreeBinary",
+      "estimatorType": "FeaturizeText",
+      "parameter": {}
+    },
+    "e2": {
+      "estimatorType": "FastTreeOva",
       "parameter": {
         "NumberOfLeaves": 4,
         "MinimumExampleCountPerLeaf": 20,
@@ -18,8 +23,8 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e2": {
-      "estimatorType": "FastForestBinary",
+    "e3": {
+      "estimatorType": "FastForestOva",
       "parameter": {
         "NumberOfTrees": 4,
         "NumberOfLeaves": 4,
@@ -28,8 +33,8 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e3": {
-      "estimatorType": "LightGbmBinary",
+    "e4": {
+      "estimatorType": "LightGbmMulti",
       "parameter": {
         "NumberOfLeaves": 4,
         "MinimumExampleCountPerLeaf": 20,
@@ -44,8 +49,8 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e4": {
-      "estimatorType": "LbfgsLogisticRegressionBinary",
+    "e5": {
+      "estimatorType": "LbfgsLogisticRegressionOva",
       "parameter": {
         "L1Regularization": 1,
         "L2Regularization": 1,
@@ -53,8 +58,26 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e5": {
-      "estimatorType": "SdcaLogisticRegressionBinary",
+    "e6": {
+      "estimatorType": "LbfgsMaximumEntropyMulti",
+      "parameter": {
+        "L1Regularization": 1,
+        "L2Regularization": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Features"
+      }
+    },
+    "e7": {
+      "estimatorType": "SdcaMaximumEntropyMulti",
+      "parameter": {
+        "L1Regularization": 1,
+        "L2Regularization": 0.1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Features"
+      }
+    },
+    "e8": {
+      "estimatorType": "SdcaLogisticRegressionOva",
       "parameter": {
         "L1Regularization": 1,
         "L2Regularization": 0.1,

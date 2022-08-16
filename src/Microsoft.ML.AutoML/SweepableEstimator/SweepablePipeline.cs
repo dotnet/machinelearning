@@ -14,7 +14,7 @@ using Microsoft.ML.SearchSpace.Option;
 namespace Microsoft.ML.AutoML
 {
     [JsonConverter(typeof(SweepablePipelineConverter))]
-    internal class SweepablePipeline : ISweepable<EstimatorChain<ITransformer>>
+    public class SweepablePipeline : ISweepable<EstimatorChain<ITransformer>>
     {
         private readonly Entity _schema;
         private const string SchemaOption = "_SCHEMA_";
@@ -70,6 +70,11 @@ namespace Microsoft.ML.AutoML
             _schema = null;
         }
 
+        internal SweepablePipeline(MultiModelPipeline pipeline)
+            : this(pipeline.Estimators, pipeline.Schema)
+        {
+        }
+
         internal SweepablePipeline(Dictionary<string, SweepableEstimator> estimators, Entity schema, string currentSchema = null)
         {
             _estimators = estimators;
@@ -85,13 +90,34 @@ namespace Microsoft.ML.AutoML
         public EstimatorChain<ITransformer> BuildFromOption(MLContext context, Parameter parameter)
         {
             _currentSchema = parameter[SchemaOption].AsType<string>();
-            var estimators = Entity.FromExpression(_currentSchema)
+            var pipeline = new EstimatorChain<ITransformer>();
+            var estimatorParameterPair = Entity.FromExpression(_currentSchema)
                                    .ValueEntities()
                                    .Where(e => e is StringEntity se && se.Value != "Nil")
-                                   .Select((se) => _estimators[((StringEntity)se).Value]);
+                                   .Select((se) =>
+                                   {
+                                       var key = ((StringEntity)se).Value;
+                                       var estimator = _estimators[key];
+                                       var param = parameter[key.Substring(1)];
+                                       return (estimator, param);
+                                   });
 
-            var pipeline = new SweepableEstimatorPipeline(estimators);
-            return pipeline.BuildTrainingPipeline(context, parameter);
+            foreach (var kv in estimatorParameterPair)
+            {
+                pipeline = pipeline.Append(kv.estimator.BuildFromOption(context, kv.param));
+            }
+
+            return pipeline;
+        }
+
+        public SweepableEstimatorPipeline BuildSweepableEstimatorPipeline(string schema)
+        {
+            var pipelineNodes = Entity.FromExpression(schema)
+                                      .ValueEntities()
+                                      .Where(e => e is StringEntity se && se.Value != "Nil")
+                                      .Select((se) => _estimators[((StringEntity)se).Value]);
+
+            return new SweepableEstimatorPipeline(pipelineNodes);
         }
 
         public SweepablePipeline Append(params ISweepable<IEstimator<ITransformer>>[] sweepables)

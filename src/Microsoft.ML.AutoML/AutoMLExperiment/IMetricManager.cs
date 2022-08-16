@@ -14,8 +14,22 @@ namespace Microsoft.ML.AutoML
         bool IsMaximize { get; }
     }
 
-    internal class BinaryMetricManager : IMetricManager
+    internal interface IEvaluateMetricManager : IMetricManager
     {
+        double Evaluate(MLContext context, IDataView eval);
+
+        string MetricName { get; }
+    }
+
+    internal class BinaryMetricManager : IEvaluateMetricManager
+    {
+        public BinaryMetricManager(BinaryClassificationMetric metric, string predictedColumn, string labelColumn)
+        {
+            Metric = metric;
+            PredictedColumn = predictedColumn;
+            LabelColumn = labelColumn;
+        }
+
         public BinaryClassificationMetric Metric { get; set; }
 
         public string PredictedColumn { get; set; }
@@ -34,6 +48,26 @@ namespace Microsoft.ML.AutoML
             BinaryClassificationMetric.F1Score => true,
             _ => throw new NotImplementedException(),
         };
+
+        public string MetricName => Metric.ToString();
+
+        public double Evaluate(MLContext context, IDataView eval)
+        {
+            var metric = context.BinaryClassification.EvaluateNonCalibrated(eval, labelColumnName: LabelColumn, predictedLabelColumnName: PredictedColumn);
+
+            return Metric switch
+            {
+                BinaryClassificationMetric.Accuracy => metric.Accuracy,
+                BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => metric.AreaUnderPrecisionRecallCurve,
+                BinaryClassificationMetric.AreaUnderRocCurve => metric.AreaUnderRocCurve,
+                BinaryClassificationMetric.PositivePrecision => metric.PositivePrecision,
+                BinaryClassificationMetric.NegativePrecision => metric.NegativePrecision,
+                BinaryClassificationMetric.NegativeRecall => metric.NegativeRecall,
+                BinaryClassificationMetric.PositiveRecall => metric.PositivePrecision,
+                BinaryClassificationMetric.F1Score => metric.F1Score,
+                _ => throw new NotImplementedException(),
+            };
+        }
     }
 
     internal class MultiClassMetricManager : IMetricManager

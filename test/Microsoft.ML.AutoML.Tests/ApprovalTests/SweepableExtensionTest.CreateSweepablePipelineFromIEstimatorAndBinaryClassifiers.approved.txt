@@ -1,12 +1,13 @@
 {
-  "schema": "e0 * (e1 + e2 + e3 + e4 + e5 + e6 + e7)",
+  "schema": "e0 * (e1 + e2 + e3 + e4 + e5)",
+  "currentSchema": "e0 * e1",
   "estimators": {
     "e0": {
       "estimatorType": "Unknown",
       "parameter": {}
     },
     "e1": {
-      "estimatorType": "FastTreeOva",
+      "estimatorType": "FastTreeBinary",
       "parameter": {
         "NumberOfLeaves": 4,
         "MinimumExampleCountPerLeaf": 20,
@@ -19,7 +20,7 @@
       }
     },
     "e2": {
-      "estimatorType": "FastForestOva",
+      "estimatorType": "FastForestBinary",
       "parameter": {
         "NumberOfTrees": 4,
         "NumberOfLeaves": 4,
@@ -29,7 +30,7 @@
       }
     },
     "e3": {
-      "estimatorType": "LightGbmMulti",
+      "estimatorType": "LightGbmBinary",
       "parameter": {
         "NumberOfLeaves": 4,
         "MinimumExampleCountPerLeaf": 20,
@@ -45,7 +46,7 @@
       }
     },
     "e4": {
-      "estimatorType": "LbfgsLogisticRegressionOva",
+      "estimatorType": "LbfgsLogisticRegressionBinary",
       "parameter": {
         "L1Regularization": 1,
         "L2Regularization": 1,
@@ -54,25 +55,7 @@
       }
     },
     "e5": {
-      "estimatorType": "LbfgsMaximumEntropyMulti",
-      "parameter": {
-        "L1Regularization": 1,
-        "L2Regularization": 1,
-        "LabelColumnName": "Label",
-        "FeatureColumnName": "Features"
-      }
-    },
-    "e6": {
-      "estimatorType": "SdcaMaximumEntropyMulti",
-      "parameter": {
-        "L1Regularization": 1,
-        "L2Regularization": 0.1,
-        "LabelColumnName": "Label",
-        "FeatureColumnName": "Features"
-      }
-    },
-    "e7": {
-      "estimatorType": "SdcaLogisticRegressionOva",
+      "estimatorType": "SdcaLogisticRegressionBinary",
       "parameter": {
         "L1Regularization": 1,
         "L2Regularization": 0.1,

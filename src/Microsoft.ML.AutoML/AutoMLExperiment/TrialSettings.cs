@@ -12,8 +12,6 @@ namespace Microsoft.ML.AutoML
 
         public SweepableEstimatorPipeline Pipeline { get; set; }
 
-        public string Schema { get; set; }
-
         public Parameter Parameter { get; set; }
 
         public AutoMLExperiment.AutoMLExperimentSettings ExperimentSettings { get; set; }

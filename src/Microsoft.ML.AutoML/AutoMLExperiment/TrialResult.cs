@@ -20,20 +20,4 @@ namespace Microsoft.ML.AutoML
 
         public double DurationInMilliseconds { get; set; }
     }
-
-    /// <summary>
-    /// TrialResult with Binary Classification Metrics
-    /// </summary>
-    internal class BinaryClassificationTrialResult : TrialResult
-    {
-        public BinaryClassificationMetrics BinaryClassificationMetrics { get; set; }
-
-        public IEnumerable<CrossValidationResult<BinaryClassificationMetrics>> CrossValidationMetrics { get; set; }
-
-        public Exception Exception { get; set; }
-
-        public bool IsSucceed { get => Exception == null; }
-
-        public bool IsCrossValidation { get => CrossValidationMetrics == null; }
-    }
 }

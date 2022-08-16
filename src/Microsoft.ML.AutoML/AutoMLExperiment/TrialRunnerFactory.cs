@@ -31,11 +31,12 @@ namespace Microsoft.ML.AutoML
         }
     }
 
-    internal class TrialRunnerFactory : ITrialRunnerFactory
+
+    internal class SweepablePipelineTrialRunnerFactory : ITrialRunnerFactory
     {
         private readonly IServiceProvider _provider;
 
-        public TrialRunnerFactory(IServiceProvider provider)
+        public SweepablePipelineTrialRunnerFactory(IServiceProvider provider)
         {
             _provider = provider;
         }
@@ -47,12 +48,7 @@ namespace Microsoft.ML.AutoML
 
             ITrialRunner? runner = (datasetManager, metricManager) switch
             {
-                (CrossValidateDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationCVRunner>(),
-                (TrainTestDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationTrainTestRunner>(),
-                (CrossValidateDatasetManager, MultiClassMetricManager) => _provider.GetService<MultiClassificationCVRunner>(),
-                (TrainTestDatasetManager, MultiClassMetricManager) => _provider.GetService<MultiClassificationTrainTestRunner>(),
-                (CrossValidateDatasetManager, RegressionMetricManager) => _provider.GetService<RegressionCVRunner>(),
-                (TrainTestDatasetManager, RegressionMetricManager) => _provider.GetService<RegressionTrainTestRunner>(),
+                (CrossValidateDatasetManager, BinaryMetricManager) => _provider.GetService<SweepablePipelineCVRunner>(),
                 _ => throw new NotImplementedException(),
             };
 

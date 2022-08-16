@@ -1,19 +1,19 @@
-{
-  "schema": "e0 * e1 * e2 * e3",
-  "currentSchema": "e0 * e1 * e2 * e3",
+﻿{
+  "schema": "e0 * e1 * e2 * e3 * e4",
+  "currentSchema": "e0 * e1 * e2 * e3 * e4",
   "estimators": {
     "e0": {
       "estimatorType": "LoadImages",
       "parameter": {
-        "OutputColumnName": "imagePath",
-        "InputColumnName": "imagePath"
+        "OutputColumnName": "ImagePath",
+        "InputColumnName": "ImagePath"
       }
     },
     "e1": {
       "estimatorType": "ResizeImages",
       "parameter": {
-        "OutputColumnName": "imagePath",
-        "InputColumnName": "imagePath",
+        "OutputColumnName": "ImagePath",
+        "InputColumnName": "ImagePath",
         "ImageHeight": 224,
         "ImageWidth": 224,
         "CropAnchor": "Center",
@@ -23,8 +23,8 @@
     "e2": {
       "estimatorType": "ExtractPixels",
       "parameter": {
-        "OutputColumnName": "imagePath",
-        "InputColumnName": "imagePath",
+        "OutputColumnName": "ImagePath",
+        "InputColumnName": "ImagePath",
         "ColorsToExtract": "Rgb",
         "OrderOfExtraction": "ARGB",
         "OutputAsFloatArray": true
@@ -33,9 +33,18 @@
     "e3": {
       "estimatorType": "DnnFeaturizerImage",
       "parameter": {
-        "OutputColumnName": "imagePath",
-        "InputColumnName": "imagePath",
+        "OutputColumnName": "ImagePath",
+        "InputColumnName": "ImagePath",
         "ModelFactory": "resnet_18"
+      }
+    },
+    "e4": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "ImagePath"
+        ],
+        "OutputColumnName": "Features"
       }
     }
   }

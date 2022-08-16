@@ -326,7 +326,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="lbfgsSearchSpace">if provided, use it as search space for lbfgs, otherwise the default search space will be used.</param>
         /// <param name="sdcaSearchSpace">if provided, use it as search space for sdca, otherwise the default search space will be used.</param>
         /// <returns></returns>
-        public SweepableEstimator[] BinaryClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+        public SweepablePipeline BinaryClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
             FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
         {
@@ -377,7 +377,7 @@ namespace Microsoft.ML.AutoML
                 res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionBinary(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
             }
 
-            return res.ToArray();
+            return new SweepablePipeline().Append(res.ToArray());
         }
 
         /// <summary>
@@ -402,7 +402,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="lbfgsSearchSpace">if provided, use it as search space for lbfgs, otherwise the default search space will be used.</param>
         /// <param name="sdcaSearchSpace">if provided, use it as search space for sdca, otherwise the default search space will be used.</param>
         /// <returns></returns>
-        public SweepableEstimator[] MultiClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+        public SweepablePipeline MultiClassification(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
             FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
         {
@@ -455,7 +455,7 @@ namespace Microsoft.ML.AutoML
                 res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionOva(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
             }
 
-            return res.ToArray();
+            return new SweepablePipeline().Append(res.ToArray());
         }
 
         /// <summary>
@@ -480,7 +480,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="lbfgsSearchSpace">if provided, use it as search space for lbfgs, otherwise the default search space will be used.</param>
         /// <param name="sdcaSearchSpace">if provided, use it as search space for sdca, otherwise the default search space will be used.</param>
         /// <returns></returns>
-        public SweepableEstimator[] Regression(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
+        public SweepablePipeline Regression(string labelColumnName = DefaultColumnNames.Label, string featureColumnName = DefaultColumnNames.Features, string exampleWeightColumnName = null, bool useFastForest = true, bool useLgbm = true, bool useFastTree = true, bool useLbfgs = true, bool useSdca = true,
             FastTreeOption fastTreeOption = null, LgbmOption lgbmOption = null, FastForestOption fastForestOption = null, LbfgsOption lbfgsOption = null, SdcaOption sdcaOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null, SearchSpace<LgbmOption> lgbmSearchSpace = null, SearchSpace<FastForestOption> fastForestSearchSpace = null, SearchSpace<LbfgsOption> lbfgsSearchSpace = null, SearchSpace<SdcaOption> sdcaSearchSpace = null)
         {
@@ -531,7 +531,7 @@ namespace Microsoft.ML.AutoML
                 res.Add(SweepableEstimatorFactory.CreateSdcaRegression(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
             }
 
-            return res.ToArray();
+            return new SweepablePipeline().Append(res.ToArray());
         }
 
         /// <summary>
@@ -539,7 +539,7 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="outputColumnName">output column name.</param>
         /// <param name="inputColumnName">input column name.</param>
-        internal SweepableEstimator[] TextFeaturizer(string outputColumnName, string inputColumnName)
+        internal SweepablePipeline TextFeaturizer(string outputColumnName, string inputColumnName)
         {
             var option = new FeaturizeTextOption
             {
@@ -547,7 +547,7 @@ namespace Microsoft.ML.AutoML
                 OutputColumnName = outputColumnName,
             };
 
-            return new[] { SweepableEstimatorFactory.CreateFeaturizeText(option) };
+            return new SweepablePipeline().Append(new[] { SweepableEstimatorFactory.CreateFeaturizeText(option) });
         }
 
         /// <summary>
@@ -555,7 +555,7 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="outputColumnNames">output column names.</param>
         /// <param name="inputColumnNames">input column names.</param>
-        internal SweepableEstimator[] NumericFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
+        internal SweepablePipeline NumericFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
         {
             Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
             Contracts.CheckValue(outputColumnNames, nameof(outputColumnNames));
@@ -566,7 +566,7 @@ namespace Microsoft.ML.AutoML
                 OutputColumnNames = outputColumnNames,
             };
 
-            return new[] { SweepableEstimatorFactory.CreateReplaceMissingValues(replaceMissingValueOption) };
+            return new SweepablePipeline().Append(new[] { SweepableEstimatorFactory.CreateReplaceMissingValues(replaceMissingValueOption) });
         }
 
         /// <summary>
@@ -574,7 +574,7 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="outputColumnNames">output column names.</param>
         /// <param name="inputColumnNames">input column names.</param>
-        internal SweepableEstimator[] CatalogFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
+        internal SweepablePipeline CatalogFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
         {
             Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
 
@@ -584,10 +584,10 @@ namespace Microsoft.ML.AutoML
                 OutputColumnNames = outputColumnNames,
             };
 
-            return new SweepableEstimator[] { SweepableEstimatorFactory.CreateOneHotEncoding(option), SweepableEstimatorFactory.CreateOneHotHashEncoding(option) };
+            return new SweepablePipeline().Append(new SweepableEstimator[] { SweepableEstimatorFactory.CreateOneHotEncoding(option), SweepableEstimatorFactory.CreateOneHotHashEncoding(option) });
         }
 
-        internal MultiModelPipeline ImagePathFeaturizer(string outputColumnName, string inputColumnName)
+        internal SweepablePipeline ImagePathFeaturizer(string outputColumnName, string inputColumnName)
         {
             // load image => resize image (224, 224) => extract pixels => dnn featurizer
             var loadImageOption = new LoadImageOption
@@ -617,7 +617,7 @@ namespace Microsoft.ML.AutoML
                 OutputColumnName = outputColumnName,
             };
 
-            var pipeline = new MultiModelPipeline();
+            var pipeline = new SweepablePipeline();
 
             return pipeline.Append(SweepableEstimatorFactory.CreateLoadImages(loadImageOption))
                         .Append(SweepableEstimatorFactory.CreateResizeImages(resizeImageOption))
@@ -637,7 +637,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="imagePathColumns">columns that should be treated as image path. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="outputColumnName">output feature column.</param>
         /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
-        public MultiModelPipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] imagePathColumns = null, string[] excludeColumns = null)
+        public SweepablePipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] imagePathColumns = null, string[] excludeColumns = null)
         {
             Contracts.CheckValue(data, nameof(data));
 
@@ -705,7 +705,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="columnInformation">column information.</param>
         /// <param name="outputColumnName">output feature column.</param>
         /// <returns>A <see cref="MultiModelPipeline"/> for featurization.</returns>
-        public MultiModelPipeline Featurizer(IDataView data, ColumnInformation columnInformation, string outputColumnName = "Features")
+        public SweepablePipeline Featurizer(IDataView data, ColumnInformation columnInformation, string outputColumnName = "Features")
         {
             Contracts.CheckValue(data, nameof(data));
             Contracts.CheckValue(columnInformation, nameof(columnInformation));
@@ -720,7 +720,7 @@ namespace Microsoft.ML.AutoML
             var catalogFeatureColumnNames = catalogFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
             var imagePathColumnNames = imagePathFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
 
-            var pipeline = new MultiModelPipeline();
+            var pipeline = new SweepablePipeline();
             if (numericFeatureColumnNames.Length > 0)
             {
                 pipeline = pipeline.Append(this.NumericFeaturizer(numericFeatureColumnNames, numericFeatureColumnNames));

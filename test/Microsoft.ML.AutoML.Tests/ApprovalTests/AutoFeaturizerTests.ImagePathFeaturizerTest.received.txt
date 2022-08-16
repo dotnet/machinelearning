@@ -1,4 +1,4 @@
-{
+﻿{
   "schema": "e0 * e1 * e2 * e3",
   "currentSchema": "e0 * e1 * e2 * e3",
   "estimators": {

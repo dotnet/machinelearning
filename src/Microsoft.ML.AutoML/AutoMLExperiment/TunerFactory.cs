@@ -27,8 +27,8 @@ namespace Microsoft.ML.AutoML
         public ITuner CreateTuner(TrialSettings settings)
         {
             var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-            var searchSpace = settings.Pipeline.SearchSpace;
-            var initParameter = settings.Pipeline.Parameter;
+            var searchSpace = settings?.Pipeline?.SearchSpace ?? experimentSetting.SearchSpace;
+            var initParameter = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
             var isMaximize = experimentSetting.IsMaximizeMetric;
 
             return new CostFrugalTuner(searchSpace, initParameter, !isMaximize);
@@ -46,7 +46,8 @@ namespace Microsoft.ML.AutoML
 
         public ITuner CreateTuner(TrialSettings settings)
         {
-            var searchSpace = settings.Pipeline.SearchSpace;
+            var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
+            var searchSpace = settings?.Pipeline?.SearchSpace ?? experimentSetting.SearchSpace;
 
             return new RandomSearchTuner(searchSpace);
         }
@@ -63,7 +64,8 @@ namespace Microsoft.ML.AutoML
 
         public ITuner CreateTuner(TrialSettings settings)
         {
-            var searchSpace = settings.Pipeline.SearchSpace;
+            var experimentSetting = _provider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
+            var searchSpace = settings?.Pipeline?.SearchSpace ?? experimentSetting.SearchSpace;
 
             return new GridSearchTuner(searchSpace);
         }

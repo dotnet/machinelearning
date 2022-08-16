@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
@@ -104,6 +105,35 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.BestRun.Results.Select(x => x.ValidationMetrics.Accuracy).Min() > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.TrainerName);
+        }
+
+        [LightGBMFact]
+        public void SweepablePipeline_AutoFit_UCI_Adult_CrossValidation_10_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
+            var experiment = context.Auto().CreateExperiment();
+            var pipeline = context.Auto().Featurizer(trainData, columnInference.ColumnInformation)
+                            .Append(context.Auto().BinaryClassification(labelColumnName: DatasetUtil.UciAdultLabel));
+
+            experiment.SetPipeline(pipeline)
+                    .SetDataset(trainData, 5)
+                    .SetEvaluateMetric(BinaryClassificationMetric.Accuracy, DatasetUtil.UciAdultLabel)
+                    .SetTrainingTimeInSeconds(10);
+
+            var res = experiment.Run();
+            res.Metric.Should().BeGreaterThan(0.5);
+
         }
 
         [Theory]
