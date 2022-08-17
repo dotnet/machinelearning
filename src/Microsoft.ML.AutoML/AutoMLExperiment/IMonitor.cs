@@ -37,12 +37,12 @@ namespace Microsoft.ML.AutoML
             _pipeline = pipeline;
         }
 
-        public void ReportBestTrial(TrialResult result)
+        public virtual void ReportBestTrial(TrialResult result)
         {
             _logger.Info($"Update Best Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)}");
         }
 
-        public void ReportCompletedTrial(TrialResult result)
+        public virtual void ReportCompletedTrial(TrialResult result)
         {
             _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)} - Duration: {result.DurationInMilliseconds}");
             _completedTrials.Add(result);

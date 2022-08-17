@@ -94,11 +94,6 @@ namespace Microsoft.ML.AutoML
     public enum BinaryClassificationTrainer
     {
         /// <summary>
-        /// See <see cref="AveragedPerceptronTrainer"/>.
-        /// </summary>
-        AveragedPerceptron,
-
-        /// <summary>
         /// See <see cref="FastForestBinaryTrainer"/>.
         /// </summary>
         FastForest,
@@ -114,11 +109,6 @@ namespace Microsoft.ML.AutoML
         LightGbm,
 
         /// <summary>
-        /// See <see cref="LinearSvmTrainer"/>.
-        /// </summary>
-        LinearSvm,
-
-        /// <summary>
         /// See <see cref="LbfgsLogisticRegressionBinaryTrainer"/>.
         /// </summary>
         LbfgsLogisticRegression,
@@ -127,16 +117,6 @@ namespace Microsoft.ML.AutoML
         /// See <see cref="SdcaLogisticRegressionBinaryTrainer"/>.
         /// </summary>
         SdcaLogisticRegression,
-
-        /// <summary>
-        /// See <see cref="SgdCalibratedTrainer"/>.
-        /// </summary>
-        SgdCalibrated,
-
-        /// <summary>
-        /// See <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>.
-        /// </summary>
-        SymbolicSgdLogisticRegression,
     }
 
     /// <summary>
@@ -202,10 +182,10 @@ namespace Microsoft.ML.AutoML
 
             _experiment.SetPipeline(_pipeline);
 
-            var monitor = new BinaryClassificationTrialResultMonitor();
+            var monitor = new TrialResultMonitor<BinaryClassificationMetrics>(Context);
             monitor.OnTrialCompleted += (o, e) =>
             {
-                var detail = ToRunDetail(e);
+                var detail = BestResultUtil.ToRunDetail(Context, e);
                 progressHandler?.Report(detail);
             };
 
@@ -213,8 +193,8 @@ namespace Microsoft.ML.AutoML
             _experiment.SetMonitor(monitor);
             _experiment.Run();
 
-            var runDetails = monitor.RunDetails.Select(e => ToRunDetail(e));
-            var bestRun = ToRunDetail(monitor.BestRun);
+            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e));
+            var bestRun = BestResultUtil.ToRunDetail(Context, monitor.BestRun);
             var result = new ExperimentResult<BinaryClassificationMetrics>(runDetails, bestRun);
 
             return result;
@@ -242,7 +222,7 @@ namespace Microsoft.ML.AutoML
             var monitor = new BinaryClassificationTrialResultMonitor();
             monitor.OnTrialCompleted += (o, e) =>
             {
-                var detail = ToRunDetail(e);
+                var detail = BestResultUtil.ToRunDetail(Context, e);
                 progressHandler?.Report(detail);
             };
 
@@ -250,8 +230,8 @@ namespace Microsoft.ML.AutoML
             _experiment.SetTrialRunner<BinaryClassificationRunner>();
             _experiment.Run();
 
-            var runDetails = monitor.RunDetails.Select(e => ToRunDetail(e));
-            var bestRun = ToRunDetail(monitor.BestRun);
+            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e));
+            var bestRun = BestResultUtil.ToRunDetail(Context, monitor.BestRun);
             var result = new ExperimentResult<BinaryClassificationMetrics>(runDetails, bestRun);
 
             return result;
@@ -298,10 +278,10 @@ namespace Microsoft.ML.AutoML
 
             _experiment.SetPipeline(_pipeline);
 
-            var monitor = new BinaryClassificationTrialResultMonitor();
+            var monitor = new TrialResultMonitor<BinaryClassificationMetrics>(Context);
             monitor.OnTrialCompleted += (o, e) =>
             {
-                var runDetails = ToCrossValidationRunDetail(e);
+                var runDetails = BestResultUtil.ToCrossValidationRunDetail(Context, e);
 
                 progressHandler?.Report(runDetails);
             };
@@ -310,8 +290,8 @@ namespace Microsoft.ML.AutoML
             _experiment.SetTrialRunner<BinaryClassificationRunner>();
             _experiment.Run();
 
-            var runDetails = monitor.RunDetails.Select(e => ToCrossValidationRunDetail(e));
-            var bestResult = ToCrossValidationRunDetail(monitor.BestRun);
+            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToCrossValidationRunDetail(Context, e));
+            var bestResult = BestResultUtil.ToCrossValidationRunDetail(Context, monitor.BestRun);
 
             var result = new CrossValidationExperimentResult<BinaryClassificationMetrics>(runDetails, bestResult);
 
@@ -339,7 +319,7 @@ namespace Microsoft.ML.AutoML
             return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
         }
 
-        private RunDetail<BinaryClassificationMetrics> ToRunDetail(BinaryClassificationTrialResult result)
+        private MultiModelPipeline CreateBinaryClassificationPipeline(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null)
         {
             var trainerName = _pipeline.ToString(result.TrialSettings.Parameter);
             var modelContainer = new ModelContainer(Context, result.Model);

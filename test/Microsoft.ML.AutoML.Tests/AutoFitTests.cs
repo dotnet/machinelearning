@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
+using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
@@ -35,25 +36,6 @@ namespace Microsoft.ML.AutoML.Test
             // contexts.
             if (!_markerAutoFitContextLogTest && e.Message.Contains("[Source=ImageClassificationTrainer;"))
                 _markerAutoFitContextLogTest = true;
-        }
-
-        [TensorFlowFact]
-        public void AutoFitContextLogTest()
-        {
-            // This test confirms that logs produced from contexts made during AutoML experiment
-            // runs are correctly relayed to the main Experiment MLContext.
-            _markerAutoFitContextLogTest = false;
-            var context = new MLContext(1);
-            context.Log += MlContextLog;
-            var datasetPath = DatasetUtil.GetFlowersDataset();
-            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
-            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-            var trainData = textLoader.Load(datasetPath);
-            var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(15)
-                            .Execute(trainData, columnInference.ColumnInformation);
-            Assert.True(_markerAutoFitContextLogTest, "Image classification trainer logs from Experiment's sub contexts" +
-                "were not relayed to the main MLContext.");
         }
 
         [LightGBMFact]
@@ -145,17 +127,23 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
-
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.Message);
+                }
+            };
             if (useNumberOfCVFolds)
             {
                 // When setting numberOfCVFolds
                 // The results object is a CrossValidationExperimentResults<> object
                 uint numberOfCVFolds = 5;
                 var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(0)
+                    .CreateMulticlassClassificationExperiment(5)
                     .Execute(trainData, numberOfCVFolds, DatasetUtil.TrivialMulticlassDatasetLabel);
 
-                Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
+                result.BestRun.Results.First().ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.7);
                 var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
                 Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
             }
@@ -171,7 +159,7 @@ namespace Microsoft.ML.AutoML.Test
                 int crossValRowCountThreshold = 15000;
                 trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
                 var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(0)
+                    .CreateMulticlassClassificationExperiment(10)
                     .Execute(trainData, DatasetUtil.TrivialMulticlassDatasetLabel);
 
                 Assert.True(result.BestRun.ValidationMetrics.MicroAccuracy >= 0.7);
@@ -180,10 +168,8 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void AutoFitImageClassificationTrainTest()
+        [OnnxFact(Skip = "save space on ci runs")]
+        public void AutoFitMultiClassification_Image_TrainTest()
         {
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
@@ -195,39 +181,56 @@ namespace Microsoft.ML.AutoML.Test
             IDataView trainDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TrainSet, originalColumnNames);
             IDataView testDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TestSet, originalColumnNames);
             var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(0)
+                            .CreateMulticlassClassificationExperiment(20)
                             .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
 
-            Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            result.BestRun.ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.1);
 
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [Fact(Skip = "Takes too much time, ~10 minutes.")]
-        public void AutoFitImageClassification()
+        [OnnxFact(Skip = "save space on ci runs")]
+        public void AutoFitMultiClassification_Image_CV()
         {
-            // This test executes the code path that model builder code will take to get a model using image
-            // classification API.
+            var context = new MLContext(seed: 1);
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = context.Data.ShuffleRows(textLoader.Load(datasetPath), seed: 1);
+            var originalColumnNames = trainData.Schema.Select(c => c.Name);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(100)
+                            .Execute(trainData, 5, columnInference.ColumnInformation);
 
+            result.BestRun.Results.Select(x => x.ValidationMetrics.MicroAccuracy).Max().Should().BeGreaterThan(0.1);
+
+            var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        [OnnxFact(Skip = "save space on ci runs")]
+        public void AutoFitMultiClassification_Image()
+        {
             var context = new MLContext(1);
-            context.Log += Context_Log;
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.Message);
+                }
+            };
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(datasetPath);
             var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(0)
+                            .CreateMulticlassClassificationExperiment(100)
                             .Execute(trainData, columnInference.ColumnInformation);
 
-            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.9);
+            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.3, 0.9);
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
-        }
-
-        private void Context_Log(object sender, LoggingEventArgs e)
-        {
-            //throw new NotImplementedException();
         }
 
         [Theory]

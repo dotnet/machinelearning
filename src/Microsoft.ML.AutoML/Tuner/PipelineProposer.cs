@@ -172,7 +172,7 @@ namespace Microsoft.ML.AutoML
 
                 // update eci
                 var eci1 = Math.Max(_k1[schema], _k2[schema]);
-                var estimatorCostForBreakThrough = 2 * (error - _globalBestError) / ((_e2[schema] - _e1[schema]) / (_k2[schema] + _k1[schema]));
+                var estimatorCostForBreakThrough = 2 * (error - _globalBestError) + double.Epsilon / ((_e2[schema] - _e1[schema]) / (_k2[schema] + _k1[schema]) + double.Epsilon);
                 _eci[schema] = Math.Max(eci1, estimatorCostForBreakThrough);
             }
             else
