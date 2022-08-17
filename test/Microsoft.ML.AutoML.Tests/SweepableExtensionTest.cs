@@ -191,5 +191,20 @@ namespace Microsoft.ML.AutoML.Test
             var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
             Approvals.Verify(json);
         }
+
+        [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        [UseReporter(typeof(DiffReporter))]
+        public void AppendIEstimatorToSweepabePipelineTest()
+        {
+            var context = new MLContext();
+            var estimator = context.Transforms.Concatenate("output", "input");
+            var pipeline = estimator.Append(SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()), SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()));
+            pipeline = pipeline.Append(context.Transforms.CopyColumns("output", "input"));
+
+            pipeline.Should().BeOfType<SweepablePipeline>();
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
+            Approvals.Verify(json);
+        }
     }
 }

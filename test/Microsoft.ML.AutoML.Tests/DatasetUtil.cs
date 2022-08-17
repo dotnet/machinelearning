@@ -16,6 +16,7 @@ namespace Microsoft.ML.AutoML.Test
     internal static class DatasetUtil
     {
         public const string UciAdultLabel = DefaultColumnNames.Label;
+        public const string TaxiFareLabel = "fare_amount";
         public const string TrivialMulticlassDatasetLabel = "Target";
         public const string MlNetGeneratedRegressionLabel = "target";
         public const int IrisDatasetLabelColIndex = 0;
@@ -23,6 +24,10 @@ namespace Microsoft.ML.AutoML.Test
         public static string TrivialMulticlassDatasetPath = Path.Combine("TestData", "TrivialMulticlassDataset.txt");
 
         private static IDataView _uciAdultDataView;
+
+        private static IDataView _taxiFareTrainDataView;
+
+        private static IDataView _taxiFareTestDataView;
 
         private static IDataView _irisDataView;
 
@@ -63,6 +68,32 @@ namespace Microsoft.ML.AutoML.Test
                 _irisDataView = textLoader.Load(dataFile);
             }
             return _irisDataView;
+        }
+
+        public static IDataView GetTaxiFareTrainDataView()
+        {
+            if (_taxiFareTrainDataView == null)
+            {
+                var context = new MLContext(1);
+                var taxiFareFile = GetDataPath("taxi-fare-train.csv");
+                var columnInferenceResult = context.Auto().InferColumns(taxiFareFile, TaxiFareLabel);
+                var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderOptions);
+                _taxiFareTrainDataView = textLoader.Load(taxiFareFile);
+            }
+            return _taxiFareTrainDataView;
+        }
+
+        public static IDataView GetTaxiFareTestDataView()
+        {
+            if (_taxiFareTestDataView == null)
+            {
+                var context = new MLContext(1);
+                var taxiFareFile = GetDataPath("taxi-fare-test.csv");
+                var columnInferenceResult = context.Auto().InferColumns(taxiFareFile, TaxiFareLabel);
+                var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderOptions);
+                _taxiFareTestDataView = textLoader.Load(taxiFareFile);
+            }
+            return _taxiFareTestDataView;
         }
 
         public static string GetFlowersDataset()

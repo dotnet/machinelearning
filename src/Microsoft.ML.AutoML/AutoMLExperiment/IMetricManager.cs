@@ -70,7 +70,7 @@ namespace Microsoft.ML.AutoML
         }
     }
 
-    internal class MultiClassMetricManager : IMetricManager
+    internal class MultiClassMetricManager : IEvaluateMetricManager
     {
         public MulticlassClassificationMetric Metric { get; set; }
 
@@ -87,9 +87,26 @@ namespace Microsoft.ML.AutoML
             MulticlassClassificationMetric.TopKAccuracy => true,
             _ => throw new NotImplementedException(),
         };
+
+        public string MetricName => Metric.ToString();
+
+        public double Evaluate(MLContext context, IDataView eval)
+        {
+            var metric = context.MulticlassClassification.Evaluate(eval, labelColumnName: LabelColumn, predictedLabelColumnName: PredictedColumn);
+
+            return Metric switch
+            {
+                MulticlassClassificationMetric.MacroAccuracy => metric.MacroAccuracy,
+                MulticlassClassificationMetric.MicroAccuracy => metric.MicroAccuracy,
+                MulticlassClassificationMetric.LogLoss => metric.LogLoss,
+                MulticlassClassificationMetric.LogLossReduction => metric.LogLossReduction,
+                MulticlassClassificationMetric.TopKAccuracy => metric.TopKAccuracy,
+                _ => throw new NotImplementedException(),
+            };
+        }
     }
 
-    internal class RegressionMetricManager : IMetricManager
+    internal class RegressionMetricManager : IEvaluateMetricManager
     {
         public RegressionMetric Metric { get; set; }
 
@@ -105,5 +122,21 @@ namespace Microsoft.ML.AutoML
             RegressionMetric.MeanAbsoluteError => false,
             _ => throw new NotImplementedException(),
         };
+
+        public string MetricName => Metric.ToString();
+
+        public double Evaluate(MLContext context, IDataView eval)
+        {
+            var metric = context.Regression.Evaluate(eval, LabelColumn, ScoreColumn);
+
+            return Metric switch
+            {
+                RegressionMetric.RSquared => metric.RSquared,
+                RegressionMetric.RootMeanSquaredError => metric.RootMeanSquaredError,
+                RegressionMetric.MeanSquaredError => metric.MeanSquaredError,
+                RegressionMetric.MeanAbsoluteError => metric.MeanAbsoluteError,
+                _ => throw new NotImplementedException(),
+            };
+        }
     }
 }

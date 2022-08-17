@@ -16,6 +16,11 @@ namespace Microsoft.ML.AutoML
             return pipeline.Append(new SweepableEstimator((context, parameter) => estimator1, new SearchSpace.SearchSpace()));
         }
 
+        public static SweepablePipeline Append(this SweepablePipeline pipeline, IEstimator<ITransformer> estimator)
+        {
+            return pipeline.Append(new SweepableEstimator((context, parameter) => estimator, new SearchSpace.SearchSpace()));
+        }
+
         public static SweepablePipeline Append(this SweepableEstimatorPipeline pipeline, SweepablePipeline sweepablePipeline)
         {
             var res = new SweepablePipeline();

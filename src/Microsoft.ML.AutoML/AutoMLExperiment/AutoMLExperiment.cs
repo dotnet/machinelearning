@@ -249,6 +249,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
+            _serviceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
 
             return this;
         }
@@ -262,6 +263,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumn = labelColumn,
             };
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
+            _serviceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
 
             return this;
         }

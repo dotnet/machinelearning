@@ -118,7 +118,7 @@ namespace Microsoft.ML.AutoML.Test
             var data = DatasetUtil.GetUciAdultDataView();
             var experiment = context.Auto().CreateExperiment();
             var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
-                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false));
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false, useLbfgs: false));
 
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetEvaluateMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
@@ -143,7 +143,7 @@ namespace Microsoft.ML.AutoML.Test
             var data = DatasetUtil.GetUciAdultDataView();
             var experiment = context.Auto().CreateExperiment();
             var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
-                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false));
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false, useLbfgs: false));
 
             experiment.SetDataset(data, 5)
                     .SetEvaluateMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
@@ -152,6 +152,113 @@ namespace Microsoft.ML.AutoML.Test
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_Iris_CV_5_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var data = DatasetUtil.GetIrisDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var label = "Label";
+            var pipeline = context.Auto().Featurizer(data, excludeColumns: new[] { label })
+                                .Append(context.Transforms.Conversion.MapValueToKey(label, label))
+                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdca: false, useLbfgs: false));
+
+            experiment.SetDataset(data, 5)
+                    .SetEvaluateMetric(MulticlassClassificationMetric.MacroAccuracy, label)
+                    .SetPipeline(pipeline)
+                    .SetTrainingTimeInSeconds(10);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.8);
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_Iris_Train_Test_Split_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var data = DatasetUtil.GetIrisDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var label = "Label";
+            var pipeline = context.Auto().Featurizer(data, excludeColumns: new[] { label })
+                                .Append(context.Transforms.Conversion.MapValueToKey(label, label))
+                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdca: false, useLbfgs: false));
+
+            experiment.SetDataset(context.Data.TrainTestSplit(data))
+                    .SetEvaluateMetric(MulticlassClassificationMetric.MacroAccuracy, label)
+                    .SetPipeline(pipeline)
+                    .SetTrainingTimeInSeconds(10);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.8);
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_Taxi_Fare_Train_Test_Split_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var train = DatasetUtil.GetTaxiFareTrainDataView();
+            var test = DatasetUtil.GetTaxiFareTestDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var label = DatasetUtil.TaxiFareLabel;
+            var pipeline = context.Auto().Featurizer(train, excludeColumns: new[] { label })
+                                .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgs: false));
+
+            experiment.SetDataset(train, test)
+                    .SetEvaluateMetric(RegressionMetric.RSquared, label)
+                    .SetPipeline(pipeline)
+                    .SetTrainingTimeInSeconds(50);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.5);
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_Taxi_Fare_CV_5_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var train = DatasetUtil.GetTaxiFareTrainDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var label = DatasetUtil.TaxiFareLabel;
+            var pipeline = context.Auto().Featurizer(train, excludeColumns: new[] { label })
+                                .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgs: false));
+
+            experiment.SetDataset(train, 5)
+                    .SetEvaluateMetric(RegressionMetric.RSquared, label)
+                    .SetPipeline(pipeline)
+                    .SetTrainingTimeInSeconds(50);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.5);
         }
 
         private IDataView GetDummyData()

@@ -46,10 +46,10 @@ namespace Microsoft.ML.AutoML
             var datasetManager = _provider.GetService<IDatasetManager>();
             var metricManager = _provider.GetService<IMetricManager>();
 
-            ITrialRunner? runner = (datasetManager, metricManager) switch
+            ITrialRunner? runner = (datasetManager) switch
             {
-                (CrossValidateDatasetManager, BinaryMetricManager) => _provider.GetService<SweepablePipelineCVRunner>(),
-                (TrainTestDatasetManager, BinaryMetricManager) => _provider.GetService<SweepablePipelineTrainTestRunner>(),
+                CrossValidateDatasetManager => _provider.GetService<SweepablePipelineCVRunner>(),
+                TrainTestDatasetManager => _provider.GetService<SweepablePipelineTrainTestRunner>(),
                 _ => throw new NotImplementedException(),
             };
 
