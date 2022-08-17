@@ -104,6 +104,56 @@ namespace Microsoft.ML.AutoML.Test
             cts.IsCancellationRequested.Should().BeFalse();
         }
 
+        [Fact]
+        public async Task AutoMLExperiment_UCI_Adult_Train_Test_Split_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var data = DatasetUtil.GetUciAdultDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false));
+
+            experiment.SetDataset(context.Data.TrainTestSplit(data))
+                    .SetEvaluateMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
+                    .SetPipeline(pipeline)
+                    .SetTrainingTimeInSeconds(10);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.8);
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_UCI_Adult_CV_5_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var data = DatasetUtil.GetUciAdultDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false));
+
+            experiment.SetDataset(data, 5)
+                    .SetEvaluateMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
+                    .SetPipeline(pipeline)
+                    .SetTrainingTimeInSeconds(10);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.8);
+        }
+
         private IDataView GetDummyData()
         {
             var x = Enumerable.Range(-10000, 10000).Select(value => value * 1f).ToArray();

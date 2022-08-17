@@ -19,7 +19,14 @@ namespace Microsoft.ML.AutoML
         IDataView Dataset { get; set; }
     }
 
-    public class TrainTestDatasetManager : IDatasetManager
+    internal interface ITrainTestDatasetManager
+    {
+        IDataView TrainDataset { get; set; }
+
+        IDataView TestDataset { get; set; }
+    }
+
+    public class TrainTestDatasetManager : IDatasetManager, ITrainTestDatasetManager
     {
         public IDataView TrainDataset { get; set; }
 

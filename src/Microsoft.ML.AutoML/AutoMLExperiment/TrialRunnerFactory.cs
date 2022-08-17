@@ -49,6 +49,7 @@ namespace Microsoft.ML.AutoML
             ITrialRunner? runner = (datasetManager, metricManager) switch
             {
                 (CrossValidateDatasetManager, BinaryMetricManager) => _provider.GetService<SweepablePipelineCVRunner>(),
+                (TrainTestDatasetManager, BinaryMetricManager) => _provider.GetService<SweepablePipelineTrainTestRunner>(),
                 _ => throw new NotImplementedException(),
             };
 

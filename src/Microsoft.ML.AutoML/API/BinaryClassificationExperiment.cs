@@ -210,7 +210,7 @@ namespace Microsoft.ML.AutoML
             };
 
             _experiment.SetTrialRunnerFactory<BinaryExperimentTrialRunnerFactory>();
-            _experiment.SetHyperParameterProposer<EciHyperParameterProposer>();
+            _experiment.SetHyperParameterProposer<EciCfoParameterProposer>();
             _experiment.SetMonitor(monitor);
             _experiment.Run();
 
@@ -249,7 +249,7 @@ namespace Microsoft.ML.AutoML
 
             _experiment.SetMonitor(monitor);
             _experiment.SetTrialRunnerFactory<BinaryExperimentTrialRunnerFactory>();
-            _experiment.SetHyperParameterProposer<EciHyperParameterProposer>();
+            _experiment.SetHyperParameterProposer<EciCfoParameterProposer>();
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => ToRunDetail(e));
@@ -310,7 +310,7 @@ namespace Microsoft.ML.AutoML
 
             _experiment.SetMonitor(monitor);
             _experiment.SetTrialRunnerFactory<BinaryExperimentTrialRunnerFactory>();
-            _experiment.SetHyperParameterProposer<EciHyperParameterProposer>();
+            _experiment.SetHyperParameterProposer<EciCfoParameterProposer>();
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => ToCrossValidationRunDetail(e));
@@ -418,7 +418,7 @@ namespace Microsoft.ML.AutoML
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
 
-        public BinaryClassificationCVRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciHyperParameterProposer proposer, SweepablePipeline pipeline)
+        public BinaryClassificationCVRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciCfoParameterProposer proposer, SweepablePipeline pipeline)
         {
             _context = context;
             _datasetManager = datasetManager;
@@ -477,7 +477,7 @@ namespace Microsoft.ML.AutoML
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
 
-        public BinaryClassificationTrainTestRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciHyperParameterProposer proposer, SweepablePipeline pipeline)
+        public BinaryClassificationTrainTestRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciCfoParameterProposer proposer, SweepablePipeline pipeline)
         {
             _context = context;
             _metricManager = metricManager;

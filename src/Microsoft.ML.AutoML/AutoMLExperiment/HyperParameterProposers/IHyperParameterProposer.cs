@@ -8,7 +8,10 @@ using System.Text;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface IHyperParameterProposer : ITrialSettingsProposer
+    internal interface IHyperParameterProposer
     {
+        TrialSettings Propose(TrialSettings settings);
+
+        void Update(TrialSettings parameter, TrialResult result);
     }
 }

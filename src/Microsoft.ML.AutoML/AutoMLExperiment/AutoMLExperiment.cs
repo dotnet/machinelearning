@@ -40,12 +40,13 @@ namespace Microsoft.ML.AutoML
             _serviceCollection.TryAddSingleton<ITunerFactory, CostFrugalTunerFactory>();
             _serviceCollection.TryAddTransient<BinaryClassificationCVRunner>();
             _serviceCollection.TryAddTransient<SweepablePipelineCVRunner>();
+            _serviceCollection.TryAddTransient<SweepablePipelineTrainTestRunner>();
             _serviceCollection.TryAddTransient<BinaryClassificationTrainTestRunner>();
             _serviceCollection.TryAddTransient<RegressionTrainTestRunner>();
             _serviceCollection.TryAddTransient<RegressionCVRunner>();
             _serviceCollection.TryAddTransient<MultiClassificationCVRunner>();
             _serviceCollection.TryAddTransient<MultiClassificationTrainTestRunner>();
-            _serviceCollection.TryAddScoped<IHyperParameterProposer, NestedSearchSpaceHyperParameterProposer>();
+            _serviceCollection.TryAddScoped<IHyperParameterProposer, EciCfoParameterProposer>();
         }
 
         private void Initialize()
@@ -68,6 +69,7 @@ namespace Microsoft.ML.AutoML
             };
 
             _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
+            _serviceCollection.AddSingleton<ITrainTestDatasetManager>(datasetManager);
 
             return this;
         }
