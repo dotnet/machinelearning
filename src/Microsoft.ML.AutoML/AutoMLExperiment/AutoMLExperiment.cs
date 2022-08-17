@@ -62,7 +62,6 @@ namespace Microsoft.ML.AutoML
             };
 
             _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
-            _serviceCollection.AddSingleton<ITrainTestDatasetManager>(datasetManager);
 
             return this;
         }
@@ -83,7 +82,6 @@ namespace Microsoft.ML.AutoML
             };
 
             _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
-            _serviceCollection.AddSingleton<ICrossValidateDatasetManager>(datasetManager);
 
             return this;
         }
@@ -164,7 +162,6 @@ namespace Microsoft.ML.AutoML
         internal AutoMLExperiment SetTuner<TTuner>(TTuner proposer)
             where TTuner : class, ITuner
         {
-            _serviceCollection.TryAddSingleton(proposer);
             var descriptor = new ServiceDescriptor(typeof(ITuner), proposer);
 
             if (_serviceCollection.Contains(descriptor))
@@ -182,7 +179,6 @@ namespace Microsoft.ML.AutoML
         internal AutoMLExperiment SetTuner<TTuner>()
             where TTuner : class, ITuner
         {
-            _serviceCollection.TryAddSingleton<TTuner>();
             var descriptor = new ServiceDescriptor(typeof(ITuner), typeof(TTuner), ServiceLifetime.Singleton);
             if (_serviceCollection.Contains(descriptor))
             {
