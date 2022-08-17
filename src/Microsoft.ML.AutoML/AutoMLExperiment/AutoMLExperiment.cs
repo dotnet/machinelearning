@@ -38,8 +38,8 @@ namespace Microsoft.ML.AutoML
         {
             _serviceCollection.TryAddSingleton(_context);
             _serviceCollection.TryAddSingleton(_settings);
-            _serviceCollection.TryAddSingleton<ITuner, EciCfoParameterProposer>();
-            _serviceCollection.TryAddSingleton<EciCfoParameterProposer>();
+            _serviceCollection.TryAddSingleton<ITuner, EciCfoTuner>();
+            _serviceCollection.TryAddSingleton<EciCfoTuner>();
         }
 
         private void Initialize()

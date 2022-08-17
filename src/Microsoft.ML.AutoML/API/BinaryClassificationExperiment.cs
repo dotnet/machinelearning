@@ -415,7 +415,7 @@ namespace Microsoft.ML.AutoML
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
 
-        public BinaryClassificationRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciCfoParameterProposer proposer, SweepablePipeline pipeline)
+        public BinaryClassificationRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciCfoTuner proposer, SweepablePipeline pipeline)
         {
             _context = context;
             _datasetManager = datasetManager;

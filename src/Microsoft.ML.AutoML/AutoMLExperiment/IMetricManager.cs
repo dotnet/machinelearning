@@ -9,12 +9,12 @@ namespace Microsoft.ML.AutoML
     /// <summary>
     /// Interface for metric manager.
     /// </summary>
-    internal interface IMetricManager
+    public interface IMetricManager
     {
         bool IsMaximize { get; }
     }
 
-    internal interface IEvaluateMetricManager : IMetricManager
+    public interface IEvaluateMetricManager : IMetricManager
     {
         double Evaluate(MLContext context, IDataView eval);
 
