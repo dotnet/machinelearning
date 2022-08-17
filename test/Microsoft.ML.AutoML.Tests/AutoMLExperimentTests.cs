@@ -29,7 +29,7 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext(1);
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
-            var dummyTrainer = new DummyTrialRunner(context, 5);
+            var dummyTrainer = new DummyTrialRunner(5);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
 
-            var dummyTrainer = new DummyTrialRunner(context, 1);
+            var dummyTrainer = new DummyTrialRunner(1);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
@@ -88,7 +88,7 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
 
-            var dummyTrainer = new DummyTrialRunner(context, 1);
+            var dummyTrainer = new DummyTrialRunner(1);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
@@ -276,18 +276,15 @@ namespace Microsoft.ML.AutoML.Test
         class DummyTrialRunner : ITrialRunner
         {
             private readonly int _finishAfterNSeconds;
-            private readonly MLContext _context;
 
-            public DummyTrialRunner(MLContext context, int finishAfterNSeconds)
+            public DummyTrialRunner(int finishAfterNSeconds)
             {
                 _finishAfterNSeconds = finishAfterNSeconds;
-                _context = context;
             }
 
             public TrialResult Run(TrialSettings settings, IServiceProvider provider = null)
             {
                 Task.Delay(_finishAfterNSeconds * 1000).Wait();
-                settings.ExperimentSettings.CancellationToken.ThrowIfCancellationRequested();
 
                 return new TrialResult
                 {

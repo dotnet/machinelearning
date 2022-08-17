@@ -48,14 +48,70 @@ namespace Microsoft.ML.AutoML
             _completedTrials.Add(result);
         }
 
-        public void ReportFailTrial(TrialSettings settings, Exception exception = null)
+        public virtual void ReportFailTrial(TrialSettings settings, Exception exception = null)
         {
             _logger.Info($"Update Failed Trial - Id: {settings.TrialId} - Pipeline: {_pipeline.ToString(settings.Parameter)}");
         }
 
-        public void ReportRunningTrial(TrialSettings setting)
+        public virtual void ReportRunningTrial(TrialSettings setting)
         {
             _logger.Info($"Update Running Trial - Id: {setting.TrialId} - Pipeline: {_pipeline.ToString(setting.Parameter)}");
+        }
+    }
+
+    internal class TrialResultMonitor<TMetrics> : MLContextMonitor
+        where TMetrics : class
+    {
+        public TrialResultMonitor(MLContext context, SweepablePipeline pipeline)
+            : base(context, pipeline)
+        {
+            this.RunDetails = new List<TrialResult<TMetrics>>();
+        }
+
+        public event EventHandler<TrialResult<TMetrics>> OnTrialCompleted;
+
+        public List<TrialResult<TMetrics>> RunDetails { get; }
+
+        public TrialResult<TMetrics> BestRun { get; private set; }
+
+        public override void ReportBestTrial(TrialResult result)
+        {
+            base.ReportBestTrial(result);
+            if (result is TrialResult<TMetrics> binaryClassificationResult)
+            {
+                BestRun = binaryClassificationResult;
+            }
+            else
+            {
+                throw new ArgumentException($"result must be of type {typeof(TrialResult<TMetrics>)}");
+            }
+        }
+
+        public override void ReportCompletedTrial(TrialResult result)
+        {
+            base.ReportCompletedTrial(result);
+            if (result is TrialResult<TMetrics> metricResult)
+            {
+                RunDetails.Add(metricResult);
+                OnTrialCompleted?.Invoke(this, metricResult);
+            }
+            else
+            {
+                throw new ArgumentException($"result must be of type {typeof(TrialResult<TMetrics>)}");
+            }
+        }
+
+        public override void ReportFailTrial(TrialSettings settings, Exception exp)
+        {
+            base.ReportFailTrial(settings, exp);
+
+            var result = new TrialResult<TMetrics>
+            {
+                TrialSettings = settings,
+                Exception = exp,
+            };
+
+            RunDetails.Add(result);
         }
     }
 }

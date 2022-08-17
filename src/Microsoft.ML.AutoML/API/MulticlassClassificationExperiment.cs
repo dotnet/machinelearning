@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
@@ -121,6 +122,7 @@ namespace Microsoft.ML.AutoML
     {
         private readonly AutoMLExperiment _experiment;
         private const string Features = "__Features__";
+        private SweepablePipeline _pipeline;
 
         internal MulticlassClassificationExperiment(MLContext context, MulticlassExperimentSettings settings)
             : base(context,
@@ -157,21 +159,22 @@ namespace Microsoft.ML.AutoML
                 return this.Execute(splitData.TrainSet, splitData.TestSet, columnInformation, preFeaturizer, progressHandler);
             }
 
-            var pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
-            _experiment.SetPipeline(pipeline);
+            _pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
+            _experiment.SetPipeline(_pipeline);
 
-            var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context);
+            var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context, _pipeline);
             monitor.OnTrialCompleted += (o, e) =>
             {
-                var detail = BestResultUtil.ToRunDetail(Context, e);
+                var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
                 progressHandler?.Report(detail);
             };
 
+            _experiment.SetTrialRunner<MulticlassClassificationRunner>();
             _experiment.SetMonitor(monitor);
             _experiment.Run();
 
-            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e));
-            var bestRun = BestResultUtil.ToRunDetail(Context, monitor.BestRun);
+            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
+            var bestRun = BestResultUtil.ToRunDetail(Context, monitor.BestRun, _pipeline);
             var result = new ExperimentResult<MulticlassClassificationMetrics>(runDetails, bestRun);
 
             return result;
@@ -184,20 +187,21 @@ namespace Microsoft.ML.AutoML
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
 
-            var pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
-            _experiment.SetPipeline(pipeline);
-            var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context);
+            _pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
+            _experiment.SetPipeline(_pipeline);
+            var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context, _pipeline);
             monitor.OnTrialCompleted += (o, e) =>
             {
-                var detail = BestResultUtil.ToRunDetail(Context, e);
+                var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
                 progressHandler?.Report(detail);
             };
 
+            _experiment.SetTrialRunner<MulticlassClassificationRunner>();
             _experiment.SetMonitor(monitor);
             _experiment.Run();
 
-            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e));
-            var bestRun = BestResultUtil.ToRunDetail(Context, monitor.BestRun);
+            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
+            var bestRun = BestResultUtil.ToRunDetail(Context, monitor.BestRun, _pipeline);
             var result = new ExperimentResult<MulticlassClassificationMetrics>(runDetails, bestRun);
 
             return result;
@@ -231,22 +235,23 @@ namespace Microsoft.ML.AutoML
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
 
-            var pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
-            _experiment.SetPipeline(pipeline);
+            _pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
+            _experiment.SetPipeline(_pipeline);
 
-            var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context);
+            var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context, _pipeline);
             monitor.OnTrialCompleted += (o, e) =>
             {
-                var runDetails = BestResultUtil.ToCrossValidationRunDetail(Context, e);
+                var runDetails = BestResultUtil.ToCrossValidationRunDetail(Context, e, _pipeline);
 
                 progressHandler?.Report(runDetails);
             };
 
+            _experiment.SetTrialRunner<MulticlassClassificationRunner>();
             _experiment.SetMonitor(monitor);
             _experiment.Run();
 
-            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToCrossValidationRunDetail(Context, e));
-            var bestResult = BestResultUtil.ToCrossValidationRunDetail(Context, monitor.BestRun);
+            var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToCrossValidationRunDetail(Context, e, _pipeline));
+            var bestResult = BestResultUtil.ToCrossValidationRunDetail(Context, monitor.BestRun, _pipeline);
 
             var result = new CrossValidationExperimentResult<MulticlassClassificationMetrics>(runDetails, bestResult);
 
@@ -274,7 +279,7 @@ namespace Microsoft.ML.AutoML
             return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
         }
 
-        private MultiModelPipeline CreateMulticlassClassificationPipeline(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null)
+        private SweepablePipeline CreateMulticlassClassificationPipeline(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null)
         {
             var useSdca = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.SdcaMaximumEntropy);
             var uselbfgs = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
@@ -282,7 +287,7 @@ namespace Microsoft.ML.AutoML
             var useFastForest = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.FastForestOva);
             var useFastTree = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.FastTreeOva);
 
-            MultiModelPipeline pipeline = new MultiModelPipeline();
+            SweepablePipeline pipeline = new SweepablePipeline();
             if (preFeaturizer != null)
             {
                 pipeline = pipeline.Append(preFeaturizer);
@@ -296,6 +301,102 @@ namespace Microsoft.ML.AutoML
             pipeline = pipeline.Append(Context.Transforms.Conversion.MapKeyToValue(DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel));
 
             return pipeline;
+        }
+    }
+
+
+    internal class MulticlassClassificationRunner : ITrialRunner
+    {
+        private readonly MLContext _context;
+        private readonly IDatasetManager _datasetManager;
+        private readonly IMetricManager _metricManager;
+        private readonly SweepablePipeline _pipeline;
+        private readonly Random _rnd;
+
+        public MulticlassClassificationRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, SweepablePipeline pipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
+        {
+            _context = context;
+            _datasetManager = datasetManager;
+            _metricManager = metricManager;
+            _pipeline = pipeline;
+            _rnd = settings.Seed.HasValue ? new Random(settings.Seed.Value) : new Random();
+        }
+
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
+        {
+            if (_metricManager is MultiClassMetricManager metricManager)
+            {
+                var parameter = settings.Parameter[AutoMLExperiment.PipelineSearchspaceName];
+                var pipeline = _pipeline.BuildFromOption(_context, parameter);
+                if (_datasetManager is ICrossValidateDatasetManager datasetManager)
+                {
+                    var stopWatch = new Stopwatch();
+                    stopWatch.Start();
+                    var fold = datasetManager.Fold ?? 5;
+                    var metrics = _context.MulticlassClassification.CrossValidate(datasetManager.Dataset, pipeline, fold, metricManager.LabelColumn);
+
+                    // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
+                    var res = metrics[_rnd.Next(fold)];
+                    var model = res.Model;
+                    var metric = metricManager.Metric switch
+                    {
+                        MulticlassClassificationMetric.MacroAccuracy => res.Metrics.MacroAccuracy,
+                        MulticlassClassificationMetric.MicroAccuracy => res.Metrics.MicroAccuracy,
+                        MulticlassClassificationMetric.LogLoss => res.Metrics.LogLoss,
+                        MulticlassClassificationMetric.LogLossReduction => res.Metrics.LogLossReduction,
+                        MulticlassClassificationMetric.TopKAccuracy => res.Metrics.TopKAccuracy,
+                        _ => throw new NotImplementedException($"{metricManager.MetricName} is not supported!"),
+                    };
+
+                    stopWatch.Stop();
+
+
+                    return new TrialResult<MulticlassClassificationMetrics>()
+                    {
+                        Metric = metric,
+                        Model = model,
+                        TrialSettings = settings,
+                        DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                        Metrics = res.Metrics,
+                        CrossValidationMetrics = metrics,
+                        Pipeline = pipeline,
+                    };
+                }
+
+                if (_datasetManager is ITrainTestDatasetManager trainTestDatasetManager)
+                {
+                    var stopWatch = new Stopwatch();
+                    stopWatch.Start();
+                    var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
+                    var eval = model.Transform(trainTestDatasetManager.TestDataset);
+                    var metrics = _context.MulticlassClassification.Evaluate(eval, metricManager.LabelColumn, predictedLabelColumnName: metricManager.PredictedColumn);
+
+                    var metric = metricManager.Metric switch
+                    {
+                        MulticlassClassificationMetric.MacroAccuracy => metrics.MacroAccuracy,
+                        MulticlassClassificationMetric.MicroAccuracy => metrics.MicroAccuracy,
+                        MulticlassClassificationMetric.LogLoss => metrics.LogLoss,
+                        MulticlassClassificationMetric.LogLossReduction => metrics.LogLossReduction,
+                        MulticlassClassificationMetric.TopKAccuracy => metrics.TopKAccuracy,
+                        _ => throw new NotImplementedException($"{metricManager.Metric} is not supported!"),
+                    };
+
+                    stopWatch.Stop();
+
+
+                    return new TrialResult<MulticlassClassificationMetrics>()
+                    {
+                        Metric = metric,
+                        Model = model,
+                        TrialSettings = settings,
+                        DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                        Metrics = metrics,
+                        Pipeline = pipeline,
+                    };
+                }
+            }
+
+            throw new ArgumentException("IMetricManager must be MultiMetricManager and IDatasetManager must be either TrainTestSplitDatasetManager or CrossValidationDatasetManager");
         }
     }
 }

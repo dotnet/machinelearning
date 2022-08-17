@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML
         private readonly ActionThrottler _updateThrottler;
         private DisplayedValue _valueToUpdate;
 
-        public SweepablePipeline SweepablePipeline { get; private set;}
+        public SweepablePipeline SweepablePipeline { get; private set; }
         public TrialResult BestTrial { get; set; }
         public TrialResult MostRecentTrial { get; set; }
         public TrialSettings ActiveTrial { get; set; }

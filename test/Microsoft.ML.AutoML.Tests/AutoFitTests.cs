@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
-using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
@@ -228,7 +227,7 @@ namespace Microsoft.ML.AutoML.Test
                             .CreateMulticlassClassificationExperiment(100)
                             .Execute(trainData, columnInference.ColumnInformation);
 
-            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.3, 0.9);
+            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.1, 0.9);
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }

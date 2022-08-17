@@ -287,7 +287,6 @@ namespace Microsoft.ML.AutoML
                 }
                 var setting = new TrialSettings()
                 {
-                    ExperimentSettings = _settings,
                     TrialId = trialNum++,
                     Parameter = Parameter.CreateNestedParameter(),
                 };

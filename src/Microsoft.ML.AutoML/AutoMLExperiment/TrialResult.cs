@@ -22,18 +22,21 @@ namespace Microsoft.ML.AutoML
     }
 
     /// <summary>
-    /// TrialResult with Binary Classification Metrics
+    /// TrialResult with Metrics
     /// </summary>
-    internal class BinaryClassificationTrialResult : TrialResult
+    internal class TrialResult<TMetric> : TrialResult
+        where TMetric : class
     {
-        public BinaryClassificationMetrics BinaryClassificationMetrics { get; set; }
+        public TMetric Metrics { get; set; }
 
-        public IEnumerable<CrossValidationResult<BinaryClassificationMetrics>> CrossValidationMetrics { get; set; }
+        public IEnumerable<CrossValidationResult<TMetric>> CrossValidationMetrics { get; set; }
 
         public Exception Exception { get; set; }
 
         public bool IsSucceed { get => Exception == null; }
 
         public bool IsCrossValidation { get => CrossValidationMetrics == null; }
+
+        public EstimatorChain<ITransformer> Pipeline { get; set; }
     }
 }
