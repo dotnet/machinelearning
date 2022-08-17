@@ -209,8 +209,7 @@ namespace Microsoft.ML.AutoML
                 progressHandler?.Report(detail);
             };
 
-            _experiment.SetTrialRunnerFactory<BinaryExperimentTrialRunnerFactory>();
-            _experiment.SetHyperParameterProposer<EciCfoParameterProposer>();
+            _experiment.SetTrialRunner<BinaryClassificationRunner>();
             _experiment.SetMonitor(monitor);
             _experiment.Run();
 
@@ -248,8 +247,7 @@ namespace Microsoft.ML.AutoML
             };
 
             _experiment.SetMonitor(monitor);
-            _experiment.SetTrialRunnerFactory<BinaryExperimentTrialRunnerFactory>();
-            _experiment.SetHyperParameterProposer<EciCfoParameterProposer>();
+            _experiment.SetTrialRunner<BinaryClassificationRunner>();
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => ToRunDetail(e));
@@ -309,8 +307,7 @@ namespace Microsoft.ML.AutoML
             };
 
             _experiment.SetMonitor(monitor);
-            _experiment.SetTrialRunnerFactory<BinaryExperimentTrialRunnerFactory>();
-            _experiment.SetHyperParameterProposer<EciCfoParameterProposer>();
+            _experiment.SetTrialRunner<BinaryClassificationRunner>();
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => ToCrossValidationRunDetail(e));
@@ -411,14 +408,14 @@ namespace Microsoft.ML.AutoML
         }
     }
 
-    internal class BinaryClassificationCVRunner : ITrialRunner
+    internal class BinaryClassificationRunner : ITrialRunner
     {
         private readonly MLContext _context;
         private readonly IDatasetManager _datasetManager;
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
 
-        public BinaryClassificationCVRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciCfoParameterProposer proposer, SweepablePipeline pipeline)
+        public BinaryClassificationRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciCfoParameterProposer proposer, SweepablePipeline pipeline)
         {
             _context = context;
             _datasetManager = datasetManager;
@@ -428,126 +425,79 @@ namespace Microsoft.ML.AutoML
 
         public TrialResult Run(TrialSettings settings, IServiceProvider provider)
         {
-            var rnd = new Random(settings.ExperimentSettings.Seed ?? 0);
-            if (_datasetManager is CrossValidateDatasetManager datasetSettings
-                && _metricManager is BinaryMetricManager metricSettings)
+            var rnd = settings.ExperimentSettings.Seed.HasValue ? new Random(settings.ExperimentSettings.Seed.Value) : new Random();
+            if (_metricManager is BinaryMetricManager metricManager)
             {
-                var stopWatch = new Stopwatch();
-                stopWatch.Start();
-                var fold = datasetSettings.Fold ?? 5;
-                var pipeline = _pipeline.BuildFromOption(_context, settings.Parameter);
-                var metrics = _context.BinaryClassification.CrossValidateNonCalibrated(datasetSettings.Dataset, pipeline, fold, metricSettings.LabelColumn);
-
-                // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
-                var res = metrics[rnd.Next(fold)];
-                var model = res.Model;
-                var metric = metricSettings.Metric switch
+                var parameter = settings.Parameter[AutoMLExperiment.PipelineSearchspaceName];
+                var pipeline = _pipeline.BuildFromOption(_context, parameter);
+                if (_datasetManager is ICrossValidateDatasetManager datasetManager)
                 {
-                    BinaryClassificationMetric.PositivePrecision => res.Metrics.PositivePrecision,
-                    BinaryClassificationMetric.Accuracy => res.Metrics.Accuracy,
-                    BinaryClassificationMetric.AreaUnderRocCurve => res.Metrics.AreaUnderRocCurve,
-                    BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => res.Metrics.AreaUnderPrecisionRecallCurve,
-                    _ => throw new NotImplementedException($"{metricSettings.Metric} is not supported!"),
-                };
+                    var stopWatch = new Stopwatch();
+                    stopWatch.Start();
+                    var fold = datasetManager.Fold ?? 5;
+                    var metrics = _context.BinaryClassification.CrossValidateNonCalibrated(datasetManager.Dataset, pipeline, fold, metricManager.LabelColumn);
 
-                stopWatch.Stop();
+                    // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
+                    var res = metrics[rnd.Next(fold)];
+                    var model = res.Model;
+                    var metric = metricManager.Metric switch
+                    {
+                        BinaryClassificationMetric.PositivePrecision => res.Metrics.PositivePrecision,
+                        BinaryClassificationMetric.Accuracy => res.Metrics.Accuracy,
+                        BinaryClassificationMetric.AreaUnderRocCurve => res.Metrics.AreaUnderRocCurve,
+                        BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => res.Metrics.AreaUnderPrecisionRecallCurve,
+                        _ => throw new NotImplementedException($"{metricManager.MetricName} is not supported!"),
+                    };
+
+                    stopWatch.Stop();
 
 
-                return new BinaryClassificationTrialResult()
+                    return new BinaryClassificationTrialResult()
+                    {
+                        Metric = metric,
+                        Model = model,
+                        TrialSettings = settings,
+                        DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                        BinaryClassificationMetrics = res.Metrics,
+                        CrossValidationMetrics = metrics,
+                        Pipeline = pipeline,
+                    };
+                }
+
+                if (_datasetManager is ITrainTestDatasetManager trainTestDatasetManager)
                 {
-                    Metric = metric,
-                    Model = model,
-                    TrialSettings = settings,
-                    DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    BinaryClassificationMetrics = res.Metrics,
-                    CrossValidationMetrics = metrics,
-                    Pipeline = pipeline,
-                };
+                    var stopWatch = new Stopwatch();
+                    stopWatch.Start();
+                    var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
+                    var eval = model.Transform(trainTestDatasetManager.TestDataset);
+                    var metrics = _context.BinaryClassification.EvaluateNonCalibrated(eval, metricManager.LabelColumn, predictedLabelColumnName: metricManager.PredictedColumn);
+
+                    // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
+                    var metric = Enum.Parse(typeof(BinaryClassificationMetric), metricManager.MetricName) switch
+                    {
+                        BinaryClassificationMetric.PositivePrecision => metrics.PositivePrecision,
+                        BinaryClassificationMetric.Accuracy => metrics.Accuracy,
+                        BinaryClassificationMetric.AreaUnderRocCurve => metrics.AreaUnderRocCurve,
+                        BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => metrics.AreaUnderPrecisionRecallCurve,
+                        _ => throw new NotImplementedException($"{metricManager.Metric} is not supported!"),
+                    };
+
+                    stopWatch.Stop();
+
+
+                    return new BinaryClassificationTrialResult()
+                    {
+                        Metric = metric,
+                        Model = model,
+                        TrialSettings = settings,
+                        DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                        BinaryClassificationMetrics = metrics,
+                        Pipeline = pipeline,
+                    };
+                }
             }
 
-            throw new ArgumentException();
-        }
-    }
-
-
-    internal class BinaryClassificationTrainTestRunner : ITrialRunner
-    {
-        private readonly MLContext _context;
-        private readonly IDatasetManager _datasetManager;
-        private readonly IMetricManager _metricManager;
-        private readonly SweepablePipeline _pipeline;
-
-        public BinaryClassificationTrainTestRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, EciCfoParameterProposer proposer, SweepablePipeline pipeline)
-        {
-            _context = context;
-            _metricManager = metricManager;
-            _datasetManager = datasetManager;
-            _pipeline = pipeline;
-        }
-
-        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
-        {
-            if (_datasetManager is TrainTestDatasetManager datasetSettings
-                && _metricManager is BinaryMetricManager metricSettings)
-            {
-                var stopWatch = new Stopwatch();
-                stopWatch.Start();
-                var pipeline = _pipeline.BuildFromOption(_context, settings.Parameter);
-                var model = pipeline.Fit(datasetSettings.TrainDataset);
-                var eval = model.Transform(datasetSettings.TestDataset);
-                var metrics = _context.BinaryClassification.EvaluateNonCalibrated(eval, metricSettings.LabelColumn, predictedLabelColumnName: metricSettings.PredictedColumn);
-
-                // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
-                var metric = metricSettings.Metric switch
-                {
-                    BinaryClassificationMetric.PositivePrecision => metrics.PositivePrecision,
-                    BinaryClassificationMetric.Accuracy => metrics.Accuracy,
-                    BinaryClassificationMetric.AreaUnderRocCurve => metrics.AreaUnderRocCurve,
-                    BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => metrics.AreaUnderPrecisionRecallCurve,
-                    _ => throw new NotImplementedException($"{metricSettings.Metric} is not supported!"),
-                };
-
-                stopWatch.Stop();
-
-
-                return new BinaryClassificationTrialResult()
-                {
-                    Metric = metric,
-                    Model = model,
-                    TrialSettings = settings,
-                    DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                    BinaryClassificationMetrics = metrics,
-                    Pipeline = pipeline,
-                };
-            }
-
-            throw new ArgumentException();
-        }
-    }
-
-
-    internal class BinaryExperimentTrialRunnerFactory : ITrialRunnerFactory
-    {
-        private readonly IServiceProvider _provider;
-
-        public BinaryExperimentTrialRunnerFactory(IServiceProvider provider)
-        {
-            _provider = provider;
-        }
-
-        public ITrialRunner CreateTrialRunner()
-        {
-            var datasetManager = _provider.GetService<IDatasetManager>();
-            var metricManager = _provider.GetService<IMetricManager>();
-
-            ITrialRunner runner = (datasetManager, metricManager) switch
-            {
-                (CrossValidateDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationCVRunner>(),
-                (TrainTestDatasetManager, BinaryMetricManager) => _provider.GetService<BinaryClassificationTrainTestRunner>(),
-                _ => throw new NotImplementedException(),
-            };
-
-            return runner;
+            throw new ArgumentException("IMetricManager must be BinaryMetricManager and IDatasetManager must be either TrainTestSplitDatasetManager or CrossValidationDatasetManager");
         }
     }
 

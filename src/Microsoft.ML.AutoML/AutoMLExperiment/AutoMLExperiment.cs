@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
@@ -37,16 +38,8 @@ namespace Microsoft.ML.AutoML
         {
             _serviceCollection.TryAddSingleton(_context);
             _serviceCollection.TryAddSingleton(_settings);
-            _serviceCollection.TryAddSingleton<ITunerFactory, CostFrugalTunerFactory>();
-            _serviceCollection.TryAddTransient<BinaryClassificationCVRunner>();
-            _serviceCollection.TryAddTransient<SweepablePipelineCVRunner>();
-            _serviceCollection.TryAddTransient<SweepablePipelineTrainTestRunner>();
-            _serviceCollection.TryAddTransient<BinaryClassificationTrainTestRunner>();
-            _serviceCollection.TryAddTransient<RegressionTrainTestRunner>();
-            _serviceCollection.TryAddTransient<RegressionCVRunner>();
-            _serviceCollection.TryAddTransient<MultiClassificationCVRunner>();
-            _serviceCollection.TryAddTransient<MultiClassificationTrainTestRunner>();
-            _serviceCollection.TryAddScoped<IHyperParameterProposer, EciCfoParameterProposer>();
+            _serviceCollection.TryAddSingleton<ITuner, EciCfoParameterProposer>();
+            _serviceCollection.TryAddSingleton<EciCfoParameterProposer>();
         }
 
         private void Initialize()
@@ -95,22 +88,6 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetTunerFactory<TTunerFactory>()
-            where TTunerFactory : ITunerFactory
-        {
-            var descriptor = new ServiceDescriptor(typeof(ITunerFactory), typeof(TTunerFactory), ServiceLifetime.Singleton);
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
-
-            return this;
-        }
-
         public AutoMLExperiment SetMonitor<TMonitor>(TMonitor monitor)
             where TMonitor : class, IMonitor
         {
@@ -147,15 +124,15 @@ namespace Microsoft.ML.AutoML
             _settings.SearchSpace[PipelineSearchspaceName] = pipeline.SearchSpace;
             _serviceCollection.AddSingleton(pipeline);
 
-            SetTrialRunnerFactory<SweepablePipelineTrialRunnerFactory>();
+            SetTrialRunner<SweepablePipelineRunner>();
             SetMonitor<MLContextMonitor>();
             return this;
         }
 
-        public AutoMLExperiment SetTrialRunner(ITrialRunner runner)
+        public AutoMLExperiment SetTrialRunner<TTrialRunner>(TTrialRunner runner)
+            where TTrialRunner : class, ITrialRunner
         {
-            var factory = new CustomRunnerFactory(runner);
-            var descriptor = new ServiceDescriptor(typeof(ITrialRunnerFactory), factory);
+            var descriptor = new ServiceDescriptor(typeof(ITrialRunner), runner);
             if (_serviceCollection.Contains(descriptor))
             {
                 _serviceCollection.Replace(descriptor);
@@ -168,10 +145,10 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        internal AutoMLExperiment SetTrialRunnerFactory<TTrialRunnerFactory>()
-            where TTrialRunnerFactory : ITrialRunnerFactory
+        public AutoMLExperiment SetTrialRunner<TTrialRunner>()
+            where TTrialRunner : class, ITrialRunner
         {
-            var descriptor = new ServiceDescriptor(typeof(ITrialRunnerFactory), typeof(TTrialRunnerFactory), ServiceLifetime.Singleton);
+            var descriptor = new ServiceDescriptor(typeof(ITrialRunner), typeof(TTrialRunner), ServiceLifetime.Transient);
             if (_serviceCollection.Contains(descriptor))
             {
                 _serviceCollection.Replace(descriptor);
@@ -184,11 +161,12 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        internal AutoMLExperiment SetHyperParameterProposer<THyperParameterProposer>(THyperParameterProposer proposer)
-            where THyperParameterProposer : class, IHyperParameterProposer
+        internal AutoMLExperiment SetTuner<TTuner>(TTuner proposer)
+            where TTuner : class, ITuner
         {
             _serviceCollection.TryAddSingleton(proposer);
-            var descriptor = new ServiceDescriptor(typeof(IHyperParameterProposer), proposer);
+            var descriptor = new ServiceDescriptor(typeof(ITuner), proposer);
+
             if (_serviceCollection.Contains(descriptor))
             {
                 _serviceCollection.Replace(descriptor);
@@ -201,11 +179,11 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        internal AutoMLExperiment SetHyperParameterProposer<THyperParameterProposer>()
-            where THyperParameterProposer : class, IHyperParameterProposer
+        internal AutoMLExperiment SetTuner<TTuner>()
+            where TTuner : class, ITuner
         {
-            _serviceCollection.TryAddSingleton<THyperParameterProposer>();
-            var descriptor = new ServiceDescriptor(typeof(IHyperParameterProposer), typeof(THyperParameterProposer), ServiceLifetime.Singleton);
+            _serviceCollection.TryAddSingleton<TTuner>();
+            var descriptor = new ServiceDescriptor(typeof(ITuner), typeof(TTuner), ServiceLifetime.Singleton);
             if (_serviceCollection.Contains(descriptor))
             {
                 _serviceCollection.Replace(descriptor);
@@ -302,8 +280,7 @@ namespace Microsoft.ML.AutoML
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
             var trialNum = 0;
-            var hyperParameterProposer = serviceProvider.GetService<IHyperParameterProposer>();
-            var runnerFactory = serviceProvider.GetService<ITrialRunnerFactory>();
+            var tuner = serviceProvider.GetService<ITuner>();
             var metricManager = serviceProvider.GetService<IMetricManager>();
 
             while (true)
@@ -316,17 +293,19 @@ namespace Microsoft.ML.AutoML
                 {
                     ExperimentSettings = _settings,
                     TrialId = trialNum++,
+                    Parameter = Parameter.CreateNestedParameter(),
                 };
 
-                setting = hyperParameterProposer.Propose(setting);
+                var parameter = tuner.Propose(setting);
+                setting.Parameter = parameter;
                 monitor.ReportRunningTrial(setting);
-                var runner = runnerFactory.CreateTrialRunner();
+                var runner = serviceProvider.GetService<ITrialRunner>();
 
                 try
                 {
                     var trialResult = runner.Run(setting, serviceProvider);
                     monitor.ReportCompletedTrial(trialResult);
-                    hyperParameterProposer.Update(setting, trialResult);
+                    tuner.Update(trialResult);
 
                     var error = metricManager.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
                     if (error < _bestError)

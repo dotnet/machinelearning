@@ -124,7 +124,7 @@ namespace Microsoft.ML.AutoML
             return (_sweepablePipeline.BuildSweepableEstimatorPipeline(schema).SearchSpace, schema);
         }
 
-        public void Update(TrialSettings parameter, TrialResult result, string schema)
+        public void Update(TrialResult result, string schema)
         {
             var error = CaculateError(result.Metric, _metricManager.IsMaximize);
             var duration = result.DurationInMilliseconds / 1000;

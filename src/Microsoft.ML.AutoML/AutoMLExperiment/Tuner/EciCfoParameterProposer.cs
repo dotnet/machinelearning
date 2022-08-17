@@ -14,26 +14,23 @@ namespace Microsoft.ML.AutoML
     /// ECI index is a way to measure the importance of a trainer. A higher ECI means a trainer
     /// is more likely to be picked.
     /// </summary>
-    internal class EciCfoParameterProposer : IHyperParameterProposer
+    internal class EciCfoParameterProposer : ITuner
     {
         private readonly Dictionary<string, ITuner> _tuners;
         private readonly PipelineProposer _pipelineProposer;
         // this dictionary records the schema for each trial.
         // the key is trial id, and value is the schema for that trial.
         private readonly IMetricManager _metricManager;
-        private readonly ITuner _rootTuner;
 
-        public EciCfoParameterProposer(SweepablePipeline sweepablePipeline, IMetricManager metricManager, AutoMLExperiment.AutoMLExperimentSettings settings, ITunerFactory tunerFactory)
+        public EciCfoParameterProposer(SweepablePipeline sweepablePipeline, IMetricManager metricManager, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
-            _rootTuner = tunerFactory.CreateTuner(null);
             _tuners = new Dictionary<string, ITuner>();
             _pipelineProposer = new PipelineProposer(sweepablePipeline, settings, metricManager);
             _metricManager = metricManager;
         }
 
-        public TrialSettings Propose(TrialSettings settings)
+        public Parameter Propose(TrialSettings settings)
         {
-            var rootParameter = _rootTuner.Propose(settings);
             (var searchSpace, var schema) = _pipelineProposer.ProposeSearchSpace();
             if (!_tuners.ContainsKey(schema))
             {
@@ -42,23 +39,20 @@ namespace Microsoft.ML.AutoML
             }
 
             var tuner = _tuners[schema];
-            rootParameter[AutoMLExperiment.PipelineSearchspaceName] = tuner.Propose(settings);
-            var parameter = rootParameter;
+            settings.Parameter[AutoMLExperiment.PipelineSearchspaceName] = tuner.Propose(settings);
 
-            settings.Parameter = parameter;
-            return settings;
+            return settings.Parameter;
         }
 
-        public void Update(TrialSettings settings, TrialResult result)
+        public void Update(TrialResult result)
         {
-            var schema = settings.Parameter[AutoMLExperiment.PipelineSearchspaceName]["_SCHEMA_"].AsType<string>();
+            var schema = result.TrialSettings.Parameter[AutoMLExperiment.PipelineSearchspaceName]["_SCHEMA_"].AsType<string>();
             if (_tuners.TryGetValue(schema, out var tuner))
             {
                 tuner.Update(result);
             }
 
-            _pipelineProposer.Update(settings, result, schema);
-            _rootTuner.Update(result);
+            _pipelineProposer.Update(result, schema);
         }
     }
 }
