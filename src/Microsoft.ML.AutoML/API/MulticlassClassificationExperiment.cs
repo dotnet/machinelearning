@@ -156,10 +156,10 @@ namespace Microsoft.ML.AutoML
             else
             {
                 var splitData = Context.Data.TrainTestSplit(trainData);
-                return this.Execute(splitData.TrainSet, splitData.TestSet, columnInformation, preFeaturizer, progressHandler);
+                return Execute(splitData.TrainSet, splitData.TestSet, columnInformation, preFeaturizer, progressHandler);
             }
 
-            _pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
+            _pipeline = CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
 
             var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context, _pipeline);
@@ -187,7 +187,7 @@ namespace Microsoft.ML.AutoML
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
 
-            _pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
+            _pipeline = CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
             var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context, _pipeline);
             monitor.OnTrialCompleted += (o, e) =>
@@ -214,7 +214,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumnName = labelColumnName,
             };
 
-            return this.Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
+            return Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
         }
 
         public override ExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, string labelColumnName = "Label", string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<MulticlassClassificationMetrics>> progressHandler = null)
@@ -225,7 +225,7 @@ namespace Microsoft.ML.AutoML
                 SamplingKeyColumnName = samplingKeyColumn,
             };
 
-            return this.Execute(trainData, columnInformation, preFeaturizer, progressHandler);
+            return Execute(trainData, columnInformation, preFeaturizer, progressHandler);
         }
 
         public override CrossValidationExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<MulticlassClassificationMetrics>> progressHandler = null)
@@ -235,7 +235,7 @@ namespace Microsoft.ML.AutoML
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
 
-            _pipeline = this.CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
+            _pipeline = CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
 
             var monitor = new TrialResultMonitor<MulticlassClassificationMetrics>(Context, _pipeline);
@@ -266,7 +266,7 @@ namespace Microsoft.ML.AutoML
                 SamplingKeyColumnName = samplingKeyColumn,
             };
 
-            return this.Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
+            return Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
         }
 
         private protected override CrossValidationRunDetail<MulticlassClassificationMetrics> GetBestCrossValRun(IEnumerable<CrossValidationRunDetail<MulticlassClassificationMetrics>> results)
@@ -281,11 +281,11 @@ namespace Microsoft.ML.AutoML
 
         private SweepablePipeline CreateMulticlassClassificationPipeline(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null)
         {
-            var useSdca = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.SdcaMaximumEntropy);
-            var uselbfgs = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
-            var useLgbm = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.LightGbm);
-            var useFastForest = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.FastForestOva);
-            var useFastTree = this.Settings.Trainers.Contains(MulticlassClassificationTrainer.FastTreeOva);
+            var useSdca = Settings.Trainers.Contains(MulticlassClassificationTrainer.SdcaMaximumEntropy);
+            var uselbfgs = Settings.Trainers.Contains(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
+            var useLgbm = Settings.Trainers.Contains(MulticlassClassificationTrainer.LightGbm);
+            var useFastForest = Settings.Trainers.Contains(MulticlassClassificationTrainer.FastForestOva);
+            var useFastTree = Settings.Trainers.Contains(MulticlassClassificationTrainer.FastTreeOva);
 
             SweepablePipeline pipeline = new SweepablePipeline();
             if (preFeaturizer != null)

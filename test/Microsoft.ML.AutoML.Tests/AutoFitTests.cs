@@ -510,9 +510,17 @@ namespace Microsoft.ML.AutoML.Test
             var dataFull = textLoader.Load(dataPath);
             var dataTrainTest = context.Data.TrainTestSplit(dataFull);
             var dataCV = context.Data.CrossValidationSplit(dataFull, numberOfFolds: 2);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 10,
+            };
+
+            // remove fastForest because it doesn't calibrate score
+            // so column "probability" will be missing in the final result;
+            settings.Trainers.Remove(BinaryClassificationTrainer.FastForest);
 
             var modelFull = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataFull,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
@@ -522,7 +530,7 @@ namespace Microsoft.ML.AutoML.Test
             // Therefore, we need to create a new context after an experiment is completed.
             context = new MLContext(1);
             var modelTrainTest = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataTrainTest.TrainSet,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
@@ -530,7 +538,7 @@ namespace Microsoft.ML.AutoML.Test
 
             context = new MLContext(1);
             var modelCV = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataCV.First().TrainSet,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
@@ -543,7 +551,6 @@ namespace Microsoft.ML.AutoML.Test
                 var resFull = model.Transform(dataFull);
                 var resTrainTest = model.Transform(dataTrainTest.TrainSet);
                 var resCV = model.Transform(dataCV.First().TrainSet);
-
                 Assert.Equal(31, resFull.Schema.Count);
                 Assert.Equal(31, resTrainTest.Schema.Count);
                 Assert.Equal(31, resCV.Schema.Count);

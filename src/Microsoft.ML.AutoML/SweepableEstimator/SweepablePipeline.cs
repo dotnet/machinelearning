@@ -69,11 +69,6 @@ namespace Microsoft.ML.AutoML
             _schema = null;
         }
 
-        internal SweepablePipeline(MultiModelPipeline pipeline)
-            : this(pipeline.Estimators, pipeline.Schema)
-        {
-        }
-
         internal SweepablePipeline(Dictionary<string, SweepableEstimator> estimators, Entity schema, string currentSchema = null)
         {
             _estimators = estimators;

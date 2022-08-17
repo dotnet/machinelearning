@@ -222,7 +222,7 @@ namespace Microsoft.ML.AutoML
                 LabelColumnName = labelColumnName,
             };
 
-            return this.Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
+            return Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
         }
 
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, string labelColumnName = "Label", string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
@@ -233,7 +233,7 @@ namespace Microsoft.ML.AutoML
                 SamplingKeyColumnName = samplingKeyColumn,
             };
 
-            return this.Execute(trainData, columnInformation, preFeaturizer, progressHandler);
+            return Execute(trainData, columnInformation, preFeaturizer, progressHandler);
         }
 
         public override CrossValidationExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<BinaryClassificationMetrics>> progressHandler = null)
@@ -273,7 +273,7 @@ namespace Microsoft.ML.AutoML
                 SamplingKeyColumnName = samplingKeyColumn,
             };
 
-            return this.Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
+            return Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
         }
 
         private protected override RunDetail<BinaryClassificationMetrics> GetBestRun(IEnumerable<RunDetail<BinaryClassificationMetrics>> results)
@@ -288,11 +288,11 @@ namespace Microsoft.ML.AutoML
 
         private SweepablePipeline CreateBinaryClassificationPipeline(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null)
         {
-            var useSdca = this.Settings.Trainers.Contains(BinaryClassificationTrainer.SdcaLogisticRegression);
-            var uselbfgs = this.Settings.Trainers.Contains(BinaryClassificationTrainer.LbfgsLogisticRegression);
-            var useLgbm = this.Settings.Trainers.Contains(BinaryClassificationTrainer.LightGbm);
-            var useFastForest = this.Settings.Trainers.Contains(BinaryClassificationTrainer.FastForest);
-            var useFastTree = this.Settings.Trainers.Contains(BinaryClassificationTrainer.FastTree);
+            var useSdca = Settings.Trainers.Contains(BinaryClassificationTrainer.SdcaLogisticRegression);
+            var uselbfgs = Settings.Trainers.Contains(BinaryClassificationTrainer.LbfgsLogisticRegression);
+            var useLgbm = Settings.Trainers.Contains(BinaryClassificationTrainer.LightGbm);
+            var useFastForest = Settings.Trainers.Contains(BinaryClassificationTrainer.FastForest);
+            var useFastTree = Settings.Trainers.Contains(BinaryClassificationTrainer.FastTree);
 
             if (preFeaturizer != null)
             {

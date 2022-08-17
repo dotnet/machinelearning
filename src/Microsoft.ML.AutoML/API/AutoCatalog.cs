@@ -704,7 +704,7 @@ namespace Microsoft.ML.AutoML
         /// <param name="data">input data.</param>
         /// <param name="columnInformation">column information.</param>
         /// <param name="outputColumnName">output feature column.</param>
-        /// <returns>A <see cref="MultiModelPipeline"/> for featurization.</returns>
+        /// <returns>A <see cref="SweepablePipeline"/> for featurization.</returns>
         public SweepablePipeline Featurizer(IDataView data, ColumnInformation columnInformation, string outputColumnName = "Features")
         {
             Contracts.CheckValue(data, nameof(data));
