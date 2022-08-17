@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Data.Analysis;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -29,13 +30,12 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext(1);
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
-            var dummyTrainer = new DummyTrialRunner(5);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
                       .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
                       .SetTrainingTimeInSeconds(1)
-                      .SetTrialRunner(dummyTrainer);
+                      .UseDummyTrialRunner(5);
 
             var cts = new CancellationTokenSource();
 
@@ -59,13 +59,12 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
 
-            var dummyTrainer = new DummyTrialRunner(1);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
                       .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
                       .SetTrainingTimeInSeconds(100)
-                      .SetTrialRunner(dummyTrainer);
+                      .UseDummyTrialRunner(1);
 
             var cts = new CancellationTokenSource();
 
@@ -88,13 +87,12 @@ namespace Microsoft.ML.AutoML.Test
             var pipeline = context.Transforms.Concatenate("Features", "Features")
                             .Append(context.Auto().Regression());
 
-            var dummyTrainer = new DummyTrialRunner(1);
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
                       .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
                       .SetTrainingTimeInSeconds(5)
-                      .SetTrialRunner(dummyTrainer);
+                      .UseDummyTrialRunner(1);
 
             var cts = new CancellationTokenSource();
             cts.CancelAfter(10 * 1000);
@@ -272,27 +270,50 @@ namespace Microsoft.ML.AutoML.Test
 
             return df;
         }
+    }
 
-        class DummyTrialRunner : ITrialRunner
+    static class AutoMLExperimentExtension
+    {
+        public static AutoMLExperiment UseDummyTrialRunner(this AutoMLExperiment experiment, int finishAfterNSeconds)
         {
-            private readonly int _finishAfterNSeconds;
-
-            public DummyTrialRunner(int finishAfterNSeconds)
+            var settings = new DummyTrialRunner.DummyTrialRunnerSettings
             {
-                _finishAfterNSeconds = finishAfterNSeconds;
-            }
+                FinishAfterNSeconds = finishAfterNSeconds,
+            };
 
-            public TrialResult Run(TrialSettings settings, IServiceProvider provider = null)
+            experiment.ServiceCollection.AddSingleton(settings);
+            experiment.SetTrialRunner<DummyTrialRunner>();
+
+            return experiment;
+        }
+    }
+
+    class DummyTrialRunner : ITrialRunner
+    {
+        private readonly int _finishAfterNSeconds;
+        private readonly CancellationToken _ct;
+
+        public DummyTrialRunner(AutoMLExperiment.AutoMLExperimentSettings automlSettings, DummyTrialRunnerSettings settings)
+        {
+            _finishAfterNSeconds = settings.FinishAfterNSeconds;
+            _ct = automlSettings.CancellationToken;
+        }
+
+        public TrialResult Run(TrialSettings settings, IServiceProvider provider = null)
+        {
+            Task.Delay(_finishAfterNSeconds * 1000).Wait(_ct);
+            _ct.ThrowIfCancellationRequested();
+            return new TrialResult
             {
-                Task.Delay(_finishAfterNSeconds * 1000).Wait();
+                TrialSettings = settings,
+                DurationInMilliseconds = _finishAfterNSeconds * 1000,
+                Metric = 1.000 + 0.01 * settings.TrialId,
+            };
+        }
 
-                return new TrialResult
-                {
-                    TrialSettings = settings,
-                    DurationInMilliseconds = _finishAfterNSeconds * 1000,
-                    Metric = 1.000 + 0.01 * settings.TrialId,
-                };
-            }
+        public class DummyTrialRunnerSettings
+        {
+            public int FinishAfterNSeconds { get; set; }
         }
     }
 }

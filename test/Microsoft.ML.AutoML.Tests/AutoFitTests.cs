@@ -14,6 +14,7 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.VisualBasic;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -37,7 +38,7 @@ namespace Microsoft.ML.AutoML.Test
                 _markerAutoFitContextLogTest = true;
         }
 
-        [LightGBMFact]
+        [Fact]
         public void AutoFit_UCI_Adult_Test()
         {
             var context = new MLContext(1);
@@ -45,8 +46,17 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+
+            settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
+            settings.Trainers.Remove(BinaryClassificationTrainer.SdcaLogisticRegression);
+            settings.Trainers.Remove(BinaryClassificationTrainer.LbfgsLogisticRegression);
+
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(1)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
             Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
@@ -54,7 +64,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [LightGBMFact]
+        [Fact]
         public void AutoFit_UCI_Adult_Train_Test_Split_Test()
         {
             var context = new MLContext(1);
@@ -63,8 +73,17 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var dataTrainTest = context.Data.TrainTestSplit(trainData);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+
+            settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
+            settings.Trainers.Remove(BinaryClassificationTrainer.SdcaLogisticRegression);
+            settings.Trainers.Remove(BinaryClassificationTrainer.LbfgsLogisticRegression);
+
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(1)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataTrainTest.TrainSet, dataTrainTest.TestSet, DatasetUtil.UciAdultLabel);
             Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
@@ -72,7 +91,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [LightGBMFact]
+        [Fact]
         public void AutoFit_UCI_Adult_CrossValidation_10_Test()
         {
             var context = new MLContext(1);
@@ -80,8 +99,16 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+
+            settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
+            settings.Trainers.Remove(BinaryClassificationTrainer.SdcaLogisticRegression);
+            settings.Trainers.Remove(BinaryClassificationTrainer.LbfgsLogisticRegression);
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(1)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(trainData, 10, DatasetUtil.UciAdultLabel);
             Assert.True(result.BestRun.Results.Select(x => x.ValidationMetrics.Accuracy).Min() > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
@@ -138,8 +165,17 @@ namespace Microsoft.ML.AutoML.Test
                 // When setting numberOfCVFolds
                 // The results object is a CrossValidationExperimentResults<> object
                 uint numberOfCVFolds = 5;
+                var settings = new MulticlassExperimentSettings
+                {
+                    MaxExperimentTimeInSeconds = 1,
+                };
+
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LightGbm);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.SdcaMaximumEntropy);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LbfgsMaximumEntropy);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
                 var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(5)
+                    .CreateMulticlassClassificationExperiment(settings)
                     .Execute(trainData, numberOfCVFolds, DatasetUtil.TrivialMulticlassDatasetLabel);
 
                 result.BestRun.Results.First().ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.7);
@@ -157,8 +193,17 @@ namespace Microsoft.ML.AutoML.Test
 
                 int crossValRowCountThreshold = 15000;
                 trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
+                var settings = new MulticlassExperimentSettings
+                {
+                    MaxExperimentTimeInSeconds = 1,
+                };
+
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LightGbm);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.SdcaMaximumEntropy);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LbfgsMaximumEntropy);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
                 var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(10)
+                    .CreateMulticlassClassificationExperiment(settings)
                     .Execute(trainData, DatasetUtil.TrivialMulticlassDatasetLabel);
 
                 Assert.True(result.BestRun.ValidationMetrics.MicroAccuracy >= 0.7);

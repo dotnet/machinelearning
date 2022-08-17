@@ -47,6 +47,8 @@ namespace Microsoft.ML.AutoML
             InitializeServiceCollection();
         }
 
+        internal IServiceCollection ServiceCollection { get => _serviceCollection; }
+
         public AutoMLExperiment SetTrainingTimeInSeconds(uint trainingTimeInSeconds)
         {
             _settings.MaxExperimentTimeInSeconds = trainingTimeInSeconds;
@@ -117,7 +119,7 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        internal AutoMLExperiment SetPipeline(SweepablePipeline pipeline)
+        public AutoMLExperiment SetPipeline(SweepablePipeline pipeline)
         {
             _settings.SearchSpace[PipelineSearchspaceName] = pipeline.SearchSpace;
             _serviceCollection.AddSingleton(pipeline);
@@ -159,7 +161,7 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        internal AutoMLExperiment SetTuner<TTuner>(TTuner proposer)
+        public AutoMLExperiment SetTuner<TTuner>(TTuner proposer)
             where TTuner : class, ITuner
         {
             var descriptor = new ServiceDescriptor(typeof(ITuner), proposer);
@@ -176,7 +178,7 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        internal AutoMLExperiment SetTuner<TTuner>()
+        public AutoMLExperiment SetTuner<TTuner>()
             where TTuner : class, ITuner
         {
             var descriptor = new ServiceDescriptor(typeof(ITuner), typeof(TTuner), ServiceLifetime.Singleton);

@@ -288,15 +288,21 @@ namespace Microsoft.ML.AutoML
 
         private SweepablePipeline CreateBinaryClassificationPipeline(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null)
         {
+            var useSdca = this.Settings.Trainers.Contains(BinaryClassificationTrainer.SdcaLogisticRegression);
+            var uselbfgs = this.Settings.Trainers.Contains(BinaryClassificationTrainer.LbfgsLogisticRegression);
+            var useLgbm = this.Settings.Trainers.Contains(BinaryClassificationTrainer.LightGbm);
+            var useFastForest = this.Settings.Trainers.Contains(BinaryClassificationTrainer.FastForest);
+            var useFastTree = this.Settings.Trainers.Contains(BinaryClassificationTrainer.FastTree);
+
             if (preFeaturizer != null)
             {
                 return preFeaturizer.Append(Context.Auto().Featurizer(trainData, columnInformation, Features))
-                                        .Append(Context.Auto().BinaryClassification(columnInformation.LabelColumnName, Features));
+                                        .Append(Context.Auto().BinaryClassification(labelColumnName: columnInformation.LabelColumnName, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgs: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
             }
             else
             {
                 return Context.Auto().Featurizer(trainData, columnInformation, Features)
-                   .Append(Context.Auto().BinaryClassification(columnInformation.LabelColumnName, Features));
+                           .Append(Context.Auto().BinaryClassification(labelColumnName: columnInformation.LabelColumnName, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgs: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
             }
         }
     }
