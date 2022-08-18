@@ -86,7 +86,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(prediction.PredictedPlant == "Iris-versicolor");
 
             // Evaluate the trained pipeline
-            var predicted = trainedModel.Transform(testData);
+            var predicted = trainedModel.Transform(testData, TransformerScope.Everything);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topKPredictionCount: 3);
 
             Assert.Equal(.98, metrics.MacroAccuracy);

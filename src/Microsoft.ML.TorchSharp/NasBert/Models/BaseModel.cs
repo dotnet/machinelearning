@@ -18,20 +18,19 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
 
         protected readonly TransformerEncoder Encoder;
 
-#pragma warning disable CA1024 // Use properties where appropriate: Modules should be fields in TorchSharp 
+#pragma warning disable CA1024 // Use properties where appropriate: Modules should be fields in TorchSharp
         public TransformerEncoder GetEncoder() => Encoder;
 
         public abstract BaseHead GetHead();
 #pragma warning restore CA1024 // Use properties where appropriate
 
-        protected BaseModel(TextClassificationTrainer.Options options, Vocabulary vocabulary)
+        protected BaseModel(TextClassificationTrainer.Options options, int padIndex, int symbolsCount)
             : base(nameof(BaseModel))
         {
-            vocabulary = vocabulary ?? throw new ArgumentNullException(nameof(vocabulary));
             Options = options ?? throw new ArgumentNullException(nameof(options));
             Encoder = new TransformerEncoder(
-                paddingIdx: vocabulary.PadIndex,
-                vocabSize: vocabulary.Count,
+                paddingIdx: padIndex,
+                vocabSize: symbolsCount,
                 dropout: Options.Dropout,
                 attentionDropout: Options.AttentionDropout,
                 activationDropout: Options.ActivationDropout,

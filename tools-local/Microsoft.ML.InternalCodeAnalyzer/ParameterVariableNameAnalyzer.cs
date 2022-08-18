@@ -47,8 +47,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private static void AnalyzeLocal(SyntaxNodeAnalysisContext context)
         {
             var node = (LocalDeclarationStatementSyntax)context.Node;
-            foreach (var dec in node.DescendantNodesAndSelf().Where(s => s.IsKind(SyntaxKind.VariableDeclarator)))
-                AnalyzeCore(context, ((VariableDeclaratorSyntax)dec).Identifier, "local variable");
+            foreach (var dec in node.Declaration.Variables)
+                AnalyzeCore(context, dec.Identifier, "local variable");
         }
 
         private static void AnalyzeCore(SyntaxNodeAnalysisContext context, SyntaxToken identifier, string type)

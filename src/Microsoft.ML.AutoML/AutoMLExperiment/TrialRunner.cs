@@ -4,6 +4,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
 {
@@ -56,12 +58,14 @@ namespace Microsoft.ML.AutoML
                 stopWatch.Stop();
 
 
-                return new TrialResult()
+                return new TrialResult<BinaryClassificationMetrics>()
                 {
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    Metrics = res.Metrics,
+                    CrossValidationMetrics = metrics,
                 };
             }
 
@@ -108,12 +112,13 @@ namespace Microsoft.ML.AutoML
                 stopWatch.Stop();
 
 
-                return new TrialResult()
+                return new TrialResult<BinaryClassificationMetrics>()
                 {
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    Metrics = metrics,
                 };
             }
 
@@ -160,8 +165,9 @@ namespace Microsoft.ML.AutoML
                 stopWatch.Stop();
 
 
-                return new TrialResult()
+                return new TrialResult<MulticlassClassificationMetrics>()
                 {
+                    Metrics = metrics,
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
@@ -213,12 +219,14 @@ namespace Microsoft.ML.AutoML
 
                 stopWatch.Stop();
 
-                return new TrialResult()
+                return new TrialResult<MulticlassClassificationMetrics>()
                 {
                     Metric = metric,
                     Model = model,
                     TrialSettings = settings,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
+                    CrossValidationMetrics = metrics,
+                    Metrics = res.Metrics,
                 };
             }
 

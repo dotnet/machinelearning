@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveFormattingVersion)" />
+    <PackageReference Include="Plotly.NET.CSharp" Version="$(PlotlyNETCSharpVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
+    <ProjectReference Include="..\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+  </ItemGroup>
+
+</Project>
