@@ -30,7 +30,7 @@
     <SystemTextJsonVersion>6.0.1</SystemTextJsonVersion>
     <SystemThreadingChannelsVersion>4.7.1</SystemThreadingChannelsVersion>
     <!-- Other product dependencies -->
-    <ApacheArrowVersion>2.0.0</ApacheArrowVersion>
+    <ApacheArrowVersion>3.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.4</GoogleProtobufVersion>
     <LightGBMVersion>2.3.1</LightGBMVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
