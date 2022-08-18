@@ -551,7 +551,7 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// Create a list of <see cref="SweepableEstimator"/> for featurizing numeric columns.
+        /// Create a <see cref="SweepablePipeline"/> for featurizing numeric columns.
         /// </summary>
         /// <param name="outputColumnNames">output column names.</param>
         /// <param name="inputColumnNames">input column names.</param>
@@ -567,6 +567,29 @@ namespace Microsoft.ML.AutoML
             };
 
             return new[] { SweepableEstimatorFactory.CreateReplaceMissingValues(replaceMissingValueOption) };
+        }
+
+        /// <summary>
+        /// Create a <see cref="SweepablePipeline"/> for featurizing boolean columns. This pipeline convert all boolean column
+        /// to numeric type.
+        /// </summary>
+        /// <param name="outputColumnNames">output column names.</param>
+        /// <param name="inputColumnNames">input column names.</param>
+        /// <returns><see cref="SweepablePipeline"/></returns>
+        internal SweepableEstimator[] BooleanFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
+        {
+            Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
+            Contracts.CheckValue(outputColumnNames, nameof(outputColumnNames));
+            Contracts.Check(outputColumnNames.Count() == inputColumnNames.Count() && outputColumnNames.Count() > 0, "outputColumnNames and inputColumnNames must have the same length and greater than 0");
+
+            // by default, convertType's output kind is single
+            var convertTypeOption = new ConvertTypeOption
+            {
+                InputColumnNames = inputColumnNames,
+                OutputColumnNames = outputColumnNames,
+            };
+
+            return new[] { SweepableEstimatorFactory.CreateConvertType(convertTypeOption) };
         }
 
         /// <summary>
@@ -712,18 +735,25 @@ namespace Microsoft.ML.AutoML
 
             var columnPurposes = PurposeInference.InferPurposes(this._context, data, columnInformation);
             var textFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.TextFeature);
-            var numericFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature);
+            var numericFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature && data.Schema[c.ColumnIndex].Type != BooleanDataViewType.Instance);
+            var booleanFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature && data.Schema[c.ColumnIndex].Type == BooleanDataViewType.Instance);
             var catalogFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.CategoricalFeature);
             var imagePathFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.ImagePath);
             var textFeatureColumnNames = textFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
             var numericFeatureColumnNames = numericFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
             var catalogFeatureColumnNames = catalogFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
             var imagePathColumnNames = imagePathFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
+            var booleanFeatureColumnNames = booleanFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();
 
             var pipeline = new MultiModelPipeline();
             if (numericFeatureColumnNames.Length > 0)
             {
                 pipeline = pipeline.Append(this.NumericFeaturizer(numericFeatureColumnNames, numericFeatureColumnNames));
+            }
+
+            if (booleanFeatureColumnNames.Length > 0)
+            {
+                pipeline = pipeline.Append(this.BooleanFeaturizer(booleanFeatureColumnNames, booleanFeatureColumnNames));
             }
 
             if (catalogFeatureColumnNames.Length > 0)
@@ -743,7 +773,7 @@ namespace Microsoft.ML.AutoML
 
             var option = new ConcatOption
             {
-                InputColumnNames = textFeatureColumnNames.Concat(numericFeatureColumnNames).Concat(catalogFeatureColumnNames).Concat(imagePathColumnNames).ToArray(),
+                InputColumnNames = textFeatureColumnNames.Concat(numericFeatureColumnNames).Concat(catalogFeatureColumnNames).Concat(imagePathColumnNames).Concat(booleanFeatureColumnNames).ToArray(),
                 OutputColumnName = outputColumnName,
             };
 
