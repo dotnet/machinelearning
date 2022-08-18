@@ -136,7 +136,7 @@ namespace Microsoft.ML.AutoML.Test
 
             experiment.SetPipeline(pipeline)
                     .SetDataset(trainData, 5)
-                    .SetEvaluateMetric(BinaryClassificationMetric.Accuracy, DatasetUtil.UciAdultLabel)
+                    .SetBinaryClassificationMetric(BinaryClassificationMetric.Accuracy, DatasetUtil.UciAdultLabel)
                     .SetTrainingTimeInSeconds(10);
 
             var res = experiment.Run();

@@ -138,7 +138,7 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<MulticlassClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetMulticlassClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
 
             // Cross val threshold for # of dataset rows --
@@ -183,7 +183,7 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<MulticlassClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetMulticlassClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
 
@@ -231,7 +231,7 @@ namespace Microsoft.ML.AutoML
         public override CrossValidationExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<MulticlassClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetMulticlassClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
 

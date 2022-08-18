@@ -33,7 +33,7 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
-                      .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
+                      .SetRegressionMetric(RegressionMetric.RootMeanSquaredError, "Label")
                       .SetTrainingTimeInSeconds(1)
                       .UseDummyTrialRunner(5);
 
@@ -62,7 +62,7 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
-                      .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
+                      .SetRegressionMetric(RegressionMetric.RootMeanSquaredError, "Label")
                       .SetTrainingTimeInSeconds(100)
                       .UseDummyTrialRunner(1);
 
@@ -90,7 +90,7 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto().CreateExperiment();
             experiment.SetPipeline(pipeline)
                       .SetDataset(GetDummyData(), 10)
-                      .SetEvaluateMetric(RegressionMetric.RootMeanSquaredError, "Label")
+                      .SetRegressionMetric(RegressionMetric.RootMeanSquaredError, "Label")
                       .SetTrainingTimeInSeconds(5)
                       .UseDummyTrialRunner(1);
 
@@ -119,7 +119,7 @@ namespace Microsoft.ML.AutoML.Test
                                 .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false, useLbfgs: false));
 
             experiment.SetDataset(context.Data.TrainTestSplit(data))
-                    .SetEvaluateMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
+                    .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
                     .SetTrainingTimeInSeconds(10);
 
@@ -144,7 +144,7 @@ namespace Microsoft.ML.AutoML.Test
                                 .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false, useLbfgs: false));
 
             experiment.SetDataset(data, 5)
-                    .SetEvaluateMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
+                    .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
                     .SetTrainingTimeInSeconds(10);
 
@@ -171,7 +171,7 @@ namespace Microsoft.ML.AutoML.Test
                                 .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdca: false, useLbfgs: false));
 
             experiment.SetDataset(data, 5)
-                    .SetEvaluateMetric(MulticlassClassificationMetric.MacroAccuracy, label)
+                    .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
                     .SetPipeline(pipeline)
                     .SetTrainingTimeInSeconds(10);
 
@@ -198,7 +198,7 @@ namespace Microsoft.ML.AutoML.Test
                                 .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdca: false, useLbfgs: false));
 
             experiment.SetDataset(context.Data.TrainTestSplit(data))
-                    .SetEvaluateMetric(MulticlassClassificationMetric.MacroAccuracy, label)
+                    .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
                     .SetPipeline(pipeline)
                     .SetTrainingTimeInSeconds(10);
 
@@ -225,7 +225,7 @@ namespace Microsoft.ML.AutoML.Test
                                 .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgs: false));
 
             experiment.SetDataset(train, test)
-                    .SetEvaluateMetric(RegressionMetric.RSquared, label)
+                    .SetRegressionMetric(RegressionMetric.RSquared, label)
                     .SetPipeline(pipeline)
                     .SetTrainingTimeInSeconds(50);
 
@@ -251,7 +251,7 @@ namespace Microsoft.ML.AutoML.Test
                                 .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgs: false));
 
             experiment.SetDataset(train, 5)
-                    .SetEvaluateMetric(RegressionMetric.RSquared, label)
+                    .SetRegressionMetric(RegressionMetric.RSquared, label)
                     .SetPipeline(pipeline)
                     .SetTrainingTimeInSeconds(50);
 

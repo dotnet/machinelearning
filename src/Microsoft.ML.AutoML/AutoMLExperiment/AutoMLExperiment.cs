@@ -39,7 +39,6 @@ namespace Microsoft.ML.AutoML
             _serviceCollection.TryAddSingleton(_context);
             _serviceCollection.TryAddSingleton(_settings);
             _serviceCollection.TryAddSingleton<ITuner, EciCfoTuner>();
-            _serviceCollection.TryAddSingleton<EciCfoTuner>();
         }
 
         private void Initialize()
@@ -207,16 +206,16 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "PredictedLabel")
+        public AutoMLExperiment SetBinaryClassificationMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "PredictedLabel")
         {
             var metricManager = new BinaryMetricManager(metric, predictedColumn, labelColumn);
-            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            _serviceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
+            this.SetEvaluateMetric(metricManager);
+
 
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "PredictedLabel")
+        public AutoMLExperiment SetMulticlassClassificationMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "PredictedLabel")
         {
             var metricManager = new MultiClassMetricManager()
             {
@@ -224,13 +223,13 @@ namespace Microsoft.ML.AutoML
                 PredictedColumn = predictedColumn,
                 LabelColumn = labelColumn,
             };
-            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            _serviceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
+            this.SetEvaluateMetric(metricManager);
+
 
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(RegressionMetric metric, string labelColumn = "Label", string scoreColumn = "Score")
+        public AutoMLExperiment SetRegressionMetric(RegressionMetric metric, string labelColumn = "Label", string scoreColumn = "Score")
         {
             var metricManager = new RegressionMetricManager()
             {
@@ -238,6 +237,14 @@ namespace Microsoft.ML.AutoML
                 ScoreColumn = scoreColumn,
                 LabelColumn = labelColumn,
             };
+            this.SetEvaluateMetric(metricManager);
+
+            return this;
+        }
+
+        public AutoMLExperiment SetEvaluateMetric<TEvaluateMetricManager>(TEvaluateMetricManager metricManager)
+            where TEvaluateMetricManager : class, IEvaluateMetricManager
+        {
             _serviceCollection.AddSingleton<IMetricManager>(metricManager);
             _serviceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
 

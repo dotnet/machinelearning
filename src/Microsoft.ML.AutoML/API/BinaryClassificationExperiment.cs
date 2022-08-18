@@ -148,7 +148,7 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
 
             // Cross val threshold for # of dataset rows --
@@ -192,7 +192,7 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
@@ -239,7 +239,7 @@ namespace Microsoft.ML.AutoML
         public override CrossValidationExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            _experiment.SetEvaluateMetric(Settings.OptimizingMetric, label);
+            _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
