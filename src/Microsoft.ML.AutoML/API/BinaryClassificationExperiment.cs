@@ -172,6 +172,7 @@ namespace Microsoft.ML.AutoML
                 _experiment.SetDataset(splitData.TrainSet, splitData.TestSet);
             }
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
+            _experiment.SetPipeline(_pipeline);
             _experiment.SetMonitor((provider) =>
             {
                 var channel = provider.GetService<IChannel>();

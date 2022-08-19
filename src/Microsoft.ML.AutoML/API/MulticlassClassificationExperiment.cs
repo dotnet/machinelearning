@@ -185,7 +185,6 @@ namespace Microsoft.ML.AutoML
             };
 
             _experiment.SetTrialRunner<MulticlassClassificationRunner>();
-            _experiment.SetMonitor(monitor);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
@@ -218,14 +217,8 @@ namespace Microsoft.ML.AutoML
 
                 return monitor;
             });
-            monitor.OnTrialCompleted += (o, e) =>
-            {
-                var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
-                progressHandler?.Report(detail);
-            };
 
             _experiment.SetTrialRunner<MulticlassClassificationRunner>();
-            _experiment.SetMonitor(monitor);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
@@ -281,7 +274,6 @@ namespace Microsoft.ML.AutoML
             });
 
             _experiment.SetTrialRunner<MulticlassClassificationRunner>();
-            _experiment.SetMonitor(monitor);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToCrossValidationRunDetail(Context, e, _pipeline));
