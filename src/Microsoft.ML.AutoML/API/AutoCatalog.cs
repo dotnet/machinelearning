@@ -575,7 +575,7 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="outputColumnNames">output column names.</param>
         /// <param name="inputColumnNames">input column names.</param>
-        /// <returns><see cref="SweepablePipeline"/></returns>
+        /// <returns>a list of <see cref="SweepableEstimator"/></returns>
         internal SweepableEstimator[] BooleanFeaturizer(string[] outputColumnNames, string[] inputColumnNames)
         {
             Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
