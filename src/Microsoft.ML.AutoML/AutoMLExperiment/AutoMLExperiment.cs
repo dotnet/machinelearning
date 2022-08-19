@@ -120,8 +120,9 @@ namespace Microsoft.ML.AutoML
         }
 
         public AutoMLExperiment SetMonitor<TMonitor>(Func<IServiceProvider, TMonitor> factory)
+            where TMonitor : class, IMonitor
         {
-            var descriptor = ServiceDescriptor.Singleton(typeof(IMonitor), factory);
+            var descriptor = ServiceDescriptor.Singleton<IMonitor>(factory);
 
             if (_serviceCollection.Contains(descriptor))
             {
@@ -154,7 +155,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTrialRunner<TTrialRunner>(Func<IServiceProvider, TTrialRunner> factory)
             where TTrialRunner : class, ITrialRunner
         {
-            var descriptor = ServiceDescriptor.Singleton(typeof(ITrialRunner), factory);
+            var descriptor = ServiceDescriptor.Singleton<ITrialRunner>(factory);
 
             if (_serviceCollection.Contains(descriptor))
             {

@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML.API;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
@@ -173,7 +174,9 @@ namespace Microsoft.ML.AutoML
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetMonitor((provider) =>
             {
-                monitor = provider.GetService<TrialResultMonitor<BinaryClassificationMetrics>>();
+                var channel = provider.GetService<IChannel>();
+                var pipeline = provider.GetService<SweepablePipeline>();
+                monitor = new TrialResultMonitor<BinaryClassificationMetrics>(channel, pipeline);
                 monitor.OnTrialCompleted += (o, e) =>
                 {
                     var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
@@ -203,7 +206,9 @@ namespace Microsoft.ML.AutoML
             _experiment.SetPipeline(_pipeline);
             _experiment.SetMonitor((provider) =>
             {
-                monitor = provider.GetService<TrialResultMonitor<BinaryClassificationMetrics>>();
+                var channel = provider.GetService<IChannel>();
+                var pipeline = provider.GetService<SweepablePipeline>();
+                monitor = new TrialResultMonitor<BinaryClassificationMetrics>(channel, pipeline);
                 monitor.OnTrialCompleted += (o, e) =>
                 {
                     var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
@@ -254,7 +259,9 @@ namespace Microsoft.ML.AutoML
             _experiment.SetPipeline(_pipeline);
             _experiment.SetMonitor((provider) =>
             {
-                monitor = provider.GetService<TrialResultMonitor<BinaryClassificationMetrics>>();
+                var channel = provider.GetService<IChannel>();
+                var pipeline = provider.GetService<SweepablePipeline>();
+                monitor = new TrialResultMonitor<BinaryClassificationMetrics>(channel, pipeline);
                 monitor.OnTrialCompleted += (o, e) =>
                 {
                     var detail = BestResultUtil.ToCrossValidationRunDetail(Context, e, _pipeline);
