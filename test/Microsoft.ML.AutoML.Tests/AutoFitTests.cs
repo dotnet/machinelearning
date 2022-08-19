@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
+using Microsoft.ML.AutoML.API;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
@@ -526,9 +527,6 @@ namespace Microsoft.ML.AutoML.Test
                 .BestRun
                 .Model;
 
-            // AutoMLExperiment can't run on canceled context.
-            // Therefore, we need to create a new context after an experiment is completed.
-            context = new MLContext(1);
             var modelTrainTest = context.Auto()
                 .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataTrainTest.TrainSet,
@@ -536,7 +534,6 @@ namespace Microsoft.ML.AutoML.Test
                 .BestRun
                 .Model;
 
-            context = new MLContext(1);
             var modelCV = context.Auto()
                 .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataCV.First().TrainSet,

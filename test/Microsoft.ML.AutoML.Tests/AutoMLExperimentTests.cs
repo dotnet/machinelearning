@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ML.AutoML.API;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -28,14 +29,16 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AutoMLExperiment_throw_timeout_exception_when_ct_is_canceled_and_no_trial_completed_Async()
         {
             var context = new MLContext(1);
-            var pipeline = context.Transforms.Concatenate("Features", "Features")
-                            .Append(context.Auto().Regression());
             var experiment = context.Auto().CreateExperiment();
-            experiment.SetPipeline(pipeline)
-                      .SetDataset(GetDummyData(), 10)
-                      .SetRegressionMetric(RegressionMetric.RootMeanSquaredError, "Label")
-                      .SetTrainingTimeInSeconds(1)
-                      .UseDummyTrialRunner(5);
+
+            experiment.SetTrainingTimeInSeconds(1)
+                      .SetTrialRunner((serviceProvider) =>
+                      {
+                          var channel = serviceProvider.GetService<IChannel>();
+                          var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
+                          return new DummyTrialRunner(settings, 5, channel);
+                      })
+                      .SetTuner<RandomSearchTuner>();
 
             var cts = new CancellationTokenSource();
 
@@ -56,15 +59,16 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AutoMLExperiment_return_current_best_trial_when_ct_is_canceled_with_trial_completed_Async()
         {
             var context = new MLContext(1);
-            var pipeline = context.Transforms.Concatenate("Features", "Features")
-                            .Append(context.Auto().Regression());
 
             var experiment = context.Auto().CreateExperiment();
-            experiment.SetPipeline(pipeline)
-                      .SetDataset(GetDummyData(), 10)
-                      .SetRegressionMetric(RegressionMetric.RootMeanSquaredError, "Label")
-                      .SetTrainingTimeInSeconds(100)
-                      .UseDummyTrialRunner(1);
+            experiment.SetTrainingTimeInSeconds(100)
+                      .SetTrialRunner((serviceProvider) =>
+                      {
+                          var channel = serviceProvider.GetService<IChannel>();
+                          var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
+                          return new DummyTrialRunner(settings, 1, channel);
+                      })
+                      .SetTuner<RandomSearchTuner>();
 
             var cts = new CancellationTokenSource();
 
@@ -84,15 +88,16 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AutoMLExperiment_finish_training_when_time_is_up_Async()
         {
             var context = new MLContext(1);
-            var pipeline = context.Transforms.Concatenate("Features", "Features")
-                            .Append(context.Auto().Regression());
 
             var experiment = context.Auto().CreateExperiment();
-            experiment.SetPipeline(pipeline)
-                      .SetDataset(GetDummyData(), 10)
-                      .SetRegressionMetric(RegressionMetric.RootMeanSquaredError, "Label")
-                      .SetTrainingTimeInSeconds(5)
-                      .UseDummyTrialRunner(1);
+            experiment.SetTrainingTimeInSeconds(5)
+                      .SetTrialRunner((serviceProvider) =>
+                      {
+                          var channel = serviceProvider.GetService<IChannel>();
+                          var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
+                          return new DummyTrialRunner(settings, 1, channel);
+                      })
+                      .SetTuner<RandomSearchTuner>();
 
             var cts = new CancellationTokenSource();
             cts.CancelAfter(10 * 1000);
@@ -258,49 +263,24 @@ namespace Microsoft.ML.AutoML.Test
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
         }
-
-        private IDataView GetDummyData()
-        {
-            var x = Enumerable.Range(-10000, 10000).Select(value => value * 1f).ToArray();
-            var y = x.Select(value => value * value);
-
-            var df = new DataFrame();
-            df["Features"] = DataFrameColumn.Create("Features", x);
-            df["Label"] = DataFrameColumn.Create("Label", y);
-
-            return df;
-        }
-    }
-
-    static class AutoMLExperimentExtension
-    {
-        public static AutoMLExperiment UseDummyTrialRunner(this AutoMLExperiment experiment, int finishAfterNSeconds)
-        {
-            var settings = new DummyTrialRunner.DummyTrialRunnerSettings
-            {
-                FinishAfterNSeconds = finishAfterNSeconds,
-            };
-
-            experiment.ServiceCollection.AddSingleton(settings);
-            experiment.SetTrialRunner<DummyTrialRunner>();
-
-            return experiment;
-        }
     }
 
     class DummyTrialRunner : ITrialRunner
     {
         private readonly int _finishAfterNSeconds;
         private readonly CancellationToken _ct;
+        private readonly IChannel _logger;
 
-        public DummyTrialRunner(AutoMLExperiment.AutoMLExperimentSettings automlSettings, DummyTrialRunnerSettings settings)
+        public DummyTrialRunner(AutoMLExperiment.AutoMLExperimentSettings automlSettings, int finishAfterNSeconds, IChannel logger)
         {
-            _finishAfterNSeconds = settings.FinishAfterNSeconds;
+            _finishAfterNSeconds = finishAfterNSeconds;
             _ct = automlSettings.CancellationToken;
+            _logger = logger;
         }
 
         public TrialResult Run(TrialSettings settings, IServiceProvider provider = null)
         {
+            _logger.Info("Update Running Trial");
             Task.Delay(_finishAfterNSeconds * 1000).Wait(_ct);
             _ct.ThrowIfCancellationRequested();
             return new TrialResult
@@ -309,11 +289,6 @@ namespace Microsoft.ML.AutoML.Test
                 DurationInMilliseconds = _finishAfterNSeconds * 1000,
                 Metric = 1.000 + 0.01 * settings.TrialId,
             };
-        }
-
-        public class DummyTrialRunnerSettings
-        {
-            public int FinishAfterNSeconds { get; set; }
         }
     }
 }

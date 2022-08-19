@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.SearchSpace;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -21,11 +22,18 @@ namespace Microsoft.ML.AutoML
         private double _bestError = double.MaxValue;
         private TrialResult _bestTrialResult = null;
         private readonly IServiceCollection _serviceCollection;
+        private CancellationTokenSource _cts;
 
         public AutoMLExperiment(MLContext context, AutoMLExperimentSettings settings)
         {
             _context = context;
             _settings = settings;
+
+            if (_settings.Seed == null)
+            {
+                _settings.Seed = ((IHostEnvironmentInternal)_context.Model.GetEnvironment()).Seed;
+            }
+
             if (_settings.SearchSpace == null)
             {
                 _settings.SearchSpace = new SearchSpace.SearchSpace();
@@ -36,13 +44,26 @@ namespace Microsoft.ML.AutoML
 
         private void InitializeServiceCollection()
         {
-            _serviceCollection.TryAddSingleton(_context);
+            _serviceCollection.TryAddSingleton((provider) =>
+            {
+                var context = new MLContext(_settings.Seed);
+                _cts.Token.Register(() =>
+                {
+                    // only force-canceling running trials when there's completed trials.
+                    // otherwise, wait for the current running trial to be completed.
+                    if (_bestTrialResult != null)
+                        context.CancelExecution();
+                });
+
+                return context;
+            });
             _serviceCollection.TryAddSingleton(_settings);
-            _serviceCollection.TryAddSingleton<ITuner, EciCfoTuner>();
+            _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
         }
 
         private void Initialize()
         {
+            _cts = new CancellationTokenSource();
             InitializeServiceCollection();
         }
 
@@ -54,35 +75,15 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetDataset(IDataView train, IDataView test)
+        public AutoMLExperiment SetIsMaximize(bool isMaximize)
         {
-            var datasetManager = new TrainTestDatasetManager()
-            {
-                TrainDataset = train,
-                TestDataset = test
-            };
-
-            _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
-
+            _settings.IsMaximize = isMaximize;
             return this;
         }
 
-        public AutoMLExperiment SetDataset(TrainTestData trainTestSplit)
+        public AutoMLExperiment AddSearchSpace(string key, SearchSpace.SearchSpace searchSpace)
         {
-            SetDataset(trainTestSplit.TrainSet, trainTestSplit.TestSet);
-
-            return this;
-        }
-
-        public AutoMLExperiment SetDataset(IDataView dataset, int fold = 10)
-        {
-            var datasetManager = new CrossValidateDatasetManager()
-            {
-                Dataset = dataset,
-                Fold = fold,
-            };
-
-            _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
+            _settings.SearchSpace[key] = searchSpace;
 
             return this;
         }
@@ -118,13 +119,19 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetPipeline(SweepablePipeline pipeline)
+        public AutoMLExperiment SetMonitor<TMonitor>(Func<IServiceProvider, TMonitor> factory)
         {
-            _settings.SearchSpace[PipelineSearchspaceName] = pipeline.SearchSpace;
-            _serviceCollection.AddSingleton(pipeline);
+            var descriptor = ServiceDescriptor.Singleton(typeof(IMonitor), factory);
 
-            SetTrialRunner<SweepablePipelineRunner>();
-            SetMonitor<MLContextMonitor>();
+            if (_serviceCollection.Contains(descriptor))
+            {
+                _serviceCollection.Replace(descriptor);
+            }
+            else
+            {
+                _serviceCollection.Add(descriptor);
+            }
+
             return this;
         }
 
@@ -132,6 +139,23 @@ namespace Microsoft.ML.AutoML
             where TTrialRunner : class, ITrialRunner
         {
             var descriptor = new ServiceDescriptor(typeof(ITrialRunner), runner);
+            if (_serviceCollection.Contains(descriptor))
+            {
+                _serviceCollection.Replace(descriptor);
+            }
+            else
+            {
+                _serviceCollection.Add(descriptor);
+            }
+
+            return this;
+        }
+
+        public AutoMLExperiment SetTrialRunner<TTrialRunner>(Func<IServiceProvider, TTrialRunner> factory)
+            where TTrialRunner : class, ITrialRunner
+        {
+            var descriptor = ServiceDescriptor.Singleton(typeof(ITrialRunner), factory);
+
             if (_serviceCollection.Contains(descriptor))
             {
                 _serviceCollection.Replace(descriptor);
@@ -193,64 +217,6 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetPipeline(SweepableEstimatorPipeline pipeline)
-        {
-            var res = new SweepablePipeline();
-            foreach (var e in pipeline.Estimators)
-            {
-                res = res.Append(e);
-            }
-
-            SetPipeline(res);
-
-            return this;
-        }
-
-        public AutoMLExperiment SetBinaryClassificationMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "PredictedLabel")
-        {
-            var metricManager = new BinaryMetricManager(metric, predictedColumn, labelColumn);
-            this.SetEvaluateMetric(metricManager);
-
-
-            return this;
-        }
-
-        public AutoMLExperiment SetMulticlassClassificationMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "PredictedLabel")
-        {
-            var metricManager = new MultiClassMetricManager()
-            {
-                Metric = metric,
-                PredictedColumn = predictedColumn,
-                LabelColumn = labelColumn,
-            };
-            this.SetEvaluateMetric(metricManager);
-
-
-            return this;
-        }
-
-        public AutoMLExperiment SetRegressionMetric(RegressionMetric metric, string labelColumn = "Label", string scoreColumn = "Score")
-        {
-            var metricManager = new RegressionMetricManager()
-            {
-                Metric = metric,
-                ScoreColumn = scoreColumn,
-                LabelColumn = labelColumn,
-            };
-            this.SetEvaluateMetric(metricManager);
-
-            return this;
-        }
-
-        public AutoMLExperiment SetEvaluateMetric<TEvaluateMetricManager>(TEvaluateMetricManager metricManager)
-            where TEvaluateMetricManager : class, IEvaluateMetricManager
-        {
-            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            _serviceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
-
-            return this;
-        }
-
         /// <summary>
         /// Run experiment and return the best trial result synchronizely.
         /// </summary>
@@ -269,28 +235,18 @@ namespace Microsoft.ML.AutoML
         public async Task<TrialResult> RunAsync(CancellationToken ct = default)
         {
             ValidateSettings();
-            var cts = new CancellationTokenSource();
-            _settings.CancellationToken = ct;
-            cts.CancelAfter((int)_settings.MaxExperimentTimeInSeconds * 1000);
-            _settings.CancellationToken.Register(() => cts.Cancel());
-            cts.Token.Register(() =>
-            {
-                // only force-canceling running trials when there's completed trials.
-                // otherwise, wait for the current running trial to be completed.
-                if (_bestTrialResult != null)
-                    _context.CancelExecution();
-            });
-
             Initialize();
+            _settings.CancellationToken = ct;
+            _cts.CancelAfter((int)_settings.MaxExperimentTimeInSeconds * 1000);
+            _settings.CancellationToken.Register(() => _cts.Cancel());
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
             var trialNum = 0;
             var tuner = serviceProvider.GetService<ITuner>();
-            var metricManager = serviceProvider.GetService<IMetricManager>();
-
+            Contracts.Assert(tuner != null, "tuner can't be null");
             while (true)
             {
-                if (cts.Token.IsCancellationRequested)
+                if (_cts.Token.IsCancellationRequested)
                 {
                     break;
                 }
@@ -302,21 +258,22 @@ namespace Microsoft.ML.AutoML
 
                 var parameter = tuner.Propose(setting);
                 setting.Parameter = parameter;
-                monitor.ReportRunningTrial(setting);
+                monitor?.ReportRunningTrial(setting);
                 var runner = serviceProvider.GetService<ITrialRunner>();
+                Contracts.Assert(runner != null, "trial runner can't be null");
 
                 try
                 {
                     var trialResult = runner.Run(setting, serviceProvider);
-                    monitor.ReportCompletedTrial(trialResult);
+                    monitor?.ReportCompletedTrial(trialResult);
                     tuner.Update(trialResult);
 
-                    var error = metricManager.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
+                    var error = _settings.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
                     if (error < _bestError)
                     {
                         _bestTrialResult = trialResult;
                         _bestError = error;
-                        monitor.ReportBestTrial(trialResult);
+                        monitor?.ReportBestTrial(trialResult);
                     }
                 }
                 catch (OperationCanceledException)
@@ -327,7 +284,7 @@ namespace Microsoft.ML.AutoML
                 {
                     monitor.ReportFailTrial(setting, ex);
 
-                    if (!cts.IsCancellationRequested && _bestTrialResult == null)
+                    if (!_cts.IsCancellationRequested && _bestTrialResult == null)
                     {
                         // TODO
                         // it's questionable on whether to abort the entire training process
@@ -362,7 +319,9 @@ namespace Microsoft.ML.AutoML
         {
             public int? Seed { get; set; }
 
-            internal SearchSpace.SearchSpace SearchSpace { get; set; }
+            public SearchSpace.SearchSpace SearchSpace { get; set; }
+
+            public bool IsMaximize { get; set; }
         }
     }
 }

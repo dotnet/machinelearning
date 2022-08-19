@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ML.AutoML.API;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -148,6 +149,7 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
+            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
 
@@ -169,17 +171,18 @@ namespace Microsoft.ML.AutoML
                 _experiment.SetDataset(splitData.TrainSet, splitData.TestSet);
             }
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
-            _experiment.SetPipeline(_pipeline);
-
-            var monitor = new TrialResultMonitor<BinaryClassificationMetrics>(Context, _pipeline);
-            monitor.OnTrialCompleted += (o, e) =>
+            _experiment.SetMonitor((provider) =>
             {
-                var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
-                progressHandler?.Report(detail);
-            };
+                monitor = provider.GetService<TrialResultMonitor<BinaryClassificationMetrics>>();
+                monitor.OnTrialCompleted += (o, e) =>
+                {
+                    var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
+                    progressHandler?.Report(detail);
+                };
 
+                return monitor;
+            });
             _experiment.SetTrialRunner<BinaryClassificationRunner>();
-            _experiment.SetMonitor(monitor);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
@@ -192,19 +195,23 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
+            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
-            var monitor = new TrialResultMonitor<BinaryClassificationMetrics>(Context, _pipeline);
-            monitor.OnTrialCompleted += (o, e) =>
+            _experiment.SetMonitor((provider) =>
             {
-                var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
-                progressHandler?.Report(detail);
-            };
+                monitor = provider.GetService<TrialResultMonitor<BinaryClassificationMetrics>>();
+                monitor.OnTrialCompleted += (o, e) =>
+                {
+                    var detail = BestResultUtil.ToRunDetail(Context, e, _pipeline);
+                    progressHandler?.Report(detail);
+                };
 
-            _experiment.SetMonitor(monitor);
+                return monitor;
+            });
             _experiment.SetTrialRunner<BinaryClassificationRunner>();
             _experiment.Run();
 
@@ -239,21 +246,24 @@ namespace Microsoft.ML.AutoML
         public override CrossValidationExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
+            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
-
-            var monitor = new TrialResultMonitor<BinaryClassificationMetrics>(Context, _pipeline);
-            monitor.OnTrialCompleted += (o, e) =>
+            _experiment.SetMonitor((provider) =>
             {
-                var runDetails = BestResultUtil.ToCrossValidationRunDetail(Context, e, _pipeline);
+                monitor = provider.GetService<TrialResultMonitor<BinaryClassificationMetrics>>();
+                monitor.OnTrialCompleted += (o, e) =>
+                {
+                    var detail = BestResultUtil.ToCrossValidationRunDetail(Context, e, _pipeline);
+                    progressHandler?.Report(detail);
+                };
 
-                progressHandler?.Report(runDetails);
-            };
+                return monitor;
+            });
 
-            _experiment.SetMonitor(monitor);
             _experiment.SetTrialRunner<BinaryClassificationRunner>();
             _experiment.Run();
 

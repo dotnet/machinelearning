@@ -25,14 +25,12 @@ namespace Microsoft.ML.AutoML
     // this monitor redirects output result to context.log
     internal class MLContextMonitor : IMonitor
     {
-        private readonly MLContext _context;
         private readonly IChannel _logger;
         private readonly List<TrialResult> _completedTrials;
         private readonly SweepablePipeline _pipeline;
-        public MLContextMonitor(MLContext context, SweepablePipeline pipeline)
+        public MLContextMonitor(IChannel logger, SweepablePipeline pipeline)
         {
-            _context = context;
-            _logger = ((IChannelProvider)context).Start(nameof(AutoMLExperiment));
+            _logger = logger;
             _completedTrials = new List<TrialResult>();
             _pipeline = pipeline;
         }
@@ -62,8 +60,8 @@ namespace Microsoft.ML.AutoML
     internal class TrialResultMonitor<TMetrics> : MLContextMonitor
         where TMetrics : class
     {
-        public TrialResultMonitor(MLContext context, SweepablePipeline pipeline)
-            : base(context, pipeline)
+        public TrialResultMonitor(IChannel channel, SweepablePipeline pipeline)
+            : base(channel, pipeline)
         {
             this.RunDetails = new List<TrialResult<TMetrics>>();
         }
