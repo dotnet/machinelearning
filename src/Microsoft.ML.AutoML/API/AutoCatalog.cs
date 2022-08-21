@@ -735,8 +735,10 @@ namespace Microsoft.ML.AutoML
 
             var columnPurposes = PurposeInference.InferPurposes(this._context, data, columnInformation);
             var textFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.TextFeature);
-            var numericFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature && data.Schema[c.ColumnIndex].Type != BooleanDataViewType.Instance);
-            var booleanFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature && data.Schema[c.ColumnIndex].Type == BooleanDataViewType.Instance);
+            var numericFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature
+                                                            && data.Schema[c.ColumnIndex].Type != BooleanDataViewType.Instance
+                                                            && !(data.Schema[c.ColumnIndex].Type is VectorDataViewType vt && vt.ItemType == BooleanDataViewType.Instance)).ToArray();
+            var booleanFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.NumericFeature && !numericFeatures.Contains(c));
             var catalogFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.CategoricalFeature);
             var imagePathFeatures = columnPurposes.Where(c => c.Purpose == ColumnPurpose.ImagePath);
             var textFeatureColumnNames = textFeatures.Select(c => data.Schema[c.ColumnIndex].Name).ToArray();

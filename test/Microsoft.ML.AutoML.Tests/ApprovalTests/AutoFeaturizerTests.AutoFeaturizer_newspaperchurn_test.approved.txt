@@ -1,5 +1,6 @@
 {
   "schema": "e0 * e1 * (e2 \u002B e3) * e4 * e5",
+  "currentSchema": "e0 * e1 * e2 * e4 * e5",
   "estimators": {
     "e0": {
       "estimatorType": "ReplaceMissingValues",

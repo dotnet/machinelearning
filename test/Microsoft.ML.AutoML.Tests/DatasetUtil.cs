@@ -100,6 +100,15 @@ namespace Microsoft.ML.AutoML.Test
             return _newspaperChurnDataView;
         }
 
+        public static IDataView GetCreditApprovalDataView()
+        {
+            var context = new MLContext(1);
+            var file = GetDataPath(@"creditapproval_train.csv");
+            var columnInferenceResult = context.Auto().InferColumns(file, "A16");
+            var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderOptions);
+            return textLoader.Load(file);
+        }
+
         public static IDataView GetTaxiFareTestDataView()
         {
             if (_taxiFareTestDataView == null)
