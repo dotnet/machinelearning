@@ -539,7 +539,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseCategoricalSplit) + " = " + useCat);
             if (useCat)
             {
-                var featureCol = trainData.Schema.Schema[DefaultColumnNames.Features];
+                var featureCol = trainData.Schema.Feature.Value;
                 AnnotationUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
