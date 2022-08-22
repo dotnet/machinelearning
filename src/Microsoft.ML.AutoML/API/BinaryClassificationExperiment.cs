@@ -341,7 +341,7 @@ namespace Microsoft.ML.AutoML
             _rnd = settings.Seed.HasValue ? new Random(settings.Seed.Value) : new Random();
         }
 
-        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
+        public TrialResult Run(TrialSettings settings)
         {
             if (_metricManager is BinaryMetricManager metricManager)
             {

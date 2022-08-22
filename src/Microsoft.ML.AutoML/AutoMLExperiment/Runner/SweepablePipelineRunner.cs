@@ -26,7 +26,7 @@ namespace Microsoft.ML.AutoML
             _datasetManager = datasetManager;
         }
 
-        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
+        public TrialResult Run(TrialSettings settings)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();

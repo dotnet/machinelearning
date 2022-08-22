@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -59,9 +60,10 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AutoMLExperiment_return_current_best_trial_when_ct_is_canceled_with_trial_completed_Async()
         {
             var context = new MLContext(1);
-
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             var experiment = context.Auto().CreateExperiment();
-            experiment.SetTrainingTimeInSeconds(100)
+            experiment.SetTrainingTimeInSeconds(10)
                       .SetTrialRunner((serviceProvider) =>
                       {
                           var channel = serviceProvider.GetService<IChannel>();
@@ -79,8 +81,11 @@ namespace Microsoft.ML.AutoML.Test
                     cts.CancelAfter(100);
                 }
             };
-
             var res = await experiment.RunAsync(cts.Token);
+
+            stopWatch.Stop();
+            stopWatch.ElapsedMilliseconds.Should().BeLessOrEqualTo(2 * 1000);
+            cts.IsCancellationRequested.Should().BeTrue();
             res.Metric.Should().BeGreaterThan(0);
         }
 
@@ -278,11 +283,12 @@ namespace Microsoft.ML.AutoML.Test
             _logger = logger;
         }
 
-        public TrialResult Run(TrialSettings settings, IServiceProvider provider = null)
+        public TrialResult Run(TrialSettings settings)
         {
             _logger.Info("Update Running Trial");
             Task.Delay(_finishAfterNSeconds * 1000).Wait(_ct);
             _ct.ThrowIfCancellationRequested();
+            _logger.Info("Update Completed Trial");
             return new TrialResult
             {
                 TrialSettings = settings,

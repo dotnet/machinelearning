@@ -14,6 +14,6 @@ namespace Microsoft.ML.AutoML
     /// </summary>
     public interface ITrialRunner
     {
-        TrialResult Run(TrialSettings settings, IServiceProvider provider = null);
+        TrialResult Run(TrialSettings settings);
     }
 }

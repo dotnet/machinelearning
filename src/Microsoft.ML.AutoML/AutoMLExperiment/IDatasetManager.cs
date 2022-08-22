@@ -26,14 +26,14 @@ namespace Microsoft.ML.AutoML
         IDataView TestDataset { get; set; }
     }
 
-    public class TrainTestDatasetManager : IDatasetManager, ITrainTestDatasetManager
+    internal class TrainTestDatasetManager : IDatasetManager, ITrainTestDatasetManager
     {
         public IDataView TrainDataset { get; set; }
 
         public IDataView TestDataset { get; set; }
     }
 
-    public class CrossValidateDatasetManager : IDatasetManager, ICrossValidateDatasetManager
+    internal class CrossValidateDatasetManager : IDatasetManager, ICrossValidateDatasetManager
     {
         public IDataView Dataset { get; set; }
 

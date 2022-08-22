@@ -44,7 +44,7 @@ namespace Microsoft.ML.AutoML
 
         private void InitializeServiceCollection()
         {
-            _serviceCollection.TryAddSingleton((provider) =>
+            _serviceCollection.TryAddTransient((provider) =>
             {
                 var context = new MLContext(_settings.Seed);
                 _cts.Token.Register(() =>
@@ -91,30 +91,15 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetMonitor<TMonitor>(TMonitor monitor)
             where TMonitor : class, IMonitor
         {
-            var descriptor = new ServiceDescriptor(typeof(IMonitor), monitor);
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddSingleton(ServiceDescriptor.Singleton<IMonitor>(monitor));
 
             return this;
         }
 
         public AutoMLExperiment SetMonitor<TMonitor>()
+            where TMonitor : class, IMonitor
         {
-            var descriptor = new ServiceDescriptor(typeof(IMonitor), typeof(TMonitor), ServiceLifetime.Singleton);
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddSingleton(ServiceDescriptor.Singleton<IMonitor, TMonitor>());
 
             return this;
         }
@@ -122,16 +107,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetMonitor<TMonitor>(Func<IServiceProvider, TMonitor> factory)
             where TMonitor : class, IMonitor
         {
-            var descriptor = ServiceDescriptor.Singleton<IMonitor>(factory);
-
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddSingleton(ServiceDescriptor.Singleton<IMonitor>(factory));
 
             return this;
         }
@@ -139,15 +115,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTrialRunner<TTrialRunner>(TTrialRunner runner)
             where TTrialRunner : class, ITrialRunner
         {
-            var descriptor = new ServiceDescriptor(typeof(ITrialRunner), runner);
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddSingleton(ServiceDescriptor.Singleton<ITrialRunner>(runner));
 
             return this;
         }
@@ -155,16 +123,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTrialRunner<TTrialRunner>(Func<IServiceProvider, TTrialRunner> factory)
             where TTrialRunner : class, ITrialRunner
         {
-            var descriptor = ServiceDescriptor.Singleton<ITrialRunner>(factory);
-
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddTransient<ITrialRunner>(factory);
 
             return this;
         }
@@ -172,15 +131,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTrialRunner<TTrialRunner>()
             where TTrialRunner : class, ITrialRunner
         {
-            var descriptor = new ServiceDescriptor(typeof(ITrialRunner), typeof(TTrialRunner), ServiceLifetime.Transient);
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddTransient<ITrialRunner, TTrialRunner>();
 
             return this;
         }
@@ -188,7 +139,13 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTuner<TTuner>(TTuner proposer)
             where TTuner : class, ITuner
         {
-            var descriptor = new ServiceDescriptor(typeof(ITuner), proposer);
+            return this.SetTuner((service) => proposer);
+        }
+
+        public AutoMLExperiment SetTuner<TTuner>(Func<IServiceProvider, TTuner> factory)
+            where TTuner : class, ITuner
+        {
+            var descriptor = ServiceDescriptor.Singleton<ITuner>(factory);
 
             if (_serviceCollection.Contains(descriptor))
             {
@@ -205,15 +162,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTuner<TTuner>()
             where TTuner : class, ITuner
         {
-            var descriptor = new ServiceDescriptor(typeof(ITuner), typeof(TTuner), ServiceLifetime.Singleton);
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddSingleton<ITuner, TTuner>();
 
             return this;
         }
@@ -265,7 +214,7 @@ namespace Microsoft.ML.AutoML
 
                 try
                 {
-                    var trialResult = runner.Run(setting, serviceProvider);
+                    var trialResult = runner.Run(setting);
                     monitor?.ReportCompletedTrial(trialResult);
                     tuner.Update(trialResult);
 
@@ -283,7 +232,7 @@ namespace Microsoft.ML.AutoML
                 }
                 catch (Exception ex)
                 {
-                    monitor.ReportFailTrial(setting, ex);
+                    monitor?.ReportFailTrial(setting, ex);
 
                     if (!_cts.IsCancellationRequested && _bestTrialResult == null)
                     {
