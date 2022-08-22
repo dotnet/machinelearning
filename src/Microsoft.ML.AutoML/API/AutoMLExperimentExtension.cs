@@ -12,7 +12,6 @@ namespace Microsoft.ML.AutoML.API
 {
     public static class AutoMLExperimentExtension
     {
-
         public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView train, IDataView test)
         {
             var datasetManager = new TrainTestDatasetManager()
@@ -87,17 +86,6 @@ namespace Microsoft.ML.AutoML.API
             experiment.SetTuner<EciCfoTuner>();
 
             return experiment;
-        }
-
-        public static AutoMLExperiment SetPipeline(this AutoMLExperiment experiment, SweepableEstimatorPipeline pipeline)
-        {
-            var res = new SweepablePipeline();
-            foreach (var e in pipeline.Estimators)
-            {
-                res = res.Append(e);
-            }
-
-            return experiment.SetPipeline(res);
         }
 
         private static AutoMLExperiment SetEvaluateMetric<TEvaluateMetricManager>(this AutoMLExperiment experiment, TEvaluateMetricManager metricManager)

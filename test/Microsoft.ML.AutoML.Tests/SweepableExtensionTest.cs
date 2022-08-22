@@ -44,46 +44,32 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
-        public void CreateSweepableEstimatorPipelineFromIEstimatorTest()
+        public void CreateSweepablePipelineFromIEstimatorTest()
         {
             var context = new MLContext();
             var estimator = context.Transforms.Concatenate("output", "input");
             var pipeline = estimator.Append(SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()));
 
-            pipeline.Should().BeOfType<SweepableEstimatorPipeline>();
-            pipeline.ToString().Should().Be("Unknown=>FastForestBinary");
+            pipeline.Should().BeOfType<SweepablePipeline>();
         }
 
         [Fact]
-        public void AppendIEstimatorToSweepabeEstimatorPipelineTest()
-        {
-            var context = new MLContext();
-            var estimator = context.Transforms.Concatenate("output", "input");
-            var pipeline = estimator.Append(SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()));
-            pipeline = pipeline.Append(context.Transforms.CopyColumns("output", "input"));
-
-            pipeline.Should().BeOfType<SweepableEstimatorPipeline>();
-            pipeline.ToString().Should().Be("Unknown=>FastForestBinary=>Unknown");
-        }
-
-        [Fact]
-        public void CreateSweepableEstimatorPipelineFromSweepableEstimatorTest()
+        public void CreateSweepablePipelineFromSweepableEstimatorTest()
         {
             var estimator = SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption());
             var pipeline = estimator.Append(estimator);
 
-            pipeline.ToString().Should().Be("FastForestBinary=>FastForestBinary");
+            pipeline.Should().BeOfType<SweepablePipeline>();
         }
 
         [Fact]
-        public void CreateSweepableEstimatorPipelineFromSweepableEstimatorAndIEstimatorTest()
+        public void CreateSweepablePipelineFromSweepableEstimatorAndIEstimatorTest()
         {
             var context = new MLContext();
             var estimator = SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption());
             var pipeline = estimator.Append(context.Transforms.Concatenate("output", "input"));
 
-            pipeline.ToString().Should().Be("FastForestBinary=>Unknown");
-
+            pipeline.Should().BeOfType<SweepablePipeline>();
         }
 
         [Fact]
@@ -102,7 +88,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
-        public void CreateSweepablePipelinePipelineFromIEstimatorAndMultiClassifiers()
+        public void CreateSweepablePipelineFromIEstimatorAndMultiClassifiers()
         {
             var context = new MLContext();
             SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")
@@ -141,7 +127,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
-        public void CreateSweepablePipelineFromSweepableEstimatorPipelineAndMultiClassifiers()
+        public void CreateSweepablePipelineFromSweepablePipelineAndMultiClassifiers()
         {
             var context = new MLContext();
             SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")
@@ -155,7 +141,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
-        public void CreateSweepablePipelineFromSweepableEstimatorPipelineAndSweepableEstimatorArray()
+        public void CreateSweepablePipelineFromSweepablePipelineAndSweepableEstimatorArray()
         {
             var context = new MLContext();
             SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")

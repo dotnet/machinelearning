@@ -6,14 +6,9 @@ namespace Microsoft.ML.AutoML
 {
     public static class SweepableExtension
     {
-        public static SweepableEstimatorPipeline Append(this IEstimator<ITransformer> estimator, SweepableEstimator estimator1)
+        public static SweepablePipeline Append(this IEstimator<ITransformer> estimator, SweepableEstimator estimator1)
         {
-            return new SweepableEstimatorPipeline().Append(estimator).Append(estimator1);
-        }
-
-        public static SweepableEstimatorPipeline Append(this SweepableEstimatorPipeline pipeline, IEstimator<ITransformer> estimator1)
-        {
-            return pipeline.Append(new SweepableEstimator((context, parameter) => estimator1, new SearchSpace.SearchSpace()));
+            return new SweepablePipeline().Append(estimator).Append(estimator1);
         }
 
         public static SweepablePipeline Append(this SweepablePipeline pipeline, IEstimator<ITransformer> estimator)
@@ -21,32 +16,15 @@ namespace Microsoft.ML.AutoML
             return pipeline.Append(new SweepableEstimator((context, parameter) => estimator, new SearchSpace.SearchSpace()));
         }
 
-        public static SweepablePipeline Append(this SweepableEstimatorPipeline pipeline, SweepablePipeline sweepablePipeline)
-        {
-            var res = new SweepablePipeline();
-            foreach (var estimator in pipeline.Estimators)
-            {
-                res = res.Append(estimator);
-            }
-
-            return res.Append(sweepablePipeline);
-        }
-
-        public static SweepableEstimatorPipeline Append(this SweepableEstimator estimator, SweepableEstimator estimator1)
-        {
-            return new SweepableEstimatorPipeline().Append(estimator).Append(estimator1);
-        }
-
         public static SweepablePipeline Append(this SweepableEstimator estimator, SweepablePipeline estimator1)
         {
             return new SweepablePipeline().Append(estimator).Append(estimator1);
         }
 
-        public static SweepableEstimatorPipeline Append(this SweepableEstimator estimator, IEstimator<ITransformer> estimator1)
+        public static SweepablePipeline Append(this SweepableEstimator estimator, IEstimator<ITransformer> estimator1)
         {
-            return new SweepableEstimatorPipeline().Append(estimator).Append(estimator1);
+            return new SweepablePipeline().Append(estimator).Append(estimator1);
         }
-
 
         public static SweepablePipeline Append(this IEstimator<ITransformer> estimator, SweepablePipeline pipeline)
         {
@@ -70,17 +48,6 @@ namespace Microsoft.ML.AutoML
             var pipeline = new SweepablePipeline().Append(sweepableEstimator).Append(estimators);
 
             return pipeline;
-        }
-
-        public static SweepablePipeline Append(this SweepableEstimatorPipeline pipeline, params SweepableEstimator[] estimators)
-        {
-            var res = new SweepablePipeline();
-            foreach (var estimator in pipeline.Estimators)
-            {
-                res = res.Append(estimator);
-            }
-
-            return res.Append(estimators);
         }
     }
 }
