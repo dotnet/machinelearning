@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -463,187 +465,6 @@ CMT,1,1,181,0.6,CSH,4.5,4-june-2020";
             Verify(df, false);
             df = DataFrame.LoadCsvFromString(data);
             Verify(df, false);
-        }
-
-        [Fact]
-        public void TestReadCsvWithCommaSeparatorsInData()
-        {
-            string data = @"Name,Age,Description
-Paul,34,""Paul lives in Vermont, VA.""
-Victor,29,""Victor: Funny guy""
-Maria,31,";
-
-            void Verify(DataFrame df)
-            {
-                Assert.Equal(3, df.Rows.Count);
-                Assert.Equal(3, df.Columns.Count);
-
-                Assert.True(typeof(string) == df.Columns[0].DataType);
-                Assert.True(typeof(int) == df.Columns[1].DataType);
-                Assert.True(typeof(string) == df.Columns[2].DataType);
-
-
-                Assert.Equal("Name", df.Columns[0].Name);
-                Assert.Equal("Age", df.Columns[1].Name);
-                Assert.Equal("Description", df.Columns[2].Name);
-                VerifyColumnTypes(df);
-
-                var paulRow = df.Rows[0];
-                Assert.Equal("Paul", paulRow[0]);
-                Assert.Equal(34, paulRow[1]);
-                Assert.Equal("Paul lives in Vermont, VA.", paulRow[2]);
-
-                var victorRow = df.Rows[1];
-                Assert.Equal("Victor", victorRow[0]);
-                Assert.Equal(29, victorRow[1]);
-                Assert.Equal("Victor: Funny guy", victorRow[2]);
-
-                var mariaRow = df.Rows[2];
-                Assert.Equal("Maria", mariaRow[0]);
-                Assert.Equal(31, mariaRow[1]);
-                Assert.Equal("", mariaRow[2]);
-            }
-
-            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
-            Verify(df);
-            df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
-            Verify(df);
-        }
-
-        [Fact]
-        public void TestReadCsvWithColonSeparatorsInData()
-        {
-            string data = @"Name:Age:Description
-Paul:34:""Paul lives in Vermont, VA.""
-Victor:29:""Victor: Funny guy""
-Maria:31:";
-            void Verify(DataFrame df)
-            {
-                Assert.Equal(3, df.Rows.Count);
-                Assert.Equal(3, df.Columns.Count);
-
-                Assert.True(typeof(string) == df.Columns[0].DataType);
-                Assert.True(typeof(int) == df.Columns[1].DataType);
-                Assert.True(typeof(string) == df.Columns[2].DataType);
-
-
-                Assert.Equal("Name", df.Columns[0].Name);
-                Assert.Equal("Age", df.Columns[1].Name);
-                Assert.Equal("Description", df.Columns[2].Name);
-                VerifyColumnTypes(df);
-
-                var paulRow = df.Rows[0];
-                Assert.Equal("Paul", paulRow[0]);
-                Assert.Equal(34, paulRow[1]);
-                Assert.Equal("Paul lives in Vermont, VA.", paulRow[2]);
-
-                var victorRow = df.Rows[1];
-                Assert.Equal("Victor", victorRow[0]);
-                Assert.Equal(29, victorRow[1]);
-                Assert.Equal("Victor: Funny guy", victorRow[2]);
-
-                var mariaRow = df.Rows[2];
-                Assert.Equal("Maria", mariaRow[0]);
-                Assert.Equal(31, mariaRow[1]);
-                Assert.Equal("", mariaRow[2]);
-            }
-
-            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: ':');
-            Verify(df);
-            df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: ':');
-            Verify(df);
-        }
-
-        [Fact]
-        public void TestReadCsvWithCommaSeparatorsInHeaderData()
-        {
-            string data = @"""Na,me"",Age,Description
-Paul,34,""Paul lives in Vermont, VA.""
-Victor,29,""Victor: Funny guy""
-Maria,31,";
-
-            void Verify(DataFrame df)
-            {
-                Assert.Equal(3, df.Rows.Count);
-                Assert.Equal(3, df.Columns.Count);
-
-                Assert.True(typeof(string) == df.Columns[0].DataType);
-                Assert.True(typeof(int) == df.Columns[1].DataType);
-                Assert.True(typeof(string) == df.Columns[2].DataType);
-
-
-                Assert.Equal("Na,me", df.Columns[0].Name);
-                Assert.Equal("Age", df.Columns[1].Name);
-                Assert.Equal("Description", df.Columns[2].Name);
-                VerifyColumnTypes(df);
-
-                var paulRow = df.Rows[0];
-                Assert.Equal("Paul", paulRow[0]);
-                Assert.Equal(34, paulRow[1]);
-                Assert.Equal("Paul lives in Vermont, VA.", paulRow[2]);
-
-                var victorRow = df.Rows[1];
-                Assert.Equal("Victor", victorRow[0]);
-                Assert.Equal(29, victorRow[1]);
-                Assert.Equal("Victor: Funny guy", victorRow[2]);
-
-                var mariaRow = df.Rows[2];
-                Assert.Equal("Maria", mariaRow[0]);
-                Assert.Equal(31, mariaRow[1]);
-                Assert.Equal("", mariaRow[2]);
-            }
-
-            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
-            Verify(df);
-            df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
-            Verify(df);
-        }
-
-        [Fact]
-        public void TestReadCsvWithNewlinesInData()
-        {
-            string data = @"Name,Age,Description
-Paul,34,""Paul lives in Vermont
-VA.""
-Victor,29,""Victor: Funny guy""
-Maria,31,";
-
-            void Verify(DataFrame df)
-            {
-                Assert.Equal(3, df.Rows.Count);
-                Assert.Equal(3, df.Columns.Count);
-
-                Assert.True(typeof(string) == df.Columns[0].DataType);
-                Assert.True(typeof(int) == df.Columns[1].DataType);
-                Assert.True(typeof(string) == df.Columns[2].DataType);
-
-
-                Assert.Equal("Name", df.Columns[0].Name);
-                Assert.Equal("Age", df.Columns[1].Name);
-                Assert.Equal("Description", df.Columns[2].Name);
-                VerifyColumnTypes(df);
-
-                var paulRow = df.Rows[0];
-                Assert.Equal("Paul", paulRow[0]);
-                Assert.Equal(34, paulRow[1]);
-                Assert.Equal(@"Paul lives in Vermont
-VA.", paulRow[2]);
-
-                var victorRow = df.Rows[1];
-                Assert.Equal("Victor", victorRow[0]);
-                Assert.Equal(29, victorRow[1]);
-                Assert.Equal("Victor: Funny guy", victorRow[2]);
-
-                var mariaRow = df.Rows[2];
-                Assert.Equal("Maria", mariaRow[0]);
-                Assert.Equal(31, mariaRow[1]);
-                Assert.Equal("", mariaRow[2]);
-            }
-
-            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
-            Verify(df);
-            df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
-            Verify(df);
         }
 
         [Fact]
@@ -1199,6 +1020,279 @@ CMT,";
             {
                 Assert.Equal("", emptyColumn[i]);
             }
+        }
+
+        public struct LoadCsvVerifyingHelper
+        {
+            int _columnCount;
+            long _rowCount;
+            string[] _columnNames;
+            Type[] _columnTypes;
+            object[][] _cells;
+
+            public LoadCsvVerifyingHelper(int columnCount, long rowCount, string[] columnNames, Type[] columnTypes, object[][] cells)
+            {
+                _columnCount = columnCount;
+                _rowCount = rowCount;
+                _columnNames = columnNames;
+                _columnTypes = columnTypes;
+                _cells = cells;
+
+            }
+
+            public void VerifyLoadCsv(DataFrame df)
+            {
+                Assert.Equal(_rowCount, df.Rows.Count);
+                Assert.Equal(_columnCount, df.Columns.Count);
+
+                for (int j = 0; j < _columnCount; j++)
+                {
+                    Assert.True(_columnTypes[j] == df.Columns[j].DataType);
+                    Assert.Equal(_columnNames[j], df.Columns[j].Name);
+
+                }
+
+                VerifyColumnTypes(df);
+
+                for (int i = 0; i < _rowCount; i++)
+                {
+                    for (int j = 0; j < _columnCount; j++)
+                    {
+                        Assert.Equal(_cells[i][j], df.Rows[i][j]);
+                    }
+                }
+            }
+
+        }
+
+        public static IEnumerable<object[]> LoadCsv_TestData()
+        {
+            yield return new object[]
+            {
+                @"Name,Age,Description
+Paul,34,""Paul lives in Vermont, VA.""
+Victor,29,""Victor: Funny guy""
+Maria,31,",
+                ',',
+                new LoadCsvVerifyingHelper(
+                    3,
+                    3,
+                    new string[] { "Name", "Age", "Description" },
+                    new Type[] { typeof(string), typeof(int), typeof(string) },
+                    new object[][]
+                    {
+                        new object[] { "Paul", 34, "Paul lives in Vermont, VA." },
+                        new object[] { "Victor", 29, "Victor: Funny guy" },
+                        new object[] { "Maria", 31, "" }
+                    }
+                )
+            };
+            yield return new object[]
+            {
+                @"Name:Age:Description
+Paul:34:""Paul lives in Vermont, VA.""
+Victor:29:""Victor: Funny guy""
+Maria:31:",
+                ':',
+                new LoadCsvVerifyingHelper(
+                    3,
+                    3,
+                    new string[] { "Name", "Age", "Description" },
+                    new Type[] { typeof(string), typeof(int), typeof(string) },
+                    new object[][]
+                    {
+                        new object[] { "Paul", 34, "Paul lives in Vermont, VA." },
+                        new object[] { "Victor", 29, "Victor: Funny guy" },
+                        new object[] { "Maria", 31, "" }
+                    }
+                )
+            };
+        }
+
+        [Theory]
+        [MemberData(nameof(LoadCsv_TestData))]
+        public void TestReadWriteCsvWithCommaSeparatorsInData(string data, char separator, LoadCsvVerifyingHelper helper)
+        {
+            // Read data to a DataFrame in two ways and verify correctness
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: separator);
+            helper.VerifyLoadCsv(df);
+            df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: separator);
+            helper.VerifyLoadCsv(df);
+
+            // Write DataFrame to a MemoryStream
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame.WriteCsv(df, csvStream, separator: separator);
+
+            // Read MemoryStream back to DataFrame and verify correctness
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame df2 = DataFrame.LoadCsv(csvStream, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: separator);
+            helper.VerifyLoadCsv(df2);
+        }
+
+        [Fact]
+        public void TestReadWriteCsvWithColonSeparatorsInData()
+        {
+            string data = @"Name:Age:Description
+Paul:34:""Paul lives in Vermont, VA.""
+Victor:29:""Victor: Funny guy""
+Maria:31:";
+            void Verify(DataFrame df)
+            {
+                Assert.Equal(3, df.Rows.Count);
+                Assert.Equal(3, df.Columns.Count);
+
+                Assert.True(typeof(string) == df.Columns[0].DataType);
+                Assert.True(typeof(int) == df.Columns[1].DataType);
+                Assert.True(typeof(string) == df.Columns[2].DataType);
+
+
+                Assert.Equal("Name", df.Columns[0].Name);
+                Assert.Equal("Age", df.Columns[1].Name);
+                Assert.Equal("Description", df.Columns[2].Name);
+                VerifyColumnTypes(df);
+
+                var paulRow = df.Rows[0];
+                Assert.Equal("Paul", paulRow[0]);
+                Assert.Equal(34, paulRow[1]);
+                Assert.Equal("Paul lives in Vermont, VA.", paulRow[2]);
+
+                var victorRow = df.Rows[1];
+                Assert.Equal("Victor", victorRow[0]);
+                Assert.Equal(29, victorRow[1]);
+                Assert.Equal("Victor: Funny guy", victorRow[2]);
+
+                var mariaRow = df.Rows[2];
+                Assert.Equal("Maria", mariaRow[0]);
+                Assert.Equal(31, mariaRow[1]);
+                Assert.Equal("", mariaRow[2]);
+            }
+
+            // Read data to a DataFrame in two ways and verify correctness
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: ':');
+            Verify(df);
+            df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: ':');
+            Verify(df);
+
+            // Write DataFrame to a MemoryStream
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame.WriteCsv(df, csvStream, separator: ':');
+
+            // Read MemoryStream back to DataFrame and verify correctness
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame df2 = DataFrame.LoadCsv(csvStream, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: ':');
+            Verify(df2);
+        }
+
+        [Fact]
+        public void TestReadWriteCsvWithCommaSeparatorsInHeaderData()
+        {
+            string data = @"""Na,me"",Age,Description
+Paul,34,""Paul lives in Vermont, VA.""
+Victor,29,""Victor: Funny guy""
+Maria,31,";
+
+            void Verify(DataFrame df)
+            {
+                Assert.Equal(3, df.Rows.Count);
+                Assert.Equal(3, df.Columns.Count);
+
+                Assert.True(typeof(string) == df.Columns[0].DataType);
+                Assert.True(typeof(int) == df.Columns[1].DataType);
+                Assert.True(typeof(string) == df.Columns[2].DataType);
+
+
+                Assert.Equal("Na,me", df.Columns[0].Name);
+                Assert.Equal("Age", df.Columns[1].Name);
+                Assert.Equal("Description", df.Columns[2].Name);
+                VerifyColumnTypes(df);
+
+                var paulRow = df.Rows[0];
+                Assert.Equal("Paul", paulRow[0]);
+                Assert.Equal(34, paulRow[1]);
+                Assert.Equal("Paul lives in Vermont, VA.", paulRow[2]);
+
+                var victorRow = df.Rows[1];
+                Assert.Equal("Victor", victorRow[0]);
+                Assert.Equal(29, victorRow[1]);
+                Assert.Equal("Victor: Funny guy", victorRow[2]);
+
+                var mariaRow = df.Rows[2];
+                Assert.Equal("Maria", mariaRow[0]);
+                Assert.Equal(31, mariaRow[1]);
+                Assert.Equal("", mariaRow[2]);
+            }
+
+            // Read data to a DataFrame in two ways and verify correctness
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
+            Verify(df);
+            df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
+            Verify(df);
+
+            // Write DataFrame to a MemoryStream
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame.WriteCsv(df, csvStream);
+
+            // Read MemoryStream back to DataFrame and verify correctness
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame df2 = DataFrame.LoadCsv(csvStream, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
+            Verify(df2);
+        }
+
+        [Fact]
+        public void TestReadWriteCsvWithNewlinesInData()
+        {
+            string data = @"Name,Age,Description
+Paul,34,""Paul lives in Vermont
+VA.""
+Victor,29,""Victor: Funny guy""
+Maria,31,";
+
+            void Verify(DataFrame df)
+            {
+                Assert.Equal(3, df.Rows.Count);
+                Assert.Equal(3, df.Columns.Count);
+
+                Assert.True(typeof(string) == df.Columns[0].DataType);
+                Assert.True(typeof(int) == df.Columns[1].DataType);
+                Assert.True(typeof(string) == df.Columns[2].DataType);
+
+
+                Assert.Equal("Name", df.Columns[0].Name);
+                Assert.Equal("Age", df.Columns[1].Name);
+                Assert.Equal("Description", df.Columns[2].Name);
+                VerifyColumnTypes(df);
+
+                var paulRow = df.Rows[0];
+                Assert.Equal("Paul", paulRow[0]);
+                Assert.Equal(34, paulRow[1]);
+                Assert.Equal(@"Paul lives in Vermont
+VA.", paulRow[2]);
+
+                var victorRow = df.Rows[1];
+                Assert.Equal("Victor", victorRow[0]);
+                Assert.Equal(29, victorRow[1]);
+                Assert.Equal("Victor: Funny guy", victorRow[2]);
+
+                var mariaRow = df.Rows[2];
+                Assert.Equal("Maria", mariaRow[0]);
+                Assert.Equal(31, mariaRow[1]);
+                Assert.Equal("", mariaRow[2]);
+            }
+
+            // Read data to a DataFrame in two ways and verify correctness
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
+            Verify(df);
+            df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
+            Verify(df);
+
+            // Write DataFrame to a MemoryStream
+            using MemoryStream csvStream = new MemoryStream();
+            DataFrame.WriteCsv(df, csvStream);
+
+            // Read MemoryStream back to DataFrame and verify correctness
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame df2 = DataFrame.LoadCsv(csvStream, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) });
+            Verify(df2);
         }
     }
 }
