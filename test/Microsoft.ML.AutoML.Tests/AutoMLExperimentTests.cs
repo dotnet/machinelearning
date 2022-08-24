@@ -130,7 +130,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(10);
+                    .SetTrainingTimeInSeconds(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);

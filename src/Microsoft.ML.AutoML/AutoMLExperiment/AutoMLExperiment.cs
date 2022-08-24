@@ -91,7 +91,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetMonitor<TMonitor>(TMonitor monitor)
             where TMonitor : class, IMonitor
         {
-            _serviceCollection.AddSingleton(ServiceDescriptor.Singleton<IMonitor>(monitor));
+            _serviceCollection.AddSingleton<IMonitor>(monitor);
 
             return this;
         }
@@ -99,7 +99,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetMonitor<TMonitor>()
             where TMonitor : class, IMonitor
         {
-            _serviceCollection.AddSingleton(ServiceDescriptor.Singleton<IMonitor, TMonitor>());
+            _serviceCollection.AddSingleton<IMonitor, TMonitor>();
 
             return this;
         }
@@ -107,7 +107,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetMonitor<TMonitor>(Func<IServiceProvider, TMonitor> factory)
             where TMonitor : class, IMonitor
         {
-            _serviceCollection.AddSingleton(ServiceDescriptor.Singleton<IMonitor>(factory));
+            _serviceCollection.AddSingleton<IMonitor>(factory);
 
             return this;
         }
@@ -115,7 +115,7 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTrialRunner<TTrialRunner>(TTrialRunner runner)
             where TTrialRunner : class, ITrialRunner
         {
-            _serviceCollection.AddSingleton(ServiceDescriptor.Singleton<ITrialRunner>(runner));
+            _serviceCollection.AddSingleton<ITrialRunner>(runner);
 
             return this;
         }
@@ -209,8 +209,7 @@ namespace Microsoft.ML.AutoML
                 var parameter = tuner.Propose(setting);
                 setting.Parameter = parameter;
                 monitor?.ReportRunningTrial(setting);
-                var runner = serviceProvider.GetService<ITrialRunner>();
-                Contracts.Assert(runner != null, "trial runner can't be null");
+                var runner = serviceProvider.GetRequiredService<ITrialRunner>();
 
                 try
                 {
