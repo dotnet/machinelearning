@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.ML.AutoML.API;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Xunit;

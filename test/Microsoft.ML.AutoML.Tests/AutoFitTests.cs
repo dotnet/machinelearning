@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
-using Microsoft.ML.AutoML.API;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;

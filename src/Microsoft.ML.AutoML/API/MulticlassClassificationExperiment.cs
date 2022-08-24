@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.ML.AutoML.API;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;

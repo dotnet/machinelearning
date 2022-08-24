@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using static Microsoft.ML.DataOperationsCatalog;
 
-namespace Microsoft.ML.AutoML.API
+namespace Microsoft.ML.AutoML
 {
     public static class AutoMLExperimentExtension
     {
