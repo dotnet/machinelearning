@@ -500,6 +500,14 @@ namespace Microsoft.Data.Analysis
                                 continue;
                             }
 
+                            if (t == typeof(string) && ((string)cell).Contains(separator.ToString())) // TODO why doesn't Contains(char) work?
+                            {
+                                record.Append("\"");
+                                record.Append(cell);
+                                record.Append("\"");
+                                continue;
+                            }
+
                             record.Append(cell);
                         }
 
