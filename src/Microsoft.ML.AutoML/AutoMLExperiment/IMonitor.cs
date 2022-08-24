@@ -22,7 +22,9 @@ namespace Microsoft.ML.AutoML
         void ReportRunningTrial(TrialSettings setting);
     }
 
-    // this monitor redirects output result to context.log
+    /// <summary>
+    /// monitor that redirect output results to context.Log channel.
+    /// </summary>
     internal class MLContextMonitor : IMonitor
     {
         private readonly IChannel _logger;

@@ -141,7 +141,6 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<MulticlassClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            TrialResultMonitor<MulticlassClassificationMetrics> monitor = null;
             _experiment.SetMulticlassClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
 
@@ -165,6 +164,9 @@ namespace Microsoft.ML.AutoML
 
             _pipeline = CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
+
+            // set monitor
+            TrialResultMonitor<MulticlassClassificationMetrics> monitor = null;
             _experiment.SetMonitor((provider) =>
             {
                 var channel = provider.GetService<IChannel>();
@@ -197,13 +199,15 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<MulticlassClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            TrialResultMonitor<MulticlassClassificationMetrics> monitor = null;
             _experiment.SetMulticlassClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
 
             _pipeline = CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
+
+            // set monitor
+            TrialResultMonitor<MulticlassClassificationMetrics> monitor = null;
             _experiment.SetMonitor((provider) =>
             {
                 var channel = provider.GetService<IChannel>();
@@ -252,13 +256,15 @@ namespace Microsoft.ML.AutoML
         public override CrossValidationExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<MulticlassClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            TrialResultMonitor<MulticlassClassificationMetrics> monitor = null;
             _experiment.SetMulticlassClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
 
             _pipeline = CreateMulticlassClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
+
+            // set monitor
+            TrialResultMonitor<MulticlassClassificationMetrics> monitor = null;
             _experiment.SetMonitor((provider) =>
             {
                 var channel = provider.GetService<IChannel>();
@@ -422,7 +428,7 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
-            throw new ArgumentException("IMetricManager must be MultiMetricManager and IDatasetManager must be either TrainTestSplitDatasetManager or CrossValidationDatasetManager");
+            throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainTestDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
         }
     }
 }

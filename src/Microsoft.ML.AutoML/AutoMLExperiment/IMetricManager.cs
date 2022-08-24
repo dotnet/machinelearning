@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML
 
     internal class BinaryMetricManager : IEvaluateMetricManager
     {
-        public BinaryMetricManager(BinaryClassificationMetric metric, string predictedColumn, string labelColumn)
+        public BinaryMetricManager(BinaryClassificationMetric metric, string labelColumn, string predictedColumn)
         {
             Metric = metric;
             PredictedColumn = predictedColumn;

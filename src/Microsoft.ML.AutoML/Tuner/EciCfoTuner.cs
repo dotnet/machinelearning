@@ -10,7 +10,7 @@ using Microsoft.ML.SearchSpace;
 namespace Microsoft.ML.AutoML
 {
     /// <summary>
-    /// propose hyper parameter using ECI index.
+    /// propose hyper parameter using ECI index and <see cref="CostFrugalTuner"/>.
     /// ECI index is a way to measure the importance of a trainer. A higher ECI means a trainer
     /// is more likely to be picked.
     /// </summary>

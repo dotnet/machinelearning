@@ -150,7 +150,6 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
 
@@ -173,6 +172,9 @@ namespace Microsoft.ML.AutoML
             }
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
+
+            // set monitor
+            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetMonitor((provider) =>
             {
                 var channel = provider.GetService<IChannel>();
@@ -199,12 +201,14 @@ namespace Microsoft.ML.AutoML
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
+
+            // set monitor
+            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetMonitor((provider) =>
             {
                 var channel = provider.GetService<IChannel>();
@@ -252,12 +256,14 @@ namespace Microsoft.ML.AutoML
         public override CrossValidationExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
-            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
+
+            // set monitor
+            TrialResultMonitor<BinaryClassificationMetrics> monitor = null;
             _experiment.SetMonitor((provider) =>
             {
                 var channel = provider.GetService<IChannel>();
@@ -414,7 +420,7 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
-            throw new ArgumentException("IMetricManager must be BinaryMetricManager and IDatasetManager must be either TrainTestSplitDatasetManager or CrossValidationDatasetManager");
+            throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainTestDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
         }
     }
 }
