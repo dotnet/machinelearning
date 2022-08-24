@@ -242,10 +242,6 @@ namespace Microsoft.ML.AutoML
                         // when error is fatal (like schema mismatch).
                         throw;
                     }
-                    else
-                    {
-                        break;
-                    }
                 }
             }
 

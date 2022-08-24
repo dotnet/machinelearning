@@ -14,7 +14,7 @@ namespace Microsoft.ML.AutoML
     /// ECI index is a way to measure the importance of a trainer. A higher ECI means a trainer
     /// is more likely to be picked.
     /// </summary>
-    public class EciCfoTuner : ITuner
+    public class EciCostFrugalTuner : ITuner
     {
         private readonly Dictionary<string, ITuner> _tuners;
         private readonly PipelineProposer _pipelineProposer;
@@ -22,7 +22,7 @@ namespace Microsoft.ML.AutoML
         // the key is trial id, and value is the schema for that trial.
         private readonly IMetricManager _metricManager;
 
-        public EciCfoTuner(SweepablePipeline sweepablePipeline, IMetricManager metricManager, AutoMLExperiment.AutoMLExperimentSettings settings)
+        public EciCostFrugalTuner(SweepablePipeline sweepablePipeline, IMetricManager metricManager, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
             _tuners = new Dictionary<string, ITuner>();
             _pipelineProposer = new PipelineProposer(sweepablePipeline, settings, metricManager);

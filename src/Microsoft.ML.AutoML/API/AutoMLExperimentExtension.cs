@@ -127,7 +127,7 @@ namespace Microsoft.ML.AutoML
 
         /// <summary>
         /// Set <paramref name="pipeline"/> for training. This also make <see cref="AutoMLExperiment"/> uses <see cref="SweepablePipelineRunner"/>
-        /// , <see cref="MLContextMonitor"/> and <see cref="EciCfoTuner"/> for automl traininng as well.
+        /// , <see cref="MLContextMonitor"/> and <see cref="EciCostFrugalTuner"/> for automl traininng as well.
         /// </summary>
         /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
         /// <param name="pipeline"><see cref="SweepablePipeline"/></param>
@@ -139,7 +139,7 @@ namespace Microsoft.ML.AutoML
 
             experiment.SetTrialRunner<SweepablePipelineRunner>();
             experiment.SetMonitor<MLContextMonitor>();
-            experiment.SetTuner<EciCfoTuner>();
+            experiment.SetTuner<EciCostFrugalTuner>();
 
             return experiment;
         }
