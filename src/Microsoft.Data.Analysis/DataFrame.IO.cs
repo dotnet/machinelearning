@@ -454,7 +454,30 @@ namespace Microsoft.Data.Analysis
 
                     if (header)
                     {
-                        var headerColumns = string.Join(separator.ToString(), columnNames);
+                        bool firstColumn = true;
+                        var headerColumns = new StringBuilder();
+                        foreach (string name in columnNames)
+                        {
+                            if (!firstColumn)
+                            {
+                                headerColumns.Append(separator);
+                            }
+                            else
+                            {
+                                firstColumn = false;
+                            }
+
+                            if (name.Contains(separator.ToString())) // TODO why doesn't Contains(char) work?
+                            {
+                                headerColumns.Append("\"");
+                                headerColumns.Append(name);
+                                headerColumns.Append("\"");
+                            }
+                            else
+                            {
+                                headerColumns.Append(name);
+                            }
+                        }
                         csvFile.WriteLine(headerColumns);
                     }
 
