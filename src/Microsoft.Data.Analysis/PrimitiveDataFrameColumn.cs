@@ -690,7 +690,7 @@ namespace Microsoft.Data.Analysis
             builder.AddColumn(Name, GetDataViewType());
         }
 
-        public static DataViewType GetDataViewType()
+        private static DataViewType GetDataViewType()
         {
             if (typeof(T) == typeof(bool))
             {
