@@ -28,7 +28,7 @@ public class Hello
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [Prior](xref:Microsoft.ML.StandardTrainersCatalog.Prior(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String))
+    /// To create this trainer, use [XGBoost](xref:Microsoft.ML.StandardTrainersCatalog.Prior(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String))
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
@@ -36,19 +36,15 @@ public class Hello
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Binary classification |
-    /// | Is normalization required? | No |
+    /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
     /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// Learns the prior distribution for 0/1 class labels and outputs that.
-    ///
-    /// Check the See Also section for links to usage examples.
-    /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.Prior(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String)"/>
     public sealed class XGBoostTrainer : ITrainer<XGBoostModelParameters>,
         ITrainerEstimator<BinaryPredictionTransformer<XGBoostModelParameters>, XGBoostModelParameters>
     {
@@ -56,8 +52,83 @@ public class Hello
         internal const string UserNameValue = "XGBoost Predictor";
         internal const string Summary = "A trivial model for producing the prior based on the number of positive and negative examples.";
 
-        internal sealed class Options
+        /// <summary>
+        /// The shrinkage rate for trees, used to prevent over-fitting.
+	/// Also aliased to "eta"
+        /// </summary>
+        /// <value>
+        /// Valid range is (0,1].
+        /// </value>
+        [Argument(ArgumentType.AtMostOnce,
+            HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
+            SortOrder = 2, ShortName = "lr", NullName = "<Auto>")]
+        public double? LearningRate;
+
+        /// <summary>
+        /// The maximum number of leaves in one tree.
+        /// </summary>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum leaves for trees.",
+            SortOrder = 2, ShortName = "nl", NullName = "<Auto>")]
+        public int? NumberOfLeaves;
+
+        /// <summary>
+        /// Minimum loss reduction required to make a further partition on a leaf node of
+	/// the tree. The larger gamma is, the more conservative the algorithm will be.
+	/// aka: gamma
+	/// range: [0,\infnty]
+        /// </summary>
+	public int? MinSplitLoss;
+
+	/// <summary>
+	/// Maximum depth of a tree. Increasing this value will make the model more complex and
+	/// more likely to overfit. 0 indicates no limit on depth. Beware that XGBoost aggressively
+	/// consumes memory when training a deep tree. exact tree method requires non-zero value.
+ 	/// range: [0,\infnty], default=6
+	/// </summary>
+	public int? MaxDepth;
+
+	/// <summary>
+	/// Minimum sum of instance weight (hessian) needed in a child. If the tree partition step
+	/// results in a leaf node with the sum of instance weight less than min_child_weight, then
+	/// the building process will give up further partitioning. In linear regression task, this
+	/// simply corresponds to minimum number of instances needed to be in each node. The larger
+	/// <cref>MinChildWeight</cref> is, the more conservative the algorithm will be.
+	/// range: [0,\infnty]
+	public float? MinChildWeight;
+
+        /// <summary>
+        /// L2 regularization term on weights. Increasing this value will make model more conservative
+        /// </summary>
+        public float? L2Regularization;
+
+        /// <summary>
+	/// L1 regularization term on weights. Increasing this value will make model more conservative.
+	/// </summary>
+        public float? L1Regularization;
+
+	internal sealed class Options
         {
+            // Static override name map that maps friendly names to XGBMArguments arguments.
+            // If an argument is not here, then its name is identical to a lightGBM argument
+            // and does not require a mapping, for example, Subsample.
+	    // For a complete list, see https://xgboost.readthedocs.io/en/latest/parameter.html
+            private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
+            {
+               {nameof(MinSplitLoss),                         "min_split_loss"},
+               {nameof(NumberOfLeaves),                       "num_leaves"},
+	       {nameof(MaxDepth),                             "max_depth" },
+               {nameof(MinChildWeight),          	      "min_child_weight" },
+	       {nameof(L2Regularization),          	      "lambda" },
+       	       {nameof(L1Regularization),          	      "alpha" }
+            };
+
+            private protected string GetOptionName(string name)
+            {
+                if (NameMapping.ContainsKey(name))
+                    return NameMapping[name];
+                //return XGBoostInterfaceUtils.GetOptionName(name);
+		return "";
+            }
         }
 
         private readonly string _labelColumnName;
