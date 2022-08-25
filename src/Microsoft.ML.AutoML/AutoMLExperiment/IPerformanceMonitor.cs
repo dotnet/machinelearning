@@ -4,7 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+using System.Threading.Tasks;
+using System.Timers;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
@@ -14,43 +18,96 @@ namespace Microsoft.ML.AutoML
 
         void Stop();
 
-        float GetPeakMemoryUsageInMegaByte();
+        double? GetPeakMemoryUsageInMegaByte();
 
-        float GetPeakCpuUsage();
+        double? GetPeakCpuUsage();
 
-        //event EventHandler<float> CpuUsage;
+        public event EventHandler<double> CpuUsage;
 
-        //event EventHandler<float> MemoryUsageInMegaByte;
+        public event EventHandler<double> MemoryUsageInMegaByte;
     }
 
     internal class DefaultPerformanceMonitor : IPerformanceMonitor
     {
-        //public event EventHandler<float> CpuUsage;
+        private readonly IChannel _logger;
+        private Timer _timer;
+        private double? _peakCpuUsage;
+        private double? _peakMemoryUsage;
+        private readonly int _checkIntervalInMilliseconds;
+        private TimeSpan _totalCpuProcessorTime;
 
-        //public event EventHandler<float> MemoryUsageInMegaByte;
+        public DefaultPerformanceMonitor(IChannel logger, int checkIntervalInMilliseconds)
+        {
+            _logger = logger;
+            _checkIntervalInMilliseconds = checkIntervalInMilliseconds;
+        }
+
+
+        public event EventHandler<double> CpuUsage;
+
+        public event EventHandler<double> MemoryUsageInMegaByte;
+
+
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Stop();
         }
 
-        public float GetPeakCpuUsage()
+        public double? GetPeakCpuUsage()
         {
-            throw new NotImplementedException();
+            return _peakCpuUsage;
         }
 
-        public float GetPeakMemoryUsageInMegaByte()
+        public double? GetPeakMemoryUsageInMegaByte()
         {
-            throw new NotImplementedException();
+            return _peakMemoryUsage;
         }
 
         public void Start()
         {
-            throw new NotImplementedException();
+            if (_timer == null)
+            {
+                _timer = new Timer(_checkIntervalInMilliseconds);
+                _totalCpuProcessorTime = Process.GetCurrentProcess().TotalProcessorTime;
+                _timer.Elapsed += OnCheckCpuAndMemoryUsage;
+                _timer.AutoReset = true;
+                _timer.Enabled = true;
+                _logger?.Info($"{typeof(DefaultPerformanceMonitor)} has been started");
+            }
         }
 
         public void Stop()
         {
-            throw new NotImplementedException();
+            _timer?.Stop();
+            _timer?.Dispose();
+            _timer = null;
+            _peakCpuUsage = null;
+            _peakMemoryUsage = null;
+        }
+
+        private void OnCheckCpuAndMemoryUsage(object source, ElapsedEventArgs e)
+        {
+            SampleCpuAndMemoryUsage();
+        }
+
+        private void SampleCpuAndMemoryUsage()
+        {
+            // calculate CPU usage in %
+            using (var process = Process.GetCurrentProcess())
+            {
+                var currentCpuProcessorTime = Process.GetCurrentProcess().TotalProcessorTime;
+                var elapseCpuProcessorTime = currentCpuProcessorTime - _totalCpuProcessorTime;
+                var cpuUsedMs = elapseCpuProcessorTime.TotalMilliseconds;
+                var cpuUsageInTotal = cpuUsedMs / (Environment.ProcessorCount * _checkIntervalInMilliseconds);
+                _totalCpuProcessorTime = currentCpuProcessorTime;
+                CpuUsage?.Invoke(this, cpuUsageInTotal);
+                _peakCpuUsage = Math.Max(cpuUsageInTotal, _peakCpuUsage ?? 0);
+
+                // calculate Memory Usage in MB
+                var memoryUsage = process.PrivateMemorySize64 * 1.0 / (1024 * 1024);
+                MemoryUsageInMegaByte?.Invoke(this, memoryUsage);
+                _peakMemoryUsage = Math.Max(memoryUsage, _peakMemoryUsage ?? 0);
+            }
         }
     }
 }

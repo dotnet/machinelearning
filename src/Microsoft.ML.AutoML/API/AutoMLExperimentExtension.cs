@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ML.Runtime;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
@@ -140,6 +141,18 @@ namespace Microsoft.ML.AutoML
             experiment.SetTrialRunner<SweepablePipelineRunner>();
             experiment.SetMonitor<MLContextMonitor>();
             experiment.SetTuner<EciCostFrugalTuner>();
+
+            return experiment;
+        }
+
+        public static AutoMLExperiment SetPerformanceMonitor(this AutoMLExperiment experiment, int checkIntervalInMilliseconds = 1000)
+        {
+            experiment.SetPerformanceMonitor((service) =>
+            {
+                var channel = service.GetService<IChannel>();
+
+                return new DefaultPerformanceMonitor(channel, checkIntervalInMilliseconds);
+            });
 
             return experiment;
         }

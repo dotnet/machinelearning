@@ -175,6 +175,14 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
+        internal AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(Func<IServiceProvider, TPerformanceMonitor> factory)
+            where TPerformanceMonitor : class, IPerformanceMonitor
+        {
+            _serviceCollection.AddTransient<IPerformanceMonitor>(factory);
+
+            return this;
+        }
+
         /// <summary>
         /// Run experiment and return the best trial result synchronizely.
         /// </summary>
