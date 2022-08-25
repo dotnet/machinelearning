@@ -12,6 +12,11 @@ namespace Microsoft.ML.AutoML
         private readonly RandomTuner _tuner;
         private readonly SearchSpace.SearchSpace _searchSpace;
 
+        public RandomSearchTuner(AutoMLExperiment.AutoMLExperimentSettings settings)
+            : this(settings.SearchSpace)
+        {
+        }
+
         public RandomSearchTuner(SearchSpace.SearchSpace searchSpace)
         {
             _tuner = new RandomTuner();

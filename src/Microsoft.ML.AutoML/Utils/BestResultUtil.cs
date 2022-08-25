@@ -96,26 +96,28 @@ namespace Microsoft.ML.AutoML
             return isMetricMaximizing ? GetIndexOfMaxScore(scores) : GetIndexOfMinScore(scores);
         }
 
-        public static RunDetail<TMetrics> ToRunDetail<TMetrics>(MLContext context, TrialResult<TMetrics> result)
+        public static RunDetail<TMetrics> ToRunDetail<TMetrics>(MLContext context, TrialResult<TMetrics> result, SweepablePipeline pipeline)
             where TMetrics : class
         {
-            var pipeline = result.TrialSettings.Pipeline;
-            var trainerName = pipeline.ToString();
             var parameter = result.TrialSettings.Parameter;
-            var estimator = pipeline.BuildTrainingPipeline(context, parameter);
+            var trainerName = pipeline.ToString(parameter);
             var modelContainer = new ModelContainer(context, result.Model);
-            return new RunDetail<TMetrics>(trainerName, estimator, null, modelContainer, result.Metrics, result.Exception);
+            var detail = new RunDetail<TMetrics>(trainerName, result.Pipeline, null, modelContainer, result.Metrics, result.Exception);
+            detail.RuntimeInSeconds = result.DurationInMilliseconds / 1000;
+
+            return detail;
         }
 
-        public static CrossValidationRunDetail<TMetrics> ToCrossValidationRunDetail<TMetrics>(MLContext context, TrialResult<TMetrics> result)
+        public static CrossValidationRunDetail<TMetrics> ToCrossValidationRunDetail<TMetrics>(MLContext context, TrialResult<TMetrics> result, SweepablePipeline pipeline)
             where TMetrics : class
         {
-            var pipeline = result.TrialSettings.Pipeline;
-            var trainerName = pipeline.ToString();
             var parameter = result.TrialSettings.Parameter;
-            var estimator = pipeline.BuildTrainingPipeline(context, parameter);
+            var trainerName = pipeline.ToString(parameter);
             var crossValidationResult = result.CrossValidationMetrics.Select(m => new TrainResult<TMetrics>(new ModelContainer(context, m.Model), m.Metrics, result.Exception));
-            return new CrossValidationRunDetail<TMetrics>(trainerName, estimator, null, crossValidationResult);
+            var detail = new CrossValidationRunDetail<TMetrics>(trainerName, result.Pipeline, null, crossValidationResult);
+            detail.RuntimeInSeconds = result.DurationInMilliseconds / 1000;
+
+            return detail;
         }
 
         private static int GetIndexOfMinScore(IEnumerable<double> scores)

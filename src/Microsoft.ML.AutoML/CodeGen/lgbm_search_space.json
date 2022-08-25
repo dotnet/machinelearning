@@ -7,7 +7,7 @@
       "type": "integer",
       "default": 4,
       "search_space": {
-        "log_base": true,
+        "log_base": false,
         "max": 32768,
         "min": 4
       }
@@ -39,7 +39,7 @@
       "search_space": {
         "min": 4,
         "max": 32768,
-        "log_base": true
+        "log_base": false
       }
     },
     {

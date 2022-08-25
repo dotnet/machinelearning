@@ -22,49 +22,48 @@ namespace Microsoft.ML.AutoML
         void ReportRunningTrial(TrialSettings setting);
     }
 
-    // this monitor redirects output result to context.log
+    /// <summary>
+    /// monitor that redirect output results to context.Log channel.
+    /// </summary>
     internal class MLContextMonitor : IMonitor
     {
-        private readonly MLContext _context;
-        private readonly IServiceProvider _serviceProvider;
         private readonly IChannel _logger;
         private readonly List<TrialResult> _completedTrials;
-
-        public MLContextMonitor(MLContext context, IServiceProvider provider = null)
+        private readonly SweepablePipeline _pipeline;
+        public MLContextMonitor(IChannel logger, SweepablePipeline pipeline)
         {
-            _context = context;
-            _serviceProvider = provider;
-            _logger = ((IChannelProvider)context).Start(nameof(AutoMLExperiment));
+            _logger = logger;
             _completedTrials = new List<TrialResult>();
+            _pipeline = pipeline;
         }
 
         public virtual void ReportBestTrial(TrialResult result)
         {
-            _logger.Info($"Update Best Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline}");
+            _logger.Info($"Update Best Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)}");
         }
 
         public virtual void ReportCompletedTrial(TrialResult result)
         {
-            _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {result.TrialSettings.Pipeline} - Duration: {result.DurationInMilliseconds}");
+            _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)} - Duration: {result.DurationInMilliseconds}");
             _completedTrials.Add(result);
         }
 
         public virtual void ReportFailTrial(TrialSettings settings, Exception exception = null)
         {
-            _logger.Info($"Update Failed Trial - Id: {settings.TrialId} - Pipeline: {settings.Pipeline}");
+            _logger.Info($"Update Failed Trial - Id: {settings.TrialId} - Pipeline: {_pipeline.ToString(settings.Parameter)}");
         }
 
         public virtual void ReportRunningTrial(TrialSettings setting)
         {
-            _logger.Info($"Update Running Trial - Id: {setting.TrialId} - Pipeline: {setting.Pipeline}");
+            _logger.Info($"Update Running Trial - Id: {setting.TrialId} - Pipeline: {_pipeline.ToString(setting.Parameter)}");
         }
     }
 
     internal class TrialResultMonitor<TMetrics> : MLContextMonitor
         where TMetrics : class
     {
-        public TrialResultMonitor(MLContext context)
-            : base(context, null)
+        public TrialResultMonitor(IChannel channel, SweepablePipeline pipeline)
+            : base(channel, pipeline)
         {
             this.RunDetails = new List<TrialResult<TMetrics>>();
         }
@@ -91,10 +90,10 @@ namespace Microsoft.ML.AutoML
         public override void ReportCompletedTrial(TrialResult result)
         {
             base.ReportCompletedTrial(result);
-            if (result is TrialResult<TMetrics> binaryClassificationResult)
+            if (result is TrialResult<TMetrics> metricResult)
             {
-                RunDetails.Add(binaryClassificationResult);
-                OnTrialCompleted?.Invoke(this, binaryClassificationResult);
+                RunDetails.Add(metricResult);
+                OnTrialCompleted?.Invoke(this, metricResult);
             }
             else
             {

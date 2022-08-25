@@ -36,5 +36,7 @@ namespace Microsoft.ML.AutoML
         public bool IsSucceed { get => Exception == null; }
 
         public bool IsCrossValidation { get => CrossValidationMetrics == null; }
+
+        public EstimatorChain<ITransformer> Pipeline { get; set; }
     }
 }

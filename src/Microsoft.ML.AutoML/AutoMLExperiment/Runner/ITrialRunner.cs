@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.SearchSpace;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
 {
-    public class TrialSettings
+    /// <summary>
+    /// interface for all trial runners.
+    /// </summary>
+    public interface ITrialRunner
     {
-        public int TrialId { get; set; }
-
-        public Parameter Parameter { get; set; }
+        TrialResult Run(TrialSettings settings);
     }
 }
