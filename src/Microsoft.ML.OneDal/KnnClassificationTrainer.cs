@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,17 +14,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.OneDal;
 
-#if false
-using System;
-using System.Collections.Generic;
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Runtime;
-#endif
-
 [assembly: LoadableClass(typeof(KnnClassificationTransformer), null, typeof(SignatureLoadModel),
     KnnClassificationTransformer.UserName, KnnClassificationTransformer.LoaderSignature)]
 
@@ -35,10 +24,10 @@ namespace Microsoft.ML.OneDal
 {
     public class KnnClassificationTrainer : IEstimator<KnnClassificationTransformer>
     {
-	private readonly IHost _host;
+        private readonly IHost _host;
         private KnnAlgorithm _knnAlgorithm;
 
-	internal class KnnClassificationOptions
+        internal class KnnClassificationOptions
         {
             private readonly int _numNeighbors = default(int);
             public int NumNeighbors { get;  }
@@ -48,7 +37,7 @@ namespace Microsoft.ML.OneDal
             }
         }
 
-        KnnClassificationTrainer(IHostEnvironment env, int numClasses) // FIXME -- pass an Options instance rather than naked numClasses
+        public KnnClassificationTrainer(IHostEnvironment env, int numClasses) // FIXME -- pass an Options instance rather than naked numClasses
         {
             Contracts.CheckValue(env, nameof(env));
             _host = Contracts.CheckRef(env, nameof(env)).Register("KnnClassificationTrainer");
@@ -59,9 +48,14 @@ namespace Microsoft.ML.OneDal
         public KnnClassificationTransformer Fit(IDataView input)
         {
             int featureDimensionality = default(int);
-            if (featuresColumn.Type is VectorDataViewType vt) {
+            var featuresColumn = input.Schema["Features"];
+            var labelColumn = input.Schema["Label"];
+            if (featuresColumn.Type is VectorDataViewType vt)
+            {
                 featureDimensionality = vt.Size;
-            } else {
+            }
+            else
+            {
                 return null;
             }
 
@@ -75,43 +69,52 @@ namespace Microsoft.ML.OneDal
                 var featureGetter = cursor.GetGetter<VBuffer<float>>(featuresColumn);
                 var labelGetter = cursor.GetGetter<float>(labelColumn);
 
-		List< VBuffer<float> > tempFeatures = new List <VBuffer<float>>();
-		List< float > tempLabels = new List<float>();
+                List<VBuffer<float>> tempFeatures = new List<VBuffer<float>>();
+                List<float> tempLabels = new List<float>();
                 while (cursor.MoveNext())
                 {
                     featureGetter(ref featureValues);
                     labelGetter(ref labelValue);
-    		    tempFeatures.Add(featureValues);
-       		    tempLabels.Add(labelValue);
+                    tempFeatures.Add(featureValues);
+                    tempLabels.Add(labelValue);
 
                     samples++;
                 }
 
-		float[] data = new float[samples * featureDimensionality];
-		float[] dataLabels = new float[samples];
+                float[] data = new float[samples * featureDimensionality];
+                float[] dataLabels = new float[samples];
                 Span<float> dataSpan = new Span<float>(data);
+                //VBuffer<float> tempFeaturesValues = default(VBuffer<float>);
 
-		for( int i = 0; i < tempFeatures.Count(); i++) {
-	    
+                for (int i = 0; i < tempFeatures.Count(); i++)
+                {
                     int offset = i * featureDimensionality;
                     Span<float> target = dataSpan.Slice(offset, featureDimensionality);
-                    tempFeatures.GetValues().CopyTo(target);
+                    //tempFeatures.GetValues().CopyTo(target);
                     dataLabels[i] = tempLabels[i];
-		 }
-		 _knnAlgorithm.Train(data, dataLabels);
+                }
+#if false
+                _knnAlgorithm.Train(data, dataLabels);
+#endif
 
             }
 
+#if false
             return new KnnClassificationTransformer(_host, _knnAlgorithm);
+#else
+            return null;
+#endif
+
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
+#if false
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.ToDictionary(x => x.Name);
             var resultDic = inputSchema.ToDictionary(x => x.Name);
 
-// FIXME
+            // FIXME
             // This loop checks if all input columns needed in the underlying transformer can be found
             // in inputSchema.
             for (var i = 0; i < Transformer.Inputs.Length; i++)
@@ -146,6 +149,9 @@ namespace Microsoft.ML.OneDal
             }
 
             return new SchemaShape(resultDic.Values);
+#else
+            return null;
+#endif
         }
     }
 
@@ -158,27 +164,58 @@ namespace Microsoft.ML.OneDal
 
         internal const string LoaderSignature = "KNNCLASS";
 
-	private KnnAlgorithm _knn; // Assumes the model is trained
+#if false
+        private KnnAlgorithm _knn; // Assumes the model is trained
+#endif
 
+        public bool IsRowToRowMapper => throw new NotImplementedException();
+
+#if false
         public KnnClassificationTransformer(IHost host, KnnAlgorithm knn)
 	  : base(host)
         {
+            _knn = knn;
         }
+#endif
 
         public IDataView Transform(IDataView input)
-	{
-	   _host.CheckValue(input, nameof(input));
-	   return new KnnDataView(input, _knn);
-	}
+	    {
+#if false
+    	   _host.CheckValue(input, nameof(input));
+            return new KnnDataView(input, _knn);
+#else
+            return null;
+#endif
+        }
 
         public void Dispose()
         {
+#if false
             _knn.Dispose();
+#endif
         }
 
+#if false
         private protected override void SaveModel(ModelSaveContext ctx)
+        {
+            throw new NotImplementedException();
+        }
+#endif
+
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Save(ModelSaveContext ctx)
         {
             throw new NotImplementedException();
         }
     }
  }
+

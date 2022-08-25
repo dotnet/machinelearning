@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -36,7 +36,7 @@ namespace Microsoft.ML.OneDal
             }
         }
 
-	const string LibPath = "OneDALNative";
+        const string LibPath = "OneDALNative";
 
         [DllImport(LibPath)]
         public static extern unsafe SafeKnnAlgorithmHandle CreateEngine(int numClasses);
