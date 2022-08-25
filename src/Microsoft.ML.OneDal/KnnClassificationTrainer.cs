@@ -8,12 +8,22 @@ using System.Text;
 
 using System.Linq;
 
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-
-using Microsoft.ML;
 using Microsoft.ML.OneDal;
+
+#if false
+using System;
+using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Runtime;
+#endif
 
 [assembly: LoadableClass(typeof(KnnClassificationTransformer), null, typeof(SignatureLoadModel),
     KnnClassificationTransformer.UserName, KnnClassificationTransformer.LoaderSignature)]
@@ -28,7 +38,7 @@ namespace Microsoft.ML.OneDal
 	private readonly IHost _host;
         private KnnAlgorithm _knnAlgorithm;
 
-	public internal class KnnClassificationOptions
+	internal class KnnClassificationOptions
         {
             private readonly int _numNeighbors = default(int);
             public int NumNeighbors { get;  }
@@ -81,7 +91,7 @@ namespace Microsoft.ML.OneDal
 		float[] dataLabels = new float[samples];
                 Span<float> dataSpan = new Span<float>(data);
 
-		for( int = 0; i < tempFeatures.Count(); i++) {
+		for( int i = 0; i < tempFeatures.Count(); i++) {
 	    
                     int offset = i * featureDimensionality;
                     Span<float> target = dataSpan.Slice(offset, featureDimensionality);
@@ -157,7 +167,7 @@ namespace Microsoft.ML.OneDal
 
         public IDataView Transform(IDataView input)
 	{
-	   _host.CheckValue(input, nameof(input))
+	   _host.CheckValue(input, nameof(input));
 	   return new KnnDataView(input, _knn);
 	}
 

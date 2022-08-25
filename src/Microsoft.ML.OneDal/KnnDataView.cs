@@ -12,6 +12,10 @@ using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
+namespace Microsoft.ML.OneDal
+{
+
+
 internal sealed class KnnDataView : IDataTransform
 {
    
@@ -42,7 +46,7 @@ internal sealed class KnnDataView : IDataTransform
 
      private sealed class Cursor : DataViewRowCursor
      {
-         private KnnDataView _parent =parent, bool wantsFeatures, bool wantsLabels)
+         private KnnDataView _parent = Source;
          private bool _disposed;
          private long _position;
          private readonly Delegate[] _getters;
@@ -165,4 +169,5 @@ internal sealed class KnnDataView : IDataTransform
 	   return itemsInCache;
 	 }
     }
+}
 }
