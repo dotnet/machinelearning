@@ -1,8 +1,9 @@
 {
   "schema": "e0 * (e1 + e2 + e3 + e4 + e5 + e6 + e7)",
+  "currentSchema": "e0 * e1",
   "estimators": {
     "e0": {
-      "estimatorType": "Unknown",
+      "estimatorType": "FeaturizeText",
       "parameter": {}
     },
     "e1": {

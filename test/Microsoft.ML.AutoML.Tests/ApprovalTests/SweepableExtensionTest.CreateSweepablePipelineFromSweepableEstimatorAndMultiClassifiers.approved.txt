@@ -1,15 +1,18 @@
 {
-  "schema": "e0 * e1 * (e2 + e3 + e4 + e5 + e6 + e7 + e8)",
+  "schema": "e0 * (e1 + e2 + e3 + e4 + e5 + e6 + e7)",
+  "currentSchema": "e0 * e1",
   "estimators": {
     "e0": {
-      "estimatorType": "Unknown",
-      "parameter": {}
+      "estimatorType": "FastForestBinary",
+      "parameter": {
+        "NumberOfTrees": 4,
+        "NumberOfLeaves": 4,
+        "FeatureFraction": 1,
+        "LabelColumnName": "Label",
+        "FeatureColumnName": "Feature"
+      }
     },
     "e1": {
-      "estimatorType": "FeaturizeText",
-      "parameter": {}
-    },
-    "e2": {
       "estimatorType": "FastTreeOva",
       "parameter": {
         "NumberOfLeaves": 4,
@@ -22,7 +25,7 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e3": {
+    "e2": {
       "estimatorType": "FastForestOva",
       "parameter": {
         "NumberOfTrees": 4,
@@ -32,7 +35,7 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e4": {
+    "e3": {
       "estimatorType": "LightGbmMulti",
       "parameter": {
         "NumberOfLeaves": 4,
@@ -48,7 +51,7 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e5": {
+    "e4": {
       "estimatorType": "LbfgsLogisticRegressionOva",
       "parameter": {
         "L1Regularization": 1,
@@ -57,7 +60,7 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e6": {
+    "e5": {
       "estimatorType": "LbfgsMaximumEntropyMulti",
       "parameter": {
         "L1Regularization": 1,
@@ -66,7 +69,7 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e7": {
+    "e6": {
       "estimatorType": "SdcaMaximumEntropyMulti",
       "parameter": {
         "L1Regularization": 1,
@@ -75,7 +78,7 @@
         "FeatureColumnName": "Features"
       }
     },
-    "e8": {
+    "e7": {
       "estimatorType": "SdcaLogisticRegressionOva",
       "parameter": {
         "L1Regularization": 1,

@@ -17,17 +17,19 @@ namespace Microsoft.ML.AutoML
         private readonly ActionThrottler _updateThrottler;
         private DisplayedValue _valueToUpdate;
 
+        public SweepablePipeline SweepablePipeline { get; private set; }
         public TrialResult BestTrial { get; set; }
         public TrialResult MostRecentTrial { get; set; }
         public TrialSettings ActiveTrial { get; set; }
         public List<TrialResult> CompletedTrials { get; set; }
         public DataFrame TrialData { get; set; }
 
-        public NotebookMonitor()
+        public NotebookMonitor(SweepablePipeline pipeline)
         {
             CompletedTrials = new List<TrialResult>();
             TrialData = new DataFrame(new PrimitiveDataFrameColumn<int>("Trial"), new PrimitiveDataFrameColumn<float>("Metric"), new StringDataFrameColumn("Trainer"), new StringDataFrameColumn("Parameters"));
             _updateThrottler = new ActionThrottler(Update, TimeSpan.FromSeconds(5));
+            SweepablePipeline = pipeline;
         }
 
         public void ReportBestTrial(TrialResult result)
@@ -48,7 +50,7 @@ namespace Microsoft.ML.AutoML
             {
                 new KeyValuePair<string, object>("Trial",result.TrialSettings.TrialId),
                 new KeyValuePair<string, object>("Metric", result.Metric),
-                new KeyValuePair<string, object>("Trainer",result.TrialSettings.Pipeline.ToString().Replace("Unknown=>","")),
+                new KeyValuePair<string, object>("Trainer",SweepablePipeline.ToString(result.TrialSettings.Parameter).Replace("Unknown=>","")),
                 new KeyValuePair<string, object>("Parameters",activeRunParam),
             }, true);
 

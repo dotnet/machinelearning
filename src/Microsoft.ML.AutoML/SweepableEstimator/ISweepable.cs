@@ -9,12 +9,12 @@ using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface ISweepable
+    public interface ISweepable
     {
         public SearchSpace.SearchSpace SearchSpace { get; }
     }
 
-    internal interface ISweepable<out T> : ISweepable
+    public interface ISweepable<out T> : ISweepable
         where T : IEstimator<ITransformer>
     {
         public T BuildFromOption(MLContext context, Parameter parameter);

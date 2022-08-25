@@ -16,23 +16,23 @@ namespace Microsoft.ML.AutoML.Test
     internal static class DatasetUtil
     {
         public const string UciAdultLabel = DefaultColumnNames.Label;
+        public const string TaxiFareLabel = "fare_amount";
         public const string TrivialMulticlassDatasetLabel = "Target";
         public const string MlNetGeneratedRegressionLabel = "target";
         public const string NewspaperChurnLabel = "Subscriber";
-        public const string TaxiFareLabel = "fare_amount";
         public const int IrisDatasetLabelColIndex = 0;
 
         public static string TrivialMulticlassDatasetPath = Path.Combine("TestData", "TrivialMulticlassDataset.txt");
 
         private static IDataView _uciAdultDataView;
 
-        private static IDataView _irisDataView;
-
-        private static IDataView _newspaperChurnDataView;
-
         private static IDataView _taxiFareTrainDataView;
 
         private static IDataView _taxiFareTestDataView;
+
+        private static IDataView _irisDataView;
+
+        private static IDataView _newspaperChurnDataView;
 
         public static string GetUciAdultDataset() => GetDataPath("adult.tiny.with-schema.txt");
 
@@ -98,6 +98,15 @@ namespace Microsoft.ML.AutoML.Test
             }
 
             return _newspaperChurnDataView;
+        }
+
+        public static IDataView GetCreditApprovalDataView()
+        {
+            var context = new MLContext(1);
+            var file = GetDataPath(@"creditapproval_train.csv");
+            var columnInferenceResult = context.Auto().InferColumns(file, "A16");
+            var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderOptions);
+            return textLoader.Load(file);
         }
 
         public static IDataView GetTaxiFareTestDataView()
