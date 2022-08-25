@@ -19,6 +19,10 @@ namespace Microsoft.ML.AutoML
         public double Metric { get; set; }
 
         public double DurationInMilliseconds { get; set; }
+
+        public float? PeakCpu { get; set; }
+
+        public float? PeakMemoryInMegaByte { get; set; }
     }
 
     /// <summary>

@@ -167,6 +167,14 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
+        internal AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>()
+            where TPerformanceMonitor : class, IPerformanceMonitor
+        {
+            _serviceCollection.AddTransient<IPerformanceMonitor, TPerformanceMonitor>();
+
+            return this;
+        }
+
         /// <summary>
         /// Run experiment and return the best trial result synchronizely.
         /// </summary>
@@ -191,66 +199,83 @@ namespace Microsoft.ML.AutoML
             _settings.CancellationToken.Register(() => _cts.Cancel());
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
+
             var trialNum = 0;
             var tuner = serviceProvider.GetService<ITuner>();
             Contracts.Assert(tuner != null, "tuner can't be null");
-            while (true)
+
+            using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
             {
-                if (_cts.Token.IsCancellationRequested)
+                while (true)
                 {
-                    break;
-                }
-                var setting = new TrialSettings()
-                {
-                    TrialId = trialNum++,
-                    Parameter = Parameter.CreateNestedParameter(),
-                };
-
-                var parameter = tuner.Propose(setting);
-                setting.Parameter = parameter;
-                monitor?.ReportRunningTrial(setting);
-                var runner = serviceProvider.GetRequiredService<ITrialRunner>();
-
-                try
-                {
-                    var trialResult = runner.Run(setting);
-                    monitor?.ReportCompletedTrial(trialResult);
-                    tuner.Update(trialResult);
-
-                    var error = _settings.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
-                    if (error < _bestError)
+                    if (_cts.Token.IsCancellationRequested)
                     {
-                        _bestTrialResult = trialResult;
-                        _bestError = error;
-                        monitor?.ReportBestTrial(trialResult);
+                        break;
+                    }
+                    var setting = new TrialSettings()
+                    {
+                        TrialId = trialNum++,
+                        Parameter = Parameter.CreateNestedParameter(),
+                    };
+
+                    var parameter = tuner.Propose(setting);
+                    setting.Parameter = parameter;
+                    monitor?.ReportRunningTrial(setting);
+                    var runner = serviceProvider.GetRequiredService<ITrialRunner>();
+
+                    try
+                    {
+                        performanceMonitor?.Start();
+
+                        var trialResult = runner.Run(setting);
+
+                        var peakCpu = performanceMonitor?.GetPeakCpuUsage();
+                        var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
+                        trialResult.PeakCpu = peakCpu;
+                        trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
+
+                        monitor?.ReportCompletedTrial(trialResult);
+                        tuner.Update(trialResult);
+
+                        var error = _settings.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
+                        if (error < _bestError)
+                        {
+                            _bestTrialResult = trialResult;
+                            _bestError = error;
+                            monitor?.ReportBestTrial(trialResult);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        monitor?.ReportFailTrial(setting, ex);
+
+                        if (!_cts.IsCancellationRequested && _bestTrialResult == null)
+                        {
+                            // TODO
+                            // it's questionable on whether to abort the entire training process
+                            // for a single fail trial. We should make it an option and only exit
+                            // when error is fatal (like schema mismatch).
+                            throw;
+                        }
+                    }
+                    finally
+                    {
+                        performanceMonitor?.Stop();
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    monitor?.ReportFailTrial(setting, ex);
 
-                    if (!_cts.IsCancellationRequested && _bestTrialResult == null)
-                    {
-                        // TODO
-                        // it's questionable on whether to abort the entire training process
-                        // for a single fail trial. We should make it an option and only exit
-                        // when error is fatal (like schema mismatch).
-                        throw;
-                    }
+                if (_bestTrialResult == null)
+                {
+                    throw new TimeoutException("Training time finished without completing a trial run");
                 }
-            }
-
-            if (_bestTrialResult == null)
-            {
-                throw new TimeoutException("Training time finished without completing a trial run");
-            }
-            else
-            {
-                return await Task.FromResult(_bestTrialResult);
+                else
+                {
+                    return await Task.FromResult(_bestTrialResult);
+                }
             }
         }
 
