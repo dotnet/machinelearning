@@ -647,6 +647,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 pch.SetHeader(new ProgressHeader("trees"), e => e.SetProgress(0, Ensemble.NumTrees, numTotalTrees));
                 while (Ensemble.NumTrees < numTotalTrees)
                 {
+                    ch.Trace($"numTotalTrees left: {numTotalTrees}");
                     Host.CheckAlive();
                     using (Timer.Time(TimerEvent.Iteration))
                     {
