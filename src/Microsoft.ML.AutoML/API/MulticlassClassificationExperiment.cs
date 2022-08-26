@@ -334,7 +334,7 @@ namespace Microsoft.ML.AutoML
 
     internal class MulticlassClassificationRunner : ITrialRunner
     {
-        private readonly MLContext _context;
+        private MLContext _context;
         private readonly IDatasetManager _datasetManager;
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
@@ -449,6 +449,8 @@ namespace Microsoft.ML.AutoML
 
         public void Dispose()
         {
+            _context.CancelExecution();
+            _context = null;
             GC.SuppressFinalize(this);
         }
     }

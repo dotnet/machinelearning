@@ -334,7 +334,7 @@ namespace Microsoft.ML.AutoML
 
     internal class BinaryClassificationRunner : ITrialRunner
     {
-        private readonly MLContext _context;
+        private MLContext _context;
         private readonly IDatasetManager _datasetManager;
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
@@ -350,6 +350,8 @@ namespace Microsoft.ML.AutoML
 
         public void Dispose()
         {
+            _context.CancelExecution();
+            _context = null;
             GC.SuppressFinalize(this);
         }
 
@@ -433,7 +435,7 @@ namespace Microsoft.ML.AutoML
         {
             ct.Register(() =>
             {
-                _context?.CancelExecution();
+                _context.CancelExecution();
             });
 
             try
