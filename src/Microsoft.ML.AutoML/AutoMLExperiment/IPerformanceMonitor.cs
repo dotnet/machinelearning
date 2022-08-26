@@ -105,7 +105,7 @@ namespace Microsoft.ML.AutoML
                 // calculate Memory Usage in MB
                 var memoryUsage = process.PrivateMemorySize64 * 1.0 / (1024 * 1024);
                 _peakMemoryUsage = Math.Max(memoryUsage, _peakMemoryUsage ?? 0);
-
+                _logger?.Trace($"current CPU: {cpuUsageInTotal}, current Memory(mb): {memoryUsage}");
                 MemoryUsageInMegaByte?.Invoke(this, memoryUsage);
                 CpuUsage?.Invoke(this, cpuUsageInTotal);
             }
