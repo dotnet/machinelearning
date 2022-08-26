@@ -137,6 +137,11 @@ namespace Microsoft.ML.AutoML
                   TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
             _experiment = context.Auto().CreateExperiment();
+
+            if (settings.MaximumMemoryUsageInMegaByte is double d)
+            {
+                _experiment.SetMaximumMemoryUsageInMegaByte(d);
+            }
         }
 
         public override ExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<MulticlassClassificationMetrics>> progressHandler = null)
