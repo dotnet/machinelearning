@@ -84,7 +84,7 @@ namespace Microsoft.ML.AutoML
                 return context;
             });
 
-            this.SetPerformanceMonitor(300);
+            this.SetPerformanceMonitor(1000);
             _serviceCollection.TryAddSingleton(_settings);
             _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
         }
