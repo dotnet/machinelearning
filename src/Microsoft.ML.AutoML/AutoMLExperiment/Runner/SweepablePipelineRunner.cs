@@ -17,14 +17,11 @@ namespace Microsoft.ML.AutoML
 {
     internal class SweepablePipelineRunner : ITrialRunner
     {
-        private MLContext? _mLContext;
+        private readonly MLContext? _mLContext;
         private readonly IEvaluateMetricManager _metricManager;
         private readonly IDatasetManager _datasetManager;
         private readonly SweepablePipeline _pipeline;
         private readonly IChannel? _logger;
-        private bool _disposedValue;
-        private Task<TrialResult>? _disposableTrainingTask;
-        private Task<TrialResult>? _disposableCancellationTask;
 
         public SweepablePipelineRunner(MLContext context, SweepablePipeline pipeline, IEvaluateMetricManager metricManager, IDatasetManager datasetManager, IChannel? logger = null)
         {
@@ -84,79 +81,29 @@ namespace Microsoft.ML.AutoML
             throw new ArgumentException("IDatasetManager must be either ITrainTestDatasetManager or ICrossValidationDatasetManager");
         }
 
-        public async Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+        public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
         {
-            var cts = new CancellationTokenSource();
-            ct.Register(async () =>
+            ct.Register(() =>
             {
-                cts.Cancel();
-                await Task.Delay(100);
                 _mLContext?.CancelExecution();
             });
 
-            _disposableTrainingTask = Task.Run(() => Run(settings));
-            _disposableCancellationTask = Task.Run(async () =>
+            try
             {
-                while (!ct.IsCancellationRequested)
-                {
-                    await Task.Delay(100);
-                }
-
-                return new TrialResult();
-            });
-            var task = await Task.WhenAny(_disposableTrainingTask, _disposableCancellationTask);
-            var result = await task;
-            if (!cts.Token.IsCancellationRequested)
-            {
-                cts.Cancel();
-                await _disposableCancellationTask;
-
-                return result;
+                return Task.FromResult(Run(settings));
             }
-            else
+            catch (Exception ex) when (ct.IsCancellationRequested)
             {
-                try
-                {
-                    await _disposableTrainingTask;
-                }
-                catch (Exception ex)
-                {
-                    throw new OperationCanceledException(ex.Message, ex);
-                }
+                throw new OperationCanceledException(ex.Message, ex.InnerException);
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _mLContext?.CancelExecution();
-                    _mLContext = null;
-                    _disposableTrainingTask?.Dispose();
-                    _disposableTrainingTask = null;
-                    _disposableCancellationTask?.Dispose();
-                    _disposableCancellationTask = null;
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                _disposedValue = true;
-            }
-        }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~SweepablePipelineRunner()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
 
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
     }

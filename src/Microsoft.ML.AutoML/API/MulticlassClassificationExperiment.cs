@@ -339,7 +339,6 @@ namespace Microsoft.ML.AutoML
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
         private readonly Random _rnd;
-        private bool _disposedValue;
 
         public MulticlassClassificationRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, SweepablePipeline pipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
@@ -429,35 +428,27 @@ namespace Microsoft.ML.AutoML
 
         public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
         {
-            throw new NotImplementedException();
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
+            ct.Register(() =>
             {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
+                _context?.CancelExecution();
+            });
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                _disposedValue = true;
+            try
+            {
+                return Task.FromResult(Run(settings));
+            }
+            catch (Exception ex) when (ct.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(ex.Message, ex.InnerException);
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~MulticlassClassificationRunner()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
     }

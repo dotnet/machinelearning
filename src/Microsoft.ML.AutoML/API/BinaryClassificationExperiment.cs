@@ -350,7 +350,7 @@ namespace Microsoft.ML.AutoML
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            GC.SuppressFinalize(this);
         }
 
         public TrialResult Run(TrialSettings settings)
@@ -431,7 +431,23 @@ namespace Microsoft.ML.AutoML
 
         public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
         {
-            throw new NotImplementedException();
+            ct.Register(() =>
+            {
+                _context?.CancelExecution();
+            });
+
+            try
+            {
+                return Task.FromResult(Run(settings));
+            }
+            catch (Exception ex) when (ct.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(ex.Message, ex.InnerException);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

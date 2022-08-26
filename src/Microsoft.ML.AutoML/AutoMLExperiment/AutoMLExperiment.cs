@@ -58,7 +58,7 @@ namespace Microsoft.ML.AutoML
 
                 return context;
             });
-            this.SetMaximumMemoryUsageInMegaByte();
+
             this.SetPerformanceMonitor(1000);
             _serviceCollection.TryAddSingleton(_settings);
             _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
@@ -238,10 +238,17 @@ namespace Microsoft.ML.AutoML
                         using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
                         {
                             var trialCancellationTokenSource = new CancellationTokenSource();
-                            _globalCancellationTokenSource.Token.Register(() => trialCancellationTokenSource.Cancel());
+                            _globalCancellationTokenSource.Token.Register(() =>
+                            {
+                                // only force-canceling running trials when there's completed trials.
+                                // otherwise, wait for the current running trial to be completed.
+                                if (_bestTrialResult != null)
+                                    trialCancellationTokenSource.Cancel();
+                            });
+
                             performanceMonitor.MemoryUsageInMegaByte += (o, m) =>
                             {
-                                if (m > _settings.MaximumMemoryUsageInMegaByte)
+                                if (_settings.MaximumMemoryUsageInMegaByte is double d && m > d)
                                 {
                                     trialCancellationTokenSource.Cancel();
                                 }
@@ -327,8 +334,6 @@ namespace Microsoft.ML.AutoML
             public SearchSpace.SearchSpace SearchSpace { get; set; }
 
             public bool IsMaximize { get; set; }
-
-            public double MaximumMemoryUsageInMegaByte { get; set; }
         }
     }
 }

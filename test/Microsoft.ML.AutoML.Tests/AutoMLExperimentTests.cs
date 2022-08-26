@@ -56,6 +56,29 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public async Task AutoMLExperiment_cancel_trial_when_exceeds_memory_limit_Async()
+        {
+            var context = new MLContext(1);
+            var experiment = context.Auto().CreateExperiment();
+
+            // the following experiment set memory usage limit to 0.01mb
+            // so all trials should be canceled and there should be no successful trials.
+            // therefore when experiment finishes, it should throw timeout exception with no model trained message.
+            experiment.SetTrainingTimeInSeconds(10)
+                      .SetTrialRunner((serviceProvider) =>
+                      {
+                          var channel = serviceProvider.GetService<IChannel>();
+                          var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
+                          return new DummyTrialRunner(settings, 5, channel);
+                      })
+                      .SetTuner<RandomSearchTuner>()
+                      .SetMaximumMemoryUsageInMegaByte(0.01);
+
+            var runExperimentAction = async () => await experiment.RunAsync();
+            await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
+        }
+
+        [Fact]
         public async Task AutoMLExperiment_return_current_best_trial_when_ct_is_canceled_with_trial_completed_Async()
         {
             var context = new MLContext(1);
@@ -83,7 +106,7 @@ namespace Microsoft.ML.AutoML.Test
             var res = await experiment.RunAsync(cts.Token);
 
             stopWatch.Stop();
-            stopWatch.ElapsedMilliseconds.Should().BeLessOrEqualTo(2 * 1000);
+            stopWatch.ElapsedMilliseconds.Should().BeLessOrEqualTo(2 * 1000 + 500);
             cts.IsCancellationRequested.Should().BeTrue();
             res.Metric.Should().BeGreaterThan(0);
         }
@@ -110,6 +133,7 @@ namespace Microsoft.ML.AutoML.Test
             res.Metric.Should().BeGreaterThan(0);
             cts.IsCancellationRequested.Should().BeFalse();
         }
+
 
         [Fact]
         public async Task AutoMLExperiment_UCI_Adult_Train_Test_Split_Test()
@@ -236,8 +260,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(train, test)
                     .SetRegressionMetric(RegressionMetric.RSquared, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(50)
-                    .SetMaximumMemoryUsageInMegaByte(10);
+                    .SetTrainingTimeInSeconds(50);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
@@ -263,8 +286,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(train, 5)
                     .SetRegressionMetric(RegressionMetric.RSquared, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(50)
-                    .SetMaximumMemoryUsageInMegaByte(10);
+                    .SetTrainingTimeInSeconds(50);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
@@ -302,10 +324,18 @@ namespace Microsoft.ML.AutoML.Test
             };
         }
 
-        public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+        public async Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
         {
-            ct.Register(() => _ct.ThrowIfCancellationRequested());
-            return Task.Run(() => Run(settings));
+            _logger.Info("Update Running Trial");
+            await Task.Delay(_finishAfterNSeconds * 1000, ct);
+            _ct.ThrowIfCancellationRequested();
+            _logger.Info("Update Completed Trial");
+            return new TrialResult
+            {
+                TrialSettings = settings,
+                DurationInMilliseconds = _finishAfterNSeconds * 1000,
+                Metric = 1.000 + 0.01 * settings.TrialId,
+            };
         }
     }
 }

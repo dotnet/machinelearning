@@ -72,7 +72,7 @@ namespace Microsoft.ML.AutoML
                 _timer.Elapsed += OnCheckCpuAndMemoryUsage;
                 _timer.AutoReset = true;
                 _timer.Enabled = true;
-                _logger?.Info($"{typeof(DefaultPerformanceMonitor)} has been started");
+                _logger?.Trace($"{typeof(DefaultPerformanceMonitor)} has been started");
             }
         }
 
