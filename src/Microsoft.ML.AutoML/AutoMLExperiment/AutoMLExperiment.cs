@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,7 +60,7 @@ namespace Microsoft.ML.AutoML
                 return context;
             });
 
-            this.SetPerformanceMonitor(100);
+            this.SetPerformanceMonitor(300);
             _serviceCollection.TryAddSingleton(_settings);
             _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
         }
@@ -255,7 +256,7 @@ namespace Microsoft.ML.AutoML
                         };
 
                         performanceMonitor.Start();
-
+                        logger.Trace($"trial setting - {JsonSerializer.Serialize(setting)}");
                         var trialResult = await runner.RunAsync(setting, trialCancellationTokenSource.Token);
 
                         var peakCpu = performanceMonitor?.GetPeakCpuUsage();
