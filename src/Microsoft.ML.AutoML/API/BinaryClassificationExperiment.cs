@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -346,6 +348,11 @@ namespace Microsoft.ML.AutoML
             _rnd = settings.Seed.HasValue ? new Random(settings.Seed.Value) : new Random();
         }
 
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
         public TrialResult Run(TrialSettings settings)
         {
             if (_metricManager is BinaryMetricManager metricManager)
@@ -420,6 +427,11 @@ namespace Microsoft.ML.AutoML
             }
 
             throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainTestDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
+        }
+
+        public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+        {
+            throw new NotImplementedException();
         }
     }
 }

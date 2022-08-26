@@ -100,13 +100,14 @@ namespace Microsoft.ML.AutoML
                 var cpuUsedMs = elapseCpuProcessorTime.TotalMilliseconds;
                 var cpuUsageInTotal = cpuUsedMs / (Environment.ProcessorCount * _checkIntervalInMilliseconds);
                 _totalCpuProcessorTime = currentCpuProcessorTime;
-                CpuUsage?.Invoke(this, cpuUsageInTotal);
                 _peakCpuUsage = Math.Max(cpuUsageInTotal, _peakCpuUsage ?? 0);
 
                 // calculate Memory Usage in MB
                 var memoryUsage = process.PrivateMemorySize64 * 1.0 / (1024 * 1024);
-                MemoryUsageInMegaByte?.Invoke(this, memoryUsage);
                 _peakMemoryUsage = Math.Max(memoryUsage, _peakMemoryUsage ?? 0);
+
+                MemoryUsageInMegaByte?.Invoke(this, memoryUsage);
+                CpuUsage?.Invoke(this, cpuUsageInTotal);
             }
         }
     }

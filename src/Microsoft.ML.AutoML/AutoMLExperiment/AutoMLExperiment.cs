@@ -22,7 +22,7 @@ namespace Microsoft.ML.AutoML
         private double _bestError = double.MaxValue;
         private TrialResult _bestTrialResult = null;
         private readonly IServiceCollection _serviceCollection;
-        private CancellationTokenSource _cts;
+        private CancellationTokenSource _globalCancellationTokenSource;
 
         public AutoMLExperiment(MLContext context, AutoMLExperimentSettings settings)
         {
@@ -40,6 +40,7 @@ namespace Microsoft.ML.AutoML
             }
 
             _serviceCollection = new ServiceCollection();
+            InitializeServiceCollection();
         }
 
         private void InitializeServiceCollection()
@@ -47,7 +48,7 @@ namespace Microsoft.ML.AutoML
             _serviceCollection.TryAddTransient((provider) =>
             {
                 var context = new MLContext(_settings.Seed);
-                _cts.Token.Register(() =>
+                _globalCancellationTokenSource.Token.Register(() =>
                 {
                     // only force-canceling running trials when there's completed trials.
                     // otherwise, wait for the current running trial to be completed.
@@ -57,14 +58,15 @@ namespace Microsoft.ML.AutoML
 
                 return context;
             });
+            this.SetMaximumMemoryUsageInMegaByte();
+            this.SetPerformanceMonitor(1000);
             _serviceCollection.TryAddSingleton(_settings);
             _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
         }
 
         private void Initialize()
         {
-            _cts = new CancellationTokenSource();
-            InitializeServiceCollection();
+            _globalCancellationTokenSource = new CancellationTokenSource();
         }
 
         internal IServiceCollection ServiceCollection { get => _serviceCollection; }
@@ -78,6 +80,12 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetIsMaximize(bool isMaximize)
         {
             _settings.IsMaximize = isMaximize;
+            return this;
+        }
+
+        public AutoMLExperiment SetMaximumMemoryUsageInMegaByte(double value = double.MaxValue)
+        {
+            _settings.MaximumMemoryUsageInMegaByte = value;
             return this;
         }
 
@@ -203,8 +211,8 @@ namespace Microsoft.ML.AutoML
             ValidateSettings();
             Initialize();
             _settings.CancellationToken = ct;
-            _cts.CancelAfter((int)_settings.MaxExperimentTimeInSeconds * 1000);
-            _settings.CancellationToken.Register(() => _cts.Cancel());
+            _globalCancellationTokenSource.CancelAfter((int)_settings.MaxExperimentTimeInSeconds * 1000);
+            _settings.CancellationToken.Register(() => _globalCancellationTokenSource.Cancel());
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
 
@@ -214,46 +222,65 @@ namespace Microsoft.ML.AutoML
 
             using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
             {
-                while (true)
+                while (!_globalCancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    if (_cts.Token.IsCancellationRequested)
-                    {
-                        break;
-                    }
                     var setting = new TrialSettings()
                     {
                         TrialId = trialNum++,
                         Parameter = Parameter.CreateNestedParameter(),
                     };
-
                     var parameter = tuner.Propose(setting);
                     setting.Parameter = parameter;
-                    monitor?.ReportRunningTrial(setting);
-                    var runner = serviceProvider.GetRequiredService<ITrialRunner>();
 
+                    monitor?.ReportRunningTrial(setting);
                     try
                     {
-                        performanceMonitor?.Start();
-
-                        var trialResult = runner.Run(setting);
-
-                        var peakCpu = performanceMonitor?.GetPeakCpuUsage();
-                        var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
-                        trialResult.PeakCpu = peakCpu;
-                        trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
-
-                        monitor?.ReportCompletedTrial(trialResult);
-                        tuner.Update(trialResult);
-
-                        var error = _settings.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
-                        if (error < _bestError)
+                        using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
                         {
-                            _bestTrialResult = trialResult;
-                            _bestError = error;
-                            monitor?.ReportBestTrial(trialResult);
+                            var trialCancellationTokenSource = new CancellationTokenSource();
+                            _globalCancellationTokenSource.Token.Register(() => trialCancellationTokenSource.Cancel());
+                            performanceMonitor.MemoryUsageInMegaByte += (o, m) =>
+                            {
+                                if (m > _settings.MaximumMemoryUsageInMegaByte)
+                                {
+                                    trialCancellationTokenSource.Cancel();
+                                }
+                            };
+
+                            performanceMonitor.Start();
+
+                            var trialResult = await runner.RunAsync(setting, trialCancellationTokenSource.Token);
+
+                            var peakCpu = performanceMonitor?.GetPeakCpuUsage();
+                            var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
+                            trialResult.PeakCpu = peakCpu;
+                            trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
+
+                            monitor?.ReportCompletedTrial(trialResult);
+                            tuner.Update(trialResult);
+
+                            var error = _settings.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
+                            if (error < _bestError)
+                            {
+                                _bestTrialResult = trialResult;
+                                _bestError = error;
+                                monitor?.ReportBestTrial(trialResult);
+                            }
                         }
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException ex) when (_globalCancellationTokenSource.IsCancellationRequested == false)
+                    {
+                        monitor?.ReportFailTrial(setting, ex);
+                        var result = new TrialResult
+                        {
+                            TrialSettings = setting,
+                            Metric = _settings.IsMaximize ? double.MinValue : double.MaxValue,
+                        };
+
+                        tuner.Update(result);
+                        continue;
+                    }
+                    catch (OperationCanceledException) when (_globalCancellationTokenSource.IsCancellationRequested)
                     {
                         break;
                     }
@@ -261,7 +288,7 @@ namespace Microsoft.ML.AutoML
                     {
                         monitor?.ReportFailTrial(setting, ex);
 
-                        if (!_cts.IsCancellationRequested && _bestTrialResult == null)
+                        if (!_globalCancellationTokenSource.IsCancellationRequested && _bestTrialResult == null)
                         {
                             // TODO
                             // it's questionable on whether to abort the entire training process
@@ -300,6 +327,8 @@ namespace Microsoft.ML.AutoML
             public SearchSpace.SearchSpace SearchSpace { get; set; }
 
             public bool IsMaximize { get; set; }
+
+            public double MaximumMemoryUsageInMegaByte { get; set; }
         }
     }
 }

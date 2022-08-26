@@ -236,7 +236,8 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(train, test)
                     .SetRegressionMetric(RegressionMetric.RSquared, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(50);
+                    .SetTrainingTimeInSeconds(50)
+                    .SetMaximumMemoryUsageInMegaByte(10);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
@@ -262,7 +263,8 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(train, 5)
                     .SetRegressionMetric(RegressionMetric.RSquared, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(50);
+                    .SetTrainingTimeInSeconds(50)
+                    .SetMaximumMemoryUsageInMegaByte(10);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
@@ -282,6 +284,10 @@ namespace Microsoft.ML.AutoML.Test
             _logger = logger;
         }
 
+        public void Dispose()
+        {
+        }
+
         public TrialResult Run(TrialSettings settings)
         {
             _logger.Info("Update Running Trial");
@@ -294,6 +300,12 @@ namespace Microsoft.ML.AutoML.Test
                 DurationInMilliseconds = _finishAfterNSeconds * 1000,
                 Metric = 1.000 + 0.01 * settings.TrialId,
             };
+        }
+
+        public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+        {
+            ct.Register(() => _ct.ThrowIfCancellationRequested());
+            return Task.Run(() => Run(settings));
         }
     }
 }
