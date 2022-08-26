@@ -467,7 +467,9 @@ namespace Microsoft.Data.Analysis
                                 firstColumn = false;
                             }
 
-                            if (name.Contains(separator.ToString())) // TODO why doesn't Contains(char) work?
+                            // TODO why doesn't Contains(char) work? 
+                            bool needsQuotes = ((string)name).Contains(separator.ToString()) || ((string)name).Contains("\n");
+                            if (needsQuotes)
                             {
                                 headerColumns.Append("\"");
                                 headerColumns.Append(name);
@@ -485,16 +487,16 @@ namespace Microsoft.Data.Analysis
 
                     foreach (var row in dataFrame.Rows)
                     {
-                        bool firstRow = true;
+                        bool firstCell = true;
                         foreach (var cell in row)
                         {
-                            if (!firstRow)
+                            if (!firstCell)
                             {
                                 record.Append(separator);
                             }
                             else
                             {
-                                firstRow = false;
+                                firstCell = false;
                             }
 
                             Type t = cell?.GetType();
@@ -523,12 +525,17 @@ namespace Microsoft.Data.Analysis
                                 continue;
                             }
 
-                            if (t == typeof(string) && ((string)cell).Contains(separator.ToString())) // TODO why doesn't Contains(char) work?
+                            if (t == typeof(string))
                             {
-                                record.Append("\"");
-                                record.Append(cell);
-                                record.Append("\"");
-                                continue;
+                                // TODO why doesn't Contains(char) work? 
+                                bool needsQuotes = ((string)cell).Contains(separator.ToString()) || ((string)cell).Contains("\n");
+                                if (needsQuotes)
+                                {
+                                    record.Append("\"");
+                                    record.Append(cell);
+                                    record.Append("\"");
+                                    continue;
+                                }
                             }
 
                             record.Append(cell);
