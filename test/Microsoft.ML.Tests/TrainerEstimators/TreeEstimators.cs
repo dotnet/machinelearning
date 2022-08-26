@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -18,6 +19,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Xunit;
+using FluentAssertions;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -989,6 +991,29 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.NotNull(modelParameters);
 
             CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
+            Done();
+        }
+
+        [Fact]
+        public void FastForestBinaryClassificationCancellationTest()
+        {
+            // verify that FastForest can be canceled after training start.
+            // we need to create a new context for cancellation.
+            var context = new MLContext(seed: 1);
+            var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
+            var estimator = pipeline.Append(context.BinaryClassification.Trainers.FastForest());
+
+            context.Log += (o, e) =>
+            {
+                Output.WriteLine(e.Message);
+                if (e.Message.Contains("Starting to train ..."))
+                {
+                    context.CancelExecution();
+                }
+            };
+
+            var action = () => estimator.Fit(dataView);
+            action.Should().Throw<OperationCanceledException>();
             Done();
         }
 
