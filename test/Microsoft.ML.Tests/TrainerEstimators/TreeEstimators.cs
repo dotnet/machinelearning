@@ -500,7 +500,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 var host = (mlContext as IHostEnvironment).Register("Training LightGBM...");
 
-                using (var gbmNative = WrappedLightGbmTraining.Train(ch, pch, gbmParams, gbmDataSet, numIteration: numberOfTrainingIterations))
+                using (var gbmNative = WrappedLightGbmTraining.Train(host, ch, pch, gbmParams, gbmDataSet, numIteration: numberOfTrainingIterations))
                 {
                     int nativeLength = 0;
                     unsafe
@@ -995,20 +995,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void FastForestBinaryClassificationCancellationTest()
+        public void FastTreeMultiClassificationCancellationTest()
         {
             // verify that FastForest can be canceled after training start.
             // we need to create a new context for cancellation.
             var context = new MLContext(seed: 1);
-            var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
-            var estimator = pipeline.Append(context.BinaryClassification.Trainers.FastForest());
+            var (pipeline, dataView) = GetMulticlassPipeline();
+            var estimator = pipeline.Append(context.MulticlassClassification.Trainers.OneVersusAll(context.BinaryClassification.Trainers.FastTree()));
 
             context.Log += (o, e) =>
             {
-                Output.WriteLine(e.Message);
-                if (e.Message.Contains("Starting to train ..."))
+
+                if (e.Source.StartsWith("FastTreeTraining"))
                 {
-                    context.CancelExecution();
+                    Output.WriteLine(e.Message);
                 }
             };
 
@@ -1041,6 +1041,62 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
             Done();
+        }
+
+        [LightGBMFact]
+        public void LightGbmBinaryClassificationCancellationTest()
+        {
+            var context = new MLContext(seed: 1);
+            context.Log += (o, e) =>
+            {
+                if (e.Message.Contains("LightGBM objective"))
+                {
+                    context.CancelExecution();
+                }
+            };
+
+            var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
+
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
+            var trainer = pipeline.Append(context.BinaryClassification.Trainers.LightGbm(
+                new LightGbmBinaryTrainer.Options
+                {
+                    NumberOfIterations = 1000,
+                    NumberOfLeaves = 5,
+                    UseCategoricalSplit = true
+                }));
+
+            var action = () => trainer.Fit(dataView);
+            action.Should().Throw<OperationCanceledException>();
+        }
+
+        [LightGBMFact]
+        public void LightGbmMultiClassificationCancellationTest()
+        {
+            var context = new MLContext(seed: 1);
+            context.Log += (o, e) =>
+            {
+                if (e.Message.Contains("LightGBM objective"))
+                {
+                    context.CancelExecution();
+                }
+            };
+
+            var (pipeline, dataView) = GetMulticlassPipeline();
+
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
+            var trainer = pipeline.Append(context.MulticlassClassification.Trainers.LightGbm(
+                new LightGbmMulticlassTrainer.Options
+                {
+                    NumberOfIterations = 1000,
+                    NumberOfLeaves = 5,
+                    UseCategoricalSplit = true
+                }));
+
+            var action = () => trainer.Fit(dataView);
+            action.Should().Throw<OperationCanceledException>();
         }
     }
 }

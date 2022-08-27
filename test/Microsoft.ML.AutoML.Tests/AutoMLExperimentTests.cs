@@ -12,8 +12,10 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -73,6 +75,33 @@ namespace Microsoft.ML.AutoML.Test
                       })
                       .SetTuner<RandomSearchTuner>()
                       .SetMaximumMemoryUsageInMegaByte(0.01);
+
+            var runExperimentAction = async () => await experiment.RunAsync();
+            await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
+        }
+
+        [LightGBMFact]
+        public async Task AutoMLExperiment_lgbm_cancel_trial_when_exceeds_memory_limit_Async()
+        {
+            // this test is to verify that lightGbm can be cancelled during training booster.
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Message.Contains("LightGBM objective"))
+                {
+                    context.CancelExecution();
+                }
+            };
+            var data = DatasetUtil.GetUciAdultDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
+                                .Append(context.BinaryClassification.Trainers.LightGbm(DatasetUtil.UciAdultLabel, "_Features_", numberOfIterations: 10000));
+
+            experiment.SetDataset(context.Data.TrainTestSplit(data))
+                    .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
+                    .SetPipeline(pipeline)
+                    .SetTrainingTimeInSeconds(10)
+                    .SetMaximumMemoryUsageInMegaByte(10);
 
             var runExperimentAction = async () => await experiment.RunAsync();
             await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
