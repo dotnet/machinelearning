@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML
 {
     internal class SweepablePipelineRunner : ITrialRunner
     {
-        private readonly MLContext? _mLContext;
+        private MLContext? _mLContext;
         private readonly IEvaluateMetricManager _metricManager;
         private readonly IDatasetManager _datasetManager;
         private readonly SweepablePipeline _pipeline;
@@ -104,6 +104,8 @@ namespace Microsoft.ML.AutoML
 
         public void Dispose()
         {
+            _mLContext!.CancelExecution();
+            _mLContext = null;
             GC.SuppressFinalize(this);
         }
     }
