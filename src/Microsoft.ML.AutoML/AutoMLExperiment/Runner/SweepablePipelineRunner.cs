@@ -83,14 +83,15 @@ namespace Microsoft.ML.AutoML
 
         public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
         {
-            ct.Register(() =>
-            {
-                _mLContext?.CancelExecution();
-            });
-
             try
             {
-                return Task.FromResult(Run(settings));
+                using (var ctRegistration = ct.Register(() =>
+                {
+                    _mLContext?.CancelExecution();
+                }))
+                {
+                    return Task.FromResult(Run(settings));
+                }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)
             {

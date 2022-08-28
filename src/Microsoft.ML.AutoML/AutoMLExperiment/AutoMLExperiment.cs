@@ -84,7 +84,7 @@ namespace Microsoft.ML.AutoML
                 return context;
             });
 
-            this.SetPerformanceMonitor(1000);
+            this.SetPerformanceMonitor(2000);
             _serviceCollection.TryAddSingleton(_settings);
             _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
         }
@@ -258,21 +258,20 @@ namespace Microsoft.ML.AutoML
                 monitor?.ReportRunningTrial(setting);
                 try
                 {
+                    using (var trialCancellationTokenSource = new CancellationTokenSource())
+                    using (var deregisterCallback = _globalCancellationTokenSource.Token.Register(() =>
+                    {
+                        // only force-canceling running trials when there's completed trials.
+                        // otherwise, wait for the current running trial to be completed.
+                        if (_bestTrialResult != null)
+                            trialCancellationTokenSource.Cancel();
+                    }))
                     using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
                     using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
                     {
-                        var trialCancellationTokenSource = new CancellationTokenSource();
-                        _globalCancellationTokenSource.Token.Register(() =>
-                        {
-                            // only force-canceling running trials when there's completed trials.
-                            // otherwise, wait for the current running trial to be completed.
-                            if (_bestTrialResult != null)
-                                trialCancellationTokenSource.Cancel();
-                        });
-
                         performanceMonitor.MemoryUsageInMegaByte += (o, m) =>
                         {
-                            if (_settings.MaximumMemoryUsageInMegaByte is double d && m > d)
+                            if (_settings.MaximumMemoryUsageInMegaByte is double d && m > d && !trialCancellationTokenSource.IsCancellationRequested)
                             {
                                 logger.Trace($"cancel current trial {setting.TrialId} because it uses {m} mb memory and the maximum memory usage is {d}");
                                 trialCancellationTokenSource.Cancel();
