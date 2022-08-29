@@ -1008,13 +1008,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 if (e.Source.StartsWith("FastTreeTraining"))
                 {
-                    Output.WriteLine(e.Message);
+                    context.CancelExecution();
                 }
             };
 
             var action = () => estimator.Fit(dataView);
             action.Should().Throw<OperationCanceledException>();
-            Done();
         }
 
         [LightGBMFact]
