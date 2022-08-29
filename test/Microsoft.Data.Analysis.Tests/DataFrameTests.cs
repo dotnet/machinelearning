@@ -467,6 +467,30 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestBinaryOperationsOnDateTimeColumn()
+        {
+            var df = new DataFrame();
+            var dataFrameColumn1 = new DateTimeDataFrameColumn("DateTime1", Enumerable.Range(0, 10).Select(x => SampleDateTime.AddDays(x)));
+            var dataFrameColumn2 = new DateTimeDataFrameColumn("DateTime2", Enumerable.Range(0, 10).Select(x => SampleDateTime.AddDays(x)));
+            df.Columns.Insert(0, dataFrameColumn1);
+            df.Columns.Insert(1, dataFrameColumn2);
+
+            // bool + int should throw
+            Assert.Throws<NotSupportedException>(() => df.Add(5));
+            // Left shift should throw
+            Assert.Throws<NotSupportedException>(() => df.LeftShift(5));
+            // Right shift should throw
+            Assert.Throws<NotSupportedException>(() => df.RightShift(5));
+
+            // And should throw
+            Assert.Throws<NotSupportedException>(() => df.And(true));
+            // Or should throw
+            Assert.Throws<NotSupportedException>(() => df.Or(true));
+            // Xor should throw
+            Assert.Throws<NotSupportedException>(() => df.Xor(true));
+        }
+
+        [Fact]
         public void TestBinaryOperationsOnArrowStringColumn()
         {
             var df = new DataFrame();

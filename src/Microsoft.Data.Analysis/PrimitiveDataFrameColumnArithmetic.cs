@@ -120,6 +120,10 @@ namespace Microsoft.Data.Analysis
             {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new DateTimeArithmetic();
             }
+            else if (typeof(T) == typeof(DateTime))
+            {
+                return (IPrimitiveDataFrameColumnArithmetic<T>)new DateTimeArithmetic();
+            }
             throw new NotSupportedException();
         }
     }
@@ -6661,6 +6665,203 @@ namespace Microsoft.Data.Analysis
                     ret[i] = (span[i] < scalar);
                 }
             }
+        }
+    }
+    internal class DateTimeArithmetic : IPrimitiveDataFrameColumnArithmetic<DateTime>
+    {
+        public void Add(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Add(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Add(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Subtract(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Subtract(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Subtract(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Multiply(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Multiply(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Multiply(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Divide(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Divide(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Divide(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Modulo(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Modulo(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Modulo(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void And(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void And(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void And(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Or(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Or(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Or(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Xor(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Xor(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Xor(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void LeftShift(PrimitiveColumnContainer<DateTime> column, int value)
+        {
+            throw new NotSupportedException();
+        }
+        public void RightShift(PrimitiveColumnContainer<DateTime> column, int value)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            for (int b = 0; b < left.Buffers.Count; b++)
+            {
+                var buffer = left.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
+                left.Buffers[b] = mutableBuffer;
+                var span = mutableBuffer.Span;
+                var otherSpan = right.Buffers[b].ReadOnlySpan;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    ret[i] = (span[i] == otherSpan[i]);
+                }
+            }
+        }
+        public void ElementwiseEquals(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            for (int b = 0; b < column.Buffers.Count; b++)
+            {
+                var buffer = column.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
+                column.Buffers[b] = mutableBuffer;
+                var span = mutableBuffer.Span;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    ret[i] = (span[i] == scalar);
+                }
+            }
+        }
+        public void ElementwiseNotEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            for (int b = 0; b < left.Buffers.Count; b++)
+            {
+                var buffer = left.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
+                left.Buffers[b] = mutableBuffer;
+                var span = mutableBuffer.Span;
+                var otherSpan = right.Buffers[b].ReadOnlySpan;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    ret[i] = (span[i] != otherSpan[i]);
+                }
+            }
+        }
+        public void ElementwiseNotEquals(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            for (int b = 0; b < column.Buffers.Count; b++)
+            {
+                var buffer = column.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
+                column.Buffers[b] = mutableBuffer;
+                var span = mutableBuffer.Span;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    ret[i] = (span[i] != scalar);
+                }
+            }
+        }
+        public void ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseLessThanOrEqual(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseLessThanOrEqual(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseGreaterThan(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseGreaterThan(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseLessThan(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseLessThan(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
         }
     }
 }
