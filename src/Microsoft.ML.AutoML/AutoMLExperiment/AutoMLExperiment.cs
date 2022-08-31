@@ -275,6 +275,9 @@ namespace Microsoft.ML.AutoML
                             {
                                 logger.Trace($"cancel current trial {setting.TrialId} because it uses {m} mb memory and the maximum memory usage is {d}");
                                 trialCancellationTokenSource.Cancel();
+
+                                GC.AddMemoryPressure(Convert.ToInt64(m) * 1024 * 1024);
+                                GC.Collect();
                             }
                         };
 

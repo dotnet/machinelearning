@@ -90,7 +90,7 @@ namespace Microsoft.ML.AutoML
                     _mLContext?.CancelExecution();
                 }))
                 {
-                    return Task.FromResult(Run(settings));
+                    return Task.Run(() => Run(settings));
                 }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)
@@ -107,7 +107,6 @@ namespace Microsoft.ML.AutoML
         {
             _mLContext!.CancelExecution();
             _mLContext = null;
-            GC.SuppressFinalize(this);
         }
     }
 }

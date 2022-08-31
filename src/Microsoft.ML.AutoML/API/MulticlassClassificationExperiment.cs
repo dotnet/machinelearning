@@ -440,7 +440,7 @@ namespace Microsoft.ML.AutoML
                     _context?.CancelExecution();
                 }))
                 {
-                    return Task.FromResult(Run(settings));
+                    return Task.Run(() => Run(settings));
                 }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)
@@ -457,7 +457,6 @@ namespace Microsoft.ML.AutoML
         {
             _context.CancelExecution();
             _context = null;
-            GC.SuppressFinalize(this);
         }
     }
 }

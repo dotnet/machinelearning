@@ -356,7 +356,6 @@ namespace Microsoft.ML.AutoML
         {
             _context.CancelExecution();
             _context = null;
-            GC.SuppressFinalize(this);
         }
 
         public TrialResult Run(TrialSettings settings)
@@ -444,7 +443,7 @@ namespace Microsoft.ML.AutoML
                     _context?.CancelExecution();
                 }))
                 {
-                    return Task.FromResult(Run(settings));
+                    return Task.Run(() => Run(settings));
                 }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)
