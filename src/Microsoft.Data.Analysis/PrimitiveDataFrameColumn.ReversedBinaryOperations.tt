@@ -40,7 +40,6 @@ namespace Microsoft.Data.Analysis
                     return retColumn;
                 default:
                     throw new NotSupportedException();
-                    
             }
 <# } else { #>
             switch (this)
@@ -113,7 +112,5 @@ namespace Microsoft.Data.Analysis
         }
 <# } #>
 <# } #>
-        
-
     }
 }

@@ -120,10 +120,6 @@ namespace Microsoft.Data.Analysis
             {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new DateTimeArithmetic();
             }
-            else if (typeof(T) == typeof(DateTime))
-            {
-                return (IPrimitiveDataFrameColumnArithmetic<T>)new DateTimeArithmetic();
-            }
             throw new NotSupportedException();
         }
     }

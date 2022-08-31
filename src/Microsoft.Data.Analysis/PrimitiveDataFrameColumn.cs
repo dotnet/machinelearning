@@ -520,6 +520,12 @@ namespace Microsoft.Data.Analysis
             return new SingleDataFrameColumn(Name, newColumnContainer);
         }
 
+        internal DateTimeDataFrameColumn CloneAsDateTimeColumn()
+        {
+            PrimitiveColumnContainer<DateTime> newColumnContainer = _columnContainer.CloneAsDateTimeContainer();
+            return new DateTimeDataFrameColumn(Name, newColumnContainer);
+        }
+
         /// <inheritdoc/>
         public override GroupBy GroupBy(int columnIndex, DataFrame parent)
         {
