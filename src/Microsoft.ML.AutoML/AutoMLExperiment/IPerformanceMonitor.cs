@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
-    public interface IPerformanceMonitor : IDisposable
+    internal interface IPerformanceMonitor : IDisposable
     {
         void Start();
 
@@ -93,6 +93,11 @@ namespace Microsoft.ML.AutoML
         private void SampleCpuAndMemoryUsage()
         {
             // calculate CPU usage in %
+            // the % of CPU usage is calculating in the following way
+            // for every _totalCpuProcessorTime
+            // total CPU time is _totalCpuProcessorTime * ProcessorCount
+            // total CPU time used by current process is currentCpuProcessorTime
+            // the % of CPU usage by current process is simply currentCpuProcessorTime / total CPU time.
             using (var process = Process.GetCurrentProcess())
             {
                 var currentCpuProcessorTime = Process.GetCurrentProcess().TotalProcessorTime;

@@ -89,11 +89,6 @@ namespace Microsoft.ML.AutoML
             _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
         }
 
-        private void Initialize()
-        {
-            _globalCancellationTokenSource = new CancellationTokenSource();
-        }
-
         internal IServiceCollection ServiceCollection { get => _serviceCollection; }
 
         public AutoMLExperiment SetTrainingTimeInSeconds(uint trainingTimeInSeconds)
@@ -110,6 +105,7 @@ namespace Microsoft.ML.AutoML
 
         public AutoMLExperiment SetMaximumMemoryUsageInMegaByte(double value = double.MaxValue)
         {
+            Contracts.Assert(!double.IsNaN(value) && value > 0, "value can't be nan or non-positive");
             _settings.MaximumMemoryUsageInMegaByte = value;
             return this;
         }
@@ -234,9 +230,10 @@ namespace Microsoft.ML.AutoML
         public async Task<TrialResult> RunAsync(CancellationToken ct = default)
         {
             ValidateSettings();
-            Initialize();
+            _globalCancellationTokenSource = new CancellationTokenSource();
             _settings.CancellationToken = ct;
-            _globalCancellationTokenSource.CancelAfter((int)_settings.MaxExperimentTimeInSeconds * 1000);
+            // use TimeSpan to avoid overflow.
+            _globalCancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(_settings.MaxExperimentTimeInSeconds * 1000));
             _settings.CancellationToken.Register(() => _globalCancellationTokenSource.Cancel());
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
