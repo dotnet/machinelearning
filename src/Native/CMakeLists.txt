@@ -245,6 +245,7 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(MklProxyNative)
     # TODO: Almost sure this OneDal doesn't work on ARM (or doesn't work as well), so leaving here for the moment (but disabled)
     add_subdirectory(OneDalNative)
+    add_subdirectory(XGBoostNative)
     # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
     add_subdirectory(SymSgdNative)
 endif()
