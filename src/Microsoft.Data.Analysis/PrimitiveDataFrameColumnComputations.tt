@@ -66,6 +66,7 @@ namespace Microsoft.Data.Analysis
 
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
 <# if (type.TypeName == "DateTime") {#>
+<#  // DateTime computation in DateTimeComputation.cs #>
 <# continue; }#>
     internal class <#=type.ClassPrefix#>Computation : IPrimitiveColumnComputation<<#=type.TypeName#>>
     {
