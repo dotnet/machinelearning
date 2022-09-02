@@ -233,7 +233,7 @@ namespace Microsoft.ML.AutoML
             _globalCancellationTokenSource = new CancellationTokenSource();
             _settings.CancellationToken = ct;
             // use TimeSpan to avoid overflow.
-            _globalCancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(_settings.MaxExperimentTimeInSeconds * 1000));
+            _globalCancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(_settings.MaxExperimentTimeInSeconds));
             _settings.CancellationToken.Register(() => _globalCancellationTokenSource.Cancel());
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
