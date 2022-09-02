@@ -62,7 +62,13 @@ namespace Microsoft.ML.AutoML.Test
         {
             var context = new MLContext(1);
             var experiment = context.Auto().CreateExperiment();
-
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
             // the following experiment set memory usage limit to 0.01mb
             // so all trials should be canceled and there should be no successful trials.
             // therefore when experiment finishes, it should throw timeout exception with no model trained message.
