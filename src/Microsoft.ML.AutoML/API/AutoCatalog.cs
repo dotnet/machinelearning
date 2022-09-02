@@ -654,18 +654,18 @@ namespace Microsoft.ML.AutoML
         /// them into a single feature column as output.
         /// </summary>
         /// <param name="data">input data.</param>
-        /// <param name="catalogColumns">columns that should be treated as catalog. If not specified, it will automatically infer if a column is catalog or not.</param>
+        /// <param name="catelogicalColumns">columns that should be treated as catalog. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="numericColumns">columns that should be treated as numeric. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="textColumns">columns that should be treated as text. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="imagePathColumns">columns that should be treated as image path. If not specified, it will automatically infer if a column is catalog or not.</param>
         /// <param name="outputColumnName">output feature column.</param>
         /// <param name="excludeColumns">columns that won't be included when featurizing, like label</param>
-        public SweepablePipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catalogColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] imagePathColumns = null, string[] excludeColumns = null)
+        public SweepablePipeline Featurizer(IDataView data, string outputColumnName = "Features", string[] catelogicalColumns = null, string[] numericColumns = null, string[] textColumns = null, string[] imagePathColumns = null, string[] excludeColumns = null)
         {
             Contracts.CheckValue(data, nameof(data));
 
             // validate if there's overlapping among catalogColumns, numericColumns, textColumns and excludeColumns
-            var overallColumns = new string[][] { catalogColumns, numericColumns, textColumns, excludeColumns }
+            var overallColumns = new string[][] { catelogicalColumns, numericColumns, textColumns, excludeColumns }
                                     .Where(c => c != null)
                                     .SelectMany(c => c);
 
@@ -684,9 +684,9 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
-            if (catalogColumns != null)
+            if (catelogicalColumns != null)
             {
-                foreach (var catalogColumn in catalogColumns)
+                foreach (var catalogColumn in catelogicalColumns)
                 {
                     columnInfo.CategoricalColumnNames.Add(catalogColumn);
                 }
