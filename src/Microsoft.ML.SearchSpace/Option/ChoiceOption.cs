@@ -69,7 +69,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
 
             var x = Array.IndexOf(Choices, param);
-            Contracts.Check(x != -1, $"{param} not contains");
+            Contracts.Check(x >= 0, $"{param} not contains");
 
             return _option.MappingToFeatureSpace(Parameter.FromInt(x));
         }
