@@ -80,7 +80,8 @@ namespace Microsoft.ML.AutoML.Test
                           return new DummyTrialRunner(settings, 5, channel);
                       })
                       .SetTuner<RandomSearchTuner>()
-                      .SetMaximumMemoryUsageInMegaByte(0.01);
+                      .SetMaximumMemoryUsageInMegaByte(0.01)
+                      .SetPerformanceMonitor<DummyPeformanceMonitor>();
 
             var runExperimentAction = async () => await experiment.RunAsync();
             await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
@@ -371,6 +372,58 @@ namespace Microsoft.ML.AutoML.Test
                 DurationInMilliseconds = _finishAfterNSeconds * 1000,
                 Metric = 1.000 + 0.01 * settings.TrialId,
             };
+        }
+    }
+
+    class DummyPeformanceMonitor : IPerformanceMonitor
+    {
+        private readonly int _checkIntervalInMilliseconds;
+        private System.Timers.Timer _timer;
+
+        public DummyPeformanceMonitor()
+        {
+            _checkIntervalInMilliseconds = 1000;
+        }
+
+        public event EventHandler<double> CpuUsage;
+
+        public event EventHandler<double> MemoryUsageInMegaByte;
+
+        public void Dispose()
+        {
+        }
+
+        public double? GetPeakCpuUsage()
+        {
+            return 100;
+        }
+
+        public double? GetPeakMemoryUsageInMegaByte()
+        {
+            return 1000;
+        }
+
+        public void Start()
+        {
+            if (_timer == null)
+            {
+                _timer = new System.Timers.Timer(_checkIntervalInMilliseconds);
+                _timer.Elapsed += (o, e) =>
+                {
+                    CpuUsage?.Invoke(this, 100);
+                    MemoryUsageInMegaByte?.Invoke(this, 1000);
+                };
+
+                _timer.AutoReset = true;
+                _timer.Enabled = true;
+            }
+        }
+
+        public void Stop()
+        {
+            _timer?.Stop();
+            _timer?.Dispose();
+            _timer = null;
         }
     }
 }
