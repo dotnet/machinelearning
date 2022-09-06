@@ -12,14 +12,19 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+#if false
 using Microsoft.ML.OneDal;
+#endif
 
+#if false
 [assembly: LoadableClass(typeof(KnnClassificationTransformer), null, typeof(SignatureLoadModel),
     KnnClassificationTransformer.UserName, KnnClassificationTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(KnnClassificationTransformer), null, typeof(SignatureLoadRowMapper),
     KnnClassificationTransformer.UserName, KnnClassificationTransformer.LoaderSignature)]
+#endif
 
+#if false
 namespace Microsoft.ML.OneDal
 {
     public class KnnClassificationTrainer : IEstimator<KnnClassificationTransformer>
@@ -218,4 +223,4 @@ namespace Microsoft.ML.OneDal
         }
     }
  }
-
+#endif

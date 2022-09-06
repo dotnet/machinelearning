@@ -6,6 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+#if false
 using Microsoft.ML.OneDal;
 
 namespace Microsoft.ML
@@ -16,4 +17,6 @@ namespace Microsoft.ML
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog, int numClasses)
             => new KnnClassificationTrainer(CatalogUtils.GetEnvironment(catalog), numClasses);
     }
+   
 }
+#endif

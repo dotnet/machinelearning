@@ -13,16 +13,6 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
-#if false
-public class Hello
-{
-	public static void PrintHello()
-	{
-	   Console.WriteLine("Testing..."); 
-	}
-}
-#endif
-
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for predicting a target using a binary classification model.
     /// </summary>

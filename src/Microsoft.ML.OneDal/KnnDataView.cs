@@ -12,10 +12,9 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
+#if false
 namespace Microsoft.ML.OneDal
 {
-//#if false
-
     public sealed class KnnDataView : IDataTransform
     {
 
@@ -223,3 +222,4 @@ namespace Microsoft.ML.OneDal
 
     }
 }
+#endif
