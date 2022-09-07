@@ -846,25 +846,5 @@ namespace Microsoft.Data.Analysis
             ret.NullCount = NullCount;
             return ret;
         }
-
-        internal PrimitiveColumnContainer<DateTime> CloneAsDateTimeContainer()
-        {
-            var ret = new PrimitiveColumnContainer<DateTime>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<DateTime> newBuffer = new DataFrameBuffer<DateTime>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append((DateTime)(object)span[i]);
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
     }
 }
