@@ -64,7 +64,7 @@ jobs:
     buildScript: ./build.sh
     nightlyBuild: true
     pool:
-      vmImage: macOS-10.15
+      vmImage: macOS-12
 
 - template: /build/ci/job-template.yml
   parameters:
