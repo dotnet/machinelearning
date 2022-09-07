@@ -40,7 +40,7 @@ namespace Microsoft.ML.AutoML.Samples
 
             experiment.SetDataset(trainDataset, testDataset)
                     .SetPipeline(pipeline)
-                    .SetEvaluateMetric(MulticlassClassificationMetric.MicroAccuracy)
+                    .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MicroAccuracy)
                     .SetTrainingTimeInSeconds(200);
 
             var result = experiment.Run();

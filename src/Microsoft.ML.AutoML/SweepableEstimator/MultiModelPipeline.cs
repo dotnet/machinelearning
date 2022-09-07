@@ -10,14 +10,14 @@ using System.Text.Json.Serialization;
 namespace Microsoft.ML.AutoML
 {
     [JsonConverter(typeof(MultiModelPipelineConverter))]
-    public class MultiModelPipeline
+    internal class MultiModelPipeline
     {
         private static readonly StringEntity _nilStringEntity = new StringEntity("Nil");
         private static readonly EstimatorEntity _nilSweepableEntity = new EstimatorEntity(null);
         private readonly Dictionary<string, SweepableEstimator> _estimators;
         private readonly Entity _schema;
 
-        public MultiModelPipeline()
+        internal MultiModelPipeline()
         {
             _estimators = new Dictionary<string, SweepableEstimator>();
             _schema = null;

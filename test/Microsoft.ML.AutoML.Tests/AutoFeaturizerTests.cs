@@ -77,6 +77,18 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [UseApprovalSubdirectory("ApprovalTests")]
+        public void AutoFeaturizer_creditapproval_test()
+        {
+            // this test verify if auto featurizer can convert vector<bool> column to vector<numeric>.
+            var context = new MLContext(1);
+            var dataset = DatasetUtil.GetCreditApprovalDataView();
+            var pipeline = context.Auto().Featurizer(dataset, excludeColumns: new[] { "A16" });
+            Approvals.Verify(JsonSerializer.Serialize(pipeline, _jsonSerializerOptions));
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
         public void ImagePathFeaturizerTest()
         {
             var context = new MLContext(1);

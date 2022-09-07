@@ -25,6 +25,11 @@ namespace Microsoft.ML.AutoML
         private bool _initUsed = false;
         private double _bestMetric;
 
+        public CostFrugalTuner(AutoMLExperiment.AutoMLExperimentSettings settings, IMetricManager manager)
+            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default), !manager.IsMaximize)
+        {
+        }
+
         public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true)
         {
             _searchSpace = searchSpace;

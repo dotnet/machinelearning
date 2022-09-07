@@ -1,5 +1,6 @@
 {
   "schema": "e0 * e1 * e2 * e3 * e4",
+  "currentSchema": "e0 * e1 * e2 * e3 * e4",
   "estimators": {
     "e0": {
       "estimatorType": "LoadImages",
