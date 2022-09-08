@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -144,6 +146,10 @@ namespace Microsoft.ML.AutoML
                   TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
             _experiment = context.Auto().CreateExperiment();
+            if (settings.MaximumMemoryUsageInMegaByte is double d)
+            {
+                _experiment.SetMaximumMemoryUsageInMegaByte(d);
+            }
         }
 
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
@@ -332,7 +338,7 @@ namespace Microsoft.ML.AutoML
 
     internal class BinaryClassificationRunner : ITrialRunner
     {
-        private readonly MLContext _context;
+        private MLContext _context;
         private readonly IDatasetManager _datasetManager;
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
@@ -344,6 +350,12 @@ namespace Microsoft.ML.AutoML
             _metricManager = metricManager;
             _pipeline = pipeline;
             _rnd = settings.Seed.HasValue ? new Random(settings.Seed.Value) : new Random();
+        }
+
+        public void Dispose()
+        {
+            _context.CancelExecution();
+            _context = null;
         }
 
         public TrialResult Run(TrialSettings settings)
@@ -420,6 +432,28 @@ namespace Microsoft.ML.AutoML
             }
 
             throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainTestDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
+        }
+
+        public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+        {
+            try
+            {
+                using (var ctRegistration = ct.Register(() =>
+                {
+                    _context?.CancelExecution();
+                }))
+                {
+                    return Task.Run(() => Run(settings));
+                }
+            }
+            catch (Exception ex) when (ct.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(ex.Message, ex.InnerException);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

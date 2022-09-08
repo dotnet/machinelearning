@@ -5,6 +5,8 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
@@ -12,8 +14,10 @@ namespace Microsoft.ML.AutoML
     /// <summary>
     /// interface for all trial runners.
     /// </summary>
-    public interface ITrialRunner
+    public interface ITrialRunner : IDisposable
     {
         TrialResult Run(TrialSettings settings);
+
+        Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct);
     }
 }

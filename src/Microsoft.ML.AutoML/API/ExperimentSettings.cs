@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 
 namespace Microsoft.ML.AutoML
@@ -55,6 +56,8 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <value>The default value is <see cref="CacheBeforeTrainer.Auto"/>.</value>
         public CacheBeforeTrainer CacheBeforeTrainer { get; set; }
+
+        public double? MaximumMemoryUsageInMegaByte { get; set; }
 
         internal int MaxModels;
 

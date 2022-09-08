@@ -44,7 +44,7 @@ namespace Microsoft.ML.AutoML
 
         public virtual void ReportCompletedTrial(TrialResult result)
         {
-            _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)} - Duration: {result.DurationInMilliseconds}");
+            _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)} - Duration: {result.DurationInMilliseconds} - Peak CPU: {result.PeakCpu?.ToString("p")} - Peak Memory in MB: {result.PeakMemoryInMegaByte?.ToString("F")}");
             _completedTrials.Add(result);
         }
 
