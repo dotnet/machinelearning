@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,10 +13,12 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ML.Data;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Tensorflow;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -327,6 +330,94 @@ namespace Microsoft.ML.AutoML.Test
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
         }
+
+        [Fact]
+        public async Task Generate_300GB_csv()
+        {
+            var rnd = new Random();
+            ModelInput GenerateRandomRow()
+            {
+                return new ModelInput
+                {
+                    _data0 = rnd.NextSingle() > 0.5 ? "a" : "b",
+                    ignoreData1 = rnd.NextSingle(),
+                    _data = Enumerable.Repeat(rnd.NextSingle(), 4204).ToArray(),
+                    _ignoreData4206 = rnd.NextSingle(),
+                    _ignoreData4207 = rnd.NextSingle(),
+                    _ignoreData4208 = rnd.NextSingle(),
+                    _label = rnd.NextSingle() > 0.5 ? "True" : "False",
+                };
+            }
+
+            var filePath = @"D:/large_csv.csv";
+            var fileInfo = new FileInfo(filePath);
+
+            using (var fileStream = fileInfo.Open(FileMode.Append))
+            using (var stream = new StreamWriter(fileStream))
+            {
+                var i = 0;
+                while ((!fileInfo.Exists || fileInfo.Length < 300.0 * 1024 * 1024 * 1024) && i < 100)
+                {
+                    fileInfo.Refresh();
+                    Output.WriteLine($"{fileInfo.Length / (1024 * 1024 * 1024 * 1.0)}");
+                    var taskNum = 10;
+                    var taskPool = new Task<string>[taskNum];
+                    for (int _i = 0; _i != taskNum; ++_i)
+                    {
+                        var t = Task.Factory.StartNew(() =>
+                        {
+                            var sb = new StringBuilder();
+                            var rows = Enumerable.Range(0, 10000).Select(i => GenerateRandomRow());
+                            foreach (var row in rows)
+                            {
+                                var line = $"\"{row._data0}\",{row.ignoreData1.ToString("F2")},{string.Join(",", row._data.Select(d => d.ToString("F2")))}, {row._ignoreData4206.ToString("F2")}, {row._ignoreData4207.ToString("F2")}, {row._ignoreData4208.ToString("F2")},\"{row._label}\"";
+                                sb.AppendLine(line);
+                            }
+
+                            return sb.ToString();
+                        });
+                        taskPool[_i] = t;
+                    }
+
+                    var getRandomRow = await Task.WhenAll(taskPool);
+                    foreach (var row in getRandomRow)
+                    {
+                        await stream.WriteAsync(row);
+                    }
+
+                    await stream.FlushAsync();
+                    i++;
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Large_csv_test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var trainPath = @"D:/large_csv.csv";
+            var dataset = context.Data.LoadFromTextFile<ModelInput>(trainPath, ',', hasHeader: false);
+            var experiment = context.Auto().CreateExperiment();
+            var label = "Entry(Text)";
+            var pipeline = context.Auto().Featurizer(dataset, excludeColumns: new[] { label })
+                                .Append(context.Transforms.Conversion.MapValueToKey(label, label))
+                                .Append(context.Auto().MultiClassification(label));
+
+            experiment.SetDataset(context.Data.TrainTestSplit(dataset))
+                    .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
+                    .SetPipeline(pipeline)
+                    .SetTrainingTimeInSeconds(50);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.5);
+        }
     }
 
     class DummyTrialRunner : ITrialRunner
@@ -425,5 +516,27 @@ namespace Microsoft.ML.AutoML.Test
             _timer?.Dispose();
             _timer = null;
         }
+    }
+
+    class ModelInput
+    {
+        [LoadColumn(0), NoColumn]
+        public string _data0 { get; set; }
+
+        [LoadColumn(1), NoColumn]
+        public float ignoreData1 { get; set; }
+
+        [LoadColumn(2, 4205)]
+        public float[] _data { get; set; }
+
+        [LoadColumn(4206), NoColumn]//(4206,4208)]
+        public float _ignoreData4206 { get; set; }
+        [LoadColumn(4207), NoColumn]//(4206,4208)]
+        public float _ignoreData4207 { get; set; }
+        [LoadColumn(4208), NoColumn]//(4206,4208)]
+        public float _ignoreData4208 { get; set; }
+
+        [LoadColumn(4209), ColumnName("Entry(Text)")]
+        public string _label { get; set; }
     }
 }

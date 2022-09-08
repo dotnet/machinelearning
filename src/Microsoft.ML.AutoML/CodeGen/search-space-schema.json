@@ -154,7 +154,8 @@
         "NumberOfIterations",
         "Quiet",
         "OutputAsFloatArray",
-        "ModelFactory"
+        "ModelFactory",
+        "DiskTranspose"
       ]
     },
     "option_type": {

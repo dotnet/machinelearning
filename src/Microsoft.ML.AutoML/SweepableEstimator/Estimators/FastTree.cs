@@ -22,6 +22,7 @@ namespace Microsoft.ML.AutoML.CodeGen
                 NumberOfThreads = AutoMlUtils.GetNumberOfThreadFromEnvrionment(),
                 MaximumBinCountPerFeature = param.MaximumBinCountPerFeature,
                 FeatureFraction = param.FeatureFraction,
+                DiskTranspose = param.DiskTranspose,
             };
 
             return context.MulticlassClassification.Trainers.OneVersusAll(context.BinaryClassification.Trainers.FastTree(option), labelColumnName: param.LabelColumnName);
@@ -43,6 +44,7 @@ namespace Microsoft.ML.AutoML.CodeGen
                 ExampleWeightColumnName = param.ExampleWeightColumnName,
                 NumberOfThreads = AutoMlUtils.GetNumberOfThreadFromEnvrionment(),
                 MaximumBinCountPerFeature = param.MaximumBinCountPerFeature,
+                DiskTranspose = param.DiskTranspose,
                 FeatureFraction = param.FeatureFraction,
             };
 
@@ -65,6 +67,7 @@ namespace Microsoft.ML.AutoML.CodeGen
                 ExampleWeightColumnName = param.ExampleWeightColumnName,
                 NumberOfThreads = AutoMlUtils.GetNumberOfThreadFromEnvrionment(),
                 MaximumBinCountPerFeature = param.MaximumBinCountPerFeature,
+                DiskTranspose = param.DiskTranspose,
                 FeatureFraction = param.FeatureFraction,
             };
 
@@ -87,6 +90,7 @@ namespace Microsoft.ML.AutoML.CodeGen
                 ExampleWeightColumnName = param.ExampleWeightColumnName,
                 NumberOfThreads = AutoMlUtils.GetNumberOfThreadFromEnvrionment(),
                 MaximumBinCountPerFeature = param.MaximumBinCountPerFeature,
+                DiskTranspose = param.DiskTranspose,
                 FeatureFraction = param.FeatureFraction,
             };
 

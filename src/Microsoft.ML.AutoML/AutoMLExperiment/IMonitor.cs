@@ -50,6 +50,7 @@ namespace Microsoft.ML.AutoML
 
         public virtual void ReportFailTrial(TrialSettings settings, Exception exception = null)
         {
+            _logger.Trace(exception.Message + exception.StackTrace);
             _logger.Info($"Update Failed Trial - Id: {settings.TrialId} - Pipeline: {_pipeline.ToString(settings.Parameter)}");
         }
 
