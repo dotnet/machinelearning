@@ -331,7 +331,6 @@ namespace Microsoft.ML.AutoML.Test
             result.Metric.Should().BeGreaterThan(0.5);
         }
 
-        [Fact]
         public async Task Generate_300GB_csv()
         {
             var rnd = new Random();
@@ -391,7 +390,6 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [Fact]
         public async Task Large_csv_test()
         {
             var context = new MLContext(1);
