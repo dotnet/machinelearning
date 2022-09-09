@@ -38,6 +38,27 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
+
+#if true
+            var predLabelColumn = transformedTestData.Schema["PredictedLabel"];
+            var scoreColumn = transformedTestData.Schema["Score"];
+            var probColumn = transformedTestData.Schema["Probability"];
+
+            bool predLabelVal = default(bool);
+            float scoreVal = default(float);
+            using (var cursor = transformedTestData.GetRowCursor(new[] { predLabelColumn, scoreColumn, probColumn }))
+            {
+                var predLabelGetter = cursor.GetGetter<bool>(predLabelColumn);
+                var scoreGetter = cursor.GetGetter<float>(scoreColumn);
+                while (cursor.MoveNext())
+                {
+                    predLabelGetter(ref predLabelVal);
+                    scoreGetter(ref scoreVal);
+                    Console.WriteLine(($"Got a score {scoreVal} with label {predLabelVal}"));
+                }
+            }
+#else
+
             // Convert IDataView object to a list.
             var predictions = mlContext.Data
                 .CreateEnumerable<Prediction>(transformedTestData,
@@ -60,6 +81,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 .Evaluate(transformedTestData);
 
             PrintMetrics(metrics);
+#endif
 
             // Expected output:
             //   Accuracy: 0.68
