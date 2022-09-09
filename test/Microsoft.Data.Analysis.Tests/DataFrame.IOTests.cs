@@ -1069,6 +1069,7 @@ Paul,34,""Paul lives in Vermont, VA.""
 Victor,29,""Victor: Funny guy""
 Maria,31,",
                 ',',
+                new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
                     3,
                     3,
@@ -1089,6 +1090,7 @@ Paul:34:""Paul lives in Vermont, VA.""
 Victor:29:""Victor: Funny guy""
 Maria:31:",
                 ':',
+                new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
                     3,
                     3,
@@ -1104,11 +1106,12 @@ Maria:31:",
             };
             yield return new object[] // Comma Separators in Header
             {
-            @"""Na,me"",Age,Description
+                @"""Na,me"",Age,Description
 Paul,34,""Paul lives in Vermont, VA.""
 Victor,29,""Victor: Funny guy""
 Maria,31,",
-            ',',
+                ',',
+                new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
                     3,
                     3,
@@ -1130,6 +1133,7 @@ VA.""
 Victor,29,""Victor: Funny guy""
 Maria,31,",
                 ',',
+                new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
                     3,
                     3,
@@ -1152,6 +1156,7 @@ Paul:34:""Paul lives in Vermont, VA.""
 Victor:29:""Victor: Funny guy""
 Maria:31:",
                 ':',
+                new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
                     3,
                     3,
@@ -1170,25 +1175,25 @@ me", "Age", "Description" },
 
         [Theory]
         [MemberData(nameof(CsvWithTextQualifiers_TestData))]
-        public void TestLoadCsvWithTextQualifiersFromStream(string data, char separator, LoadCsvVerifyingHelper helper)
+        public void TestLoadCsvWithTextQualifiersFromStream(string data, char separator, Type[] dataTypes, LoadCsvVerifyingHelper helper)
         {
-            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: separator);
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: dataTypes, separator: separator);
             helper.VerifyLoadCsv(df);
         }
 
         [Theory]
         [MemberData(nameof(CsvWithTextQualifiers_TestData))]
-        public void TestLoadCsvWithTextQualifiersFromString(string data, char separator, LoadCsvVerifyingHelper helper)
+        public void TestLoadCsvWithTextQualifiersFromString(string data, char separator, Type[] dataTypes, LoadCsvVerifyingHelper helper)
         {
-            DataFrame df = DataFrame.LoadCsvFromString(data, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: separator);
+            DataFrame df = DataFrame.LoadCsvFromString(data, dataTypes: dataTypes, separator: separator);
             helper.VerifyLoadCsv(df);
         }
 
         [Theory]
         [MemberData(nameof(CsvWithTextQualifiers_TestData))]
-        public void TestWriteCsvWithTextQualifiers(string data, char separator, LoadCsvVerifyingHelper helper)
+        public void TestWriteCsvWithTextQualifiers(string data, char separator, Type[] dataTypes, LoadCsvVerifyingHelper helper)
         {
-            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: separator);
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: dataTypes, separator: separator);
 
             using MemoryStream csvStream = new MemoryStream();
             DataFrame.WriteCsv(df, csvStream, separator: separator);
@@ -1196,7 +1201,7 @@ me", "Age", "Description" },
             // We are verifying that WriteCsv works by reading the result back to a DataFrame and verifying correctness,
             // ensuring no information loss
             csvStream.Seek(0, SeekOrigin.Begin);
-            DataFrame df2 = DataFrame.LoadCsv(csvStream, dataTypes: new Type[] { typeof(string), typeof(int), typeof(string) }, separator: separator);
+            DataFrame df2 = DataFrame.LoadCsv(csvStream, dataTypes: dataTypes, separator: separator);
             helper.VerifyLoadCsv(df2);
         }
     }
