@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
-using Microsoft.ML.Runtime;
 
 #nullable enable
 
@@ -22,9 +22,9 @@ namespace Microsoft.ML.SearchSpace.Option
         /// </summary>
         public ChoiceOption(params object[] choices)
         {
-            Contracts.Check(choices.Length > 0 && choices.Length < 1074, "the length of choices must be (0, 1074)");
+            Contract.Assert(choices.Length > 0 && choices.Length < 1074, "the length of choices must be (0, 1074)");
             var distinctChoices = choices.Distinct();
-            Contracts.Check(distinctChoices.Count() == choices.Length, "choices must not contain repeated values");
+            Contract.Assert(distinctChoices.Count() == choices.Length, "choices must not contain repeated values");
 
             Choices = distinctChoices.Select(o => Parameter.FromObject(o)).ToArray();
             _option = new UniformSingleOption(0, Choices.Length);
@@ -69,7 +69,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
 
             var x = Array.IndexOf(Choices, param);
-            Contracts.Check(x >= 0, $"{param} not contains");
+            Contract.Assert(x >= 0, $"{param} not contains");
 
             return _option.MappingToFeatureSpace(Parameter.FromInt(x));
         }
@@ -79,7 +79,7 @@ namespace Microsoft.ML.SearchSpace.Option
         /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
-            Contracts.Check(values.Length >= 0, "values length must be greater than 0");
+            Contract.Assert(values.Length >= 0, "values length must be greater than 0");
             if (values.Length == 0)
             {
                 return Choices[0];
