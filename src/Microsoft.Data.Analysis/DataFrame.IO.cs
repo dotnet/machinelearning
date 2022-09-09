@@ -467,7 +467,6 @@ namespace Microsoft.Data.Analysis
                                 firstColumn = false;
                             }
 
-                            // TODO why doesn't Contains(char) work? 
                             bool needsQuotes = ((string)name).Contains(separator.ToString()) || ((string)name).Contains("\n");
                             if (needsQuotes)
                             {
@@ -527,7 +526,6 @@ namespace Microsoft.Data.Analysis
 
                             if (t == typeof(string))
                             {
-                                // TODO why doesn't Contains(char) work? 
                                 bool needsQuotes = ((string)cell).Contains(separator.ToString()) || ((string)cell).Contains("\n");
                                 if (needsQuotes)
                                 {

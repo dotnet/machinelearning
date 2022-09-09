@@ -1055,10 +1055,7 @@ CMT,";
 
                 for (int i = 0; i < _rowCount; i++)
                 {
-                    for (int j = 0; j < _columnCount; j++)
-                    {
-                        Assert.Equal(_cells[i][j], df.Rows[i][j]);
-                    }
+                    Assert.Equal(_cells[i], df.Rows[i]);
                 }
             }
         }
