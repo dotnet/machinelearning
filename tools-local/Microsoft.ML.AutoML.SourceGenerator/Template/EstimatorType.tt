@@ -4,9 +4,6 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-
 namespace <#=NameSpace#>
 {
     public enum <#=ClassName#>
