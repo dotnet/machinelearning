@@ -4,12 +4,8 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-
 namespace <#=NameSpace#>
 {
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum <#=ClassName#>
     {
 <# foreach(var e in TrainerNames){#>
