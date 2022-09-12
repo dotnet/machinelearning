@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML
         internal const string PipelineSearchspaceName = "_pipeline_";
         private readonly AutoMLExperimentSettings _settings;
         private readonly MLContext _context;
-        private double _bestError = double.MaxValue;
+        private double _bestLoss = double.MaxValue;
         private TrialResult _bestTrialResult = null;
         private readonly IServiceCollection _serviceCollection;
         private CancellationTokenSource _globalCancellationTokenSource;
@@ -94,12 +94,6 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTrainingTimeInSeconds(uint trainingTimeInSeconds)
         {
             _settings.MaxExperimentTimeInSeconds = trainingTimeInSeconds;
-            return this;
-        }
-
-        public AutoMLExperiment SetIsMaximize(bool isMaximize)
-        {
-            _settings.IsMaximize = isMaximize;
             return this;
         }
 
@@ -290,11 +284,11 @@ namespace Microsoft.ML.AutoML
                         monitor?.ReportCompletedTrial(trialResult);
                         tuner.Update(trialResult);
 
-                        var error = _settings.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
-                        if (error < _bestError)
+                        var loss = trialResult.Loss;
+                        if (loss < _bestLoss)
                         {
                             _bestTrialResult = trialResult;
-                            _bestError = error;
+                            _bestLoss = loss;
                             monitor?.ReportBestTrial(trialResult);
                         }
                     }
@@ -305,7 +299,7 @@ namespace Microsoft.ML.AutoML
                     var result = new TrialResult
                     {
                         TrialSettings = setting,
-                        Metric = _settings.IsMaximize ? double.MinValue : double.MaxValue,
+                        Loss = double.MaxValue,
                     };
 
                     tuner.Update(result);
@@ -351,8 +345,6 @@ namespace Microsoft.ML.AutoML
             public int? Seed { get; set; }
 
             public SearchSpace.SearchSpace SearchSpace { get; set; }
-
-            public bool IsMaximize { get; set; }
         }
     }
 }

@@ -13,53 +13,49 @@ namespace Microsoft.ML.AutoML
     {
         private readonly RandomNumberGenerator _rng = new RandomNumberGenerator();
         private readonly SearchSpace.SearchSpace _searchSpace;
-        private readonly bool _minimize;
         private readonly Flow2 _localSearch;
         private readonly Dictionary<int, SearchThread> _searchThreadPool = new Dictionary<int, SearchThread>();
         private int _currentThreadId;
         private readonly Dictionary<int, int> _trialProposedBy = new Dictionary<int, int>();
 
-        private readonly Dictionary<int, double[]> _configs = new Dictionary<int, double[]>();
         private readonly double[] _lsBoundMax;
         private readonly double[] _lsBoundMin;
         private bool _initUsed = false;
-        private double _bestMetric;
+        private double _bestLoss;
 
-        public CostFrugalTuner(AutoMLExperiment.AutoMLExperimentSettings settings, IMetricManager manager)
-            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default), !manager.IsMaximize)
+        public CostFrugalTuner(AutoMLExperiment.AutoMLExperimentSettings settings)
+            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default))
         {
         }
 
-        public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true)
+        public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null)
         {
             _searchSpace = searchSpace;
-            _minimize = minimizeMode;
-
             _localSearch = new Flow2(searchSpace, initValue, true);
             _currentThreadId = 0;
             _lsBoundMin = _searchSpace.MappingToFeatureSpace(initValue);
             _lsBoundMax = _searchSpace.MappingToFeatureSpace(initValue);
             _initUsed = false;
-            _bestMetric = double.MaxValue;
+            _bestLoss = double.MaxValue;
         }
 
         public Parameter Propose(TrialSettings settings)
         {
             var trialId = settings.TrialId;
+            Parameter param;
             if (_initUsed)
             {
                 var searchThread = _searchThreadPool[_currentThreadId];
-                _configs[trialId] = _searchSpace.MappingToFeatureSpace(searchThread.Suggest(trialId));
+                param = searchThread.Suggest(trialId);
                 _trialProposedBy[trialId] = _currentThreadId;
             }
             else
             {
-                _configs[trialId] = CreateInitConfigFromAdmissibleRegion();
+                param = _searchSpace.SampleFromFeatureSpace(CreateInitConfigFromAdmissibleRegion());
                 _trialProposedBy[trialId] = _currentThreadId;
             }
 
-            var param = _configs[trialId];
-            return _searchSpace.SampleFromFeatureSpace(param);
+            return param;
         }
 
         public Parameter BestConfig { get; set; }
@@ -67,26 +63,25 @@ namespace Microsoft.ML.AutoML
         public void Update(TrialResult result)
         {
             var trialId = result.TrialSettings.TrialId;
-            var metric = result.Metric;
-            metric = _minimize ? metric : -metric;
-            if (metric < _bestMetric)
+            var parameter = result.TrialSettings.Parameter;
+            var loss = result.Loss;
+            if (loss < _bestLoss)
             {
-                BestConfig = _searchSpace.SampleFromFeatureSpace(_configs[trialId]);
-                _bestMetric = metric;
+                BestConfig = parameter;
+                _bestLoss = loss;
             }
 
             var cost = result.DurationInMilliseconds;
-            int threadId = _trialProposedBy[trialId];
+            int threadId = _trialProposedBy.ContainsKey(trialId) ? _trialProposedBy[trialId] : _currentThreadId;
             if (_searchThreadPool.Count == 0)
             {
-                var initParameter = _searchSpace.SampleFromFeatureSpace(_configs[trialId]);
-                _searchThreadPool[_currentThreadId] = _localSearch.CreateSearchThread(initParameter, metric, cost);
+                _searchThreadPool[_currentThreadId] = _localSearch.CreateSearchThread(parameter, loss, cost);
                 _initUsed = true;
-                UpdateAdmissibleRegion(_configs[trialId]);
+                UpdateAdmissibleRegion(_searchSpace.MappingToFeatureSpace(parameter));
             }
             else
             {
-                _searchThreadPool[threadId].OnTrialComplete(trialId, metric, cost);
+                _searchThreadPool[threadId].OnTrialComplete(trialId, loss, cost);
                 if (_searchThreadPool[threadId].IsConverged)
                 {
                     _searchThreadPool.Remove(threadId);

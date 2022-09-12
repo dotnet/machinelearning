@@ -379,12 +379,14 @@ namespace Microsoft.ML.AutoML
                         MulticlassClassificationMetric.TopKAccuracy => res.Metrics.TopKAccuracy,
                         _ => throw new NotImplementedException($"{metricManager.MetricName} is not supported!"),
                     };
+                    var loss = metricManager.IsMaximize ? -metric : metric;
 
                     stopWatch.Stop();
 
 
                     return new TrialResult<MulticlassClassificationMetrics>()
                     {
+                        Loss = loss,
                         Metric = metric,
                         Model = model,
                         TrialSettings = settings,
@@ -412,12 +414,14 @@ namespace Microsoft.ML.AutoML
                         MulticlassClassificationMetric.TopKAccuracy => metrics.TopKAccuracy,
                         _ => throw new NotImplementedException($"{metricManager.Metric} is not supported!"),
                     };
+                    var loss = metricManager.IsMaximize ? -metric : metric;
 
                     stopWatch.Stop();
 
 
                     return new TrialResult<MulticlassClassificationMetrics>()
                     {
+                        Loss = loss,
                         Metric = metric,
                         Model = model,
                         TrialSettings = settings,

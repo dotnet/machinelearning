@@ -53,12 +53,16 @@ namespace Microsoft.ML.AutoML
 
                 stopWatch.Stop();
 
+                var metric = metrics.Average();
+                var loss = _metricManager.IsMaximize ? -metric : metric;
+
                 return new TrialResult
                 {
-                    Metric = metrics.Average(),
+                    Metric = metric,
                     Model = models.First(),
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
                     TrialSettings = settings,
+                    Loss = loss,
                 };
             }
 
@@ -68,9 +72,11 @@ namespace Microsoft.ML.AutoML
                 var eval = model.Transform(trainTestDatasetManager.TestDataset);
                 var metric = _metricManager.Evaluate(_mLContext, eval);
                 stopWatch.Stop();
+                var loss = _metricManager.IsMaximize ? -metric : metric;
 
                 return new TrialResult
                 {
+                    Loss = loss,
                     Metric = metric,
                     Model = model,
                     DurationInMilliseconds = stopWatch.ElapsedMilliseconds,

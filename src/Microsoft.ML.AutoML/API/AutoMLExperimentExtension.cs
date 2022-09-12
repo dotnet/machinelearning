@@ -162,7 +162,6 @@ namespace Microsoft.ML.AutoML
         {
             experiment.ServiceCollection.AddSingleton<IMetricManager>(metricManager);
             experiment.ServiceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
-            experiment.SetIsMaximize(metricManager.IsMaximize);
 
             return experiment;
         }
