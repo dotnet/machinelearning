@@ -54,7 +54,7 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
-        public void CFO_should_propose_decent_parameter_if_history_provided()
+        public void CFO_should_be_recoverd_if_history_provided()
         {
             // this test verify that cfo can be recovered by replaying history.
             var searchSpace = new SearchSpace<LbfgsOption>();
