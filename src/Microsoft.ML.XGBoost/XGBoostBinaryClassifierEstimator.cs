@@ -60,19 +60,35 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
     }
 
+#if false
     public sealed class XGBoostBinaryClassificationEstimator : TrivialEstimator<XGBoostBinaryClassificationTransformer>
+#else
+    public sealed class XGBoostBinaryClassificationEstimator : IEstimator<XGBoostBinaryClassificationTransformer>
+#endif
     {
         private readonly IHost _host;
-        public XGBoostBinaryClassificationEstimator(IHost host, XGBoostBinaryClassificationTransformer transformer) : base(host, transformer)
+        public XGBoostBinaryClassificationEstimator(IHost host, XGBoostBinaryClassificationTransformer transformer) /*: base(host, transformer)*/
         {
             _host = Contracts.CheckRef(host, nameof(host)).Register(nameof(XGBoostBinaryClassificationEstimator));
         }
 
+        public XGBoostBinaryClassificationTransformer Fit(IDataView input)
+        {
+            throw new NotImplementedException();
+        }
+
+#if true
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+#else
         // Used for schema propagation and verification in a pipeline (i.e., in an Estimator chain).
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             return new SchemaShape(inputSchema);
         }
+#endif
     }
 }
