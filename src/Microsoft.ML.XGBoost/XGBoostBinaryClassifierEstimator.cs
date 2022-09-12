@@ -33,9 +33,11 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
+            private readonly XGBoostBinaryClassificationTransformer _parent;
             public Mapper(XGBoostBinaryClassificationTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
+                _parent = parent;
 
             }
 
@@ -66,9 +68,11 @@ namespace Microsoft.ML.Trainers.XGBoost
             _host = Contracts.CheckRef(host, nameof(host)).Register(nameof(XGBoostBinaryClassificationEstimator));
         }
 
+        // Used for schema propagation and verification in a pipeline (i.e., in an Estimator chain).
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            throw new NotImplementedException();
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return new SchemaShape(inputSchema);
         }
     }
 }
