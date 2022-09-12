@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Microsoft.Data.Analysis
 {
@@ -467,11 +468,12 @@ namespace Microsoft.Data.Analysis
                                 firstColumn = false;
                             }
 
-                            bool needsQuotes = ((string)name).Contains(separator.ToString()) || ((string)name).Contains("\n");
+                            bool needsQuotes = name.Contains(separator.ToString()) || name.Contains("\n") || name.Contains("\"");
                             if (needsQuotes)
                             {
+
                                 headerColumns.Append("\"");
-                                headerColumns.Append(name);
+                                headerColumns.Append(name.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
                                 headerColumns.Append("\"");
                             }
                             else
@@ -526,11 +528,13 @@ namespace Microsoft.Data.Analysis
 
                             if (t == typeof(string))
                             {
-                                bool needsQuotes = ((string)cell).Contains(separator.ToString()) || ((string)cell).Contains("\n");
+                                string stringCell = (string)cell;
+                                bool needsQuotes = stringCell.Contains(separator.ToString()) || stringCell.Contains("\n") || stringCell.Contains("\"");
                                 if (needsQuotes)
                                 {
+
                                     record.Append("\"");
-                                    record.Append(cell);
+                                    record.Append(stringCell.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
                                     record.Append("\"");
                                     continue;
                                 }

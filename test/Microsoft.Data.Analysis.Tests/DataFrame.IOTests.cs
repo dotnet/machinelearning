@@ -1171,6 +1171,48 @@ me", "Age", "Description" },
                     }
                 )
             };
+            yield return new object[] // Quotations in Data
+            {
+                @"Name,Age,Description
+Paul,34,""Paul lives in """"Vermont VA"""".""
+Victor,29,""Victor: Funny guy""
+Maria,31,",
+                ',',
+                new Type[] { typeof(string), typeof(int), typeof(string) },
+                new LoadCsvVerifyingHelper(
+                    3,
+                    3,
+                    new string[] { "Name", "Age", "Description" },
+                    new Type[] { typeof(string), typeof(int), typeof(string) },
+                    new object[][]
+                    {
+                        new object[] { "Paul", 34, @"Paul lives in ""Vermont VA""." },
+                        new object[] { "Victor", 29, "Victor: Funny guy" },
+                        new object[] { "Maria", 31, "" }
+                    }
+                )
+            };
+            yield return new object[] // Quotations in Header
+            {
+                @"Name,Age,""De""""script""""ion""
+Paul,34,""Paul lives in Vermont, VA.""
+Victor,29,""Victor: Funny guy""
+Maria,31,",
+                ',',
+                new Type[] { typeof(string), typeof(int), typeof(string) },
+                new LoadCsvVerifyingHelper(
+                    3,
+                    3,
+                    new string[] { "Name", "Age", @"De""script""ion" },
+                    new Type[] { typeof(string), typeof(int), typeof(string) },
+                    new object[][]
+                    {
+                        new object[] { "Paul", 34, @"Paul lives in Vermont, VA." },
+                        new object[] { "Victor", 29, "Victor: Funny guy" },
+                        new object[] { "Maria", 31, "" }
+                    }
+                )
+            };
         }
 
         [Theory]
