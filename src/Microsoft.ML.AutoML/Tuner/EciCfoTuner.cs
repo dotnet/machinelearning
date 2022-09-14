@@ -44,13 +44,16 @@ namespace Microsoft.ML.AutoML
 
         public void Update(TrialResult result)
         {
+            var originalParameter = result.TrialSettings.Parameter;
             var schema = result.TrialSettings.Parameter[AutoMLExperiment.PipelineSearchspaceName]["_SCHEMA_"].AsType<string>();
+            _pipelineProposer.Update(result, schema);
             if (_tuners.TryGetValue(schema, out var tuner))
             {
+                var parameter = result.TrialSettings.Parameter[AutoMLExperiment.PipelineSearchspaceName];
+                result.TrialSettings.Parameter = parameter;
                 tuner.Update(result);
+                result.TrialSettings.Parameter = originalParameter;
             }
-
-            _pipelineProposer.Update(result, schema);
         }
     }
 }
