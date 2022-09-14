@@ -66,14 +66,8 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
-    # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
-    - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
-      - script: |
-          rm -rf /usr/local/bin/2to3
-        displayName: MacOS Homebrew bug Workaround
-        continueOnError: true
     # Extra MacOS step required to install OS-specific dependencies
-    - ${{ if and(eq(parameters.pool.vmImage, 'macOS-10.15'), not(contains(parameters.name, 'cross')))  }}:
+    - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), not(contains(parameters.name, 'cross')))  }}:
       - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE && brew update && brew install mono-libgdiplus && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
         displayName: Install MacOS build dependencies
     # Extra Apple MacOS step required to install OS-specific dependencies
@@ -85,7 +79,7 @@ jobs:
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
       displayName: Build
-    - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
+    - ${{ if contains(parameters.pool.vmImage, 'macOS') }}:
       - task: Bash@3
         inputs:
           targetType: inline
