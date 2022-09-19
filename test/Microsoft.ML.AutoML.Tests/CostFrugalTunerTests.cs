@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using FluentAssertions;
@@ -37,7 +38,8 @@ namespace Microsoft.ML.AutoML.Test
                 };
 
                 var param = cfo.Propose(trialSettings);
-                var option = param.AsType<CodeGen.LbfgsOption>();
+                trialSettings.Parameter = param;
+                var option = param.AsType<LbfgsOption>();
 
                 option.L1Regularization.Should().BeInRange(0.03125f, 32768.0f);
                 option.L2Regularization.Should().BeInRange(0.03125f, 32768.0f);
@@ -52,6 +54,58 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void CFO_should_be_recoverd_if_history_provided()
+        {
+            // this test verify that cfo can be recovered by replaying history.
+            var searchSpace = new SearchSpace<LbfgsOption>();
+            var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
+            var history = new List<TrialResult>();
+            for (int i = 0; i != 100; ++i)
+            {
+                var settings = new TrialSettings()
+                {
+                    TrialId = i,
+                };
+
+                var param = cfo.Propose(settings);
+                settings.Parameter = param;
+                var lseParam = param.AsType<LSE3DSearchSpace>();
+                var x = lseParam.X;
+                var y = lseParam.Y;
+                var z = lseParam.Z;
+                var loss = -LSE3D(x, y, z);
+                if (x == 10 && y == 10 && z == 10)
+                {
+                    break;
+                }
+
+                var result = new TrialResult()
+                {
+                    Loss = loss,
+                    DurationInMilliseconds = 1 * 1000,
+                    TrialSettings = settings,
+                };
+                cfo.Update(result);
+                history.Add(result);
+            }
+
+            var newCfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
+            foreach (var result in history.Take(99))
+            {
+                newCfo.Update(result);
+            }
+
+            var lastResult = history.Last();
+            var trialSettings = lastResult.TrialSettings;
+
+            var nextParameterFromNewCfo = newCfo.Propose(trialSettings);
+            var lseParameterFromNewCfo = nextParameterFromNewCfo.AsType<LSE3DSearchSpace>();
+            var lossFromNewCfo = -LSE3D(lseParameterFromNewCfo.X, lseParameterFromNewCfo.Y, lseParameterFromNewCfo.Z);
+            lossFromNewCfo.Should().BeApproximately(lastResult.Loss, 0.1);
+        }
+
+        [Fact]
         public void CFO_should_start_from_init_point_if_provided()
         {
             var trialSettings = new TrialSettings()
@@ -60,7 +114,7 @@ namespace Microsoft.ML.AutoML.Test
             };
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), true);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
             var param = cfo.Propose(trialSettings).AsType<LSE3DSearchSpace>();
             var x = param.X;
             var y = param.Y;
@@ -74,7 +128,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), false);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
             double bestMetric = 0;
             for (int i = 0; i != 100; ++i)
             {
@@ -83,10 +137,12 @@ namespace Microsoft.ML.AutoML.Test
                     TrialId = 0,
                 };
 
-                var param = cfo.Propose(trialSettings).AsType<LSE3DSearchSpace>();
-                var x = param.X;
-                var y = param.Y;
-                var z = param.Z;
+                var param = cfo.Propose(trialSettings);
+                trialSettings.Parameter = param;
+                var lseParam = param.AsType<LSE3DSearchSpace>();
+                var x = lseParam.X;
+                var y = lseParam.Y;
+                var z = lseParam.Z;
                 var metric = LSE3D(x, y, z);
                 bestMetric = Math.Max(bestMetric, metric);
                 Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
@@ -96,6 +152,7 @@ namespace Microsoft.ML.AutoML.Test
                 }
                 cfo.Update(new TrialResult()
                 {
+                    Loss = -metric,
                     DurationInMilliseconds = 1 * 1000,
                     Metric = metric,
                     TrialSettings = trialSettings,
@@ -110,7 +167,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), true);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
             double loss = 0;
             for (int i = 0; i != 100; ++i)
             {
@@ -119,10 +176,12 @@ namespace Microsoft.ML.AutoML.Test
                     TrialId = i,
                 };
 
-                var param = cfo.Propose(trialSettings).AsType<LSE3DSearchSpace>();
-                var x = param.X;
-                var y = param.Y;
-                var z = param.Z;
+                var param = cfo.Propose(trialSettings);
+                trialSettings.Parameter = param;
+                var lseParam = param.AsType<LSE3DSearchSpace>();
+                var x = lseParam.X;
+                var y = lseParam.Y;
+                var z = lseParam.Z;
                 loss = LSE3D(x, y, z);
                 Output.WriteLine(loss.ToString());
                 Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
@@ -134,6 +193,7 @@ namespace Microsoft.ML.AutoML.Test
 
                 cfo.Update(new TrialResult()
                 {
+                    Loss = loss,
                     DurationInMilliseconds = 1000,
                     Metric = loss,
                     TrialSettings = trialSettings,
@@ -148,7 +208,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), true);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
             double bestMetric = 0;
             for (int i = 0; i != 1000; ++i)
             {
@@ -156,10 +216,12 @@ namespace Microsoft.ML.AutoML.Test
                 {
                     TrialId = i,
                 };
-                var param = cfo.Propose(trialSettings).AsType<LSE3DSearchSpace>();
-                var x = param.X;
-                var y = param.Y;
-                var z = param.Z;
+                var param = cfo.Propose(trialSettings);
+                trialSettings.Parameter = param;
+                var lseParam = param.AsType<LSE3DSearchSpace>();
+                var x = lseParam.X;
+                var y = lseParam.Y;
+                var z = lseParam.Z;
                 var metric = F1(x, y, z);
                 bestMetric = Math.Min(bestMetric, metric);
                 Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
@@ -185,7 +247,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), true);
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
             var originalCuture = Thread.CurrentThread.CurrentCulture;
             var usCulture = new CultureInfo("en-US", false);
             Thread.CurrentThread.CurrentCulture = usCulture;

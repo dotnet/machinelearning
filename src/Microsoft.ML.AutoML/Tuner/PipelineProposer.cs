@@ -40,10 +40,9 @@ namespace Microsoft.ML.AutoML
 
         private readonly Random _rand;
         private readonly SweepablePipeline _sweepablePipeline;
-        private readonly IMetricManager _metricManager;
         private readonly string[] _pipelineSchemas;
 
-        public PipelineProposer(SweepablePipeline sweepablePipeline, AutoMLExperimentSettings settings, IMetricManager metricManager)
+        public PipelineProposer(SweepablePipeline sweepablePipeline, AutoMLExperimentSettings settings)
         {
             // this cost is used to initialize eci when started, the smaller the number, the less cost this trainer will use at start, and more likely it will be
             // picked.
@@ -84,7 +83,6 @@ namespace Microsoft.ML.AutoML
             }
 
             _pipelineSchemas = _sweepablePipeline.Schema.ToTerms().Select(t => t.ToString()).ToArray();
-            _metricManager = metricManager;
         }
 
         public (SearchSpace.SearchSpace, string) ProposeSearchSpace()
@@ -126,7 +124,7 @@ namespace Microsoft.ML.AutoML
 
         public void Update(TrialResult result, string schema)
         {
-            var error = CaculateError(result.Metric, _metricManager.IsMaximize);
+            var loss = result.Loss;
             var duration = result.DurationInMilliseconds / 1000;
             var isSuccess = duration != 0;
 
@@ -143,11 +141,11 @@ namespace Microsoft.ML.AutoML
                 {
                     _k1 = _pipelineSchemas.ToDictionary(id => id, id => duration * _learnerInitialCost[id] / _learnerInitialCost[schema]);
                     _k2 = _k1.ToDictionary(kv => kv.Key, kv => kv.Value);
-                    _e1 = _pipelineSchemas.ToDictionary(id => id, id => error);
-                    _e2 = _pipelineSchemas.ToDictionary(id => id, id => 1.05 * error);
-                    _globalBestError = error;
+                    _e1 = _pipelineSchemas.ToDictionary(id => id, id => loss);
+                    _e2 = _pipelineSchemas.ToDictionary(id => id, id => 1.05 * loss);
+                    _globalBestError = loss;
                 }
-                else if (error >= _e1[schema])
+                else if (loss >= _e1[schema])
                 {
                     // if error is larger than current best error, which means there's no improvements for
                     // the last trial with the current learner.
@@ -161,18 +159,18 @@ namespace Microsoft.ML.AutoML
                     _k2[schema] = _k1[schema];
                     _k1[schema] = duration;
                     _e2[schema] = _e1[schema];
-                    _e1[schema] = error;
+                    _e1[schema] = loss;
 
                     // update global best error as well
-                    if (error < _globalBestError)
+                    if (loss < _globalBestError)
                     {
-                        _globalBestError = error;
+                        _globalBestError = loss;
                     }
                 }
 
                 // update eci
                 var eci1 = Math.Max(_k1[schema], _k2[schema]);
-                var estimatorCostForBreakThrough = 2 * (error - _globalBestError) + double.Epsilon / ((_e2[schema] - _e1[schema]) / (_k2[schema] + _k1[schema]) + double.Epsilon);
+                var estimatorCostForBreakThrough = 2 * (loss - _globalBestError) + double.Epsilon / ((_e2[schema] - _e1[schema]) / (_k2[schema] + _k1[schema]) + double.Epsilon);
                 _eci[schema] = Math.Max(eci1, estimatorCostForBreakThrough);
             }
             else

@@ -20,13 +20,11 @@ namespace Microsoft.ML.AutoML
         private readonly PipelineProposer _pipelineProposer;
         // this dictionary records the schema for each trial.
         // the key is trial id, and value is the schema for that trial.
-        private readonly IMetricManager _metricManager;
 
-        public EciCostFrugalTuner(SweepablePipeline sweepablePipeline, IMetricManager metricManager, AutoMLExperiment.AutoMLExperimentSettings settings)
+        public EciCostFrugalTuner(SweepablePipeline sweepablePipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
             _tuners = new Dictionary<string, ITuner>();
-            _pipelineProposer = new PipelineProposer(sweepablePipeline, settings, metricManager);
-            _metricManager = metricManager;
+            _pipelineProposer = new PipelineProposer(sweepablePipeline, settings);
         }
 
         public Parameter Propose(TrialSettings settings)
@@ -34,7 +32,7 @@ namespace Microsoft.ML.AutoML
             (var searchSpace, var schema) = _pipelineProposer.ProposeSearchSpace();
             if (!_tuners.ContainsKey(schema))
             {
-                var t = new CostFrugalTuner(searchSpace, searchSpace.SampleFromFeatureSpace(searchSpace.Default), !_metricManager.IsMaximize);
+                var t = new CostFrugalTuner(searchSpace, searchSpace.SampleFromFeatureSpace(searchSpace.Default));
                 _tuners.Add(schema, t);
             }
 
@@ -46,13 +44,16 @@ namespace Microsoft.ML.AutoML
 
         public void Update(TrialResult result)
         {
+            var originalParameter = result.TrialSettings.Parameter;
             var schema = result.TrialSettings.Parameter[AutoMLExperiment.PipelineSearchspaceName]["_SCHEMA_"].AsType<string>();
+            _pipelineProposer.Update(result, schema);
             if (_tuners.TryGetValue(schema, out var tuner))
             {
+                var parameter = result.TrialSettings.Parameter[AutoMLExperiment.PipelineSearchspaceName];
+                result.TrialSettings.Parameter = parameter;
                 tuner.Update(result);
+                result.TrialSettings.Parameter = originalParameter;
             }
-
-            _pipelineProposer.Update(result, schema);
         }
     }
 }

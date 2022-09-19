@@ -16,8 +16,6 @@ namespace Microsoft.ML.AutoML
     /// </summary>
     public interface ITrialRunner : IDisposable
     {
-        TrialResult Run(TrialSettings settings);
-
         Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct);
     }
 }

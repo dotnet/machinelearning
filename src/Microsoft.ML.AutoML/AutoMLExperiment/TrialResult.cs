@@ -16,6 +16,14 @@ namespace Microsoft.ML.AutoML
 
         public ITransformer Model { get; set; }
 
+        /// <summary>
+        /// the loss for current trial, which is smaller the better. This value will be used to fit smart tuners in <see cref="AutoMLExperiment"/>.
+        /// </summary>
+        public double Loss { get; set; }
+
+        /// <summary>
+        /// Evaluation result.
+        /// </summary>
         public double Metric { get; set; }
 
         public double DurationInMilliseconds { get; set; }
