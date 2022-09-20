@@ -232,10 +232,10 @@ namespace Microsoft.ML.AutoML
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
             var logger = serviceProvider.GetRequiredService<IChannel>();
+            var trialResultManager = serviceProvider.GetService<ITrialResultManager>();
             var trialNum = 0;
             var tuner = serviceProvider.GetService<ITuner>();
             Contracts.Assert(tuner != null, "tuner can't be null");
-
             while (!_globalCancellationTokenSource.Token.IsCancellationRequested)
             {
                 var setting = new TrialSettings()
@@ -283,7 +283,7 @@ namespace Microsoft.ML.AutoML
 
                         monitor?.ReportCompletedTrial(trialResult);
                         tuner.Update(trialResult);
-
+                        trialResultManager?.AddOrUpdateTrialResult(trialResult);
                         var loss = trialResult.Loss;
                         if (loss < _bestLoss)
                         {
@@ -322,6 +322,8 @@ namespace Microsoft.ML.AutoML
                         throw;
                     }
                 }
+
+                trialResultManager?.Save();
             }
 
             if (_bestTrialResult == null)

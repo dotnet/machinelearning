@@ -23,12 +23,12 @@ namespace Microsoft.ML.AutoML
         private bool _initUsed = false;
         private double _bestLoss;
 
-        public CostFrugalTuner(AutoMLExperiment.AutoMLExperimentSettings settings)
-            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default))
+        public CostFrugalTuner(AutoMLExperiment.AutoMLExperimentSettings settings, ITrialResultManager trialResultManager = null)
+            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default), trialResultManager.GetAllTrialResults())
         {
         }
 
-        public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null)
+        public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, IEnumerable<TrialResult> trialResults = null)
         {
             _searchSpace = searchSpace;
             _localSearch = new Flow2(searchSpace, initValue, true);
