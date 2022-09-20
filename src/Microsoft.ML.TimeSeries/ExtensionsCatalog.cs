@@ -451,7 +451,7 @@ namespace Microsoft.ML
         /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
         /// <param name="trainSize">The length of series from the beginning used for training.</param>
         /// <param name="horizon">The number of values to forecast.</param>
-        /// <param name="isAdaptive">The flag determing whether the model is adaptive.</param>
+        /// <param name="isAdaptive">The flag determining whether the model is adaptive.</param>
         /// <param name="discountFactor">The discount factor in [0,1] used for online updates.</param>
         /// <param name="rankSelectionMethod">The rank selection method.</param>
         /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r). This parameter should be in the range in [1, windowSize].

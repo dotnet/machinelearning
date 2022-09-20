@@ -16,10 +16,10 @@
     <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
     <MicrosoftExtensionsVersion>2.1.0</MicrosoftExtensionsVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>6.0.0</MicrosoftExtensionsDependencyInjectionVersion>
-    <SystemBuffersVersion>4.5.0</SystemBuffersVersion>
+    <SkiaSharpVersion>2.88.3</SkiaSharpVersion>
+    <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
     <SystemCodeDomVersion>4.5.0</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
-    <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemMemoryVersion>4.5.3</SystemMemoryVersion>
     <SystemReflectionEmitLightweightVersion>4.3.0</SystemReflectionEmitLightweightVersion>
