@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -326,6 +327,37 @@ namespace Microsoft.ML.AutoML.Test
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
+        }
+
+
+        [LightGBMFact]
+        public void SweepablePipeline_AutoFit_UCI_Adult_CrossValidation_10_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
+            var experiment = context.Auto().CreateExperiment();
+            var pipeline = context.Auto().Featurizer(trainData, columnInference.ColumnInformation)
+                            .Append(context.Auto().BinaryClassification(labelColumnName: DatasetUtil.UciAdultLabel));
+
+            experiment.SetPipeline(pipeline)
+                    .SetDataset(trainData, 5)
+                    .SetBinaryClassificationMetric(BinaryClassificationMetric.Accuracy, DatasetUtil.UciAdultLabel)
+                    .SetTrainingTimeInSeconds(100)
+                    .SetCheckpoint(Path.Combine(Path.GetTempPath(), "UCI"))
+                    .SetTuner<CostFrugalTuner>();
+
+            var res = experiment.Run();
+            res.Metric.Should().BeGreaterThan(0.5);
         }
     }
 

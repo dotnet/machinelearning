@@ -57,7 +57,7 @@ namespace Microsoft.ML.AutoML.Test
         public void CFO_should_be_recoverd_if_history_provided()
         {
             // this test verify that cfo can be recovered by replaying history.
-            var searchSpace = new SearchSpace<LbfgsOption>();
+            var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
             var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
             var history = new List<TrialResult>();
@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML.Test
             var nextParameterFromNewCfo = newCfo.Propose(trialSettings);
             var lseParameterFromNewCfo = nextParameterFromNewCfo.AsType<LSE3DSearchSpace>();
             var lossFromNewCfo = -LSE3D(lseParameterFromNewCfo.X, lseParameterFromNewCfo.Y, lseParameterFromNewCfo.Z);
-            lossFromNewCfo.Should().BeApproximately(lastResult.Loss.Value, 0.1);
+            lossFromNewCfo.Should().BeApproximately(lastResult.Loss.Value, 1);
         }
 
         [Fact]

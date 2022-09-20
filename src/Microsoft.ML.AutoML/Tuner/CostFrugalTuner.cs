@@ -37,6 +37,14 @@ namespace Microsoft.ML.AutoML
             _lsBoundMax = _searchSpace.MappingToFeatureSpace(initValue);
             _initUsed = false;
             _bestLoss = double.MaxValue;
+
+            if (trialResults != null)
+            {
+                foreach (var trial in trialResults)
+                {
+                    Update(trial);
+                }
+            }
         }
 
         public Parameter Propose(TrialSettings settings)
@@ -86,7 +94,7 @@ namespace Microsoft.ML.AutoML
             }
             else
             {
-                _searchThreadPool[threadId].OnTrialComplete(trialId, loss, cost);
+                _searchThreadPool[threadId].OnTrialComplete(parameter, loss, cost);
                 if (_searchThreadPool[threadId].IsConverged)
                 {
                     _searchThreadPool.Remove(threadId);

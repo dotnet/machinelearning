@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -233,7 +234,7 @@ namespace Microsoft.ML.AutoML
             var monitor = serviceProvider.GetService<IMonitor>();
             var logger = serviceProvider.GetRequiredService<IChannel>();
             var trialResultManager = serviceProvider.GetService<ITrialResultManager>();
-            var trialNum = 0;
+            var trialNum = trialResultManager?.GetAllTrialResults().Max(t => t.TrialSettings?.TrialId) + 1 ?? 0;
             var tuner = serviceProvider.GetService<ITuner>();
             Contracts.Assert(tuner != null, "tuner can't be null");
             while (!_globalCancellationTokenSource.Token.IsCancellationRequested)
@@ -323,9 +324,9 @@ namespace Microsoft.ML.AutoML
                         throw;
                     }
                 }
-
-                trialResultManager?.Save();
             }
+
+            trialResultManager?.Save();
 
             if (_bestTrialResult == null)
             {

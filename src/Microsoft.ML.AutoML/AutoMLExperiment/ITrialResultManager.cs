@@ -78,21 +78,25 @@ namespace Microsoft.ML.AutoML
         {
             // header (type)
             // | id (int) | loss (float) | durationInMilliseconds (float) | peakCpu (float) | peakMemoryInMegaByte (float) | parameter_i (float) |
-            using (var fileStream = new FileStream(_filePath, FileMode.OpenOrCreate))
+            using (var fileStream = new FileStream(_filePath, FileMode.Append, FileAccess.Write))
             using (var writeStream = new StreamWriter(fileStream))
             {
                 var sep = ",";
 
-                // write header
-                var header = new string[]
+                if (_trialResultsHistory.Count == 0)
                 {
+                    // write header
+                    var header = new string[]
+                    {
                     "id",
                     "loss",
                     "durationInMilliseconds",
                     "peakCpu",
                     "peakMemoryInMegaByte"
-                }.Concat(Enumerable.Range(0, _searchSpace.FeatureSpaceDim).Select(i => $"parameter_{i}"));
-                writeStream.WriteLine(string.Join(sep, header));
+                    }.Concat(Enumerable.Range(0, _searchSpace.FeatureSpaceDim).Select(i => $"parameter_{i}"));
+                    writeStream.WriteLine(string.Join(sep, header));
+                }
+
                 foreach (var trialResult in _newTrialResults.OrderBy(res => res.TrialSettings.TrialId))
                 {
                     var parameter = _searchSpace.MappingToFeatureSpace(trialResult.TrialSettings.Parameter);

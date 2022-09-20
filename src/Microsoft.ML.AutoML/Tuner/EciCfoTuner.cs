@@ -18,6 +18,7 @@ namespace Microsoft.ML.AutoML
     {
         private readonly Dictionary<string, ITuner> _tuners;
         private readonly PipelineProposer _pipelineProposer;
+        private readonly Parameter _defaultParameter;
         // this dictionary records the schema for each trial.
         // the key is trial id, and value is the schema for that trial.
 
@@ -25,6 +26,7 @@ namespace Microsoft.ML.AutoML
         {
             _tuners = new Dictionary<string, ITuner>();
             _pipelineProposer = new PipelineProposer(sweepablePipeline, settings);
+            _defaultParameter = settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default)[AutoMLExperiment.PipelineSearchspaceName];
         }
 
         public Parameter Propose(TrialSettings settings)
@@ -37,7 +39,15 @@ namespace Microsoft.ML.AutoML
             }
 
             var tuner = _tuners[schema];
-            settings.Parameter[AutoMLExperiment.PipelineSearchspaceName] = tuner.Propose(settings);
+            var parameter = tuner.Propose(settings);
+            foreach (var k in _defaultParameter)
+            {
+                if (!parameter.ContainsKey(k.Key))
+                {
+                    parameter[k.Key] = _defaultParameter[k.Key];
+                }
+            }
+            settings.Parameter[AutoMLExperiment.PipelineSearchspaceName] = parameter;
 
             return settings.Parameter;
         }

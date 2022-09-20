@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.Runtime;
@@ -167,6 +168,21 @@ namespace Microsoft.ML.AutoML
         /// <returns><see cref="AutoMLExperiment"/></returns>
         public static AutoMLExperiment SetCheckpoint(this AutoMLExperiment experiment, string folder)
         {
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            experiment.ServiceCollection.AddSingleton<ITrialResultManager>(serviceProvider =>
+            {
+                var channel = serviceProvider.GetRequiredService<IChannel>();
+                var csvFilePath = Path.Combine(folder, "trialResults.csv");
+                var settings = serviceProvider.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                var trialResultManager = new CsvTrialResultManager(csvFilePath, settings.SearchSpace, channel);
+
+                return trialResultManager;
+            });
+
             return experiment;
         }
 
