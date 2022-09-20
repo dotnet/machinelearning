@@ -124,7 +124,11 @@ namespace Microsoft.ML.AutoML
 
         public void Update(TrialResult result, string schema)
         {
-            var loss = result.Loss;
+            if (result.Loss is null)
+            {
+                return;
+            }
+            var loss = result.Loss.Value;
             var duration = result.DurationInMilliseconds / 1000;
             var isSuccess = duration != 0;
 

@@ -62,9 +62,14 @@ namespace Microsoft.ML.AutoML
 
         public void Update(TrialResult result)
         {
+            if (result.Loss is null)
+            {
+                return;
+            }
             var trialId = result.TrialSettings.TrialId;
             var parameter = result.TrialSettings.Parameter;
-            var loss = result.Loss;
+            var loss = result.Loss.Value;
+
             if (loss < _bestLoss)
             {
                 BestConfig = parameter;

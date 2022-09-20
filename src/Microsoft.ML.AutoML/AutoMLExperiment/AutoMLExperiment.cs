@@ -284,7 +284,8 @@ namespace Microsoft.ML.AutoML
                         monitor?.ReportCompletedTrial(trialResult);
                         tuner.Update(trialResult);
                         trialResultManager?.AddOrUpdateTrialResult(trialResult);
-                        var loss = trialResult.Loss;
+
+                        var loss = trialResult.Loss.Value;
                         if (loss < _bestLoss)
                         {
                             _bestTrialResult = trialResult;

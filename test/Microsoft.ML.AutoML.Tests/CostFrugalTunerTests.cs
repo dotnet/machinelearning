@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML.Test
             var nextParameterFromNewCfo = newCfo.Propose(trialSettings);
             var lseParameterFromNewCfo = nextParameterFromNewCfo.AsType<LSE3DSearchSpace>();
             var lossFromNewCfo = -LSE3D(lseParameterFromNewCfo.X, lseParameterFromNewCfo.Y, lseParameterFromNewCfo.Z);
-            lossFromNewCfo.Should().BeApproximately(lastResult.Loss, 0.1);
+            lossFromNewCfo.Should().BeApproximately(lastResult.Loss.Value, 0.1);
         }
 
         [Fact]
