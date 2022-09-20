@@ -150,7 +150,8 @@
         new TypeConfiguration("short", unsupportedMethods: new[] {"All", "Any"}),
         new TypeConfiguration("uint", classPrefix:"UInt", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
         new TypeConfiguration("ulong", classPrefix:"ULong", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
-        new TypeConfiguration("ushort", classPrefix:"UShort", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"})
+        new TypeConfiguration("ushort", classPrefix:"UShort", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
+        new TypeConfiguration("DateTime", supportsBitwise: false, supportsNumeric: false, unsupportedMethods: new[] {"And", "Or", "Xor"})
     };
 
     public string GetBinaryShiftOperationReturnType(TypeConfiguration t1)

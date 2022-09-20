@@ -169,32 +169,32 @@ namespace Microsoft.Data.Analysis
             switch (typeof(T))
             {
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
-<# if (type.TypeName == "bool") { #>
+<# if (type.TypeName == "bool" || type.TypeName == "DateTime") { #>
                 case Type <#=type.TypeName#>Type when <#=type.TypeName#>Type == typeof(<#=type.TypeName#>):
 <# if (method.IsNumeric == true) { #>
                     throw new NotSupportedException();
 <# } else { #>
-                    if (typeof(U) != typeof(bool))
+                    if (typeof(U) != typeof(<#=type.TypeName#>))
                     {
                         throw new NotSupportedException();
                     }
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                    PrimitiveDataFrameColumn<bool> retColumn = CloneAsBooleanColumn();
+                    PrimitiveDataFrameColumn<bool> ret<#=type.TypeName#>Column = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.<#=method.MethodName#>(Unsafe.As<U, bool>(ref value), retColumn._columnContainer);
+                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.<#=method.MethodName#>(Unsafe.As<U, bool>(ref value), ret<#=type.TypeName#>Column._columnContainer);
 <# } else { #>
-                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.<#=method.MethodName#>(column._columnContainer, retColumn._columnContainer);
+                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.<#=method.MethodName#>(column._columnContainer, ret<#=type.TypeName#>Column._columnContainer);
 <# } #>
 <# } else if (method.MethodType == MethodType.BinaryScalar) {#>
                     PrimitiveDataFrameColumn<U> column = this as PrimitiveDataFrameColumn<U>;
-                    PrimitiveDataFrameColumn<U> retColumn = <#=GenerateInPlaceStatement("column", "column.Clone()")#>;
-                    retColumn._columnContainer.<#=method.MethodName#>(value);
+                    PrimitiveDataFrameColumn<U> ret<#=type.TypeName#>Column = <#=GenerateInPlaceStatement("column", "column.Clone()")#>;
+                    ret<#=type.TypeName#>Column._columnContainer.<#=method.MethodName#>(value);
 <# } else { #>
                     PrimitiveDataFrameColumn<U> column = this as PrimitiveDataFrameColumn<U>;
-                    PrimitiveDataFrameColumn<U> retColumn = <#=GenerateInPlaceStatement("column", "column.Clone()")#>;
-                    retColumn._columnContainer.<#=method.MethodName#>(column._columnContainer);
+                    PrimitiveDataFrameColumn<U> ret<#=type.TypeName#>Column = <#=GenerateInPlaceStatement("column", "column.Clone()")#>;
+                    ret<#=type.TypeName#>Column._columnContainer.<#=method.MethodName#>(column._columnContainer);
 <# } #>
-                    return retColumn;
+                    return ret<#=type.TypeName#>Column;
 <# } #>
 <# } else if (type.TypeName == "decimal") { #>
                 case Type <#=type.TypeName#>Type when <#=type.TypeName#>Type == typeof(<#=type.TypeName#>):
@@ -231,7 +231,7 @@ namespace Microsoft.Data.Analysis
                         return newColumn;
 <# } #>
                     }
-                    else 
+                    else
                     {
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
                         if (inPlace)
@@ -314,7 +314,7 @@ namespace Microsoft.Data.Analysis
                         return newColumn;
 <# } #>
                     }
-                    else 
+                    else
                     {
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
                         if (inPlace)

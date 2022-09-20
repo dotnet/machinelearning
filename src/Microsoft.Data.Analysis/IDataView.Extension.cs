@@ -68,6 +68,10 @@ namespace Microsoft.ML
                 {
                     dataFrameColumns.Add(new BooleanDataFrameColumn(dataViewColumn.Name));
                 }
+                else if (type == DateTimeDataViewType.Instance)
+                {
+                    dataFrameColumns.Add(new DateTimeDataFrameColumn(dataViewColumn.Name));
+                }
                 else if (type == NumberDataViewType.Byte)
                 {
                     dataFrameColumns.Add(new ByteDataFrameColumn(dataViewColumn.Name));

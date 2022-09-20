@@ -86,7 +86,12 @@ public static class ComparisonOperationCombinations
                 {
                     continue;
                 }
+                // Bool should only compare with bool, DateTime only with DateTime
                 if (type.TypeName == "bool" && innerType.TypeName != "bool")
+                {
+                    continue;
+                }
+                if (type.TypeName == "DateTime" && innerType.TypeName != "DateTime")
                 {
                     continue;
                 }

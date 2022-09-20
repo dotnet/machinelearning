@@ -21,9 +21,9 @@ namespace Microsoft.Data.Analysis
         where T : struct
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
-       <#= method.GetMethodSignature("PrimitiveColumnContainer", "T")#>;
+        <#= method.GetMethodSignature("PrimitiveColumnContainer", "T")#>;
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
-       <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", "T")#>;
+        <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", "T")#>;
 <# } #>
 <# } #>
     }
@@ -58,7 +58,7 @@ namespace Microsoft.Data.Analysis
 <# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
             throw new NotSupportedException();
 <# } else if (method.Operator != null) { #>
-            for (int b = 0 ; b < <#= method.Op1Name #>.Buffers.Count; b++)
+            for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)
             {
                 var buffer = <#= method.Op1Name #>.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(buffer);
@@ -84,22 +84,22 @@ namespace Microsoft.Data.Analysis
             }
 <# } #>
         }
-<# if (method.MethodType == MethodType.BinaryScalar) { #> 
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
         public <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", type.TypeName) #>
         {
 <# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
-            throw new NotSupportedException(); 
+            throw new NotSupportedException();
 <# } else if (method.Operator != null) { #>
-            for (int b = 0 ; b < <#= method.Op1Name #>.Buffers.Count; b++)
+            for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)
             {
-                var buffer = <#= method.Op1Name #>.Buffers[b]; 
+                var buffer = <#= method.Op1Name #>.Buffers[b];
                 var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(buffer);
                 <#= method.Op1Name #>.Buffers[b] = mutableBuffer;
                 var span = mutableBuffer.Span;
 <# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) { #>
                 var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;
 <# } #>
-                for (int i = 0; i < span.Length; i++) 
+                for (int i = 0; i < span.Length; i++)
                 {
 <# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.BinaryInt) { #>
                     span[i] = (<#=type.TypeName#>)(<#= method.Op2Name #> <#= method.Operator #> span[i]);
@@ -112,8 +112,4 @@ namespace Microsoft.Data.Analysis
 <# } #>
     }
 <# } #>
-
-
-
-
 }
