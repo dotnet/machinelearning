@@ -286,7 +286,7 @@ namespace Microsoft.ML.AutoML
                         tuner.Update(trialResult);
                         trialResultManager?.AddOrUpdateTrialResult(trialResult);
 
-                        var loss = trialResult.Loss.Value;
+                        var loss = trialResult.Loss;
                         if (loss < _bestLoss)
                         {
                             _bestTrialResult = trialResult;

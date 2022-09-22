@@ -6,8 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.Runtime;
+using Newtonsoft.Json;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
@@ -176,8 +179,20 @@ namespace Microsoft.ML.AutoML
             experiment.ServiceCollection.AddSingleton<ITrialResultManager>(serviceProvider =>
             {
                 var channel = serviceProvider.GetRequiredService<IChannel>();
-                var csvFilePath = Path.Combine(folder, "trialResults.csv");
                 var settings = serviceProvider.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+
+                // todo
+                // pull out the logic of calculating experiment id into a stand-alone service.
+                var metricManager = serviceProvider.GetService<IMetricManager>();
+                var csvFileName = "trialResults";
+                csvFileName += $"-{settings.SearchSpace.GetHashCode()}";
+                if (metricManager is IMetricManager)
+                {
+                    csvFileName += $"-{metricManager.MetricName}";
+                }
+                csvFileName += ".csv";
+
+                var csvFilePath = Path.Combine(folder, csvFileName);
                 var trialResultManager = new CsvTrialResultManager(csvFilePath, settings.SearchSpace, channel);
 
                 return trialResultManager;

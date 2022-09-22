@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML
     internal class PipelineProposer
     {
         private readonly Dictionary<EstimatorType, double> _estimatorCost;
-        private Dictionary<string, double> _learnerInitialCost;
+        private readonly Dictionary<string, double> _learnerInitialCost;
 
         // total time spent on last best error for each learner.
         private Dictionary<string, double> _k1;
@@ -35,12 +35,13 @@ namespace Microsoft.ML.AutoML
         private Dictionary<string, double> _e2;
 
         // flaml ECI
-        private Dictionary<string, double> _eci;
+        private readonly Dictionary<string, double> _eci;
         private double _globalBestError;
 
         private readonly Random _rand;
         private readonly SweepablePipeline _sweepablePipeline;
         private readonly string[] _pipelineSchemas;
+        private bool _initialized = false;
 
         public PipelineProposer(SweepablePipeline sweepablePipeline, AutoMLExperimentSettings settings)
         {
@@ -83,16 +84,17 @@ namespace Microsoft.ML.AutoML
             }
 
             _pipelineSchemas = _sweepablePipeline.Schema.ToTerms().Select(t => t.ToString()).ToArray();
+            _learnerInitialCost = _pipelineSchemas.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _sweepablePipeline));
+            // initialize eci with the estimated cost and always start from pipeline which has lowest cost.
+            _eci = _pipelineSchemas.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _sweepablePipeline));
         }
 
-        public (SearchSpace.SearchSpace, string) ProposeSearchSpace()
+        public string ProposeSearchSpace()
         {
-            _learnerInitialCost = _pipelineSchemas.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _sweepablePipeline));
             string schema;
-            if (_eci == null)
+            if (!_initialized)
             {
-                // initialize eci with the estimated cost and always start from pipeline which has lowest cost.
-                _eci = _pipelineSchemas.ToDictionary(kv => kv, kv => GetEstimatedCostForPipeline(kv, _sweepablePipeline));
+                _initialized = true;
                 schema = _eci.OrderBy(kv => kv.Value).First().Key;
             }
             else
@@ -119,16 +121,13 @@ namespace Microsoft.ML.AutoML
                 schema = _pipelineSchemas[i];
             }
 
-            return (_sweepablePipeline.BuildSweepableEstimatorPipeline(schema).SearchSpace, schema);
+            return schema;
         }
 
         public void Update(TrialResult result, string schema)
         {
-            if (result.Loss is null)
-            {
-                return;
-            }
-            var loss = result.Loss.Value;
+            _initialized = true;
+            var loss = result.Loss;
             var duration = result.DurationInMilliseconds / 1000;
             var isSuccess = duration != 0;
 
@@ -137,7 +136,7 @@ namespace Microsoft.ML.AutoML
             // k1: for every learner, k1[l] = c * duration where c is a ratio defined in learnerInitialCost
             // k2: k2 = k1, which indicates the hypothesis that it costs the same time for learners to reach the next break through.
             // e1: current error
-            // e2: 1.001*e1
+            // e2: e1 + 1.05 * |e1|
 
             if (isSuccess)
             {
@@ -146,7 +145,7 @@ namespace Microsoft.ML.AutoML
                     _k1 = _pipelineSchemas.ToDictionary(id => id, id => duration * _learnerInitialCost[id] / _learnerInitialCost[schema]);
                     _k2 = _k1.ToDictionary(kv => kv.Key, kv => kv.Value);
                     _e1 = _pipelineSchemas.ToDictionary(id => id, id => loss);
-                    _e2 = _pipelineSchemas.ToDictionary(id => id, id => 1.05 * loss);
+                    _e2 = _pipelineSchemas.ToDictionary(id => id, id => loss + 0.05 * Math.Abs(loss));
                     _globalBestError = loss;
                 }
                 else if (loss >= _e1[schema])
@@ -174,7 +173,7 @@ namespace Microsoft.ML.AutoML
 
                 // update eci
                 var eci1 = Math.Max(_k1[schema], _k2[schema]);
-                var estimatorCostForBreakThrough = 2 * (loss - _globalBestError) + double.Epsilon / ((_e2[schema] - _e1[schema]) / (_k2[schema] + _k1[schema]) + double.Epsilon);
+                var estimatorCostForBreakThrough = (2 * (loss - _globalBestError) + double.Epsilon) / ((_e2[schema] - _e1[schema]) / (_k2[schema] + _k1[schema]) + double.Epsilon);
                 _eci[schema] = Math.Max(eci1, estimatorCostForBreakThrough);
             }
             else
@@ -182,10 +181,6 @@ namespace Microsoft.ML.AutoML
                 // double eci of current trial twice of maxium ecis.
                 _eci[schema] = _eci.Select(kv => kv.Value).Max() * 2;
             }
-
-            // normalize eci
-            var sum = _eci.Select(x => x.Value).Sum();
-            _eci = _eci.Select(x => (x.Key, x.Value / sum)).ToDictionary(x => x.Key, x => x.Item2);
 
             // TODO
             // save k1,k2,e1,e2,eci,bestError to training configuration

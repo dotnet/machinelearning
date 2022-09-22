@@ -187,6 +187,16 @@ namespace Microsoft.ML.SearchSpace.Tests
             ss.MappingToFeatureSpace(param).Should().HaveCount(0);
         }
 
+        [Fact]
+        public void Search_space_hash_code_test()
+        {
+            var ss = new SearchSpace<BasicSearchSpace>();
+            ss.GetHashCode().Should().Be(1015106110);
+
+            ss.Remove("UniformInt");
+            ss.GetHashCode().Should().Be(515508798);
+        }
+
         private class DefaultSearchSpace
         {
             public int Int { get; set; }

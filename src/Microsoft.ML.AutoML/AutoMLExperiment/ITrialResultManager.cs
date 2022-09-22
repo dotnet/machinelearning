@@ -105,7 +105,7 @@ namespace Microsoft.ML.AutoML
                         new string[]
                         {
                             trialResult.TrialSettings.TrialId.ToString(CultureInfo.InvariantCulture),
-                            trialResult.Loss?.ToString("F3", CultureInfo.InvariantCulture),
+                            trialResult.Loss.ToString("F3", CultureInfo.InvariantCulture),
                             trialResult.DurationInMilliseconds.ToString("F3", CultureInfo.InvariantCulture),
                             trialResult.PeakCpu?.ToString("F3", CultureInfo.InvariantCulture),
                             trialResult.PeakMemoryInMegaByte?.ToString("F3", CultureInfo.InvariantCulture),
