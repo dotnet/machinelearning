@@ -11,7 +11,7 @@ namespace Microsoft.ML.AutoML
     // an implemetation of "Frugal Optimization for Cost-related Hyperparameters" : https://www.aaai.org/AAAI21Papers/AAAI-10128.WuQ.pdf
     internal class CostFrugalTuner : ITuner
     {
-        private readonly RandomNumberGenerator _rng;
+        private readonly RandomNumberGenerator _rng = new RandomNumberGenerator();
         private readonly SearchSpace.SearchSpace _searchSpace;
         private readonly Flow2 _localSearch;
         private readonly Dictionary<int, SearchThread> _searchThreadPool = new Dictionary<int, SearchThread>();

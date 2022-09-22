@@ -18,7 +18,7 @@ namespace Microsoft.ML.AutoML
         private const double _stepSize = 0.1;
         private const double _stepLowerBound = 0.0001;
 
-        private readonly RandomNumberGenerator _rng;
+        private readonly RandomNumberGenerator _rng = new RandomNumberGenerator();
 
         public double? BestObj = null;
         public double? CostIncumbent = null;
