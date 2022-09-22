@@ -59,7 +59,8 @@ namespace Microsoft.ML.AutoML.Test
             // this test verify that cfo can be recovered by replaying history.
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
-            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
+            var seed = 0;
+            var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), seed: seed);
             var history = new List<TrialResult>();
             for (int i = 0; i != 100; ++i)
             {
@@ -75,11 +76,6 @@ namespace Microsoft.ML.AutoML.Test
                 var y = lseParam.Y;
                 var z = lseParam.Z;
                 var loss = -LSE3D(x, y, z);
-                if (x == 10 && y == 10 && z == 10)
-                {
-                    break;
-                }
-
                 var result = new TrialResult()
                 {
                     Loss = loss,
@@ -90,19 +86,14 @@ namespace Microsoft.ML.AutoML.Test
                 history.Add(result);
             }
 
-            var newCfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
-            foreach (var result in history.Take(99))
-            {
-                newCfo.Update(result);
-            }
-
+            var newCfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues), history.Take(99), seed);
             var lastResult = history.Last();
             var trialSettings = lastResult.TrialSettings;
-
             var nextParameterFromNewCfo = newCfo.Propose(trialSettings);
             var lseParameterFromNewCfo = nextParameterFromNewCfo.AsType<LSE3DSearchSpace>();
             var lossFromNewCfo = -LSE3D(lseParameterFromNewCfo.X, lseParameterFromNewCfo.Y, lseParameterFromNewCfo.Z);
-            lossFromNewCfo.Should().BeApproximately(lastResult.Loss, 1);
+            lastResult.Loss.Should().BeApproximately(-10.1537, 1e-3);
+            lossFromNewCfo.Should().BeApproximately(-11.0986, 0.01);
         }
 
         [Fact]

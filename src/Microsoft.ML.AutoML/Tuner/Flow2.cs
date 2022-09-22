@@ -18,7 +18,7 @@ namespace Microsoft.ML.AutoML
         private const double _stepSize = 0.1;
         private const double _stepLowerBound = 0.0001;
 
-        private readonly RandomNumberGenerator _rng = new RandomNumberGenerator();
+        private readonly RandomNumberGenerator _rng;
 
         public double? BestObj = null;
         public double? CostIncumbent = null;
@@ -37,7 +37,7 @@ namespace Microsoft.ML.AutoML
         private readonly double _stepUpperBound;
         private int _trialCount = 1;
 
-        public Flow2(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true, double convergeSpeed = 1.5)
+        public Flow2(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true, double convergeSpeed = 1.5, RandomNumberGenerator rng = null)
         {
             _searchSpace = searchSpace;
             _minimize = minimizeMode;
@@ -54,6 +54,11 @@ namespace Microsoft.ML.AutoML
             {
                 _step = _stepUpperBound;
             }
+
+            if (rng != null)
+            {
+                _rng = rng;
+            }
         }
 
         public bool IsConverged
@@ -68,7 +73,7 @@ namespace Microsoft.ML.AutoML
 
         public SearchThread CreateSearchThread(Parameter config, double metric, double cost)
         {
-            var flow2 = new Flow2(_searchSpace, config, _minimize, convergeSpeed: _convergeSpeed);
+            var flow2 = new Flow2(_searchSpace, config, _minimize, convergeSpeed: _convergeSpeed, rng: _rng);
             flow2.BestObj = metric;
             flow2.CostIncumbent = cost;
             return new SearchThread(flow2);
