@@ -55,10 +55,7 @@ namespace Microsoft.ML.AutoML
                 _step = _stepUpperBound;
             }
 
-            if (rng != null)
-            {
-                _rng = rng;
-            }
+            _rng = rng;
         }
 
         public bool IsConverged

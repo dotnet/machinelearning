@@ -88,11 +88,11 @@ namespace Microsoft.ML.AutoML
                     // write header
                     var header = new string[]
                     {
-                    "id",
-                    "loss",
-                    "durationInMilliseconds",
-                    "peakCpu",
-                    "peakMemoryInMegaByte"
+                        "id",
+                        "loss",
+                        "durationInMilliseconds",
+                        "peakCpu",
+                        "peakMemoryInMegaByte"
                     }.Concat(Enumerable.Range(0, _searchSpace.FeatureSpaceDim).Select(i => $"parameter_{i}"));
                     writeStream.WriteLine(string.Join(sep, header));
                 }
@@ -129,7 +129,7 @@ namespace Microsoft.ML.AutoML
         {
             if (!File.Exists(filePath))
             {
-                return new TrialResult[0];
+                return Array.Empty<TrialResult>();
             }
 
             // header (type)

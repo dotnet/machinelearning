@@ -94,8 +94,8 @@ namespace Microsoft.ML.AutoML
             string schema;
             if (!_initialized)
             {
-                _initialized = true;
                 schema = _eci.OrderBy(kv => kv.Value).First().Key;
+                _initialized = true;
             }
             else
             {
@@ -126,7 +126,6 @@ namespace Microsoft.ML.AutoML
 
         public void Update(TrialResult result, string schema)
         {
-            _initialized = true;
             var loss = result.Loss;
             var duration = result.DurationInMilliseconds / 1000;
             var isSuccess = duration != 0;
@@ -182,14 +181,9 @@ namespace Microsoft.ML.AutoML
                 _eci[schema] = _eci.Select(kv => kv.Value).Max() * 2;
             }
 
-            // TODO
-            // save k1,k2,e1,e2,eci,bestError to training configuration
-            return;
-        }
+            _initialized = true;
 
-        private double CaculateError(double loss, bool isMaximize)
-        {
-            return isMaximize ? 1 - loss : loss;
+            return;
         }
 
         private double GetEstimatedCostForPipeline(string schema, SweepablePipeline pipeline)

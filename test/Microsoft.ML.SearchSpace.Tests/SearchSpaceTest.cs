@@ -191,10 +191,10 @@ namespace Microsoft.ML.SearchSpace.Tests
         public void Search_space_hash_code_test()
         {
             var ss = new SearchSpace<BasicSearchSpace>();
-            ss.GetHashCode().Should().Be(1015106110);
+            ss.GetHashCode().Should().Be(2005165306);
 
             ss.Remove("UniformInt");
-            ss.GetHashCode().Should().Be(515508798);
+            ss.GetHashCode().Should().Be(125205970);
         }
 
         private class DefaultSearchSpace

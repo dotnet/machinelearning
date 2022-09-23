@@ -168,17 +168,15 @@ namespace Microsoft.ML.SearchSpace
 
             // we need to make sure the hash code is the same not only during the same training session, but also
             // on different platform/CLR, so we can't use string.GetHashCode() here.
-            unchecked
+            uint hash = 31;
+            foreach (var c in json)
             {
-                uint hash = 31;
-                foreach (var c in json)
-                {
-                    hash += hash * 7 + c;
-                }
-
-                // make sure hash code is greater than 0
-                return (int)(hash >> 1);
+                hash = ((hash << 5) + hash) ^ c;
             }
+
+            // make sure hash code is greater than 0
+
+            return (int)(hash >> 1);
         }
 
         private Dictionary<string, OptionBase> GetOptionsFromType(Type typeInfo)
