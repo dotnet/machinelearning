@@ -368,52 +368,6 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [Theory]
-        [InlineData("en-US")]
-        [InlineData("ar-SA")]
-        [InlineData("pl-PL")]
-        public void AutoFitRegressionTest(string culture)
-        {
-            var originalCulture = Thread.CurrentThread.CurrentCulture;
-            try
-            {
-                Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
-
-                // If users run AutoML with a different locale, sometimes
-                // the sweeper encounters problems when parsing some strings.
-                // So testing in another culture is necessary.
-                // Furthermore, these issues might only occur after ~70
-                // iterations, so setting the internal maxModels parameter.
-                int maxModels = culture == "en-US" ? 1 : 75;
-
-                var experimentSettings = new RegressionExperimentSettings { MaxExperimentTimeInSeconds = 50, MaxModels = maxModels };
-
-                if (!Environment.Is64BitProcess)
-                {
-                    // LightGBM isn't available on x86 machines
-                    experimentSettings.Trainers.Remove(RegressionTrainer.LightGbm);
-                }
-
-                var context = new MLContext(1);
-                var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
-                var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
-                var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-                var trainData = textLoader.Load(dataPath);
-                var validationData = context.Data.TakeRows(trainData, 20);
-                trainData = context.Data.SkipRows(trainData, 20);
-                var result = context.Auto()
-                    .CreateRegressionExperiment(experimentSettings)
-                    .Execute(trainData, validationData,
-                        new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
-
-                Assert.True(result.RunDetails.Max(i => i?.ValidationMetrics?.RSquared) > 0.99);
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentCulture = originalCulture;
-            }
-        }
-
         [LightGBMFact]
         public void AutoFitRankingTest()
         {
