@@ -159,7 +159,7 @@ namespace Microsoft.ML.AutoML
             // split cross validation result according to sample key as well.
             if (rowCount < crossValRowCountThreshold)
             {
-                const int numCrossValFolds = 10;
+                int numCrossValFolds = 10;
                 _experiment.SetDataset(trainData, numCrossValFolds);
             }
             else

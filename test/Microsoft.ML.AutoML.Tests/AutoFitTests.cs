@@ -115,6 +115,97 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
+        [Fact]
+        public void AutoFit_Taxi_Fare_Train_Test_Split_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var dataset = DatasetUtil.GetTaxiFareTrainDataView();
+            var trainTestSplit = context.Data.TrainTestSplit(dataset);
+            var label = "fare_amount";
+            var settings = new RegressionExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+            settings.Trainers.Remove(RegressionTrainer.LightGbm);
+            settings.Trainers.Remove(RegressionTrainer.StochasticDualCoordinateAscent);
+            settings.Trainers.Remove(RegressionTrainer.LbfgsPoissonRegression);
+
+            var result = context.Auto()
+                .CreateRegressionExperiment(settings)
+                .Execute(trainTestSplit.TrainSet, trainTestSplit.TestSet, label);
+
+            Assert.True(result.BestRun.ValidationMetrics.RSquared > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.TrainerName);
+        }
+
+        [Fact]
+        public void AutoFit_Taxi_Fare_CrossValidation_10_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var dataset = DatasetUtil.GetTaxiFareTrainDataView();
+            var label = "fare_amount";
+            var settings = new RegressionExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+            settings.Trainers.Remove(RegressionTrainer.LightGbm);
+            settings.Trainers.Remove(RegressionTrainer.StochasticDualCoordinateAscent);
+            settings.Trainers.Remove(RegressionTrainer.LbfgsPoissonRegression);
+
+            var result = context.Auto()
+                .CreateRegressionExperiment(settings)
+                .Execute(dataset, 10, label);
+
+            Assert.True(result.BestRun.Results.Select(x => x.ValidationMetrics.RSquared).Min() > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.TrainerName);
+        }
+
+        [Fact]
+        public void AutoFit_Taxi_Fare_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var dataset = DatasetUtil.GetTaxiFareTrainDataView();
+            var label = "fare_amount";
+            var settings = new RegressionExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+            settings.Trainers.Remove(RegressionTrainer.LightGbm);
+            settings.Trainers.Remove(RegressionTrainer.StochasticDualCoordinateAscent);
+            settings.Trainers.Remove(RegressionTrainer.LbfgsPoissonRegression);
+
+            var result = context.Auto()
+                .CreateRegressionExperiment(settings)
+                .Execute(dataset, label);
+
+            Assert.True(result.BestRun.ValidationMetrics.RSquared > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.TrainerName);
+        }
+
         [LightGBMFact]
         public void SweepablePipeline_AutoFit_UCI_Adult_CrossValidation_10_Test()
         {
@@ -295,7 +386,7 @@ namespace Microsoft.ML.AutoML.Test
                 // iterations, so setting the internal maxModels parameter.
                 int maxModels = culture == "en-US" ? 1 : 75;
 
-                var experimentSettings = new RegressionExperimentSettings { MaxModels = maxModels };
+                var experimentSettings = new RegressionExperimentSettings { MaxExperimentTimeInSeconds = 50, MaxModels = maxModels };
 
                 if (!Environment.Is64BitProcess)
                 {
@@ -316,9 +407,6 @@ namespace Microsoft.ML.AutoML.Test
                         new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
                 Assert.True(result.RunDetails.Max(i => i?.ValidationMetrics?.RSquared) > 0.99);
-
-                // Test the internal maxModels parameter
-                Assert.True(culture == "en-US" || result.RunDetails.Count() == 75, $"RunDetails.Count() = {result.RunDetails.Count()}, is not 75");
             }
             finally
             {
