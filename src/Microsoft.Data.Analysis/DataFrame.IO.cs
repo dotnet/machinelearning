@@ -470,9 +470,9 @@ namespace Microsoft.Data.Analysis
                             bool needsQuotes = ((string)name).Contains(separator.ToString()) || ((string)name).Contains("\n");
                             if (needsQuotes)
                             {
-                                headerColumns.Append("\"");
+                                headerColumns.Append('\"');
                                 headerColumns.Append(name);
-                                headerColumns.Append("\"");
+                                headerColumns.Append('\"');
                             }
                             else
                             {
@@ -529,9 +529,9 @@ namespace Microsoft.Data.Analysis
                                 bool needsQuotes = ((string)cell).Contains(separator.ToString()) || ((string)cell).Contains("\n");
                                 if (needsQuotes)
                                 {
-                                    record.Append("\"");
+                                    record.Append('\"');
                                     record.Append(cell);
-                                    record.Append("\"");
+                                    record.Append('\"');
                                     continue;
                                 }
                             }
