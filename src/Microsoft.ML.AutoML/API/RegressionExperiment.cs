@@ -306,9 +306,8 @@ namespace Microsoft.ML.AutoML
             {
                 pipeline = pipeline.Append(preFeaturizer);
             }
+
             var label = columnInformation.LabelColumnName;
-
-
             pipeline = pipeline.Append(Context.Auto().Featurizer(trainData, columnInformation, Features));
             pipeline = pipeline.Append(Context.Auto().Regression(label, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgs: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
 
