@@ -1,6 +1,6 @@
 {
   "tools": {
-    "dotnet": "7.0.100-preview.7.22377.5",
+    "dotnet": "7.0.100-rc.1.22431.12",
     "runtimes": {
       "dotnet/x64": [
         "$(DotNetRuntime31Version)"
@@ -11,8 +11,8 @@
     }
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.22466.3",
-    "Microsoft.DotNet.Helix.Sdk": "8.0.0-beta.22466.3",
+    "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.22473.1",
+    "Microsoft.DotNet.Helix.Sdk": "8.0.0-beta.22473.1",
     "Microsoft.Build.Traversal": "2.1.1",
     "Microsoft.SourceLink.GitHub": "1.1.0-beta-20206-02",
     "Microsoft.SourceLink.Common": "1.1.0-beta-20206-02"
