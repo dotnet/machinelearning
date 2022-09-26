@@ -450,36 +450,9 @@ namespace Microsoft.Data.Analysis
             {
                 if (dataFrame != null)
                 {
-                    var columnNames = dataFrame.Columns.GetColumnNames();
-
                     if (header)
                     {
-                        bool firstColumn = true;
-                        var headerColumns = new StringBuilder();
-                        foreach (string name in columnNames)
-                        {
-                            if (!firstColumn)
-                            {
-                                headerColumns.Append(separator);
-                            }
-                            else
-                            {
-                                firstColumn = false;
-                            }
-
-                            bool needsQuotes = ((string)name).Contains(separator.ToString()) || ((string)name).Contains("\n");
-                            if (needsQuotes)
-                            {
-                                headerColumns.Append("\"");
-                                headerColumns.Append(name);
-                                headerColumns.Append("\"");
-                            }
-                            else
-                            {
-                                headerColumns.Append(name);
-                            }
-                        }
-                        csvFile.WriteLine(headerColumns);
+                        WriteHeader(csvFile, dataFrame.Columns.GetColumnNames(), separator);
                     }
 
                     var record = new StringBuilder();
@@ -526,7 +499,7 @@ namespace Microsoft.Data.Analysis
 
                             if (t == typeof(string))
                             {
-                                bool needsQuotes = ((string)cell).Contains(separator.ToString()) || ((string)cell).Contains("\n");
+                                bool needsQuotes = ((string)cell).IndexOf(separator) != -1 || ((string)cell).IndexOf('\n') != -1;
                                 if (needsQuotes)
                                 {
                                     record.Append("\"");
@@ -545,6 +518,36 @@ namespace Microsoft.Data.Analysis
                     }
                 }
             }
+        }
+        private static void WriteHeader(StreamWriter csvFile, IReadOnlyList<string> columnNames, char separator)
+        {
+            bool firstColumn = true;
+            var headerColumns = new StringBuilder();
+            foreach (string name in columnNames)
+            {
+                if (!firstColumn)
+                {
+                    headerColumns.Append(separator);
+                }
+                else
+                {
+                    firstColumn = false;
+                }
+
+                bool needsQuotes = name.IndexOf(separator) != -1 || name.IndexOf('\n') != -1;
+                if (needsQuotes)
+                {
+                    headerColumns.Append("\"");
+                    headerColumns.Append(name);
+                    headerColumns.Append("\"");
+                }
+                else
+                {
+                    headerColumns.Append(name);
+                }
+            }
+
+            csvFile.WriteLine(headerColumns);
         }
     }
 }
