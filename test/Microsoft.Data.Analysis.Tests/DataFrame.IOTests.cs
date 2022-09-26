@@ -1023,11 +1023,11 @@ CMT,";
 
         public readonly struct LoadCsvVerifyingHelper
         {
-            int _columnCount;
-            long _rowCount;
-            string[] _columnNames;
-            Type[] _columnTypes;
-            object[][] _cells;
+            private readonly int _columnCount;
+            private readonly long _rowCount;
+            private readonly string[] _columnNames;
+            private readonly Type[] _columnTypes;
+            private readonly object[][] _cells;
 
             public LoadCsvVerifyingHelper(int columnCount, long rowCount, string[] columnNames, Type[] columnTypes, object[][] cells)
             {
