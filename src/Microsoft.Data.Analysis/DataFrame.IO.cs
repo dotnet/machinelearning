@@ -502,9 +502,9 @@ namespace Microsoft.Data.Analysis
                                 bool needsQuotes = ((string)cell).IndexOf(separator) != -1 || ((string)cell).IndexOf('\n') != -1;
                                 if (needsQuotes)
                                 {
-                                    record.Append("\"");
+                                    record.Append('\"');
                                     record.Append(cell);
-                                    record.Append("\"");
+                                    record.Append('\"');
                                     continue;
                                 }
                             }
@@ -537,9 +537,9 @@ namespace Microsoft.Data.Analysis
                 bool needsQuotes = name.IndexOf(separator) != -1 || name.IndexOf('\n') != -1;
                 if (needsQuotes)
                 {
-                    headerColumns.Append("\"");
+                    headerColumns.Append('\"');
                     headerColumns.Append(name);
-                    headerColumns.Append("\"");
+                    headerColumns.Append('\"');
                 }
                 else
                 {

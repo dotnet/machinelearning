@@ -1021,7 +1021,7 @@ CMT,";
             }
         }
 
-        public struct LoadCsvVerifyingHelper
+        public readonly struct LoadCsvVerifyingHelper
         {
             int _columnCount;
             long _rowCount;
