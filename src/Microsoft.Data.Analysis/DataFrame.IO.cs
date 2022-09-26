@@ -522,12 +522,11 @@ namespace Microsoft.Data.Analysis
         private static void WriteHeader(StreamWriter csvFile, IReadOnlyList<string> columnNames, char separator)
         {
             bool firstColumn = true;
-            var headerColumns = new StringBuilder();
             foreach (string name in columnNames)
             {
                 if (!firstColumn)
                 {
-                    headerColumns.Append(separator);
+                    csvFile.Write(separator);
                 }
                 else
                 {
@@ -537,17 +536,17 @@ namespace Microsoft.Data.Analysis
                 bool needsQuotes = name.IndexOf(separator) != -1 || name.IndexOf('\n') != -1;
                 if (needsQuotes)
                 {
-                    headerColumns.Append('\"');
-                    headerColumns.Append(name);
-                    headerColumns.Append('\"');
+                    csvFile.Write('\"');
+                    csvFile.Write(name);
+                    csvFile.Write('\"');
                 }
                 else
                 {
-                    headerColumns.Append(name);
+                    csvFile.Write(name);
                 }
             }
 
-            csvFile.WriteLine(headerColumns);
+            csvFile.WriteLine();
         }
     }
 }
