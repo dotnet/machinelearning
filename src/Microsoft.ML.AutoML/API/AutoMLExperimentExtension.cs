@@ -157,6 +157,47 @@ namespace Microsoft.ML.AutoML
             return experiment;
         }
 
+        /// <summary>
+        /// Set <see cref="SmacTuner"/> as tuner for hyper-parameter optimization. The performance of smac is in a large extend determined 
+        /// by <paramref name="numberOfTrees"/>, <paramref name="nMinForSpit"/> and <paramref name="splitRatio"/>, which are used to fit smac's inner 
+        /// regressor.
+        /// </summary>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        /// <param name="numberOfTrees">number of regression trees when fitting random forest.</param>
+        /// <param name="fitModelEveryNTrials">re-fit random forests in smac for every N trials.</param>
+        /// <param name="numberInitialPopulation">Number of points to use for random initialization.</param>
+        /// <param name="splitRatio">split ratio for fitting random forest in smac.</param>
+        /// <param name="nMinForSpit">minimum number of data points required to be in a node if it is to be split further for fitting random forest in smac.</param>
+        /// <param name="localSearchParentCount">Number of search parents to use for local search in maximizing EI acquisition function.</param>
+        /// <param name="numRandomEISearchConfigurations">Number of random configurations when maximizing EI acquisition function.</param>
+        /// <param name="numNeighboursForNumericalParams">Number of neighbours to sample from when applying one-step mutation for generating new parameters.</param>
+        /// <param name="epsilon">the threshold to exit during maximizing EI acquisition function.</param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetSmacTuner(
+            this AutoMLExperiment experiment,
+            int numberInitialPopulation = 20,
+            int fitModelEveryNTrials = 10,
+            int numberOfTrees = 10,
+            int nMinForSpit = 2,
+            float splitRatio = 0.8f,
+            int localSearchParentCount = 5,
+            int numRandomEISearchConfigurations = 5000,
+            double epsilon = 1e-5,
+            int numNeighboursForNumericalParams = 4)
+        {
+            experiment.SetTuner((service) =>
+            {
+                var channel = service.GetRequiredService<IChannel>();
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                var context = service.GetRequiredService<MLContext>();
+                var smac = new SmacTuner(context, settings.SearchSpace, numberInitialPopulation, fitModelEveryNTrials, numberOfTrees, nMinForSpit, splitRatio, localSearchParentCount, numRandomEISearchConfigurations, epsilon, numNeighboursForNumericalParams, settings.Seed, channel);
+
+                return smac;
+            });
+
+            return experiment;
+        }
+
         private static AutoMLExperiment SetEvaluateMetric<TEvaluateMetricManager>(this AutoMLExperiment experiment, TEvaluateMetricManager metricManager)
             where TEvaluateMetricManager : class, IEvaluateMetricManager
         {

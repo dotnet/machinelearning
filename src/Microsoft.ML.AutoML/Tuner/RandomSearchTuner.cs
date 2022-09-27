@@ -13,13 +13,13 @@ namespace Microsoft.ML.AutoML
         private readonly SearchSpace.SearchSpace _searchSpace;
 
         public RandomSearchTuner(AutoMLExperiment.AutoMLExperimentSettings settings)
-            : this(settings.SearchSpace)
+            : this(settings.SearchSpace, settings.Seed)
         {
         }
 
-        public RandomSearchTuner(SearchSpace.SearchSpace searchSpace)
+        public RandomSearchTuner(SearchSpace.SearchSpace searchSpace, int? seed = null)
         {
-            _tuner = new RandomTuner();
+            _tuner = new RandomTuner(seed);
             _searchSpace = searchSpace;
         }
         public Parameter Propose(TrialSettings settings)
