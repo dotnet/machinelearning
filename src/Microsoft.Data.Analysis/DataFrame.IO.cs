@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Microsoft.Data.Analysis
 {
@@ -454,33 +455,7 @@ namespace Microsoft.Data.Analysis
 
                     if (header)
                     {
-                        bool firstColumn = true;
-                        var headerColumns = new StringBuilder();
-                        foreach (string name in columnNames)
-                        {
-                            if (!firstColumn)
-                            {
-                                headerColumns.Append(separator);
-                            }
-                            else
-                            {
-                                firstColumn = false;
-                            }
-
-                            bool needsQuotes = name.Contains(separator.ToString()) || name.Contains("\n") || name.Contains("\"");
-                            if (needsQuotes)
-                            {
-
-                                headerColumns.Append("\"");
-                                headerColumns.Append(name.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
-                                headerColumns.Append("\"");
-                            }
-                            else
-                            {
-                                headerColumns.Append(name);
-                            }
-                        }
-                        csvFile.WriteLine(headerColumns);
+                        WriteHeader(csvFile, dataFrame.Columns.GetColumnNames(), separator);
                     }
 
                     var record = new StringBuilder();
@@ -528,13 +503,13 @@ namespace Microsoft.Data.Analysis
                             if (t == typeof(string))
                             {
                                 string stringCell = (string)cell;
-                                bool needsQuotes = stringCell.Contains(separator.ToString()) || stringCell.Contains("\n") || stringCell.Contains("\"");
+                                bool needsQuotes = stringCell.IndexOf(separator) != -1 || stringCell.IndexOf('\n') != -1 || stringCell.IndexOf('\"') != -1;
                                 if (needsQuotes)
                                 {
 
-                                    record.Append("\"");
+                                    record.Append('\"');
                                     record.Append(stringCell.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
-                                    record.Append("\"");
+                                    record.Append('\"');
                                     continue;
                                 }
                             }
@@ -548,6 +523,35 @@ namespace Microsoft.Data.Analysis
                     }
                 }
             }
+        }
+        private static void WriteHeader(StreamWriter csvFile, IReadOnlyList<string> columnNames, char separator)
+        {
+            bool firstColumn = true;
+            foreach (string name in columnNames)
+            {
+                if (!firstColumn)
+                {
+                    csvFile.Write(separator);
+                }
+                else
+                {
+                    firstColumn = false;
+                }
+
+                bool needsQuotes = name.IndexOf(separator) != -1 || name.IndexOf('\n') != -1 || name.IndexOf('\"') != -1;
+                if (needsQuotes)
+                {
+
+                    csvFile.Write('\"');
+                    csvFile.Write(name.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
+                    csvFile.Write('\"');
+                }
+                else
+                {
+                    csvFile.Write(name);
+                }
+            }
+            csvFile.WriteLine();
         }
     }
 }
