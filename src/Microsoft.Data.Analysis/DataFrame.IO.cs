@@ -451,8 +451,6 @@ namespace Microsoft.Data.Analysis
             {
                 if (dataFrame != null)
                 {
-                    var columnNames = dataFrame.Columns.GetColumnNames();
-
                     if (header)
                     {
                         WriteHeader(csvFile, dataFrame.Columns.GetColumnNames(), separator);
