@@ -1,0 +1,86 @@
+{
+  "schema": "e0 * e1 * (e2 \u002B e3) * e4",
+  "currentSchema": "e0 * e1 * e2 * e4",
+  "estimators": {
+    "e0": {
+      "estimatorType": "ReplaceMissingValues",
+      "parameter": {
+        "OutputColumnNames": [
+          "Features"
+        ],
+        "InputColumnNames": [
+          "Features"
+        ]
+      }
+    },
+    "e1": {
+      "estimatorType": "ConvertType",
+      "parameter": {
+        "OutputColumnNames": [
+          "BooleanFeatures"
+        ],
+        "InputColumnNames": [
+          "BooleanFeatures"
+        ]
+      }
+    },
+    "e2": {
+      "estimatorType": "OneHotEncoding",
+      "parameter": {
+        "OutputColumnNames": [
+          "A1",
+          "A4",
+          "A5",
+          "A6",
+          "A7",
+          "A13"
+        ],
+        "InputColumnNames": [
+          "A1",
+          "A4",
+          "A5",
+          "A6",
+          "A7",
+          "A13"
+        ]
+      }
+    },
+    "e3": {
+      "estimatorType": "OneHotHashEncoding",
+      "parameter": {
+        "OutputColumnNames": [
+          "A1",
+          "A4",
+          "A5",
+          "A6",
+          "A7",
+          "A13"
+        ],
+        "InputColumnNames": [
+          "A1",
+          "A4",
+          "A5",
+          "A6",
+          "A7",
+          "A13"
+        ]
+      }
+    },
+    "e4": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "Features",
+          "A1",
+          "A4",
+          "A5",
+          "A6",
+          "A7",
+          "A13",
+          "BooleanFeatures"
+        ],
+        "OutputColumnName": "Features"
+      }
+    }
+  }
+}

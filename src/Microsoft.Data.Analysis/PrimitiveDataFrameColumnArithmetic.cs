@@ -116,6 +116,10 @@ namespace Microsoft.Data.Analysis
             {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new UShortArithmetic();
             }
+            else if (typeof(T) == typeof(DateTime))
+            {
+                return (IPrimitiveDataFrameColumnArithmetic<T>)new DateTimeArithmetic();
+            }
             throw new NotSupportedException();
         }
     }
@@ -130,7 +134,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Add(bool scalar, PrimitiveColumnContainer<bool> column)
         {
             throw new NotSupportedException();
@@ -143,7 +146,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Subtract(bool scalar, PrimitiveColumnContainer<bool> column)
         {
             throw new NotSupportedException();
@@ -156,7 +158,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Multiply(bool scalar, PrimitiveColumnContainer<bool> column)
         {
             throw new NotSupportedException();
@@ -169,7 +170,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Divide(bool scalar, PrimitiveColumnContainer<bool> column)
         {
             throw new NotSupportedException();
@@ -182,7 +182,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Modulo(bool scalar, PrimitiveColumnContainer<bool> column)
         {
             throw new NotSupportedException();
@@ -216,7 +215,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(bool scalar, PrimitiveColumnContainer<bool> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -260,7 +258,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(bool scalar, PrimitiveColumnContainer<bool> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -304,7 +301,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(bool scalar, PrimitiveColumnContainer<bool> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -449,7 +445,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(byte scalar, PrimitiveColumnContainer<byte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -493,7 +488,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(byte scalar, PrimitiveColumnContainer<byte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -537,7 +531,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(byte scalar, PrimitiveColumnContainer<byte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -581,7 +574,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(byte scalar, PrimitiveColumnContainer<byte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -625,7 +617,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(byte scalar, PrimitiveColumnContainer<byte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -669,7 +660,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(byte scalar, PrimitiveColumnContainer<byte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -713,7 +703,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(byte scalar, PrimitiveColumnContainer<byte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -757,7 +746,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(byte scalar, PrimitiveColumnContainer<byte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1006,7 +994,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(char scalar, PrimitiveColumnContainer<char> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1050,7 +1037,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(char scalar, PrimitiveColumnContainer<char> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1094,7 +1080,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(char scalar, PrimitiveColumnContainer<char> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1138,7 +1123,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(char scalar, PrimitiveColumnContainer<char> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1182,7 +1166,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(char scalar, PrimitiveColumnContainer<char> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1226,7 +1209,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(char scalar, PrimitiveColumnContainer<char> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1270,7 +1252,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(char scalar, PrimitiveColumnContainer<char> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1314,7 +1295,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(char scalar, PrimitiveColumnContainer<char> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1563,7 +1543,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(decimal scalar, PrimitiveColumnContainer<decimal> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1607,7 +1586,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(decimal scalar, PrimitiveColumnContainer<decimal> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1651,7 +1629,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(decimal scalar, PrimitiveColumnContainer<decimal> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1695,7 +1672,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(decimal scalar, PrimitiveColumnContainer<decimal> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1739,7 +1715,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(decimal scalar, PrimitiveColumnContainer<decimal> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -1762,7 +1737,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void And(decimal scalar, PrimitiveColumnContainer<decimal> column)
         {
             throw new NotSupportedException();
@@ -1775,7 +1749,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Or(decimal scalar, PrimitiveColumnContainer<decimal> column)
         {
             throw new NotSupportedException();
@@ -1788,7 +1761,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Xor(decimal scalar, PrimitiveColumnContainer<decimal> column)
         {
             throw new NotSupportedException();
@@ -2007,7 +1979,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(double scalar, PrimitiveColumnContainer<double> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2051,7 +2022,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(double scalar, PrimitiveColumnContainer<double> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2095,7 +2065,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(double scalar, PrimitiveColumnContainer<double> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2139,7 +2108,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(double scalar, PrimitiveColumnContainer<double> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2183,7 +2151,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(double scalar, PrimitiveColumnContainer<double> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2206,7 +2173,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void And(double scalar, PrimitiveColumnContainer<double> column)
         {
             throw new NotSupportedException();
@@ -2219,7 +2185,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Or(double scalar, PrimitiveColumnContainer<double> column)
         {
             throw new NotSupportedException();
@@ -2232,7 +2197,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Xor(double scalar, PrimitiveColumnContainer<double> column)
         {
             throw new NotSupportedException();
@@ -2451,7 +2415,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(float scalar, PrimitiveColumnContainer<float> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2495,7 +2458,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(float scalar, PrimitiveColumnContainer<float> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2539,7 +2501,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(float scalar, PrimitiveColumnContainer<float> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2583,7 +2544,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(float scalar, PrimitiveColumnContainer<float> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2627,7 +2587,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(float scalar, PrimitiveColumnContainer<float> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2650,7 +2609,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void And(float scalar, PrimitiveColumnContainer<float> column)
         {
             throw new NotSupportedException();
@@ -2663,7 +2621,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Or(float scalar, PrimitiveColumnContainer<float> column)
         {
             throw new NotSupportedException();
@@ -2676,7 +2633,6 @@ namespace Microsoft.Data.Analysis
         {
             throw new NotSupportedException();
         }
-
         public void Xor(float scalar, PrimitiveColumnContainer<float> column)
         {
             throw new NotSupportedException();
@@ -2895,7 +2851,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(int scalar, PrimitiveColumnContainer<int> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2939,7 +2894,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(int scalar, PrimitiveColumnContainer<int> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -2983,7 +2937,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(int scalar, PrimitiveColumnContainer<int> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3027,7 +2980,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(int scalar, PrimitiveColumnContainer<int> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3071,7 +3023,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(int scalar, PrimitiveColumnContainer<int> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3115,7 +3066,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(int scalar, PrimitiveColumnContainer<int> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3159,7 +3109,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(int scalar, PrimitiveColumnContainer<int> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3203,7 +3152,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(int scalar, PrimitiveColumnContainer<int> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3452,7 +3400,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(long scalar, PrimitiveColumnContainer<long> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3496,7 +3443,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(long scalar, PrimitiveColumnContainer<long> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3540,7 +3486,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(long scalar, PrimitiveColumnContainer<long> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3584,7 +3529,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(long scalar, PrimitiveColumnContainer<long> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3628,7 +3572,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(long scalar, PrimitiveColumnContainer<long> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3672,7 +3615,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(long scalar, PrimitiveColumnContainer<long> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3716,7 +3658,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(long scalar, PrimitiveColumnContainer<long> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -3760,7 +3701,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(long scalar, PrimitiveColumnContainer<long> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4009,7 +3949,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4053,7 +3992,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4097,7 +4035,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4141,7 +4078,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4185,7 +4121,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4229,7 +4164,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4273,7 +4207,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4317,7 +4250,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4566,7 +4498,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(short scalar, PrimitiveColumnContainer<short> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4610,7 +4541,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(short scalar, PrimitiveColumnContainer<short> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4654,7 +4584,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(short scalar, PrimitiveColumnContainer<short> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4698,7 +4627,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(short scalar, PrimitiveColumnContainer<short> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4742,7 +4670,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(short scalar, PrimitiveColumnContainer<short> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4786,7 +4713,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(short scalar, PrimitiveColumnContainer<short> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4830,7 +4756,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(short scalar, PrimitiveColumnContainer<short> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -4874,7 +4799,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(short scalar, PrimitiveColumnContainer<short> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5123,7 +5047,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(uint scalar, PrimitiveColumnContainer<uint> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5167,7 +5090,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(uint scalar, PrimitiveColumnContainer<uint> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5211,7 +5133,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(uint scalar, PrimitiveColumnContainer<uint> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5255,7 +5176,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(uint scalar, PrimitiveColumnContainer<uint> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5299,7 +5219,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(uint scalar, PrimitiveColumnContainer<uint> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5343,7 +5262,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(uint scalar, PrimitiveColumnContainer<uint> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5387,7 +5305,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(uint scalar, PrimitiveColumnContainer<uint> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5431,7 +5348,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(uint scalar, PrimitiveColumnContainer<uint> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5680,7 +5596,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(ulong scalar, PrimitiveColumnContainer<ulong> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5724,7 +5639,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(ulong scalar, PrimitiveColumnContainer<ulong> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5768,7 +5682,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(ulong scalar, PrimitiveColumnContainer<ulong> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5812,7 +5725,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(ulong scalar, PrimitiveColumnContainer<ulong> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5856,7 +5768,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(ulong scalar, PrimitiveColumnContainer<ulong> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5900,7 +5811,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(ulong scalar, PrimitiveColumnContainer<ulong> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5944,7 +5854,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(ulong scalar, PrimitiveColumnContainer<ulong> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -5988,7 +5897,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(ulong scalar, PrimitiveColumnContainer<ulong> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6237,7 +6145,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Add(ushort scalar, PrimitiveColumnContainer<ushort> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6281,7 +6188,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Subtract(ushort scalar, PrimitiveColumnContainer<ushort> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6325,7 +6231,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Multiply(ushort scalar, PrimitiveColumnContainer<ushort> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6369,7 +6274,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Divide(ushort scalar, PrimitiveColumnContainer<ushort> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6413,7 +6317,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Modulo(ushort scalar, PrimitiveColumnContainer<ushort> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6457,7 +6360,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void And(ushort scalar, PrimitiveColumnContainer<ushort> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6501,7 +6403,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Or(ushort scalar, PrimitiveColumnContainer<ushort> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6545,7 +6446,6 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-
         public void Xor(ushort scalar, PrimitiveColumnContainer<ushort> column)
         {
             for (int b = 0; b < column.Buffers.Count; b++)
@@ -6763,8 +6663,201 @@ namespace Microsoft.Data.Analysis
             }
         }
     }
-
-
-
-
+    internal class DateTimeArithmetic : IPrimitiveDataFrameColumnArithmetic<DateTime>
+    {
+        public void Add(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Add(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Add(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Subtract(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Subtract(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Subtract(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Multiply(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Multiply(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Multiply(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Divide(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Divide(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Divide(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Modulo(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Modulo(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Modulo(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void And(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void And(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void And(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Or(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Or(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Or(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void Xor(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
+        {
+            throw new NotSupportedException();
+        }
+        public void Xor(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
+        {
+            throw new NotSupportedException();
+        }
+        public void Xor(DateTime scalar, PrimitiveColumnContainer<DateTime> column)
+        {
+            throw new NotSupportedException();
+        }
+        public void LeftShift(PrimitiveColumnContainer<DateTime> column, int value)
+        {
+            throw new NotSupportedException();
+        }
+        public void RightShift(PrimitiveColumnContainer<DateTime> column, int value)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            for (int b = 0; b < left.Buffers.Count; b++)
+            {
+                var buffer = left.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
+                left.Buffers[b] = mutableBuffer;
+                var span = mutableBuffer.Span;
+                var otherSpan = right.Buffers[b].ReadOnlySpan;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    ret[i] = (span[i] == otherSpan[i]);
+                }
+            }
+        }
+        public void ElementwiseEquals(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            for (int b = 0; b < column.Buffers.Count; b++)
+            {
+                var buffer = column.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
+                column.Buffers[b] = mutableBuffer;
+                var span = mutableBuffer.Span;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    ret[i] = (span[i] == scalar);
+                }
+            }
+        }
+        public void ElementwiseNotEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            for (int b = 0; b < left.Buffers.Count; b++)
+            {
+                var buffer = left.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
+                left.Buffers[b] = mutableBuffer;
+                var span = mutableBuffer.Span;
+                var otherSpan = right.Buffers[b].ReadOnlySpan;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    ret[i] = (span[i] != otherSpan[i]);
+                }
+            }
+        }
+        public void ElementwiseNotEquals(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            for (int b = 0; b < column.Buffers.Count; b++)
+            {
+                var buffer = column.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
+                column.Buffers[b] = mutableBuffer;
+                var span = mutableBuffer.Span;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    ret[i] = (span[i] != scalar);
+                }
+            }
+        }
+        public void ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseLessThanOrEqual(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseLessThanOrEqual(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseGreaterThan(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseGreaterThan(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseLessThan(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+        public void ElementwiseLessThan(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
+        {
+            throw new NotSupportedException();
+        }
+    }
 }

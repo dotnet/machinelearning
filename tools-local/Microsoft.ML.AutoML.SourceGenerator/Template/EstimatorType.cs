@@ -25,9 +25,9 @@ namespace Microsoft.ML.AutoML.SourceGenerator.Template
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("\r\nusing Newtonsoft.Json;\r\nusing Newtonsoft.Json.Converters;\r\n\r\nnamespace ");
+            this.Write("\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(NameSpace));
-            this.Write("\r\n{\r\n    [JsonConverter(typeof(StringEnumConverter))]\r\n    public enum ");
+            this.Write("\r\n{\r\n    public enum ");
             this.Write(this.ToStringHelper.ToStringWithCulture(ClassName));
             this.Write("\r\n    {\r\n");
  foreach(var e in TrainerNames){

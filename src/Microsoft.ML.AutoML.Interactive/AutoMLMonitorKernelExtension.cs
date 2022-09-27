@@ -51,7 +51,7 @@ using {typeof(NotebookMonitor).Namespace};"));
                 var bestTrialParam = JsonSerializer.Serialize(monitor.BestTrial.TrialSettings.Parameter, new JsonSerializerOptions() { WriteIndented = true, });
                 summary.Add(h3("Best Trial"));
                 summary.Add(p($"Id: {monitor.BestTrial.TrialSettings.TrialId}"));
-                summary.Add(p($"Trainer: {monitor.BestTrial.TrialSettings.Pipeline}".Replace("Unknown=>", "")));
+                summary.Add(p($"Trainer: {monitor.SweepablePipeline.ToString(monitor.BestTrial.TrialSettings.Parameter)}".Replace("Unknown=>", "")));
                 summary.Add(p($"Parameters: {bestTrialParam}"));
             }
             if (monitor.ActiveTrial != null)
@@ -61,7 +61,7 @@ using {typeof(NotebookMonitor).Namespace};"));
 
                 summary.Add(h3("Active Trial"));
                 summary.Add(p($"Id: {monitor.ActiveTrial.TrialId}"));
-                summary.Add(p($"Trainer: {monitor.ActiveTrial.Pipeline}".Replace("Unknown=>", "")));
+                summary.Add(p($"Trainer: {monitor.SweepablePipeline.ToString(monitor.ActiveTrial.Parameter)}".Replace("Unknown=>", "")));
                 summary.Add(p($"Parameters: {activeTrialParam}"));
             }
 

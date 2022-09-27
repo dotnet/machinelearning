@@ -1,0 +1,124 @@
+{
+  "schema": "e0 * e1 * (e2 \u002B e3) * e4 * e5",
+  "currentSchema": "e0 * e1 * e2 * e4 * e5",
+  "estimators": {
+    "e0": {
+      "estimatorType": "ReplaceMissingValues",
+      "parameter": {
+        "OutputColumnNames": [
+          "Features"
+        ],
+        "InputColumnNames": [
+          "Features"
+        ]
+      }
+    },
+    "e1": {
+      "estimatorType": "ConvertType",
+      "parameter": {
+        "OutputColumnNames": [
+          "dummy for Children"
+        ],
+        "InputColumnNames": [
+          "dummy for Children"
+        ]
+      }
+    },
+    "e2": {
+      "estimatorType": "OneHotEncoding",
+      "parameter": {
+        "OutputColumnNames": [
+          "HH Income",
+          "Home Ownership",
+          "Ethnicity",
+          "Age range",
+          "Language",
+          "State",
+          "City",
+          "County",
+          "weekly fee",
+          "Deliveryperiod",
+          "Nielsen Prizm",
+          "Source Channel"
+        ],
+        "InputColumnNames": [
+          "HH Income",
+          "Home Ownership",
+          "Ethnicity",
+          "Age range",
+          "Language",
+          "State",
+          "City",
+          "County",
+          "weekly fee",
+          "Deliveryperiod",
+          "Nielsen Prizm",
+          "Source Channel"
+        ]
+      }
+    },
+    "e3": {
+      "estimatorType": "OneHotHashEncoding",
+      "parameter": {
+        "OutputColumnNames": [
+          "HH Income",
+          "Home Ownership",
+          "Ethnicity",
+          "Age range",
+          "Language",
+          "State",
+          "City",
+          "County",
+          "weekly fee",
+          "Deliveryperiod",
+          "Nielsen Prizm",
+          "Source Channel"
+        ],
+        "InputColumnNames": [
+          "HH Income",
+          "Home Ownership",
+          "Ethnicity",
+          "Age range",
+          "Language",
+          "State",
+          "City",
+          "County",
+          "weekly fee",
+          "Deliveryperiod",
+          "Nielsen Prizm",
+          "Source Channel"
+        ]
+      }
+    },
+    "e4": {
+      "estimatorType": "FeaturizeText",
+      "parameter": {
+        "InputColumnName": "Address",
+        "OutputColumnName": "Address"
+      }
+    },
+    "e5": {
+      "estimatorType": "Concatenate",
+      "parameter": {
+        "InputColumnNames": [
+          "Address",
+          "Features",
+          "HH Income",
+          "Home Ownership",
+          "Ethnicity",
+          "Age range",
+          "Language",
+          "State",
+          "City",
+          "County",
+          "weekly fee",
+          "Deliveryperiod",
+          "Nielsen Prizm",
+          "Source Channel",
+          "dummy for Children"
+        ],
+        "OutputColumnName": "Features"
+      }
+    }
+  }
+}

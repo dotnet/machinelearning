@@ -7,12 +7,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.VisualBasic;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -36,26 +38,7 @@ namespace Microsoft.ML.AutoML.Test
                 _markerAutoFitContextLogTest = true;
         }
 
-        [TensorFlowFact]
-        public void AutoFitContextLogTest()
-        {
-            // This test confirms that logs produced from contexts made during AutoML experiment
-            // runs are correctly relayed to the main Experiment MLContext.
-            _markerAutoFitContextLogTest = false;
-            var context = new MLContext(1);
-            context.Log += MlContextLog;
-            var datasetPath = DatasetUtil.GetFlowersDataset();
-            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
-            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-            var trainData = textLoader.Load(datasetPath);
-            var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(15)
-                            .Execute(trainData, columnInference.ColumnInformation);
-            Assert.True(_markerAutoFitContextLogTest, "Image classification trainer logs from Experiment's sub contexts" +
-                "were not relayed to the main MLContext.");
-        }
-
-        [LightGBMFact]
+        [Fact]
         public void AutoFit_UCI_Adult_Test()
         {
             var context = new MLContext(1);
@@ -63,8 +46,17 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+
+            settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
+            settings.Trainers.Remove(BinaryClassificationTrainer.SdcaLogisticRegression);
+            settings.Trainers.Remove(BinaryClassificationTrainer.LbfgsLogisticRegression);
+
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(1)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
             Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
@@ -72,7 +64,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [LightGBMFact]
+        [Fact]
         public void AutoFit_UCI_Adult_Train_Test_Split_Test()
         {
             var context = new MLContext(1);
@@ -81,8 +73,17 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
             var dataTrainTest = context.Data.TrainTestSplit(trainData);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+
+            settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
+            settings.Trainers.Remove(BinaryClassificationTrainer.SdcaLogisticRegression);
+            settings.Trainers.Remove(BinaryClassificationTrainer.LbfgsLogisticRegression);
+
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(1)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataTrainTest.TrainSet, dataTrainTest.TestSet, DatasetUtil.UciAdultLabel);
             Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
@@ -90,7 +91,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [LightGBMFact]
+        [Fact]
         public void AutoFit_UCI_Adult_CrossValidation_10_Test()
         {
             var context = new MLContext(1);
@@ -98,12 +99,49 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 1,
+            };
+
+            settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
+            settings.Trainers.Remove(BinaryClassificationTrainer.SdcaLogisticRegression);
+            settings.Trainers.Remove(BinaryClassificationTrainer.LbfgsLogisticRegression);
             var result = context.Auto()
-                .CreateBinaryClassificationExperiment(1)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(trainData, 10, DatasetUtil.UciAdultLabel);
             Assert.True(result.BestRun.Results.Select(x => x.ValidationMetrics.Accuracy).Min() > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.TrainerName);
+        }
+
+        [LightGBMFact]
+        public void SweepablePipeline_AutoFit_UCI_Adult_CrossValidation_10_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
+            var experiment = context.Auto().CreateExperiment();
+            var pipeline = context.Auto().Featurizer(trainData, columnInference.ColumnInformation)
+                            .Append(context.Auto().BinaryClassification(labelColumnName: DatasetUtil.UciAdultLabel));
+
+            experiment.SetPipeline(pipeline)
+                    .SetDataset(trainData, 5)
+                    .SetBinaryClassificationMetric(BinaryClassificationMetric.Accuracy, DatasetUtil.UciAdultLabel)
+                    .SetTrainingTimeInSeconds(10);
+
+            var res = experiment.Run();
+            res.Metric.Should().BeGreaterThan(0.5);
+
         }
 
         [Theory]
@@ -115,17 +153,32 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
-
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.Message);
+                }
+            };
             if (useNumberOfCVFolds)
             {
                 // When setting numberOfCVFolds
                 // The results object is a CrossValidationExperimentResults<> object
                 uint numberOfCVFolds = 5;
+                var settings = new MulticlassExperimentSettings
+                {
+                    MaxExperimentTimeInSeconds = 1,
+                };
+
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LightGbm);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.SdcaMaximumEntropy);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LbfgsMaximumEntropy);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
                 var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(0)
+                    .CreateMulticlassClassificationExperiment(settings)
                     .Execute(trainData, numberOfCVFolds, DatasetUtil.TrivialMulticlassDatasetLabel);
 
-                Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
+                result.BestRun.Results.First().ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.7);
                 var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
                 Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
             }
@@ -140,8 +193,17 @@ namespace Microsoft.ML.AutoML.Test
 
                 int crossValRowCountThreshold = 15000;
                 trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
+                var settings = new MulticlassExperimentSettings
+                {
+                    MaxExperimentTimeInSeconds = 1,
+                };
+
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LightGbm);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.SdcaMaximumEntropy);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LbfgsMaximumEntropy);
+                settings.Trainers.Remove(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
                 var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(0)
+                    .CreateMulticlassClassificationExperiment(settings)
                     .Execute(trainData, DatasetUtil.TrivialMulticlassDatasetLabel);
 
                 Assert.True(result.BestRun.ValidationMetrics.MicroAccuracy >= 0.7);
@@ -150,10 +212,8 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void AutoFitImageClassificationTrainTest()
+        [OnnxFact(Skip = "save space on ci runs")]
+        public void AutoFitMultiClassification_Image_TrainTest()
         {
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
@@ -165,39 +225,56 @@ namespace Microsoft.ML.AutoML.Test
             IDataView trainDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TrainSet, originalColumnNames);
             IDataView testDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TestSet, originalColumnNames);
             var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(0)
+                            .CreateMulticlassClassificationExperiment(20)
                             .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
 
-            Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            result.BestRun.ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.1);
 
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [Fact(Skip = "Takes too much time, ~10 minutes.")]
-        public void AutoFitImageClassification()
+        [OnnxFact(Skip = "save space on ci runs")]
+        public void AutoFitMultiClassification_Image_CV()
         {
-            // This test executes the code path that model builder code will take to get a model using image
-            // classification API.
+            var context = new MLContext(seed: 1);
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = context.Data.ShuffleRows(textLoader.Load(datasetPath), seed: 1);
+            var originalColumnNames = trainData.Schema.Select(c => c.Name);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(100)
+                            .Execute(trainData, 5, columnInference.ColumnInformation);
 
+            result.BestRun.Results.Select(x => x.ValidationMetrics.MicroAccuracy).Max().Should().BeGreaterThan(0.1);
+
+            var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        [OnnxFact(Skip = "save space on ci runs")]
+        public void AutoFitMultiClassification_Image()
+        {
             var context = new MLContext(1);
-            context.Log += Context_Log;
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.Message);
+                }
+            };
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(datasetPath);
             var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(0)
+                            .CreateMulticlassClassificationExperiment(100)
                             .Execute(trainData, columnInference.ColumnInformation);
 
-            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.9);
+            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.1, 0.9);
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
-        }
-
-        private void Context_Log(object sender, LoggingEventArgs e)
-        {
-            //throw new NotImplementedException();
         }
 
         [Theory]
@@ -433,27 +510,31 @@ namespace Microsoft.ML.AutoML.Test
             var dataFull = textLoader.Load(dataPath);
             var dataTrainTest = context.Data.TrainTestSplit(dataFull);
             var dataCV = context.Data.CrossValidationSplit(dataFull, numberOfFolds: 2);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxExperimentTimeInSeconds = 10,
+            };
+
+            // remove fastForest because it doesn't calibrate score
+            // so column "probability" will be missing in the final result;
+            settings.Trainers.Remove(BinaryClassificationTrainer.FastForest);
 
             var modelFull = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataFull,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
                 .Model;
 
-            // AutoMLExperiment can't run on canceled context.
-            // Therefore, we need to create a new context after an experiment is completed.
-            context = new MLContext(1);
             var modelTrainTest = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataTrainTest.TrainSet,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
                 .Model;
 
-            context = new MLContext(1);
             var modelCV = context.Auto()
-                .CreateBinaryClassificationExperiment(10)
+                .CreateBinaryClassificationExperiment(settings)
                 .Execute(dataCV.First().TrainSet,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel })
                 .BestRun
@@ -466,7 +547,6 @@ namespace Microsoft.ML.AutoML.Test
                 var resFull = model.Transform(dataFull);
                 var resTrainTest = model.Transform(dataTrainTest.TrainSet);
                 var resCV = model.Transform(dataCV.First().TrainSet);
-
                 Assert.Equal(31, resFull.Schema.Count);
                 Assert.Equal(31, resTrainTest.Schema.Count);
                 Assert.Equal(31, resCV.Schema.Count);

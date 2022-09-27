@@ -12248,6 +12248,33 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(column);
         }
     }
+    public partial class DateTimeDataFrameColumn
+    {
+        public BooleanDataFrameColumn ElementwiseEquals(DateTimeDataFrameColumn column)
+        {
+            return ElementwiseEqualsImplementation(column);
+        }
+        public BooleanDataFrameColumn ElementwiseNotEquals(DateTimeDataFrameColumn column)
+        {
+            return ElementwiseNotEqualsImplementation(column);
+        }
+        public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DateTimeDataFrameColumn column)
+        {
+            return ElementwiseGreaterThanOrEqualImplementation(column);
+        }
+        public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DateTimeDataFrameColumn column)
+        {
+            return ElementwiseLessThanOrEqualImplementation(column);
+        }
+        public BooleanDataFrameColumn ElementwiseGreaterThan(DateTimeDataFrameColumn column)
+        {
+            return ElementwiseGreaterThanImplementation(column);
+        }
+        public BooleanDataFrameColumn ElementwiseLessThan(DateTimeDataFrameColumn column)
+        {
+            return ElementwiseLessThanImplementation(column);
+        }
+    }
     public partial class BooleanDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(bool value)
@@ -15688,6 +15715,33 @@ namespace Microsoft.Data.Analysis
             return ElementwiseGreaterThanImplementation(value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
+        {
+            return ElementwiseLessThanImplementation(value);
+        }
+    }
+    public partial class DateTimeDataFrameColumn
+    {
+        public BooleanDataFrameColumn ElementwiseEquals(DateTime value)
+        {
+            return ElementwiseEqualsImplementation(value);
+        }
+        public BooleanDataFrameColumn ElementwiseNotEquals(DateTime value)
+        {
+            return ElementwiseNotEqualsImplementation(value);
+        }
+        public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DateTime value)
+        {
+            return ElementwiseGreaterThanOrEqualImplementation(value);
+        }
+        public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DateTime value)
+        {
+            return ElementwiseLessThanOrEqualImplementation(value);
+        }
+        public BooleanDataFrameColumn ElementwiseGreaterThan(DateTime value)
+        {
+            return ElementwiseGreaterThanImplementation(value);
+        }
+        public BooleanDataFrameColumn ElementwiseLessThan(DateTime value)
         {
             return ElementwiseLessThanImplementation(value);
         }
