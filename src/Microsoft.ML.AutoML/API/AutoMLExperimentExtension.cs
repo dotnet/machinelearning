@@ -198,6 +198,74 @@ namespace Microsoft.ML.AutoML
             return experiment;
         }
 
+        /// <summary>
+        /// Set <see cref="CostFrugalTuner"/> as tuner for hyper-parameter optimization.
+        /// </summary>
+        /// <param name="experiment"></param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetCostFrugalTuner(this AutoMLExperiment experiment)
+        {
+            experiment.SetTuner((service) =>
+            {
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                var cfo = new CostFrugalTuner(settings);
+
+                return cfo;
+            });
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// set <see cref="RandomSearchTuner"/> as tuner for hyper parameter optimization. If <paramref name="seed"/> is provided, it will use that 
+        /// seed to initialize <see cref="RandomSearchTuner"/>. Otherwise, <see cref="AutoMLExperiment.AutoMLExperimentSettings.Seed"/> will be used.
+        /// </summary>
+        /// <param name="seed"></param>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        public static AutoMLExperiment SetRandomSearchTuner(this AutoMLExperiment experiment, int? seed = null)
+        {
+            experiment.SetTuner((service) =>
+            {
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                seed = seed ?? settings.Seed;
+                var tuner = new RandomSearchTuner(settings.SearchSpace, seed);
+
+                return tuner;
+            });
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// set <see cref="GridSearchTuner"/> as tuner for hyper parameter optimization.
+        /// </summary>
+        /// <param name="step">step size for numeric option.</param>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        public static AutoMLExperiment SetGridSearchTuner(this AutoMLExperiment experiment, int step = 10)
+        {
+            experiment.SetTuner((service) =>
+            {
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                var tuner = new GridSearchTuner(settings.SearchSpace, step);
+
+                return tuner;
+            });
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// set <see cref="EciCostFrugalTuner"/> as tuner for hyper-parameter optimization. This tuner only works with search space from <see cref="SweepablePipeline"/>.
+        /// </summary>
+        /// <param name="experiment"></param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetEciCostFrugalTuner(this AutoMLExperiment experiment)
+        {
+            experiment.SetTuner<EciCostFrugalTuner>();
+
+            return experiment;
+        }
+
         private static AutoMLExperiment SetEvaluateMetric<TEvaluateMetricManager>(this AutoMLExperiment experiment, TEvaluateMetricManager metricManager)
             where TEvaluateMetricManager : class, IEvaluateMetricManager
         {
