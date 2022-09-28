@@ -36,7 +36,8 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      vmImage: ubuntu-18.04
+      name: NetCore-Public
+      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm32v7-20210531091521-97d8652
 
 - template: /build/ci/job-template.yml
@@ -58,7 +59,8 @@ jobs:
         _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
-      vmImage: ubuntu-18.04
+      name: NetCore-Public
+      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm64v8-20210531091519-97d8652
 
 - template: /build/ci/job-template.yml
@@ -68,7 +70,8 @@ jobs:
     container: CentosContainer
     innerLoop: true
     pool:
-      vmImage: ubuntu-18.04
+      name: NetCore-Public
+      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     helixQueue: Ubuntu.1804.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-helix-20210528183707-dde38af
 
 - template: /build/ci/job-template.yml
@@ -78,7 +81,8 @@ jobs:
     container: UbuntuContainer
     innerLoop: true
     pool:
-      vmImage: ubuntu-18.04
+      name: NetCore-Public
+      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     helixQueue: Ubuntu.1804.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-helix-20210528184647-dde38af
 
 - template: /build/ci/job-template.yml
@@ -118,7 +122,8 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
-      vmImage: windows-2019
+      name: NetCore-Public
+      demands: ImageOverride -equals 1es-windows-2019
     helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
@@ -139,7 +144,8 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
-      vmImage: windows-2019
+      name: NetCore-Public
+      demands: ImageOverride -equals 1es-windows-2019
     helixQueue: Windows.10.Amd64.Open
 
 - template: /build/ci/job-template.yml
@@ -150,5 +156,6 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
-      vmImage: windows-2019
+      name: NetCore-Public
+      demands: ImageOverride -equals 1es-windows-2019
     helixQueue: Windows.10.Amd64.Open
