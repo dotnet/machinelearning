@@ -77,7 +77,9 @@ namespace Microsoft.ML.AutoML.Test
             csvTrialResultManager = new CsvTrialResultManager(tempFilePath, lgbmSearchSpace);
             csvTrialResultManager.GetAllTrialResults().Count().Should().Be(10);
 
-            Approvals.VerifyFile(tempFilePath);
+            var fileContent = File.ReadAllText(tempFilePath);
+            File.Delete(tempFilePath);
+            Approvals.Verify(fileContent);
         }
     }
 }
