@@ -189,7 +189,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        internal InternalRegressionTree(int[] splitFeatures, double[] splitGain, double[] gainPValue,
+        protected InternalRegressionTree(int[] splitFeatures, double[] splitGain, double[] gainPValue,
             float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtChild, double[] leafValues,
             int[][] categoricalSplitFeatures, bool[] categoricalSplit)
             : this()

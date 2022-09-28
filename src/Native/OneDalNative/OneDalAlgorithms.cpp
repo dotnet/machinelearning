@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <iostream>
 #include "daal.h"
 #include "../Stdafx.h"
 
@@ -8,15 +9,8 @@ using namespace daal::algorithms;
 using namespace daal::services;
 using namespace daal::data_management;
 
-/*
-### Logistic regression wrapper ###
 
-public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
-    long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads);
-*/
-template <typename FPType>
-void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPtr, FPType * weightsPtr, bool useSampleWeights, FPType * betaPtr,
-    long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads)
+bool getVerboseVariable()
 {
     bool verbose = false;
     #ifdef linux
@@ -28,8 +22,254 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
     errno_t err = _dupenv_s(&env_p, &size, "MLNET_BACKEND_VERBOSE");
     if(!err && env_p)
     #endif
-    {
         verbose = true;
+    #ifdef _WIN32
+    free(env_p);
+    #endif
+
+    return verbose;
+}
+
+template <typename FPType>
+class ClassifierNodeVisitor : public daal::algorithms::tree_utils::classification::TreeNodeVisitor
+{
+public:
+    ClassifierNodeVisitor(size_t numberOfLeaves, bool verbose)
+    {
+        _verbose = verbose;
+        _numberOfLeaves = numberOfLeaves;
+        _lteChild = new int[_numberOfLeaves - 1];
+        _gtChild = new int[_numberOfLeaves - 1];
+        _splitFeature = new int[_numberOfLeaves - 1];
+        _featureThreshold = new FPType[_numberOfLeaves - 1];
+        _leafValues = new FPType[_numberOfLeaves];
+
+        _currentNode = 0;
+        _currentLeaf = -1;
+        _previousLevel = 0;
+        _previousNodes = new size_t[1024];
+    }
+
+    virtual bool onLeafNode(const tree_utils::classification::LeafNodeDescriptor & desc)
+    {
+        // step down
+        if (desc.level == _previousLevel + 1)
+        {
+            _lteChild[_previousNodes[_previousLevel]] = _currentLeaf;
+        }
+        // switch to different branch
+        else
+        {
+            _gtChild[_previousNodes[desc.level - 1]] = _currentLeaf;
+        }
+        _leafValues[-_currentLeaf - 1] = 1 - 2 * desc.prob[0];
+        _previousLevel = desc.level;
+        _currentLeaf--;
+
+        if (_verbose)
+        {
+            for (size_t i = 0; i < desc.level; ++i) std::cout << "  ";
+            std::cout << "Level " << desc.level << ", leaf node. Label value = " << desc.label << ", Impurity = " << desc.impurity
+                      << ", Number of samples = " << desc.nNodeSampleCount << ", Probabilities = { ";
+            for (size_t indexClass = 0; indexClass < 2; ++indexClass)
+            {
+                std::cout << desc.prob[indexClass] << ' ';
+            }
+            std::cout << "}" << std::endl;
+
+            for (size_t i = 0; i < desc.level; ++i) std::cout << "  ";
+            std::cout << "DEBUG: current level " << _previousLevel << " currentLeaf " << _currentLeaf + 1 << " previousNodes";
+            for (size_t i = 0; i < desc.level; ++i)
+                std::cout << " " << _previousNodes[i];
+            std::cout << std::endl;
+        }
+        return true;
+    }
+
+    virtual bool onSplitNode(const tree_utils::classification::SplitNodeDescriptor & desc)
+    {
+        // step down or root node
+        if (desc.level == _previousLevel + 1 || desc.level == 0)
+        {
+            if (desc.level != 0)
+                _lteChild[_previousNodes[_previousLevel]] = _currentNode;
+        }
+        // switch to different branch
+        else
+        {
+            _gtChild[_previousNodes[desc.level - 1]] = _currentNode;
+        }
+        _splitFeature[_currentNode] = desc.featureIndex;
+        _featureThreshold[_currentNode] = desc.featureValue;
+        _previousNodes[desc.level] = _currentNode;
+        _previousLevel = desc.level;
+        _currentNode++;
+
+        if (_verbose)
+        {
+            for (size_t i = 0; i < desc.level; ++i) std::cout << "  ";
+            std::cout << "Level " << desc.level << ", split node. Feature index = " << desc.featureIndex << ", feature value = " << desc.featureValue
+                      << ", Impurity = " << desc.impurity << ", Number of samples = " << desc.nNodeSampleCount << std::endl;
+
+            for (size_t i = 0; i < desc.level; ++i) std::cout << "  ";
+            std::cout << "DEBUG: current level " << _previousLevel << " currentNode " << _currentNode - 1 << " previousNodes";
+            for (size_t i = 0; i < desc.level; ++i)
+                std::cout << " " << _previousNodes[i];
+            std::cout << std::endl;
+        }
+        return true;
+    }
+
+    void copyTreeStructureToBuffers(int * lteChild, int * gtChild, int * splitFeature, FPType * featureThreshold, FPType * leafValues)
+    {
+        for (size_t i = 0; i < _numberOfLeaves - 1; ++i)
+        {
+            lteChild[i] = _lteChild[i];
+            gtChild[i] = _gtChild[i];
+            splitFeature[i] = _splitFeature[i];
+            featureThreshold[i] = _featureThreshold[i];
+            leafValues[i] = _leafValues[i];
+        }
+        leafValues[_numberOfLeaves - 1] = _leafValues[_numberOfLeaves - 1];
+    }
+
+    ~ClassifierNodeVisitor()
+    {
+        delete _previousNodes;
+        delete _lteChild;
+        delete _gtChild;
+        delete _splitFeature;
+        delete _featureThreshold;
+        delete _leafValues;
+    }
+
+    size_t _numberOfLeaves;
+    int * _lteChild;
+    int * _gtChild;
+    int * _splitFeature;
+    FPType * _featureThreshold;
+    FPType * _leafValues;
+
+    size_t * _previousNodes;
+    size_t _currentNode;
+    int _currentLeaf;
+    size_t _previousLevel;
+    bool _verbose;
+};
+
+/*
+    ### Decision Forest wrappers ###
+
+    [DllImport(OneDalLibPath, EntryPoint = "decisionForestClassificationCompute")]
+    public static extern unsafe int DecisionForestClassificationCompute(
+        void* featuresPtr, void* labelsPtr, long nRows, int nColumns, int nClasses,
+        float featureFraction, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf);
+*/
+template <typename FPType>
+void decisionForestClassificationComputeTemplate(
+    FPType * featuresPtr, FPType * labelsPtr, long long nRows, int nColumns, int nClasses,
+    float featureFraction, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf,
+    int * lteChildPtr, int * gtChildPtr, int * splitFeaturePtr, FPType * featureThresholdPtr, FPType * leafValuesPtr)
+{
+    bool verbose = getVerboseVariable();
+    if (verbose)
+    {
+        printf("%s\n", "Decision Forest Classifier parameters:");
+        printf("%s - %d\n", "numberOfTrees", numberOfTrees);
+        printf("%s - %.12f\n", "featureFraction", featureFraction);
+        printf("%s - %d\n", "featuresPerNode", (int)(nColumns * featureFraction));
+        printf("%s - %d\n", "numberOfLeaves", numberOfLeaves);
+        printf("%s - %d\n", "minimumExampleCountPerLeaf", minimumExampleCountPerLeaf);
+    }
+
+    NumericTablePtr featuresTable(new HomogenNumericTable<FPType>(featuresPtr, nColumns, nRows));
+    NumericTablePtr labelsTable(new HomogenNumericTable<FPType>(labelsPtr, 1, nRows));
+
+    decision_forest::classification::training::Batch<FPType, decision_forest::classification::training::hist> algorithm(nClasses);
+
+    algorithm.input.set(classifier::training::data, featuresTable);
+    algorithm.input.set(classifier::training::labels, labelsTable);
+
+    algorithm.parameter().nTrees                         = numberOfTrees;
+    algorithm.parameter().featuresPerNode                = (int)(nColumns * featureFraction);
+    algorithm.parameter().maxLeafNodes                   = numberOfLeaves;
+    algorithm.parameter().minObservationsInLeafNode      = minimumExampleCountPerLeaf;
+
+    algorithm.compute();
+
+    decision_forest::classification::training::ResultPtr trainingResult = algorithm.getResult();
+
+    decision_forest::classification::ModelPtr model = trainingResult->get(classifier::training::model);
+
+    for (size_t i = 0; i < numberOfTrees; ++i)
+    {
+        ClassifierNodeVisitor<FPType> visitor(numberOfLeaves, verbose);
+        model->traverseDFS(i, visitor);
+
+        visitor.copyTreeStructureToBuffers(
+            lteChildPtr + i * (numberOfLeaves - 1),
+            gtChildPtr + i * (numberOfLeaves - 1),
+            splitFeaturePtr + i * (numberOfLeaves - 1),
+            featureThresholdPtr + i * (numberOfLeaves - 1),
+            leafValuesPtr + i * numberOfLeaves
+        );
+
+        if (verbose)
+        {
+            printf("lteChild:\n");
+            for (size_t j = 0; j < numberOfLeaves - 1; ++j)
+                printf("%d ", lteChildPtr[i * (numberOfLeaves - 1) + j]);
+            printf("\n");
+
+            printf("gtChild:\n");
+            for (size_t j = 0; j < numberOfLeaves - 1; ++j)
+                printf("%d ", gtChildPtr[i * (numberOfLeaves - 1) + j]);
+            printf("\n");
+
+            printf("splitFeature:\n");
+            for (size_t j = 0; j < numberOfLeaves - 1; ++j)
+                printf("%d ", splitFeaturePtr[i * (numberOfLeaves - 1) + j]);
+            printf("\n");
+
+            printf("featureThreshold:\n");
+            for (size_t j = 0; j < numberOfLeaves - 1; ++j)
+                printf("%f ", featureThresholdPtr[i * (numberOfLeaves - 1) + j]);
+            printf("\n");
+
+            printf("leafValues:\n");
+            for (size_t j = 0; j < numberOfLeaves; ++j)
+                printf("%f ", leafValuesPtr[i * numberOfLeaves + j]);
+            printf("\n");
+        }
+    }
+}
+
+EXPORT_API(void) decisionForestClassificationCompute(
+    void * featuresPtr, void * labelsPtr,
+    long long nRows, int nColumns, int nClasses,
+    float featureFraction, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf,
+    void * lteChildPtr, void * gtChildPtr, void * splitFeaturePtr, void * featureThresholdPtr, void * leafValuesPtr)
+{
+    return decisionForestClassificationComputeTemplate<float>(
+        (float *)featuresPtr, (float *)labelsPtr, nRows, nColumns, nClasses,
+        featureFraction, numberOfTrees, numberOfLeaves, minimumExampleCountPerLeaf,
+        (int *)lteChildPtr, (int *)gtChildPtr, (int *)splitFeaturePtr, (float *)featureThresholdPtr, (float *)leafValuesPtr);
+}
+
+/*
+    ### Logistic regression wrapper ###
+
+    public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
+        long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads);
+*/
+template <typename FPType>
+void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPtr, FPType * weightsPtr, bool useSampleWeights, FPType * betaPtr,
+    long long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads)
+{
+    bool verbose = getVerboseVariable();
+    if (verbose)
+    {
+        printf("%s\n", "Logistic Regression parameters:");
         printf("%s - %.12f\n", "l1Reg", l1Reg);
         printf("%s - %.12f\n", "l2Reg", l2Reg);
         printf("%s - %.12f\n", "accuracyThreshold", accuracyThreshold);
@@ -41,9 +281,6 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
         const size_t nThreadsOld = Environment::getInstance()->getNumberOfThreads();
         printf("%s - %zd\n", "nThreadsOld", nThreadsOld); //Note: %lu cause compilation error, modify to %d
     }
-    #ifdef _WIN32
-    free(env_p);
-    #endif
 
     Environment::getInstance()->setNumberOfThreads(nThreads);
 
@@ -170,14 +407,14 @@ EXPORT_API(void) logisticRegressionLBFGSCompute(void * featuresPtr, void * label
 }
 
 /*
-### Ridge regression wrapper ###
+    ### Ridge regression wrapper ###
 
-[DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineCompute")]
-public unsafe static extern int RidgeRegressionOnlineCompute(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize);
+    [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineCompute")]
+    public unsafe static extern int RidgeRegressionOnlineCompute(void* featuresPtr, void* labelsPtr, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize);
 
-[DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineFinalize")]
-public unsafe static extern void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, long nAllRows, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
-    void* betaPtr, void* xtyPtr, void* xtxPtr);
+    [DllImport(OneDalLibPath, EntryPoint = "ridgeRegressionOnlineFinalize")]
+    public unsafe static extern void RidgeRegressionOnlineFinalize(void* featuresPtr, void* labelsPtr, long nAllRows, int nRows, int nColumns, float l2Reg, void* partialResultPtr, int partialResultSize,
+        void* betaPtr, void* xtyPtr, void* xtxPtr);
 */
 template <typename FPType>
 int ridgeRegressionOnlineComputeTemplate(FPType * featuresPtr, FPType * labelsPtr, int nRows, int nColumns, float l2Reg, byte * partialResultPtr, int partialResultSize)
