@@ -222,7 +222,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 trainData.CheckOptFloatWeight();
                 FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
                 ConvertData(trainData);
-                if (System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture != System.Runtime.InteropServices.Architecture.X64 || trainData.Schema.Weight.HasValue || Environment.GetEnvironmentVariable("MLNET_BACKEND") != "ONEDAL")
+                if (trainData.Schema.Weight.HasValue || System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture != System.Runtime.InteropServices.Architecture.X64 || Environment.GetEnvironmentVariable("MLNET_BACKEND") != "ONEDAL")
                 {
                     TrainCore(ch);
                 }
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            InternalTreeEnsemble oneDalConvertedForest = new InternalTreeEnsemble();
+            TrainedEnsemble = new InternalTreeEnsemble();
             for (int i = 0; i < numberOfTrees; ++i)
             {
                 int[] lteChildArrayPerTree = new int[numberOfLeaves - 1];
@@ -360,7 +360,6 @@ namespace Microsoft.ML.Trainers.FastTree
                     featureThresholdArrayPerTree, defaultValueForMissingPerTree, lteChildArrayPerTree, gtChildArrayPerTree, leafValuesArrayPerTree,
                     categoricalSplitFeaturesPerTree, categoricalSplitPerTree);
 
-                TrainedEnsemble = new InternalTreeEnsemble();
                 TrainedEnsemble.AddTree(newTree);
             }
         }
