@@ -29,7 +29,18 @@ bool getVerboseVariable()
 
     return verbose;
 }
+/*
+    Decision Forest regression tree traveler
+*/
 
+/*
+    ### Decision Forest regression wrappers ###
+
+*/
+
+/*
+    Decision Forest classification tree traveler
+*/
 template <typename FPType>
 class ClassifierNodeVisitor : public daal::algorithms::tree_utils::classification::TreeNodeVisitor
 {
@@ -135,12 +146,12 @@ public:
 
     ~ClassifierNodeVisitor()
     {
-        delete _previousNodes;
-        delete _lteChild;
-        delete _gtChild;
-        delete _splitFeature;
-        delete _featureThreshold;
-        delete _leafValues;
+        delete[] _previousNodes;
+        delete[] _lteChild;
+        delete[] _gtChild;
+        delete[] _splitFeature;
+        delete[] _featureThreshold;
+        delete[] _leafValues;
     }
 
     size_t _numberOfLeaves;
@@ -158,29 +169,35 @@ public:
 };
 
 /*
-    ### Decision Forest wrappers ###
+    ### Decision Forest classification wrappers ###
 
     [DllImport(OneDalLibPath, EntryPoint = "decisionForestClassificationCompute")]
     public static extern unsafe int DecisionForestClassificationCompute(
-        void* featuresPtr, void* labelsPtr, long nRows, int nColumns, int nClasses,
-        float featureFraction, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf);
+        void* featuresPtr, void* labelsPtr, long nRows, int nColumns, int nClasses, int numberOfThreads,
+        float featureFractionPerSplit, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf, int maxBins,
+        void* lteChildPtr, void* gtChildPtr, void* splitFeaturePtr, void* featureThresholdPtr, void* leafValuesPtr, void* modelPtr)
 */
 template <typename FPType>
-void decisionForestClassificationComputeTemplate(
+int decisionForestClassificationComputeTemplate(
     FPType * featuresPtr, FPType * labelsPtr, long long nRows, int nColumns, int nClasses,
-    float featureFraction, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf,
-    int * lteChildPtr, int * gtChildPtr, int * splitFeaturePtr, FPType * featureThresholdPtr, FPType * leafValuesPtr)
+    int numberOfThreads, float featureFractionPerSplit, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf, int maxBins,
+    int * lteChildPtr, int * gtChildPtr, int * splitFeaturePtr, FPType * featureThresholdPtr, FPType * leafValuesPtr, byte* modelPtr)
 {
     bool verbose = getVerboseVariable();
     if (verbose)
     {
-        printf("%s\n", "Decision Forest Classifier parameters:");
-        printf("%s - %d\n", "numberOfTrees", numberOfTrees);
-        printf("%s - %.12f\n", "featureFraction", featureFraction);
-        printf("%s - %d\n", "featuresPerNode", (int)(nColumns * featureFraction));
-        printf("%s - %d\n", "numberOfLeaves", numberOfLeaves);
-        printf("%s - %d\n", "minimumExampleCountPerLeaf", minimumExampleCountPerLeaf);
+        printf("%s\n", "Decision Forest Classification parameters:");
+        printf("\t%s - %d\n", "numberOfThreads", numberOfThreads);
+        printf("\t%s - %d\n", "numberOfTrees", numberOfTrees);
+        printf("\t%s - %.6f\n", "featureFraction", featureFractionPerSplit);
+        printf("\t%s - %d\n", "featuresPerNode", (int)(nColumns * featureFractionPerSplit));
+        printf("\t%s - %d\n", "numberOfLeaves", numberOfLeaves);
+        printf("\t%s - %d\n", "minimumExampleCountPerLeaf", minimumExampleCountPerLeaf);
+        printf("\t%s - %d\n", "maxBins", maxBins);
     }
+
+    if (numberOfThreads != 0)
+        Environment::getInstance()->setNumberOfThreads(numberOfThreads);
 
     NumericTablePtr featuresTable(new HomogenNumericTable<FPType>(featuresPtr, nColumns, nRows));
     NumericTablePtr labelsTable(new HomogenNumericTable<FPType>(labelsPtr, 1, nRows));
@@ -191,15 +208,31 @@ void decisionForestClassificationComputeTemplate(
     algorithm.input.set(classifier::training::labels, labelsTable);
 
     algorithm.parameter().nTrees                         = numberOfTrees;
-    algorithm.parameter().featuresPerNode                = (int)(nColumns * featureFraction);
-    algorithm.parameter().maxLeafNodes                   = numberOfLeaves;
+    algorithm.parameter().observationsPerTreeFraction    = 1;
+    algorithm.parameter().featuresPerNode                = (int)(nColumns * featureFractionPerSplit);
+    algorithm.parameter().maxTreeDepth                   = 0; // unlimited growth in depth
+    algorithm.parameter().impurityThreshold              = 0;
+    algorithm.parameter().varImportance                  = algorithms::decision_forest::training::none;
+    // algorithm.parameter().resultsToCompute               = algorithms::decision_forest::training::computeOutOfBagError;
+    algorithm.parameter().bootstrap                      = true;
     algorithm.parameter().minObservationsInLeafNode      = minimumExampleCountPerLeaf;
+    algorithm.parameter().minObservationsInSplitNode     = 2;
+    algorithm.parameter().minWeightFractionInLeafNode    = 0;
+    algorithm.parameter().minImpurityDecreaseInSplitNode = 0;
+    algorithm.parameter().maxLeafNodes                   = numberOfLeaves;
+    algorithm.parameter().maxBins                        = maxBins;
+    algorithm.parameter().minBinSize                     = 1;
 
     algorithm.compute();
 
     decision_forest::classification::training::ResultPtr trainingResult = algorithm.getResult();
 
     decision_forest::classification::ModelPtr model = trainingResult->get(classifier::training::model);
+
+    InputDataArchive dataArch;
+    model->serialize(dataArch);
+    int modelSize = dataArch.getSizeOfArchive();
+    dataArch.copyArchiveToArray(modelPtr, modelSize);
 
     for (size_t i = 0; i < numberOfTrees; ++i)
     {
@@ -242,18 +275,70 @@ void decisionForestClassificationComputeTemplate(
             printf("\n");
         }
     }
+
+    return modelSize;
 }
 
-EXPORT_API(void) decisionForestClassificationCompute(
-    void * featuresPtr, void * labelsPtr,
-    long long nRows, int nColumns, int nClasses,
-    float featureFraction, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf,
-    void * lteChildPtr, void * gtChildPtr, void * splitFeaturePtr, void * featureThresholdPtr, void * leafValuesPtr)
+EXPORT_API(int) decisionForestClassificationCompute(
+    void * featuresPtr, void * labelsPtr, long long nRows, int nColumns, int nClasses,
+    int numberOfThreads, float featureFractionPerSplit, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf, int maxBins,
+    void * lteChildPtr, void * gtChildPtr, void * splitFeaturePtr, void * featureThresholdPtr, void * leafValuesPtr, void* modelPtr)
 {
     return decisionForestClassificationComputeTemplate<float>(
         (float *)featuresPtr, (float *)labelsPtr, nRows, nColumns, nClasses,
-        featureFraction, numberOfTrees, numberOfLeaves, minimumExampleCountPerLeaf,
-        (int *)lteChildPtr, (int *)gtChildPtr, (int *)splitFeaturePtr, (float *)featureThresholdPtr, (float *)leafValuesPtr);
+        numberOfThreads, featureFractionPerSplit, numberOfTrees, numberOfLeaves, minimumExampleCountPerLeaf, maxBins,
+        (int *)lteChildPtr, (int *)gtChildPtr, (int *)splitFeaturePtr, (float *)featureThresholdPtr, (float *)leafValuesPtr, (byte *)modelPtr);
+}
+
+/*
+    [DllImport(OneDalLibPath, EntryPoint = "decisionForestClassificationPrediction")]
+    public static extern unsafe double DecisionForestClassificationPrediction(
+        void* featuresPtr, int nColumns, int nClasses, void* modelPtr, int modelSize);
+*/
+template <typename FPType>
+double decisionForestClassificationPredictionTemplate(
+    FPType * featuresPtr, int nColumns, int nClasses, byte* modelPtr, int modelSize)
+{
+    bool verbose = getVerboseVariable();
+    if (verbose)
+    {
+        printf("nColumns: %d\n", nColumns);
+        printf("modelSize: %d\n", modelSize);
+    }
+    decision_forest::classification::ModelPtr model;
+    OutputDataArchive dataArch(modelPtr, modelSize);
+    model->deserialize(dataArch);
+
+    double output;
+    NumericTablePtr featuresTable(new HomogenNumericTable<FPType>(featuresPtr, nColumns, 1));
+
+    decision_forest::classification::prediction::Batch<FPType> algorithm(nClasses);
+
+    algorithm.input.set(classifier::prediction::data, featuresTable);
+    algorithm.input.set(classifier::prediction::model, model);
+
+    algorithm.parameter().votingMethod = decision_forest::classification::prediction::weighted;
+    algorithm.parameter().resultsToEvaluate |= static_cast<DAAL_UINT64>(classifier::computeClassProbabilities);
+
+    algorithm.compute();
+
+    classifier::prediction::ResultPtr predictionResult = algorithm.getResult();
+
+    NumericTablePtr predictionTable(predictionResult->get(classifier::prediction::probabilities));
+    BlockDescriptor<FPType> predictionBlock;
+    predictionTable->getBlockOfRows(0, predictionTable->getNumberOfRows(), readWrite, predictionBlock);
+    FPType * prediction = predictionBlock.getBlockPtr();
+    output = prediction[0];
+    predictionTable->releaseBlockOfRows(predictionBlock);
+
+    return output;
+}
+
+EXPORT_API(int) decisionForestClassificationPrediction(
+    void * featuresPtr, int nColumns, int nClasses, void* modelPtr, int modelSize)
+{
+    return decisionForestClassificationPredictionTemplate<float>(
+        (float *)featuresPtr, nColumns, nClasses, (byte *)modelPtr, modelSize);
 }
 
 /*
