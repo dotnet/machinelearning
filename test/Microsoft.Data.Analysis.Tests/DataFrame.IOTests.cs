@@ -1064,10 +1064,12 @@ CMT,";
         {
             yield return new object[] // Comma Separators in Data
             {
-                @"Name,Age,Description
-Paul,34,""Paul lives in Vermont, VA.""
-Victor,29,""Victor: Funny guy""
-Maria,31,",
+                """
+                Name,Age,Description
+                Paul,34,"Paul lives in Vermont, VA."
+                Victor,29,"Victor: Funny guy"
+                Maria,31,
+                """,
                 ',',
                 new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
@@ -1085,10 +1087,12 @@ Maria,31,",
             };
             yield return new object[] // Colon Separators in Data
             {
-                @"Name:Age:Description
-Paul:34:""Paul lives in Vermont, VA.""
-Victor:29:""Victor: Funny guy""
-Maria:31:",
+                """
+                Name:Age:Description
+                Paul:34:"Paul lives in Vermont, VA."
+                Victor:29:"Victor: Funny guy"
+                Maria:31:
+                """,
                 ':',
                 new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
@@ -1106,10 +1110,12 @@ Maria:31:",
             };
             yield return new object[] // Comma Separators in Header
             {
-                @"""Na,me"",Age,Description
-Paul,34,""Paul lives in Vermont, VA.""
-Victor,29,""Victor: Funny guy""
-Maria,31,",
+                """
+                "Na,me",Age,Description
+                Paul,34,"Paul lives in Vermont, VA."
+                Victor,29,"Victor: Funny guy"
+                Maria,31,
+                """,
                 ',',
                 new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
@@ -1127,11 +1133,13 @@ Maria,31,",
             };
             yield return new object[] // Newlines In Data
             {
-                @"Name,Age,Description
-Paul,34,""Paul lives in Vermont
-VA.""
-Victor,29,""Victor: Funny guy""
-Maria,31,",
+                """
+                Name,Age,Description
+                Paul,34,"Paul lives in Vermont
+                VA."
+                Victor,29,"Victor: Funny guy"
+                Maria,31,
+                """,
                 ',',
                 new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
@@ -1141,8 +1149,15 @@ Maria,31,",
                     new Type[] { typeof(string), typeof(int), typeof(string) },
                     new object[][]
                     {
-                        new object[] { "Paul", 34, @"Paul lives in Vermont
-VA." },
+                        new object[]
+                        {
+                            "Paul",
+                            34,
+                            """
+                            Paul lives in Vermont
+                            VA.
+                            """
+                        },
                         new object[] { "Victor", 29, "Victor: Funny guy" },
                         new object[] { "Maria", 31, "" }
                     }
@@ -1150,18 +1165,27 @@ VA." },
             };
             yield return new object[] // Newlines In Header
             {
-                @"""Na
-me"":Age:Description
-Paul:34:""Paul lives in Vermont, VA.""
-Victor:29:""Victor: Funny guy""
-Maria:31:",
+                """
+                "Na
+                me":Age:Description
+                Paul:34:"Paul lives in Vermont, VA."
+                Victor:29:"Victor: Funny guy"
+                Maria:31:
+                """,
                 ':',
                 new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
                     3,
                     3,
-                    new string[] { @"Na
-me", "Age", "Description" },
+                    new string[]
+                    {
+                        """
+                        Na
+                        me
+                        """,
+                        "Age",
+                        "Description"
+                    },
                     new Type[] { typeof(string), typeof(int), typeof(string) },
                     new object[][]
                     {
@@ -1173,10 +1197,12 @@ me", "Age", "Description" },
             };
             yield return new object[] // Quotations in Data
             {
-                @"Name,Age,Description
-Paul,34,""Paul lives in """"Vermont VA"""".""
-Victor,29,""Victor: Funny guy""
-Maria,31,",
+                """
+                Name,Age,Description
+                Paul,34,"Paul lives in ""Vermont VA""."
+                Victor,29,"Victor: Funny guy"
+                Maria,31,
+                """,
                 ',',
                 new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
@@ -1186,7 +1212,7 @@ Maria,31,",
                     new Type[] { typeof(string), typeof(int), typeof(string) },
                     new object[][]
                     {
-                        new object[] { "Paul", 34, @"Paul lives in ""Vermont VA""." },
+                        new object[] { "Paul", 34, """Paul lives in "Vermont VA".""" },
                         new object[] { "Victor", 29, "Victor: Funny guy" },
                         new object[] { "Maria", 31, "" }
                     }
@@ -1194,20 +1220,22 @@ Maria,31,",
             };
             yield return new object[] // Quotations in Header
             {
-                @"Name,Age,""De""""script""""ion""
-Paul,34,""Paul lives in Vermont, VA.""
-Victor,29,""Victor: Funny guy""
-Maria,31,",
+                """
+                Name,Age,"De""script""ion"
+                Paul,34,"Paul lives in Vermont, VA."
+                Victor,29,"Victor: Funny guy"
+                Maria,31,
+                """,
                 ',',
                 new Type[] { typeof(string), typeof(int), typeof(string) },
                 new LoadCsvVerifyingHelper(
                     3,
                     3,
-                    new string[] { "Name", "Age", @"De""script""ion" },
+                    new string[] { "Name", "Age", """De"script"ion""" },
                     new Type[] { typeof(string), typeof(int), typeof(string) },
                     new object[][]
                     {
-                        new object[] { "Paul", 34, @"Paul lives in Vermont, VA." },
+                        new object[] { "Paul", 34, "Paul lives in Vermont, VA." },
                         new object[] { "Victor", 29, "Victor: Funny guy" },
                         new object[] { "Maria", 31, "" }
                     }
