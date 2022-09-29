@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32120.378
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -164,6 +164,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Tokenizers", "src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj", "{BBC3A950-BD68-45AC-9DBD-A8F4D8847745}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Tokenizers.Tests", "test\Microsoft.ML.Tokenizers.Tests\Microsoft.ML.Tokenizers.Tests.csproj", "{C3D82402-F207-4F19-8C57-5AF0FBAF9682}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.XGBoost", "src\Microsoft.ML.XGBoost\Microsoft.ML.XGBoost.csproj", "{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -777,6 +779,14 @@ Global
 		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Release|x64.ActiveCfg = Release|Any CPU
 		{C3D82402-F207-4F19-8C57-5AF0FBAF9682}.Release|x64.Build.0 = Release|Any CPU
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}.Debug|x64.Build.0 = Debug|Any CPU
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}.Release|x64.ActiveCfg = Release|Any CPU
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -857,6 +867,7 @@ Global
 		{FF0BD187-4451-4A3B-934B-2AE3454896E2} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{BBC3A950-BD68-45AC-9DBD-A8F4D8847745} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{C3D82402-F207-4F19-8C57-5AF0FBAF9682} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
+		{9CF22D6B-3094-4F42-9CBF-1B07087CF1EE} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

@@ -1,30 +1,35 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.OneDal</IncludeInPackage>
+    <IncludeInPackage>Microsoft.ML.XGBoost</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageDescription>ML.NET additional learners making use of Intel® oneAPI Data Analytics Library (oneDAL).</PackageDescription>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-    <!-- WL Merge Note: Remove "CopyProjectReferencesToPackage" for "-pack" work currently-->
-    <!-- WL Merge Note: Need to add "target" for "CopyProjectReferencesToPackage" correctly-->
+    <PackageDescription>ML.NET component for XGBoost</PackageDescription>
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
-    <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" >
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
     <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
+
+<!--
+  <ItemGroup>
+    <PackageReference Include="XGBoost" Version="$(LightGBMVersion)" />
+  </ItemGroup>
+  -->
+
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
+
 </Project>
