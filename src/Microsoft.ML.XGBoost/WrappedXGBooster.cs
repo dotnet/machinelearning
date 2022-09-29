@@ -2,70 +2,39 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Microsoft.ML.Runtime;
-#if false
-using Microsoft.ML.Trainers.FastTree;
-#else
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.CpuMath;
-using Microsoft.ML.Internal.Utilities;
-//using Microsoft.ML.Model.OnnxConverter;
-using Microsoft.ML.Numeric;
-using Microsoft.ML.Transforms;
-#endif
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
     /// <summary>
     /// Wrapper of Booster object of XGBoost.
     /// </summary>
-    internal sealed class Booster : IDisposable
+    internal class Booster : IDisposable
     {
 
-#if false
-        private readonly bool _hasValid;
-        private readonly bool _hasMetric;
-#endif
+	private bool disposed;
+	private readonly IntPtr _handle;
+	private const int normalPrediction = 0; // Value for the optionMask in prediction
+#pragma warning disable CS0414
+	private int numClass = 1;
+#pragma warning restore CS0414
 
-#if false
-        public WrappedXGBoostInterface.SafeBoosterHandle Handle { get; private set; }
-#else
-	WrappedXGBoostInterface.SafeBoosterHandle _handle;
+	public IntPtr Handle => _handle;
 
-        public WrappedXGBoostInterface.SafeBoosterHandle Handle {
-         get { return _handle; }
-	 /* private set; */
+        public Booster(Dictionary<string, object> parameters, DMatrix trainDMatrix)
+	{
+	  var dmats = new [] { trainDMatrix.Handle };
+	  var len = unchecked((ulong)dmats.Length);
+ 	  var errp = WrappedXGBoostInterface.XGBoosterCreate(dmats, len, out _handle);
+	  if (errp == -1)
+	  {
+  	      string reason = WrappedXGBoostInterface.XGBGetLastError();
+              throw new XGBoostDLLException(reason);
+	  }
+	  SetParameters(parameters);
 	}
-#endif
 
-#if false
-        public Booster(Dictionary<string, object> parameters, Dataset trainset, Dataset validset = null)
-        {
-            var param = LightGbmInterfaceUtils.JoinParameters(parameters);
-            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterCreate(trainset.Handle, param, out var handle));
-            Handle = handle;
-            if (validset != null)
-            {
-                LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterAddValidData(Handle, validset.Handle));
-                _hasValid = true;
-            }
-
-            int numEval = 0;
-            BestIteration = -1;
-            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterGetEvalCounts(Handle, ref numEval));
-            // At most one metric in ML.NET.
-            Contracts.Assert(numEval <= 1);
-            if (numEval == 1)
-                _hasMetric = true;
-        }
-#else
         public Booster(DMatrix trainDMatrix)
 	{
-	  _handle = null;
-
 	  var dmats = new [] { trainDMatrix.Handle };
 	  var len = unchecked((ulong)dmats.Length);
  	  var errp = WrappedXGBoostInterface.XGBoosterCreate(dmats, len, out _handle);
@@ -75,40 +44,42 @@ namespace Microsoft.ML.Trainers.XGBoost
               throw new XGBoostDLLException(reason);
 	  }
 	}
-#endif
+
+        public void Update(DMatrix train, int iter)
+        {
+	   var errp = WrappedXGBoostInterface.XGBoosterUpdateOneIter(_handle, iter, train.Handle);
+	   if (errp == -1)
+	   {
+  	      string reason = WrappedXGBoostInterface.XGBGetLastError();
+              throw new XGBoostDLLException(reason);
+	   }
+        }
+
+    public float[] Predict(DMatrix test)
+    {
+      ulong predsLen;
+      IntPtr predsPtr;
+/*
+allowed values of optionmask:
+         0:normal prediction
+         1:output margin instead of transformed value
+         2:output leaf index of trees instead of leaf value, note leaf index is unique per tree
+         4:output feature contributions to individual predictions
+
+// using `0` for ntreeLimit means use all the trees
+*/
+
+      var errp = WrappedXGBoostInterface.XGBoosterPredict(_handle, test.Handle, 0, 0, 0, out predsLen, out predsPtr);
+	if (errp == -1)
+	{
+  	   string reason = WrappedXGBoostInterface.XGBGetLastError();
+           throw new XGBoostDLLException(reason);
+	}
+      return XGBoostInterfaceUtils.GetPredictionsArray(predsPtr, predsLen);
+    }
 
 #if false
-        public bool Update()
-        {
-            int isFinished = 0;
-            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterUpdateOneIter(Handle, ref isFinished));
-            return isFinished == 1;
-        }
-
-        public double EvalTrain()
-        {
-            return Eval(0);
-        }
-
-        public double EvalValid()
-        {
-            if (_hasValid)
-                return Eval(1);
-            else
-                return double.NaN;
-        }
-
-        private unsafe double Eval(int dataIdx)
-        {
-            if (!_hasMetric)
-                return double.NaN;
-            int outLen = 0;
-            double[] res = new double[1];
-            fixed (double* ptr = res)
-                LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterGetEval(Handle, dataIdx, ref outLen, ptr));
-            return res[0];
-        }
-
+	// Should enable XGBoosterSaveModelToBuffer
         [BestFriend]
         internal unsafe string GetModelString()
         {
@@ -130,218 +101,124 @@ namespace Microsoft.ML.Trainers.XGBoost
             fixed (byte* ptr = content)
                 return LightGbmInterfaceUtils.GetString((IntPtr)ptr);
         }
-
-        private static double[] Str2DoubleArray(string str, char delimiter)
-        {
-            var values = new List<double>();
-            foreach (var token in str.Split(delimiter))
-            {
-                var trimmed = token.Trim().ToLowerInvariant();
-
-                if (trimmed.Contains("-inf"))
-                    values.Add(double.NegativeInfinity);
-                else if (trimmed.Contains("inf"))
-                    values.Add(double.PositiveInfinity);
-                else if (trimmed.Contains("nan"))
-                    values.Add(double.NaN);
-                else
-                    // The value carried in the trimmed string is not inf, -inf, or nan.
-                    // Therefore, double.Parse should be able to generate a valid number from it.
-                    // If parsing fails, an exception will be thrown.
-                    values.Add(double.Parse(trimmed, CultureInfo.InvariantCulture));
-            }
-            return values.ToArray();
-        }
-
-        private static int[] Str2IntArray(string str, char delimiter)
-        {
-            return str.Split(delimiter).Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToArray();
-        }
-
-        private static UInt32[] Str2UIntArray(string str, char delimiter)
-        {
-            return str.Split(delimiter).Select(x => UInt32.Parse(x, CultureInfo.InvariantCulture)).ToArray();
-        }
-
-        private static bool GetIsDefaultLeft(UInt32 decisionType)
-        {
-            // The second bit.
-            return (decisionType & 2) > 0;
-        }
-
-        private static bool GetIsCategoricalSplit(UInt32 decisionType)
-        {
-            // The first bit.
-            return (decisionType & 1) > 0;
-        }
-
-        private static bool GetHasMissing(UInt32 decisionType)
-        {
-            // The 3rd and 4th bits.
-            return ((decisionType >> 2) & 3) > 0;
-        }
-
-        private static double[] GetDefalutValue(double[] threshold, UInt32[] decisionType)
-        {
-            double[] ret = new double[threshold.Length];
-            for (int i = 0; i < threshold.Length; ++i)
-            {
-                if (GetHasMissing(decisionType[i]) && !GetIsCategoricalSplit(decisionType[i]))
-                {
-                    if (GetIsDefaultLeft(decisionType[i]))
-                        ret[i] = threshold[i];
-                    else
-                        ret[i] = threshold[i] + 1;
-                }
-            }
-            return ret;
-        }
-
-        private static bool FindInBitset(UInt32[] bits, int start, int end, int pos)
-        {
-            int i1 = pos / 32;
-            if (start + i1 >= end)
-                return false;
-            int i2 = pos % 32;
-            return ((bits[start + i1] >> i2) & 1) > 0;
-        }
-
-        private static int[] GetCatThresholds(UInt32[] catThreshold, int lowerBound, int upperBound)
-        {
-            List<int> cats = new List<int>();
-            for (int j = lowerBound; j < upperBound; ++j)
-            {
-                // 32 bits.
-                for (int k = 0; k < 32; ++k)
-                {
-                    int cat = (j - lowerBound) * 32 + k;
-                    if (FindInBitset(catThreshold, lowerBound, upperBound, cat))
-                        cats.Add(cat);
-                }
-            }
-            return cats.ToArray();
-        }
-
-        public InternalTreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
-        {
-            InternalTreeEnsemble res = new InternalTreeEnsemble();
-            string modelString = GetModelString();
-            string[] lines = modelString.Split('\n');
-            int i = 0;
-            for (; i < lines.Length;)
-            {
-                if (lines[i].StartsWith("Tree="))
-                {
-                    Dictionary<string, string> kvPairs = new Dictionary<string, string>();
-                    ++i;
-                    while (!lines[i].StartsWith("Tree=") && lines[i].Trim().Length != 0)
-                    {
-                        string[] kv = lines[i].Split('=');
-                        Contracts.Check(kv.Length == 2);
-                        kvPairs[kv[0].Trim()] = kv[1].Trim();
-                        ++i;
-                    }
-                    int numberOfLeaves = int.Parse(kvPairs["num_leaves"], CultureInfo.InvariantCulture);
-                    int numCat = int.Parse(kvPairs["num_cat"], CultureInfo.InvariantCulture);
-                    if (numberOfLeaves > 1)
-                    {
-                        var leftChild = Str2IntArray(kvPairs["left_child"], ' ');
-                        var rightChild = Str2IntArray(kvPairs["right_child"], ' ');
-                        var splitFeature = Str2IntArray(kvPairs["split_feature"], ' ');
-                        var threshold = Str2DoubleArray(kvPairs["threshold"], ' ');
-                        var splitGain = Str2DoubleArray(kvPairs["split_gain"], ' ');
-                        var leafOutput = Str2DoubleArray(kvPairs["leaf_value"], ' ');
-                        var decisionType = Str2UIntArray(kvPairs["decision_type"], ' ');
-                        var defaultValue = GetDefalutValue(threshold, decisionType);
-                        var categoricalSplitFeatures = new int[numberOfLeaves - 1][];
-                        var categoricalSplit = new bool[numberOfLeaves - 1];
-                        if (categoricalFeatureBoudaries != null)
-                        {
-                            // Add offsets to split features.
-                            for (int node = 0; node < numberOfLeaves - 1; ++node)
-                                splitFeature[node] = categoricalFeatureBoudaries[splitFeature[node]];
-                        }
-
-                        if (numCat > 0)
-                        {
-                            var catBoundaries = Str2IntArray(kvPairs["cat_boundaries"], ' ');
-                            var catThreshold = Str2UIntArray(kvPairs["cat_threshold"], ' ');
-                            for (int node = 0; node < numberOfLeaves - 1; ++node)
-                            {
-                                if (GetIsCategoricalSplit(decisionType[node]))
-                                {
-                                    int catIdx = (int)threshold[node];
-                                    var cats = GetCatThresholds(catThreshold, catBoundaries[catIdx], catBoundaries[catIdx + 1]);
-                                    categoricalSplitFeatures[node] = new int[cats.Length];
-                                    // Convert Cat thresholds to feature indices.
-                                    for (int j = 0; j < cats.Length; ++j)
-                                        categoricalSplitFeatures[node][j] = splitFeature[node] + cats[j];
-
-                                    splitFeature[node] = -1;
-                                    categoricalSplit[node] = true;
-                                    // Swap left and right child.
-                                    int t = leftChild[node];
-                                    leftChild[node] = rightChild[node];
-                                    rightChild[node] = t;
-                                }
-                                else
-                                {
-                                    categoricalSplit[node] = false;
-                                }
-                            }
-                        }
-                        InternalRegressionTree tree = InternalRegressionTree.Create(numberOfLeaves, splitFeature, splitGain,
-                            threshold.Select(x => (float)(x)).ToArray(), defaultValue.Select(x => (float)(x)).ToArray(), leftChild, rightChild, leafOutput,
-                            categoricalSplitFeatures, categoricalSplit);
-                        res.AddTree(tree);
-                    }
-                    else
-                    {
-                        InternalRegressionTree tree = new InternalRegressionTree(2);
-                        var leafOutput = Str2DoubleArray(kvPairs["leaf_value"], ' ');
-                        if (leafOutput[0] != 0)
-                        {
-                            // Convert Constant tree to Two-leaf tree, avoid being filter by TLC.
-                            var categoricalSplitFeatures = new int[1][];
-                            var categoricalSplit = new bool[1];
-                            tree = InternalRegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
-                                new float[] { 0 }, new float[] { 0 }, new int[] { -1 }, new int[] { -2 }, new double[] { leafOutput[0], leafOutput[0] },
-                                categoricalSplitFeatures, categoricalSplit);
-                        }
-                        res.AddTree(tree);
-                    }
-                }
-                else
-                    ++i;
-            }
-            return res;
-        }
-#else
-	public VBuffer<float> Predict(VBuffer<float> src)
-	{
-	  int rank = 3;
-  	  VBuffer<float> dst = new VBuffer<float>();
-	  #if false
-	  var editor = VBufferEditor.Create(ref dst, rank);
-          for (int i = 0; i < rank; i++)
-          {
-	  #if false
-                    editor.Values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
-                        (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
-			#endif
-          }
-          dst = editor.Commit();
-	  #endif
-	  return dst;
-	}
 #endif
 
-#region IDisposable Support
+    public void SetParameters(Dictionary<string, object> parameters)
+    {
+      // support internationalisation i.e. support floats with commas (e.g. 0,5F)
+      var nfi = new NumberFormatInfo { NumberDecimalSeparator = "." };
+
+      SetParameter("max_depth", ((int)parameters["max_depth"]).ToString());
+      SetParameter("learning_rate", ((float)parameters["learning_rate"]).ToString(nfi));
+      SetParameter("n_estimators", ((int)parameters["n_estimators"]).ToString());
+      SetParameter("silent", ((bool)parameters["silent"]).ToString());
+      SetParameter("objective", (string)parameters["objective"]);
+      SetParameter("booster", (string)parameters["booster"]);
+      SetParameter("tree_method", (string)parameters["tree_method"]);
+
+      SetParameter("nthread", ((int)parameters["nthread"]).ToString());
+      SetParameter("gamma", ((float)parameters["gamma"]).ToString(nfi));
+      SetParameter("min_child_weight", ((int)parameters["min_child_weight"]).ToString());
+      SetParameter("max_delta_step", ((int)parameters["max_delta_step"]).ToString());
+      SetParameter("subsample", ((float)parameters["subsample"]).ToString(nfi));
+      SetParameter("colsample_bytree", ((float)parameters["colsample_bytree"]).ToString(nfi));
+      SetParameter("colsample_bylevel", ((float)parameters["colsample_bylevel"]).ToString(nfi));
+      SetParameter("reg_alpha", ((float)parameters["reg_alpha"]).ToString(nfi));
+      SetParameter("reg_lambda", ((float)parameters["reg_lambda"]).ToString(nfi));
+      SetParameter("scale_pos_weight", ((float)parameters["scale_pos_weight"]).ToString(nfi));
+
+      SetParameter("base_score", ((float)parameters["base_score"]).ToString(nfi));
+      SetParameter("seed", ((int)parameters["seed"]).ToString());
+      SetParameter("missing", ((float)parameters["missing"]).ToString(nfi));
+      
+      SetParameter("sample_type", (string)parameters["sample_type"]);
+      SetParameter("normalize_type ", (string)parameters["normalize_type"]);
+      SetParameter("rate_drop", ((float)parameters["rate_drop"]).ToString(nfi));
+      SetParameter("one_drop", ((int)parameters["one_drop"]).ToString());
+      SetParameter("skip_drop", ((float)parameters["skip_drop"]).ToString(nfi));
+
+      if (parameters.TryGetValue("num_class",out var value))
+      {
+          numClass = (int)value;
+          SetParameter("num_class", numClass.ToString());
+      }
+
+    }
+
+    public void SetParameter(string name, string val)
+    {
+ 	  var errp = WrappedXGBoostInterface.XGBoosterSetParam(_handle, name, val);
+
+	  if (errp == -1)
+	  {
+  	      string reason = WrappedXGBoostInterface.XGBGetLastError();
+              throw new XGBoostDLLException(reason);
+	  }
+    }
+
+#region Create Models
+
+    public string[] DumpModelEx(string fmap, int with_stats, string format)
+    {
+        int length;
+        IntPtr treePtr;
+        var intptrSize = IntPtr.Size;
+
+        WrappedXGBoostInterface.XGBoosterDumpModelEx(handle, fmap, with_stats, format, out length, out treePtr);
+
+        var trees = new string[length];
+        int readSize = 0;
+        var handle2 = GCHandle.Alloc(treePtr, GCHandleType.Pinned);
+        
+        //iterate through the length of the tree ensemble and pull the strings out from the returned pointer's array of pointers. prepend python's api convention of adding booster[i] to the beginning of the tree
+        for (var i = 0; i < length; i++)
+        {
+            var ipt1 = Marshal.ReadIntPtr(Marshal.ReadIntPtr(handle2.AddrOfPinnedObject()), intptrSize * i);
+            string s = Marshal.PtrToStringAnsi(ipt1);
+            trees[i] = string.Format("booster[{0}]\n{1}", i, s);
+            var bytesToRead = (s.Length * 2) + IntPtr.Size;
+            readSize += bytesToRead;
+        }
+        handle2.Free();
+        return trees;
+    }
+
+    public void GetModel()
+    {
+      var ss = DumpModelEx("", with_stats: 0, format : "json");
+      var boosterPattern = @"^booster\[\d+\]";
+      List<TreeNode> ensemble = new List<TreeNode>(); // should probably return this
+
+      for (int i = 0; i < ss.Length; i++){
+        var m = Regex.Matches(ss[i], boosterPattern, RegexOptions.IgnoreCase);
+	if ((m.Count >= 1) && (m[0].Groups.Count >=1)) {
+	  // every booster representation should match
+	  var structString = ss[i].Substring(m[0].Groups[0].Value.Length);
+	  var doc = JsonDocument.Parse(structString);
+	  TreeNode t = TreeNode.Create(doc.RootElement);
+	  ensemble.Add(t);
+	} 
+      }
+
+    }
+#endregion
+
+	#region IDisposable Support
         public void Dispose()
         {
-            _handle?.Dispose();
-            _handle = null;
+	  Dispose(true);
+	  GC.SuppressFinalize(this);
         }
+
+	protected virtual void Dispose(bool disposing)
+	{
+	  if (disposed)
+	  {
+	    return;
+	  }
+	  WrappedXGBoostInterface.XGBoosterFree(_handle);
+	  disposed = true;
+	}
         #endregion
     }
 }

@@ -86,7 +86,11 @@ namespace Microsoft.ML.Trainers.XGBoost
 
 	    private void Predict(IExceptionContext ectx, in VBuffer<float> src, ref VBuffer<float> dst)
             {
-		dst = _parent._booster.Predict(src);
+	    #if false
+	    	dst = _parent._booster.Predict(src);
+	    #else
+	        dst = new VBuffer<float>();
+	    #endif
             }
 
         }
