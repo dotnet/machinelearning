@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Microsoft.Data.Analysis
 {
@@ -549,7 +550,7 @@ namespace Microsoft.Data.Analysis
 
         private static bool NeedsQuotes(string csvCell, char separator)
         {
-            return csvCell.IndexOf(separator) != -1 || csvCell.IndexOf('\n') != -1 || csvCell.IndexOf('\"') != -1;
+            return csvCell.AsSpan().IndexOfAny(separator, '\n', '\"') != -1;
         }
     }
 }
