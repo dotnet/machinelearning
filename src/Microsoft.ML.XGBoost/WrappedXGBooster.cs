@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
@@ -164,7 +168,7 @@ allowed values of optionmask:
         IntPtr treePtr;
         var intptrSize = IntPtr.Size;
 
-        WrappedXGBoostInterface.XGBoosterDumpModelEx(handle, fmap, with_stats, format, out length, out treePtr);
+        WrappedXGBoostInterface.XGBoosterDumpModelEx(_handle, fmap, with_stats, format, out length, out treePtr);
 
         var trees = new string[length];
         int readSize = 0;
