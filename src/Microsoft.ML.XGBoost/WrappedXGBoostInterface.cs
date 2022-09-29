@@ -14,24 +14,12 @@ namespace Microsoft.ML.Trainers.XGBoost
     /// </summary>
     internal static class WrappedXGBoostInterface
     {
-#if false
-        public enum CApiDType : int
-        {
-            Float32 = 0,
-            Float64 = 1,
-            Int32 = 2,
-            Int64 = 3
-        }
-
-        public enum CApiPredictType : int
-        {
-            Normal = 0,
-            Raw = 1,
-            LeafIndex = 2,
-        }
-#endif
-
         private const string DllName = "xgboost";
+
+	#region Version API
+	[DllImport(DllName)]
+        public static extern void XGBoostVersion(out int major, out int minor, out int patch);
+	#endregion
 
         #region Error API 
 
@@ -62,6 +50,12 @@ namespace Microsoft.ML.Trainers.XGBoost
 
 	[DllImport(DllName)]
 	public static extern int XGDMatrixFree(IntPtr handle);
+
+	[DllImport(DllName)]
+	public static extern int XGDMatrixNumRow(SafeDMatrixHandle handle, out ulong nrows);
+
+	[DllImport(DllName)]
+	public static extern int XGDMatrixNumCol(SafeDMatrixHandle handle, out ulong ncols);
 
 	[DllImport(DllName)]
     	public static extern int XGDMatrixGetFloatInfo(SafeDMatrixHandle handle, string field, 
@@ -176,6 +170,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
             return strBuf.ToString();
         }
+#endif
 
         /// <summary>
         /// Convert the pointer of c string to c# string.
@@ -184,6 +179,5 @@ namespace Microsoft.ML.Trainers.XGBoost
         {
             return Marshal.PtrToStringAnsi(src);
         }
-#endif
     }
 }
