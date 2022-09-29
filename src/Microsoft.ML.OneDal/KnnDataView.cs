@@ -12,9 +12,9 @@ using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
+#if false   
 internal sealed class KnnDataView : IDataTransform
 {
-   
     public DataViewSchema Schema { get; }
     public bool CanShuffle => false;
     private KnnAlgorithm _knn; // Expects the trained knn algorithm
@@ -166,3 +166,4 @@ internal sealed class KnnDataView : IDataTransform
 	 }
     }
 }
+#endif
