@@ -1204,6 +1204,15 @@ namespace Microsoft.Data.Analysis
             return newColumn;
         }
     }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(DateTimeDataFrameColumn column)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseEquals(column.ColumnContainer, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
     public partial class BooleanDataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(bool value)
@@ -1306,6 +1315,15 @@ namespace Microsoft.Data.Analysis
     public partial class UInt16DataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(ushort value)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseEquals(value, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(DateTime value)
         {
             BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
             ColumnContainer.ElementwiseEquals(value, newColumn.ColumnContainer);
@@ -1420,6 +1438,15 @@ namespace Microsoft.Data.Analysis
             return newColumn;
         }
     }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(DateTimeDataFrameColumn column)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseNotEquals(column.ColumnContainer, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
     public partial class BooleanDataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(bool value)
@@ -1522,6 +1549,15 @@ namespace Microsoft.Data.Analysis
     public partial class UInt16DataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(ushort value)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseNotEquals(value, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(DateTime value)
         {
             BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
             ColumnContainer.ElementwiseNotEquals(value, newColumn.ColumnContainer);
@@ -1636,6 +1672,15 @@ namespace Microsoft.Data.Analysis
             return newColumn;
         }
     }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(DateTimeDataFrameColumn column)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
     public partial class BooleanDataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(bool value)
@@ -1738,6 +1783,15 @@ namespace Microsoft.Data.Analysis
     public partial class UInt16DataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(ushort value)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseGreaterThanOrEqual(value, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(DateTime value)
         {
             BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
             ColumnContainer.ElementwiseGreaterThanOrEqual(value, newColumn.ColumnContainer);
@@ -1852,6 +1906,15 @@ namespace Microsoft.Data.Analysis
             return newColumn;
         }
     }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(DateTimeDataFrameColumn column)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
     public partial class BooleanDataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(bool value)
@@ -1954,6 +2017,15 @@ namespace Microsoft.Data.Analysis
     public partial class UInt16DataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(ushort value)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseLessThanOrEqual(value, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(DateTime value)
         {
             BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
             ColumnContainer.ElementwiseLessThanOrEqual(value, newColumn.ColumnContainer);
@@ -2068,6 +2140,15 @@ namespace Microsoft.Data.Analysis
             return newColumn;
         }
     }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(DateTimeDataFrameColumn column)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
     public partial class BooleanDataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(bool value)
@@ -2170,6 +2251,15 @@ namespace Microsoft.Data.Analysis
     public partial class UInt16DataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(ushort value)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseGreaterThan(value, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(DateTime value)
         {
             BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
             ColumnContainer.ElementwiseGreaterThan(value, newColumn.ColumnContainer);
@@ -2284,6 +2374,15 @@ namespace Microsoft.Data.Analysis
             return newColumn;
         }
     }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(DateTimeDataFrameColumn column)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseLessThan(column.ColumnContainer, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
     public partial class BooleanDataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(bool value)
@@ -2386,6 +2485,15 @@ namespace Microsoft.Data.Analysis
     public partial class UInt16DataFrameColumn
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(ushort value)
+        {
+            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
+            ColumnContainer.ElementwiseLessThan(value, newColumn.ColumnContainer);
+            return newColumn;
+        }
+    }
+    public partial class DateTimeDataFrameColumn
+    {
+        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(DateTime value)
         {
             BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
             ColumnContainer.ElementwiseLessThan(value, newColumn.ColumnContainer);

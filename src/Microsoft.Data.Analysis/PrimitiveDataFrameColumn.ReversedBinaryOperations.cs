@@ -55,6 +55,7 @@ namespace Microsoft.Data.Analysis
                 case PrimitiveDataFrameColumn<uint> uintColumn:
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     if (typeof(U) == typeof(bool))
                     {
                         throw new NotSupportedException();
@@ -129,6 +130,7 @@ namespace Microsoft.Data.Analysis
                 case PrimitiveDataFrameColumn<uint> uintColumn:
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     if (typeof(U) == typeof(bool))
                     {
                         throw new NotSupportedException();
@@ -203,6 +205,7 @@ namespace Microsoft.Data.Analysis
                 case PrimitiveDataFrameColumn<uint> uintColumn:
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     if (typeof(U) == typeof(bool))
                     {
                         throw new NotSupportedException();
@@ -277,6 +280,7 @@ namespace Microsoft.Data.Analysis
                 case PrimitiveDataFrameColumn<uint> uintColumn:
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     if (typeof(U) == typeof(bool))
                     {
                         throw new NotSupportedException();
@@ -351,6 +355,7 @@ namespace Microsoft.Data.Analysis
                 case PrimitiveDataFrameColumn<uint> uintColumn:
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     if (typeof(U) == typeof(bool))
                     {
                         throw new NotSupportedException();
@@ -396,7 +401,6 @@ namespace Microsoft.Data.Analysis
                     return retColumn;
                 default:
                     throw new NotSupportedException();
-
             }
         }
         /// <inheritdoc/>
@@ -410,7 +414,6 @@ namespace Microsoft.Data.Analysis
                     return retColumn;
                 default:
                     throw new NotSupportedException();
-
             }
         }
         /// <inheritdoc/>
@@ -424,10 +427,7 @@ namespace Microsoft.Data.Analysis
                     return retColumn;
                 default:
                     throw new NotSupportedException();
-
             }
         }
-
-
     }
 }
