@@ -499,10 +499,8 @@ namespace Microsoft.Data.Analysis
                             if (t == typeof(string))
                             {
                                 string stringCell = (string)cell;
-                                bool needsQuotes = stringCell.IndexOf(separator) != -1 || stringCell.IndexOf('\n') != -1 || stringCell.IndexOf('\"') != -1;
-                                if (needsQuotes)
+                                if (NeedsQuotes(stringCell, separator))
                                 {
-
                                     record.Append('\"');
                                     record.Append(stringCell.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
                                     record.Append('\"');
@@ -520,6 +518,7 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
+
         private static void WriteHeader(StreamWriter csvFile, IReadOnlyList<string> columnNames, char separator)
         {
             bool firstColumn = true;
@@ -534,10 +533,8 @@ namespace Microsoft.Data.Analysis
                     firstColumn = false;
                 }
 
-                bool needsQuotes = name.IndexOf(separator) != -1 || name.IndexOf('\n') != -1 || name.IndexOf('\"') != -1;
-                if (needsQuotes)
+                if (NeedsQuotes(name, separator))
                 {
-
                     csvFile.Write('\"');
                     csvFile.Write(name.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
                     csvFile.Write('\"');
@@ -548,6 +545,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
             csvFile.WriteLine();
+        }
+
+        private static bool NeedsQuotes(string csvCell, char separator)
+        {
+            return csvCell.IndexOf(separator) != -1 || csvCell.IndexOf('\n') != -1 || csvCell.IndexOf('\"') != -1;
         }
     }
 }
