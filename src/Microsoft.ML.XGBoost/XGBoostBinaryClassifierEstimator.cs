@@ -13,6 +13,10 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
+    internal static class Defaults
+    {
+        public const int NumberOfIterations = 100;
+    }
 
     public sealed class XGBoostBinaryClassificationTransformer : OneToOneTransformerBase
     {
@@ -60,16 +64,17 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
     }
 
-#if false
-    public sealed class XGBoostBinaryClassificationEstimator : TrivialEstimator<XGBoostBinaryClassificationTransformer>
-#else
     public sealed class XGBoostBinaryClassificationEstimator : IEstimator<XGBoostBinaryClassificationTransformer>
-#endif
     {
         private readonly IHost _host;
-        public XGBoostBinaryClassificationEstimator(IHost host, XGBoostBinaryClassificationTransformer transformer) /*: base(host, transformer)*/
+        public XGBoostBinaryClassificationEstimator(IHost host, XGBoostBinaryClassificationTransformer transformer)
         {
             _host = Contracts.CheckRef(host, nameof(host)).Register(nameof(XGBoostBinaryClassificationEstimator));
+        }
+
+        public XGBoostBinaryClassificationEstimator(IHostEnvironment env, string labelColumnName, string featureColumnName, int? numberOfLeaves, int? minimumExampleCountPerLeaf, double? learningRate, int? numberOfIterations)
+        {
+            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(XGBoostBinaryClassificationEstimator));
         }
 
         public XGBoostBinaryClassificationTransformer Fit(IDataView input)
@@ -78,12 +83,12 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
 
 #if true
+        // Used for schema propagation and verification in a pipeline (i.e., in an Estimator chain).
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             throw new NotImplementedException();
         }
 #else
-        // Used for schema propagation and verification in a pipeline (i.e., in an Estimator chain).
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
