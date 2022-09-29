@@ -60,5 +60,14 @@ namespace Microsoft.ML.SearchSpace.Tests
             option.SampleFromFeatureSpace(new double[0]).AsType<string>().Should().Be("b");
             option.MappingToFeatureSpace(Parameter.FromString("b")).Should().BeEmpty();
         }
+
+        [Fact]
+        public void Choice_int_option_test()
+        {
+            var searchSpace = new SearchSpace();
+            searchSpace["choice"] = new ChoiceOption(1, 2, 3);
+            var parameter = searchSpace.SampleFromFeatureSpace(new[] { 0.5 });
+            parameter["choice"].AsType<int>().Should().Be(2);
+        }
     }
 }

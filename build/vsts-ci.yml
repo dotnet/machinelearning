@@ -119,13 +119,8 @@ jobs:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
   pool:
-    vmImage: macOS-10.15
+    vmImage: macOS-12
   steps:
-  # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
-  - script: |
-      rm -rf /usr/local/bin/2to3
-    displayName: MacOS Homebrew bug Workaround
-    continueOnError: true
   - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
     displayName: Install build dependencies
   - script: ./restore.sh
@@ -155,7 +150,7 @@ jobs:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
   pool:
-    vmImage: macOS-10.15
+    vmImage: macOS-12
   steps:
   # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
   - script: |

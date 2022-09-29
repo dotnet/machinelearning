@@ -11,8 +11,8 @@
     }
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.22313.1",
-    "Microsoft.DotNet.Helix.Sdk": "7.0.0-beta.22313.1",
+    "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.22327.2",
+    "Microsoft.DotNet.Helix.Sdk": "7.0.0-beta.22327.2",
     "Microsoft.Build.Traversal": "2.1.1",
     "Microsoft.SourceLink.GitHub": "1.1.0-beta-20206-02",
     "Microsoft.SourceLink.Common": "1.1.0-beta-20206-02"

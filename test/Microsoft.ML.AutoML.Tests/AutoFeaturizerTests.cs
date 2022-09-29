@@ -61,5 +61,56 @@ namespace Microsoft.ML.AutoML.Test
 
             Approvals.Verify(JsonSerializer.Serialize(pipeline, _jsonSerializerOptions));
         }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        public void AutoFeaturizer_newspaperchurn_test()
+        {
+            var context = new MLContext(1);
+            var dataset = DatasetUtil.GetNewspaperChurnDataView();
+            var pipeline = context.Auto().Featurizer(dataset, excludeColumns: new[] { DatasetUtil.NewspaperChurnLabel });
+
+            Approvals.Verify(JsonSerializer.Serialize(pipeline, _jsonSerializerOptions));
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        public void AutoFeaturizer_creditapproval_test()
+        {
+            // this test verify if auto featurizer can convert vector<bool> column to vector<numeric>.
+            var context = new MLContext(1);
+            var dataset = DatasetUtil.GetCreditApprovalDataView();
+            var pipeline = context.Auto().Featurizer(dataset, excludeColumns: new[] { "A16" });
+            Approvals.Verify(JsonSerializer.Serialize(pipeline, _jsonSerializerOptions));
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        public void ImagePathFeaturizerTest()
+        {
+            var context = new MLContext(1);
+            var pipeline = context.Auto().ImagePathFeaturizer("imagePath", "imagePath");
+
+            Approvals.Verify(JsonSerializer.Serialize(pipeline, _jsonSerializerOptions));
+        }
+
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        public void AutoFeaturizer_image_test()
+        {
+            var context = new MLContext(1);
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(datasetPath);
+            var pipeline = context.Auto().Featurizer(trainData, columnInference.ColumnInformation);
+
+            Approvals.Verify(JsonSerializer.Serialize(pipeline, _jsonSerializerOptions));
+        }
     }
 }
