@@ -11,9 +11,11 @@ namespace Microsoft.ML
 {
     public static class OneDalCatalog
     {
+    #if false
         public static KnnClassificationTrainer KnnClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
 	    int numClasses)
             => new KnnClassificationTrainer(CatalogUtils.GetEnvironment(catalog), numClasses);
+    #endif
     }
 }
