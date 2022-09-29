@@ -16,8 +16,13 @@ namespace Microsoft.ML.Trainers.XGBoost
 
     public sealed class XGBoostBinaryClassificationTransformer : OneToOneTransformerBase
     {
-        internal XGBoostBinaryClassificationTransformer(IHost host, params (string outputColumnName, string inputColumnName)[] columns) : base(host, columns)
+	private Booster _booster;
+	private int _numColumns;
+	
+        internal XGBoostBinaryClassificationTransformer(IHost host, Booster booster, params (string outputColumnName, string inputColumnName)[] columns) : base(host, columns)
         {
+	  _booster = booster;
+	  _numColumns = columns.Length;
         }
 
         internal XGBoostBinaryClassificationTransformer(IHost host, ModelLoadContext ctx) : base(host, ctx)
@@ -34,11 +39,12 @@ namespace Microsoft.ML.Trainers.XGBoost
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly XGBoostBinaryClassificationTransformer _parent;
+            private readonly int _numColumns;
             public Mapper(XGBoostBinaryClassificationTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-
+		_numColumns = _parent._numColumns;
             }
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
@@ -50,13 +56,35 @@ namespace Microsoft.ML.Trainers.XGBoost
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                throw new NotImplementedException();
+	        var result = new DataViewSchema.DetachedColumn[_numColumns];
+                for (int i = 0; i < _numColumns; i++)
+                    result[i] = new DataViewSchema.DetachedColumn("PredictedLabel", NumberDataViewType.Int16, null);
+                return result;
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
-                throw new NotImplementedException();
+		Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
+                disposer = null;
+
+                var srcGetter = input.GetGetter<VBuffer<float>>(input.Schema[ColMapNewToOld[iinfo]]);
+                var src = default(VBuffer<float>);
+
+                ValueGetter<VBuffer<float>> dstGetter = (ref VBuffer<float> dst) =>
+                    {
+                        srcGetter(ref src);
+                        Predict(Host, in src, ref dst);
+                    };
+
+                return dstGetter;
             }
+
+	    private void Predict(IExceptionContext ectx, in VBuffer<float> src, ref VBuffer<float> dst)
+            {
+		dst = _parent._booster.Predict(src);
+            }
+
         }
     }
 
@@ -67,6 +95,17 @@ namespace Microsoft.ML.Trainers.XGBoost
 #endif
     {
         private readonly IHost _host;
+
+
+       public sealed class Options : TrainerInputBase
+       {
+            /// <summary>
+            /// Maximum tree depth for base learners
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum tree depth for base learners.", ShortName = "us")]
+            public int MaxDepth = 3;
+       }
+
         public XGBoostBinaryClassificationEstimator(IHost host, XGBoostBinaryClassificationTransformer transformer) /*: base(host, transformer)*/
         {
             _host = Contracts.CheckRef(host, nameof(host)).Register(nameof(XGBoostBinaryClassificationEstimator));
@@ -74,7 +113,44 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         public XGBoostBinaryClassificationTransformer Fit(IDataView input)
         {
-            throw new NotImplementedException();
+	    	var featuresColumn = input.Schema["Features"];
+		var labelColumn = input.Schema["Label"];
+		int featureDimensionality = default(int);
+		if (featuresColumn.Type is VectorDataViewType vt) {
+		  featureDimensionality = vt.Size;
+		} else {
+		  _host.Except($"A vector input is expected");
+		}
+		int samples = 0;
+		int maxSamples = 10000;
+
+		float[] data = new float[ maxSamples * featureDimensionality];
+		float[] dataLabels = new float[ maxSamples ];
+		Span<float> dataSpan = new Span<float>(data);
+
+		using (var cursor = input.GetRowCursor(new[] { featuresColumn, labelColumn })) {
+
+		  float labelValue = default;
+		  VBuffer<float> featureValues = default(VBuffer<float>);
+
+		  var featureGetter = cursor.GetGetter< VBuffer<float> >(featuresColumn);
+		  var labelGetter = cursor.GetGetter<float>(labelColumn);
+
+		  while (cursor.MoveNext() && samples < maxSamples) {
+		    featureGetter(ref featureValues);
+		    labelGetter(ref labelValue);
+
+		    int offset = samples * featureDimensionality;
+		    Span<float> target = dataSpan.Slice(offset, featureDimensionality);
+		    featureValues.GetValues().CopyTo(target);
+		    dataLabels[samples] = labelValue;
+		    samples++;
+	    	  }
+
+		  DMatrix trainMat = new DMatrix(data, (uint)maxSamples, (uint)featureDimensionality, dataLabels);
+		  Booster booster = new Booster(trainMat);
+  		  return new XGBoostBinaryClassificationTransformer(_host, booster, ("Features", "PredictedLabel"));
+	  	}
         }
 
 #if true

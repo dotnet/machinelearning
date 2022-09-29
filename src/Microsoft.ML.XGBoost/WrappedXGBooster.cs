@@ -5,6 +5,16 @@ using System.Linq;
 using Microsoft.ML.Runtime;
 #if false
 using Microsoft.ML.Trainers.FastTree;
+#else
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+//using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Transforms;
 #endif
 
 namespace Microsoft.ML.Trainers.XGBoost
@@ -20,10 +30,18 @@ namespace Microsoft.ML.Trainers.XGBoost
         private readonly bool _hasMetric;
 #endif
 
-        public WrappedXGBoostInterface.SafeBoosterHandle Handle { get; private set; }
 #if false
-        public int BestIteration { get; set; }
+        public WrappedXGBoostInterface.SafeBoosterHandle Handle { get; private set; }
+#else
+	WrappedXGBoostInterface.SafeBoosterHandle _handle;
 
+        public WrappedXGBoostInterface.SafeBoosterHandle Handle {
+         get { return _handle; }
+	 /* private set; */
+	}
+#endif
+
+#if false
         public Booster(Dictionary<string, object> parameters, Dataset trainset, Dataset validset = null)
         {
             var param = LightGbmInterfaceUtils.JoinParameters(parameters);
@@ -43,7 +61,23 @@ namespace Microsoft.ML.Trainers.XGBoost
             if (numEval == 1)
                 _hasMetric = true;
         }
+#else
+        public Booster(DMatrix trainDMatrix)
+	{
+	  _handle = null;
 
+	  var dmats = new [] { trainDMatrix.Handle };
+	  var len = unchecked((ulong)dmats.Length);
+ 	  var errp = WrappedXGBoostInterface.XGBoosterCreate(dmats, len, out _handle);
+	  if (errp == -1)
+	  {
+  	      string reason = WrappedXGBoostInterface.XGBGetLastError();
+              throw new XGBoostDLLException(reason);
+	  }
+	}
+#endif
+
+#if false
         public bool Update()
         {
             int isFinished = 0;
@@ -282,12 +316,31 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
             return res;
         }
+#else
+	public VBuffer<float> Predict(VBuffer<float> src)
+	{
+	  int rank = 3;
+  	  VBuffer<float> dst = new VBuffer<float>();
+	  #if false
+	  var editor = VBufferEditor.Create(ref dst, rank);
+          for (int i = 0; i < rank; i++)
+          {
+	  #if false
+                    editor.Values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
+                        (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
+			#endif
+          }
+          dst = editor.Commit();
+	  #endif
+	  return dst;
+	}
 #endif
-        #region IDisposable Support
+
+#region IDisposable Support
         public void Dispose()
         {
-            Handle?.Dispose();
-            Handle = null;
+            _handle?.Dispose();
+            _handle = null;
         }
         #endregion
     }
