@@ -142,6 +142,12 @@ public:
             leafValues[i] = _leafValues[i];
         }
         leafValues[_numberOfLeaves - 1] = _leafValues[_numberOfLeaves - 1];
+
+        if (_verbose)
+        {
+            printf("Number of leaves: %d\n", -_currentLeaf - 1);
+            printf("Number of nodes: %lu\n", _currentNode);
+        }
     }
 
     ~ClassifierNodeVisitor()
@@ -189,8 +195,8 @@ int decisionForestClassificationComputeTemplate(
         printf("%s\n", "Decision Forest Classification parameters:");
         printf("\t%s - %d\n", "numberOfThreads", numberOfThreads);
         printf("\t%s - %d\n", "numberOfTrees", numberOfTrees);
-        printf("\t%s - %.6f\n", "featureFraction", featureFractionPerSplit);
-        printf("\t%s - %d\n", "featuresPerNode", (int)(nColumns * featureFractionPerSplit));
+        printf("\t%s - %.6f\n", "featureFractionPerSplit", featureFractionPerSplit);
+        printf("\t%s - %d\n", "featureFractionPerSplit(int)", (int)(nColumns * featureFractionPerSplit));
         printf("\t%s - %d\n", "numberOfLeaves", numberOfLeaves);
         printf("\t%s - %d\n", "minimumExampleCountPerLeaf", minimumExampleCountPerLeaf);
         printf("\t%s - %d\n", "maxBins", maxBins);
@@ -212,8 +218,8 @@ int decisionForestClassificationComputeTemplate(
     algorithm.parameter().featuresPerNode                = (int)(nColumns * featureFractionPerSplit);
     algorithm.parameter().maxTreeDepth                   = 0; // unlimited growth in depth
     algorithm.parameter().impurityThreshold              = 0;
-    algorithm.parameter().varImportance                  = algorithms::decision_forest::training::none;
-    // algorithm.parameter().resultsToCompute               = algorithms::decision_forest::training::computeOutOfBagError;
+    algorithm.parameter().varImportance                  = algorithms::decision_forest::training::MDI;
+    algorithm.parameter().resultsToCompute               = algorithms::decision_forest::training::computeOutOfBagError;
     algorithm.parameter().bootstrap                      = true;
     algorithm.parameter().minObservationsInLeafNode      = minimumExampleCountPerLeaf;
     algorithm.parameter().minObservationsInSplitNode     = 2;
@@ -221,16 +227,15 @@ int decisionForestClassificationComputeTemplate(
     algorithm.parameter().minImpurityDecreaseInSplitNode = 0;
     algorithm.parameter().maxLeafNodes                   = numberOfLeaves;
     algorithm.parameter().maxBins                        = maxBins;
-    algorithm.parameter().minBinSize                     = 1;
+    algorithm.parameter().minBinSize                     = 5;
 
     algorithm.compute();
 
     decision_forest::classification::training::ResultPtr trainingResult = algorithm.getResult();
-
     decision_forest::classification::ModelPtr model = trainingResult->get(classifier::training::model);
 
     InputDataArchive dataArch;
-    model->serialize(dataArch);
+    trainingResult->serialize(dataArch);
     int modelSize = dataArch.getSizeOfArchive();
     dataArch.copyArchiveToArray(modelPtr, modelSize);
 
@@ -299,15 +304,10 @@ template <typename FPType>
 double decisionForestClassificationPredictionTemplate(
     FPType * featuresPtr, int nColumns, int nClasses, byte* modelPtr, int modelSize)
 {
-    bool verbose = getVerboseVariable();
-    if (verbose)
-    {
-        printf("nColumns: %d\n", nColumns);
-        printf("modelSize: %d\n", modelSize);
-    }
-    decision_forest::classification::ModelPtr model;
     OutputDataArchive dataArch(modelPtr, modelSize);
-    model->deserialize(dataArch);
+
+    decision_forest::classification::training::ResultPtr trainingResult(new decision_forest::classification::training::Result());
+    trainingResult->deserialize(dataArch);
 
     double output;
     NumericTablePtr featuresTable(new HomogenNumericTable<FPType>(featuresPtr, nColumns, 1));
@@ -315,7 +315,7 @@ double decisionForestClassificationPredictionTemplate(
     decision_forest::classification::prediction::Batch<FPType> algorithm(nClasses);
 
     algorithm.input.set(classifier::prediction::data, featuresTable);
-    algorithm.input.set(classifier::prediction::model, model);
+    algorithm.input.set(classifier::prediction::model, trainingResult->get(classifier::training::model));
 
     algorithm.parameter().votingMethod = decision_forest::classification::prediction::weighted;
     algorithm.parameter().resultsToEvaluate |= static_cast<DAAL_UINT64>(classifier::computeClassProbabilities);
