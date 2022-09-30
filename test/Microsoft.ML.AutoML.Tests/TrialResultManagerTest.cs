@@ -78,6 +78,7 @@ namespace Microsoft.ML.AutoML.Test
             csvTrialResultManager.GetAllTrialResults().Count().Should().Be(10);
 
             var fileContent = File.ReadAllText(tempFilePath);
+            Output.WriteLine(fileContent);
             File.Delete(tempFilePath);
             Approvals.Verify(fileContent);
         }
