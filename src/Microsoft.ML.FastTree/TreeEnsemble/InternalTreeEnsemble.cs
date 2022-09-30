@@ -32,9 +32,9 @@ namespace Microsoft.ML.Trainers.FastTree
             Regression = 0,
             Classification = 1
         }
-        private OneDalModelType _oneDalModelType;
-        private byte[] _oneDalModel;
-        private int _oneDalModelSize;
+        private readonly OneDalModelType _oneDalModelType;
+        private readonly byte[] _oneDalModel;
+        private readonly int _oneDalModelSize;
 
         internal static class OneDal
         {
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     {
                         if (_oneDalModelType == OneDalModelType.Classification)
                             output = OneDal.DecisionForestClassificationPrediction(featuresPtr, nFeatures, 2, modelPtr, _oneDalModelSize);
-                        output = NumTrees * (1 - 2 * output);
+                        output = (1.0 - 2.0 * output) * (double)NumTrees;
                     }
                 }
             }
@@ -313,7 +313,6 @@ namespace Microsoft.ML.Trainers.FastTree
                 for (int h = 0; h < NumTrees; h++)
                     output += _trees[h].GetOutput(in feat);
             }
-            // Console.WriteLine("GetOutput: in VBuffer<float> feat"); <--------
             return output;
         }
 

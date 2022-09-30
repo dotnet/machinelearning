@@ -234,8 +234,9 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
                     var cursorFactory = new FloatLabelCursor.Factory(trainData, cursorOpt);
-                    var typeFeat = trainData.Schema.Feature.Value.Type as VectorDataViewType;
-                    TrainCoreOneDal(ch, cursorFactory, typeFeat.Size);
+                    TrainCoreOneDal(ch, cursorFactory, FeatureCount);
+                    if (FeatureMap != null)
+                        TrainedEnsemble.RemapFeatures(FeatureMap);
                 }
                 else
                 {
@@ -273,7 +274,7 @@ namespace Microsoft.ML.Trainers.FastTree
             int numberOfLeaves = FastTreeTrainerOptions.NumberOfLeaves;
             int numberOfTrees = FastTreeTrainerOptions.NumberOfTrees;
             long n = 0;
-            
+
             int numberOfThreads = 0;
             if (FastTreeTrainerOptions.NumberOfThreads.HasValue)
                 numberOfThreads = FastTreeTrainerOptions.NumberOfThreads.Value;
@@ -284,9 +285,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 {
                     // label
                     labelsList.Add(cursor.Label);
+
                     // features
                     var values = cursor.Features.GetValues();
-
                     if (cursor.Features.IsDense)
                     {
                         ch.Assert(values.Length == featureCount);
@@ -327,7 +328,7 @@ namespace Microsoft.ML.Trainers.FastTree
             float[] leafValuesArray = new float[numberOfLeaves * numberOfTrees];
 
             int oneDalModelSize = -1;
-            int projectedOneDalModelSize = 96 * nClasses * numberOfLeaves * numberOfTrees + 4096;
+            int projectedOneDalModelSize = 96 * nClasses * numberOfLeaves * numberOfTrees + 4096 * 16;
             byte[] oneDalModel = new byte[projectedOneDalModelSize];
 
             unsafe
@@ -345,8 +346,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     );
                 }
             }
-
-            TrainedEnsemble = new InternalTreeEnsemble(oneDalModel, oneDalModelSize, InternalTreeEnsemble.OneDalModelType.Classification);
+            // TrainedEnsemble = new InternalTreeEnsemble(oneDalModel, oneDalModelSize, InternalTreeEnsemble.OneDalModelType.Classification);
+            TrainedEnsemble = new InternalTreeEnsemble();
             for (int i = 0; i < numberOfTrees; ++i)
             {
                 int[] lteChildArrayPerTree = new int[numberOfLeaves - 1];
@@ -378,7 +379,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 InternalQuantileRegressionTree newTree = new InternalQuantileRegressionTree(splitFeatureArrayPerTree, splitGainPerTree, null,
                     featureThresholdArrayPerTree, defaultValueForMissingPerTree, lteChildArrayPerTree, gtChildArrayPerTree, leafValuesArrayPerTree,
                     categoricalSplitFeaturesPerTree, categoricalSplitPerTree);
-
+                newTree.PopulateThresholds(TrainSet);
                 TrainedEnsemble.AddTree(newTree);
             }
         }
