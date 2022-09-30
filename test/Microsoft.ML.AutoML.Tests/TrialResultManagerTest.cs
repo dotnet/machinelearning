@@ -50,7 +50,7 @@ namespace Microsoft.ML.AutoML.Test
                                 PeakMemoryInMegaByte = i * 0.97,
                             };
                         });
-            var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".txt");
+            var tempFilePath = Path.Combine(OutDir, Path.GetRandomFileName() + ".txt");
             var csvTrialResultManager = new CsvTrialResultManager(tempFilePath, lgbmSearchSpace);
 
             // the tempFile is empty, so GetAllTrialResults should be 0;
@@ -78,6 +78,9 @@ namespace Microsoft.ML.AutoML.Test
             csvTrialResultManager.GetAllTrialResults().Count().Should().Be(10);
 
             var fileContent = File.ReadAllText(tempFilePath);
+
+            // replace line break to \r
+            fileContent = fileContent.Replace(Environment.NewLine, "\r");
             Output.WriteLine(fileContent);
             File.Delete(tempFilePath);
             Approvals.Verify(fileContent);
