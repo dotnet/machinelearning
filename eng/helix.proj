@@ -106,9 +106,9 @@
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" libSymSgdNative.dylib</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "$HELIX_WORKITEM_ROOT/libomp.dylib" runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "$HELIX_WORKITEM_ROOT/libomp.dylib" runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx.1100.arm64'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
 
