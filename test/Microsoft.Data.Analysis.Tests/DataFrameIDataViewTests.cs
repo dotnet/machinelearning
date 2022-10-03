@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -10,6 +11,16 @@ using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
 {
+    public class VectorInput
+    {
+        [LoadColumn(0, 1)]
+        [VectorType(2)]
+        public float[] Features { get; set; }
+
+        [LoadColumn(3)]
+        public bool Label { get; set; }
+    }
+
     public partial class DataFrameIDataViewTests
     {
         [Fact]
@@ -338,6 +349,25 @@ namespace Microsoft.Data.Analysis.Tests
             return data;
         }
 
+        private IDataView GetASampleIDataViewVBuffer()
+        {
+            var mlContext = new MLContext();
+
+            // Get a small dataset as an IEnumerable.
+            var enumerableOfData = new[]
+            {
+                new InputData() { Name = "Joey", FilterNext = false, Value = 1.0f },
+                new InputData() { Name = "Chandler", FilterNext = false , Value = 2.0f},
+                new InputData() { Name = "Ross", FilterNext = false , Value = 3.0f},
+                new InputData() { Name = "Monica", FilterNext = true , Value = 4.0f},
+                new InputData() { Name = "Rachel", FilterNext = true , Value = 5.0f},
+                new InputData() { Name = "Phoebe", FilterNext = false , Value = 6.0f},
+            };
+
+            IDataView data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
+            return data;
+        }
+
         private void VerifyDataFrameColumnAndDataViewColumnValues<T>(string columnName, IDataView data, DataFrame df, int maxRows = -1)
         {
             int cc = 0;
@@ -419,5 +449,33 @@ namespace Microsoft.Data.Analysis.Tests
             VerifyDataFrameColumnAndDataViewColumnValues<string>("Name", data, df, 3);
             VerifyDataFrameColumnAndDataViewColumnValues<float>("Value", data, df, 3);
         }
+
+        [Fact]
+        public void VBufferTest()
+        {
+            var mlContext = new MLContext();
+
+            List<VectorInput> inputs = new List<VectorInput>()
+            {
+                new VectorInput()
+                {
+                    Features = new float[] {33, 44},
+                    Label = true
+                },
+                new VectorInput()
+                {
+                    Features = new float[] {55, 66},
+                    Label = false
+                }
+            };
+
+            var data = mlContext.Data.LoadFromEnumerable<VectorInput>(inputs);
+
+            var df = data.ToDataFrame();
+
+            Assert.Equal(2, df.Columns.Count);
+            Assert.Equal(2, df.Rows.Count);
+        }
+
     }
 }

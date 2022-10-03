@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using Apache.Arrow;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
@@ -211,6 +212,16 @@ namespace Microsoft.Data.Analysis.Tests
             return input[trainIndices];
         }
 
+        [Fact]
+        public void VBufferDataFrameTest()
+        {
+            var vbuf1 = new VBuffer<int>();
+            var vbuf2 = new VBuffer<int>();
+            var l1 = new List<VBuffer<int>>() { vbuf1, vbuf2 };
+            var column = new VBufferDataFrameColumn<int>("vbuff", l1);
+
+            Assert.Equal(2, column.Length);
+        }
 
         [Fact]
         public void TestIndexer()

@@ -112,6 +112,14 @@ namespace Microsoft.ML
                 {
                     dataFrameColumns.Add(new StringDataFrameColumn(dataViewColumn.Name));
                 }
+                else if (type is VectorDataViewType vectoryType)
+                // type.ToString() == "Vector<Single, 2>") //== VectorDataViewType.Instance)
+                {
+                    var itemType = vectoryType.ItemType;
+                    //type.ItemType && type.Size
+                    var subType = dataViewColumn.Annotations;
+                    dataFrameColumns.Add(new VBufferDataFrameColumn<Single>(dataViewColumn.Name));
+                }
                 else
                 {
                     throw new NotSupportedException(String.Format(Microsoft.Data.Strings.NotSupportedColumnType, type.RawType.Name));
