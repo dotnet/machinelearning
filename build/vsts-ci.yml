@@ -279,9 +279,9 @@ jobs:
     _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
 
     # Only enable publishing in non-public, non PR scenarios.
-    - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       # DotNet-Symbol-Server-Pats provides: microsoft-symbol-server-pat symweb-symbol-server-pat
-      - group: DotNet-Symbol-Server-Pats
+      group: DotNet-Symbol-Server-Pats
 
   pool:
     name: NetCore1ESPool-Internal
