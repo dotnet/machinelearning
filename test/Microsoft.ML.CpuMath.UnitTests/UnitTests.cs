@@ -591,7 +591,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.Sum(src);
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal((double)expected, (double)actual, 2);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
@@ -611,7 +611,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.SumSq(src);
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal((double)expected, (double)actual, 2);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
@@ -633,7 +633,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     expected += (src[i] - defaultScale) * (src[i] - defaultScale);
                 }
 
-                Assert.Equal(expected, actual, 1);
+                Assert.Equal((double)expected, (double)actual, 1);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
@@ -653,7 +653,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.SumAbs(src);
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal((double)expected, (double)actual, 2);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
@@ -675,7 +675,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     expected += Math.Abs(src[i] - defaultScale);
                 }
 
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal((double)expected, (double)actual, 2);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
@@ -700,7 +700,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     }
                 }
 
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal((double)expected, (double)actual, 2);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
@@ -725,7 +725,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                         expected = abs;
                     }
                 }
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal((double)expected, (double)actual, 2);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
@@ -752,7 +752,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.DotProductDense(src, dst, dst.Length);
-                Assert.Equal(expected, actual, 1);
+                Assert.Equal((double)expected, (double)actual, 1);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
@@ -783,7 +783,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.DotProductSparse(src, dst, idx, limit);
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal((double)expected, (double)actual, 2);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
@@ -812,7 +812,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.L2DistSquared(src, dst, dst.Length);
-                Assert.Equal(expected, actual, 0);
+                Assert.Equal((double)expected, (double)actual, 0);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
