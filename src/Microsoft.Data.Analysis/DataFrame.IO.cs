@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -499,11 +498,11 @@ namespace Microsoft.Data.Analysis
 
                             if (t == typeof(string))
                             {
-                                bool needsQuotes = ((string)cell).IndexOf(separator) != -1 || ((string)cell).IndexOf('\n') != -1;
-                                if (needsQuotes)
+                                string stringCell = (string)cell;
+                                if (NeedsQuotes(stringCell, separator))
                                 {
                                     record.Append('\"');
-                                    record.Append(cell);
+                                    record.Append(stringCell.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
                                     record.Append('\"');
                                     continue;
                                 }
@@ -519,6 +518,7 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
+
         private static void WriteHeader(StreamWriter csvFile, IReadOnlyList<string> columnNames, char separator)
         {
             bool firstColumn = true;
@@ -533,11 +533,10 @@ namespace Microsoft.Data.Analysis
                     firstColumn = false;
                 }
 
-                bool needsQuotes = name.IndexOf(separator) != -1 || name.IndexOf('\n') != -1;
-                if (needsQuotes)
+                if (NeedsQuotes(name, separator))
                 {
                     csvFile.Write('\"');
-                    csvFile.Write(name);
+                    csvFile.Write(name.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
                     csvFile.Write('\"');
                 }
                 else
@@ -545,8 +544,12 @@ namespace Microsoft.Data.Analysis
                     csvFile.Write(name);
                 }
             }
-
             csvFile.WriteLine();
+        }
+
+        private static bool NeedsQuotes(string csvCell, char separator)
+        {
+            return csvCell.AsSpan().IndexOfAny(separator, '\n', '\"') != -1;
         }
     }
 }
