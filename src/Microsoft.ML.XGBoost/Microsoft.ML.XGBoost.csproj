@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
 
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
       <PrivateAssets>all</PrivateAssets>
@@ -22,14 +23,8 @@
     </ProjectReference>
   </ItemGroup>
 
-<!--
   <ItemGroup>
-    <PackageReference Include="XGBoost" Version="$(LightGBMVersion)" />
-  </ItemGroup>
-  -->
-
-  <ItemGroup>
-    <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+    <PackageReference Include="XGBoost" Version="$(XGBoostVersion)" />
   </ItemGroup>
 
 </Project>
