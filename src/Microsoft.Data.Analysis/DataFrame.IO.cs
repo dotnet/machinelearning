@@ -397,7 +397,7 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Writes a DataFrame into a CSV.
+        /// Saves a DataFrame into a CSV.
         /// </summary>
         /// <param name="dataFrame"><see cref="DataFrame"/></param>
         /// <param name="path">CSV file path</param>
@@ -405,20 +405,20 @@ namespace Microsoft.Data.Analysis
         /// <param name="header">has a header or not</param>
         /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
-        public static void WriteCsv(DataFrame dataFrame, string path,
+        public static void SaveCsv(DataFrame dataFrame, string path,
                                    char separator = ',', bool header = true,
                                    Encoding encoding = null, CultureInfo cultureInfo = null)
         {
             using (FileStream csvStream = new FileStream(path, FileMode.Create))
             {
-                WriteCsv(dataFrame: dataFrame, csvStream: csvStream,
+                SaveCsv(dataFrame: dataFrame, csvStream: csvStream,
                            separator: separator, header: header,
                            encoding: encoding, cultureInfo: cultureInfo);
             }
         }
 
         /// <summary>
-        /// Writes a DataFrame into a CSV.
+        /// Saves a DataFrame into a CSV.
         /// </summary>
         /// <param name="dataFrame"><see cref="DataFrame"/></param>
         /// <param name="csvStream">stream of CSV data to be write out</param>
@@ -426,7 +426,7 @@ namespace Microsoft.Data.Analysis
         /// <param name="header">has a header or not</param>
         /// <param name="encoding">the character encoding. Defaults to UTF8 if not specified</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
-        public static void WriteCsv(DataFrame dataFrame, Stream csvStream,
+        public static void SaveCsv(DataFrame dataFrame, Stream csvStream,
                            char separator = ',', bool header = true,
                            Encoding encoding = null, CultureInfo cultureInfo = null)
         {
@@ -451,7 +451,7 @@ namespace Microsoft.Data.Analysis
                 {
                     if (header)
                     {
-                        WriteHeader(csvFile, dataFrame.Columns.GetColumnNames(), separator);
+                        SaveHeader(csvFile, dataFrame.Columns.GetColumnNames(), separator);
                     }
 
                     var record = new StringBuilder();
@@ -519,7 +519,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        private static void WriteHeader(StreamWriter csvFile, IReadOnlyList<string> columnNames, char separator)
+        private static void SaveHeader(StreamWriter csvFile, IReadOnlyList<string> columnNames, char separator)
         {
             bool firstColumn = true;
             foreach (string name in columnNames)
