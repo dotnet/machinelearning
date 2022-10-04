@@ -33,7 +33,7 @@
     <ApacheArrowVersion>2.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.4</GoogleProtobufVersion>
     <LightGBMVersion>2.3.1</LightGBMVersion>
-    <XGBoostVersion>1.5.2</XGBoostVersion>
+    <XGBoostVersion>1.7.0</XGBoostVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.22314.1</MicrosoftDotNetInteractiveFormattingVersion>
