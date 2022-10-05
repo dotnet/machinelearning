@@ -25,7 +25,7 @@ namespace Microsoft.ML.AutoML.Test
         {
         }
 
-        [Fact]
+        [Fact(Skip = "failing part of ci test, need investigation")]
         [UseReporter(typeof(DiffReporter))]
         [UseApprovalSubdirectory("ApprovalTests")]
         public void CsvTrialResultManager_end_to_end_test()

@@ -329,7 +329,7 @@ namespace Microsoft.ML.AutoML.Test
             result.Metric.Should().BeGreaterThan(0.5);
         }
 
-
+        [LightGBMFact(Skip = "This test is too slow to run as part of automation.")]
         public void SweepablePipeline_AutoFit_UCI_Adult_CrossValidation_10_Test()
         {
             var context = new MLContext(1);
