@@ -396,7 +396,6 @@ namespace Microsoft.Data.Analysis
             return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
         }
 
-
         /// <summary>
         /// Writes a DataFrame into a CSV.
         /// </summary>
