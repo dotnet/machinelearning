@@ -435,7 +435,7 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Saves a DataFrame into a CSV.
+        /// Writes a DataFrame into a CSV.
         /// </summary>
         /// <param name="dataFrame"><see cref="DataFrame"/></param>
         /// <param name="csvStream">stream of CSV data to be write out</param>
