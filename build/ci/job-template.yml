@@ -37,7 +37,7 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
-      ${{ if and(eq(parameters.pool.vmImage, 'ubuntu-18.04'), contains(parameters.name, 'cross')) }}:
+      ${{ if and(contains(parameters.pool.demands, 'ubuntu'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
       ${{ if eq(parameters.codeCoverage, 'true') }}:
         hardLink: ''
