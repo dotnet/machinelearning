@@ -331,7 +331,6 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(DateTimeTransformer).Assembly);
 
             var catalog = Env.ComponentCatalog;
 
