@@ -169,17 +169,17 @@ namespace Microsoft.ML.Scenarios
             {
                 ImagePath = GetDataPath("images/banana.jpg")
             });
-            Assert.Equal(0, prediction.PredictedScores[0], 2);
-            Assert.Equal(1, prediction.PredictedScores[1], 2);
-            Assert.Equal(0, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[0], 2);
+            Assert.Equal(1d, prediction.PredictedScores[1], 2);
+            Assert.Equal(0d, prediction.PredictedScores[2], 2);
 
             prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/hotdog.jpg")
             });
-            Assert.Equal(0, prediction.PredictedScores[0], 2);
-            Assert.Equal(0, prediction.PredictedScores[1], 2);
-            Assert.Equal(1, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[0], 2);
+            Assert.Equal(0d, prediction.PredictedScores[1], 2);
+            Assert.Equal(1d, prediction.PredictedScores[2], 2);
         }
 
         [TensorFlowFact]
@@ -1222,7 +1222,7 @@ namespace Microsoft.ML.Scenarios
             for (var i = 0; i < predictions.Length; i++)
             {
                 for (var j = 0; j < predictions[i].PredictedScores.Length; j++)
-                    Assert.Equal(predictions[i].PredictedScores[j], testPredictions[i].PredictedScores[j], 2);
+                    Assert.Equal((double)predictions[i].PredictedScores[j], (double)testPredictions[i].PredictedScores[j], 2);
             }
         }
 
