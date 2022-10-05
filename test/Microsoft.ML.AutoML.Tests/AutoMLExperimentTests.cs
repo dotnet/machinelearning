@@ -330,7 +330,6 @@ namespace Microsoft.ML.AutoML.Test
         }
 
 
-        [LightGBMFact]
         public void SweepablePipeline_AutoFit_UCI_Adult_CrossValidation_10_Test()
         {
             var context = new MLContext(1);
