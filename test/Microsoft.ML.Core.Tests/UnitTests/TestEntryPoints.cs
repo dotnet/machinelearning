@@ -12,7 +12,6 @@ using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Featurizers;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
