@@ -405,7 +405,7 @@ namespace Microsoft.Data.Analysis
         /// <param name="header">has a header or not</param>
         /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
-        [Obsolete("Use SaveCsv")]
+        [Obsolete("WriteCsv is obsolete and will be removed in a future version. Use SaveCsv instead.")]
         public static void WriteCsv(DataFrame dataFrame, string path,
                                    char separator = ',', bool header = true,
                                    Encoding encoding = null, CultureInfo cultureInfo = null)
@@ -443,7 +443,7 @@ namespace Microsoft.Data.Analysis
         /// <param name="header">has a header or not</param>
         /// <param name="encoding">the character encoding. Defaults to UTF8 if not specified</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
-        [Obsolete("Use SaveCsv")]
+        [Obsolete("WriteCsv is obsolete and will be removed in a future version. Use SaveCsv instead.")]
         public static void WriteCsv(DataFrame dataFrame, Stream csvStream,
                            char separator = ',', bool header = true,
                            Encoding encoding = null, CultureInfo cultureInfo = null)
