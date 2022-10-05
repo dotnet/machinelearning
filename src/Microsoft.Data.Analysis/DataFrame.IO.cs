@@ -434,7 +434,6 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-
         /// <summary>
         /// Saves a DataFrame into a CSV.
         /// </summary>
