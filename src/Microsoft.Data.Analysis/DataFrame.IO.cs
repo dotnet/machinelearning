@@ -396,6 +396,24 @@ namespace Microsoft.Data.Analysis
             return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
         }
 
+
+        /// <summary>
+        /// Writes a DataFrame into a CSV.
+        /// </summary>
+        /// <param name="dataFrame"><see cref="DataFrame"/></param>
+        /// <param name="path">CSV file path</param>
+        /// <param name="separator">column separator</param>
+        /// <param name="header">has a header or not</param>
+        /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
+        /// <param name="cultureInfo">culture info for formatting values</param>
+        [Obsolete("Use SaveCsv")]
+        public static void WriteCsv(DataFrame dataFrame, string path,
+                                   char separator = ',', bool header = true,
+                                   Encoding encoding = null, CultureInfo cultureInfo = null)
+        {
+            SaveCsv(dataFrame, path, separator, header, encoding, cultureInfo);
+        }
+
         /// <summary>
         /// Saves a DataFrame into a CSV.
         /// </summary>
@@ -417,6 +435,24 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+
+        /// <summary>
+        /// Saves a DataFrame into a CSV.
+        /// </summary>
+        /// <param name="dataFrame"><see cref="DataFrame"/></param>
+        /// <param name="csvStream">stream of CSV data to be write out</param>
+        /// <param name="separator">column separator</param>
+        /// <param name="header">has a header or not</param>
+        /// <param name="encoding">the character encoding. Defaults to UTF8 if not specified</param>
+        /// <param name="cultureInfo">culture info for formatting values</param>
+        [Obsolete("Use SaveCsv")]
+        public static void WriteCsv(DataFrame dataFrame, Stream csvStream,
+                           char separator = ',', bool header = true,
+                           Encoding encoding = null, CultureInfo cultureInfo = null)
+        {
+            SaveCsv(dataFrame, csvStream, separator, header, encoding, cultureInfo);
+        }
+
         /// <summary>
         /// Saves a DataFrame into a CSV.
         /// </summary>
@@ -427,8 +463,8 @@ namespace Microsoft.Data.Analysis
         /// <param name="encoding">the character encoding. Defaults to UTF8 if not specified</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
         public static void SaveCsv(DataFrame dataFrame, Stream csvStream,
-                           char separator = ',', bool header = true,
-                           Encoding encoding = null, CultureInfo cultureInfo = null)
+                        char separator = ',', bool header = true,
+                        Encoding encoding = null, CultureInfo cultureInfo = null)
         {
             if (cultureInfo is null)
             {
