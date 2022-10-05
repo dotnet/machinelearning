@@ -120,7 +120,7 @@ namespace Microsoft.ML.IntegrationTests
             for (int i = 0; i < finalTree.NumberOfNodes; ++i)
             {
                 Assert.Equal(expectedSplitGains[i], finalTree.SplitGains[i], 6);
-                Assert.Equal(expectedThresholds[i], finalTree.NumericalSplitThresholds[i], 6);
+                Assert.Equal((double)expectedThresholds[i], (double)finalTree.NumericalSplitThresholds[i], 6);
             }
         }
 

@@ -953,7 +953,7 @@ namespace Microsoft.ML.RunTests
                             for (int j = 0; j < predCount; j++)
                                 sum += vectorScores[j].GetItemOrDefault(i);
                             if (float.IsNaN(sum))
-                                Assert.Equal(vectorScore.GetItemOrDefault(i), sum / predCount, 3);
+                                Assert.Equal((double)vectorScore.GetItemOrDefault(i), (double)sum / predCount, 3);
                         }
                         Assert.Equal(probs.Count(p => p >= prob), probs.Count(p => p <= prob));
                     }
