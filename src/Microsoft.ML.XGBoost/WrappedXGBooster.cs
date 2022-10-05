@@ -205,6 +205,52 @@ allowed values of optionmask:
       }
 
     }
+
+    private class TablePopulator
+    {
+	public Dictionary<int, List<JsonElement>> dict = new();
+	public Dictionary<string, int> nodes = new();
+	public Dictionary<string, string> lte = new();
+	public Dictionary<string, string> gt = new();
+
+	public TablePopulator(JsonElement elm)
+	{
+	  PopulateTable(elm, 0);
+	}
+
+	public void PopulateTable(JsonElement elm, int level)
+	{
+	  string nodeId = "";
+	  if (elm.TryGetProperty("nodeid", out JsonElement nodeidElm)) {
+	    // If this test fails, should probably bail, as the syntax of the booster is incorrect
+            nodeId = nodeidElm.ToString();
+            nodes.Add(nodeId, level);
+          }
+
+	  if (!dict.ContainsKey(level)) {
+            dict.Add(level, new List<JsonElement>());
+	  }
+
+          if (elm.TryGetProperty("leaf", out JsonElement leafJsonNode)) {
+            dict[level].Add(elm);
+  	  } else if (elm.TryGetProperty("children", out JsonElement internalJsonNode)) {
+            dict[level].Add(elm);
+            if (elm.TryGetProperty("yes", out JsonElement yesNodeId)) {
+                lte.Add(nodeId, yesNodeId.ToString());
+            }
+
+            if (elm.TryGetProperty("no", out JsonElement noNodeId)) {
+                gt.Add(nodeId, noNodeId.ToString());
+            }
+            
+            foreach(var e in internalJsonNode.EnumerateArray()) {
+                PopulateTable(e, level + 1);
+            }
+          } else {
+            throw new Exception("Invalid booster content");
+          }
+	}
+      }
 #endregion
 
 	#region IDisposable Support
