@@ -41,7 +41,7 @@ namespace Microsoft.ML.RunTests
             var fValTX = textFVal.ToString().AsMemory();
             txToR4(in fValTX, ref fVal);
 
-            Assert.Equal(fVal, float.NaN);
+            Assert.Equal(float.NaN, fVal);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace Microsoft.ML.RunTests
             var dValTX = textDVal.ToString().AsMemory();
             txToR8(in dValTX, ref dVal);
 
-            Assert.Equal(dVal, double.NaN);
+            Assert.Equal(double.NaN, dVal);
         }
 
         [Fact]
