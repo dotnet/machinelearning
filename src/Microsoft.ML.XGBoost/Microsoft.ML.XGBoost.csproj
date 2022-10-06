@@ -24,7 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
+  <!--
     <PackageReference Include="XGBoost" Version="$(XGBoostVersion)" />
+      -->
+    <PackageReference Include="System.Text.Json" Version="7.0.0-rc.1.22426.10" />
   </ItemGroup>
 
 </Project>
