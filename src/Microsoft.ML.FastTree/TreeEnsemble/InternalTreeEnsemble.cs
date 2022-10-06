@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.Pfa;
@@ -25,6 +26,25 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly string _firstInputInitializationContent;
         private readonly List<InternalRegressionTree> _trees;
 
+        // oneDAL model specific properties
+        public enum OneDalModelType : byte
+        {
+            Regression = 0,
+            Classification = 1
+        }
+        private readonly OneDalModelType _oneDalModelType;
+        private readonly byte[] _oneDalModel;
+        private readonly int _oneDalModelSize;
+
+        internal static class OneDal
+        {
+            private const string OneDalLibPath = "OneDalNative";
+
+            [DllImport(OneDalLibPath, EntryPoint = "decisionForestClassificationPrediction")]
+            public static extern unsafe double DecisionForestClassificationPrediction(
+                void* featuresPtr, int nColumns, int nClasses, void* modelPtr, int modelSize);
+        }
+
         public IEnumerable<InternalRegressionTree> Trees => _trees;
 
         public double Bias { get; set; }
@@ -34,6 +54,15 @@ namespace Microsoft.ML.Trainers.FastTree
         public InternalTreeEnsemble()
         {
             _trees = new List<InternalRegressionTree>();
+            _oneDalModel = null;
+        }
+
+        public InternalTreeEnsemble(byte[] oneDalModel, int oneDalModelSize, OneDalModelType oneDalModelType)
+        {
+            _trees = new List<InternalRegressionTree>();
+            _oneDalModel = oneDalModel;
+            _oneDalModelSize = oneDalModelSize;
+            _oneDalModelType = oneDalModelType;
         }
 
         public InternalTreeEnsemble(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
@@ -54,6 +83,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 AddTree(InternalRegressionTree.Load(ctx, usingDefaultValues, categoricalSplits));
             Bias = ctx.Reader.ReadDouble();
             _firstInputInitializationContent = ctx.LoadStringOrNull();
+            _oneDalModel = null;
         }
 
         internal void Save(ModelSaveContext ctx)
@@ -258,8 +288,31 @@ namespace Microsoft.ML.Trainers.FastTree
         public double GetOutput(in VBuffer<float> feat)
         {
             double output = 0.0;
-            for (int h = 0; h < NumTrees; h++)
-                output += _trees[h].GetOutput(in feat);
+            if (_oneDalModel != null)
+            {
+                var featuresToCopy = feat.GetValues();
+                int nFeatures = feat.Length;
+                float[] featuresArray = new float[nFeatures];
+                for (int i = 0; i < nFeatures; ++i)
+                    featuresArray[i] = featuresToCopy[i];
+
+                unsafe
+                {
+    #pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+                    fixed (void* featuresPtr = &featuresArray[0], modelPtr = &_oneDalModel[0])
+    #pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+                    {
+                        if (_oneDalModelType == OneDalModelType.Classification)
+                            output = OneDal.DecisionForestClassificationPrediction(featuresPtr, nFeatures, 2, modelPtr, _oneDalModelSize);
+                        output = (1.0 - 2.0 * output) * (double)NumTrees;
+                    }
+                }
+            }
+            else
+            {
+                for (int h = 0; h < NumTrees; h++)
+                    output += _trees[h].GetOutput(in feat);
+            }
             return output;
         }
 
