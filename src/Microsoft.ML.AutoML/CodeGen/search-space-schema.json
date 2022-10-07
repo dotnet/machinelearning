@@ -109,7 +109,8 @@
         "load_image_option",
         "image_classification_option",
         "matrix_factorization_option",
-        "dnn_featurizer_image_option"
+        "dnn_featurizer_image_option",
+        "text_classification_option"
       ]
     },
     "option_name": {
@@ -154,7 +155,8 @@
         "NumberOfIterations",
         "Quiet",
         "OutputAsFloatArray",
-        "ModelFactory"
+        "ModelFactory",
+        "Sentence1ColumnName"
       ]
     },
     "option_type": {
