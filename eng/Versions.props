@@ -40,6 +40,11 @@
     <MicrosoftMLFeaturizersVersion>0.4.1</MicrosoftMLFeaturizersVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.10.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
+    <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
+    <MlNetMklDepsPackageVersion>0.0.0.12</MlNetMklDepsPackageVersion>
+    <OneDalDevelReducedPackageVersion>2021.7.0</OneDalDevelReducedPackageVersion>
+    <OneDalBinaryMajorVersion>1</OneDalBinaryMajorVersion>
+    <OneDalBinaryMinorVersion>1</OneDalBinaryMinorVersion>
     <MSTestTestAdapterVersion>2.1.0</MSTestTestAdapterVersion>
     <MSTestTestFrameworkVersion>2.1.0</MSTestTestFrameworkVersion>
     <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
