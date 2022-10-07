@@ -223,7 +223,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     PrintPrologInfo(ch);
 
                     Initialize(ch);
-                    PrintMemoryStats(ch);
+                    if (FastTreeTrainerOptions.MemoryStatistics)
+                        PrintMemoryStats(ch);
                 }
                 using (Timer.Time(TimerEvent.TotalTrain))
                     Train(ch);
