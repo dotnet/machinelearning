@@ -36,7 +36,6 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public ImmutableArray<int> Dimensions { get; }
 
-        private static volatile VectorDataViewType _instance;
         /// <summary>
         /// Constructs a new single-dimensional vector type.
         /// </summary>
@@ -86,16 +85,6 @@ namespace Microsoft.ML.Data
             ItemType = itemType;
             Dimensions = dimensions;
             Size = ComputeSize(Dimensions);
-        }
-
-        public static VectorDataViewType Instance
-        {
-            get
-            {
-                return _instance ??
-                    Interlocked.CompareExchange(ref _instance, new VectorDataViewType(NumberDataViewType.Single, 2), null) ??
-                    _instance;
-            }
         }
 
         private static Type GetRawType(PrimitiveDataViewType itemType)

@@ -118,7 +118,18 @@ namespace Microsoft.ML
                     var itemType = vectoryType.ItemType;
                     //type.ItemType && type.Size
                     var subType = dataViewColumn.Annotations;
-                    dataFrameColumns.Add(new VBufferDataFrameColumn<Single>(dataViewColumn.Name));
+                    if (itemType.RawType.FullName == "System.Single")
+                    {
+                        dataFrameColumns.Add(new VBufferDataFrameColumn<Single>(dataViewColumn.Name));
+                    }
+                    else if (itemType.RawType.FullName == "System.Int32")
+                    {
+                        dataFrameColumns.Add(new VBufferDataFrameColumn<Int32>(dataViewColumn.Name));
+                    }
+                    else if (itemType.RawType.FullName == "System.String")
+                    {
+                        dataFrameColumns.Add(new VBufferDataFrameColumn<string>(dataViewColumn.Name));
+                    }
                 }
                 else
                 {
