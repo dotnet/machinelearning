@@ -37,7 +37,6 @@
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.22314.1</MicrosoftDotNetInteractiveFormattingVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.22314.1</MicrosoftDotNetInteractiveVersion>
-    <MicrosoftMLFeaturizersVersion>0.4.1</MicrosoftMLFeaturizersVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.10.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
     <MSTestTestAdapterVersion>2.1.0</MSTestTestAdapterVersion>
