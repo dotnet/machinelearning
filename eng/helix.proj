@@ -62,7 +62,7 @@
     <!-- TargetFramework of the xunit.runner.dll to use when running the tests -->
     <XUnitRuntimeTargetFramework>netcoreapp2.0</XUnitRuntimeTargetFramework>
     <!-- PackageVersion of xunit.runner.console to use -->
-    <XUnitRunnerVersion>2.4.0</XUnitRunnerVersion>
+    <XUnitRunnerVersion>2.4.2</XUnitRunnerVersion>
     <!-- Additional command line arguments to pass to xunit.console.exe -->
   </PropertyGroup>
 
