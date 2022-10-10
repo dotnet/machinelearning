@@ -28,12 +28,12 @@ jobs:
         _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
       Release_Build:
         _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
     innerLoop: true
     pool:
       name: NetCore-Public
@@ -51,12 +51,12 @@ jobs:
         _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
       Release_Build:
         _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
     innerLoop: true
     pool:
       name: NetCore-Public
