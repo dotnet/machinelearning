@@ -832,7 +832,7 @@ CMT,1,1,null";
             using MemoryStream csvStream = new MemoryStream();
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, true);
 
-            DataFrame.WriteCsv(dataFrame, csvStream);
+            DataFrame.SaveCsv(dataFrame, csvStream);
 
             csvStream.Seek(0, SeekOrigin.Begin);
             DataFrame readIn = DataFrame.LoadCsv(csvStream);
@@ -853,7 +853,7 @@ CMT,1,1,null";
         }
 
         [Fact]
-        public void TestWriteCsvWithCultureInfoRomanianAndSemiColon()
+        public void TestSaveCsvWithCultureInfoRomanianAndSemiColon()
         {
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithNumericColumns(10, true);
             dataFrame[1, 1] = 1.1M;
@@ -863,7 +863,7 @@ CMT,1,1,null";
             using MemoryStream csvStream = new MemoryStream();
             var cultureInfo = new CultureInfo("ro-RO");
             var separator = ';';
-            DataFrame.WriteCsv(dataFrame, csvStream, separator: separator, cultureInfo: cultureInfo);
+            DataFrame.SaveCsv(dataFrame, csvStream, separator: separator, cultureInfo: cultureInfo);
 
             csvStream.Seek(0, SeekOrigin.Begin);
             DataFrame readIn = DataFrame.LoadCsv(csvStream, separator: separator);
@@ -887,7 +887,7 @@ CMT,1,1,null";
         }
 
         [Fact]
-        public void TestWriteCsvWithCultureInfo()
+        public void TestSaveCsvWithCultureInfo()
         {
             using MemoryStream csvStream = new MemoryStream();
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithNumericColumns(10, true);
@@ -896,7 +896,7 @@ CMT,1,1,null";
             dataFrame[1, 3] = 1.3F;
 
             var cultureInfo = new CultureInfo("en-US");
-            DataFrame.WriteCsv(dataFrame, csvStream, cultureInfo: cultureInfo);
+            DataFrame.SaveCsv(dataFrame, csvStream, cultureInfo: cultureInfo);
 
             csvStream.Seek(0, SeekOrigin.Begin);
             DataFrame readIn = DataFrame.LoadCsv(csvStream);
@@ -917,7 +917,7 @@ CMT,1,1,null";
         }
 
         [Fact]
-        public void TestWriteCsvWithCultureInfoRomanianAndComma()
+        public void TestSaveCsvWithCultureInfoRomanianAndComma()
         {
             using MemoryStream csvStream = new MemoryStream();
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithNumericColumns(10, true);
@@ -925,16 +925,16 @@ CMT,1,1,null";
             var cultureInfo = new CultureInfo("ro-RO");
             var separator = cultureInfo.NumberFormat.NumberDecimalSeparator.First();
 
-            Assert.Throws<ArgumentException>(() => DataFrame.WriteCsv(dataFrame, csvStream, separator: separator, cultureInfo: cultureInfo));
+            Assert.Throws<ArgumentException>(() => DataFrame.SaveCsv(dataFrame, csvStream, separator: separator, cultureInfo: cultureInfo));
         }
 
         [Fact]
-        public void TestWriteCsvWithNoHeader()
+        public void TestSaveCsvWithNoHeader()
         {
             using MemoryStream csvStream = new MemoryStream();
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, true);
 
-            DataFrame.WriteCsv(dataFrame, csvStream, header: false);
+            DataFrame.SaveCsv(dataFrame, csvStream, header: false);
 
             csvStream.Seek(0, SeekOrigin.Begin);
             DataFrame readIn = DataFrame.LoadCsv(csvStream, header: false);
@@ -955,13 +955,13 @@ CMT,1,1,null";
         }
 
         [Fact]
-        public void TestWriteCsvWithSemicolonSeparator()
+        public void TestSaveCsvWithSemicolonSeparator()
         {
             using MemoryStream csvStream = new MemoryStream();
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, true);
 
             var separator = ';';
-            DataFrame.WriteCsv(dataFrame, csvStream, separator: separator);
+            DataFrame.SaveCsv(dataFrame, csvStream, separator: separator);
 
             csvStream.Seek(0, SeekOrigin.Begin);
             DataFrame readIn = DataFrame.LoadCsv(csvStream, separator: separator);
@@ -1261,14 +1261,14 @@ CMT,";
 
         [Theory]
         [MemberData(nameof(CsvWithTextQualifiers_TestData))]
-        public void TestWriteCsvWithTextQualifiers(string data, char separator, Type[] dataTypes, LoadCsvVerifyingHelper helper)
+        public void TestSaveCsvWithTextQualifiers(string data, char separator, Type[] dataTypes, LoadCsvVerifyingHelper helper)
         {
             DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: dataTypes, separator: separator);
 
             using MemoryStream csvStream = new MemoryStream();
-            DataFrame.WriteCsv(df, csvStream, separator: separator);
+            DataFrame.SaveCsv(df, csvStream, separator: separator);
 
-            // We are verifying that WriteCsv works by reading the result back to a DataFrame and verifying correctness,
+            // We are verifying that SaveCsv works by reading the result back to a DataFrame and verifying correctness,
             // ensuring no information loss
             csvStream.Seek(0, SeekOrigin.Begin);
             DataFrame df2 = DataFrame.LoadCsv(csvStream, dataTypes: dataTypes, separator: separator);
