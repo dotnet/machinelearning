@@ -1022,7 +1022,7 @@ namespace Microsoft.ML.Tests
 
             private static ImageBase LoadImageFromFile(string imagePath)
             {
-                using Stream stream = new FileStream(imagePath, FileMode.Open);
+                using Stream stream = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 return ImageBase.CreateFromStream(stream);
             }
         }
