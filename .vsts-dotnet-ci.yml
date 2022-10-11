@@ -20,7 +20,7 @@ jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm
-    name: Ubuntu_x64_cross_arm_NetCoreApp31
+    name: Ubuntu_x64_cross_arm_Net60
     buildScript: ./build.sh
     container: UbuntuCrossArmContainer
     customMatrixes:
@@ -43,7 +43,7 @@ jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm64
-    name: Ubuntu_x64_cross_arm64_NetCoreApp31
+    name: Ubuntu_x64_cross_arm64_Net60
     buildScript: ./build.sh
     container: UbuntuCrossArm64Container
     customMatrixes:
@@ -65,7 +65,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Centos_x64_NetCoreApp31
+    name: Centos_x64_Net60
     buildScript: ./build.sh
     container: CentosContainer
     innerLoop: true
@@ -76,7 +76,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Ubuntu_x64_NetCoreApp31
+    name: Ubuntu_x64_Net60
     buildScript: ./build.sh
     container: UbuntuContainer
     innerLoop: true
@@ -87,7 +87,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: MacOS_x64_NetCoreApp31
+    name: MacOS_x64_Net60
     buildScript: ./build.sh
     innerLoop: true
     pool:
@@ -117,7 +117,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp31
+    name: Windows_x64_Net60
     buildScript: build.cmd
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
@@ -150,7 +150,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x86_NetCoreApp31
+    name: Windows_x86_Net60
     architecture: x86
     buildScript: build.cmd
     innerLoop: true
