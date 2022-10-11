@@ -12,13 +12,13 @@ namespace Microsoft.ML.AutoML
     public interface IMetricManager
     {
         bool IsMaximize { get; }
+
+        string MetricName { get; }
     }
 
     public interface IEvaluateMetricManager : IMetricManager
     {
         double Evaluate(MLContext context, IDataView eval);
-
-        string MetricName { get; }
     }
 
     internal class BinaryMetricManager : IEvaluateMetricManager
