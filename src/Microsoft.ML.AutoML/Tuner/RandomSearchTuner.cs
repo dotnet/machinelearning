@@ -19,9 +19,13 @@ namespace Microsoft.ML.AutoML
 
         public RandomSearchTuner(SearchSpace.SearchSpace searchSpace, int? seed = null)
         {
-            _tuner = new RandomTuner(seed);
+            if (seed == null)
+                _tuner = new RandomTuner();
+            else
+                _tuner = new RandomTuner(seed.Value);
             _searchSpace = searchSpace;
         }
+
         public Parameter Propose(TrialSettings settings)
         {
             return _tuner.Propose(_searchSpace);

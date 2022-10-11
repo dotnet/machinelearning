@@ -352,10 +352,6 @@ namespace Microsoft.ML.AutoML
                     return TrainerName.FastTreeTweedieRegression;
                 case RegressionTrainer.LightGbm:
                     return TrainerName.LightGbmRegression;
-                case RegressionTrainer.OnlineGradientDescent:
-                    return TrainerName.OnlineGradientDescentRegression;
-                case RegressionTrainer.Ols:
-                    return TrainerName.OlsRegression;
                 case RegressionTrainer.LbfgsPoissonRegression:
                     return TrainerName.LbfgsPoissonRegression;
                 case RegressionTrainer.StochasticDualCoordinateAscent:

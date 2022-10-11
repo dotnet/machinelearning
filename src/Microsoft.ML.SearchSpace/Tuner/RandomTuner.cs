@@ -23,6 +23,11 @@ namespace Microsoft.ML.SearchSpace.Tuner
             }
         }
 
+        public RandomTuner(int seed)
+        {
+            _rnd = new Random(seed);
+        }
+
         public Parameter Propose(SearchSpace searchSpace)
         {
             var d = searchSpace.FeatureSpaceDim;

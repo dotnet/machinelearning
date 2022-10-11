@@ -70,7 +70,8 @@
               "ExtractPixels",
               "DnnFeaturizerImage",
               "Naive",
-              "ForecastBySsa"
+              "ForecastBySsa",
+              "TextClassifcation"
             ]
           },
           "nugetDependencies": {
@@ -89,6 +90,7 @@
                 "Microsoft.ML.ImageAnalytics",
                 "SciSharp.TensorFlow.Redist",
                 "Microsoft.ML.OnnxTransformer",
+                "Microsoft.ML.TorchSharp",
                 "Microsoft.ML.OnnxRuntime",
                 "Microsoft.ML.TimeSeries"
               ]
@@ -182,7 +184,8 @@
                     "confidenceUpperBoundColumn",
                     "confidenceLevel",
                     "variableHorizon",
-                    "modelFactory"
+                    "modelFactory",
+                    "sentence1ColumnName"
                   ]
                 },
                 "argumentType": {

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.ML.SearchSpace.Option;
 
 namespace Microsoft.ML.SearchSpace
@@ -151,6 +153,30 @@ namespace Microsoft.ML.SearchSpace
             }
 
             return res.ToArray();
+        }
+
+        public override int GetHashCode()
+        {
+            // hash code is calculated in the following process
+            // 1. sample parameter from search space with all feature value equals to 0.5
+            // 2. serialize sampled parameter to json string
+            // 3. return json string hash code
+
+            var featureSpace = Enumerable.Repeat(0.5, FeatureSpaceDim).ToArray();
+            var parameter = SampleFromFeatureSpace(featureSpace);
+            var json = JsonSerializer.Serialize(parameter);
+
+            // we need to make sure the hash code is the same not only during the same training session, but also
+            // on different platform/CLR, so we can't use string.GetHashCode() here.
+            uint hash = 31;
+            foreach (var c in json)
+            {
+                hash = ((hash << 5) + hash) ^ c;
+            }
+
+            // make sure hash code is greater than 0
+
+            return (int)(hash >> 1);
         }
 
         private Dictionary<string, OptionBase> GetOptionsFromType(Type typeInfo)

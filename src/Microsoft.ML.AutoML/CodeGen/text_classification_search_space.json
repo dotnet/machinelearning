@@ -1,0 +1,16 @@
+﻿{
+  "$schema": "./search-space-schema.json#",
+  "name": "text_classification_option",
+  "search_space": [
+    {
+      "name": "LabelColumnName",
+      "type": "string",
+      "default": "Label"
+    },
+    {
+      "name": "Sentence1ColumnName",
+      "type": "string",
+      "default": "Feature"
+    }
+  ]
+}
