@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var stats = modelParams.Statistics;
                 Assert.NotNull(stats);
 
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
                 CompareNumbersWithTolerance(stats.Deviance, 45.79, digitsOfPrecision: 0);
                 CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
 #else

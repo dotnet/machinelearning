@@ -112,7 +112,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         private static void CheckProperFlag(string mode)
         {
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             if (mode == _defaultMode)
             {
                 Assert.True(System.Runtime.Intrinsics.X86.Avx.IsSupported);
@@ -148,7 +148,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     {  _defaultMode, "0", null },
                     {  _defaultMode, "1", null },
                     {  _defaultMode, "2", null },
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
                     { _disableAvx, "0", _disableAvxEnvironmentVariables },
                     { _disableAvx, "1", _disableAvxEnvironmentVariables },
 
@@ -181,7 +181,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     { _defaultMode, "0", "-1.7", null },
                     { _defaultMode, "1", "-1.7", null },
                     { _defaultMode, "2", "-1.7", null },
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
                     {  _disableAvx, "0", "1.7", _disableAvxEnvironmentVariables },
                     {  _disableAvx, "1", "1.7", _disableAvxEnvironmentVariables },
                     {  _disableAvx, "0", "-1.7", _disableAvxEnvironmentVariables },

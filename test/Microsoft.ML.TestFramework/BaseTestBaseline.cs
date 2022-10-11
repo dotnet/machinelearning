@@ -140,7 +140,8 @@ namespace Microsoft.ML.RunTests
                 else
                     configurationDirs.Add("win-x86");
 
-            // Use netcore 3.1 result file if necessary.
+#if NETCOREAPP3_1_OR_GREATER
+            // Use netcoreapp3.1 result file if necessary.
             // The small difference comes from CPUMath using different instruction set:
             // 1. net framework and net core 2.1 uses CpuMathUtils.netstandard that uses SSE instruction set;
             // 2. net core 3.1 uses CpuMathUtils.netcoreapp that uses AVX, SSE or direct floating point calculation
@@ -149,8 +150,8 @@ namespace Microsoft.ML.RunTests
             // So Ideally we should adding AVX support at CPUMath native library,
             // use below issue to track: https://github.com/dotnet/machinelearning/issues/5044
             // don't need netcoreapp21 as this is the default case
-            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-                configurationDirs.Add("netcoreapp31");
+            configurationDirs.Add("netcoreapp31");
+#endif
 
             return configurationDirs;
         }
