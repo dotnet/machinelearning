@@ -1,6 +1,6 @@
 {
   "tools": {
-    "dotnet": "7.0.100-rc.1.22431.12",
+    "dotnet": "7.0.100-rc.2.22477.23",
     "runtimes": {
       "dotnet/x64": [
         "$(DotNetRuntime31Version)"
